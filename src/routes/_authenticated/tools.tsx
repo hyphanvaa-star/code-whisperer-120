@@ -10,7 +10,8 @@ import { getWx, type Wx } from "@/lib/ops.functions";
 import { fmtUtc } from "@/lib/flight-model";
 import { matchGlobal, useGlobalFilters } from "@/lib/global-filters";
 import { wxAdvice, wxClass } from "@/lib/wx";
-import { downloadText } from "@/lib/download";
+import { saveBlob } from "@/lib/download";
+const downloadText = (n: string, t: string) => saveBlob(new Blob([t], { type: "text/plain" }), n);
 
 export const Route = createFileRoute("/_authenticated/tools")({
   head: () => ({
