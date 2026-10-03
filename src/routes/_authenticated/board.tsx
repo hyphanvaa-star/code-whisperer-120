@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useGlobalFilters, matchGlobal } from "@/lib/global-filters";
 import { toast } from "sonner";
 import { zipSync } from "fflate";
 import { RefreshCw, Download, Square, Search, FileText, Eye, AlertTriangle, Lock } from "lucide-react";
@@ -75,9 +76,11 @@ function Board() {
     return [...m].sort((a, b) => a[0].localeCompare(b[0]));
   }, [flights]);
 
+  const [gf] = useGlobalFilters();
   const filtered = useMemo(() => {
     const t = text.trim().toUpperCase();
     return flights.filter((f) => {
+      if (!matchGlobal(f, gf)) return false;
       if (dispatcher !== ALL && (f.dispatcher || "(chưa gán)") !== dispatcher) return false;
       if (t && !`${f.callsign} ${f.reg} ${f.planNo}`.toUpperCase().includes(t)) return false;
       if (dep && !f.dep.includes(dep.toUpperCase()) && !f.depIata.includes(dep.toUpperCase())) return false;
@@ -87,7 +90,7 @@ function Board() {
       if (pib === "ok" && f.pibWx !== "OK") return false;
       return true;
     });
-  }, [flights, dispatcher, text, dep, dest, onlyPdf, pib]);
+  }, [flights, gf, dispatcher, text, dep, dest, onlyPdf, pib]);
 
   const selected = flights.find((f) => f.id === selectedId) ?? null;
 
