@@ -36,13 +36,13 @@ function toSheet(name: string, rows: Cell[][]): Sheet | null {
     if (s > bs) { bi = i; bs = s; }
   });
   if (bs <= 0) return null;
-  const header = dedupe(rows[bi].map(clean));
+  const header = dedupe(rows[bi]!.map(clean));
   const body = rows.slice(bi + 1).filter((r) => r.some((v) => clean(v))).slice(0, 20000);
   return { name, header, rows: body, headerRow: bi };
 }
 
 function parseCsv(text: string): Cell[][] {
-  const delim = (text.split("\n")[0].match(/;/g)?.length ?? 0) > (text.split("\n")[0].match(/,/g)?.length ?? 0) ? ";" : ",";
+  const delim = ((text.split("\n")[0] ?? "").match(/;/g)?.length ?? 0) > ((text.split("\n")[0] ?? "").match(/,/g)?.length ?? 0) ? ";" : ",";
   const out: Cell[][] = [];
   let row: Cell[] = [], cur = "", q = false;
   for (let i = 0; i < text.length; i++) {
@@ -126,14 +126,14 @@ const nameTokens = (v: unknown) => new Set(v == null ? [] : String(v).toUpperCas
 const CREW_PAIR = /\(([^)]*)\)\s*-?\s*(\d{3,6})/g;
 const strip0 = (s: string) => s.replace(/^0+/, "");
 export const crewEntries = (raw: unknown): [string, string][] =>
-  raw == null ? [] : [...String(raw).matchAll(CREW_PAIR)].map((m) => [m[1].trim(), m[2]]);
+  raw == null ? [] : [...String(raw).matchAll(CREW_PAIR)].map((m) => [m[1]!.trim(), m[2]!]);
 export function staffIds(raw: unknown, skipDhd = true): Set<string> {
   if (raw == null) return new Set();
   const pairs = crewEntries(raw);
   if (pairs.length) return new Set(pairs.filter(([f]) => !(skipDhd && f.toUpperCase().includes("DHD"))).map(([, i]) => strip0(i)));
   const t = String(raw);
-  const a = [...t.matchAll(/\)\s*-?\s*(\d{3,6})/g)].map((m) => strip0(m[1]));
-  return new Set(a.length ? a : [...t.matchAll(/\b(\d{3,6})\b/g)].map((m) => strip0(m[1])));
+  const a = [...t.matchAll(/\)\s*-?\s*(\d{3,6})/g)].map((m) => strip0(m[1]!));
+  return new Set(a.length ? a : [...t.matchAll(/\b(\d{3,6})\b/g)].map((m) => strip0(m[1]!)));
 }
 export const dhdIds = (raw: unknown) => new Set(crewEntries(raw).filter(([f]) => f.toUpperCase().includes("DHD")).map(([, i]) => strip0(i)));
 const crewId = (u: string) => strip0(String(u || "").match(/(\d+)\s*$/)?.[1] ?? "");
@@ -197,10 +197,10 @@ export function normDate(v: Cell): DayV | null {
   const s = String(v).trim().toUpperCase();
   const ok = (y: number, m: number, d: number) => (m >= 1 && m <= 12 && d >= 1 && d <= 31 ? { y: y < 100 ? 2000 + y : y, m, d } : null);
   let m: RegExpMatchArray | null;
-  if ((m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/))) return ok(+m[1], +m[2], +m[3]);
-  if ((m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})$/))) return ok(+m[3], +m[2], +m[1]);
-  if ((m = s.match(/^(\d{1,2})([A-Z]{3})(\d{2,4})$/)) && MON[m[2]]) return ok(+m[3], MON[m[2]], +m[1]);
-  if ((m = s.match(/^(\d{4})(\d{2})(\d{2})$/))) return ok(+m[1], +m[2], +m[3]);
+  if ((m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/))) return ok(+m[1]!, +m[2]!, +m[3]!);
+  if ((m = s.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})$/))) return ok(+m[3]!, +m[2]!, +m[1]!);
+  if ((m = s.match(/^(\d{1,2})([A-Z]{3})(\d{2,4})$/)) && MON[m[2]!]) return ok(+m[3]!, MON[m[2]!], +m[1]!);
+  if ((m = s.match(/^(\d{4})(\d{2})(\d{2})$/))) return ok(+m[1]!, +m[2]!, +m[3]!);
   return null;
 }
 export function normTime(v: Cell): TimeV | null {
