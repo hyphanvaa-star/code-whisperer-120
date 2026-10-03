@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/compare")({
   ),
 });
 
-function FilePick({ label, onFile, name }: { label: string; onFile: (f: File) => void; name?: string }) {
+function FilePick({ label, onFile, name }: { label: string; onFile: (f: File) => void; name?: string | undefined }) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ async function pool<T, R>(items: T[], n: number, fn: (t: T) => Promise<R>, onTic
   const out: R[] = new Array(items.length);
   let i = 0, done = 0;
   await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
-    while (i < items.length) { const k = i++; out[k] = await fn(items[k]); onTick?.(++done); }
+    while (i < items.length) { const k = i++; out[k] = await fn(items[k]!); onTick?.(++done); }
   }));
   return out;
 }
@@ -95,13 +95,13 @@ function FbCompare() {
       const fr = await fetchFlights({ data: { days: Number(days) } });
       if (fr.error) throw new Error(fr.error);
       const crews = new Map<number, Crew[]>();
-      const wantCrew = mapping.crew && (all || DEFAULT_FIELDS.includes("crew"));
+      const wantCrew = mapping["crew"] && (all || DEFAULT_FIELDS.includes("crew"));
       if (wantCrew) {
         const m = matchedFlights(sheet, fr.flights, mapping);
         setBusy(`Đang tải tổ bay 0/${m.length}…`);
         await pool(m, 6, async (f) => { const r = await fetchCrews({ data: { sectorId: f.id } }); crews.set(f.id, r.crews); }, (d) => setBusy(`Đang tải tổ bay ${d}/${m.length}…`));
       }
-      const r = compare(sheet, fr.flights, crews, { mapping, tolerance: Number(tol) || 0, fields: all ? undefined : DEFAULT_FIELDS });
+      const r = compare(sheet, fr.flights, crews, { mapping, tolerance: Number(tol) || 0, ...(all ? {} : { fields: DEFAULT_FIELDS }) });
       setRes(r);
       toast.success(`Đối chiếu xong: ${r.clean} khớp · ${r.mismatched} lệch · ${r.notFound} không thấy`);
     } catch (e) { toast.error((e as Error).message); }
@@ -126,7 +126,7 @@ function FbCompare() {
         const c = r.cells[k];
         if (!c) return k === "callsign" ? r.callsign : "";
         return c.mapped && c.same === false ? `${c.excel} ≠ ${c.flite}` : c.flite;
-      }), !r.matched ? "KHÔNG THẤY" : r.diffs.length ? `LỆCH ${r.diffs.map((d) => d.label).join(", ")}` : "KHỚP", [r.note, r.cells.crew?.detail].filter(Boolean).join(" · ")]);
+      }), !r.matched ? "KHÔNG THẤY" : r.diffs.length ? `LỆCH ${r.diffs.map((d) => d.label).join(", ")}` : "KHỚP", [r.note, r.cells["crew"]?.detail].filter(Boolean).join(" · ")]);
       if (!r.matched || r.diffs.length) line.font = { color: { argb: "FFC41E3A" } };
     }
     ws.columns.forEach((c) => { c.width = 18; });
