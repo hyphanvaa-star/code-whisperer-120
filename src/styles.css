@@ -64,7 +64,6 @@
   --color-info: var(--info);
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --color-header: var(--header-gradient);
 }
 
 :root {
@@ -117,4 +116,8 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
+}
+
+@utility bg-header {
+  background-image: var(--header-gradient);
 }
