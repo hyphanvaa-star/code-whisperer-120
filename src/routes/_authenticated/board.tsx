@@ -16,6 +16,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { getSetting } from "@/lib/settings.functions";
+import { getWx } from "@/lib/ops.functions";
+import { checkLimits, DEFAULT_LIMITS, type Limits } from "@/lib/limits";
+import { wxAdvice, wxClass } from "@/lib/wx";
 
 export const Route = createFileRoute("/_authenticated/board")({
   head: () => ({
@@ -93,6 +97,21 @@ function Board() {
   }, [flights, gf, dispatcher, text, dep, dest, onlyPdf, pib]);
 
   const selected = flights.find((f) => f.id === selectedId) ?? null;
+
+  const getSet = useServerFn(getSetting);
+  const limQ = useQuery({ queryKey: ["setting", "limits"], queryFn: () => getSet({ data: { key: "limits" } }) });
+  const limits = useMemo<Limits>(() => {
+    try { const v = limQ.data?.json ? JSON.parse(limQ.data.json) : null; return v?.aircraft ? v : DEFAULT_LIMITS; } catch { return DEFAULT_LIMITS; }
+  }, [limQ.data]);
+  const wxFn = useServerFn(getWx);
+  const destCodes = useMemo(() => [...new Set(filtered.map((f) => f.dest).filter((c) => /^[A-Z]{4}$/.test(c)))].sort().slice(0, 40), [filtered]);
+  const wxQ = useQuery({
+    queryKey: ["wx", destCodes.join(",")],
+    queryFn: () => wxFn({ data: { codes: destCodes } }),
+    enabled: destCodes.length > 0,
+    staleTime: 10 * 60_000,
+  });
+  const tafMap = useMemo(() => Object.fromEntries((wxQ.data?.wx ?? []).map((w) => [w.icao, w.taf])) as Record<string, string>, [wxQ.data]);
 
   // bulk download
   const [dl, setDl] = useState<{ done: number; total: number; label: string } | null>(null);
