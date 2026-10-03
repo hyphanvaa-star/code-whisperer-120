@@ -15,3 +15,4 @@
 - PDF downloads go through `/api/fb/file` with a bearer token, so external credentials never reach the browser.
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via the `handle_new_user` trigger.
 - Port of the original Python tool proceeds phase by phase per `roadmap.md`.
+- Business logic from the original Python tool is ported to server fns; a PC helper is only for printing/intranet-only sources, because the web runtime cannot run Python or reach company devices.

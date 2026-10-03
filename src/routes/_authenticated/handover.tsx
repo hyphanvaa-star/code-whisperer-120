@@ -75,7 +75,10 @@ function Handover() {
   }, [flightsQ.data]);
 
   async function load() {
-    if (!dsp) return toast.error("Chọn DSP trước");
+    if (!dsp) {
+      toast.error("Chọn DSP trước");
+      return;
+    }
     setBusy(true);
     try {
       const saved = await getFn({ data: { shift, date, fromDsp: dsp } });
