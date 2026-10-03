@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { LogOut, Plane, ShieldCheck, LayoutGrid, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMe } from "@/lib/flights.functions";
@@ -79,7 +79,6 @@ function Pending({ email }: { email: string }) {
   );
 }
 
-import { useEffect, useState } from "react";
 function UtcClock() {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
