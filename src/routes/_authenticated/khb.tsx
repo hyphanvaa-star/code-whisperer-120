@@ -126,8 +126,10 @@ function Khb() {
     for (const n of nums) {
       const k = n.replace(/\D/g, "").replace(/^0+/, ""); if (!k) continue;
       const c = flights.filter((f) => f.callsign.replace(/\D/g, "").replace(/^0+/, "") === k && matchGlobal(f, { ...gf, callsign: "" }))
-        .filter((f) => { const t = Date.parse(f.std ?? ""); return !t || (t > now - 6 * 3600e3 && t < now + 24 * 3600e3); })
+        .sort((a, b) => Math.abs(Date.parse(a.std ?? "") - now) - Math.abs(Date.parse(b.std ?? "") - now));
+      const inWin = c.filter((f) => { const t = Date.parse(f.std ?? ""); return t > now - 6 * 3600e3 && t < now + 24 * 3600e3; })
         .sort((a, b) => (a.std ?? "").localeCompare(b.std ?? ""));
+      if (inWin[0]) c.unshift(inWin[0]);
       if (c[0] && !found.includes(c[0])) found.push(c[0]); else if (!c[0]) miss.push(n);
     }
     return { found, miss };
@@ -145,7 +147,7 @@ function Khb() {
       return next;
     });
     setPending((p) => p.map((x, j) => (j === i ? "" : x)));
-    setStat(`${filled.length + found.length} chuyến trên bảng${miss.length ? `. Không có trên FliteBrief (−6h…+24h): ${miss.join(" ")}` : ""}`);
+    setStat(`Đã thêm ${found.length} chuyến${miss.length ? `. Không có trên FliteBrief: ${miss.join(" ")}` : ""}`);
   };
 
   const upd = (i: number, fn: (r: Row) => Row) => setRows((p) => p.map((x, j) => (j === i && x ? fn(x) : x)));
