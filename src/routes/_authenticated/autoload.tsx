@@ -75,7 +75,7 @@ function AutoLoad() {
   async function run() {
     const flights = fq.data?.flights ?? [];
     const specs = want.split(/[\s,;]+/).filter(Boolean);
-    if (!specs.length) return toast.info("Nhập số hiệu, ví dụ 5513 1832");
+    if (!specs.length) { toast.info("Nhập số hiệu, ví dụ 5513 1832"); return; }
     setBusy(true);
     const out: string[] = [];
     const files: Record<string, Uint8Array> = {};
