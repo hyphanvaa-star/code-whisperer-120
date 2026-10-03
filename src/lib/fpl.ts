@@ -121,7 +121,7 @@ export function renderFpl(db: FplDb, f: FplFlight, o: FplOpts): string {
 }
 
 /** FPL.req bytes: CRLF line endings, Windows-1258 (÷ = 0xF7). */
-export function reqBytes(text: string): Uint8Array {
+export function reqBytes(text: string): Uint8Array<ArrayBuffer> {
   let body = text.replace(/\r\n/g, "\n").replace(/\n/g, "\r\n");
   if (body && !body.endsWith("\r\n")) body += "\r\n";
   const out = new Uint8Array(body.length);

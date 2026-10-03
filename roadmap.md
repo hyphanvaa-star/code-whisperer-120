@@ -7,7 +7,8 @@
 - [ ] Tab ATC: check FPL trên AviWeb (AviWeb truy cập được từ web — viết lại không cần Selenium)
 - [x] Tab Notice: luật notice chỉnh được (lưu chung cả nhóm) + kiểm tra đính kèm theo chuyến
 - [x] Tab Tàu/Defect: kiểm tra giới hạn (defect, APU, curfew, sân đóng, loại tàu+sân) + sửa danh sách chung
-- [ ] Tab NOTAM, Tạo KHB/FPL, Công cụ hỗ trợ (PIB/WX)
+- [x] Tab Tạo KHB/FPL: sinh FPL text + FPL.req từ chuyến FliteBrief, bảng tra Sohee
+- [ ] Tab NOTAM, Công cụ hỗ trợ (PIB/WX)
 - [ ] Phase 3: Công cụ hỗ trợ — tải WX từ các đài khí tượng (TSN, Đà Nẵng, Nội Bài)
 - [ ] Phase 4: PIB (nguồn Outlook/OWA — cần xác định cách truy cập hộp thư từ web)
 - [ ] Phase 5: AIP / NOTAM / ATC FPL check, crew/reg swap, OPS core, AI chat
