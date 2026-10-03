@@ -265,33 +265,41 @@ function Board() {
                   />
                 </th>
                 <th className="px-2 py-2">Callsign</th>
-                <th className="px-2 py-2">Chặng</th>
-                <th className="px-2 py-2">STD</th>
+                <th className="px-2 py-2">Route</th>
+                <th className="px-2 py-2">STD/STA</th>
+                <th className="px-2 py-2">Status</th>
+                <th className="px-2 py-2">ALT</th>
                 <th className="px-2 py-2">Reg</th>
-                <th className="px-2 py-2">Reg Atch</th>
+                <th className="px-2 py-2">Limit</th>
+                <th className="px-2 py-2">Attch</th>
                 <th className="px-2 py-2">PIB/WX</th>
-                <th className="px-2 py-2">Trạng thái</th>
-                <th className="px-2 py-2">Dispatcher</th>
-                <th className="px-2 py-2 text-right">File</th>
+                <th className="px-2 py-2">TAF</th>
+                <th className="px-2 py-2 text-right">Extra</th>
+                <th className="px-2 py-2">DSP</th>
               </tr>
             </thead>
             <tbody>
               {q.isLoading &&
                 Array.from({ length: 12 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/50">
-                    <td colSpan={10} className="px-3 py-2.5">
+                    <td colSpan={13} className="px-3 py-2.5">
                       <div className="h-3 animate-pulse rounded bg-muted" />
                     </td>
                   </tr>
                 ))}
               {!q.isLoading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-3 py-12 text-center text-muted-foreground">
+                  <td colSpan={13} className="px-3 py-12 text-center text-muted-foreground">
                     Không có chuyến nào khớp bộ lọc.
                   </td>
                 </tr>
               )}
-              {filtered.map((f) => (
+              {filtered.map((f) => {
+                const lim = checkLimits(f, limits);
+                const crit = lim.some((w) => w.severity === "critical");
+                const taf = tafMap[f.dest];
+                const tafLv = taf ? wxAdvice(taf) : null;
+                return (
                 <tr
                   key={f.id}
                   onClick={() => setSelectedId(f.id)}
@@ -319,19 +327,25 @@ function Board() {
                   <td className="px-2 py-1.5 font-mono">
                     {f.dep}–{f.dest}
                   </td>
-                  <td className="px-2 py-1.5 font-mono">{fmtUtc(f.std)}</td>
-                  <td className="px-2 py-1.5 font-mono">{f.reg || "—"}</td>
-                  <td className="px-2 py-1.5">
-                    <RegBadge v={f.regMatch} />
+                  <td className="whitespace-nowrap px-2 py-1.5 font-mono text-xs">{fmtUtc(f.std)}<br /><span className="text-muted-foreground">{fmtUtc(f.sta)}</span></td>
+                  <td className="px-2 py-1.5 font-mono text-xs text-muted-foreground">{f.status || "—"}</td>
+                  <td className="px-2 py-1.5 font-mono text-xs">{[f.alt1, f.alt2].filter(Boolean).join(" ") || "—"}</td>
+                  <td className="px-2 py-1.5 font-mono">{f.reg || "—"} <RegBadge v={f.regMatch} /></td>
+                  <td className="px-2 py-1.5 text-xs" title={lim.map((w) => w.text).join("\n")}>
+                    {lim.length ? <span className={cn("rounded px-1.5 py-0.5", crit ? "bg-primary/15 font-semibold text-primary" : "bg-amber-400/25 text-amber-800")}>{crit ? "VI PHẠM" : "Lưu ý"} {lim.length}</span> : <span className="text-muted-foreground">—</span>}
                   </td>
+                  <td className="px-2 py-1.5 font-mono text-muted-foreground">{f.attachments.length}</td>
                   <td className="px-2 py-1.5">
                     <PibBadge v={f.pibWx} />
                   </td>
-                  <td className="px-2 py-1.5 font-mono text-xs text-muted-foreground">{f.status || "—"}</td>
+                  <td className="px-2 py-1.5 text-xs" title={taf || "Chưa có TAF"}>
+                    {tafLv ? <span className={cn("rounded px-1.5 py-0.5", wxClass[tafLv.level])}>{tafLv.level === "ok" ? "OK" : tafLv.reasons[0] || tafLv.level.toUpperCase()}</span> : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="px-2 py-1.5 text-right font-mono">{fmtNum(f.fuel.extra)}</td>
                   <td className="truncate px-2 py-1.5 text-muted-foreground">{f.dispatcher || "—"}</td>
-                  <td className="px-2 py-1.5 text-right font-mono text-muted-foreground">{f.attachments.length}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           {q.data && (
