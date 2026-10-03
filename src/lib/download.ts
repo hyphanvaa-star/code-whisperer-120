@@ -9,7 +9,7 @@ export async function fetchFbFile(
   if (!token) throw new Error("Phiên đăng nhập đã hết, đăng nhập lại");
   const q = new URLSearchParams({ sector: String(params.sector), kind: params.kind });
   if (params.att) q.set("att", String(params.att));
-  const res = await fetch(`/api/fb/file?${q}`, { headers: { Authorization: `Bearer ${token}` }, signal });
+  const res = await fetch(`/api/fb/file?${q}`, { headers: { Authorization: `Bearer ${token}` }, signal: signal ?? null });
   if (!res.ok) throw new Error(res.status === 404 ? "Chưa có file" : `Lỗi ${res.status}`);
   return res.blob();
 }

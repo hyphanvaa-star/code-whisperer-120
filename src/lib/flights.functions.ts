@@ -14,7 +14,7 @@ export const getFlights = createServerFn({ method: "POST" })
       let raw = await fbJson<unknown>(`/webapi/gantts?days=${data.days}`);
       if (raw && !Array.isArray(raw) && typeof raw === "object") {
         const o = raw as Record<string, unknown>;
-        raw = o.sectors ?? o.flights ?? o.data ?? o.results ?? [];
+        raw = o["sectors"] ?? o["flights"] ?? o["data"] ?? o["results"] ?? [];
       }
       const list = (Array.isArray(raw) ? raw : [])
         .filter((x): x is Record<string, unknown> => !!x && typeof x === "object")
