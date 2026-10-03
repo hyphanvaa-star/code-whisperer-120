@@ -2,7 +2,11 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, type ReactNode } from "react";
-import { LogOut, ShieldCheck, Clock, Sun, Moon, ArrowLeft } from "lucide-react";
+import {
+  LogOut, ShieldCheck, Clock, Sun, Moon, ArrowLeft, FileText, ClipboardList, LayoutGrid, ListChecks, Wrench,
+  FileWarning, Radio, Plane, Paperclip, User, Send, MapPin, Tag, X,
+} from "lucide-react";
+import { useGlobalFilters } from "@/lib/global-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { getMe } from "@/lib/flights.functions";
 import { Button } from "@/components/ui/button";
@@ -38,15 +42,15 @@ export function useShift() {
 }
 
 const TABS = [
-  { to: "/board", label: "Hiển thị chung" },
-  { to: "/compare", label: "Dữ liệu so sánh" },
-  { to: "/tools", label: "Công cụ hỗ trợ" },
-  { to: "/notam", label: "NOTAM" },
-  { to: "/khb", label: "Tạo KHB" },
-  { to: "/handover", label: "Giao ca" },
-  { to: "/aircraft", label: "Tàu / Defect" },
-  { to: "/notices", label: "Notice" },
-  { to: "/atc", label: "ATC" },
+  { to: "/khb", label: "Tạo KHB", icon: FileText },
+  { to: "/handover", label: "Giao ca", icon: ClipboardList },
+  { to: "/board", label: "Hiển thị chung", icon: LayoutGrid },
+  { to: "/compare", label: "Dữ liệu so sánh", icon: ListChecks },
+  { to: "/tools", label: "Công cụ hỗ trợ", icon: Wrench },
+  { to: "/notam", label: "Check NOTAM", icon: FileWarning },
+  { to: "/atc", label: "Check ATC avi", icon: Radio },
+  { to: "/aircraft", label: "Giới hạn tàu và sân bay", icon: Plane },
+  { to: "/notices", label: "Thiết lập file add", icon: Paperclip },
 ] as const;
 
 function useSignOut() {
@@ -73,64 +77,122 @@ function Brand() {
   );
 }
 
+function FilterField({ label, icon: Icon, children }: { label: string; icon: typeof User; children: ReactNode }) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-foreground/80">
+        <Icon className="h-3 w-3" /> {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+const fieldCls =
+  "h-8 rounded-lg border border-border bg-card px-2.5 font-mono text-xs uppercase text-foreground shadow-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-primary/20";
+
+function GlobalFilterBar() {
+  const [f, set] = useGlobalFilters();
+  return (
+    <div className="flex flex-wrap items-end gap-2.5">
+      <FilterField label="Dispatcher" icon={User}>
+        <input className={cn(fieldCls, "w-32 normal-case")} placeholder="— Tất cả —" value={f.dispatcher} onChange={(e) => set({ dispatcher: e.target.value })} />
+      </FilterField>
+      <FilterField label="Callsign" icon={Send}>
+        <input className={cn(fieldCls, "w-24")} placeholder="VJC210" value={f.callsign} onChange={(e) => set({ callsign: e.target.value })} />
+      </FilterField>
+      <FilterField label="Dep" icon={MapPin}>
+        <input className={cn(fieldCls, "w-20")} maxLength={4} placeholder="VVTS" value={f.dep} onChange={(e) => set({ dep: e.target.value })} />
+      </FilterField>
+      <FilterField label="Dest" icon={MapPin}>
+        <input className={cn(fieldCls, "w-20")} maxLength={4} placeholder="VVVH" value={f.dest} onChange={(e) => set({ dest: e.target.value })} />
+      </FilterField>
+      <FilterField label="Reg" icon={Tag}>
+        <input className={cn(fieldCls, "w-24")} placeholder="VNA666" value={f.reg} onChange={(e) => set({ reg: e.target.value })} />
+      </FilterField>
+      {(f.dispatcher || f.callsign || f.dep || f.dest || f.reg) && (
+        <button
+          onClick={() => set({ dispatcher: "", callsign: "", dep: "", dest: "", reg: "" })}
+          className="mb-0.5 inline-flex h-7 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11px] font-semibold text-primary hover:bg-primary/20"
+        >
+          <X className="h-3 w-3" /> Xoá lọc
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const me = useMe();
   const signOut = useSignOut();
   const [shift, setShift] = useShift();
 
   return (
-    <div className="flex h-screen flex-col bg-background">
-      <header className="bg-header shrink-0 text-primary-foreground shadow-md">
-        <div className="flex h-12 items-center gap-4 px-4">
-          <Brand />
-          <div className="flex rounded-full bg-primary-foreground/15 p-0.5 text-xs font-semibold">
-            {(["MORNING SHIFT", "NIGHT SHIFT"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setShift(s)}
-                className={cn(
-                  "flex items-center gap-1 rounded-full px-3 py-1 transition",
-                  shift === s ? "bg-card text-primary shadow" : "text-primary-foreground/85 hover:text-primary-foreground",
-                )}
-              >
-                {s === "MORNING SHIFT" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-                {s === "MORNING SHIFT" ? "Ca sáng" : "Ca đêm"}
-              </button>
-            ))}
-          </div>
+    <div className="bg-app flex h-screen flex-col gap-2 p-2">
+      <header className="shrink-0 rounded-2xl border border-primary/15 bg-header-soft px-4 py-2.5 shadow-sm">
+        <div className="flex flex-wrap items-center gap-4">
+          <GlobalFilterBar />
           <div className="ml-auto flex items-center gap-3">
+            <div className="flex rounded-full border border-border bg-card p-0.5 text-xs font-semibold">
+              {(["MORNING SHIFT", "NIGHT SHIFT"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setShift(s)}
+                  className={cn(
+                    "flex items-center gap-1 rounded-full px-3 py-1 transition",
+                    shift === s ? "bg-foreground text-background shadow" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {s === "MORNING SHIFT" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                  {s === "MORNING SHIFT" ? "Ca sáng" : "Ca đêm"}
+                </button>
+              ))}
+            </div>
             <UtcClock />
-            <span className="hidden text-sm text-primary-foreground/90 md:inline">{me.data?.name || me.data?.email}</span>
-            <button
-              onClick={signOut}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-primary-foreground/15"
-            >
-              <LogOut className="h-4 w-4" /> Thoát
-            </button>
+            <Link to="/board" className="flex flex-col items-end leading-none">
+              <span className="text-2xl font-extrabold tracking-tight text-foreground">
+                Dispatch <span className="text-info">Board</span>
+              </span>
+              <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow">
+                <Plane className="h-3.5 w-3.5" /> Vietjet Air
+              </span>
+            </Link>
+            <div className="flex flex-col items-end gap-1">
+              <span className="max-w-32 truncate text-xs text-muted-foreground">{me.data?.name || me.data?.email}</span>
+              <button
+                onClick={signOut}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-0.5 text-xs hover:bg-accent"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Thoát
+              </button>
+            </div>
           </div>
         </div>
       </header>
-      <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-border bg-card px-3">
-        {TABS.map((t) => (
-          <Link
-            key={t.to}
-            to={t.to}
-            className="relative whitespace-nowrap px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
-            activeProps={{ className: "!text-primary after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary" }}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
-      <div className="min-h-0 flex-1">
-        {me.isLoading ? (
-          <div className="p-8 text-sm text-muted-foreground">Đang tải…</div>
-        ) : me.data && !me.data.isDispatcher ? (
-          <Pending email={me.data.email} />
-        ) : (
-          children
-        )}
-      </div>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <nav className="flex shrink-0 gap-1.5 overflow-x-auto border-b border-primary/10 bg-header-soft px-3 py-2.5">
+          {TABS.map((t) => (
+            <Link
+              key={t.to}
+              to={t.to}
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-primary shadow-sm transition hover:-translate-y-px hover:border-primary/40"
+              activeProps={{ className: "!border-primary !bg-primary !text-primary-foreground shadow-md" }}
+            >
+              <t.icon className="h-3.5 w-3.5" />
+              {t.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="min-h-0 flex-1">
+          {me.isLoading ? (
+            <div className="p-8 text-sm text-muted-foreground">Đang tải…</div>
+          ) : me.data && !me.data.isDispatcher ? (
+            <Pending email={me.data.email} />
+          ) : (
+            children
+          )}
+        </div>
+      </main>
     </div>
   );
 }
