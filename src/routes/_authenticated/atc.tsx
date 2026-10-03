@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getFlights } from "@/lib/flights.functions";
 import type { Flight } from "@/lib/flight-model";
 import { matchGlobal, useGlobalFilters } from "@/lib/global-filters";
-import * as XLSX from "xlsx";
+import { saveBlob } from "@/lib/download";
 
 export const Route = createFileRoute("/_authenticated/atc")({
   head: () => ({
@@ -49,7 +49,7 @@ function parseAvi(text: string): Avi[] {
     const eobt = u.match(/\b([01]\d|2[0-3])([0-5]\d)\b/);
     const st = u.match(/\b(FILED|ACK|ACCEPTED|APPROVED|ACT|ACTIVE|CNL|CANCELLED|REJ|REJECTED|DLA|CHG|PENDING|SENT|NEW)\b/);
     out.push({
-      callsign: `VJ${cs[2]}`.replace(/^VJC/, "VJ"),
+      callsign: `VJ${cs[2] ?? ""}`.replace(/^VJC/, "VJ"),
       status: st?.[1] ?? "",
       reg: normReg(reg?.[1] ?? reg?.[2] ?? ""),
       eobt: eobt ? eobt[1] + eobt[2] : "",
@@ -74,15 +74,19 @@ function AtcPage() {
     return flights.filter((f) => matchGlobal(f, g)).map((f) => ({ a: null as Avi | null, f }));
   }, [avi, flights, g]);
 
-  const exportX = () => {
+  const exportX = async () => {
     const data = rows.map(({ a, f }, i) => ({
       "#": i + 1, "FLT NO": a?.callsign ?? f?.callsign, STATUS: a?.status ?? "", REG: a?.reg ?? "", "REG FB": f?.reg ?? "",
       "REG CHECK": a && f ? (normReg(a.reg) === normReg(f.reg) ? "TRUE" : "FALSE") : "N/A",
       EOBT: a?.eobt ?? "", STD: hhmm(f?.std ?? null), "STD CHECK": a?.eobt && f ? (a.eobt === hhmm(f.std) ? "TRUE" : "FALSE") : "", DOF: a?.dof ?? dofOf(f?.std ?? null),
     }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "ATC");
-    XLSX.writeFile(wb, `ATC_check_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const ExcelJS = (await import("exceljs")).default;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("ATC");
+    const cols = Object.keys(data[0] ?? {});
+    ws.addRow(cols).font = { bold: true };
+    for (const d of data) ws.addRow(cols.map((c) => (d as Record<string, unknown>)[c]));
+    saveBlob(new Blob([await wb.xlsx.writeBuffer()]), `ATC_check_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   return (

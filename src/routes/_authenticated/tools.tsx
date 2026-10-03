@@ -102,7 +102,7 @@ function ToolsPage() {
             </thead>
             <tbody>
               {rows.map((f) => {
-                const [lab, cls] = PIBWX[f.pibWx] ?? PIBWX.OK;
+                const [lab, cls] = PIBWX[f.pibWx] ?? ["Đủ", ""];
                 const pib = f.attachments.filter((a) => a.kind === "PIB").length;
                 return (
                   <tr key={f.id} className="border-t border-border align-top">

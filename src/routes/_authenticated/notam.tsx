@@ -46,8 +46,9 @@ const SEV = { hi: "border-l-primary bg-primary/5", mid: "border-l-amber-500 bg-a
 function parseCoord(c: string): [number, number] | null {
   const m = c.match(/^(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])/);
   if (!m) return null;
-  const lat = (+m[1] + +m[2] / 60) * (m[3] === "S" ? -1 : 1);
-  const lon = (+m[4] + +m[5] / 60) * (m[6] === "W" ? -1 : 1);
+  const [, a, b, ns, c, d, ew] = m as unknown as string[];
+  const lat = (Number(a) + Number(b) / 60) * (ns === "S" ? -1 : 1);
+  const lon = (Number(c) + Number(d) / 60) * (ew === "W" ? -1 : 1);
   return [lat, lon];
 }
 
