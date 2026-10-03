@@ -43,8 +43,8 @@ function sev(n: Notam): "hi" | "mid" | "lo" {
 const SEV = { hi: "border-l-primary bg-primary/5", mid: "border-l-amber-500 bg-amber-400/10", lo: "border-l-border" };
 
 // "2103N10548E" → [lat, lon]
-function parseCoord(c: string): [number, number] | null {
-  const m = c.match(/^(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])/);
+function parseCoord(raw: string): [number, number] | null {
+  const m = raw.match(/^(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])/);
   if (!m) return null;
   const [, a, b, ns, c, d, ew] = m as unknown as string[];
   const lat = (Number(a) + Number(b) / 60) * (ns === "S" ? -1 : 1);

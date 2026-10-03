@@ -52,7 +52,7 @@ function parseAvi(text: string): Avi[] {
       callsign: `VJ${cs[2] ?? ""}`.replace(/^VJC/, "VJ"),
       status: st?.[1] ?? "",
       reg: normReg(reg?.[1] ?? reg?.[2] ?? ""),
-      eobt: eobt ? eobt[1] + eobt[2] : "",
+      eobt: eobt ? `${eobt[1] ?? ""}${eobt[2] ?? ""}` : "",
       dof: dof?.[1] ?? dof?.[2] ?? "",
     });
   }
