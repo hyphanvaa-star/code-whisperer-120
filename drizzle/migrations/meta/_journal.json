@@ -8,6 +8,13 @@
       "when": 1791034019735,
       "tag": "0000_roles_profiles_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791035408623,
+      "tag": "0001_handovers",
+      "breakpoints": true
     }
   ]
 }
