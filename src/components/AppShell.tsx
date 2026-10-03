@@ -100,14 +100,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="ml-auto flex items-center gap-3">
             <UtcClock />
-            {me.data?.isAdmin && (
-              <Link
-                to="/admin"
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-primary-foreground/90 hover:bg-primary-foreground/15"
-              >
-                <ShieldCheck className="h-4 w-4" /> Quản trị
-              </Link>
-            )}
             <span className="hidden text-sm text-primary-foreground/90 md:inline">{me.data?.name || me.data?.email}</span>
             <button
               onClick={signOut}
