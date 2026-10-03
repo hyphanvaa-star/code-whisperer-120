@@ -14,3 +14,15 @@
 - [ ] Phase 5: AIP / NOTAM / ATC FPL check, crew/reg swap, OPS core, AI chat
 
 - [x] Quyết định: viết lại tối đa trên web; Outlook = hộp thư chung + hộp dự phòng
+
+## Làm lại cấu trúc từng tab theo tool gốc (bản đồ giao diện: /tmp/rosie/ui-map.txt, ảnh /tmp/browser/orig)
+- [x] Khung chung: thanh lọc Dispatcher/Callsign/Dep/Dest/Reg, hàng tab đúng thứ tự
+- [x] Tạo KHB: lưới 30 dòng gõ Số + Enter, cột như gốc, A/C performance, tô màu giới hạn, thư viện Cost Index/Taxi/Route/ALT/ERA/PCR, Extra/Đánh số, Auto Rounding PLD, Xem/Xuất FPL.req
+- [ ] Tạo KHB: Tạo điện văn CNL/DLA/CHG (cần atc_chg.py), Get ATC/Data Convert (cần AviWeb)
+- [ ] Hiển thị chung: cột CALLSIGN ROUTE STD/STA STATUS ALT REG LIMIT ATTCH PIB/WX TAF EXTRA DSP + chi tiết FLT STATUS/OFP/MEL/View/Check OFP
+- [ ] Công cụ hỗ trợ: 4 hàng NẠP / PIB-WX / FLITEBRIEF / KHÁC + bảng FLT NO|PIB/WX|PIB|STD|WX + khung log
+- [ ] Check NOTAM: thanh DSP/Check/Get/Chọn chuyến/tracking + bản đồ bên phải
+- [ ] Dữ liệu thay đổi theo ver (tab riêng), Tự động tải
+- [ ] Check ATC avi: bảng # FLT NO STATUS REG REG CHECK EOBT STD CHECK DOF GHI CHÚ
+- [ ] Giới hạn tàu và sân bay: 4 bảng Tàu/Sân bay/Curfew/Đặc biệt + tải defect summary
+- [ ] Thiết lập file add: Notice Rule Studio (tổng/đang dùng/hết hạn, cột TRẠNG THÁI…NGÀY HẾT HIỆU LỰC)
