@@ -22,7 +22,7 @@ function absorb(jar: Jar, res: Response) {
   const h = res.headers as Headers & { getSetCookie?: () => string[] };
   const list = h.getSetCookie?.() ?? (res.headers.get("set-cookie") ? [res.headers.get("set-cookie")!] : []);
   for (const c of list) {
-    const [pair] = c.split(";");
+    const pair = c.split(";")[0] ?? "";
     const i = pair.indexOf("=");
     if (i > 0) {
       const name = pair.slice(0, i).trim();
@@ -70,7 +70,7 @@ async function login(): Promise<Jar> {
   const html = await page.text();
   const m = html.match(/name="_csrf_token"\s+value="([^"]+)"/);
   if (!m) throw new FliteBriefError("Không đọc được trang đăng nhập FliteBrief");
-  const body = new URLSearchParams({ username: user, password: pass, _csrf_token: m[1], login: "" });
+  const body = new URLSearchParams({ username: user, password: pass, _csrf_token: m[1] ?? "", login: "" });
   let res = await fetch(BASE + "/login_check", {
     method: "POST",
     headers: {

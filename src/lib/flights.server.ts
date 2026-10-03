@@ -93,8 +93,8 @@ export function toFlight(d: Raw): Flight {
     dest: str(d["dest_icao"]),
     depIata: str(d["dep_iata"]),
     destIata: str(d["dest_iata"]),
-    alt1: str(d.dest_alt1),
-    alt2: str(d.dest_alt2),
+    alt1: str(d["dest_alt1"]),
+    alt2: str(d["dest_alt2"]),
     std: parseDt(d["std"]),
     sta: parseDt(d["sta"]),
     etd: parseDt(d["etd"]),
@@ -165,7 +165,7 @@ export async function assertDispatcher(supabase: {
 export async function logActivity(userId: string, action: string, detail?: string) {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("activity_log").insert({ user_id: userId, action, detail: detail?.slice(0, 500) });
+    await supabaseAdmin.from("activity_log").insert({ user_id: userId, action, detail: detail ? detail.slice(0, 500) : null });
   } catch {
     /* logging must never break the request */
   }

@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function fetchFbFile(
-  params: { sector: number; att?: number; kind: "att" | "ofp" },
+  params: { sector: number; att?: number | undefined; kind: "att" | "ofp" },
   signal?: AbortSignal,
 ): Promise<Blob> {
   const { data } = await supabase.auth.getSession();

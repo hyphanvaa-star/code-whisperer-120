@@ -97,7 +97,10 @@ function Board() {
 
   const runDownload = useCallback(async () => {
     const list = flights.filter((f) => checked.has(f.id));
-    if (!list.length) return toast.info("Tick chọn ít nhất một chuyến");
+    if (!list.length) {
+      toast.info("Tick chọn ít nhất một chuyến");
+      return;
+    }
     const jobs = list.flatMap((f) => {
       const base = `${(f.std ?? "").slice(0, 10).replace(/-/g, "")}_${f.callsign}_${f.dep}-${f.dest}`;
       const items: { f: Flight; kind: "att" | "ofp"; att?: number; name: string }[] = [];
@@ -106,7 +109,10 @@ function Board() {
         items.push({ f, kind: "att", att: a.id, name: `${base}/${safeName(a.filename)}` });
       return items;
     });
-    if (!jobs.length) return toast.info("Các chuyến đã chọn không có PDF");
+    if (!jobs.length) {
+      toast.info("Các chuyến đã chọn không có PDF");
+      return;
+    }
     const ac = new AbortController();
     abortRef.current = ac;
     const files: Record<string, Uint8Array> = {};
@@ -114,7 +120,7 @@ function Board() {
     setDl({ done: 0, total: jobs.length, label: "" });
     for (let i = 0; i < jobs.length; i++) {
       if (ac.signal.aborted) break;
-      const j = jobs[i];
+      const j = jobs[i]!;
       setDl({ done: i, total: jobs.length, label: j.name });
       try {
         const b = await fetchFbFile({ sector: j.f.id, att: j.att, kind: j.kind }, ac.signal);
@@ -388,7 +394,7 @@ function Detail({ f }: { f: Flight }) {
   });
   const [busy, setBusy] = useState<string | null>(null);
 
-  async function act(key: string, p: { kind: "att" | "ofp"; att?: number }, name: string, mode: "view" | "save") {
+  async function act(key: string, p: { kind: "att" | "ofp"; att?: number | undefined }, name: string, mode: "view" | "save") {
     setBusy(key);
     try {
       const b = await fetchFbFile({ sector: f.id, ...p });
