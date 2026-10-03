@@ -37,7 +37,12 @@ function Notices() {
     queryKey: ["setting", "notice_rules"],
     queryFn: () => getFn({ data: { key: "notice_rules" } }),
   });
-  const rules = (Array.isArray(rulesQ.data?.value) ? rulesQ.data!.value : DEFAULT_RULES) as NoticeRule[];
+  const rules = useMemo<NoticeRule[]>(() => {
+    try {
+      const v = rulesQ.data?.json ? JSON.parse(rulesQ.data.json) : null;
+      return Array.isArray(v) ? v : DEFAULT_RULES;
+    } catch { return DEFAULT_RULES; }
+  }, [rulesQ.data]);
 
   return (
     <div className="flex h-full flex-col">

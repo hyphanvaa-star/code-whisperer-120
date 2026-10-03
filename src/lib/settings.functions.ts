@@ -13,7 +13,7 @@ export const getSetting = createServerFn({ method: "POST" })
     const { data: row, error } = await context.supabase
       .from("app_settings").select("value, updated_at").eq("key", data.key).maybeSingle();
     if (error) throw new Error(error.message);
-    return { value: (row?.value ?? null) as unknown, updatedAt: row?.updated_at ?? null };
+    return { json: row?.value != null ? JSON.stringify(row.value) : null, updatedAt: row?.updated_at ?? null };
   });
 
 const ruleSchema = z.object({
