@@ -282,7 +282,7 @@ function UtcClock() {
   if (!now) return null;
   const p = (n: number) => String(n).padStart(2, "0");
   return (
-    <span className="rounded-md bg-primary-foreground/15 px-2 py-0.5 font-mono text-xs font-semibold">
+    <span className="rounded-md border border-border bg-card px-2 py-1 font-mono text-xs font-semibold text-foreground">
       {p(now.getUTCHours())}:{p(now.getUTCMinutes())}Z
     </span>
   );

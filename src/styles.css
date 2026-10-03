@@ -62,13 +62,13 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
 :root {
   --radius: 0.6rem;
-  --background: oklch(0.975 0.004 20);
+  --background: oklch(0.97 0.012 0);
   --foreground: oklch(0.22 0.02 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.02 260);
@@ -120,4 +120,12 @@
 
 @utility bg-header {
   background-image: var(--header-gradient);
+}
+
+@utility bg-app {
+  background-image: linear-gradient(160deg, oklch(0.95 0.03 0), oklch(0.93 0.02 260));
+}
+
+@utility bg-header-soft {
+  background-image: linear-gradient(100deg, oklch(0.96 0.03 0), oklch(0.985 0.012 350));
 }
