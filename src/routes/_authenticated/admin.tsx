@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AppShell, useMe } from "@/components/AppShell";
+import { AdminShell, useMe } from "@/components/AppShell";
 import { listActivity, listUsers, setRole } from "@/lib/admin.functions";
 import { Switch } from "@/components/ui/switch";
 
@@ -16,9 +16,9 @@ export const Route = createFileRoute("/_authenticated/admin")({
     ],
   }),
   component: () => (
-    <AppShell>
+    <AdminShell>
       <Admin />
-    </AppShell>
+    </AdminShell>
   ),
 });
 

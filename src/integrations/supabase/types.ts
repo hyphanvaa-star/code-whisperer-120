@@ -56,6 +56,39 @@ export type Database = {
         }
         Relationships: []
       }
+      handovers: {
+        Row: {
+          flights: Json
+          from_dsp: string
+          id: string
+          shift: string
+          shift_date: string
+          to_dsp: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          flights?: Json
+          from_dsp?: string
+          id?: string
+          shift: string
+          shift_date: string
+          to_dsp?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Update: {
+          flights?: Json
+          from_dsp?: string
+          id?: string
+          shift?: string
+          shift_date?: string
+          to_dsp?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
