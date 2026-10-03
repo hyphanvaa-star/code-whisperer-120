@@ -17,6 +17,7 @@ import { Route as AuthenticatedAircraftRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAtcRouteImport } from './routes/_authenticated/atc'
 import { Route as AuthenticatedBoardRouteImport } from './routes/_authenticated/board'
 import { Route as AuthenticatedCompareRouteImport } from './routes/_authenticated/compare'
+import { Route as AuthenticatedHandoverRouteImport } from './routes/_authenticated/handover'
 import { Route as AuthenticatedKhbRouteImport } from './routes/_authenticated/khb'
 import { Route as AuthenticatedNotamRouteImport } from './routes/_authenticated/notam'
 import { Route as AuthenticatedNoticesRouteImport } from './routes/_authenticated/notices'
@@ -62,6 +63,11 @@ const AuthenticatedCompareRoute = AuthenticatedCompareRouteImport.update({
   path: '/compare',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHandoverRoute = AuthenticatedHandoverRouteImport.update({
+  id: '/handover',
+  path: '/handover',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedKhbRoute = AuthenticatedKhbRouteImport.update({
   id: '/khb',
   path: '/khb',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/atc': typeof AuthenticatedAtcRoute
   '/board': typeof AuthenticatedBoardRoute
   '/compare': typeof AuthenticatedCompareRoute
+  '/handover': typeof AuthenticatedHandoverRoute
   '/khb': typeof AuthenticatedKhbRoute
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/atc': typeof AuthenticatedAtcRoute
   '/board': typeof AuthenticatedBoardRoute
   '/compare': typeof AuthenticatedCompareRoute
+  '/handover': typeof AuthenticatedHandoverRoute
   '/khb': typeof AuthenticatedKhbRoute
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/_authenticated/atc': typeof AuthenticatedAtcRoute
   '/_authenticated/board': typeof AuthenticatedBoardRoute
   '/_authenticated/compare': typeof AuthenticatedCompareRoute
+  '/_authenticated/handover': typeof AuthenticatedHandoverRoute
   '/_authenticated/khb': typeof AuthenticatedKhbRoute
   '/_authenticated/notam': typeof AuthenticatedNotamRoute
   '/_authenticated/notices': typeof AuthenticatedNoticesRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/atc'
     | '/board'
     | '/compare'
+    | '/handover'
     | '/khb'
     | '/notam'
     | '/notices'
@@ -156,6 +166,7 @@ export interface FileRouteTypes {
     | '/atc'
     | '/board'
     | '/compare'
+    | '/handover'
     | '/khb'
     | '/notam'
     | '/notices'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/_authenticated/atc'
     | '/_authenticated/board'
     | '/_authenticated/compare'
+    | '/_authenticated/handover'
     | '/_authenticated/khb'
     | '/_authenticated/notam'
     | '/_authenticated/notices'
@@ -243,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompareRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/handover': {
+      id: '/_authenticated/handover'
+      path: '/handover'
+      fullPath: '/handover'
+      preLoaderRoute: typeof AuthenticatedHandoverRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/khb': {
       id: '/_authenticated/khb'
       path: '/khb'
@@ -287,6 +306,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAtcRoute: typeof AuthenticatedAtcRoute
   AuthenticatedBoardRoute: typeof AuthenticatedBoardRoute
   AuthenticatedCompareRoute: typeof AuthenticatedCompareRoute
+  AuthenticatedHandoverRoute: typeof AuthenticatedHandoverRoute
   AuthenticatedKhbRoute: typeof AuthenticatedKhbRoute
   AuthenticatedNotamRoute: typeof AuthenticatedNotamRoute
   AuthenticatedNoticesRoute: typeof AuthenticatedNoticesRoute
@@ -299,6 +319,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtcRoute: AuthenticatedAtcRoute,
   AuthenticatedBoardRoute: AuthenticatedBoardRoute,
   AuthenticatedCompareRoute: AuthenticatedCompareRoute,
+  AuthenticatedHandoverRoute: AuthenticatedHandoverRoute,
   AuthenticatedKhbRoute: AuthenticatedKhbRoute,
   AuthenticatedNotamRoute: AuthenticatedNotamRoute,
   AuthenticatedNoticesRoute: AuthenticatedNoticesRoute,
