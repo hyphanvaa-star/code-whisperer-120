@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, ShieldCheck, Clock, Sun, Moon, ArrowLeft, FileText, ClipboardList, LayoutGrid, ListChecks, Wrench,
   FileWarning, Radio, Plane, Paperclip, User, Send, MapPin, Tag, X,
+  Download,
 } from "lucide-react";
 import { useGlobalFilters } from "@/lib/global-filters";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,8 @@ const TABS = [
   { to: "/compare", label: "Dữ liệu so sánh", icon: ListChecks },
   { to: "/tools", label: "Công cụ hỗ trợ", icon: Wrench },
   { to: "/notam", label: "Check NOTAM", icon: FileWarning },
+  { to: "/ver", label: "Dữ liệu thay đổi theo ver", icon: ListChecks },
+  { to: "/autoload", label: "Tự động tải", icon: Download },
   { to: "/atc", label: "Check ATC avi", icon: Radio },
   { to: "/aircraft", label: "Giới hạn tàu và sân bay", icon: Plane },
   { to: "/notices", label: "Thiết lập file add", icon: Paperclip },

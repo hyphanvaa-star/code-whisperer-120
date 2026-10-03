@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAircraftRouteImport } from './routes/_authenticated/aircraft'
 import { Route as AuthenticatedAtcRouteImport } from './routes/_authenticated/atc'
+import { Route as AuthenticatedAutoloadRouteImport } from './routes/_authenticated/autoload'
 import { Route as AuthenticatedBoardRouteImport } from './routes/_authenticated/board'
 import { Route as AuthenticatedCompareRouteImport } from './routes/_authenticated/compare'
 import { Route as AuthenticatedHandoverRouteImport } from './routes/_authenticated/handover'
@@ -22,6 +23,7 @@ import { Route as AuthenticatedKhbRouteImport } from './routes/_authenticated/kh
 import { Route as AuthenticatedNotamRouteImport } from './routes/_authenticated/notam'
 import { Route as AuthenticatedNoticesRouteImport } from './routes/_authenticated/notices'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
+import { Route as AuthenticatedVerRouteImport } from './routes/_authenticated/ver'
 import { Route as ApiFbFileRouteImport } from './routes/api/fb.file'
 
 const IndexRoute = IndexRouteImport.update({
@@ -51,6 +53,11 @@ const AuthenticatedAircraftRoute = AuthenticatedAircraftRouteImport.update({
 const AuthenticatedAtcRoute = AuthenticatedAtcRouteImport.update({
   id: '/atc',
   path: '/atc',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAutoloadRoute = AuthenticatedAutoloadRouteImport.update({
+  id: '/autoload',
+  path: '/autoload',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBoardRoute = AuthenticatedBoardRouteImport.update({
@@ -88,6 +95,11 @@ const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   path: '/tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedVerRoute = AuthenticatedVerRouteImport.update({
+  id: '/ver',
+  path: '/ver',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiFbFileRoute = ApiFbFileRouteImport.update({
   id: '/api/fb/file',
   path: '/api/fb/file',
@@ -100,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
+  '/autoload': typeof AuthenticatedAutoloadRoute
   '/board': typeof AuthenticatedBoardRoute
   '/compare': typeof AuthenticatedCompareRoute
   '/handover': typeof AuthenticatedHandoverRoute
@@ -107,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/ver': typeof AuthenticatedVerRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRoutesByTo {
@@ -115,6 +129,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
+  '/autoload': typeof AuthenticatedAutoloadRoute
   '/board': typeof AuthenticatedBoardRoute
   '/compare': typeof AuthenticatedCompareRoute
   '/handover': typeof AuthenticatedHandoverRoute
@@ -122,6 +137,7 @@ export interface FileRoutesByTo {
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/ver': typeof AuthenticatedVerRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRoutesById {
@@ -132,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/aircraft': typeof AuthenticatedAircraftRoute
   '/_authenticated/atc': typeof AuthenticatedAtcRoute
+  '/_authenticated/autoload': typeof AuthenticatedAutoloadRoute
   '/_authenticated/board': typeof AuthenticatedBoardRoute
   '/_authenticated/compare': typeof AuthenticatedCompareRoute
   '/_authenticated/handover': typeof AuthenticatedHandoverRoute
@@ -139,6 +156,7 @@ export interface FileRoutesById {
   '/_authenticated/notam': typeof AuthenticatedNotamRoute
   '/_authenticated/notices': typeof AuthenticatedNoticesRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
+  '/_authenticated/ver': typeof AuthenticatedVerRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRouteTypes {
@@ -149,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aircraft'
     | '/atc'
+    | '/autoload'
     | '/board'
     | '/compare'
     | '/handover'
@@ -156,6 +175,7 @@ export interface FileRouteTypes {
     | '/notam'
     | '/notices'
     | '/tools'
+    | '/ver'
     | '/api/fb/file'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -164,6 +184,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aircraft'
     | '/atc'
+    | '/autoload'
     | '/board'
     | '/compare'
     | '/handover'
@@ -171,6 +192,7 @@ export interface FileRouteTypes {
     | '/notam'
     | '/notices'
     | '/tools'
+    | '/ver'
     | '/api/fb/file'
   id:
     | '__root__'
@@ -180,6 +202,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/aircraft'
     | '/_authenticated/atc'
+    | '/_authenticated/autoload'
     | '/_authenticated/board'
     | '/_authenticated/compare'
     | '/_authenticated/handover'
@@ -187,6 +210,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notam'
     | '/_authenticated/notices'
     | '/_authenticated/tools'
+    | '/_authenticated/ver'
     | '/api/fb/file'
   fileRoutesById: FileRoutesById
 }
@@ -241,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtcRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/autoload': {
+      id: '/_authenticated/autoload'
+      path: '/autoload'
+      fullPath: '/autoload'
+      preLoaderRoute: typeof AuthenticatedAutoloadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/board': {
       id: '/_authenticated/board'
       path: '/board'
@@ -290,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ver': {
+      id: '/_authenticated/ver'
+      path: '/ver'
+      fullPath: '/ver'
+      preLoaderRoute: typeof AuthenticatedVerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/fb/file': {
       id: '/api/fb/file'
       path: '/api/fb/file'
@@ -304,6 +342,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAircraftRoute: typeof AuthenticatedAircraftRoute
   AuthenticatedAtcRoute: typeof AuthenticatedAtcRoute
+  AuthenticatedAutoloadRoute: typeof AuthenticatedAutoloadRoute
   AuthenticatedBoardRoute: typeof AuthenticatedBoardRoute
   AuthenticatedCompareRoute: typeof AuthenticatedCompareRoute
   AuthenticatedHandoverRoute: typeof AuthenticatedHandoverRoute
@@ -311,12 +350,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotamRoute: typeof AuthenticatedNotamRoute
   AuthenticatedNoticesRoute: typeof AuthenticatedNoticesRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
+  AuthenticatedVerRoute: typeof AuthenticatedVerRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAircraftRoute: AuthenticatedAircraftRoute,
   AuthenticatedAtcRoute: AuthenticatedAtcRoute,
+  AuthenticatedAutoloadRoute: AuthenticatedAutoloadRoute,
   AuthenticatedBoardRoute: AuthenticatedBoardRoute,
   AuthenticatedCompareRoute: AuthenticatedCompareRoute,
   AuthenticatedHandoverRoute: AuthenticatedHandoverRoute,
@@ -324,6 +365,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotamRoute: AuthenticatedNotamRoute,
   AuthenticatedNoticesRoute: AuthenticatedNoticesRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
+  AuthenticatedVerRoute: AuthenticatedVerRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

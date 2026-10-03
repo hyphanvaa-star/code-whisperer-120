@@ -163,6 +163,18 @@ function RulesEditor({ initial }: { initial: NoticeRule[] }) {
         <Button variant="outline" onClick={() => setRules((r) => [...r, { name: "Luật mới", condition: "touches", values: [], files: [], enabled: true }])}>+ Thêm luật</Button>
         <Button variant="ghost" onClick={() => { if (confirm("Khôi phục luật mặc định của tool gốc?")) setRules(DEFAULT_RULES); }}>Khôi phục mặc định</Button>
       </div>
+      {(() => {
+        const today = new Date().toISOString().slice(0, 10);
+        const expired = rules.filter((r) => r.effective_to && r.effective_to < today).length;
+        const active = rules.filter((r) => r.enabled && !(r.effective_to && r.effective_to < today) && !(r.effective_from && r.effective_from > today)).length;
+        return (
+          <div className="mb-3 flex gap-3 text-sm">
+            <span className="rounded-full bg-muted px-3 py-1">Tổng: <b>{rules.length}</b></span>
+            <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-emerald-700">Đang dùng: <b>{active}</b></span>
+            <span className="rounded-full bg-primary/15 px-3 py-1 text-primary">Hết hạn: <b>{expired}</b></span>
+          </div>
+        );
+      })()}
       <p className="mb-3 text-xs text-muted-foreground">Tên file: dùng <code>{"{REG}"}</code> cho số đăng ký tàu, <code>{"{REG3}"}</code> cho 3 số cuối. Thêm tên khác sau dấu <code>|</code> để coi như đã có dù đặt tên khác. Mỗi dòng một file.</p>
       <div className="space-y-2">
         {rules.map((r, i) => (

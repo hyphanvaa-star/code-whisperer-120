@@ -16,6 +16,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { getSetting } from "@/lib/settings.functions";
+import { getWx } from "@/lib/ops.functions";
+import { checkLimits, DEFAULT_LIMITS, type Limits } from "@/lib/limits";
+import { wxAdvice, wxClass } from "@/lib/wx";
 
 export const Route = createFileRoute("/_authenticated/board")({
   head: () => ({
@@ -93,6 +97,21 @@ function Board() {
   }, [flights, gf, dispatcher, text, dep, dest, onlyPdf, pib]);
 
   const selected = flights.find((f) => f.id === selectedId) ?? null;
+
+  const getSet = useServerFn(getSetting);
+  const limQ = useQuery({ queryKey: ["setting", "limits"], queryFn: () => getSet({ data: { key: "limits" } }) });
+  const limits = useMemo<Limits>(() => {
+    try { const v = limQ.data?.json ? JSON.parse(limQ.data.json) : null; return v?.aircraft ? v : DEFAULT_LIMITS; } catch { return DEFAULT_LIMITS; }
+  }, [limQ.data]);
+  const wxFn = useServerFn(getWx);
+  const destCodes = useMemo(() => [...new Set(filtered.map((f) => f.dest).filter((c) => /^[A-Z]{4}$/.test(c)))].sort().slice(0, 40), [filtered]);
+  const wxQ = useQuery({
+    queryKey: ["wx", destCodes.join(",")],
+    queryFn: () => wxFn({ data: { codes: destCodes } }),
+    enabled: destCodes.length > 0,
+    staleTime: 10 * 60_000,
+  });
+  const tafMap = useMemo(() => Object.fromEntries((wxQ.data?.wx ?? []).map((w) => [w.icao, w.taf])) as Record<string, string>, [wxQ.data]);
 
   // bulk download
   const [dl, setDl] = useState<{ done: number; total: number; label: string } | null>(null);
@@ -265,33 +284,41 @@ function Board() {
                   />
                 </th>
                 <th className="px-2 py-2">Callsign</th>
-                <th className="px-2 py-2">Chặng</th>
-                <th className="px-2 py-2">STD</th>
+                <th className="px-2 py-2">Route</th>
+                <th className="px-2 py-2">STD/STA</th>
+                <th className="px-2 py-2">Status</th>
+                <th className="px-2 py-2">ALT</th>
                 <th className="px-2 py-2">Reg</th>
-                <th className="px-2 py-2">Reg Atch</th>
+                <th className="px-2 py-2">Limit</th>
+                <th className="px-2 py-2">Attch</th>
                 <th className="px-2 py-2">PIB/WX</th>
-                <th className="px-2 py-2">Trạng thái</th>
-                <th className="px-2 py-2">Dispatcher</th>
-                <th className="px-2 py-2 text-right">File</th>
+                <th className="px-2 py-2">TAF</th>
+                <th className="px-2 py-2 text-right">Extra</th>
+                <th className="px-2 py-2">DSP</th>
               </tr>
             </thead>
             <tbody>
               {q.isLoading &&
                 Array.from({ length: 12 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/50">
-                    <td colSpan={10} className="px-3 py-2.5">
+                    <td colSpan={13} className="px-3 py-2.5">
                       <div className="h-3 animate-pulse rounded bg-muted" />
                     </td>
                   </tr>
                 ))}
               {!q.isLoading && filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-3 py-12 text-center text-muted-foreground">
+                  <td colSpan={13} className="px-3 py-12 text-center text-muted-foreground">
                     Không có chuyến nào khớp bộ lọc.
                   </td>
                 </tr>
               )}
-              {filtered.map((f) => (
+              {filtered.map((f) => {
+                const lim = checkLimits(f, limits);
+                const crit = lim.some((w) => w.severity === "critical");
+                const taf = tafMap[f.dest];
+                const tafLv = taf ? wxAdvice(taf) : null;
+                return (
                 <tr
                   key={f.id}
                   onClick={() => setSelectedId(f.id)}
@@ -319,19 +346,25 @@ function Board() {
                   <td className="px-2 py-1.5 font-mono">
                     {f.dep}–{f.dest}
                   </td>
-                  <td className="px-2 py-1.5 font-mono">{fmtUtc(f.std)}</td>
-                  <td className="px-2 py-1.5 font-mono">{f.reg || "—"}</td>
-                  <td className="px-2 py-1.5">
-                    <RegBadge v={f.regMatch} />
+                  <td className="whitespace-nowrap px-2 py-1.5 font-mono text-xs">{fmtUtc(f.std)}<br /><span className="text-muted-foreground">{fmtUtc(f.sta)}</span></td>
+                  <td className="px-2 py-1.5 font-mono text-xs text-muted-foreground">{f.status || "—"}</td>
+                  <td className="px-2 py-1.5 font-mono text-xs">{[f.alt1, f.alt2].filter(Boolean).join(" ") || "—"}</td>
+                  <td className="px-2 py-1.5 font-mono">{f.reg || "—"} <RegBadge v={f.regMatch} /></td>
+                  <td className="px-2 py-1.5 text-xs" title={lim.map((w) => w.text).join("\n")}>
+                    {lim.length ? <span className={cn("rounded px-1.5 py-0.5", crit ? "bg-primary/15 font-semibold text-primary" : "bg-amber-400/25 text-amber-800")}>{crit ? "VI PHẠM" : "Lưu ý"} {lim.length}</span> : <span className="text-muted-foreground">—</span>}
                   </td>
+                  <td className="px-2 py-1.5 font-mono text-muted-foreground">{f.attachments.length}</td>
                   <td className="px-2 py-1.5">
                     <PibBadge v={f.pibWx} />
                   </td>
-                  <td className="px-2 py-1.5 font-mono text-xs text-muted-foreground">{f.status || "—"}</td>
+                  <td className="px-2 py-1.5 text-xs" title={taf || "Chưa có TAF"}>
+                    {tafLv ? <span className={cn("rounded px-1.5 py-0.5", wxClass[tafLv.level])}>{tafLv.level === "ok" ? "OK" : tafLv.reasons[0] || tafLv.level.toUpperCase()}</span> : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="px-2 py-1.5 text-right font-mono">{fmtNum(f.fuel.extra)}</td>
                   <td className="truncate px-2 py-1.5 text-muted-foreground">{f.dispatcher || "—"}</td>
-                  <td className="px-2 py-1.5 text-right font-mono text-muted-foreground">{f.attachments.length}</td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
           {q.data && (
