@@ -22,6 +22,7 @@ import { Route as AuthenticatedKhbRouteImport } from './routes/_authenticated/kh
 import { Route as AuthenticatedNotamRouteImport } from './routes/_authenticated/notam'
 import { Route as AuthenticatedNoticesRouteImport } from './routes/_authenticated/notices'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
+import { Route as AuthenticatedVerRouteImport } from './routes/_authenticated/ver'
 import { Route as ApiFbFileRouteImport } from './routes/api/fb.file'
 
 const IndexRoute = IndexRouteImport.update({
@@ -88,6 +89,11 @@ const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   path: '/tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedVerRoute = AuthenticatedVerRouteImport.update({
+  id: '/ver',
+  path: '/ver',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiFbFileRoute = ApiFbFileRouteImport.update({
   id: '/api/fb/file',
   path: '/api/fb/file',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/ver': typeof AuthenticatedVerRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRoutesByTo {
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/ver': typeof AuthenticatedVerRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRoutesById {
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/notam': typeof AuthenticatedNotamRoute
   '/_authenticated/notices': typeof AuthenticatedNoticesRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
+  '/_authenticated/ver': typeof AuthenticatedVerRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRouteTypes {
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/notam'
     | '/notices'
     | '/tools'
+    | '/ver'
     | '/api/fb/file'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/notam'
     | '/notices'
     | '/tools'
+    | '/ver'
     | '/api/fb/file'
   id:
     | '__root__'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notam'
     | '/_authenticated/notices'
     | '/_authenticated/tools'
+    | '/_authenticated/ver'
     | '/api/fb/file'
   fileRoutesById: FileRoutesById
 }
@@ -290,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ver': {
+      id: '/_authenticated/ver'
+      path: '/ver'
+      fullPath: '/ver'
+      preLoaderRoute: typeof AuthenticatedVerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/fb/file': {
       id: '/api/fb/file'
       path: '/api/fb/file'
@@ -311,6 +330,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotamRoute: typeof AuthenticatedNotamRoute
   AuthenticatedNoticesRoute: typeof AuthenticatedNoticesRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
+  AuthenticatedVerRoute: typeof AuthenticatedVerRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -324,6 +344,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotamRoute: AuthenticatedNotamRoute,
   AuthenticatedNoticesRoute: AuthenticatedNoticesRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
+  AuthenticatedVerRoute: AuthenticatedVerRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
