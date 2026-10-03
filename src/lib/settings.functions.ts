@@ -36,6 +36,6 @@ export const saveNoticeRules = createServerFn({ method: "POST" })
       key: "notice_rules", value: data.rules, updated_by: context.userId, updated_at: new Date().toISOString(),
     });
     if (error) throw new Error(error.message);
-    await logActivity(context.supabase, context.userId, "notice_rules.save", { count: data.rules.length });
+    await logActivity(context.userId, "notice_rules.save", `${data.rules.length} luật`);
     return { ok: true };
   });
