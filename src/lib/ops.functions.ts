@@ -34,32 +34,32 @@ function altLabel(raw: unknown) {
   return n >= 100 ? `FL${n}` : `${n * 100}FT AMSL`;
 }
 function compact(r: Record<string, unknown>, kind: string): Notam {
-  const series = s(r.notamSeries ?? r.notam_series);
-  const number = s(r.notamNumber ?? r.notam_number);
+  const series = s(r["notamSeries"] ?? r["notam_series"]);
+  const number = s(r["notamNumber"] ?? r["notam_number"]);
   let ident = series && number.toUpperCase().startsWith(series.toUpperCase()) ? number : series + number;
-  const year = s(r.notamYear ?? r.notam_year);
+  const year = s(r["notamYear"] ?? r["notam_year"]);
   if (year) ident = ident ? `${ident}/${year}` : year;
   const es = ["e_field", "eField", "notam_text", "notamText", "itemE", "item_e"].map((k) => s(r[k])).filter(Boolean);
   let e = es.sort((a, b) => b.length - a.length)[0] ?? "";
   if (e.slice(0, 2).toUpperCase() === "E)") e = e.slice(2).trimStart();
-  const d = s(r.d_field ?? r.dField ?? r.itemD ?? r.schedule);
-  const f = s(r.f_field ?? r.fField) || altLabel(r.lower);
-  const g = s(r.g_field ?? r.gField) || altLabel(r.upper);
-  const ntype = s(r.notamType ?? r.notam_type ?? kind).toUpperCase();
-  const subject = s(r.subject_description ?? r.subjectDescription);
-  const condition = s(r.condition_description ?? r.conditionDescription);
-  const origin = s(r.origin_time) || stamp(r.originTime);
+  const d = s(r["d_field"] ?? r["dField"] ?? r["itemD"] ?? r["schedule"]);
+  const f = s(r["f_field"] ?? r["fField"]) || altLabel(r["lower"]);
+  const g = s(r["g_field"] ?? r["gField"]) || altLabel(r["upper"]);
+  const ntype = s(r["notamType"] ?? r["notam_type"] ?? kind).toUpperCase();
+  const subject = s(r["subject_description"] ?? r["subjectDescription"]);
+  const condition = s(r["condition_description"] ?? r["conditionDescription"]);
+  const origin = s(r["origin_time"]) || stamp(r["originTime"]);
   const head = [ntype === "F" || ntype === "FIR" ? "FIR" : "APT", origin, ident, subject, condition].filter(Boolean).join(" ");
-  const icao = s(r.icao).toUpperCase();
-  const qfir = s(r.qfir ?? r.icao).toUpperCase();
-  let qcode = s(r.subject) + s(r.condition);
+  const icao = s(r["icao"]).toUpperCase();
+  const qfir = s(r["qfir"] ?? r["icao"]).toUpperCase();
+  let qcode = s(r["subject"]) + s(r["condition"]);
   if (qcode && !qcode.toUpperCase().startsWith("Q")) qcode = "Q" + qcode;
-  const coords = s(r.coords).replace(/ /g, "");
-  let q = [qfir, qcode, s(r.traffic), s(r.purpose), s(r.scope), r.lower == null ? "" : s(r.lower), r.upper == null ? "" : s(r.upper)].join("/");
+  const coords = s(r["coords"]).replace(/ /g, "");
+  let q = [qfir, qcode, s(r["traffic"]), s(r["purpose"]), s(r["scope"]), r["lower"] == null ? "" : s(r["lower"]), r["upper"] == null ? "" : s(r["upper"])].join("/");
   if (coords) q += "/" + coords;
-  const start = stamp(r.startDate ?? r.start_date);
-  let end = stamp(r.endDate ?? r.end_date);
-  if (s(r.perm).toUpperCase() === "Y" && !end) end = "PERM";
+  const start = stamp(r["startDate"] ?? r["start_date"]);
+  let end = stamp(r["endDate"] ?? r["end_date"]);
+  if (s(r["perm"]).toUpperCase() === "Y" && !end) end = "PERM";
   const abc = [icao && `A)${icao}`, start && `B)${start}`, end && `C)${end}`].filter(Boolean).join(" ");
   const lines = [head, `Q)${q}`, abc];
   if (d) lines.push(`D)${d}`);
@@ -67,21 +67,21 @@ function compact(r: Record<string, unknown>, kind: string): Notam {
   const fg = [f && `F)${f}`, g && `G)${g}`].filter(Boolean).join(" ");
   if (fg && !/^[ \t]*[FG]\)/im.test(lines.join("\n"))) lines.push(fg);
   return {
-    id: s(r.notamId ?? r.id), ident, kind, icao, subject, condition, eField: e, dField: d, fField: f, gField: g,
-    text: lines.join("\n").trim(), start: s(r.start_date ?? r.startDate), end: s(r.end_date ?? r.endDate),
-    qcode, coords, lower: r.lower == null ? null : Number(r.lower), upper: r.upper == null ? null : Number(r.upper),
+    id: s(r["notamId"] ?? r["id"]), ident, kind, icao, subject, condition, eField: e, dField: d, fField: f, gField: g,
+    text: lines.join("\n").trim(), start: s(r["start_date"] ?? r["startDate"]), end: s(r["end_date"] ?? r["endDate"]),
+    qcode, coords, lower: r["lower"] == null ? null : Number(r["lower"]), upper: r["upper"] == null ? null : Number(r["upper"]),
   };
 }
 function toPlace(code: string, payload: Record<string, unknown>): Place {
-  const af = ((payload.airfields as unknown[]) ?? [])[0] as Record<string, unknown> | undefined;
-  const fr = ((payload.firs as unknown[]) ?? [])[0] as Record<string, unknown> | undefined;
+  const af = ((payload["airfields"] as unknown[]) ?? [])[0] as Record<string, unknown> | undefined;
+  const fr = ((payload["firs"] as unknown[]) ?? [])[0] as Record<string, unknown> | undefined;
   if (!af && !fr) return { code, kind: "", name: "", iata: "", fir: "", notams: [], error: "Không có dữ liệu trên portal." };
   const kind = fr && !af ? "FIR" : "A";
   const meta = kind === "FIR" ? fr! : af!;
-  const raw = (kind === "FIR" ? payload.fir_notam : payload.airfield_notam) as Record<string, unknown>[] | undefined;
+  const raw = (kind === "FIR" ? payload["fir_notam"] : payload["airfield_notam"]) as Record<string, unknown>[] | undefined;
   return {
-    code, kind, name: s(meta.name), iata: kind === "A" ? s(meta.iata) : "",
-    fir: kind === "A" ? s(af?.fir) : code,
+    code, kind, name: s(meta["name"]), iata: kind === "A" ? s(meta["iata"]) : "",
+    fir: kind === "A" ? s(af?.["fir"]) : code,
     notams: (raw ?? []).filter((x) => x && typeof x === "object").map((x) => compact(x, kind)),
     error: "",
   };
@@ -129,7 +129,7 @@ export const getWx = createServerFn({ method: "POST" })
     const [m, t] = await Promise.all([get("metar"), get("taf")]);
     const out: Record<string, Wx> = {};
     for (const c of ids.split(",")) out[c] = { icao: c, metar: "", taf: "" };
-    for (const x of m) { const id = s(x.icaoId); if (out[id] && !out[id].metar) out[id].metar = s(x.rawOb); }
-    for (const x of t) { const id = s(x.icaoId); if (out[id] && !out[id].taf) out[id].taf = s(x.rawTAF); }
+    for (const x of m) { const id = s(x["icaoId"]); if (out[id] && !out[id].metar) out[id].metar = s(x["rawOb"]); }
+    for (const x of t) { const id = s(x["icaoId"]); if (out[id] && !out[id].taf) out[id].taf = s(x["rawTAF"]); }
     return { wx: Object.values(out), error: m.length + t.length === 0 ? "Nguồn thời tiết không trả dữ liệu." : null };
   });
