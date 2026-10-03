@@ -72,6 +72,9 @@ export function extractEzfw(text: string): string {
 
 /** "VJ5513" -> "VJC5513" like file_callsign in the original. */
 export const fileCallsign = (cs: string) => {
-  const d = cs.replace(/\D/g, "");
-  return d ? `VJC${d}` : cs.toUpperCase();
+  const b = cs.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (b.startsWith("VJ") && !b.startsWith("VJC")) return "VJC" + b.slice(2);
+  if (/^\d/.test(b)) return "VJC" + b;
+  return b || "VJC";
 };
+export const mailCallsign = (cs: string) => { const b = fileCallsign(cs); return b.startsWith("VJC") ? "VJ" + b.slice(3) : b; };
