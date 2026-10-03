@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   LogOut, ShieldCheck, Clock, Sun, Moon, ArrowLeft, FileText, ClipboardList, LayoutGrid, ListChecks, Wrench,
   FileWarning, Radio, Plane, Paperclip, User, Send, MapPin, Tag, X,
+  Download,
 } from "lucide-react";
 import { useGlobalFilters } from "@/lib/global-filters";
 import { supabase } from "@/integrations/supabase/client";
