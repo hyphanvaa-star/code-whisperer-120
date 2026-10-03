@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAircraftRouteImport } from './routes/_authenticated/aircraft'
 import { Route as AuthenticatedAtcRouteImport } from './routes/_authenticated/atc'
+import { Route as AuthenticatedAutoloadRouteImport } from './routes/_authenticated/autoload'
 import { Route as AuthenticatedBoardRouteImport } from './routes/_authenticated/board'
 import { Route as AuthenticatedCompareRouteImport } from './routes/_authenticated/compare'
 import { Route as AuthenticatedHandoverRouteImport } from './routes/_authenticated/handover'
@@ -52,6 +53,11 @@ const AuthenticatedAircraftRoute = AuthenticatedAircraftRouteImport.update({
 const AuthenticatedAtcRoute = AuthenticatedAtcRouteImport.update({
   id: '/atc',
   path: '/atc',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAutoloadRoute = AuthenticatedAutoloadRouteImport.update({
+  id: '/autoload',
+  path: '/autoload',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBoardRoute = AuthenticatedBoardRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
+  '/autoload': typeof AuthenticatedAutoloadRoute
   '/board': typeof AuthenticatedBoardRoute
   '/compare': typeof AuthenticatedCompareRoute
   '/handover': typeof AuthenticatedHandoverRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
+  '/autoload': typeof AuthenticatedAutoloadRoute
   '/board': typeof AuthenticatedBoardRoute
   '/compare': typeof AuthenticatedCompareRoute
   '/handover': typeof AuthenticatedHandoverRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/aircraft': typeof AuthenticatedAircraftRoute
   '/_authenticated/atc': typeof AuthenticatedAtcRoute
+  '/_authenticated/autoload': typeof AuthenticatedAutoloadRoute
   '/_authenticated/board': typeof AuthenticatedBoardRoute
   '/_authenticated/compare': typeof AuthenticatedCompareRoute
   '/_authenticated/handover': typeof AuthenticatedHandoverRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aircraft'
     | '/atc'
+    | '/autoload'
     | '/board'
     | '/compare'
     | '/handover'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/aircraft'
     | '/atc'
+    | '/autoload'
     | '/board'
     | '/compare'
     | '/handover'
@@ -191,6 +202,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/aircraft'
     | '/_authenticated/atc'
+    | '/_authenticated/autoload'
     | '/_authenticated/board'
     | '/_authenticated/compare'
     | '/_authenticated/handover'
@@ -251,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/atc'
       fullPath: '/atc'
       preLoaderRoute: typeof AuthenticatedAtcRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/autoload': {
+      id: '/_authenticated/autoload'
+      path: '/autoload'
+      fullPath: '/autoload'
+      preLoaderRoute: typeof AuthenticatedAutoloadRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/board': {
@@ -323,6 +342,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAircraftRoute: typeof AuthenticatedAircraftRoute
   AuthenticatedAtcRoute: typeof AuthenticatedAtcRoute
+  AuthenticatedAutoloadRoute: typeof AuthenticatedAutoloadRoute
   AuthenticatedBoardRoute: typeof AuthenticatedBoardRoute
   AuthenticatedCompareRoute: typeof AuthenticatedCompareRoute
   AuthenticatedHandoverRoute: typeof AuthenticatedHandoverRoute
@@ -337,6 +357,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAircraftRoute: AuthenticatedAircraftRoute,
   AuthenticatedAtcRoute: AuthenticatedAtcRoute,
+  AuthenticatedAutoloadRoute: AuthenticatedAutoloadRoute,
   AuthenticatedBoardRoute: AuthenticatedBoardRoute,
   AuthenticatedCompareRoute: AuthenticatedCompareRoute,
   AuthenticatedHandoverRoute: AuthenticatedHandoverRoute,

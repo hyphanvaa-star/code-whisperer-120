@@ -48,6 +48,8 @@ const TABS = [
   { to: "/compare", label: "Dữ liệu so sánh", icon: ListChecks },
   { to: "/tools", label: "Công cụ hỗ trợ", icon: Wrench },
   { to: "/notam", label: "Check NOTAM", icon: FileWarning },
+  { to: "/ver", label: "Dữ liệu thay đổi theo ver", icon: ListChecks },
+  { to: "/autoload", label: "Tự động tải", icon: Download },
   { to: "/atc", label: "Check ATC avi", icon: Radio },
   { to: "/aircraft", label: "Giới hạn tàu và sân bay", icon: Plane },
   { to: "/notices", label: "Thiết lập file add", icon: Paperclip },
