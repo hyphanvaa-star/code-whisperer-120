@@ -30,7 +30,8 @@ const dofOf = (iso: string | null) => { if (!iso) return ""; const d = new Date(
 
 // Port acFindFlight: cùng callsign → tách theo DOF → theo EOBT; mơ hồ thì null (N/A).
 function findFlight(flights: Flight[], cs: string, dof: string, eobt: string) {
-  let c = flights.filter((f) => f.callsign.toUpperCase().replace(/\s/g, "") === cs);
+  const key = (x: string) => x.toUpperCase().replace(/\s/g, "").replace(/^VJC?/, "");
+  let c = flights.filter((f) => key(f.callsign) === key(cs));
   if (c.length <= 1) return c[0] ?? null;
   if (dof.length === 6) { const h = c.filter((f) => dofOf(f.std) === dof); if (h.length === 1) return h[0]; if (h.length) c = h; }
   if (/^\d{4}$/.test(eobt)) { const h = c.filter((f) => hhmm(f.std) === eobt); if (h.length === 1) return h[0]; }
