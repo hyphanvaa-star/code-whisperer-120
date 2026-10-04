@@ -414,7 +414,13 @@ header .brand .sub,header .brand .sig,header .brand *{
   color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important;text-shadow:none !important;
 }
 header .brand .brand-board{color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important}
+/* Dòng chữ ký: tắt animation gốc (gây đè chữ khi đứng ở keyframe đầu) */
+header .brand .sig{
+  animation:none !important;transform:none !important;
+  opacity:.65 !important;margin-top:3px !important;
+}
 header .brand .brand-vj{
+  margin-top:4px !important;
   background:var(--pp-red) !important;
   color:#fff !important;-webkit-text-fill-color:#fff !important;
   border:none !important;border-radius:6px !important;
