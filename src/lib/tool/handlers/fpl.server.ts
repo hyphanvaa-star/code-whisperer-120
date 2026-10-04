@@ -245,49 +245,7 @@ export const routes: Routes = {
     if (!items.length) return { error: "Chọn ít nhất một chuyến." };
     const convert = !!body.convert;
     const ae = await import("../port/atc_ezfw");
-    const { loadFlights } = await import("../core/gantts.server");
-    const { fbGet } = await import("@/lib/flitebrief.server");
-    const flights = await loadFlights(3);
-    const now = Date.now();
-    const pickFlight = (it: Raw) => {
-      const digits = ae.digitsOf(String(it.flt || ""));
-      if (!digits) return null;
-      const rx = new RegExp(`(?<!\\d)${digits}(?!\\d)`);
-      const dep = String(it.dep || "").toUpperCase().trim();
-      const arr = String(it.arr || "").toUpperCase().trim();
-      let hits = flights.filter((f: any) => rx.test([f.callsign, f.fltno, f.commercial_fltno].filter(Boolean).join(" ")));
-      const byApt = hits.filter((f: any) =>
-        (!dep || f.dep_iata?.toUpperCase() === dep || f.dep_icao?.toUpperCase() === dep) &&
-        (!arr || f.dest_iata?.toUpperCase() === arr || f.dest_icao?.toUpperCase() === arr));
-      if (byApt.length) hits = byApt;
-      const win = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
-      if (win.length) hits = win;
-      hits.sort((a: any, b: any) => Math.abs((a.std?.getTime() ?? 0) - now) - Math.abs((b.std?.getTime() ?? 0) - now));
-      return hits[0] || null;
-    };
-    const pdfText = async (bytes: Uint8Array) => {
-      const { extractText, getDocumentProxy } = await import("unpdf");
-      const pdf = await getDocumentProxy(bytes);
-      const { text } = await extractText(pdf, { mergePages: true });
-      return Array.isArray(text) ? text.join("\n") : String(text ?? "");
-    };
-    const missed: string[] = [];
-    const got: { ix: number; f: any; block: string }[] = [];
-    await Promise.all(items.map(async (it: Raw, ix: number) => {
-      const label = `VJ${it.flt} ${it.dep || ""}-${it.arr || ""}`.trim();
-      const f = pickFlight(it);
-      if (!f) { missed.push(`${label}: không thấy trên FliteBrief`); return; }
-      try {
-        const res = await fbGet(`/webapi/sectors/${f.id}/ofp`, "application/pdf");
-        if (!res.ok || res.status === 204) { missed.push(`${label}: chưa có OFP`); return; }
-        const buf = new Uint8Array(await res.arrayBuffer());
-        if (!buf.byteLength) { missed.push(`${label}: chưa có OFP`); return; }
-        got.push({ ix, f, block: ae.extractAtc(await pdfText(buf)) });
-      } catch (e) {
-        missed.push(`${label}: ${(e as Error).message}`);
-      }
-    }));
-    got.sort((a, b) => a.ix - b.ix);
+    const { got, missed } = await fetchAtcBlocks(items);
     if (!got.length) return { error: missed.join("\n") || "Không lấy được ATC chuyến nào." };
     if (!convert) {
       const text = ae.joinAtcBlocks(got.map((g) => g.block)).replace(/\r?\n/g, "\r\n");
@@ -336,14 +294,43 @@ export const routes: Routes = {
     }
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return { error: "Chọn ít nhất một chuyến." };
-    return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
+    const kind = atcChg.normalize_msg_kind(kindRaw);
+    const { got, missed } = await fetchAtcBlocks(items);
+    if (!got.length) return { error: missed.join("\n") || "Không lấy được OFP chuyến nào." };
+    const need = atcChg.NEED_13.includes(kind) ? ["-13/"] : [];
+    const rows: Raw[] = [];
+    for (const { ix, f, block } of got) {
+      const fields = atcChg.fields_from_fpl(block);
+      if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
+      const converted = atcChg.render_msg(kind, fields, items[ix] || {});
+      rows.push({
+        id: f.id, callsign: fields.callsign || f.callsign, dep: fields.dep || f.dep_icao,
+        arr: fields.arr || f.dest_icao, original: block.trim(), converted,
+        html: atcChg.msg_html(converted, { need }), notes: [],
+      });
+    }
+    return { ok: true, ok_n: rows.length, missed, flights: rows, kind, filename: atcChg.msg_filename(kind) };
   },
 
   "POST /api/version/chg": async (ctx) => {
     const body = await ctx.json();
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return { error: "Không có chuyến CHG/DLA trên bảng." };
-    return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
+    const { got, missed } = await fetchAtcBlocks(items);
+    if (!got.length) return { error: missed.join("\n") || "Không lấy được OFP chuyến nào." };
+    const chg: [string, string][] = [], dla: [string, string][] = [];
+    for (const { ix, f, block } of got) {
+      const it = items[ix] || {};
+      const fields = atcChg.fields_from_fpl(block);
+      if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
+      const code = String(it.kind || atcChg.KIND_CHG);
+      const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || "") });
+      const region = atcChg.aro_of(fields.dep || f.dep_icao);
+      (code === atcChg.KIND_DLA ? dla : chg).push([region, msg]);
+    }
+    const text = atcChg.join_export(chg, dla).replace(/\r?\n/g, "\r\n");
+    return { ok: true, ok_n: chg.length + dla.length, missed, filename: "CHG-DLA.txt",
+      file: Buffer.from(text, "utf8").toString("base64") };
   },
 
   "POST /api/fpltext/build": async (ctx) => {
@@ -377,3 +364,51 @@ export const routes: Routes = {
 };
 
 export const jobs: Jobs = {};
+
+async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any; block: string }[]; missed: string[] }> {
+    const ae = await import("../port/atc_ezfw");
+    const { loadFlights } = await import("../core/gantts.server");
+    const { fbGet } = await import("@/lib/flitebrief.server");
+    const flights = await loadFlights(3);
+    const now = Date.now();
+    const pickFlight = (it: Raw) => {
+      const digits = ae.digitsOf(String(it.flt || ""));
+      if (!digits) return null;
+      const rx = new RegExp(`(?<!\\d)${digits}(?!\\d)`);
+      const dep = String(it.dep || "").toUpperCase().trim();
+      const arr = String(it.arr || "").toUpperCase().trim();
+      let hits = flights.filter((f: any) => rx.test([f.callsign, f.fltno, f.commercial_fltno].filter(Boolean).join(" ")));
+      const byApt = hits.filter((f: any) =>
+        (!dep || f.dep_iata?.toUpperCase() === dep || f.dep_icao?.toUpperCase() === dep) &&
+        (!arr || f.dest_iata?.toUpperCase() === arr || f.dest_icao?.toUpperCase() === arr));
+      if (byApt.length) hits = byApt;
+      const win = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
+      if (win.length) hits = win;
+      hits.sort((a: any, b: any) => Math.abs((a.std?.getTime() ?? 0) - now) - Math.abs((b.std?.getTime() ?? 0) - now));
+      return hits[0] || null;
+    };
+    const pdfText = async (bytes: Uint8Array) => {
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const pdf = await getDocumentProxy(bytes);
+      const { text } = await extractText(pdf, { mergePages: true });
+      return Array.isArray(text) ? text.join("\n") : String(text ?? "");
+    };
+    const missed: string[] = [];
+    const got: { ix: number; f: any; block: string }[] = [];
+    await Promise.all(items.map(async (it: Raw, ix: number) => {
+      const label = `VJ${it.flt} ${it.dep || ""}-${it.arr || ""}`.trim();
+      const f = pickFlight(it);
+      if (!f) { missed.push(`${label}: không thấy trên FliteBrief`); return; }
+      try {
+        const res = await fbGet(`/webapi/sectors/${f.id}/ofp`, "application/pdf");
+        if (!res.ok || res.status === 204) { missed.push(`${label}: chưa có OFP`); return; }
+        const buf = new Uint8Array(await res.arrayBuffer());
+        if (!buf.byteLength) { missed.push(`${label}: chưa có OFP`); return; }
+        got.push({ ix, f, block: ae.extractAtc(await pdfText(buf)) });
+      } catch (e) {
+        missed.push(`${label}: ${(e as Error).message}`);
+      }
+    }));
+    got.sort((a, b) => a.ix - b.ix);
+  return { got, missed };
+}
