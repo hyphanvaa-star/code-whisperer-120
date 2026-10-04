@@ -38,4 +38,6 @@
 - [~] limits (/api/limits* xong; còn defect_pdf/defect_summary): /api/limits*, /api/defect/* (defect_summary, defect_pdf)
 - [~] notices+swap (rules/preview xong; còn attach/auto, swaps): notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
 - [ ] atc+autoload+misc: atc_check, atc files/submit, atcezfw, omni, owa, gd, credentials, paths, chat, dsp-layout, disk/clean, download
+- [x] Tài khoản dịch vụ đã có trong kho bảo mật (04/10): VJC, OMNI, OWA/Outlook (hộp chung omc@), AviWeb, JetPlan, Opscore, gate — nối vào các chức năng tương ứng
+- [ ] Nối tài khoản vào chức năng: OMNI (dự kiến tải), Outlook/OWA (PIB, defect, FPL tự động), AviWeb (Get ATC/Data Convert tab Tạo KHB + Check ATC avi tự lấy), JetPlan, Opscore
 - [ ] Ảnh gốc còn thiếu (logo VJ, hello-kitty, cat-paw, notam-apron-tower, acft, flags, hanyi/*.png) — cần bạn gửi thư mục static
