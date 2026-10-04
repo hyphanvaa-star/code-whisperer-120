@@ -1,9 +1,8 @@
-// Port of metwx.py — pure, testable bits only. Login/download to the MET
-// station intranet IPs (113.161.121.25, 14.177.232.218, danmet.vatm.vn, …) are
-// company-intranet hosts unreachable from a Cloudflare Worker; the download
-// endpoint in wx.server.ts returns an honest Vietnamese error instead of
-// faking success. Kept here: site catalogue + Create-Time / filename parsing,
-// in case a future PC-agent job wants to reuse it.
+// Port of metwx.py — đầy đủ: đăng nhập, liệt kê bảng Flight Documentation và
+// tải flight folder PDF từ các đài khí tượng (TSN 113.161.121.25, Nội Bài
+// 14.177.232.218:7102, Đà Nẵng danmet.vatm.vn, TSN mirror 118.69.213.84).
+// Các trang này mở được từ internet nên server web tự tải trực tiếp, không cần
+// trợ lý PC. Session dùng fetch + cookie jar thủ công (PHPSESSID).
 
 export type MetSiteFlavor = "wafs" | "folder" | "href";
 
