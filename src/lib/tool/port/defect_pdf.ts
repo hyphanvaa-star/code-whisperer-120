@@ -255,18 +255,97 @@ export function legacyExcelRows(grouped: AircraftLimitRow[]): [string, string][]
   return [...byAircraft.entries()].map(([reg, defects]) => [reg, defects.join(" - ")]);
 }
 
-/** Đọc bảng defect từ bytes PDF (unpdf text + header-position split). */
+export interface PosItem { x: number; y: number; w: number; str: string }
+
+/** Tách bảng theo toạ độ chữ (giống pdfplumber): cột theo tâm tiêu đề, dòng
+ * theo ô AC REG gần nhất theo trục dọc (AMOS căn giữa ô nhiều dòng). */
+export function extractFromPositions(pages: PosItem[][]): AircraftLimitRow[] {
+  const rows: AircraftLimitRow[] = [];
+  let hdr: Record<string, number> | null = null;
+  for (const items0 of pages) {
+    const items = items0.filter((i) => i.str.trim());
+    const find = (re: RegExp) => items.find((i) => re.test(i.str.trim().toUpperCase()));
+    const h = { reg: find(/^AC REG$/), issue: find(/^ISSUE DATE$/), togo: find(/^TOGO$/), defect: find(/^DEFECT$/), action: find(/^ACTION REQUIREMENTS?$/), remark: find(/^REMARKS?$/) };
+    let hy = Infinity;
+    if (h.reg && h.defect && h.action) {
+      const c = (i?: PosItem) => (i ? i.x + i.w / 2 : NaN);
+      hdr = { reg: c(h.reg), issue: c(h.issue), togo: c(h.togo), defect: c(h.defect), action: c(h.action), remark: c(h.remark) };
+      hy = h.reg.y;
+    }
+    if (!hdr) continue;
+    const H = hdr;
+    const regHi = Number.isNaN(H.issue) ? (H.reg + H.defect) / 2 : (H.reg + H.issue) / 2;
+    const defLo = Number.isNaN(H.togo) ? H.defect - 60 : (H.togo + H.defect) / 2;
+    const defHi = (H.defect + H.action) / 2;
+    const actHi = Number.isNaN(H.remark) ? Infinity : (H.action + H.remark) / 2;
+    const body = items.filter((i) => i.y < hy - 2);
+    const anchors = body
+      .filter((i) => i.x + i.w / 2 < regHi && /^(?:VN-?)?A\d{3}$/i.test(i.str.trim()))
+      .map((i) => ({ reg: i.str.trim(), y: i.y, defect: [] as PosItem[], action: [] as PosItem[] }));
+    if (!anchors.length) continue;
+    anchors.sort((a, b) => b.y - a.y);
+    // AMOS căn giữa mỗi ô theo dòng AC REG: với từng cột, chia các dòng chữ
+    // sao cho tâm khối của mỗi tàu gần với toạ độ AC REG nhất.
+    for (const col of ["defect", "action"] as const) {
+      const colItems = body.filter((i) => {
+        const cx = i.x + i.w / 2;
+        return col === "defect" ? cx >= defLo && cx < defHi : cx >= defHi && cx < actHi;
+      }).sort((p, q) => q.y - p.y);
+      const lines: { y: number; items: PosItem[] }[] = [];
+      for (const it of colItems) {
+        const last = lines[lines.length - 1];
+        if (last && Math.abs(last.y - it.y) <= 2) last.items.push(it);
+        else lines.push({ y: it.y, items: [it] });
+      }
+      let start = 0;
+      for (let k = 0; k < anchors.length; k++) {
+        const a = anchors[k]!;
+        let end = lines.length;
+        if (k + 1 < anchors.length) {
+          const nextY = anchors[k + 1]!.y;
+          let bestJ = start, bestCost = Infinity;
+          for (let j = start; j <= lines.length; j++) {
+            if (j > start && lines[j - 1]!.y < nextY - 2) break;
+            const cost = j === start
+              ? (lines[start] && lines[start]!.y > a.y - 6 ? 1e6 : 6)
+              : Math.abs((lines[start]!.y + lines[j - 1]!.y) / 2 - a.y);
+            if (cost < bestCost - 0.01) { bestCost = cost; bestJ = j; }
+          }
+          end = bestJ;
+        }
+        for (let j = start; j < end; j++) a[col].push(...lines[j]!.items);
+        start = end;
+      }
+    }
+    const join = (xs: PosItem[], nl: boolean) => xs.sort((a, b) => b.y - a.y || a.x - b.x).map((i) => i.str.trim()).join(nl ? "\n" : " ");
+    for (const a of anchors) {
+      const r = makeRow(a.reg, join(a.defect, false), join(a.action, true));
+      if (r) rows.push(r);
+    }
+  }
+  return rows;
+}
+
+/** Đọc bảng defect từ bytes PDF (toạ độ chữ; fallback tách theo text phẳng). */
 export async function extractRows(blob: ArrayBuffer): Promise<AircraftLimitRow[]> {
   let pages: string[];
+  const posPages: PosItem[][] = [];
   try {
     const { extractText, getDocumentProxy } = await import("unpdf");
     const pdf = await getDocumentProxy(new Uint8Array(blob));
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const tc = await (await pdf.getPage(n)).getTextContent();
+      posPages.push((tc.items as Array<{ str?: string; transform?: number[]; width?: number }>)
+        .filter((i) => typeof i.str === "string" && i.transform)
+        .map((i) => ({ x: i.transform![4]!, y: i.transform![5]!, w: i.width ?? 0, str: i.str! })));
+    }
     const result = await extractText(pdf, { mergePages: false });
     pages = Array.isArray(result.text) ? result.text : [String(result.text)];
   } catch (exc) {
     throw new DefectPdfError(`Lỗi đọc PDF: ${exc instanceof Error ? exc.message : String(exc)}`);
   }
-  const rows = extractFromPageTexts(pages);
+  let rows = extractFromPositions(posPages);
+  if (!rows.length) rows = extractFromPageTexts(pages);
   return rows.filter((row) => /^VN-A\d{3}$/.test(row.reg));
 }
 
