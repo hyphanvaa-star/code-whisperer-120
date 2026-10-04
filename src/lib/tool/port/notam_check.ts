@@ -200,7 +200,9 @@ export function apply24h(place: Record<string, unknown>, now: Date = new Date())
   return { ...place, notams_all: rows.length, notams: kept, notam_count: kept.length };
 }
 
-export function placeFromPayload(code: string, payload: Record<string, unknown>, want = ""): Record<string, unknown> {
+export function placeFromPayload(code: string, payloadIn: Record<string, unknown> | unknown[], want = ""): Record<string, unknown> {
+  // FliteBrief /webapi/icaos/<icao> trả về mảng [ {airfields, firs, ...} ].
+  const payload = (Array.isArray(payloadIn) ? (payloadIn[0] ?? {}) : (payloadIn ?? {})) as Record<string, unknown>;
   const airfields = (payload.airfields as Record<string, unknown>[] | undefined) ?? [];
   const firs = (payload.firs as Record<string, unknown>[] | undefined) ?? [];
   const af = airfields[0] && typeof airfields[0] === "object" ? airfields[0] : {};
