@@ -38,6 +38,9 @@
 - [~] limits (/api/limits* xong; còn defect_pdf/defect_summary): /api/limits*, /api/defect/* (defect_summary, defect_pdf)
 - [~] notices+swap (rules/preview xong; còn attach/auto, swaps): notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
 - [ ] atc+autoload+misc: atc_check, atc files/submit, atcezfw, omni, owa, gd, credentials, paths, chat, dsp-layout, disk/clean, download
-- [x] Tài khoản dịch vụ đã có trong kho bảo mật (04/10): VJC, OMNI, OWA/Outlook (hộp chung omc@), AviWeb, JetPlan, Opscore, gate — nối vào các chức năng tương ứng
-- [ ] Nối tài khoản vào chức năng: OMNI (dự kiến tải), Outlook/OWA (PIB, defect, FPL tự động), AviWeb (Get ATC/Data Convert tab Tạo KHB + Check ATC avi tự lấy), JetPlan, Opscore
+- [x] Tài khoản dịch vụ đã có trong kho bảo mật (04/10): VJC, OMNI, OWA/Outlook (hộp chung omc@), AviWeb, JetPlan, Opscore, gate
+- [x] OMNI nối xong (04/10): đăng nhập thật OK, /api/est/status|refresh|match chạy thật, cache "omni.cache"; khung Cargo·Load + EST dùng dữ liệu này; còn upload XLSX tay + tự tải về ổ D: (trợ lý PC)
+- [~] AviWeb: logic phân tích FPL đã port; tự đăng nhập CHẶN (Vaadin bắt buộc trình duyệt) — đang hoàn thiện test + thông báo rõ ràng trên nút
+- [~] Outlook/OWA: logic đọc thư FPL/PIB đã port + endpoint sẵn; đăng nhập CHẶN (ADFS nội bộ) — cần IT cấp Azure app hoặc trợ lý PC
+- [ ] JetPlan, Opscore: tài khoản đã lưu, chưa nối (Opscore: STATUS OOOI trên bảng chuyến)
 - [ ] Ảnh gốc còn thiếu (logo VJ, hello-kitty, cat-paw, notam-apron-tower, acft, flags, hanyi/*.png) — cần bạn gửi thư mục static
