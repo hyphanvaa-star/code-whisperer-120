@@ -168,15 +168,15 @@ header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,head
   height:34px !important;min-height:0 !important;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
-.filt-actions .btn *,.head-ops .ai-fab *,header #btnAcc *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+.filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{color:#fff !important;-webkit-text-fill-color:#fff !important}
 .filt-actions .btn:hover,.head-ops .btn.act:hover,.head-ops .ai-fab:hover,
-header #btnAcc:hover,header #btnTaf:hover,header #btnPickXls:hover,header #btnReload:hover,header #btnOfpCheck:hover{
+header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btnPickXls:hover,header:not(.md) #btnReload:hover,header:not(.md) #btnOfpCheck:hover{
   background:rgba(255,255,255,.22) !important;
   border-color:rgba(255,201,0,.65) !important;
   transform:translateY(-1px);
 }
-.filt-actions .btn::before,header #btnAcc::before,header #btnTaf::before,
-header #btnPickXls::before,header #btnReload::before,header #btnOfpCheck::before{
+.filt-actions .btn::before,header:not(.md) #btnAcc::before,header:not(.md) #btnTaf::before,
+header:not(.md) #btnPickXls::before,header:not(.md) #btnReload::before,header:not(.md) #btnOfpCheck::before{
   background:none !important;box-shadow:none !important;
 }
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
