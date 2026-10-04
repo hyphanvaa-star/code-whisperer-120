@@ -774,6 +774,83 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 }
 .toolbar .btn:hover,.toolbars .btn:hover,.subtabs .btn:hover,.sheet .btn:hover,.lim-pane .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 .xt-kg{min-width:0 !important}.xt-min{margin-right:3px !important;min-width:30px !important;padding:0 3px !important}td.extra-cell{overflow:hidden !important;white-space:nowrap !important}
+
+/* ================= HEADER OPS — thiết kế lại thành bảng điều khiển 2 tầng ================= */
+header#mdRoom{
+  min-height:104px !important;height:auto !important;padding:0 18px !important;
+  display:grid !important;grid-template-columns:246px minmax(620px,1fr) auto !important;
+  grid-template-rows:1fr !important;column-gap:20px !important;align-items:center !important;
+  background:#fff !important;border-top:4px solid var(--x-red) !important;border-bottom:1px solid var(--x-line) !important;
+  box-shadow:0 8px 24px rgba(30,35,48,.06) !important;
+}
+header#mdRoom .brand{
+  grid-column:1 !important;grid-row:1 !important;order:unset !important;margin:0 !important;
+  transform:none !important;align-self:stretch !important;display:flex !important;align-items:center !important;
+  padding:0 20px 0 4px !important;border-right:1px solid var(--x-line) !important;
+}
+header#mdRoom .brand-txt{display:grid !important;grid-template-columns:34px auto !important;grid-template-rows:auto auto !important;column-gap:10px !important;align-items:center !important}
+header#mdRoom .brand h1{grid-column:2 !important;font-size:20px !important;line-height:1 !important;white-space:nowrap !important;text-transform:uppercase !important}
+header#mdRoom .brand h1::before{
+  content:"➤";grid-column:1 !important;position:absolute !important;margin-left:-44px !important;margin-top:-7px !important;
+  width:34px !important;height:34px !important;display:grid !important;place-items:center !important;border-radius:8px !important;
+  background:var(--x-red) !important;color:#fff !important;font-size:16px !important;box-shadow:0 5px 12px rgba(227,25,55,.2) !important;
+}
+header#mdRoom .brand .sig{grid-column:2 !important;font-size:8px !important;letter-spacing:.12em !important;color:var(--x-mute) !important;-webkit-text-fill-color:var(--x-mute) !important;opacity:1 !important;margin-top:5px !important}
+header#mdRoom .brand-vj{display:none !important}
+
+header#mdRoom .md-denpyo{
+  grid-column:2 !important;grid-row:1 !important;order:unset !important;min-width:0 !important;
+  display:grid !important;grid-template-columns:132px minmax(510px,1fr) !important;grid-template-rows:42px 38px !important;
+  gap:4px 14px !important;align-items:end !important;
+}
+header#mdRoom .md-denpyo .md-row:first-of-type{grid-column:1 !important;grid-row:1 / span 2 !important;display:flex !important;align-items:center !important}
+header#mdRoom .md-denpyo .filt-rail{
+  grid-column:2 !important;grid-row:1 !important;display:grid !important;
+  grid-template-columns:1.05fr .8fr .8fr .9fr 1.25fr !important;gap:10px !important;
+  padding:0 !important;border:0 !important;background:transparent !important;
+}
+header#mdRoom .md-denpyo .filt-actions{grid-column:2 !important;grid-row:2 !important;display:flex !important;gap:7px !important;align-items:start !important}
+header#mdRoom .field{min-width:0 !important;width:100% !important;gap:3px !important}
+header#mdRoom .field label{font-size:8px !important;font-weight:700 !important;letter-spacing:.1em !important;color:var(--x-mute) !important;opacity:1 !important}
+header#mdRoom input,header#mdRoom select{width:100% !important;height:28px !important;border:1px solid var(--x-line) !important;border-radius:6px !important;background:#F8F9FB !important;box-shadow:none !important;font:600 11px var(--x-mono) !important}
+header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px var(--x-red-50) !important}
+
+header#mdRoom .filt-actions .btn{
+  height:30px !important;min-width:78px !important;padding:0 12px !important;border:0 !important;border-radius:6px !important;
+  background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  box-shadow:none !important;font-size:11px !important;font-weight:700 !important;justify-content:center !important;
+}
+header#mdRoom .filt-actions .btn::before{display:none !important}
+header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;transform:none !important}
+
+header#mdRoom .head-right{
+  grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;gap:8px !important;
+  padding-left:18px !important;border-left:1px solid var(--x-line) !important;
+}
+header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
+header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
+header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
+  position:static !important;width:auto !important;height:42px !important;min-width:62px !important;margin:0 !important;padding:0 14px !important;
+  border-radius:7px !important;box-shadow:none !important;display:flex !important;align-items:center !important;justify-content:center !important;
+}
+header#mdRoom #btnOfpCheck{background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid var(--x-red) !important}
+header#mdRoom #btnOfpCheck small{display:none !important}
+header#mdRoom #aiFab{min-width:96px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
+header#mdRoom #aiFab .n{font-size:12px !important;font-weight:800 !important}header#mdRoom #aiFab .sub{font-size:7px !important}
+header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
+  position:relative !important;left:auto !important;top:auto !important;order:unset !important;margin:0 !important;transform:none !important;
+  width:48px !important;height:42px !important;flex:0 0 48px !important;border:1px solid var(--x-line) !important;border-radius:7px !important;
+  background:#F8F9FB !important;box-shadow:none !important;color:var(--x-ink2) !important;
+}
+header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{font-size:14px !important;top:6px !important}
+header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{font-size:7px !important;bottom:5px !important;color:var(--x-mute) !important}
+.aside-head{top:104px !important}
+
+@media(max-width:1100px){
+  header#mdRoom{grid-template-columns:190px minmax(540px,1fr) !important;column-gap:12px !important;padding:0 12px !important}
+  header#mdRoom .head-right{grid-column:1 / -1 !important;grid-row:2 !important;justify-content:flex-end !important;border:0 !important;position:absolute !important;right:12px !important;bottom:-52px !important;z-index:45 !important}
+  header#mdRoom .brand{padding-right:10px !important}
+}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
