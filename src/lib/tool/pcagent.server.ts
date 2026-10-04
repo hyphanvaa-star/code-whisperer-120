@@ -30,7 +30,7 @@ async function admin() {
 }
 
 export async function enqueue(kind: PcJobKind, payload: Record<string, unknown>): Promise<string> {
-  const { data, error } = await admin()
+  const { data, error } = (await admin())
     .from("pc_jobs")
     .insert({ kind, payload })
     .select("id")
@@ -47,7 +47,7 @@ export async function waitResult(
 ): Promise<Record<string, unknown>> {
   const t0 = Date.now();
   for (;;) {
-    const { data, error } = await admin()
+    const { data, error } = (await admin())
       .from("pc_jobs")
       .select("status, result")
       .eq("id", id)
@@ -63,7 +63,7 @@ export async function waitResult(
     }
     const elapsed = (Date.now() - t0) / 1000;
     if (elapsed * 1000 >= timeoutMs) {
-      await admin()
+      (await admin())
         .from("pc_jobs")
         .update({ status: "failed", result: { error: "hết thời gian chờ" }, done_at: new Date().toISOString() })
         .eq("id", id)
@@ -77,7 +77,7 @@ export async function waitResult(
 
 /** Agent heartbeat, written by the public poll route (no user session). */
 export async function recordHeartbeat(info: Omit<AgentInfo, "at">): Promise<void> {
-  const { error } = await admin().from("app_settings").upsert({
+  const { error } = (await admin()).from("app_settings").upsert({
     key: "pc.agent",
     value: { ...info, at: Date.now() },
     updated_at: new Date().toISOString(),
@@ -116,7 +116,7 @@ export async function claimPending(limit = 5): Promise<Array<{ id: string; kind:
 }
 
 export async function finishJob(id: string, ok: boolean, result: Record<string, unknown>): Promise<void> {
-  const { error } = await admin()
+  const { error } = (await admin())
     .from("pc_jobs")
     .update({
       status: ok ? "done" : "failed",
