@@ -793,15 +793,15 @@ header#mdRoom{
 }
 /* --- BÊN TRÁI: khung tìm kiếm chuyến (qua .md-stage) --- */
 header#mdRoom .md-stage{
-  grid-column:1 !important;grid-row:1 !important;display:block !important;min-width:0 !important;
+  grid-column:1 !important;grid-row:1 !important;display:block !important;min-width:0 !important;align-self:start !important;
   padding:0 !important;margin:0 !important;position:static !important;
 }
 header#mdRoom .md-denpyo{
   display:grid !important;grid-template-columns:repeat(6,minmax(0,1fr)) !important;
-  grid-auto-rows:min-content !important;align-content:center !important;
-  gap:10px 12px !important;width:100% !important;height:116px !important;padding:10px 16px !important;margin:0 !important;
-  background:#fff !important;border:1px solid rgba(97,123,148,.32) !important;border-radius:16px !important;
-  box-shadow:0 14px 30px rgba(30,69,103,.18) !important;backdrop-filter:none !important;position:static !important;
+  grid-auto-rows:min-content !important;align-content:start !important;align-items:end !important;
+  gap:9px 12px !important;width:100% !important;height:auto !important;padding:12px 18px 13px !important;margin:0 !important;
+  background:#fff !important;border:1px solid rgba(97,123,148,.32) !important;border-radius:14px !important;
+  box-shadow:0 10px 24px rgba(30,69,103,.16) !important;backdrop-filter:none !important;position:static !important;
 }
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
@@ -817,8 +817,8 @@ header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
-  display:block !important;font-size:7.5px !important;line-height:1.1 !important;margin:0 0 2px !important;
-  font-weight:700 !important;letter-spacing:.1em !important;color:var(--x-mute) !important;opacity:1 !important;
+  display:block !important;font-size:8px !important;line-height:1.1 !important;margin:0 0 3px !important;
+  font-weight:800 !important;letter-spacing:.12em !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;
 }
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
@@ -846,25 +846,19 @@ header#mdRoom .filt-actions .btn{
 header#mdRoom .filt-actions .btn::before{display:block !important;width:13px !important;height:13px !important;background:#fff !important}
 header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;transform:translateY(-1px) !important;box-shadow:0 4px 0 #8f1026 !important}
 header#mdRoom .filt-actions .btn:active{transform:translateY(2px) !important;box-shadow:0 1px 0 #8f1026 !important}
-/* --- GIỮA: Dispatch Board — thẻ trắng chữ đỏ đậm, dồn lên đỉnh --- */
+/* --- GIỮA: Dispatch Board --- */
 header#mdRoom .brand{
   grid-column:2 !important;grid-row:1 !important;order:unset !important;margin:0 !important;
-  transform:none !important;align-self:start !important;justify-self:center !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:flex-start !important;
-  position:relative !important;width:auto !important;height:auto !important;padding:10px 26px 9px !important;border:0 !important;border-radius:2px !important;background:#fff !important;
-  box-shadow:0 4px 14px rgba(23,42,58,.16) !important;
+  transform:none !important;align-self:center !important;justify-self:center !important;display:flex !important;align-items:center !important;justify-content:center !important;
+  width:286px !important;height:88px !important;padding:0 !important;border:0 !important;background:var(--x-red) !important;
+  box-shadow:8px 8px 0 rgba(125,20,39,.16) !important;
 }
 header#mdRoom .brand-txt{display:block !important;padding:0 !important;position:relative !important;text-align:center !important}
-header#mdRoom .brand h1{position:relative !important;font-size:26px !important;font-weight:900 !important;line-height:1 !important;white-space:nowrap !important;text-transform:uppercase !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;letter-spacing:.01em !important}
-header#mdRoom .brand h1 .brand-board{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important}
+header#mdRoom .brand h1{position:relative !important;font-size:26px !important;line-height:1 !important;white-space:nowrap !important;text-transform:uppercase !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
+header#mdRoom .brand h1 .brand-board{color:#fff !important;-webkit-text-fill-color:#fff !important}
 header#mdRoom .brand h1::before{display:none !important}
-header#mdRoom .brand .sig{display:none !important}
-header#mdRoom .brand-vj{display:none !important}
-header#mdRoom .brand::after{
-  content:"Nếu mệt quá hãy nghỉ ngơi một chút nhé" !important;
-  position:absolute !important;top:calc(100% + 7px) !important;left:50% !important;transform:translateX(-50%) !important;
-  white-space:nowrap !important;font:600 11px/1 var(--x-mono),monospace !important;letter-spacing:.04em !important;
-  color:var(--x-red) !important;opacity:.85 !important;
-}
+header#mdRoom .brand .sig{font-size:8px !important;white-space:nowrap !important;letter-spacing:.14em !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:.9 !important;margin-top:8px !important;text-transform:uppercase !important}
+header#mdRoom .brand-vj{display:block !important;margin-top:4px !important;font-size:8px !important;font-weight:800 !important;letter-spacing:.18em !important;color:var(--x-yellow) !important;-webkit-text-fill-color:var(--x-yellow) !important;text-transform:uppercase !important}
 /* --- BÊN PHẢI: panel nút trắng, 2 hàng 4 phím đỏ --- */
 header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;
