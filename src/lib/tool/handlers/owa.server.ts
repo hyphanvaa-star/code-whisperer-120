@@ -29,7 +29,9 @@ export const routes: Routes = {
       return { running: false, last_at: 0, count: 0, items: [], lines: [], until: after, error: offline().error };
     }
     try {
-      const id = await pc.enqueue("owa_fpl_watch", { after });
+      // Gộp các lượt thăm dò trùng nhau (nhiều tab mở cùng lúc) thành một job
+      // trên máy công ty thay vì đẩy một đống job giống hệt nhau.
+      const id = await pc.enqueueDeduped("owa_fpl_watch", { after }, 8_000);
       const r = await pc.waitResult(id, 20_000);
       return r;
     } catch (e) {
