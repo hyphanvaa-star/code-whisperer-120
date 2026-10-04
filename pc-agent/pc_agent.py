@@ -366,9 +366,10 @@ def do_pick_folder(payload: dict, say) -> dict:
 
 
 def _find_tool_dir() -> Path:
-    """Thư mục tool gốc (chứa atc_check.py, config.py) trên máy công ty."""
-    env_dir = os.environ.get("PC_TOOL_DIR", "").strip()
-    cands = [Path(env_dir)] if env_dir else []
+    """Thư mục tool gốc (chứa atc_check.py, config.py) trên máy công ty.
+    Tự tìm; nếu không thấy thì hiện hộp thoại chọn thư mục MỘT lần rồi ghi nhớ."""
+    cfg_dir = str(_CFG.get("tool_dir") or "").strip()
+    cands = [Path(cfg_dir)] if cfg_dir else []
     cands += [
         Path("C:/DispatchBoard"), Path("D:/DispatchBoard"),
         Path.home() / "DispatchBoard", Path.home() / "Desktop" / "DispatchBoard",
@@ -376,9 +377,28 @@ def _find_tool_dir() -> Path:
     for c in cands:
         if (c / "atc_check.py").is_file():
             return c
+    # Hỏi người dùng một lần bằng hộp thoại chọn thư mục, rồi ghi nhớ.
+    try:
+        import tkinter as tk
+        from tkinter import filedialog, messagebox
+        root = tk.Tk(); root.withdraw(); root.attributes("-topmost", True)
+        messagebox.showinfo(
+            "Trợ lý Dispatch Board",
+            "Chọn thư mục tool gốc (thư mục chứa file atc_check.py / config.py).\n"
+            "Chỉ phải chọn MỘT lần — trợ lý sẽ ghi nhớ.",
+            parent=root,
+        )
+        chosen = filedialog.askdirectory(title="Chọn thư mục tool gốc (DispatchBoard)", parent=root)
+        root.destroy()
+        if chosen and (Path(chosen) / "atc_check.py").is_file():
+            _save_config(tool_dir=chosen)
+            _CFG["tool_dir"] = chosen
+            return Path(chosen)
+    except Exception:
+        pass
     raise RuntimeError(
-        "không tìm thấy thư mục tool gốc (atc_check.py) — đặt biến môi trường "
-        "PC_TOOL_DIR trỏ tới thư mục DispatchBoard"
+        "không tìm thấy thư mục tool gốc (atc_check.py) — sửa \"tool_dir\" trong "
+        "file pc_agent_config.json cạnh script trỏ tới thư mục DispatchBoard"
     )
 
 
