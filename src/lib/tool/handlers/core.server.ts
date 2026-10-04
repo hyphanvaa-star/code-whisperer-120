@@ -376,6 +376,20 @@ async function omniRowsFor(ctx: Parameters<Routes["GET /api/weights"]>[0], creds
   return refreshed.rows.map(fromCacheRow);
 }
 
+/** Port of web.py `_omni_load_of` — Bag/CGO/PAX/EST từ Omni cache, không gọi mạng. */
+async function omniLoadOf(ctx: Parameters<Routes["GET /api/weights"]>[0], f: Flight): Promise<Record<string, unknown>> {
+  try {
+    const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+    if (!cache.rows.length) return {};
+    const mt = omni.match([f], cache.rows.map(fromCacheRow)).get(f.id);
+    if (!mt) return {};
+    const x = mt.omni;
+    return { pax: x.pax_weight, bag: x.bag_weight, cargo: x.cargo_confirm, tare: x.tare, est: x.est_payload };
+  } catch {
+    return {};
+  }
+}
+
 /** Port of web.py `est_check()` — EST từ InFlight Omni cho từng chuyến. */
 async function estCheck(ctx: Parameters<Routes["GET /api/weights"]>[0], flights: Flight[], creds: omni.OmniCredentials) {
   const out: Record<string, unknown> = {};
@@ -604,7 +618,7 @@ export const routes: Routes = {
         // FliteBrief crews fetch failing shouldn't break the rest of the detail.
       }
     }
-    return detail(flight, crews);
+    return detail(flight, crews, await omniLoadOf(ctx, flight));
   },
 };
 export const jobs: Jobs = {};
