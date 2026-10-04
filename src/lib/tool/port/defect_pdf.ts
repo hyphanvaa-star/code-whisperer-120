@@ -284,28 +284,38 @@ export function extractFromPositions(pages: PosItem[][]): AircraftLimitRow[] {
       .map((i) => ({ reg: i.str.trim(), y: i.y, defect: [] as PosItem[], action: [] as PosItem[] }));
     if (!anchors.length) continue;
     anchors.sort((a, b) => b.y - a.y);
-    // Ranh giới giữa 2 dòng = giữa khoảng trống dọc lớn nhất của chữ nằm giữa 2 ô AC REG.
-    const ys = [...new Set(body.filter((i) => i.x + i.w / 2 >= defLo).map((i) => Math.round(i.y)))].sort((a, b) => b - a);
-    const cuts: number[] = [];
-    for (let k = 0; k + 1 < anchors.length; k++) {
-      const hiY = anchors[k]!.y, loY = anchors[k + 1]!.y;
-      const pts = [hiY, ...ys.filter((y) => y < hiY && y > loY), loY];
-      let bestGap = -1, cut = (hiY + loY) / 2;
-      for (let q = 0; q + 1 < pts.length; q++) {
-        const g = pts[q]! - pts[q + 1]!;
-        if (g > bestGap) { bestGap = g; cut = (pts[q]! + pts[q + 1]!) / 2; }
+    // AMOS căn giữa mỗi ô theo dòng AC REG: với từng cột, chia các dòng chữ
+    // sao cho tâm khối của mỗi tàu gần với toạ độ AC REG nhất.
+    for (const col of ["defect", "action"] as const) {
+      const colItems = body.filter((i) => {
+        const cx = i.x + i.w / 2;
+        return col === "defect" ? cx >= defLo && cx < defHi : cx >= defHi && cx < actHi;
+      }).sort((p, q) => q.y - p.y);
+      const lines: { y: number; items: PosItem[] }[] = [];
+      for (const it of colItems) {
+        const last = lines[lines.length - 1];
+        if (last && Math.abs(last.y - it.y) <= 2) last.items.push(it);
+        else lines.push({ y: it.y, items: [it] });
       }
-      cuts.push(cut);
-    }
-    for (const it of body) {
-      const cx = it.x + it.w / 2;
-      const col = cx >= defLo && cx < defHi ? "defect" : cx >= defHi && cx < actHi ? "action" : "";
-      if (!col) continue;
-      let k = 0;
-      while (k < cuts.length && it.y < cuts[k]!) k++;
-      const best = anchors[k]!;
-      if (Math.abs(best.y - it.y) > 120) continue;
-      best[col].push(it);
+      let start = 0;
+      for (let k = 0; k < anchors.length; k++) {
+        const a = anchors[k]!;
+        let end = lines.length;
+        if (k + 1 < anchors.length) {
+          const nextY = anchors[k + 1]!.y;
+          let bestJ = start, bestCost = Infinity;
+          for (let j = start; j <= lines.length; j++) {
+            if (j > start && lines[j - 1]!.y < nextY - 2) break;
+            const cost = j === start
+              ? (lines[start] && lines[start]!.y > a.y - 6 ? 1e6 : 6)
+              : Math.abs((lines[start]!.y + lines[j - 1]!.y) / 2 - a.y);
+            if (cost < bestCost - 0.01) { bestCost = cost; bestJ = j; }
+          }
+          end = bestJ;
+        }
+        for (let j = start; j < end; j++) a[col].push(...lines[j]!.items);
+        start = end;
+      }
     }
     const join = (xs: PosItem[], nl: boolean) => xs.sort((a, b) => b.y - a.y || a.x - b.x).map((i) => i.str.trim()).join(nl ? "\n" : " ");
     for (const a of anchors) {
