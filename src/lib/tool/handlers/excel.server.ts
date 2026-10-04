@@ -4,6 +4,11 @@ import { applyFilters, loadFlights } from "../core/gantts.server";
 import { getFile, getJson, listFiles, putFile, removeFiles, setJson } from "../store.server";
 import * as excelcmp from "../port/excelcmp_compare";
 import { ExcelError, readTable, type Sheet } from "../port/excelcmp_reader";
+import * as xlsdiff from "../port/xlsdiff";
+import { inOpsWindow } from "../port/notices";
+import { ofpAckNeeded } from "../port/verify";
+import { Flight } from "../core/models";
+import { fbJson } from "@/lib/flitebrief.server";
 
 /** Port of web.py attach_crews() used by compare_crew / bind_excel_row — fetches
  * crews from FliteBrief for flights that don't have them yet (same pattern as
@@ -203,7 +208,192 @@ async function runCompare(
   };
 }
 
+
+// Port of web.py _attach_dsp — fills row.dsp from FliteBrief by route + time window.
+const DSP_REF_H = -7.0;
+const DSP_WINDOW_H = 12.0;
+const DSP_REG_TOL = 2.0;
+
+function normRegLocal(s: unknown): string {
+  return String(s ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+async function attachDsp(rows: Array<Record<string, unknown>>, days = 2): Promise<void> {
+  if (!rows.length) return;
+  let flights: Flight[];
+  try {
+    flights = await loadFlights(days);
+  } catch {
+    return;
+  }
+
+  const byRoute = new Map<string, Flight[]>();
+  for (const f of flights) {
+    for (const [dep, dest] of [
+      [(f.dep_iata || "").toUpperCase(), (f.dest_iata || "").toUpperCase()],
+      [(f.dep_icao || "").toUpperCase(), (f.dest_icao || "").toUpperCase()],
+    ] as const) {
+      if (dep && dest) {
+        const k = `${dep}|${dest}`;
+        (byRoute.get(k) ?? byRoute.set(k, []).get(k)!).push(f);
+      }
+    }
+  }
+
+  for (const r of rows) {
+    const [dep, dest] = String(r["route"] || "").split("-");
+    const cand = byRoute.get(`${(dep || "").trim().toUpperCase()}|${(dest || "").trim().toUpperCase()}`);
+    if (!cand) continue;
+
+    const rawFlt = String(r["flt"] || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    const wantCs = rawFlt ? (/[A-Z]/.test(rawFlt) ? rawFlt : `VJC${rawFlt}`) : "";
+
+    const whens: number[] = [];
+    for (const key of ["when_new", "when_old"]) {
+      const s = String((r as Record<string, unknown>)[key] || "");
+      if (!s) continue;
+      const t = Date.parse(s);
+      if (!Number.isNaN(t)) whens.push(t);
+    }
+    if (!whens.length) continue;
+
+    const regObj = (r["reg"] || {}) as { old?: string; new?: string };
+    const want = new Set([normRegLocal(regObj.new), normRegLocal(regObj.old)].filter(Boolean));
+
+    const scored: Array<[number, Flight]> = [];
+    for (const f of cand) {
+      if (!f.std) continue;
+      let bestH: number | null = null;
+      for (const local of whens) {
+        const diffH = (f.std.getTime() - local) / 3600000;
+        if (Math.abs(diffH) <= DSP_WINDOW_H) {
+          const s = Math.abs(diffH - DSP_REF_H);
+          bestH = bestH == null ? s : Math.min(bestH, s);
+        }
+      }
+      if (bestH != null) scored.push([bestH, f]);
+    }
+    if (!scored.length) continue;
+    scored.sort((a, b) => a[0] - b[0]);
+
+    let best: Flight;
+    if (wantCs) {
+      const csHit = scored.filter(([, f]) => f.callsign.toUpperCase() === wantCs);
+      if (!csHit.length) continue;
+      best = csHit[0]![1];
+    } else {
+      best = scored[0]![1];
+      const hit = scored.filter(([s, f]) => s <= DSP_REG_TOL && want.has(normRegLocal(f.reg)));
+      if (hit.length) best = hit[0]![1];
+    }
+
+    r["dsp"] = (best.dispatcher || "").split(/\s+/).filter(Boolean).join(" ");
+    r["sector_id"] = best.id;
+    r["fb_reg"] = best.reg || "";
+    r["fb_callsign"] = best.callsign || "";
+    r["fb_std"] = best.std ? best.std.toISOString() : null;
+    r["ops_ok"] = inOpsWindow(best);
+    r["ofp_ack"] = ofpAckNeeded(best);
+  }
+}
+
 export const routes: Routes = {
+
+  "GET /api/version/files": async (ctx) => {
+    const cur = await currentExcel(ctx);
+    const files = await listExcel(ctx);
+    const listed = xlsdiff.listFiles(
+      files.map((f) => ({ name: f.file as string, size: Number(f.size) || 0, modified: Number(f.modified) || 0 })),
+    );
+    return { files: listed, current: cur?.file || "" };
+  },
+
+  "GET /api/version/diff": async (ctx) => {
+    const rawOld = (ctx.params.get("old") || "").trim();
+    const rawNew = (ctx.params.get("new") || "").trim();
+    if (!rawOld || !rawNew) return { error: "Cần chọn cả bản đang dùng và bản mới." };
+    const oldName = safeName(rawOld);
+    const newName = safeName(rawNew);
+    if (oldName === newName) return { error: "Hai bản đang là cùng một file." };
+
+    const oldBuf = await getFile(ctx, `${EXCEL_DIR}/${oldName}`);
+    if (!oldBuf) return { error: `Không thấy file '${oldName}' trong data/excel/` };
+    const newBuf = await getFile(ctx, `${EXCEL_DIR}/${newName}`);
+    if (!newBuf) return { error: `Không thấy file '${newName}' trong data/excel/` };
+
+    let res: xlsdiff.DiffResult;
+    try {
+      res = await xlsdiff.diff(oldName, oldBuf, newName, newBuf);
+    } catch (e) {
+      return { error: e instanceof Error ? `${e.constructor.name}: ${e.message}` : String(e) };
+    }
+
+    const rows = xlsdiff.rowsForUi(res);
+    await attachDsp(rows);
+
+    const fmtHm = (l: xlsdiff.Leg | null) => (l?.std ? `${String(l.std.h).padStart(2, "0")}:${String(l.std.m).padStart(2, "0")}` : "");
+    return {
+      old_file: res.oldFile,
+      new_file: res.newFile,
+      old_legs: res.oldLegs,
+      new_legs: res.newLegs,
+      old_days: res.oldDays,
+      new_days: res.newDays,
+      warn: res.warn,
+      n_reg: xlsdiff.nReg(res),
+      n_crew: xlsdiff.nCrew(res),
+      n_delay: xlsdiff.nDelay(res),
+      rows,
+      added: xlsdiff.addedList(res).map((c) => ({ flt: c.flt, route: `${c.dep}-${c.arr}`, std: fmtHm(c.new), reg: c.new?.reg || "" })),
+      removed: xlsdiff.removedList(res).map((c) => ({ flt: c.flt, route: `${c.dep}-${c.arr}`, std: fmtHm(c.old), reg: c.old?.reg || "" })),
+    };
+  },
+
+  "POST /api/version/verify-ack": async (ctx) => {
+    const body = await ctx.json();
+    const idsRaw = body["sector_ids"];
+    if (!Array.isArray(idsRaw)) return { error: "sector_ids phải là danh sách" };
+    const live = body["live"] !== false;
+    const days = Number.parseInt(String(body["days"] ?? "2"), 10) || 2;
+
+    const want: number[] = [];
+    const seen = new Set<number>();
+    for (const raw of idsRaw) {
+      const sid = Number.parseInt(String(raw), 10);
+      if (!Number.isFinite(sid) || seen.has(sid)) continue;
+      seen.add(sid);
+      want.push(sid);
+      if (want.length >= 80) break;
+    }
+
+    const flights = await loadFlights(days);
+    const byId = new Map<number, Flight>();
+    for (const f of flights) if (seen.has(f.id)) byId.set(f.id, f);
+
+    const acks: Record<string, boolean> = {};
+    for (const sid of want) {
+      let f = byId.get(sid) || new Flight({ id: sid });
+      if (live) {
+        try {
+          const j = await fbJson<unknown>(`/webapi/sectors/${sid}`);
+          let row: unknown = j;
+          if (Array.isArray(j)) row = j[0] ?? {};
+          else if (j && typeof j === "object" && Array.isArray((j as Record<string, unknown>)["data"])) {
+            const arr = (j as Record<string, unknown>)["data"] as unknown[];
+            row = arr[0] ?? {};
+          }
+          if (row && typeof row === "object" && (row as Record<string, unknown>)["id"]) {
+            f = Flight.fromApi(row as Record<string, unknown>);
+          }
+        } catch {
+          // giữ dữ liệu cũ nếu đọc lại lỗi
+        }
+      }
+      acks[String(sid)] = ofpAckNeeded(f);
+    }
+    return { acks, n: Object.keys(acks).length };
+  },
+
   "GET /api/excel": async (ctx) => {
     const current = await currentExcel(ctx);
     const files = await listExcel(ctx);
