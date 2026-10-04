@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
       // The agent POSTs its heartbeat (printers, path existence) and gets
       // back pending jobs plus the paths it should check next time.
       POST: async ({ request }) => {
-        if (!authorized(request)) return new Response("Unauthorized", { status: 401 });
+        if (!(await authorized(request))) return new Response("Unauthorized", { status: 401 });
         let body: Record<string, unknown> = {};
         try {
           body = (await request.json()) as Record<string, unknown>;

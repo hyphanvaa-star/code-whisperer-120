@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/public/pc-agent/report")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!authorized(request)) return new Response("Unauthorized", { status: 401 });
+        if (!(await authorized(request))) return new Response("Unauthorized", { status: 401 });
         let body: Record<string, unknown>;
         try {
           body = (await request.json()) as Record<string, unknown>;
