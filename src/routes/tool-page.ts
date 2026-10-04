@@ -813,7 +813,7 @@ header#mdRoom .md-denpyo .filt-rail{
   display:contents !important;flex:none !important;min-width:0 !important;max-width:none !important;
   padding:0 !important;margin:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;
 }
-header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;padding:0 !important;margin:0 !important}
+header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:37px !important;padding:0 !important;margin:0 !important}
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
@@ -827,6 +827,8 @@ header#mdRoom input,header#mdRoom select{
   color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;padding:0 7px !important;
 }
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
+header#mdRoom .md-denpyo .md-row:not(.line){height:37px !important}
+header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{display:none !important}
 /* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
   position:absolute !important;top:74px !important;right:34px !important;bottom:auto !important;left:auto !important;
@@ -872,7 +874,7 @@ header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
   transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
-header#mdRoom #btnOfpCheck{right:259px !important;background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
+header#mdRoom #btnOfpCheck{top:10px !important;right:238px !important;background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
 header#mdRoom .hdr-switch{right:184px !important;border:1px solid var(--x-red) !important;background:var(--x-red) !important;color:#fff !important;cursor:pointer !important;transform:none !important;z-index:60 !important;opacity:1 !important;visibility:visible !important}
 header#mdRoom .theme-switch{right:109px !important;border:1px solid var(--x-red) !important;background:var(--x-red) !important;color:#fff !important;cursor:pointer !important;transform:none !important;z-index:60 !important;opacity:1 !important;visibility:visible !important}
 header#mdRoom #aiFab{right:34px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
