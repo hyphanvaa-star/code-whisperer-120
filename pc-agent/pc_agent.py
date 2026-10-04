@@ -889,6 +889,7 @@ HANDLERS = {
     "owa_login": do_owa_login,
     "owa_fpl_watch": do_owa_fpl_watch,
     "owa_pib": do_owa_pib,
+    "owa_draft": do_owa_draft,
     "outlook_draft": do_outlook_draft,
 }
 

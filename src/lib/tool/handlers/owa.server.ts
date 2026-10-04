@@ -115,7 +115,9 @@ export const jobs: Jobs = {
             { name: `ATC_${ae.fileCallsign(flight.callsign)}.txt`, data_b64: Buffer.from(atc, "utf-8").toString("base64") },
             { name: `EZFW_${ae.fileCallsign(flight.callsign)}.txt`, data_b64: Buffer.from(ezfw, "utf-8").toString("base64") },
           ];
-          const id = await pc.enqueue("outlook_draft", { subject, body: ae.BODY, attachments });
+          // Nháp phải nằm trong hộp thư chung omc@vietjetair.com trên Outlook
+          // Web (owa_draft) — không mở Outlook desktop (outlook_draft).
+          const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, attachments });
           const r = await pc.waitResult(id, 120_000);
           emit({ type: "line", text: `✓ ${subject}` });
           ok += 1;
