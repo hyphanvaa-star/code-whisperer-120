@@ -714,7 +714,7 @@ table tbody tr{height:auto !important}
 
 /* ================= BỐ CỤC MỚI ================= */
 /* Header 1 hàng gọn */
-header#mdRoom{min-height:64px !important;height:64px !important;padding:0 16px !important;align-items:center !important}
+header#mdRoom{min-height:72px !important;padding:6px 16px !important;align-items:center !important}
 header#mdRoom .brand{transform:scale(.82);transform-origin:center}
 /* Nút header: ô vuông trắng, icon đỏ, chữ nhỏ — kiểu tile */
 header .btn,header .ai-fab{
@@ -726,15 +726,15 @@ header .btn:hover{background:var(--x-red-50) !important;border-color:var(--x-red
 header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important}
 
 /* Khung chính: menu dọc trái | bảng | chi tiết */
-.body{padding-left:212px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
+.body{padding-left:248px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
 .aside-head{
-  position:fixed !important;left:0 !important;top:67px !important;bottom:0 !important;width:200px !important;z-index:30 !important;
+  position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:236px !important;display:block !important;z-index:30 !important;
   background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
 }
 .aside-head::before{content:"CHỨC NĂNG";display:block;font:600 10px var(--x-sans);letter-spacing:.14em;color:var(--x-mute);padding:0 10px 10px}
 .aside-head .modes{flex-direction:column !important;align-items:stretch !important;gap:2px !important;padding:0 !important;background:transparent !important;flex-wrap:nowrap !important;overflow:visible !important}
-.aside-head .mode,.mode{
-  justify-content:flex-start !important;text-align:left !important;flex:0 0 auto !important;width:100% !important;margin:0 !important;
+/*x*/.aside-head .mode,.mode{
+  white-space:nowrap !important;overflow:visible !important;justify-content:flex-start !important;text-align:left !important;flex:0 0 auto !important;width:100% !important;margin:0 !important;
   padding:9px 12px !important;height:auto !important;
   background:transparent !important;color:var(--x-ink2) !important;-webkit-text-fill-color:var(--x-ink2) !important;
   border-radius:8px !important;box-shadow:none !important;font-size:13px !important;font-weight:500 !important;gap:10px !important;
@@ -757,6 +757,7 @@ table thead th,table > tr:first-child > th,.tooltbl th{
 }
 table thead th *{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important}
 table tbody tr:nth-child(even) > td{background:#fff}
+table thead,table thead tr{background:#fff !important;background-image:none !important}
 table tbody td{border-bottom:1px solid var(--x-line2) !important}
 table tbody tr:hover > td{background:#FAFBFC !important}
 table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table tbody tr.selected > td{background:var(--x-red-50) !important}
