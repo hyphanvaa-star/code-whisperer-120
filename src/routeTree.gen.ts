@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ToolPageRouteImport } from './routes/tool-page'
-import { Route as ZzDebugNotamRouteImport } from './routes/zz-debug-notam'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAircraftRouteImport } from './routes/_authenticated/aircraft'
 import { Route as AuthenticatedAtcRouteImport } from './routes/_authenticated/atc'
@@ -49,11 +48,6 @@ const AuthRoute = AuthRouteImport.update({
 const ToolPageRoute = ToolPageRouteImport.update({
   id: '/tool-page',
   path: '/tool-page',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ZzDebugNotamRoute = ZzDebugNotamRouteImport.update({
-  id: '/zz-debug-notam',
-  path: '/zz-debug-notam',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -146,7 +140,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/tool-page': typeof ToolPageRoute
-  '/zz-debug-notam': typeof ZzDebugNotamRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
@@ -169,7 +162,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/tool-page': typeof ToolPageRoute
-  '/zz-debug-notam': typeof ZzDebugNotamRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
@@ -194,7 +186,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/tool-page': typeof ToolPageRoute
-  '/zz-debug-notam': typeof ZzDebugNotamRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/aircraft': typeof AuthenticatedAircraftRoute
   '/_authenticated/atc': typeof AuthenticatedAtcRoute
@@ -219,7 +210,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/tool-page'
-    | '/zz-debug-notam'
     | '/admin'
     | '/aircraft'
     | '/atc'
@@ -242,7 +232,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/tool-page'
-    | '/zz-debug-notam'
     | '/admin'
     | '/aircraft'
     | '/atc'
@@ -266,7 +255,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/tool-page'
-    | '/zz-debug-notam'
     | '/_authenticated/admin'
     | '/_authenticated/aircraft'
     | '/_authenticated/atc'
@@ -291,7 +279,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ToolPageRoute: typeof ToolPageRoute
-  ZzDebugNotamRoute: typeof ZzDebugNotamRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiFbFileRoute: typeof ApiFbFileRoute
   ApiPublicPcAgentPollRoute: typeof ApiPublicPcAgentPollRoute
@@ -326,13 +313,6 @@ declare module '@tanstack/react-router' {
       path: '/tool-page'
       fullPath: '/tool-page'
       preLoaderRoute: typeof ToolPageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/zz-debug-notam': {
-      id: '/zz-debug-notam'
-      path: '/zz-debug-notam'
-      fullPath: '/zz-debug-notam'
-      preLoaderRoute: typeof ZzDebugNotamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -497,7 +477,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ToolPageRoute: ToolPageRoute,
-  ZzDebugNotamRoute: ZzDebugNotamRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiFbFileRoute: ApiFbFileRoute,
   ApiPublicPcAgentPollRoute: ApiPublicPcAgentPollRoute,
