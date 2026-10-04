@@ -132,7 +132,7 @@ export async function fbRequest(
       "X-Requested-With": "XMLHttpRequest",
       ...(opts.headers ?? {}),
     };
-    let body: BodyInit | undefined;
+    let body: BodyInit | null = null;
     const b = opts.body;
     if (b instanceof FormData || b instanceof URLSearchParams || typeof b === "string" || b instanceof Blob || b instanceof ArrayBuffer || b instanceof Uint8Array) {
       body = b as BodyInit;
