@@ -1324,7 +1324,7 @@ function parseDSpec(raw: string): DSpec | null {
     if (pair) spans.push(pair);
   }
   if (!spans.length) return null;
-  return { always: false, days, spans };
+  return days === undefined ? { always: false, spans } : { always: false, days, spans };
 }
 
 function dScheduleOk(notam: N, when: Date, padH = 2.0, until?: Date | null): boolean {

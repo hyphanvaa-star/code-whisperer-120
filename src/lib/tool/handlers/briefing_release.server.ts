@@ -1,4 +1,7 @@
 import type { Jobs, Routes } from "../types";
+import * as store from "../store.server";
+import { getJson, setJson } from "../store.server";
+import { loadFlights } from "../core/gantts.server";
 import {
   BriefReleaseError,
   buildSheet,
@@ -6,22 +9,17 @@ import {
   toDict,
   toPdf,
   pdfFilename,
+  draftFromFlight,
+  editKey,
+  type ReleaseSheet,
 } from "../port/briefingRelease";
 
 // Port of web.py's "/api/briefing/release" group (briefing_release.py).
 //
-// The original tool pulls the OFP PDF from FliteBrief, extracts its text
-// with atc_ezfw.pdf_text (PyMuPDF), and persists hand-edited sheets to a
-// local JSON file per callsign (briefing_edits/<key>.json) so "fresh"
-// re-opens restore the dispatcher's edits. This runtime has no local
-// filesystem and no FliteBrief session yet, so:
-//  - /api/briefing/release always returns the "no OFP yet" error unless the
-//    caller already has OFP text to hand (kept here as an honest surface,
-//    not a fake success) — ports for jobs.atc_check / owa_pib show the real
-//    FliteBrief fetch pattern this would eventually reuse.
-//  - edit save/clear round-trips entirely through the posted fields (no
-//    server-side persistence yet), matching to_fields/sheet_from_fields so
-//    the client can keep showing the edited sheet after a save.
+// OFP text comes from FliteBrief the same way jobs.atc_check / ofp_weights do
+// (fbGet(`/webapi/sectors/{id}/ofp`) → PDF bytes → unpdf text extraction).
+// Saved hand-edits replace the local briefing_edits/<key>.json file with an
+// app_settings row keyed "briefing_edit.<key>".
 
 function errorMessage(exc: unknown): string {
   if (exc instanceof BriefReleaseError) return exc.message;
@@ -29,17 +27,62 @@ function errorMessage(exc: unknown): string {
   return String(exc);
 }
 
+async function ofpPdfText(blob: Uint8Array): Promise<string> {
+  const { extractText, getDocumentProxy } = await import("unpdf");
+  const pdf = await getDocumentProxy(blob);
+  const { text } = await extractText(pdf, { mergePages: true });
+  return Array.isArray(text) ? text.join("\n") : String(text ?? "");
+}
+
+async function fetchOfpPdf(sectorId: number): Promise<Uint8Array | null> {
+  const { fbGet } = await import("@/lib/flitebrief.server");
+  const res = await fbGet(`/webapi/sectors/${sectorId}/ofp`, "application/pdf");
+  if (!res.ok || res.status === 204) return null;
+  const buf = new Uint8Array(await res.arrayBuffer());
+  return buf.byteLength ? buf : null;
+}
+
+function editSettingKey(callsign: string): string {
+  return `briefing_edit.${editKey(callsign)}`;
+}
+
+async function loadEdits(ctx: Parameters<Routes[string]>[0], callsign: string) {
+  return getJson<Record<string, unknown> | null>(ctx, editSettingKey(callsign), null);
+}
+
+async function findFlight(flight: string) {
+  const days = 2;
+  const flights = await loadFlights(days);
+  const want = flight.trim().toUpperCase();
+  return flights.find((f) => {
+    const cs = (f.callsign || "").toUpperCase();
+    return cs === want || cs.replace(/[^A-Z0-9]/g, "") === want.replace(/[^A-Z0-9]/g, "") || String(f.id) === want;
+  });
+}
+
+async function draft(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<ReleaseSheet> {
+  const f = await findFlight(flight);
+  if (!f) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
+  return draftFromFlight(f, {
+    fetchPdf: fetchOfpPdf,
+    pdfText: ofpPdfText,
+    applyEdits,
+    loadEdits: (cs) => loadEdits(ctx, cs),
+  });
+}
+
 export const routes: Routes = {
   "POST /api/briefing/release": async (ctx) => {
     const body = await ctx.json();
     const flight = String(body["flight"] ?? "").trim();
     if (!flight) return { error: "Nhập số hiệu chuyến, ví dụ 869." };
-    // No FliteBrief/OFP session is wired into this runtime yet (see note
-    // above) — the honest result is the same "chưa có OFP" error the
-    // Python tool returns before a sector has been release-fetched.
-    return {
-      error: `Chưa có OFP cho ${flight} — chờ OMC release.`,
-    };
+    try {
+      const sheet = await draft(ctx, flight, true);
+      const saved = await loadEdits(ctx, sheet.callsign);
+      return toDict(sheet, { edit: true, edited: !!saved });
+    } catch (exc) {
+      return { error: errorMessage(exc) };
+    }
   },
 
   "POST /api/briefing/edit/save": async (ctx) => {
@@ -48,11 +91,11 @@ export const routes: Routes = {
     if (!cs) return { error: "Thiếu số hiệu chuyến." };
     try {
       const sheet = sheetFromFields({ ...body, callsign: cs });
+      await setJson(ctx, editSettingKey(sheet.callsign), { ...body, callsign: sheet.callsign });
       const out = toDict(sheet, { edit: true, edited: true });
       out["saved"] = true;
       return out;
     } catch (exc) {
-      if (exc instanceof BriefReleaseError) return { error: exc.message };
       return { error: errorMessage(exc) };
     }
   },
@@ -61,13 +104,55 @@ export const routes: Routes = {
     const body = await ctx.json();
     const flight = String(body["flight"] ?? body["callsign"] ?? "").trim();
     if (!flight) return { error: "Thiếu số hiệu chuyến." };
-    // No saved-edit store on this runtime to clear (see note above); report
-    // the same "no OFP" state draft_from_flight(apply_edits=False) would.
-    return { error: `Chưa có OFP cho ${flight} — chờ OMC release.` };
+    try {
+      const sheet = await draft(ctx, flight, false);
+      await setJson(ctx, editSettingKey(sheet.callsign), null);
+      return toDict(sheet, { edit: true, edited: false });
+    } catch (exc) {
+      return { error: errorMessage(exc) };
+    }
+  },
+
+  "POST /api/briefing/export": async (ctx) => {
+    const body = await ctx.json();
+    const flight = String(body["flight"] ?? body["callsign"] ?? "").trim();
+    if (!flight) return { error: "Thiếu số hiệu chuyến." };
+    try {
+      let sheet: ReleaseSheet;
+      if (body["fields"] && typeof body["fields"] === "object") {
+        sheet = sheetFromFields({ ...(body["fields"] as Record<string, unknown>), callsign: flight });
+      } else {
+        sheet = await draft(ctx, flight, true);
+      }
+      const pdf = await toPdf(sheet);
+      const name = pdfFilename(sheet);
+      await store.putFile(ctx, `briefing/${name}`, pdf, "application/pdf");
+      await setJson(ctx, `briefing_release.pdf.${sheet.callsign}`, { name, at: Date.now() });
+      return { ok: true, file: name, path: `briefing/${name}` };
+    } catch (exc) {
+      return { error: errorMessage(exc) };
+    }
+  },
+
+  "GET /api/briefing/release.pdf": async (ctx) => {
+    const flight = String(ctx.params.get("flight") ?? ctx.params.get("callsign") ?? "").trim();
+    if (!flight) return new Response("Thiếu số hiệu chuyến.", { status: 400 });
+    try {
+      const sheet = await draft(ctx, flight, true);
+      const pdf = await toPdf(sheet);
+      return new Response(new Blob([pdf as BlobPart], { type: "application/pdf" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `inline; filename="${pdfFilename(sheet)}"`,
+        },
+      });
+    } catch (exc) {
+      return new Response(errorMessage(exc), { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+    }
   },
 };
 
 export const jobs: Jobs = {};
 
-// Re-exported for future wiring once a FliteBrief OFP source exists here.
 export { buildSheet, toPdf, pdfFilename };
