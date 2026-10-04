@@ -69,7 +69,8 @@ export async function readTable(file: File): Promise<Sheet[]> {
   if (name.endsWith(".csv") || name.endsWith(".txt")) {
     raw.push([file.name, parseCsv(await file.text())]);
   } else if (name.endsWith(".xlsx") || name.endsWith(".xlsm")) {
-    const ExcelJS = (await import("exceljs")).default;
+    const _xlMod = await import("exceljs");
+  const ExcelJS = (_xlMod.default ?? _xlMod) as typeof _xlMod;
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
     wb.eachSheet((ws) => {

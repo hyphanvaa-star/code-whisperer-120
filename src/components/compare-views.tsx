@@ -91,7 +91,8 @@ export function FbCompare() {
 
   const exportXlsx = async () => {
     if (!res) return;
-    const ExcelJS = (await import("exceljs")).default;
+    const _xlMod = await import("exceljs");
+  const ExcelJS = (_xlMod.default ?? _xlMod) as typeof _xlMod;
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Doi chieu");
     ws.addRow(["Dòng", ...TABLE_COLUMNS.map(([, l]) => l), "Kết quả", "Ghi chú"]).font = { bold: true };
