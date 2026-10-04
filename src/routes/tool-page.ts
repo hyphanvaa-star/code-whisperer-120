@@ -825,22 +825,20 @@ header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;tran
 
 header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;gap:8px !important;
-  flex-wrap:nowrap !important;width:284px !important;padding-left:18px !important;border-left:1px solid var(--x-line) !important;
+  flex-wrap:nowrap !important;width:284px !important;height:52px !important;padding-left:18px !important;border-left:1px solid var(--x-line) !important;
 }
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
-  position:static !important;width:auto !important;height:42px !important;min-width:62px !important;margin:0 !important;padding:0 14px !important;
+  position:absolute !important;top:31px !important;width:auto !important;height:42px !important;min-width:62px !important;margin:0 !important;padding:0 14px !important;
   border-radius:7px !important;box-shadow:none !important;display:flex !important;align-items:center !important;justify-content:center !important;
 }
-header#mdRoom #btnOfpCheck{background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid var(--x-red) !important}
+header#mdRoom #btnOfpCheck{right:132px !important;background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid var(--x-red) !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
-header#mdRoom #aiFab{min-width:96px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
+header#mdRoom #aiFab{right:18px !important;min-width:104px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
 header#mdRoom #aiFab .n{font-size:12px !important;font-weight:800 !important}header#mdRoom #aiFab .sub{font-size:7px !important}
 header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  position:relative !important;left:auto !important;top:auto !important;order:unset !important;margin:0 !important;transform:none !important;
-  width:48px !important;height:42px !important;flex:0 0 48px !important;border:1px solid var(--x-line) !important;border-radius:7px !important;
-  background:#F8F9FB !important;box-shadow:none !important;color:var(--x-ink2) !important;
+  display:none !important;
 }
 header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{font-size:14px !important;top:6px !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{font-size:7px !important;bottom:5px !important;color:var(--x-mute) !important}
