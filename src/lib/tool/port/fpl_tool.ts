@@ -83,6 +83,14 @@ export function round_est(est: number, ac: string): [number | null, string] {
   return [null, "không rõ loại tàu"];
 }
 
+export function est_payload(db: Db, flt: string): number | null {
+  const row = db.payload["VJ" + _num(flt)];
+  if (!row || row[1] === "" || row[1] == null) return null;
+  const n = parseFloat(row[1]);
+  if (!Number.isFinite(n)) return null;
+  return Math.trunc(n);
+}
+
 function _extraOn(extra: any): boolean {
   const text = String(extra ?? "").trim().toUpperCase().replace(/,/g, "");
   const m = /^(\d+)/.exec(text);
