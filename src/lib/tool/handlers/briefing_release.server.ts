@@ -115,6 +115,21 @@ export const routes: Routes = {
 
   "POST /api/briefing/export": async (ctx) => {
     const body = await ctx.json();
+    // Xuất hàng loạt (nút "Xuất briefing"): nhận danh sách callsign, chạy nền
+    // và trả job id — tiến trình stream qua /api/stream, cuối cùng gửi link
+    // tải ZIP về thẳng máy người dùng (không cần trợ lý PC).
+    if (Array.isArray(body["callsigns"])) {
+      const callsigns = (body["callsigns"] as unknown[]).map((c) => String(c)).filter(Boolean);
+      if (!callsigns.length) return { error: "chưa có chuyến nào" };
+      const { jobId } = await import("../jobs");
+      return {
+        id: jobId("briefing_export", {
+          callsigns,
+          days: Number(body["days"] ?? 2) || 2,
+          sector_ids: (body["sector_ids"] as unknown[] | undefined) ?? [],
+        }),
+      };
+    }
     const flight = String(body["flight"] ?? body["callsign"] ?? "").trim();
     if (!flight) return { error: "Thiếu số hiệu chuyến." };
     try {
@@ -151,8 +166,88 @@ export const routes: Routes = {
       return new Response(errorMessage(exc), { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
     }
   },
+  // Tải file ZIP đã xuất về máy (link trong thông báo kết thúc job).
+  "GET /api/briefing/export.zip": async (ctx) => {
+    const name = String(ctx.params.get("f") ?? "").replace(/[^A-Za-z0-9._-]/g, "");
+    if (!name) return new Response("Thiếu tên file.", { status: 400 });
+    const buf = await store.getFile(ctx, `briefing/${name}`);
+    if (!buf) return new Response("File đã hết hạn — xuất lại briefing.", { status: 404 });
+    return new Response(new Blob([buf], { type: "application/zip" }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename="${name}"`,
+      },
+    });
+  },
 };
 
-export const jobs: Jobs = {};
+export const jobs: Jobs = {
+  // Port of web.py briefing export: soạn PDF từng chuyến rồi nén thành một
+  // file ZIP đặt trong kho; thông báo kết thúc kèm link tải thẳng về máy.
+  briefing_export: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const callsigns = ((params["callsigns"] as string[] | undefined) ?? []).map((c) => c.trim()).filter(Boolean);
+    const days = Number(params["days"] ?? 2) || 2;
+    const sectorIds = new Set(((params["sector_ids"] as unknown[] | undefined) ?? []).map((x) => String(x)));
+    if (!callsigns.length) {
+      emit({ type: "line", text: "✗ Không có chuyến nào để xuất.", cls: "bad" });
+      emit({ type: "end", code: 1, elapsed: 0, ok: 0, failed: 1 });
+      return;
+    }
+    const { zipSync } = await import("fflate");
+    const flights = await loadFlights(days);
+    const byId = new Map(flights.map((f) => [String(f.id), f]));
+    const files: Record<string, Uint8Array> = {};
+    let ok = 0, failed = 0, skipped = 0;
+    for (let i = 0; i < callsigns.length; i++) {
+      const cs = callsigns[i]!;
+      emit({ type: "line", text: `· soạn briefing ${cs}…`, progress: i / callsigns.length });
+      try {
+        // Ưu tiên đúng sector người dùng đã chọn ở bảng chọn route.
+        let f = sectorIds.size ? flights.find((x) => sectorIds.has(String(x.id)) && (x.callsign || "").toUpperCase() === cs.toUpperCase()) : undefined;
+        if (!f) {
+          const want = cs.toUpperCase();
+          f = flights.find((x) => {
+            const c = (x.callsign || "").toUpperCase();
+            return c === want || c.replace(/[^A-Z0-9]/g, "") === want.replace(/[^A-Z0-9]/g, "");
+          });
+        }
+        if (!f && sectorIds.size) f = byId.get([...sectorIds][0] ?? "");
+        if (!f) {
+          emit({ type: "line", text: `✗ ${cs}: không tìm thấy chuyến`, cls: "bad" });
+          failed++;
+          continue;
+        }
+        const sheet = await draftFromFlight(f, {
+          fetchPdf: fetchOfpPdf,
+          pdfText: ofpPdfText,
+          applyEdits: true,
+          loadEdits: (c) => getJson(ctx, editSettingKey(c), null),
+        });
+        const pdf = await toPdf(sheet);
+        const name = pdfFilename(sheet);
+        files[name] = pdf;
+        await store.putFile(ctx, `briefing/${name}`, pdf, "application/pdf");
+        emit({ type: "line", text: `✓ ${cs} → ${name}`, cls: "ok" });
+        ok++;
+      } catch (exc) {
+        emit({ type: "line", text: `✗ ${cs}: ${errorMessage(exc)}`, cls: "bad" });
+        failed++;
+      }
+    }
+    let download = "";
+    if (ok) {
+      const zipName = `briefing-${new Date().toISOString().slice(0, 10)}-${Date.now() % 100000}.zip`;
+      await store.putFile(ctx, `briefing/${zipName}`, zipSync(files), "application/zip");
+      download = `/api/briefing/export.zip?f=${zipName}`;
+      emit({ type: "line", text: `· đã nén ${ok} file PDF vào ${zipName}`, cls: "sys" });
+    }
+    emit({
+      type: "end", code: failed ? 2 : 0, elapsed: (Date.now() - t0) / 1000,
+      ok, failed, skipped, folder: "tải về máy", download,
+    });
+  },
+};
 
 export { buildSheet, toPdf, pdfFilename, draftFromFlight, fetchOfpPdf, ofpPdfText, findFlight };

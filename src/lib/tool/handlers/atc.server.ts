@@ -1,7 +1,6 @@
 import type { Jobs, Routes } from "../types";
-import { AVIWEB_NOT_PORTABLE_MESSAGE, readFplBlocks, fplName } from "../port/aviweb";
+import { AVIWEB_NOT_PORTABLE_MESSAGE, readFplBlocks, fplName, checkFlightsOnline } from "../port/aviweb";
 import { jobId } from "../jobs";
-import * as pc from "../pcagent.server";
 
 // Port of the web.py "/api/atc/*" group (atcfpl.py + atc_check.py).
 //
@@ -54,56 +53,38 @@ export const routes: Routes = {
   },
 
   // Port of web.py "/api/atc/check": start_atc_check() → background job whose
-  // progress streams over SSE. Here the Selenium run happens on the company PC
-  // via the agent; the job below relays its lines and final rows.
+  // progress streams over SSE. AviWeb speaks Vaadin UIDL over plain HTTP, so
+  // the check now runs right on the web server (checkFlightsOnline) — no
+  // Selenium, no PC agent needed.
   "POST /api/atc/check": async (ctx) => {
     const payload = (await ctx.request.json().catch(() => ({}))) as Record<string, unknown>;
     const cs = (payload["callsigns"] as string[] | undefined) ?? [];
     if (!cs.length) return { error: "chưa có chuyến nào" };
-    const agent = await pc.agentInfo(ctx);
-    if (!pc.agentOnline(agent)) {
-      return { error: "Trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi check lại." };
-    }
-    return { id: jobId("atc_check", { callsigns: cs, headless: payload["headless"] !== false }) };
+    return { id: jobId("atc_check", { callsigns: cs }) };
   },
 };
 
 export const jobs: Jobs = {
-  // Port of web.py start_atc_check(): giao trợ lý PC chạy atc_check.check_flights
-  // bằng Chrome thật trên máy công ty, rồi truyền log + kết quả về đây.
-  atc_check: async (params, emit, ctx) => {
+  // Port of web.py start_atc_check(): đăng nhập AviWeb bằng tài khoản đã lưu,
+  // đọc 3 danh sách Processed/Unprocessed/Rejected rồi ghép theo số hiệu.
+  atc_check: async (params, emit) => {
     const t0 = Date.now();
     const callsigns = (params["callsigns"] as string[] | undefined) ?? [];
-    const headless = params["headless"] !== false;
     if (!callsigns.length) {
       emit({ type: "line", text: "✗ Không có chuyến nào để check.", cls: "bad" });
       emit({ type: "end", code: 1, elapsed: 0, ok: 0, failed: 1, results: [] });
       return;
     }
-    const agent = await pc.agentInfo(ctx);
-    if (!pc.agentOnline(agent)) {
-      emit({ type: "line", text: "✗ Trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi check lại.", cls: "bad" });
-      emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, failed: 1, results: [] });
-      return;
-    }
     try {
-      const id = await pc.enqueue("aviweb_check", { callsigns, headless });
-      emit({ type: "line", text: `· đã gửi ${callsigns.length} chuyến cho trợ lý PC — đang mở AviWeb…`, cls: "sys" });
-      let lastBeat = 0;
-      const r = await pc.waitResult(id, 900_000, (elapsed) => {
-        if (elapsed - lastBeat >= 30) {
-          lastBeat = elapsed;
-          emit({ type: "line", text: `· đang chờ trợ lý PC… (${Math.round(elapsed)}s)`, cls: "sys" });
-        }
-      });
-      const lines = (r["lines"] as Array<{ text?: string; cls?: string } | string> | undefined) ?? [];
-      for (const l of lines) {
-        if (typeof l === "string") emit({ type: "line", text: l });
-        else if (l.text) emit({ type: "line", text: l.text, cls: l.cls || "" });
+      const results = await checkFlightsOnline(callsigns, (text) =>
+        emit({ type: "line", text, cls: "sys" }),
+      );
+      for (const r of results) {
+        if (r.ok) emit({ type: "line", text: `✓ ${r.callsign}: ${r.status ?? "?"}${r.flight_time ? " · " + r.flight_time : ""}`, cls: "ok" });
+        else emit({ type: "line", text: `✗ ${r.callsign}: ${r.error ?? "lỗi"}`, cls: "bad" });
       }
-      const results = (r["results"] as unknown[] | undefined) ?? [];
-      const ok = Number(r["ok"] ?? 0);
-      const failed = Number(r["failed"] ?? 0);
+      const ok = results.filter((r) => r.ok).length;
+      const failed = results.length - ok;
       emit({ type: "end", code: failed ? 2 : 0, elapsed: (Date.now() - t0) / 1000, ok, failed, results });
     } catch (e) {
       emit({ type: "line", text: `✗ ${e instanceof Error ? e.message : String(e)}`, cls: "bad" });
