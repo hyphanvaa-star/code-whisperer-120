@@ -158,7 +158,7 @@ header input,header select{
 .hdr-switch,.theme-switch{transform:scale(.88);transform-origin:right center}
 /* Nút Acc/TAF/Crew/Refresh/OFP: đồng bộ kính trắng mờ trên nền đỏ — gọn & sang */
 .filt-actions .btn,.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab,
-header #btnAcc,header #btnTaf,header #btnPickXls,header #btnReload,header #btnOfpCheck{
+header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,header:not(.md) #btnReload,header:not(.md) #btnOfpCheck{
   background:rgba(255,255,255,.12) !important;
   background-image:none !important;
   color:#fff !important;-webkit-text-fill-color:#fff !important;
