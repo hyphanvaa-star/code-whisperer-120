@@ -28,22 +28,30 @@ const SHIM = `<script>
   if (navigator.sendBeacon) { navigator.sendBeacon = function(){ return true; }; }
   // Fit-to-screen: the original layout is designed for ~1440px desktops.
   // On smaller screens, scale the whole page down proportionally so nothing
-  // overflows or breaks apart; on larger screens keep 100%.
+  // overflows or breaks apart; on larger screens keep 100%. The needed width
+  // is measured from the real content (not assumed), so late-loading fonts
+  // or images cannot push buttons off-screen.
   var BASE_W = 1440;
   function fit(){
-    var w = window.innerWidth;
-    var z = Math.min(1, w / BASE_W);
-    if (z >= 0.999) { document.body.style.zoom = ''; document.body.style.transform = ''; document.body.style.width = ''; return; }
-    if ('zoom' in document.body.style) {
-      document.body.style.zoom = z;
+    var de = document.documentElement, b = document.body;
+    if (!b) return;
+    b.style.zoom = ''; b.style.transform = ''; b.style.width = '';
+    var need = Math.max(de.scrollWidth, b.scrollWidth, BASE_W);
+    var z = Math.min(1, window.innerWidth / need);
+    if (z >= 0.999) { de.style.overflowX = ''; return; }
+    if ('zoom' in b.style) {
+      // zoom already reflows the layout viewport; do NOT also set width.
+      b.style.zoom = z;
     } else {
-      document.body.style.transformOrigin = '0 0';
-      document.body.style.transform = 'scale(' + z + ')';
-      document.body.style.width = (100 / z) + '%';
+      b.style.transformOrigin = '0 0';
+      b.style.transform = 'scale(' + z + ')';
+      b.style.width = (100 / z) + '%';
     }
+    de.style.overflowX = 'hidden';
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
+  window.addEventListener('load', function(){ fit(); setTimeout(fit, 800); setTimeout(fit, 2500); });
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', fit); } else { fit(); }
 })();
 </script>`;
