@@ -4,7 +4,7 @@ import { applyFilters, listDispatchers, loadFlights } from "../core/gantts.serve
 import { attchCheck, attchContext, type AttchCtx, type AttchResult } from "../port/attch";
 import { checkFlightLimits, needsOfpLimitCheck, type LimitsData } from "../port/limits_check";
 import { ofpAckNeeded } from "../port/verify";
-import { adviceForFlight } from "../port/taf";
+import { adviceForFlight, type TafRec, type TafSnapshot } from "../port/taf";
 import { getJson, setJson } from "../store.server";
 import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
 import * as omni from "../port/omni";
@@ -84,7 +84,7 @@ function ofpWarnsOf(_f: Flight, _revision: string): null {
 }
 
 /** Port of web.py `row()`. */
-export function row(f: Flight, limits: LimitsData | null = EMPTY_LIMITS, attch: AttchResult | null = null, revision = "0") {
+export function row(f: Flight, limits: LimitsData | null = EMPTY_LIMITS, attch: AttchResult | null = null, revision = "0", tafs: Record<string, TafRec> | null = null) {
   const lim = limits ?? EMPTY_LIMITS;
   const warns = ofpWarnsOf(f, revision) ?? checkFlightLimits(f, lim);
   const ops = opscoreLookup(f);
@@ -131,7 +131,7 @@ export function row(f: Flight, limits: LimitsData | null = EMPTY_LIMITS, attch: 
     has_pib: f.has_pib,
     has_wx: f.has_wx,
     attch: attch ?? attchCheck(f),
-    taf_wx: adviceForFlight(f.dest_icao, f.sta ? f.sta.toISOString() : null, null),
+    taf_wx: adviceForFlight(f.dest_icao, f.sta ? f.sta.toISOString() : null, tafs),
     limit_warns: warns,
     needs_ofp_limit_check: needsOfpLimitCheck(f, lim),
   };
@@ -584,13 +584,15 @@ export const routes: Routes = {
     const shown = applyFilters(flights, params);
     const limits = await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS);
     OPS_TRACKS = await getSnapshot(ctx, refresh);
+    const tafCache = await getJson<TafSnapshot>(ctx, "wx.taf", { tafs: {} } as TafSnapshot);
+    const tafs = (tafCache?.tafs || {}) as Record<string, TafRec>;
     const rev = "0";
     const attchCtx: AttchCtx = attchContext();
     return {
       days,
       total: flights.length,
       count: shown.length,
-      flights: shown.map((f) => row(f, limits, attchCheck(f, attchCtx), rev)),
+      flights: shown.map((f) => row(f, limits, attchCheck(f, attchCtx), rev, tafs)),
       attachment_total: shown.reduce((n, f) => n + f.pdf_attachments.length, 0),
       fetched_at: null,
       age: null,
