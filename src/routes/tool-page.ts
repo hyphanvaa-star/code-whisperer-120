@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import icaoCountries from "@/lib/tool/data/icao-countries.json";
 import dispatchSkyHeader from "@/assets/dispatch-sky-header.jpg";
-import headerReference from "@/assets/dispatch-header-reference.jpg.asset.json";
+import dispatchAirportClean from "@/assets/dispatch-airport-clean.jpg";
+import vietjetLogo from "@/assets/vj-logo.png";
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that (1) skips the local passcode gate because the web app has real login,
@@ -70,7 +71,7 @@ const SHIM = `<script>
     if(room && !document.getElementById('opsHeaderBrand')){
       var brand=document.createElement('div');
       brand.id='opsHeaderBrand'; brand.className='ops-header-brand';
-      brand.innerHTML='<div class="ops-vj-mark"><strong>vietjetAir.com</strong><span>OPERATION CONTROL</span></div><small>SAFE FLIGHT · ON TIME · TOGETHER</small>';
+      brand.innerHTML='<div class="ops-vj-mark"><span class="ops-vj-logo" aria-label="Vietjet Air"></span><span>OPERATION<br>CONTROL</span></div><small>SAFE FLIGHT<br>ON TIME<br>TOGETHER</small>';
       var title=document.createElement('div');
       title.className='ops-header-title';
       title.innerHTML='<strong>DISPATCH BOARD</strong><span>A product by Rosie</span>';
@@ -815,8 +816,8 @@ header#mdRoom{
   position:relative !important;
   min-height:229px !important;height:229px !important;padding:0 !important;box-sizing:border-box !important;
   display:block !important;overflow:hidden !important;
-  background-color:#fff !important;background-image:var(--header-reference) !important;
-  background-position:center center !important;background-size:100% 100% !important;background-repeat:no-repeat !important;
+  background-color:#fff !important;background-image:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,.02)),var(--airport-clean) !important;
+  background-position:center center !important;background-size:cover !important;background-repeat:no-repeat !important;
   border:0 !important;box-shadow:0 8px 22px rgba(20,36,52,.18) !important;
 }
 header#mdRoom .hdr-sky,header#mdRoom .brand-peek,header#mdRoom .room,header#mdRoom .rays,
@@ -830,26 +831,26 @@ header#mdRoom .hishaku,header#mdRoom .wagashi,header#mdRoom .yunomi,header#mdRoo
 header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom .md-sign,
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
-.ops-header-brand,.ops-header-title{display:none !important}
-.ops-header-brand{position:absolute;left:2.1%;top:20px;width:270px;height:70px;z-index:16;color:var(--x-red);text-transform:uppercase}
-.ops-vj-mark{display:flex;align-items:flex-end;gap:9px}.ops-vj-mark strong{font:900 25px/1 var(--x-sans);font-style:italic;color:var(--x-red);letter-spacing:0}.ops-vj-mark span{font:800 9px/1.15 var(--x-sans);max-width:74px;padding-bottom:2px;color:var(--x-ink)}
-.ops-header-brand small{display:block;width:238px;margin-top:8px;padding:5px 8px;border-left:5px solid var(--x-yel);background:var(--x-red);color:#fff;font:800 8px/1 var(--x-sans);letter-spacing:.08em}
-.ops-header-title{position:absolute;left:50%;top:20px;z-index:16;transform:translateX(-50%);text-align:center;text-transform:uppercase;white-space:nowrap}
-.ops-header-title strong{display:block;color:var(--x-red);font:900 29px/1 var(--x-sans);letter-spacing:0}.ops-header-title span{display:block;margin-top:7px;color:var(--x-ink);font:700 9px/1 var(--x-sans);letter-spacing:.14em}
-.ops-header-live{position:absolute;right:1.4%;top:12px;height:64px;display:flex;align-items:center;gap:13px;z-index:24;color:var(--x-ink);padding:4px 7px 4px 12px;border-radius:10px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px)}
+header#mdRoom::before{content:"";position:absolute;left:0;top:0;width:15.2%;height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
+.ops-header-brand{display:block !important;position:absolute;left:1.25%;top:22px;width:12.4%;height:182px;z-index:16;color:#fff;text-transform:uppercase}
+.ops-vj-mark{display:flex;align-items:center;gap:7px}.ops-vj-mark .ops-vj-logo{display:block;width:124px;height:36px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 7px/1.15 var(--x-sans);color:#fff}
+.ops-header-brand small{display:block;margin-top:22px;padding-top:14px;border-top:2px solid var(--x-yel);color:#fff;font:800 8px/1.6 var(--x-sans);letter-spacing:.2em}
+.ops-header-title{display:block !important;position:absolute;left:29%;top:21px;z-index:16;transform:translateX(-50%);text-align:center;text-transform:uppercase;white-space:nowrap;text-shadow:0 1px 4px rgba(255,255,255,.75)}
+.ops-header-title strong{display:block;color:var(--x-red);font:900 28px/1 var(--x-sans);letter-spacing:0}.ops-header-title span{display:block;margin-top:7px;color:var(--x-ink);font:700 9px/1 var(--x-sans);letter-spacing:.06em;text-transform:none}
+.ops-header-live{position:absolute;right:1.4%;top:12px;height:64px;display:flex;align-items:center;gap:13px;z-index:24;color:var(--x-ink);padding:4px 7px 4px 12px;border:1px solid rgba(255,255,255,.9);border-radius:10px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(20,36,52,.16);backdrop-filter:blur(10px)}
 .ops-weather{display:grid;grid-template-columns:30px auto auto;align-items:center;gap:8px;padding-right:18px;border-right:1px solid rgba(20,36,52,.2)}.ops-weather-icon{font-size:25px}.ops-weather>strong{font:800 21px/1 var(--x-sans);color:var(--x-red)}.ops-weather>span:last-child{display:flex;flex-direction:column;gap:4px}.ops-weather b,.ops-weather small{font:800 8px/1 var(--x-sans);letter-spacing:.06em}.ops-weather small{font-weight:600;color:var(--x-mute);text-transform:none}
 .ops-clock{display:flex;flex-direction:column;align-items:flex-end;min-width:82px}.ops-clock strong{font:800 24px/1 var(--x-mono);color:var(--x-ink)}.ops-clock span{margin-top:6px;font:700 8px/1 var(--x-sans);color:var(--x-red)}
 .ops-avatar{width:34px;height:34px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:var(--x-red);box-shadow:0 2px 8px rgba(20,36,52,.2);color:#fff;font:800 11px var(--x-sans)}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
   display:block !important;position:absolute !important;left:10.42% !important;top:43.93% !important;
-  width:50.73% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:12 !important;
+  width:50.73% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
 }
 header#mdRoom .md-denpyo{
   display:grid !important;grid-template-columns:1.22fr .95fr .9fr .9fr 1fr 1.32fr !important;
   align-items:end !important;gap:0 10px !important;width:100% !important;height:100% !important;
-  padding:15px 16px 11px 21px !important;margin:0 !important;background:transparent !important;
-  border:0 !important;border-radius:0 !important;box-shadow:none !important;backdrop-filter:none !important;position:relative !important;
+  padding:15px 16px 11px 21px !important;margin:0 !important;background:rgba(255,255,255,.94) !important;
+  border:1px solid rgba(255,255,255,.92) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.16) !important;backdrop-filter:blur(10px) !important;position:relative !important;
 }
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
@@ -866,7 +867,7 @@ header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
   display:block !important;font-size:8px !important;line-height:1 !important;margin:0 0 7px !important;
-  font-weight:800 !important;letter-spacing:0 !important;color:transparent !important;opacity:0 !important;text-transform:uppercase !important;
+  font-weight:800 !important;letter-spacing:0 !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;
 }
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
@@ -883,7 +884,7 @@ header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{displ
 header#mdRoom .filt-actions{
   position:absolute !important;top:60.66% !important;right:.68% !important;bottom:auto !important;left:auto !important;
   display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:.5% !important;align-items:stretch !important;
-  width:15.67% !important;height:28.2% !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:20 !important;
+  width:15.67% !important;height:28.2% !important;flex:none !important;padding:5px !important;border:1px solid rgba(255,255,255,.92) !important;border-radius:10px !important;margin:0 !important;z-index:20 !important;background:rgba(255,255,255,.94) !important;box-shadow:0 8px 22px rgba(20,36,52,.16) !important;backdrop-filter:blur(10px) !important;
 }
 header#mdRoom .filt-actions .btn{
   height:100% !important;min-width:0 !important;padding:3px !important;border:1px solid rgba(227,25,55,.42) !important;border-radius:8px !important;
@@ -916,7 +917,7 @@ header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdR
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
   position:absolute !important;top:39.34% !important;width:3.7% !important;height:21.64% !important;min-width:0 !important;
-  margin:0 !important;padding:3px !important;border-radius:8px !important;box-shadow:0 3px 10px rgba(22,38,53,.08) !important;
+  margin:0 !important;padding:3px !important;border-radius:8px !important;box-shadow:0 4px 12px rgba(22,38,53,.13) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
   background:#fff !important;border:1px solid rgba(227,25,55,.42) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
   opacity:1 !important;pointer-events:auto !important;cursor:pointer !important;
@@ -949,7 +950,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--header-reference:url("${headerReference.url}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
     .replace(
       "const AP_EXACT = {",
