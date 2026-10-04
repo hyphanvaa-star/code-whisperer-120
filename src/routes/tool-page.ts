@@ -540,8 +540,8 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
-    .replace("<head>", "<head>" + SHIM)
-    .replace("</head>", SKIN + "</head>")
+    .replace("<head>", "<head>" + FONTS + SHIM)
+    .replace("</head>", SKIN + POPART + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
     .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night.png")
     // Xuất briefing: khi job xong có link tải, tự động tải ZIP về máy người dùng.
