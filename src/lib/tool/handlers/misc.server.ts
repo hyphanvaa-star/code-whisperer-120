@@ -60,9 +60,12 @@ export const routes: Routes = {
     for (const [kind, [uKey, pKey, label]] of Object.entries(ENV)) {
       const hasUser = Boolean(process.env[uKey]);
       const hasPass = Boolean(process.env[pKey]);
+      // Giống tool gốc: 3 tài khoản cài sẵn hiện sẵn username (không bao giờ trả mật khẩu);
+      // Outlook mail nháp để người dùng tự điền.
+      const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb";
       accounts[kind] = {
         label,
-        username: "",
+        username: prefill ? (process.env[uKey] ?? "") : "",
         has_password: hasUser && hasPass,
         source: hasUser && hasPass ? "env" : "none",
         env_names: [uKey, pKey],
