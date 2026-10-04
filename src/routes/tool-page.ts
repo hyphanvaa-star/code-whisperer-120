@@ -753,7 +753,7 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 aside,main.split2{border-radius:12px !important;overflow:hidden}
 table thead th,table > tr:first-child > th,.tooltbl th{
   background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
-  border-bottom:2px solid var(--x-yel) !important;position:sticky;top:0;z-index:2;
+  border-bottom:2px solid var(--x-yel) !important;
 }
 table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
 table tbody tr:nth-child(even) > td{background:#fff}
