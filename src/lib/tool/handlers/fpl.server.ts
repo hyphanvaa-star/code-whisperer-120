@@ -78,12 +78,25 @@ export const routes: Routes = {
     const db = await loadDb(ctx);
     if (!db) return { error: NO_CREWLIST };
     const [routeDoc, pcrDoc] = await Promise.all([loadRouteDoc(ctx), loadPcrDoc(ctx)]);
+    // PCR T/O needs each reg's JetPlan type + MTOW (like the original jetplan_ac lookup).
+    const jp = await import("../jetplan.server");
+    const pcrMod = await import("../port/pcr_limits");
+    const pcrIata = new Set(Object.values((pcrDoc as Raw).airports || {}).map((a: any) => String(a?.iata || "").toUpperCase()));
+    const regs = [...new Set(db.flights.filter((f: Raw) => pcrIata.has(String(f.dep || "").toUpperCase())).map((f: Raw) => String(f.reg || "")).filter(Boolean))];
+    try { await jp.ensureRegs(ctx, regs); } catch (e) { console.warn("PCR ensureRegs:", e); }
+    const specMap = new Map<string, { mtow?: number; type?: string }>();
+    for (const r of regs) {
+      const s = await jp.specs(ctx, r);
+      specMap.set(r, s.mtow != null ? { mtow: s.mtow, type: s.type } : { type: s.type });
+    }
     return {
       ok: true,
       source: db.source,
       tlk: db.tlk,
       dsp: db.dsp,
-      flights: ft.public_flights(db, routeDoc.rows || [], pcrDoc),
+      flights: ft.public_flights(db, routeDoc.rows || [], pcrDoc,
+        (reg) => specMap.get(reg) || null,
+        (hint, mtow) => pcrMod.pick_variant(hint, mtow)),
     };
   },
 
