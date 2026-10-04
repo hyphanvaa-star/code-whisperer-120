@@ -141,15 +141,31 @@ export class AviWebSession {
     ]);
   }
 
-  /** Lấy toàn bộ hàng của một view FPL Manager: [callsign, status, dep, dest, t1, t2, …]. */
-  async fetchRows(view: string): Promise<string[][]> {
+  /**
+   * Lấy toàn bộ hàng của một view FPL Manager. Cột: [callsign, ats_msg, dep,
+   * dest, date_of_flight, update_time]; `status` đọc từ Label HTML (cột Status
+   * là component riêng), `key` dùng để bấm action View.
+   */
+  async fetchRows(view: string): Promise<AviRow[]> {
     const d = await this.gotoView(view);
-    const rows: string[][] = [];
+    const state = d.state ?? {};
+    const rows: AviRow[] = [];
     for (const ch of d.changes ?? []) {
+      const pid = Array.isArray(ch) ? String((ch[1] as { pid?: string })?.pid ?? "") : "";
       const walk = (x: unknown): void => {
         if (Array.isArray(x)) {
           if (x[0] === "tr" && typeof x[1] === "object" && x.length > 4) {
-            rows.push(x.slice(2).map((c) => (typeof c === "string" ? c : "")));
+            const meta = x[1] as { key?: number };
+            const cells = x.slice(2);
+            const statusRef = cells.find((c) => Array.isArray(c)) as [string, { id?: string }] | undefined;
+            const sid = statusRef?.[1]?.id;
+            const html = sid ? String((state[sid] as { text?: string } | undefined)?.text ?? "") : "";
+            rows.push({
+              cells: cells.map((c) => (typeof c === "string" ? c : "")),
+              status: html.replace(/<[^>]*>/g, "").trim(),
+              key: String(meta.key ?? ""),
+              tablePid: pid,
+            });
             return;
           }
           for (const y of x) walk(y);
@@ -160,6 +176,26 @@ export class AviWebSession {
     return rows;
   }
 
+  /** Bấm action "View" (key "1") trên một hàng → trả nội dung điện văn FPL. */
+  async viewFpl(row: AviRow): Promise<string> {
+    const d = await this.rpc([[row.tablePid, "v", "v", ["action", ["s", `${row.key},1`]]]]);
+    const state = d.state ?? {};
+    let text = "";
+    let win = "";
+    for (const [pid, st] of Object.entries(state)) {
+      const t = (st as { text?: string }).text;
+      if (typeof t === "string" && t.includes("<pre")) text = t;
+      if ((st as { modal?: boolean }).modal) win = pid;
+    }
+    if (win) {
+      try { await this.rpc([[win, "v", "v", ["close", ["b", true]]]]); } catch { /* bỏ qua */ }
+    }
+    return text
+      .replace(/<[^>]*>/g, "")
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
+      .trim();
+  }
+
   /** Phiên đầy đủ: đăng nhập → mở UI chính. */
   async connect(user: string, pass: string): Promise<void> {
     await this.login(user, pass);
@@ -167,10 +203,31 @@ export class AviWebSession {
   }
 }
 
+export interface AviRow {
+  cells: string[];
+  status: string;
+  key: string;
+  tablePid: string;
+}
+
+/** Đọc REG / DOF / EOBT (HHMM) từ điện văn FPL. */
+export function parseFplDetail(text: string): { reg?: string; dof?: string; eobt?: string } {
+  const out: { reg?: string; dof?: string; eobt?: string } = {};
+  const reg = /\bREG\/([A-Z0-9-]+)/.exec(text);
+  if (reg) out.reg = reg[1]!.replace(/-/g, "");
+  const dof = /\bDOF\/(\d{6})/.exec(text);
+  if (dof) out.dof = dof[1]!;
+  for (const l of text.split(/\r?\n/).map((x) => x.trim())) {
+    const m = /^-([A-Z]{4})(\d{4})$/.exec(l); // field 13: "-VVTS0445"
+    if (m) { out.eobt = m[2]!; break; }
+  }
+  return out;
+}
+
 /**
- * Check trạng thái FPL của các số hiệu trên AviWeb — chạy hoàn toàn trên máy
- * chủ web, không cần Selenium/Chrome. Đọc cả 3 danh sách Processed /
- * Unprocessed / Rejected rồi ghép theo số hiệu.
+ * Check trạng thái FPL của các số hiệu trên AviWeb — chạy trên máy chủ web
+ * (UIDL), như atc_check.py: đọc danh sách, rồi bấm View từng chuyến để lấy
+ * REG / DOF / EOBT; Status lấy từ cột Status ngoài danh sách.
  */
 export async function checkFlightsOnline(
   callsigns: string[],
@@ -179,34 +236,57 @@ export async function checkFlightsOnline(
   const cred = getAviwebCredentials();
   if (!cred) throw new Error("Chưa có tài khoản AviWeb — mở tab Account để lưu.");
   const want = new Map(callsigns.map((c) => [c.trim().toUpperCase(), c]));
-  const found = new Map<string, AtcCheckResult>();
   const s = new AviWebSession();
   onProgress?.(`· đăng nhập AviWeb (${cred.user})…`);
   await s.connect(cred.user, cred.pass);
   onProgress?.("· đăng nhập xong — đang đọc danh sách FPL…");
+  const isCancel = (st: string) => /cancel/i.test(st);
+  const out = new Map<string, AtcCheckResult>();
   for (const view of ["manager-processed", "manager-unprocessed", "manager-rejected"]) {
-    let rows: string[][] = [];
+    let rows: AviRow[] = [];
     try {
       rows = await s.fetchRows(view);
     } catch {
-      continue; // view lỗi thì bỏ qua, không chặn các view còn lại
+      continue;
     }
-    for (const cells of rows) {
-      const cs = (cells[0] ?? "").trim().toUpperCase();
-      if (!want.has(cs) || found.has(cs)) continue;
+    const picked = new Map<string, AviRow>();
+    for (const row of rows) {
+      const cs = (row.cells[0] ?? "").trim().toUpperCase();
+      if (!want.has(cs) || out.has(cs)) continue;
+      const cur = picked.get(cs);
+      // Danh sách mới nhất ở trên: lấy hàng đầu, nhưng ưu tiên hàng không Cancelled.
+      if (!cur || (isCancel(cur.status) && !isCancel(row.status))) picked.set(cs, row);
+    }
+    onProgress?.(`· ${view.replace("manager-", "")}: ${rows.length} dòng, thấy ${picked.size} chuyến — đang bấm View từng chuyến…`);
+    let i = 0;
+    for (const [cs, row] of picked) {
+      i++;
       const r: AtcCheckResult = {
         callsign: want.get(cs)!,
-        status: cells[1] || view.replace("manager-", ""),
+        status: row.status || view.replace("manager-", ""),
         ok: true,
       };
-      if (cells[4]) r.flight_time = cells[4];
-      found.set(cs, r);
+      try {
+        const text = await s.viewFpl(row);
+        if (text && fplIsFor(text, cs)) {
+          const det = parseFplDetail(text);
+          if (det.reg) r.reg = det.reg;
+          if (det.dof) r.dof = det.dof;
+          if (det.eobt) r.flight_time = det.eobt;
+        }
+        const why = missingDetailReason(r, text);
+        if (why) { r.ok = false; r.error = why; }
+      } catch (e) {
+        r.ok = false;
+        r.error = "bấm View lỗi: " + (e instanceof Error ? e.message : String(e));
+      }
+      onProgress?.(`· View ${i}/${picked.size} ${cs}: ${r.status} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"}`);
+      out.set(cs, r);
     }
-    onProgress?.(`· ${view.replace("manager-", "")}: ${rows.length} dòng, ghép được ${found.size}/${want.size}`);
-    if (found.size >= want.size) break;
+    if (out.size >= want.size) break;
   }
   return callsigns.map((c) => {
-    const r = found.get(c.trim().toUpperCase());
+    const r = out.get(c.trim().toUpperCase());
     return r ?? { callsign: c, error: "không thấy trên AviWeb", ok: false };
   });
 }
