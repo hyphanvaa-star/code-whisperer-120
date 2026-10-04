@@ -16,6 +16,15 @@ import {
   normIcao,
   airportParentFir,
 } from "./notam_check";
+import {
+  notamGeoms,
+  notamAltBand,
+  geomTrackNear,
+  isOperatorPolicy,
+  isRouteAdvisory,
+  type Notam,
+  type TrackPoint,
+} from "./notam_track";
 
 // --------------------------------------------------------------------------- //
 // api/ofp.py text parsers (minimal subset needed by tune_places)
@@ -938,10 +947,8 @@ export function isTaxiwayNotam(notam: N | string): boolean {
   return TWY_RE.test(notamBlob(notam));
 }
 
-function operatorPolicyDropWhy(_notam: N): string {
-  // notam_track.is_operator_policy (registration/operator-nationality bans) is
-  // not ported here — see file header. Never drop for this reason.
-  return "";
+function operatorPolicyDropWhy(notam: N): string {
+  return isOperatorPolicy(notam as Notam) ? "chính sách khai thác/đăng ký (operator policy)" : "";
 }
 
 function obstWithdrawnDropWhy(notam: N): string {
@@ -1078,7 +1085,7 @@ function isAtsRouteNotam(notam: N): boolean {
   const blob = notamBlob(notam);
   if (ROUTE_PHRASE.some((p) => blob.includes(p))) return true;
   if (flowListedAwys(blob).size) return true;
-  // notam_track.is_route_advisory not ported — skip this extra check.
+  if (isRouteAdvisory(notam as Notam)) return true;
   return false;
 }
 
@@ -1195,10 +1202,53 @@ function firObstLightDropWhy(notam: N): string {
   return "";
 }
 
-// fir_fire_drop_why / _fir_when_window geometry: notam_track's polygon engine is
-// not ported, so geoms are always [] here (same as the Python "if not geoms:
-// return ''" / "if geoms and points and std" early-outs when geoms is empty).
-function firFireDropWhy(_notam: N, _points: unknown[]): string { return ""; }
+const TUNE_FIRE_NM = 5.0;
+const TUNE_FL_PAD_FT = 5000;
+
+// Port of notam_check.fir_fire_drop_why using notam_track's geometry engine
+// (notamGeoms / geomTrackNear / notamAltBand) now that it is ported.
+function firFireDropWhy(notam: N, points: unknown[]): string {
+  const kind = firAreaKind(notam);
+  if (!kind) return "";
+  const pts = (points || []) as TrackPoint[];
+  if (!pts.length) return "";
+  const geoms = notamGeoms(notam as Notam);
+  if (!geoms.length) return "";
+  const [lo, hi] = notamAltBand(notam as Notam);
+  let anyClose = false;
+  let anyFlHit = false;
+  let farNm: number | null = null;
+  const flSeen: Array<[number, string]> = [];
+  for (const geom of geoms) {
+    const near = geomTrackNear(geom, pts);
+    const dist = near.dist_nm ?? 1e9;
+    if (dist > TUNE_FIRE_NM) {
+      farNm = farNm === null ? dist : Math.min(farNm, dist);
+      continue;
+    }
+    anyClose = true;
+    const flFt = near.fl_ft || 0;
+    const name = near.name || "";
+    if (flFt <= 0) continue;
+    flSeen.push([flFt, name]);
+    if (hi >= 90000) { anyFlHit = true; continue; }
+    const loPad = lo - TUNE_FL_PAD_FT;
+    const hiPad = hi + TUNE_FL_PAD_FT;
+    if (loPad <= flFt && flFt <= hiPad) anyFlHit = true;
+  }
+  if (!anyClose) {
+    const shown = farNm ?? 1e9;
+    return `${kind} cách route ${shown.toFixed(0)} NM (>${TUNE_FIRE_NM.toFixed(0)} NM)`;
+  }
+  if (hi < 90000 && flSeen.length && !anyFlHit) {
+    const [flFt, name] = flSeen.reduce((a, b) => (b[0] > a[0] ? b : a));
+    let bit = `${kind}: dải F/G ±5000 (FL${Math.max(0, Math.floor((lo - TUNE_FL_PAD_FT) / 100))}` +
+      `–FL${Math.floor((hi + TUNE_FL_PAD_FT) / 100)}) không tới FL${Math.floor(flFt / 100)}`;
+    if (name) bit += ` ${name}`;
+    return bit;
+  }
+  return "";
+}
 
 function fmtHhmm(d: Date): string {
   return `${String(d.getUTCHours()).padStart(2, "0")}${String(d.getUTCMinutes()).padStart(2, "0")}`;
