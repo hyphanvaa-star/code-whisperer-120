@@ -41,7 +41,7 @@ function ToolPage() {
   return (
     <iframe
       title="Dispatch Board"
-      src="/tool-page"
+      src="/tool-page?v=20261004c"
       className="fixed inset-0 h-screen w-screen border-0"
     />
   );
