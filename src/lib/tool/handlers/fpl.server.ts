@@ -87,7 +87,7 @@ export const routes: Routes = {
     const specMap = new Map<string, { mtow?: number; type?: string }>();
     for (const r of regs) {
       const s = await jp.specs(ctx, r);
-      specMap.set(r, { mtow: s.mtow ?? undefined, type: s.type });
+      specMap.set(r, s.mtow != null ? { mtow: s.mtow, type: s.type } : { type: s.type });
     }
     return {
       ok: true,
