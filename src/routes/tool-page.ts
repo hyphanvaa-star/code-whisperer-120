@@ -216,6 +216,31 @@ td{border-bottom:1px solid rgba(21,24,31,.05)}
   backdrop-filter:blur(10px);
 }
 .dtab.on{color:var(--klein);box-shadow:inset 0 -2px 0 var(--klein)}
+/* Thanh tab chế độ (Tạo KHB / Giao ca / Hiển thị chung...): bỏ hồng,
+   chuyển sang xám trung tính + tab đang chọn đỏ Vietjet */
+.modes{
+  background:rgba(255,255,255,.78) !important;
+  border:1px solid rgba(21,24,31,.10) !important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.mode{
+  color:#4A5160 !important;
+  background:transparent !important;
+  border:1px solid transparent !important;
+}
+.mode:hover{background:rgba(21,24,31,.05) !important}
+.mode.on{
+  color:#fff !important;
+  background:linear-gradient(135deg,#D8263F,#A31328) !important;
+  box-shadow:0 2px 8px rgba(196,30,58,.30);
+}
+/* Header: tăng độ đục để nền ảnh không loang hồng qua */
+header{background:rgba(255,255,255,.88) !important}
+/* Nút hành động trên header (Acc/TAF/Crew/Refresh/OFP): giữ màu trạng thái,
+   chỉ làm bóng và bo góc hiện đại hơn */
+.btn.act{border-radius:10px;box-shadow:0 2px 8px rgba(10,16,40,.14)}
+.btn.act:hover:not(:disabled){box-shadow:0 5px 16px rgba(10,16,40,.20)}
 /* Giảm gắt ảnh nền: lớp phủ sáng mỏng để chữ nổi hơn */
 body::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
