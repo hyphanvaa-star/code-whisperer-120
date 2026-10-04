@@ -3,6 +3,9 @@ import { AVIWEB_NOT_PORTABLE_MESSAGE, readFplBlocks, fplName, checkFlightsOnline
 import { jobId } from "../jobs";
 import { getFile, listFiles, putFile } from "../store.server";
 import * as pc from "../pcagent.server";
+import * as excelMod from "./excel.server";
+import * as ft from "../port/fpl_tool";
+import { loadFlights } from "../core/gantts.server";
 
 const ATC_DIR = "atc";
 
@@ -52,8 +55,51 @@ export const routes: Routes = {
     };
   },
 
-  "GET /api/atc/reg-context": async () => {
-    return { available: false, error: AVIWEB_NOT_PORTABLE_MESSAGE, file: "", sheet: "", by_sector: {} };
+  // Port of web.py "/api/atc/reg-context": map each FliteBrief sector to the
+  // matching row of the Crewlist currently loaded (flight no + date + DEP/ARR).
+  "GET /api/atc/reg-context": async (ctx) => {
+    const state = await excelMod.currentExcel(ctx);
+    if (!state) return { available: false, error: "Chưa nạp Crewlist Excel.", file: "", sheet: "", by_sector: {} };
+    let crew: Record<string, any>[] = [];
+    let sheetName = state.sheet || "";
+    try {
+      const { sheets } = await excelMod.readSheet(ctx, state.file);
+      if (sheets.length) {
+        const sh = excelMod.pickSheet(sheets, state.sheet) as any;
+        sheetName = sh.name || sheetName;
+        crew = ft.flights_from_crew_sheet(sh);
+      }
+    } catch (e) {
+      return { available: false, error: "Không đọc được Crewlist: " + (e as Error).message, file: state.file, sheet: sheetName, by_sector: {} };
+    }
+    const days = parseInt(ctx.params.get("days") || "1", 10) || 1;
+    const flights = await loadFlights(days, false);
+    const num = (s: unknown) => { const d = String(s ?? "").replace(/\D/g, ""); return d ? String(parseInt(d, 10)) : ""; };
+    const ddmm = (d: Date | null) => d ? `${String(d.getUTCDate()).padStart(2, "0")}/${String(d.getUTCMonth() + 1).padStart(2, "0")}` : "";
+    const crewDate = (s: string) => { const m = String(s).match(/^(\d{1,2})[/.-](\d{1,2})/); return m ? `${m[1].padStart(2, "0")}/${m[2].padStart(2, "0")}` : ""; };
+    const by_sector: Record<string, unknown> = {};
+    for (const f of flights) {
+      const fr = f as unknown as Record<string, any>;
+      const n = num(fr.fltno || fr.commercial_fltno || fr.callsign);
+      if (!n) continue;
+      const dep = [fr.dep_iata, fr.dep_icao].map((x: string) => String(x || "").toUpperCase());
+      const arr = [fr.dest_iata, fr.dest_icao].map((x: string) => String(x || "").toUpperCase());
+      const sameFlt = crew.filter((c) => c.flt === n);
+      let cands = sameFlt.filter((c) => (!c.dep || dep.includes(c.dep)) && (!c.arr || arr.includes(c.arr)));
+      const day = ddmm(fr.std as Date | null);
+      if (cands.length > 1 && day) {
+        const byDay = cands.filter((c) => crewDate(c.date) === day);
+        if (byDay.length) cands = byDay;
+      }
+      if (!cands.length) continue;
+      const c = cands[0];
+      by_sector[String(f.id)] = {
+        crewlist_reg: c.reg, row_no: c.row, file: state.file, sheet: sheetName,
+        safe: cands.length === 1,
+        note: cands.length === 1 ? "" : `Crewlist có ${cands.length} dòng trùng chuyến ${n} — bấm để chọn đúng dòng`,
+      };
+    }
+    return { available: true, error: "", file: state.file, sheet: sheetName, by_sector };
   },
 
   // Ghi FPL lên AviWeb cần Chrome thật → giao trợ lý PC chạy atcfpl.py gốc.
