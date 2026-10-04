@@ -548,7 +548,7 @@ export function extra_from_taf(
   return [String(Math.trunc(dest.extra || 0)), String(dest.why || ""), places];
 }
 
-function _suffix(routeTable: Raw[], route: string, etdHhmm: string): string {
+export function _suffix(routeTable: Raw[], route: string, etdHhmm: string): string {
   let hit: Raw | null = null;
   for (const rec of routeTable || []) {
     if (String(rec.route || "").toUpperCase() === String(route || "").toUpperCase()) { hit = rec; break; }
