@@ -306,7 +306,7 @@ function fbClient(): vf.FbClient {
 }
 
 export const jobs: Jobs = {
-  regswap: async (params, emit) => {
+  regswap: async (params, emit, ctx) => {
     const t0 = Date.now();
     const sectorId = Number(params["sectorId"]);
     const newReg = String(params["newReg"] ?? "");
