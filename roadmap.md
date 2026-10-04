@@ -48,4 +48,4 @@
 - [x] AviWeb check ATC qua trợ lý PC (04/10): /api/atc/check + job atc_check giao lệnh aviweb_check cho pc_agent.py — chạy atc_check.py gốc bằng Selenium trên máy công ty, cần PC_TOOL_DIR
 ## Thêm mới (20:45)
 - [x] Tham khảo thiết kế properprompts.ai — áp lớp poster đỏ vào /tool (13:50)
-- [ ] Badge số trên tab (Hiển thị chung...) bị che — sửa cho hiện đủ
+- [x] Badge số trên tab (Hiển thị chung...) bị che — sửa cho hiện đủ
