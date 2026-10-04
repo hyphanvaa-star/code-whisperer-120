@@ -449,7 +449,12 @@ export function datetimeOptions(html: string): string[] {
 
 // ---------------- Network fetch (TSN / mirror) ----------------
 
-export const BASES = ["http://113.161.121.25", "http://118.69.213.84"];
+// Raw-IP hosts first (as in the original tool), then DNS aliases of the same IPs:
+// the cloud runtime may refuse fetches to bare IP addresses, a hostname works.
+export const BASES = [
+  "http://113.161.121.25", "http://118.69.213.84",
+  "http://113.161.121.25.sslip.io", "http://118.69.213.84.sslip.io",
+];
 const USER = "vietjet";
 const PASS = "Vietjet@air";
 
@@ -461,30 +466,23 @@ function jar(prev: string, h: Headers): string {
   return [...m].map(([k, v]) => `${k}=${v}`).join("; ");
 }
 
-async function openSession(): Promise<{ base: string; cookie: string }> {
-  const errors: string[] = [];
-  for (const base of BASES) {
-    try {
-      const r0 = await fetch(`${base}/index.php?cat=2&sub=0`, { redirect: "manual", signal: AbortSignal.timeout(6000) });
-      const cookie0 = jar("", r0.headers);
-      const form = new URLSearchParams({
-        act: "login", req: "2,0", txtUsername: USER, txtPassword: PASS, cmdLogin: "Login",
-      });
-      const r1 = await fetch(`${base}/index.php`, {
-        method: "POST", body: form,
-        headers: { "Content-Type": "application/x-www-form-urlencoded", cookie: cookie0 },
-        redirect: "manual",
-        signal: AbortSignal.timeout(15000),
-      });
-      const text = await r1.text();
-      const cookie1 = jar(cookie0, r1.headers);
-      if (text.includes("txtPassword")) throw new Error(`Đăng nhập TAF thất bại tại ${base}`);
-      return { base, cookie: cookie1 };
-    } catch (exc) {
-      errors.push(`${base}: ${exc instanceof Error ? exc.message : String(exc)}`);
-    }
-  }
-  throw new Error("Không kết nối được đài TAF nào.\n" + errors.join("\n"));
+async function openSessionAt(base: string): Promise<string> {
+  const r0 = await fetch(`${base}/index.php?cat=2&sub=0`, { redirect: "manual", signal: AbortSignal.timeout(8000) });
+  const cookie0 = jar("", r0.headers);
+  await r0.text().catch(() => "");
+  const form = new URLSearchParams({
+    act: "login", req: "2,0", txtUsername: USER, txtPassword: PASS, cmdLogin: "Login",
+  });
+  const r1 = await fetch(`${base}/index.php`, {
+    method: "POST", body: form,
+    headers: { "Content-Type": "application/x-www-form-urlencoded", cookie: cookie0 },
+    redirect: "manual",
+    signal: AbortSignal.timeout(15000),
+  });
+  const text = await r1.text();
+  if (r1.status >= 400) throw new Error(`HTTP ${r1.status} ${text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 120)}`);
+  if (text.includes("txtPassword")) throw new Error("đăng nhập thất bại");
+  return jar(cookie0, r1.headers);
 }
 
 export type TafSnapshot = {
@@ -499,12 +497,30 @@ export type TafSnapshot = {
 
 /** Port of fetch_latest(). Requires network access to the TSN MET mirrors. */
 export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<TafSnapshot> {
-  const { base, cookie } = await openSession();
+  const errors: string[] = [];
+  let empty: TafSnapshot | null = null;
+  for (const base of BASES) {
+    try {
+      const snap = await fetchFrom(base, opts);
+      if (snap.count > 0) return snap;
+      empty = empty ?? snap;
+      errors.push(`${base}: 0 TAF`);
+    } catch (exc) {
+      errors.push(`${base}: ${exc instanceof Error ? exc.message : String(exc)}`);
+    }
+  }
+  if (empty) return { ...empty, source: `${empty.source} (${errors.join(" | ")})` };
+  throw new Error("Không kết nối được đài TAF nào.\n" + errors.join("\n"));
+}
+
+export async function fetchFrom(base: string, opts: { preferVv?: boolean }): Promise<TafSnapshot> {
+  const cookie = await openSessionAt(base);
   const qs0 = new URLSearchParams({ cat: "2", sub: "0", type: "3", cboDatetime: "", cboElement: "" });
-  const r0 = await fetch(`${base}/index.php?${qs0.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(120000) });
+  const r0 = await fetch(`${base}/index.php?${qs0.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(60000) });
   const html0 = await r0.text();
+  if (r0.status >= 400) throw new Error(`HTTP ${r0.status}`);
   let opts_: string[] = datetimeOptions(html0);
-  if (opts_.length === 0 && html0.includes("txtPassword")) throw new Error(`Đài TAF ${base} không giữ phiên đăng nhập (bị đẩy về trang login).`);
+  if (opts_.length === 0 && html0.includes("txtPassword")) throw new Error("không giữ phiên đăng nhập (bị đẩy về trang login)");
   if (opts_.length === 0) {
     const now = new Date();
     const h = Math.floor(now.getUTCHours() / 3) * 3;
@@ -516,10 +532,9 @@ export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<Ta
   const used: string[] = [];
   for (const dt of opts_.slice(0, 4)) {
     const qs = new URLSearchParams({ cat: "2", sub: "0", type: "3", cboDatetime: dt, cboElement: "" });
-    const r = await fetch(`${base}/index.php?${qs.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(120000) });
+    const r = await fetch(`${base}/index.php?${qs.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(60000) });
     const html = await r.text();
     const plain = html.replace(/<[^>]+>/g, "\n");
-    let got = 0;
     let m: RegExpExecArray | null;
     RE_TAF.lastIndex = 0;
     while ((m = RE_TAF.exec(plain))) {
@@ -531,12 +546,10 @@ export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<Ta
       if (!parsed) continue;
       icao = parsed.icao;
       const prev = tafs[icao];
-      if (!prev) { tafs[icao] = parsed; got++; }
-      else if (prev.nil && !parsed.nil) { tafs[icao] = parsed; got++; }
-      // else keep existing (prefer newer slot already loaded, or keep non-nil)
+      if (!prev) tafs[icao] = parsed;
+      else if (prev.nil && !parsed.nil) tafs[icao] = parsed;
     }
     used.push(dt);
-    void got;
   }
 
   return {
