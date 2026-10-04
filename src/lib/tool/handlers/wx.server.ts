@@ -1,11 +1,11 @@
 import type { Jobs, Routes } from "../types";
-import { getJson } from "../store.server";
+import { getJson, setJson } from "../store.server";
+import { fetchLatest, type TafSnapshot } from "../port/taf";
 
 // Port of the web.py "/api/taf/*" endpoints (taf.py). Keep JSON shapes identical to web.py.
-// taf.fetch_latest() logs into the TSN MET station at 113.161.121.25 / 118.69.213.84 (a
-// Vietjet-internal network) — unreachable from this Cloudflare Worker, so refresh always
-// fails here with a Vietnamese explanation instead of faking success. status/snapshot still
-// read whatever cache was last stored under "wx.taf" (never populated in this environment).
+// taf.fetch_latest() logs into the TSN MET station (113.161.121.25, fallback 118.69.213.84)
+// and parses the TAF En-Route / ALL Routes dump. Results are cached under "wx.taf" the same
+// way web.py caches to data/taf/latest.json + in-memory _CACHE.
 const CACHE_KEY = "wx.taf";
 
 type TafCache = {
@@ -33,13 +33,20 @@ export const routes: Routes = {
     };
   },
 
-  "GET /api/taf/refresh": async () => {
+  "GET /api/taf/refresh": async (ctx) => {
     try {
-      throw new Error(
-        "Không kết nối được đài TAF (TSN MET nội bộ, 113.161.121.25 / 118.69.213.84) — cần PC helper trong mạng Vietjet để tải TAF mới.",
-      );
+      const info: TafSnapshot = await fetchLatest();
+      await setJson(ctx, CACHE_KEY, info);
+      return {
+        ok: true,
+        count: info.count ?? 0,
+        active: info.active ?? 0,
+        datetime: info.datetime ?? "",
+        slots: info.slots ?? [],
+        fetched_at: info.fetched_at ?? null,
+      };
     } catch (exc) {
-      return { error: String((exc as Error).message ?? exc) };
+      return { error: (exc as Error)?.message ?? String(exc) };
     }
   },
 };
