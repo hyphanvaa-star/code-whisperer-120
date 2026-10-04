@@ -1,7 +1,8 @@
 // Port of pcr_limits.py — PCR (pavement classification) limits for domestic airports.
 import pcrData from "../data/pcr_limits.json";
 
-export type Raw = Record<string, any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors untyped Python dicts
+export type Raw = any;
 
 export const MARGIN_KG = 500;
 export const WARNING = "warning";
