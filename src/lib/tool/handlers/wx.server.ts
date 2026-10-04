@@ -144,13 +144,95 @@ Object.assign(routes, {
     }
   },
 
-  // metwx.py: đăng nhập + tải flight folder từ TSN/Nội Bài/Đà Nẵng — các IP nội
-  // bộ hãng (113.161.121.25, 14.177.232.218, danmet.vatm.vn) không gọi được từ
-  // Cloudflare Worker, và PC agent (pc-agent/pc_agent.py) hiện chưa có handler
-  // cho job này. Báo lỗi rõ ràng thay vì giả vờ thành công.
-  "POST /api/wx/download": async () => ({
-    error:
-      "Tải WX (TSN/Nội Bài/Đà Nẵng) cần vào mạng nội bộ hãng — chưa chạy được từ server, " +
-      "và trợ lý PC hiện chưa hỗ trợ job này. Gửi cho quản trị để bổ sung.",
-  }),
+  // Port of web.py "/api/wx/download" → start_wx_download(): trả {id} rồi job
+  // "wx_download" chạy trong /api/stream. Các đài MET mở được từ internet nên
+  // server tự tải trực tiếp (metwx.download), lưu PDF vào store "pibwx/".
+  "POST /api/wx/download": async (ctx) => {
+    const payload = await ctx.json();
+    const callsigns = ((payload["callsigns"] as unknown[]) ?? []).map((x) => String(x).trim().toUpperCase()).filter(Boolean);
+    if (!callsigns.length) return { error: "Chưa có số hiệu chuyến bay nào trong cột PIB/WX." };
+    const sites = ((payload["sites"] as unknown[]) ?? []).map(String).filter(Boolean);
+    return {
+      id: jobId("wx_download", {
+        callsigns,
+        sites,
+        overwrite: Boolean(payload["overwrite"]),
+        max_age_h: Number(payload["max_age_h"]) || 8.0,
+      }),
+    };
+  },
 });
+
+export const wxJobs: Jobs = {
+  // Port of web.py start_wx_download().work(): stream từng dòng tiến trình rồi
+  // kết thúc bằng {type:"end", code, elapsed, ok, skipped, failed, missing,
+  // files, folder} — đúng shape trang gốc đang đọc.
+  wx_download: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const want = ((params["callsigns"] as string[]) ?? []).map((c) => c.trim().toUpperCase()).filter(Boolean);
+    const sites = ((params["sites"] as string[]) ?? []).filter(Boolean);
+    const overwrite = Boolean(params["overwrite"]);
+    const maxAgeH = Number(params["max_age_h"]) || 8.0;
+    const use = sites.length ? sites : [...DEFAULT_ORDER];
+    const day = new Date();
+    const dd = `${String(day.getUTCDate()).padStart(2, "0")}/${String(day.getUTCMonth() + 1).padStart(2, "0")}/${day.getUTCFullYear()}`;
+    emit({
+      type: "line",
+      text: `▶ ${want.length} chuyến · ngày ${dd} · chỉ nhận file upload trong ${maxAgeH}h qua · đài: ${use.map((s) => SITES[s]?.name ?? s).join(", ")}`,
+    });
+
+    let res: WxResult;
+    try {
+      res = await metwxDownload(want, {
+        sites: use,
+        overwrite,
+        maxAgeH,
+        onProgress: (text, cs) => emit({ type: "line", text: `  ${text}`, found: cs || undefined }),
+        hasFile: async (filename) => {
+          const existing = await listFiles(ctx, "pibwx");
+          return existing.some((f) => f.name === filename);
+        },
+      });
+    } catch (exc) {
+      emit({ type: "line", text: `✗ ${(exc as Error)?.message ?? exc}`, cls: "bad" });
+      emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, skipped: 0, failed: want.length, missing: want });
+      return;
+    }
+
+    // Lưu PDF vào store "pibwx/" (thay ổ đĩa data/pibwx của bản PC).
+    const savedMeta: Array<{ callsign: string; filename: string }> = [];
+    for (const s of res.saved) {
+      try {
+        await putFile(ctx, `pibwx/${safeFilename(s.filename)}`, s.bytes, "application/pdf");
+        savedMeta.push({ callsign: s.callsign, filename: s.filename });
+      } catch (exc) {
+        emit({ type: "line", text: `✗ ${s.callsign}: không lưu được ${s.filename} — ${(exc as Error)?.message ?? exc}`, cls: "bad" });
+        res.missing.push(s.callsign);
+      }
+    }
+
+    for (const cs of res.missing) emit({ type: "line", text: `✗ ${cs}: chưa phát hành WX`, cls: "bad" });
+    for (const e of res.errors.slice(0, 10)) emit({ type: "line", text: `! ${e}`, cls: "bad" });
+
+    // Một file chỉ xuất hiện một lần dù nhiều site được thử.
+    const seen = new Map<string, { callsign: string; filename: string; new: boolean; source: string }>();
+    for (const s of savedMeta) seen.set(s.filename.toLowerCase(), { ...s, new: true, source: "wx" });
+    for (const s of res.skipped) {
+      const k = s.filename.toLowerCase();
+      if (!seen.has(k)) seen.set(k, { ...s, new: false, source: "wx" });
+    }
+    emit({
+      type: "end",
+      code: res.missing.length ? 2 : 0,
+      elapsed: (Date.now() - t0) / 1000,
+      ok: savedMeta.length,
+      skipped: res.skipped.length,
+      failed: res.missing.length,
+      missing: res.missing,
+      files: [...seen.values()],
+      folder: "pibwx",
+    });
+  },
+};
+
+Object.assign(jobs, wxJobs);
