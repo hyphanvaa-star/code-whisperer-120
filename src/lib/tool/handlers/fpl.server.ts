@@ -221,18 +221,31 @@ export const routes: Routes = {
     return { ok: true, rows };
   },
 
-  "POST /api/fpltext/atc": async () => {
-    if (!process.env.AVIWEB_USER) {
-      return { error: "Chưa có tài khoản AviWeb — nhờ quản trị lưu tài khoản." };
-    }
-    return { error: "Chưa hỗ trợ lấy OFP/ATC trong môi trường này." };
+  // atc_ezfw.pack_atc() (already ported, see ../port/atc_ezfw) builds the ATC/EZFW
+  // text locally from an OFP PDF already fetched from FliteBrief — it has nothing
+  // to do with AviWeb. What is missing here is OFP PDF text extraction (needs the
+  // FliteBrief OFP-PDF fetch + a PDF text layer reader), which is a separate
+  // module's job, not AviWeb's Selenium/Vaadin problem. Never gate this on AviWeb
+  // credentials.
+  "POST /api/fpltext/atc": async (ctx) => {
+    const body = await ctx.json();
+    const items = Array.isArray(body.items) ? body.items : [];
+    if (!items.length) return { error: "Chọn ít nhất một chuyến." };
+    return { error: "Chưa hỗ trợ lấy OFP (PDF FliteBrief) để dựng ATC/EZFW trong môi trường này." };
   },
 
-  "POST /api/fpltext/convert": async () => {
-    if (!process.env.AVIWEB_USER) {
-      return { error: "Chưa có tài khoản AviWeb — nhờ quản trị lưu tài khoản." };
-    }
-    return { error: "Chưa hỗ trợ chỉnh điện văn trong môi trường này." };
+  "GET /api/fpltext/convert": async (ctx) => {
+    const atcFix = await import("../port/atc_fix");
+    const doc = await getJson<ReturnType<typeof atcFix.load_rules> | null>(ctx, "fpl.atc_fix", null);
+    return { ok: true, ...atcFix.editor_doc(doc) };
+  },
+
+  "POST /api/fpltext/convert": async (ctx) => {
+    const body = await ctx.json();
+    const atcFix = await import("../port/atc_fix");
+    const { doc, editor } = atcFix.save_editor(body);
+    await setJson(ctx, "fpl.atc_fix", doc);
+    return { ok: true, ...editor };
   },
 
   "POST /api/fpltext/msg": async (ctx) => {
