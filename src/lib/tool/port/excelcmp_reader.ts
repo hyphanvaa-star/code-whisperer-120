@@ -135,7 +135,8 @@ function decodeCsv(buf: ArrayBuffer): string {
 }
 
 async function rawXlsx(buf: ArrayBuffer): Promise<Array<[string, unknown[][]]>> {
-  const ExcelJS = (await import("exceljs")).default;
+  const _xlMod = await import("exceljs");
+  const ExcelJS = (_xlMod.default ?? _xlMod) as typeof _xlMod;
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buf);
   const out: Array<[string, unknown[][]]> = [];
