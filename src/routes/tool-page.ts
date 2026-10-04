@@ -711,6 +711,67 @@ td .dim,.dim{color:var(--x-mute) !important}
 table tbody tr{height:auto !important}
 .aside-head{background:#fff !important;background-image:none !important;border:0 !important;box-shadow:none !important;border-bottom:1px solid var(--x-line) !important}
 .aside-head .modes{border:0 !important;box-shadow:none !important}
+
+/* ================= BỐ CỤC MỚI ================= */
+/* Header 1 hàng gọn */
+header#mdRoom{min-height:64px !important;height:64px !important;padding:0 16px !important;align-items:center !important}
+header#mdRoom .brand{transform:scale(.82);transform-origin:center}
+/* Nút header: ô vuông trắng, icon đỏ, chữ nhỏ — kiểu tile */
+header .btn,header .ai-fab{
+  background:#fff !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;
+  border:1px solid var(--x-line) !important;box-shadow:none !important;border-radius:10px !important;
+}
+header .btn svg,header .btn svg *{stroke:var(--x-red) !important;color:var(--x-red) !important}
+header .btn:hover{background:var(--x-red-50) !important;border-color:var(--x-red) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important}
+header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important}
+
+/* Khung chính: menu dọc trái | bảng | chi tiết */
+.body{padding-left:212px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
+.aside-head{
+  position:fixed !important;left:0 !important;top:67px !important;bottom:0 !important;width:200px !important;z-index:30 !important;
+  background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
+}
+.aside-head::before{content:"CHỨC NĂNG";display:block;font:600 10px var(--x-sans);letter-spacing:.14em;color:var(--x-mute);padding:0 10px 10px}
+.aside-head .modes{flex-direction:column !important;align-items:stretch !important;gap:2px !important;padding:0 !important;background:transparent !important;flex-wrap:nowrap !important;overflow:visible !important}
+.aside-head .mode,.mode{
+  justify-content:flex-start !important;text-align:left !important;flex:0 0 auto !important;width:100% !important;margin:0 !important;
+  padding:9px 12px !important;height:auto !important;
+  background:transparent !important;color:var(--x-ink2) !important;-webkit-text-fill-color:var(--x-ink2) !important;
+  border-radius:8px !important;box-shadow:none !important;font-size:13px !important;font-weight:500 !important;gap:10px !important;
+}
+.mode *:not(.mode-bang):not(.mode-bang *){color:inherit !important;-webkit-text-fill-color:inherit !important}
+.mode svg,.mode svg *{stroke:var(--x-mute) !important}
+.aside-head .mode:hover,.mode:hover{background:var(--x-bg) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important}
+.aside-head .mode.on,.mode.on{
+  background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:700 !important;
+  box-shadow:inset 3px 0 0 var(--x-red) !important;
+}
+.mode.on svg,.mode.on svg *{stroke:var(--x-red) !important}
+.mode-bang,.mode .mode-bang{top:50% !important;transform:translateY(-50%);right:10px !important;left:auto !important;border-color:#fff !important}
+
+/* Bảng: không khối đỏ — đầu bảng trắng chữ đỏ, gạch đỏ; dòng thoáng phẳng */
+aside,main.split2{border-radius:12px !important;overflow:hidden}
+table thead th,table > tr:first-child > th,.tooltbl th{
+  background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
+  border-bottom:2px solid var(--x-red) !important;position:sticky;top:0;z-index:2;
+}
+table thead th *{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important}
+table tbody tr:nth-child(even) > td{background:#fff}
+table tbody td{border-bottom:1px solid var(--x-line2) !important}
+table tbody tr:hover > td{background:#FAFBFC !important}
+table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table tbody tr.selected > td{background:var(--x-red-50) !important}
+/* Trạng thái: chấm + chữ thay vì viên thuốc đậm */
+.status,td .vd{border-radius:6px !important;font-family:var(--x-sans) !important;font-weight:600 !important}
+
+/* Tab chi tiết: dạng gạch chân */
+.detail-tabs{border-bottom:1px solid var(--x-line) !important;padding:0 12px !important;gap:14px !important}
+.dtab{padding:10px 2px !important;border-radius:0 !important}
+/* Thanh công cụ con: nút viền mảnh */
+.toolbar .btn,.toolbars .btn,.subtabs .btn,.sheet .btn,.lim-pane .btn{
+  background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
+  border:1px solid var(--x-red) !important;box-shadow:none !important;border-radius:8px !important;
+}
+.toolbar .btn:hover,.toolbars .btn:hover,.subtabs .btn:hover,.sheet .btn:hover,.lim-pane .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
