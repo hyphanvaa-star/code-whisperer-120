@@ -111,7 +111,9 @@ export function extractOpsLimit(actionRequirement: string): string {
 function makeRow(reg: string, defect: string, action: string): AircraftLimitRow | null {
   const normalizedReg = normAc(reg);
   if (!normalizedReg) return null;
-  return { reg: normalizedReg, defect: textOf(defect), limit: extractOpsLimit(action) };
+  // Một số ô DEFECT chép luôn đoạn [OPS] — phần đó đã nằm ở cột giới hạn.
+  const cleanDefect = textOf(defect).replace(/\s*\[\s*OPS\s*\].*$/i, "").trim();
+  return { reg: normalizedReg, defect: cleanDefect, limit: extractOpsLimit(action) };
 }
 
 /** Port of `_extract_pdfplumber`, operating on already-extracted table rows
