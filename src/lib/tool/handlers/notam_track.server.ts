@@ -1,7 +1,7 @@
 import type { Jobs, Routes } from "../types";
 import { q } from "../types";
 import type { Flight } from "../core/models";
-import { loadFlights } from "../core/gantts.server";
+import { loadFlights, applyFilters } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
 import { normIcao, placeFromPayload } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
