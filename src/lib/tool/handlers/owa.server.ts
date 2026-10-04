@@ -180,7 +180,7 @@ export const jobs: Jobs = {
     const hours = Number(params["hours"] ?? 10) || 10;
     const overwrite = !!params["overwrite"];
     try {
-      const { downloadPib, invalidateToken } = await import("../port/owa_pib");
+      const { downloadPib } = await import("../port/owa_pib");
       emit({ type: "line", text: `▶ ${callsigns.length} chuyến · tải PIB trực tiếp từ Outlook (máy chủ web), cửa sổ ±${hours}h` });
       const res = await downloadPib(ctx, {
         callsigns,
