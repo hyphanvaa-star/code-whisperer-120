@@ -30,12 +30,12 @@
 ## Bản đúng 100%: giao diện gốc + chuyển từng chức năng máy chủ (từ 04/10)
 - [x] Hạ tầng: giao diện gốc nguyên bản ở /tool, đăng nhập thật thay gate, /api/* chung, job stream, kho file
 - [~] core (bảng chuyến + chi tiết chuyến chạy thật; còn weights, extra, est, opscore/atfm đầy đủ): flights/flight/ofp, attch_check, row, limits_check, ofp, verify, opscore, atfm, crews, weights, extra, est
-- [ ] fpl: /api/fpltext/* (fpl_tool, atcfpl, atc_chg, atc_fix, pcr_limits), version/chg
-- [ ] notam: notam_check, notam_track, notam_pin (/api/notam/*)
+- [~] fpl (bảng tra + export xong; còn extra/pld/msg/atc_chg/version/chg, AviWeb): /api/fpltext/* (fpl_tool, atcfpl, atc_chg, atc_fix, pcr_limits), version/chg
+- [~] notam (lookup + pins xong; còn check/track/tune): notam_check, notam_track, notam_pin (/api/notam/*)
 - [ ] aip: aip_* (/api/aip/*, notam/vnchart)
-- [ ] wx: taf, metwx, extra_wx, wx_overlay, graph_pib, briefing, briefing_release (/api/taf/*, /api/wx/*, /api/briefing/*, /api/pib/download)
-- [ ] excel: excelcmp, xlsdiff, handover (/api/excel/*, /api/version/*, /api/handover*)
-- [ ] limits: /api/limits*, /api/defect/* (defect_summary, defect_pdf)
-- [ ] notices+swap: notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
+- [~] wx (TAF status/refresh thật xong; còn metwx/pib/briefing): taf, metwx, extra_wx, wx_overlay, graph_pib, briefing, briefing_release (/api/taf/*, /api/wx/*, /api/briefing/*, /api/pib/download)
+- [~] excel (upload/rows/compare + handover xong; còn crew/bind, xlsdiff version): excelcmp, xlsdiff, handover (/api/excel/*, /api/version/*, /api/handover*)
+- [~] limits (/api/limits* xong; còn defect_pdf/defect_summary): /api/limits*, /api/defect/* (defect_summary, defect_pdf)
+- [~] notices+swap (rules/preview xong; còn attach/auto, swaps): notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
 - [ ] atc+autoload+misc: atc_check, atc files/submit, atcezfw, omni, owa, gd, credentials, paths, chat, dsp-layout, disk/clean, download
 - [ ] Ảnh gốc còn thiếu (logo VJ, hello-kitty, cat-paw, notam-apron-tower, acft, flags, hanyi/*.png) — cần bạn gửi thư mục static
