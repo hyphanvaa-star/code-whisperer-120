@@ -834,6 +834,7 @@ header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;justify-content:flex-end !important;gap:8px !important;
   flex-wrap:nowrap !important;width:100% !important;height:74px !important;padding:7px 10px 11px !important;border:1px solid rgba(255,255,255,.96) !important;
   background:rgba(255,255,255,.9) !important;box-shadow:0 8px 22px rgba(30,69,103,.15) !important;backdrop-filter:blur(10px) !important;
+  position:relative !important;
 }
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
@@ -842,6 +843,7 @@ header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
   border-radius:5px !important;box-shadow:0 4px 0 var(--x-red-d) !important;display:flex !important;flex-direction:column !important;gap:4px !important;align-items:center !important;justify-content:center !important;
   transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
+header#mdRoom #btnOfpCheck{position:absolute !important;top:9px !important;right:224px !important}
 header#mdRoom #btnOfpCheck{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
 header#mdRoom #aiFab{min-width:70px !important;width:70px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
@@ -854,6 +856,9 @@ header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
   box-shadow:0 4px 0 var(--x-red-d) !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
   transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
+header#mdRoom .hdr-switch{position:absolute !important;top:28px !important;right:158px !important}
+header#mdRoom .theme-switch{position:absolute !important;top:28px !important;right:88px !important}
+header#mdRoom #aiFab{position:absolute !important;top:28px !important;right:10px !important}
 header#mdRoom .hdr-switch,header#mdRoom .theme-switch{flex-direction:column !important;gap:4px !important}
 header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red-d) !important;transform:translateY(-1px) !important;box-shadow:0 5px 0 #8f1026 !important}
 header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(3px) !important;box-shadow:0 1px 0 #8f1026 !important}
