@@ -376,7 +376,7 @@ td{border-bottom:1px solid rgba(26,29,36,.05)}
 </style>`;
 
 // Font pop-art (Archivo Black + Inter) — nạp qua <link> trong head của trang tool.
-const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">`;
+const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">`;
 
 // Lớp POP-ART: áp dụng phong cách comic-print của mẫu BLARE người dùng cung cấp
 // (vàng #FFC900 làm nền, viền mực, bóng đổ cứng 0-blur, đỏ #E31937 làm nhấn,
@@ -592,6 +592,129 @@ tbody tr:hover:nth-child(even){background:rgba(255,201,0,.22)}
 ::selection{background:rgba(255,201,0,.55)}
 </style>`;
 
+
+/* =====================================================================
+   PRO — thiết kế lại toàn bộ: đỏ VietJet + trắng, IBM Plex, bảng gọn.
+   Chỉ đổi giao diện; dữ liệu & logic giữ nguyên.
+   ===================================================================== */
+const PRO = `<style id="pro-skin">
+:root{
+  --x-red:#E31937;--x-red-d:#B8102A;--x-red-50:#FFF1F3;--x-red-100:#FFE1E6;
+  --x-yel:#FFC900;--x-ink:#16181D;--x-ink2:#454B57;--x-mute:#7A808C;
+  --x-line:#E4E6EA;--x-line2:#EEF0F3;--x-bg:#F4F5F7;--x-card:#FFFFFF;
+  --x-ok:#15803D;--x-ok-bg:#E8F6EC;--x-warn:#B45309;--x-warn-bg:#FEF3E2;
+  --x-sans:"IBM Plex Sans",system-ui,sans-serif;--x-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --x-r:8px;--x-sh:0 1px 2px rgba(16,18,24,.05),0 1px 1px rgba(16,18,24,.03);
+}
+html,body,.app{background:var(--x-bg) !important;background-image:none !important}
+body,button,input,select,textarea,table,.app{font-family:var(--x-sans) !important;color:var(--x-ink)}
+[style*="JetBrains"],.mono,code,pre,.fi-spec,.fi-fuel .val,.fi-load .n,.fi-oooi .t,.fi-grid .val,.xt-kg,.xt-min,.stdsta{font-family:var(--x-mono) !important}
+
+/* ---------- HEADER ---------- */
+header{background:#fff !important;background-image:none !important;border-bottom:3px solid var(--x-red) !important;box-shadow:0 1px 0 var(--x-line) !important}
+header::before,header::after{display:none !important}
+header .brand h1,header h1{font-family:var(--x-sans) !important;font-weight:700 !important;letter-spacing:-.01em !important;color:var(--x-ink) !important}
+header .brand-board{color:var(--x-red) !important}
+header label,header .lab,header .tlbl{font-family:var(--x-sans) !important;font-size:10px !important;font-weight:600 !important;letter-spacing:.08em !important;color:var(--x-mute) !important;text-transform:uppercase}
+
+/* ---------- NÚT ---------- */
+.btn,button.btn,a.btn{
+  font-family:var(--x-sans) !important;font-weight:600 !important;font-size:12px !important;letter-spacing:.01em !important;
+  background:var(--x-red) !important;background-image:none !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1px solid var(--x-red) !important;border-radius:6px !important;box-shadow:0 1px 2px rgba(227,25,55,.25) !important;
+  text-shadow:none !important;transition:background .15s,box-shadow .15s,transform .05s !important;
+}
+.btn *{color:inherit !important;-webkit-text-fill-color:inherit !important}
+.btn svg,.btn svg *{stroke:currentColor !important}
+.btn:hover{background:var(--x-red-d) !important;border-color:var(--x-red-d) !important;box-shadow:0 2px 6px rgba(227,25,55,.3) !important}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--x-yel) !important;outline-offset:2px}
+.btn:disabled,.btn[disabled]{background:#F1B3BE !important;border-color:#F1B3BE !important;box-shadow:none !important;cursor:not-allowed}
+.btn.small{font-size:11px !important;padding:3px 9px !important}
+.btn.ghost,.btn.sec,.btn.secondary,.btn.light{background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border-color:var(--x-red-100) !important;box-shadow:none !important}
+.btn.ghost:hover,.btn.sec:hover,.btn.secondary:hover,.btn.light:hover{background:var(--x-red-50) !important}
+
+/* ---------- Ô NHẬP ---------- */
+input[type=text],input[type=search],input[type=number],input[type=password],input[type=date],input[type=time],input:not([type]),select,textarea{
+  font-family:var(--x-sans) !important;font-size:12px !important;color:var(--x-ink) !important;
+  background:#fff !important;border:1px solid var(--x-line) !important;border-radius:6px !important;box-shadow:none !important;
+}
+input:focus,select:focus,textarea:focus{outline:none !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
+input::placeholder,textarea::placeholder{color:#A6ABB5 !important}
+
+/* ---------- KHUNG / THẺ ---------- */
+.pane,aside,main.split2,#detailWrap,.sheet,.lim-pane,.accard,.fpl-card,.tbl-wrap,.toolbar,.toolbars,.modes{
+  background:var(--x-card) !important;background-image:none !important;border:1px solid var(--x-line) !important;
+  border-radius:var(--x-r) !important;box-shadow:var(--x-sh) !important;backdrop-filter:none !important;
+}
+.tbl-wrap .tbl-wrap,.pane .tbl-wrap{box-shadow:none !important}
+.sheet-head,.lim-title,.ftconv-h,.fpl-lead{
+  font-family:var(--x-sans) !important;font-weight:700 !important;color:var(--x-ink) !important;
+  background:#fff !important;border-bottom:1px solid var(--x-line) !important;box-shadow:inset 3px 0 0 var(--x-red) !important;
+}
+.modal{background:rgba(22,24,29,.35) !important;backdrop-filter:blur(2px)}
+.modal > *:not(script){border-radius:12px !important}
+
+/* ---------- BẢNG (mọi bảng) ---------- */
+table{border-collapse:separate !important;border-spacing:0 !important;font-variant-numeric:tabular-nums}
+table thead th,table > tr:first-child > th,.tooltbl th{
+  font-family:var(--x-sans) !important;font-size:10.5px !important;font-weight:600 !important;letter-spacing:.06em !important;text-transform:uppercase;
+  background:var(--x-red) !important;background-image:none !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:0 !important;border-bottom:2px solid var(--x-red-d) !important;padding:7px 8px !important;box-shadow:none !important;text-shadow:none !important;
+}
+table thead th:first-child{border-top-left-radius:6px}
+table thead th:last-child{border-top-right-radius:6px}
+table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+table tbody td{
+  font-size:12px !important;color:var(--x-ink) !important;padding:5px 8px !important;
+  border:0 !important;border-bottom:1px solid var(--x-line2) !important;background:#fff;
+}
+table tbody tr:nth-child(even) > td{background:#FAFAFB}
+table tbody tr:hover > td{background:var(--x-red-50) !important}
+table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table tbody tr.selected > td{background:var(--x-red-100) !important}
+table tbody tr.sel > td:first-child,table tbody tr.on > td:first-child,table tbody tr.active > td:first-child,table tbody tr.selected > td:first-child{box-shadow:inset 3px 0 0 var(--x-red) !important}
+td .dim,.dim{color:var(--x-mute) !important}
+
+/* ---------- TAB ---------- */
+.dtab{font-family:var(--x-sans) !important;font-weight:600 !important;color:var(--x-ink2) !important;background:transparent !important}
+.dtab.on{color:var(--x-red) !important;box-shadow:inset 0 -2px 0 var(--x-red) !important}
+.mode,.aside-head .mode{font-family:var(--x-sans) !important;font-weight:600 !important;font-size:12px !important;border-radius:6px !important}
+.mode.on,.aside-head .mode.on{background:var(--x-red-d) !important;box-shadow:inset 0 -3px 0 var(--x-yel) !important}
+
+/* ---------- THẺ CHI TIẾT CHUYẾN (chuyển sang sáng) ---------- */
+.fi-pane,#pane.fi-pane{background:var(--x-bg) !important}
+.fi-board{color:var(--x-ink) !important}
+.fi-card,.fi-card.fi-acft{background:#fff !important;border:1px solid var(--x-line) !important;border-radius:var(--x-r) !important;box-shadow:var(--x-sh) !important}
+.fi-k,.fi-fuel .lab,.fi-grid .lab,.fi-leg .dir,.fi-oooi .k,.fi-load th{color:var(--x-red) !important;font-family:var(--x-sans) !important;font-weight:700 !important;background:transparent !important;-webkit-text-fill-color:var(--x-red) !important;border:0 !important;text-transform:uppercase}
+.fi-id,.fi-reg,.fi-leg .codes,.fi-type b,.fi-fuel .val,.fi-grid .val,.fi-load tr.tot td,.fi-files li{color:var(--x-ink) !important}
+.fi-id .rt,.fi-date,.fi-leg .meta,.fi-fuel .u,.fi-files .who,.fi-files-empty,.fi-spec{color:var(--x-mute) !important}
+.fi-leg .nm,.fi-load td,.fi-type{color:var(--x-ink2) !important}
+.fi-load td{background:transparent !important;border-top:1px solid var(--x-line2) !important;border-bottom:0 !important}
+.fi-leg + .fi-leg,.fi-files li{border-color:var(--x-line2) !important}
+.fi-oooi .dot{background:#D5D9E0 !important;border-color:#D5D9E0 !important}
+.fi-oooi li:not(:last-child)::after{background:#E4E6EA !important}
+.fi-oooi li.done .dot{background:var(--x-ok) !important;border-color:var(--x-ok) !important;box-shadow:none !important}
+.fi-oooi li.now .dot{box-shadow:0 0 0 4px rgba(21,128,61,.18) !important}
+.fi-oooi li.done:not(:last-child)::after{background:var(--x-ok) !important;box-shadow:none !important}
+.fi-oooi .t{color:var(--x-mute) !important;text-shadow:none !important}
+.fi-oooi li.done .t{color:var(--x-ok) !important;text-shadow:none !important}
+.fi-board .lim-banner{background:var(--x-red-50) !important;border:1px solid var(--x-red-100) !important;color:var(--x-red-d) !important}
+.fi-board .lim-banner *{color:var(--x-red-d) !important}
+.fi-board .vd.air{color:#1D4ED8 !important;background:#E6EEFF !important}
+.fi-board .vd.taxi{color:var(--x-warn) !important;background:var(--x-warn-bg) !important}
+.fi-board .vd.off{color:#C2410C !important;background:#FFEDE3 !important}
+.fi-board .vd.gnd,.fi-board .vd.dim{color:var(--x-ink2) !important;background:#EEF0F3 !important}
+.fi-board .vd.done,.fi-board .vd.complete{color:var(--x-ok) !important;background:var(--x-ok-bg) !important}
+.fi-board .vd.in{color:#0F766E !important;background:#E3F7F3 !important}
+
+/* ---------- PHỤ ---------- */
+.tag,.chk{border-radius:999px !important}
+.hint,.note{color:var(--x-mute) !important}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#C9CDD4 !important;border-radius:99px;border:2px solid #fff;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--x-red) !important;background-clip:padding-box}
+</style>`;
+
 let cached: string | null = null;
 
 async function page(): Promise<string> {
@@ -599,7 +722,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
     .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night.png")
     // Xuất briefing: khi job xong có link tải, tự động tải ZIP về máy người dùng.
