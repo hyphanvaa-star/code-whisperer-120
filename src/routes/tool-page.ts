@@ -779,33 +779,34 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 
 /* ================= HEADER OPS — thiết kế lại thành bảng điều khiển 2 tầng ================= */
 header#mdRoom{
-  min-height:104px !important;height:auto !important;padding:0 18px !important;
-  display:grid !important;grid-template-columns:210px minmax(600px,1fr) 366px !important;
-  grid-template-rows:1fr !important;column-gap:20px !important;align-items:center !important;
-  background-color:#dbeeff !important;background-image:linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3)),var(--dispatch-sky) !important;
+  min-height:112px !important;height:112px !important;padding:0 22px !important;
+  display:grid !important;grid-template-columns:minmax(560px,1fr) 286px minmax(330px,1fr) !important;
+  grid-template-rows:1fr !important;column-gap:24px !important;align-items:center !important;
+  background-color:#dbeeff !important;background-image:linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)),var(--dispatch-sky) !important;
   background-position:center 46% !important;background-size:cover !important;
   border-top:4px solid var(--x-red) !important;border-bottom:1px solid rgba(104,137,168,.34) !important;
   box-shadow:0 8px 24px rgba(30,69,103,.1) !important;
 }
 header#mdRoom .brand{
-  grid-column:1 !important;grid-row:1 !important;order:unset !important;margin:0 !important;
-  transform:none !important;align-self:stretch !important;display:flex !important;align-items:center !important;
-  padding:0 20px 0 4px !important;border-right:1px solid rgba(72,105,135,.25) !important;
+  grid-column:2 !important;grid-row:1 !important;order:unset !important;margin:0 !important;
+  transform:none !important;align-self:center !important;justify-self:center !important;display:flex !important;align-items:center !important;justify-content:center !important;
+  width:286px !important;height:74px !important;padding:0 !important;border:0 !important;background:var(--x-red) !important;
+  box-shadow:8px 8px 0 rgba(125,20,39,.16) !important;
 }
-header#mdRoom .brand-txt{display:block !important;padding-left:42px !important;position:relative !important}
-header#mdRoom .brand h1{position:relative !important;font-size:18px !important;line-height:1 !important;white-space:nowrap !important;text-transform:uppercase !important}
+header#mdRoom .brand-txt{display:block !important;padding:0 !important;position:relative !important;text-align:center !important}
+header#mdRoom .brand h1{position:relative !important;font-size:25px !important;line-height:1 !important;white-space:nowrap !important;text-transform:uppercase !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
+header#mdRoom .brand h1 .brand-board{color:#fff !important;-webkit-text-fill-color:#fff !important}
 header#mdRoom .brand h1::before{
-  content:"➤";position:absolute !important;left:-42px !important;top:-8px !important;
-  width:34px !important;height:34px !important;display:grid !important;place-items:center !important;border-radius:2px !important;
-  background:var(--x-red) !important;color:#fff !important;font-size:16px !important;box-shadow:0 5px 12px rgba(227,25,55,.2) !important;
+  display:none !important;
 }
-header#mdRoom .brand .sig{font-size:7px !important;white-space:nowrap !important;letter-spacing:.08em !important;color:var(--x-mute) !important;-webkit-text-fill-color:var(--x-mute) !important;opacity:1 !important;margin-top:6px !important}
-header#mdRoom .brand-vj{display:none !important}
+header#mdRoom .brand .sig{font-size:8px !important;white-space:nowrap !important;letter-spacing:.14em !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:.9 !important;margin-top:7px !important;text-transform:uppercase !important}
+header#mdRoom .brand-vj{display:block !important;margin-top:4px !important;font-size:8px !important;font-weight:800 !important;letter-spacing:.18em !important;color:var(--x-yellow) !important;-webkit-text-fill-color:var(--x-yellow) !important;text-transform:uppercase !important}
 
 header#mdRoom .md-denpyo{
-  grid-column:2 !important;grid-row:1 !important;order:unset !important;min-width:0 !important;
-  display:grid !important;grid-template-columns:132px minmax(510px,1fr) !important;grid-template-rows:42px 38px !important;
-  gap:4px 14px !important;align-items:end !important;
+  grid-column:1 !important;grid-row:1 !important;order:unset !important;min-width:0 !important;width:100% !important;
+  display:grid !important;grid-template-columns:124px minmax(410px,1fr) !important;grid-template-rows:38px 34px !important;
+  gap:5px 10px !important;align-items:end !important;padding:10px 12px !important;
+  background:rgba(255,255,255,.78) !important;border:1px solid rgba(255,255,255,.92) !important;box-shadow:0 4px 18px rgba(30,69,103,.12) !important;backdrop-filter:blur(8px) !important;
 }
 header#mdRoom .md-denpyo .md-row:first-of-type{grid-column:1 !important;grid-row:1 / span 2 !important;display:flex !important;align-items:center !important}
 header#mdRoom .md-denpyo .filt-rail{
@@ -828,37 +829,63 @@ header#mdRoom .filt-actions .btn::before{display:none !important}
 header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;transform:none !important}
 
 header#mdRoom .head-right{
-  grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;gap:8px !important;
-  flex-wrap:nowrap !important;width:366px !important;height:52px !important;padding-left:18px !important;border-left:1px solid rgba(72,105,135,.25) !important;
+  grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;justify-content:flex-end !important;gap:8px !important;
+  flex-wrap:nowrap !important;width:100% !important;height:74px !important;padding:10px 12px !important;border:1px solid rgba(255,255,255,.92) !important;
+  background:rgba(255,255,255,.78) !important;box-shadow:0 4px 18px rgba(30,69,103,.12) !important;backdrop-filter:blur(8px) !important;
 }
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
-  position:absolute !important;top:31px !important;width:auto !important;height:42px !important;min-width:62px !important;margin:0 !important;padding:0 14px !important;
+  position:static !important;top:auto !important;right:auto !important;width:70px !important;height:52px !important;min-width:70px !important;margin:0 !important;padding:0 8px !important;
   border-radius:2px !important;box-shadow:0 2px 6px rgba(30,69,103,.1) !important;display:flex !important;align-items:center !important;justify-content:center !important;
 }
-header#mdRoom #btnOfpCheck{right:300px !important;background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid var(--x-red) !important}
+header#mdRoom #btnOfpCheck{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
-header#mdRoom #aiFab{right:18px !important;min-width:104px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
+header#mdRoom #aiFab{min-width:88px !important;width:88px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
 header#mdRoom #aiFab .n{font-size:12px !important;font-weight:800 !important}header#mdRoom #aiFab .sub{font-size:7px !important}
 header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  display:flex !important;position:absolute !important;top:31px !important;width:76px !important;height:42px !important;
+  display:flex !important;position:static !important;top:auto !important;right:auto !important;width:70px !important;height:52px !important;
   margin:0 !important;padding:0 10px !important;align-items:center !important;justify-content:center !important;gap:7px !important;
   border:1px solid rgba(97,123,148,.42) !important;border-radius:2px !important;background:rgba(255,255,255,.92) !important;color:var(--x-ink) !important;
   box-shadow:none !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
 }
-header#mdRoom .hdr-switch{right:216px !important}
-header#mdRoom .theme-switch{right:132px !important}
+header#mdRoom .hdr-switch,header#mdRoom .theme-switch{flex-direction:column !important;gap:4px !important}
 header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{border-color:var(--x-red) !important;background:var(--x-red-50) !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
 header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;font-size:14px !important;line-height:1 !important;flex:none !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:10px !important;font-weight:700 !important;color:var(--x-ink) !important;opacity:1 !important}
-.aside-head{top:104px !important}
+.aside-head{top:112px !important}
 
 @media(max-width:1180px){
-  header#mdRoom{grid-template-columns:190px minmax(540px,1fr) !important;column-gap:12px !important;padding:0 12px !important}
-  header#mdRoom .head-right{grid-column:1 / -1 !important;grid-row:2 !important;justify-content:flex-end !important;border:0 !important;position:absolute !important;right:12px !important;bottom:-52px !important;z-index:45 !important}
-  header#mdRoom .brand{padding-right:10px !important}
+  header#mdRoom{grid-template-columns:minmax(520px,1fr) 190px 320px !important;column-gap:10px !important;padding:0 10px !important}
+  header#mdRoom .brand{width:190px !important}
+  header#mdRoom .brand h1{font-size:19px !important}
+  header#mdRoom .brand .sig{font-size:6px !important}
+  header#mdRoom .head-right{position:static !important;right:auto !important;bottom:auto !important;z-index:auto !important;padding:8px !important}
+}
+@media(max-width:900px){
+  header#mdRoom{
+    height:166px !important;min-height:166px !important;padding:8px 10px !important;
+    grid-template-columns:184px minmax(0,1fr) !important;grid-template-rows:56px 86px !important;
+    gap:8px 10px !important;background-position:center !important;
+  }
+  header#mdRoom .brand{grid-column:1 !important;grid-row:1 !important;width:184px !important;height:56px !important;justify-self:start !important;box-shadow:5px 5px 0 rgba(125,20,39,.14) !important}
+  header#mdRoom .brand h1{font-size:17px !important}
+  header#mdRoom .brand .sig{font-size:5px !important;margin-top:4px !important}
+  header#mdRoom .brand-vj{font-size:6px !important;margin-top:3px !important}
+  header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:rgba(255,255,255,.84) !important}
+  header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{position:absolute !important;top:14px !important;width:64px !important;min-width:64px !important;height:44px !important;padding:0 5px !important;z-index:70 !important}
+  header#mdRoom #btnOfpCheck{right:232px !important}
+  header#mdRoom .hdr-switch{right:162px !important}
+  header#mdRoom .theme-switch{right:92px !important}
+  header#mdRoom #aiFab{right:8px !important;width:78px !important;min-width:78px !important}
+  header#mdRoom .md-denpyo{grid-column:1 / -1 !important;grid-row:2 !important;grid-template-columns:112px minmax(0,1fr) !important;grid-template-rows:34px 32px !important;width:100% !important;height:86px !important;padding:7px 8px !important;gap:4px 7px !important}
+  header#mdRoom .md-denpyo .filt-rail{gap:5px !important;grid-template-columns:1.05fr .75fr .75fr .9fr 1.22fr !important}
+  header#mdRoom .md-denpyo .filt-actions{gap:5px !important}
+  header#mdRoom .filt-actions .btn{height:27px !important;min-width:62px !important;padding:0 7px !important;font-size:9px !important}
+  header#mdRoom input,header#mdRoom select{height:25px !important;font-size:9px !important}
+  header#mdRoom .field label{font-size:6px !important}
+  .aside-head{top:166px !important}
 }
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
