@@ -49,3 +49,4 @@
 ## Thêm mới (20:45)
 - [x] Tham khảo thiết kế properprompts.ai — áp lớp poster đỏ vào /tool (13:50)
 - [x] Badge số trên tab (Hiển thị chung...) bị che — sửa cho hiện đủ
+- [ ] Redesign toàn bộ bảng + nút (hiện đại, chuyên nghiệp, sáng) — chờ user chọn phong cách; không Publish khi chưa được yêu cầu
