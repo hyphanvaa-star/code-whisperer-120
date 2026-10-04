@@ -74,6 +74,15 @@ async function page(): Promise<string> {
     .replace("<head>", "<head>" + SHIM)
     .replace("(async function gateBoot(){", GATE_SKIP)
     .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night.png")
+    // Xuất briefing: khi job xong có link tải, tự động tải ZIP về máy người dùng.
+    .replace(
+      '+ (m.folder ? " → " + m.folder : ""),',
+      '+ (m.folder ? " → " + m.folder : "") + (m.download ? " — đang tải ZIP về máy…" : ""),',
+    )
+    .replace(
+      'bxEs.close(); bxEs = null; bxJob = null;\n            if(btn){ btn.disabled = false; btn.textContent = "Xuất briefing"; }\n            resolve(m);',
+      'bxEs.close(); bxEs = null; bxJob = null;\n            if(btn){ btn.disabled = false; btn.textContent = "Xuất briefing"; }\n            if(m.download){ var _a=document.createElement("a"); _a.href=m.download; _a.download=""; document.body.appendChild(_a); _a.click(); _a.remove(); }\n            resolve(m);',
+    )
     ;
   return cached;
 }
