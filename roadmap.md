@@ -44,3 +44,4 @@
 - [~] Outlook/OWA: logic đọc thư FPL/PIB đã port + endpoint sẵn; đăng nhập CHẶN (ADFS nội bộ) — cần IT cấp Azure app hoặc trợ lý PC
 - [x] JetPlan (thông số tàu: MAX FUEL CAP, MTOW, MLWT, FPM) + Opscore (STATUS OOOI) đã nối thật
 - [ ] Ảnh gốc còn thiếu (logo VJ, hello-kitty, cat-paw, notam-apron-tower, acft, flags, hanyi/*.png) — cần bạn gửi thư mục static
+- [x] Trợ lý PC (04/10): bảng pc_jobs + token PC_AGENT_TOKEN + route /api/public/pc-agent/poll|report; endpoint /api/gd/printers|printer|print, /api/paths(|pick), /api/omni/auto đã port — in GD tới RICOH, chọn thư mục, ghi Omni xuống D:\Omni chạy qua trợ lý; script pc-agent/pc_agent.py (bản tải về ở Files/pc-agent)
