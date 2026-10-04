@@ -791,9 +791,20 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
   deps.onProgress?.("NOTAM đã xong");
   const tracks: Record<string, unknown> = {};
   const pack: { id: number; cs: string; dep: string; dest: string; tracked: boolean; hit_count: number; kml_error: string }[] = [];
+  // Tải track song song (pool 8) — tuần tự từng chuyến quá chậm với cả đội bay.
+  const trackResults = new Map<number, { track: Track; error: string }>();
+  let nextIdx = 0, doneCount = 0;
+  const worker = async () => {
+    while (nextIdx < wanted.length) {
+      const f = wanted[nextIdx++];
+      trackResults.set(f.id, await deps.fetchTrack(f));
+      doneCount++;
+      deps.onProgress?.(`Đang đối chiếu ${doneCount}/${wanted.length} · ${f.callsign || f.id}`);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(8, wanted.length) }, worker));
   for (const flight of wanted) {
-    deps.onProgress?.(`Đang đối chiếu ${flight.callsign || flight.id}`);
-    const trackRes = await deps.fetchTrack(flight);
+    const trackRes = trackResults.get(flight.id)!;
     let track = trackRes.track;
     if (track.points?.length) track = { ...track, points: stampEta(track.points, flight) };
     const hits = compare(flight, places, track);

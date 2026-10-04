@@ -24,7 +24,7 @@ import * as briefingRelease from "./handlers/briefing_release.server";
 import * as notamTune from "./handlers/notam_tune.server";
 import * as briefswap from "./handlers/briefswap.server";
 
-const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, briefingRelease, swap, autoload, misc, handover, pc, owa, crew, notamTune, briefswap];
+const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, briefingRelease, swap, autoload, misc, handover, pc, owa, crew, notamTune, notamTrack, briefswap];
 
 const ROUTES: Routes = Object.assign({}, ...GROUPS.map((g) => g.routes));
 const JOBS: Record<string, JobFn> = Object.assign({}, ...GROUPS.map((g) => g.jobs));
