@@ -121,14 +121,14 @@ header{
 header .md-fit,header .md-stage,header .head-right{display:contents !important}
 header .md-denpyo{
   display:flex !important;align-items:center !important;gap:10px !important;
-  order:1;background:none !important;border:none !important;box-shadow:none !important;
+  order:1 !important;background:none !important;border:none !important;box-shadow:none !important;
   padding:0 !important;
 }
 header .md-denpyo .head,header .md-denpyo .stamp,header .md-denpyo .md-cmd{display:none !important}
 header .md-denpyo .md-row{display:flex !important;align-items:flex-end !important;gap:8px !important;margin:0 !important}
 header .filt-actions{display:flex !important;align-items:center !important;gap:6px !important;margin:0 !important}
 /* Brand: gọn một cụm, chữ trắng, nhấn vàng — đứng giữa */
-header .brand{position:static !important;transform:none !important;margin:0 auto !important;order:2}
+header .brand{position:static !important;transform:none !important;margin:0 auto !important;order:2 !important}
 /* Cụm nút phải — giao diện gốc dàn phẳng mọi nút thành flex item của header,
    nên gán thứ tự trực tiếp cho từng nút */
 header .hstat,header .head-ops,header .md-hang,header .crew-jobs,header .quit-sohee{
