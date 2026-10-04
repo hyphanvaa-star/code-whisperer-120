@@ -524,3 +524,176 @@ export function toEditHtml(sheet: ReleaseSheet): string {
 </div>
 `.trim();
 }
+
+// --- minimal port of api/ofp.py's RALT / ENROUTE ALT parsing (item 18) ---
+const ICAO4_RE = /\b[A-Z]{4}\b/g;
+function uniqIcao(codes: string[], skip?: Set<string>): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const c of codes) {
+    const code = c.toUpperCase();
+    if (!code || seen.has(code) || (skip && skip.has(code))) continue;
+    seen.add(code);
+    out.push(code);
+  }
+  return out;
+}
+
+const RALT_START_RE = /\bRALT\s*\/\s*/i;
+const RALT_STOP_RE = /\b(?:TALT|RMK)\s*\//i;
+
+export function parseRalt(text: string): string[] {
+  const src = text || "";
+  const start = RALT_START_RE.exec(src);
+  if (!start) return [];
+  const rest = src.slice(start.index + start[0].length);
+  const stop = RALT_STOP_RE.exec(rest);
+  const blob = stop ? rest.slice(0, stop.index) : (rest.split("\n")[0] ?? "");
+  return uniqIcao(blob.toUpperCase().match(ICAO4_RE) ?? []);
+}
+
+const ENROUTE_ALT_EQ_RE = /ENROUTE\s*ALT\s*=\s*([^\n]*)/i;
+function parseEnrouteAltLine(text: string): string[] {
+  const m = ENROUTE_ALT_EQ_RE.exec(text || "");
+  if (!m) return [];
+  return uniqIcao(m[1].toUpperCase().match(ICAO4_RE) ?? []);
+}
+
+const ENROUTE_ALTN_HDR_RE = /ENROUTE\s*ALTN\s*:/i;
+const ENROUTE_ALTN_ROW_RE = /^([A-Z]{4})\//;
+function parseEnrouteAltnBlock(text: string): string[] {
+  const m = ENROUTE_ALTN_HDR_RE.exec(text || "");
+  if (!m) return [];
+  const codes: string[] = [];
+  const rest = (text || "").slice(m.index + m[0].length);
+  for (const line of rest.split("\n")) {
+    const stripped = line.trim();
+    if (!stripped) continue;
+    const row = ENROUTE_ALTN_ROW_RE.exec(stripped);
+    if (!row) break;
+    codes.push(row[1].toUpperCase());
+  }
+  return uniqIcao(codes);
+}
+
+export function parseEnrouteAlts(text: string, destIcao = ""): string[] {
+  const skip = destIcao ? new Set([destIcao.trim().toUpperCase()]) : undefined;
+  const ralt = uniqIcao(parseRalt(text), skip);
+  if (ralt.length) return ralt;
+  const labelled = uniqIcao(parseEnrouteAltLine(text), skip);
+  if (labelled.length) return labelled;
+  return uniqIcao(parseEnrouteAltnBlock(text), skip);
+}
+
+export interface BuildSheetOpts {
+  tafs?: Record<string, TafRecord> | null;
+  aircraft?: Iterable<unknown> | null;
+  now?: Date | null;
+  reg?: string;
+}
+
+export function buildSheet(flight: FlightLike, ofpText: string, opts: BuildSheetOpts = {}): ReleaseSheet {
+  const dep = toIcao(flight.dep_icao) || toIcao(flight.dep_iata);
+  const dest = toIcao(flight.dest_icao) || toIcao(flight.dest_iata);
+  const destAlts = destAltsOf(flight);
+  const enroute = parseEnrouteAlts(ofpText || "", dest);
+  const useReg = formatReg(opts.reg || flight.reg);
+  const defects = defectsFor(useReg, opts.aircraft ?? null);
+  const tafs = opts.tafs ?? {};
+
+  const wx = (title: string, codes: string[]): WxBlock => {
+    const uniq: string[] = [];
+    const seen = new Set<string>();
+    for (const c of codes) {
+      if (c && !seen.has(c)) {
+        seen.add(c);
+        uniq.push(c);
+      }
+    }
+    return { label: aptLabel(title, uniq), icaos: uniq, texts: uniq.map((c) => tafBlock(c, tafs)) };
+  };
+
+  const published = opts.now ?? new Date();
+  const src = parseRalt(ofpText || "").length ? "RALT/" : "ENROUTE ALT";
+
+  return newSheet({
+    callsign: (flight.callsign || "").trim().toUpperCase(),
+    published_at: formatPublishedAt(published),
+    dep,
+    dest,
+    dest_alts: destAlts,
+    enroute_alts: enroute,
+    reg: useReg,
+    defects,
+    wx: [
+      wx("Dept. APT", dep ? [dep] : []),
+      wx("Dest. APT", dest ? [dest] : []),
+      wx("Dest. Alternate(s)", destAlts),
+      wx("Enr. Alternate(s)", enroute),
+    ],
+    ofp_note: src,
+  });
+}
+
+function formatPublishedAt(d: Date): string {
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const mon = months[d.getUTCMonth()];
+  const yyyy = d.getUTCFullYear();
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mm = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${dd} ${mon} ${yyyy} ${hh}:${mm} UTC`;
+}
+
+export function toText(sheet: ReleaseSheet): string {
+  const lines: string[] = [
+    `Official Briefing for Flight Release: ${sheet.callsign}`,
+    `Published at: ${sheet.published_at}`,
+    "",
+  ];
+  for (const block of sheet.wx) {
+    if (!block.icaos.length) {
+      lines.push(block.label, "NIL", "");
+      continue;
+    }
+    lines.push(block.label);
+    for (const text of block.texts) lines.push(text);
+    lines.push("");
+  }
+
+  const destAlt = aptLabel("Dest. Alternate(s)", sheet.dest_alts);
+  const enrAlt = aptLabel("Enr. Alternate(s)", sheet.enroute_alts);
+  const nt = padNotams(sheet.notams);
+  lines.push(
+    `En-route SIG Wx                          ${sheet.sig_wx || "NO SIG"}`,
+    `Dept. APT (${sheet.dep || "—"})                         ${nt[0]}`,
+    `Dest. APT (${sheet.dest || "—"})                         ${nt[1]}`,
+    `${destAlt}                         ${nt[2]}`,
+    `${enrAlt}                         ${nt[3]}`,
+    `FIR(s)                                   ${nt[4]}`,
+    "",
+    "A/C OPS Limitations",
+    "Check Tech log for updates",
+    `REG: ${sheet.reg || "—"}`,
+  );
+  const noteLines = sheet.notes === NOTES_RED ? NOTES_LINES : (sheet.notes || "").split("\n");
+  lines.push(...defectBullets(sheet.defects));
+  lines.push(
+    "",
+    "Flight Permits",
+    `${sheet.permit_addr} ${sheet.permit_kind}`.trim(),
+    "",
+    "NOTES by Dispatcher",
+    ...noteLines,
+    "",
+    "PIC Ack",
+    PIC_ACK,
+    "",
+  );
+  return lines.join("\n");
+}
+
+export function pdfFilename(sheet: ReleaseSheet): string {
+  const cs = (sheet.callsign || "FLIGHT").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return `${cs}_Briefing.pdf`;
+}

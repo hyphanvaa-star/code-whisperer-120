@@ -17,7 +17,7 @@ export interface CrewRow {
   username?: string;
   forename?: string;
   surname?: string;
-  job?: string | { name?: string };
+  job?: string | { name?: string } | undefined;
   pos?: string;
   deadheading?: boolean;
   deleted_on?: unknown;

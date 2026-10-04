@@ -199,7 +199,7 @@ export const PACK_TIMEOUT_S = 420;
 export async function buildPack(
   fb: FbClient,
   voyageId: number,
-  opts: { printStyle?: string; printSize?: string; timeoutS?: number; onWait?: (s: number) => void; cancel?: { isSet: () => boolean }; sleep?: (ms: number) => Promise<void> } = {},
+  opts: { printStyle?: string | undefined; printSize?: string | undefined; timeoutS?: number | undefined; onWait?: (s: number) => void | undefined; cancel?: { isSet: () => boolean } | undefined; sleep?: (ms: number) => Promise<void> } = {},
 ): Promise<void> {
   const printStyle = opts.printStyle ?? "DUPLEX";
   const printSize = opts.printSize ?? "A4";
@@ -245,12 +245,12 @@ export async function verifyGreen(
   fb: FbClient,
   flight: Flight,
   opts: {
-    skipIfDone?: boolean;
-    printStyle?: string;
-    printSize?: string;
-    onStep?: (msg: string) => void;
-    cancel?: { isSet: () => boolean };
-    sleep?: (ms: number) => Promise<void>;
+    skipIfDone?: boolean | undefined;
+    printStyle?: string | undefined;
+    printSize?: string | undefined;
+    onStep?: (msg: string) => void | undefined;
+    cancel?: { isSet: () => boolean } | undefined;
+    sleep?: (ms: number) => Promise<void> | undefined;
   } = {},
 ): Promise<Verified> {
   const say = (msg: string) => opts.onStep?.(msg);
