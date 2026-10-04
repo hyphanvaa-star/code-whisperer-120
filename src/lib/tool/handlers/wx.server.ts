@@ -135,7 +135,7 @@ Object.assign(routes, {
     }
   },
 
-  "GET /api/wx/storms": async (ctx) => {
+  "GET /api/wx/storms": async (ctx: Parameters<Routes[string]>[0]) => {
     const force = ctx.params.get("refresh") === "1";
     try {
       return await stormsPayload(force);
