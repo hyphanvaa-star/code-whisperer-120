@@ -333,8 +333,12 @@ export const jobs: Jobs = {
     }
     const newActype = await actypeOf(flights, newReg, f.id);
     const live = await liveAttachments(f.id, f.attachments);
-    const rows = await ruleData({} as Parameters<Routes[string]>[0]);
-    const plan = rs.planSwap(f, newReg, { oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType });
+    const rows = await ruleData(ctx);
+    const noticeMap = await noticeFiles(ctx);
+    const plan = rs.planSwap(f, newReg, {
+      oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType,
+      fileExists: (title) => noticeMap.has(title.trim().toLowerCase()),
+    });
 
     emit({ type: "line", text: `▶ ${plan.callsign} (${plan.route}) · ${plan.old_reg || "?"} → ${plan.new_reg}` });
     if (plan.fb_reg && plan.fb_reg !== plan.old_reg) {
