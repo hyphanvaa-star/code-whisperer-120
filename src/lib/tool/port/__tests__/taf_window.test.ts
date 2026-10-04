@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterAll, vi } from "vitest";
 import * as taf from "../taf";
 
 const TAF_TSRA_FROM_0700 =
@@ -20,7 +20,7 @@ function advice(raw: string, staIso: string) {
 
 describe("taf window advice", () => {
   // Original test assumes the clock is on the TAF issue day (12/08/2026).
-  beforeAll(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date(Date.UTC(2026, 7, 12, 0, 30))); });
+  beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date(Date.UTC(2026, 7, 12, 0, 30))); });
   afterAll(() => { vi.useRealTimers(); });
   it("landing before tempo is not flagged", () => {
     const out = advice(TAF_TSRA_FROM_0700, at(5, 42));
