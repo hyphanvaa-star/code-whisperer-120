@@ -369,7 +369,9 @@ def _find_tool_dir() -> Path:
     """Thư mục tool gốc (chứa atc_check.py, config.py) trên máy công ty.
     Tự tìm; nếu không thấy thì hiện hộp thoại chọn thư mục MỘT lần rồi ghi nhớ."""
     cfg_dir = str(_CFG.get("tool_dir") or "").strip()
-    cands = [Path(cfg_dir)] if cfg_dir else []
+    bundled = Path(__file__).resolve().parent / "tool"
+    cands = [bundled] if (bundled / "atc_check.py").is_file() else []
+    cands += [Path(cfg_dir)] if cfg_dir else []
     cands += [
         Path("C:/DispatchBoard"), Path("D:/DispatchBoard"),
         Path.home() / "DispatchBoard", Path.home() / "Desktop" / "DispatchBoard",
