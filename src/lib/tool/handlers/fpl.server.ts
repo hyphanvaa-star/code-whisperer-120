@@ -1,6 +1,7 @@
 import type { Ctx, Jobs, Routes } from "../types";
 import { getJson, setJson } from "../store.server";
 import * as ft from "../port/fpl_tool";
+import * as atcChg from "../port/atc_chg";
 import rawSeed from "../data/fpl_tool.json";
 import altSeed from "../data/fpl/alt_route.json";
 import eraSeed from "../data/fpl/era.json";
@@ -149,6 +150,107 @@ export const routes: Routes = {
     const doc = ft.save_pcr_table(old, readRows(body));
     await setJson(ctx, "fpl.pcr_limits", doc);
     return { ok: true, rows: ft.pcr_table_rows(doc) };
+  },
+
+  "POST /api/fpltext/extra": async (ctx) => {
+    const body = await ctx.json();
+    const db = await loadDb(ctx);
+    if (!db) return { error: NO_CREWLIST };
+    const taf = await import("../port/taf");
+    const tafCache = await getJson<{ tafs?: Record<string, unknown>; count?: number }>(
+      ctx, "wx.taf", { tafs: {}, count: 0 },
+    );
+    const tafs = tafCache.tafs || {};
+    if (!Object.keys(tafs).length) {
+      return { error: "Chưa có TAF. Bấm nút TAF trên thanh lọc." };
+    }
+    const fill = body.fill !== false;
+    const specs: ft.Raw[] = Array.isArray(body.rows) && body.rows.length
+      ? (body.rows as ft.Raw[])
+      : (Array.isArray(body.ids) ? (body.ids as unknown[]).map((raw) => ({ id: raw })) : []);
+    const rows: ft.Raw[] = [];
+    let filled = 0;
+    let missed = 0;
+    for (const spec of specs) {
+      const rawId = (spec as ft.Raw).id;
+      const flight = db.flight(parseInt(String(rawId || 0), 10));
+      if (!flight) {
+        missed += 1;
+        rows.push({ id: rawId, extra: "", why: "không có chuyến", places: [] });
+        continue;
+      }
+      const alts = [spec.talt, spec.alt1, spec.alt2];
+      const [minutes, why, places] = ft.extra_from_taf(db, flight, tafs as any, alts as any);
+      if (minutes === "") missed += 1;
+      else if (parseInt(minutes || "0", 10) > 0) filled += 1;
+      rows.push({ id: rawId, extra: fill ? minutes : "", why, places });
+    }
+    return {
+      ok: true,
+      rows,
+      filled,
+      missed,
+      taf_count: tafCache.count || Object.keys(tafs).length,
+    };
+  },
+
+  "POST /api/fpltext/pld": async (ctx) => {
+    const body = await ctx.json();
+    const db = await loadDb(ctx);
+    if (!db) return { error: NO_CREWLIST };
+    const rows: ft.Raw[] = [];
+    for (const rawId of (Array.isArray(body.ids) ? body.ids : [])) {
+      const flight = db.flight(parseInt(String(rawId || 0), 10));
+      if (!flight) {
+        rows.push({ id: rawId, pay: "", alert: "không có chuyến" });
+        continue;
+      }
+      const flt = String(flight.flt || "");
+      const est = ft.est_payload(db, flt);
+      if (est === null) {
+        rows.push({ id: rawId, flt, pay: "", alert: `VJ${flt} không có EST` });
+        continue;
+      }
+      const [rounded, why] = ft.round_est(est, String(flight.ac || ""));
+      if (rounded === null) {
+        rows.push({ id: rawId, flt, est, pay: "", alert: `VJ${flt} ${why}` });
+        continue;
+      }
+      rows.push({ id: rawId, flt, est, pay: String(rounded), alert: "" });
+    }
+    return { ok: true, rows };
+  },
+
+  "POST /api/fpltext/atc": async () => {
+    if (!process.env.AVIWEB_USER) {
+      return { error: "Chưa có tài khoản AviWeb — nhờ quản trị lưu tài khoản." };
+    }
+    return { error: "Chưa hỗ trợ lấy OFP/ATC trong môi trường này." };
+  },
+
+  "POST /api/fpltext/convert": async () => {
+    if (!process.env.AVIWEB_USER) {
+      return { error: "Chưa có tài khoản AviWeb — nhờ quản trị lưu tài khoản." };
+    }
+    return { error: "Chưa hỗ trợ chỉnh điện văn trong môi trường này." };
+  },
+
+  "POST /api/fpltext/msg": async (ctx) => {
+    const body = await ctx.json();
+    const kindRaw = String(body.kind || "");
+    if (!atcChg.normalize_msg_kind(kindRaw)) {
+      return { error: "Chọn loại điện văn: CNL, DLA hoặc CHG." };
+    }
+    const items = Array.isArray(body.items) ? body.items : [];
+    if (!items.length) return { error: "Chọn ít nhất một chuyến." };
+    return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
+  },
+
+  "POST /api/version/chg": async (ctx) => {
+    const body = await ctx.json();
+    const items = Array.isArray(body.items) ? body.items : [];
+    if (!items.length) return { error: "Không có chuyến CHG/DLA trên bảng." };
+    return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
   },
 
   "POST /api/fpltext/export": async (ctx) => {
