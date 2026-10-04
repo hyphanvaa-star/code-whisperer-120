@@ -916,7 +916,7 @@ export function build_req(
       cpt_name: "cpt_name" in item ? item.cpt_name : undefined,
       fo_id: "fo_id" in item ? item.fo_id : undefined,
       fo_name: "fo_name" in item ? item.fo_name : undefined,
-      dsp: dsp ?? undefined,
+      dsp: dsp ?? null,
       pay: "pay" in item ? item.pay : undefined,
       utc_choice: "utc" in item ? item.utc : undefined,
       routeTable,
