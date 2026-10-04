@@ -8,6 +8,7 @@ import { adviceForFlight } from "../port/taf";
 import { getJson, setJson } from "../store.server";
 import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
 import * as omni from "../port/omni";
+import { getSnapshot, hasOooi, matchTrack, overlayOf, type Track } from "../opscore.server";
 
 const EMPTY_LIMITS: LimitsData = { aircraft: [], airports: [], curfew: [], special: [] };
 
@@ -26,7 +27,10 @@ function isoOfUnix(ts: number | null): string | null {
   return ts ? new Date(ts * 1000).toISOString() : null;
 }
 
+let OPS_TRACKS: Track[] | null = null;
 function opscoreLookup(f: Flight, now = new Date()) {
+  const tr = OPS_TRACKS ? matchTrack(f, OPS_TRACKS, now) : null;
+  if (tr && hasOooi(tr)) return overlayOf(tr, now);
   const actualOut = unixOf(f.off_blocks), actualOff = unixOf(f.off_ground);
   const actualOn = unixOf(f.on_ground), actualIn = unixOf(f.in_blocks);
   if (!actualOut && !actualOff && !actualOn && !actualIn) {
@@ -557,6 +561,7 @@ export const routes: Routes = {
     const flights = await loadFlights(days, refresh);
     const shown = applyFilters(flights, params);
     const limits = await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS);
+    OPS_TRACKS = await getSnapshot(ctx, refresh);
     const rev = "0";
     const attchCtx: AttchCtx = attchContext();
     return {
