@@ -157,20 +157,27 @@ header input,header select{
 }
 .hdr-switch,.theme-switch{transform:scale(.88);transform-origin:right center}
 /* Nút Acc/TAF/Crew/Refresh/OFP: đồng bộ kính trắng mờ trên nền đỏ — gọn & sang */
-.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab{
+.filt-actions .btn,.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab,
+header #btnAcc,header #btnTaf,header #btnPickXls,header #btnReload,header #btnOfpCheck{
   background:rgba(255,255,255,.12) !important;
   background-image:none !important;
   color:#fff !important;-webkit-text-fill-color:#fff !important;
   border:1px solid rgba(255,255,255,.30) !important;
   border-radius:9px !important;font-size:12px !important;font-weight:600;
   padding:0 13px !important;box-shadow:none !important;
+  height:34px !important;min-height:0 !important;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
-.head-ops .btn.act *,.head-ops .ai-fab *{color:#fff !important;-webkit-text-fill-color:#fff !important}
-.head-ops .btn.act:hover,.head-ops .btn.acbtn:hover,.head-ops .ai-fab:hover{
+.filt-actions .btn *,.head-ops .ai-fab *,header #btnAcc *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+.filt-actions .btn:hover,.head-ops .btn.act:hover,.head-ops .ai-fab:hover,
+header #btnAcc:hover,header #btnTaf:hover,header #btnPickXls:hover,header #btnReload:hover,header #btnOfpCheck:hover{
   background:rgba(255,255,255,.22) !important;
   border-color:rgba(255,201,0,.65) !important;
   transform:translateY(-1px);
+}
+.filt-actions .btn::before,header #btnAcc::before,header #btnTaf::before,
+header #btnPickXls::before,header #btnReload::before,header #btnOfpCheck::before{
+  background:none !important;box-shadow:none !important;
 }
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
 header .brand .sub{opacity:.85}
