@@ -68,6 +68,27 @@ const SHIM = `<script>
   window.addEventListener('load', function(){
     var room=document.getElementById('mdRoom'), actions=document.querySelector('.filt-actions');
     if(room && actions && actions.parentElement!==room) room.appendChild(actions);
+    if(room && !room.querySelector('.ops-field-icon')){
+      var iconSvg=function(paths){return '<span class="ops-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg></span>';};
+      var fieldIcons={
+        fDispatcher:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+        fCallsign:'<path d="M4 14.5v-3a8 8 0 0 1 16 0v3"/><path d="M18 19h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v3a4 4 0 0 1-4 4h-1"/><path d="M6 19H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h2v5a2 2 0 0 1-2 2"/>',
+        fDep:'<path d="M10.5 21 14 11l7-7-10 3.5L4 4l2.5 7L3 14l7.5-3Z"/>',
+        fDest:'<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+        fReg:'<path d="M2 16h20L13 9V4l-2-1-1 6-4-2-2 1 3 4-5 2Z"/>',
+        fWindow:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>'
+      };
+      Object.keys(fieldIcons).forEach(function(id){var el=document.getElementById(id),lab=el&&document.querySelector('label[for="'+id+'"]');if(lab)lab.insertAdjacentHTML('afterbegin',iconSvg(fieldIcons[id]));});
+      var buttonIcons={
+        btnReload:'<path d="M20 6v6h-6M4 18v-6h6"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 9M5.5 15A7 7 0 0 0 18 17.5l2-2.5"/>',
+        btnTaf:'<path d="M17.5 19H9a7 7 0 1 1 6.7-9H17a4.5 4.5 0 1 1 .5 9Z"/><path d="M12 12v4M10 14h4"/>',
+        btnPickXls:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/>',
+        btnAcc:'<circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M18 5l2 2M15 8l2 2"/>',
+        btnOfpCheck:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
+        aiFab:'<path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5Z"/>'
+      };
+      Object.keys(buttonIcons).forEach(function(id){var el=document.getElementById(id);if(el)el.insertAdjacentHTML('afterbegin',iconSvg(buttonIcons[id]));});
+    }
     if(room && !document.getElementById('opsHeaderBrand')){
       var brand=document.createElement('div');
       brand.id='opsHeaderBrand'; brand.className='ops-header-brand';
@@ -848,37 +869,39 @@ header#mdRoom .md-stage{
 }
 header#mdRoom .md-denpyo{
   display:grid !important;grid-template-columns:1.22fr .95fr .9fr .9fr 1fr 1.32fr !important;
-  align-items:end !important;gap:0 10px !important;width:100% !important;height:100% !important;
-  padding:15px 16px 11px 21px !important;margin:0 !important;background:rgba(255,255,255,.94) !important;
-  border:1px solid rgba(255,255,255,.92) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.16) !important;backdrop-filter:blur(10px) !important;position:relative !important;
+  align-items:stretch !important;gap:0 !important;width:100% !important;height:100% !important;
+  padding:9px 12px !important;margin:0 !important;background:rgba(255,255,255,.96) !important;
+  border:1px solid rgba(255,255,255,.95) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.14) !important;backdrop-filter:blur(12px) !important;position:relative !important;
 }
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
-  grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;flex:none !important;
-  padding:0 !important;margin:0 !important;position:static !important;
+  grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;height:100% !important;flex:none !important;
+  padding:0 10px !important;margin:0 !important;position:static !important;border-right:1px solid rgba(32,42,56,.1) !important;
 }
 header#mdRoom .md-denpyo .md-row:not(.line)::after{display:none !important}
 header#mdRoom .md-denpyo .filt-rail{
   display:contents !important;flex:none !important;min-width:0 !important;max-width:none !important;
   padding:0 !important;margin:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;
 }
-header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:43px !important;padding:0 !important;margin:0 !important}
+header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:100% !important;padding:0 10px !important;margin:0 !important;border-right:1px solid rgba(32,42,56,.1) !important}
+header#mdRoom .md-denpyo .filt-rail > *:last-child{border-right:0 !important}
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
-header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
+header#mdRoom .md-field{min-width:0 !important;width:100% !important;height:100% !important;display:grid !important;grid-template-rows:22px 34px !important;align-content:center !important;gap:3px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
-  display:block !important;font-size:8px !important;line-height:1 !important;margin:0 0 7px !important;
-  font-weight:800 !important;letter-spacing:0 !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;
+  display:flex !important;align-items:center !important;gap:6px !important;font-size:9px !important;line-height:1 !important;margin:0 !important;
+  font-weight:900 !important;letter-spacing:0 !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;white-space:nowrap !important;
 }
+.ops-field-icon{display:inline-grid !important;place-items:center !important;width:17px !important;height:17px !important;flex:0 0 17px !important;color:var(--x-red) !important}.ops-field-icon svg{display:block !important;width:100% !important;height:100% !important}
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
-  width:100% !important;height:30px !important;border:1px solid rgba(227,25,55,.32) !important;border-radius:7px !important;
-  background:#fff !important;box-shadow:0 2px 7px rgba(22,38,53,.05) !important;font:800 11px var(--x-sans) !important;
-  color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;padding:0 10px !important;
+  width:100% !important;height:34px !important;border:1px solid rgba(49,61,76,.14) !important;border-radius:7px !important;
+  background:#fff !important;box-shadow:0 2px 8px rgba(22,38,53,.07) !important;font:800 11px var(--x-sans) !important;
+  color:#59606b !important;-webkit-text-fill-color:#59606b !important;padding:0 11px !important;
 }
 header#mdRoom #fDispatcher{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border-color:rgba(227,25,55,.72) !important}
 header#mdRoom input::placeholder{color:rgba(227,25,55,.45) !important;-webkit-text-fill-color:rgba(227,25,55,.45) !important}
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
-header#mdRoom .md-denpyo .md-row:not(.line){height:43px !important}
+header#mdRoom .md-denpyo .md-row:not(.line){height:100% !important}
 header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{display:none !important}
 /* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
@@ -894,6 +917,8 @@ header#mdRoom .filt-actions .btn{
   text-transform:uppercase !important;letter-spacing:0 !important;opacity:1 !important;cursor:pointer !important;
 }
 header#mdRoom .filt-actions .btn::before{display:block !important;content:attr(data-ico) !important;font:700 15px/1 var(--x-sans) !important;color:var(--x-red) !important}
+header#mdRoom .filt-actions .btn::before,header#mdRoom #btnOfpCheck::before,header#mdRoom #aiFab::before{display:none !important}
+header#mdRoom .filt-actions .ops-field-icon,header#mdRoom #btnOfpCheck .ops-field-icon,header#mdRoom #aiFab .ops-field-icon{width:17px !important;height:17px !important;flex:0 0 17px !important;color:currentColor !important}
 header#mdRoom .filt-actions #btnAcc .who{display:block !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font:800 9px/1 var(--x-sans) !important}
 header#mdRoom .filt-actions .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important}header#mdRoom .filt-actions .btn:hover::before{color:#fff !important}
 header#mdRoom .filt-actions #btnAcc:hover .who{color:#fff !important;-webkit-text-fill-color:#fff !important}
