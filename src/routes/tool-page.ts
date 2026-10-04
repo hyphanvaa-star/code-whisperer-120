@@ -129,13 +129,20 @@ header .md-denpyo .md-row{display:flex !important;align-items:flex-end !importan
 header .filt-actions{display:flex !important;align-items:center !important;gap:6px !important;margin:0 !important}
 /* Brand: gọn một cụm, chữ trắng, nhấn vàng — đứng giữa */
 header .brand{position:static !important;transform:none !important;margin:0 auto !important;order:2}
-/* Cụm nút phải */
-header .head-ops{
-  order:3;display:flex !important;align-items:center !important;gap:6px !important;
-  position:static !important;margin:0 !important;
+/* Cụm nút phải — giao diện gốc dàn phẳng mọi nút thành flex item của header,
+   nên gán thứ tự trực tiếp cho từng nút */
+header .hstat,header .head-ops,header .md-hang,header .crew-jobs,header .quit-sohee{
+  display:contents !important;
 }
-header .hstat{order:3}
-header .hdr-switch,header .theme-switch{order:4;margin:0 !important}
+header .hstat > button,header .md-chochin{order:3}
+header .xls-name{order:3}
+header .live-ops{order:3}
+header #btnOfpCheck{order:4}
+header #ofpCheckStat{order:5}
+header #btnQuit{display:none !important}
+header #aiFab{order:6}
+header .hdr-switch{order:7;margin:0 !important}
+header .theme-switch{order:8;margin:0 !important}
 header .brand h1{
   font-size:21px !important;letter-spacing:.06em !important;
   line-height:1.05 !important;margin:0 !important;
