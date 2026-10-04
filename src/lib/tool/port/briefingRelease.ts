@@ -873,3 +873,78 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
   }
   return sheet;
 }
+
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+/** Simplified PDF renderer (pdf-lib + fontkit, LiberationSans). Not a pixel
+ *  copy of the fitz/Calibri table the Windows tool draws — that needs a real
+ *  desktop font + PyMuPDF layout this runtime doesn't have — but it carries
+ *  the same content (title, wx/notam/defect/permit/notes/PIC-ack) on US
+ *  Letter pages, wrapped to width. */
+export async function toPdf(sheet: ReleaseSheet): Promise<Uint8Array> {
+  const { PDFDocument, rgb } = await import("pdf-lib");
+  const fontkit = (await import("@pdf-lib/fontkit")).default;
+  const { LIBERATION_SANS_REGULAR_BASE64, LIBERATION_SANS_BOLD_BASE64 } = await import(
+    "../data/fonts/liberationSansBase64"
+  );
+
+  const doc = await PDFDocument.create();
+  doc.registerFontkit(fontkit);
+  const regular = await doc.embedFont(b64ToBytes(LIBERATION_SANS_REGULAR_BASE64), { subset: true });
+  const bold = await doc.embedFont(b64ToBytes(LIBERATION_SANS_BOLD_BASE64), { subset: true });
+
+  const pageW = 612;
+  const pageH = 792;
+  const margin = 40;
+  const fontSize = 9;
+  const lineHeight = 12;
+  let page = doc.addPage([pageW, pageH]);
+  let y = pageH - margin;
+
+  const ensureSpace = () => {
+    if (y < margin + lineHeight) {
+      page = doc.addPage([pageW, pageH]);
+      y = pageH - margin;
+    }
+  };
+
+  const drawWrapped = (text: string, font = regular, size = fontSize) => {
+    const maxWidth = pageW - margin * 2;
+    for (const para of text.split("\n")) {
+      if (para === "") {
+        ensureSpace();
+        y -= lineHeight;
+        continue;
+      }
+      let line = "";
+      const words = para.split(" ");
+      for (const word of words) {
+        const trial = line ? `${line} ${word}` : word;
+        if (font.widthOfTextAtSize(trial, size) <= maxWidth || !line) {
+          line = trial;
+        } else {
+          ensureSpace();
+          page.drawText(line, { x: margin, y, size, font, color: rgb(0, 0, 0) });
+          y -= lineHeight;
+          line = word;
+        }
+      }
+      ensureSpace();
+      page.drawText(line, { x: margin, y, size, font, color: rgb(0, 0, 0) });
+      y -= lineHeight;
+    }
+  };
+
+  drawWrapped(`Official Briefing for Flight Release: ${sheet.callsign}`, bold, 13);
+  y -= 4;
+  drawWrapped(`Published at: ${sheet.published_at}`);
+  y -= 6;
+  drawWrapped(toText(sheet).split("\n").slice(2).join("\n"));
+
+  return doc.save();
+}
