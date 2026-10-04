@@ -28,7 +28,7 @@ export class OwaAuthError extends OwaError {
   stage: string;
   constructor(message: string, opts: { status?: number; stage?: string } = {}) {
     super(message);
-    this.status = opts.status;
+    if (opts.status !== undefined) this.status = opts.status;
     this.stage = opts.stage ?? "";
   }
 }
