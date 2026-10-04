@@ -51,3 +51,4 @@
 - [x] Badge số trên tab (Hiển thị chung...) bị che — sửa cho hiện đủ
 - [ ] Redesign toàn bộ bảng + nút (hiện đại, chuyên nghiệp, sáng) — chờ user chọn phong cách; không Publish khi chưa được yêu cầu
 - [x] Đổi BỐ CỤC thật (không chỉ màu): tab thành menu dọc trái, header gọn 1 hàng
+- [ ] Phác thảo thêm các mẫu nút header theo ảnh tham khảo, giữ Dispatch Board ở giữa — chờ user chọn
