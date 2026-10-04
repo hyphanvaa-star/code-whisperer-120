@@ -389,7 +389,7 @@ export const jobs: Jobs = {
         if (!buf) return { ok: false, alreadyExists: false, error: `không đọc được file ${name}` };
         const { uploadAndAttach } = await import("./briefing.server");
         const r = await uploadAndAttach(plan.sector_id, new Uint8Array(buf), name, title);
-        return { ok: r.ok, alreadyExists: false, error: r.error };
+        return r.ok ? { ok: true, alreadyExists: false } : { ok: false, alreadyExists: false, error: r.error ?? "lỗi không rõ" };
       },
       onLine: (text, cls) => emit({ type: "line", text, cls }),
     });
