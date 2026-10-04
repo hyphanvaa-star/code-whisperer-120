@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ToolPageRouteImport } from './routes/tool-page'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAircraftRouteImport } from './routes/_authenticated/aircraft'
 import { Route as AuthenticatedAtcRouteImport } from './routes/_authenticated/atc'
@@ -22,8 +23,10 @@ import { Route as AuthenticatedHandoverRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedKhbRouteImport } from './routes/_authenticated/khb'
 import { Route as AuthenticatedNotamRouteImport } from './routes/_authenticated/notam'
 import { Route as AuthenticatedNoticesRouteImport } from './routes/_authenticated/notices'
+import { Route as AuthenticatedToolRouteImport } from './routes/_authenticated/tool'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedVerRouteImport } from './routes/_authenticated/ver'
+import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiFbFileRouteImport } from './routes/api/fb.file'
 
 const IndexRoute = IndexRouteImport.update({
@@ -38,6 +41,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolPageRoute = ToolPageRouteImport.update({
+  id: '/tool-page',
+  path: '/tool-page',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -90,6 +98,11 @@ const AuthenticatedNoticesRoute = AuthenticatedNoticesRouteImport.update({
   path: '/notices',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedToolRoute = AuthenticatedToolRouteImport.update({
+  id: '/tool',
+  path: '/tool',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
@@ -100,6 +113,11 @@ const AuthenticatedVerRoute = AuthenticatedVerRouteImport.update({
   path: '/ver',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFbFileRoute = ApiFbFileRouteImport.update({
   id: '/api/fb/file',
   path: '/api/fb/file',
@@ -109,6 +127,7 @@ const ApiFbFileRoute = ApiFbFileRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/tool-page': typeof ToolPageRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
@@ -119,13 +138,16 @@ export interface FileRoutesByFullPath {
   '/khb': typeof AuthenticatedKhbRoute
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
+  '/tool': typeof AuthenticatedToolRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/ver': typeof AuthenticatedVerRoute
+  '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/tool-page': typeof ToolPageRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
   '/atc': typeof AuthenticatedAtcRoute
@@ -136,8 +158,10 @@ export interface FileRoutesByTo {
   '/khb': typeof AuthenticatedKhbRoute
   '/notam': typeof AuthenticatedNotamRoute
   '/notices': typeof AuthenticatedNoticesRoute
+  '/tool': typeof AuthenticatedToolRoute
   '/tools': typeof AuthenticatedToolsRoute
   '/ver': typeof AuthenticatedVerRoute
+  '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRoutesById {
@@ -145,6 +169,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/tool-page': typeof ToolPageRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/aircraft': typeof AuthenticatedAircraftRoute
   '/_authenticated/atc': typeof AuthenticatedAtcRoute
@@ -155,8 +180,10 @@ export interface FileRoutesById {
   '/_authenticated/khb': typeof AuthenticatedKhbRoute
   '/_authenticated/notam': typeof AuthenticatedNotamRoute
   '/_authenticated/notices': typeof AuthenticatedNoticesRoute
+  '/_authenticated/tool': typeof AuthenticatedToolRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/ver': typeof AuthenticatedVerRoute
+  '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
 }
 export interface FileRouteTypes {
@@ -164,6 +191,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/tool-page'
     | '/admin'
     | '/aircraft'
     | '/atc'
@@ -174,13 +202,16 @@ export interface FileRouteTypes {
     | '/khb'
     | '/notam'
     | '/notices'
+    | '/tool'
     | '/tools'
     | '/ver'
+    | '/api/$'
     | '/api/fb/file'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/tool-page'
     | '/admin'
     | '/aircraft'
     | '/atc'
@@ -191,14 +222,17 @@ export interface FileRouteTypes {
     | '/khb'
     | '/notam'
     | '/notices'
+    | '/tool'
     | '/tools'
     | '/ver'
+    | '/api/$'
     | '/api/fb/file'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/tool-page'
     | '/_authenticated/admin'
     | '/_authenticated/aircraft'
     | '/_authenticated/atc'
@@ -209,8 +243,10 @@ export interface FileRouteTypes {
     | '/_authenticated/khb'
     | '/_authenticated/notam'
     | '/_authenticated/notices'
+    | '/_authenticated/tool'
     | '/_authenticated/tools'
     | '/_authenticated/ver'
+    | '/api/$'
     | '/api/fb/file'
   fileRoutesById: FileRoutesById
 }
@@ -218,6 +254,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ToolPageRoute: typeof ToolPageRoute
+  ApiSplatRoute: typeof ApiSplatRoute
   ApiFbFileRoute: typeof ApiFbFileRoute
 }
 
@@ -242,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tool-page': {
+      id: '/tool-page'
+      path: '/tool-page'
+      fullPath: '/tool-page'
+      preLoaderRoute: typeof ToolPageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -314,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNoticesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tool': {
+      id: '/_authenticated/tool'
+      path: '/tool'
+      fullPath: '/tool'
+      preLoaderRoute: typeof AuthenticatedToolRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tools': {
       id: '/_authenticated/tools'
       path: '/tools'
@@ -327,6 +379,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/ver'
       preLoaderRoute: typeof AuthenticatedVerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/fb/file': {
       id: '/api/fb/file'
@@ -349,6 +408,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKhbRoute: typeof AuthenticatedKhbRoute
   AuthenticatedNotamRoute: typeof AuthenticatedNotamRoute
   AuthenticatedNoticesRoute: typeof AuthenticatedNoticesRoute
+  AuthenticatedToolRoute: typeof AuthenticatedToolRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
   AuthenticatedVerRoute: typeof AuthenticatedVerRoute
 }
@@ -364,6 +424,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKhbRoute: AuthenticatedKhbRoute,
   AuthenticatedNotamRoute: AuthenticatedNotamRoute,
   AuthenticatedNoticesRoute: AuthenticatedNoticesRoute,
+  AuthenticatedToolRoute: AuthenticatedToolRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
   AuthenticatedVerRoute: AuthenticatedVerRoute,
 }
@@ -375,6 +436,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ToolPageRoute: ToolPageRoute,
+  ApiSplatRoute: ApiSplatRoute,
   ApiFbFileRoute: ApiFbFileRoute,
 }
 export const routeTree = rootRouteImport
