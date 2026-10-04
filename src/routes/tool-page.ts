@@ -500,6 +500,17 @@ header .hstat > span *,.head-ops .xls-name *{color:var(--pp-ink) !important;-web
   background:#fff !important;border:1px solid var(--pp-line) !important;
   border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
 }
+/* Nút trong thanh công cụ: nền đỏ chữ trắng, đồng bộ nút header */
+.toolbars .btn,nav.tabs .btn,.subtabs .btn{
+  background:var(--pp-red) !important;background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1.5px solid var(--pp-red) !important;border-radius:8px !important;
+  box-shadow:0 2px 6px rgba(227,25,55,.24) !important;font-weight:700 !important;
+}
+.toolbars .btn *,nav.tabs .btn *,.subtabs .btn *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+.toolbars .btn:hover,nav.tabs .btn:hover,.subtabs .btn:hover{
+  background:var(--pp-red-deep) !important;border-color:var(--pp-red-deep) !important;
+}
 /* ===== BẢNG: đầu bảng đỏ poster, gạch đỏ đậm dưới ===== */
 thead th{
   background:var(--pp-red) !important;
