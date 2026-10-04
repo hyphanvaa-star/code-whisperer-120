@@ -129,6 +129,43 @@ export const routes: Routes = {
   },
 };
 
+/** Upload a PDF to FliteBrief's notice store and attach it to a sector.
+ *  Shared by briefing_attach above and briefswap.server.ts's swap job. */
+export async function uploadAndAttach(
+  sectorId: number,
+  bytes: Uint8Array,
+  filename: string,
+  title: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const { fbRequest } = await import("@/lib/flitebrief.server");
+  try {
+    const form = new FormData();
+    form.append("file-upload", new Blob([bytes as BlobPart], { type: "application/pdf" }), filename);
+    const up = await fbRequest("POST", "/webapi/notices/upload", { body: form, accept: "application/json" });
+    const upJson = (await up.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!up.ok || !upJson["result"]) {
+      return { ok: false, error: String(upJson["message"] || `HTTP ${up.status}`) };
+    }
+    const fileKey = String(upJson["id"] || "");
+    const orgFile = String(upJson["org_file"] || "");
+    if (!fileKey) return { ok: false, error: "không nhận được file_key" };
+    const att = await fbRequest("POST", `/webapi/sectors/${sectorId}/attachments`, {
+      body: {
+        file_key: fileKey,
+        org_file_name: orgFile,
+        file_type: "application/pdf",
+        attachment_type: "GENERAL",
+        title,
+        needs_acknowledging: false,
+      },
+    });
+    if (![200, 201, 204].includes(att.status)) return { ok: false, error: `gắn sector ${sectorId}: HTTP ${att.status}` };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 export const jobs: Jobs = {
   // Port of web.py start_briefing_attach(): upload + attach each file via
   // FliteBrief's Web API (api/upload.py: POST /webapi/notices/upload, then

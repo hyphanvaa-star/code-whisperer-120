@@ -155,4 +155,4 @@ export const routes: Routes = {
 
 export const jobs: Jobs = {};
 
-export { buildSheet, toPdf, pdfFilename };
+export { buildSheet, toPdf, pdfFilename, draftFromFlight, fetchOfpPdf, ofpPdfText, findFlight };
