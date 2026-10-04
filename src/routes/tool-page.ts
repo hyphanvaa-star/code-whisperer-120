@@ -707,6 +707,11 @@ td .dim,.dim{color:var(--x-mute) !important}
 .fi-board .vd.done,.fi-board .vd.complete{color:var(--x-ok) !important;background:var(--x-ok-bg) !important}
 .fi-board .vd.in{color:#0F766E !important;background:#E3F7F3 !important}
 
+/* gọn: dòng thấp, nhiều dòng */
+table tbody tr{height:auto !important}
+table tbody td{padding:3px 8px !important;line-height:1.25 !important;height:auto !important}
+.aside-head{background:#fff !important;background-image:none !important;border:0 !important;box-shadow:none !important;border-bottom:1px solid var(--x-line) !important}
+.aside-head .modes{border:0 !important;box-shadow:none !important}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
