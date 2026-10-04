@@ -194,12 +194,13 @@ export async function checkFlightsOnline(
     for (const cells of rows) {
       const cs = (cells[0] ?? "").trim().toUpperCase();
       if (!want.has(cs) || found.has(cs)) continue;
-      found.set(cs, {
+      const r: AtcCheckResult = {
         callsign: want.get(cs)!,
         status: cells[1] || view.replace("manager-", ""),
-        flight_time: cells[4] || undefined,
         ok: true,
-      });
+      };
+      if (cells[4]) r.flight_time = cells[4];
+      found.set(cs, r);
     }
     onProgress?.(`· ${view.replace("manager-", "")}: ${rows.length} dòng, ghép được ${found.size}/${want.size}`);
     if (found.size >= want.size) break;
