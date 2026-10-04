@@ -28,13 +28,41 @@ async function tryMailLogin(): Promise<{ ok: true; token: string } | { ok: false
   }
 }
 
+async function pullDefect(ctx: Parameters<Routes[string]>[0]) {
+  const pc = await import("../pcagent.server");
+  const agent = await pc.agentInfo(ctx);
+  if (!pc.agentOnline(agent)) return { error: "Trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi thử lại (cần phiên Outlook Web để tải mail defect summary)." };
+  try {
+    const id = await pc.enqueueDeduped("defect_pdf", {}, 60_000);
+    const r = await pc.waitResult(id, 170_000);
+    const b64 = String(r["b64"] || "");
+    if (!b64) return { error: String(r["error"] || "Trợ lý PC không gửi về file PDF defect summary.") };
+    const buf = Buffer.from(b64, "base64");
+    const { processUpload } = await import("../port/defect_pdf");
+    const { setJson } = await import("../store.server");
+    const name = String(r["name"] || "defect_summary.pdf");
+    const res = await processUpload(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, { sourceName: name });
+    const summary = {
+      exists: true, file: res["source"] as string, source: res["source"] as string,
+      rows: res.rows, aircraft_count: res.aircraft_count, raw_rows: res.raw_rows,
+      saved_at: res.saved_at, aircraft: res.aircraft,
+    };
+    await setJson(ctx, "defect.summary", summary);
+    // Đồng bộ bảng Tàu/Defect vào limits như tool gốc.
+    const { getJson } = await import("../store.server");
+    const lim = await getJson<Record<string, unknown>>(ctx, "limits", {});
+    await setJson(ctx, "limits", { ...lim, aircraft: res.aircraft });
+    return { ...summary, ok: true, subject: r["subject"] || name, mail_sent_text: r["sent"] || "", slot: r["slot"] || "" };
+  } catch (exc) {
+    return { error: exc instanceof Error ? exc.message : String(exc) };
+  }
+}
+
 export const routes: Routes = {
-  // Port of web.py "/api/defect/summary" mail leg (defect_summary.pull_today).
-  "GET /api/defect/summary": async () => {
-    const res = await tryMailLogin();
-    if (!res.ok) return { error: res.error };
-    return { error: "Đăng nhập Outlook OK nhưng tải defect summary qua Outlook REST chưa được nối — cần nối tiếp phần tải thư mục/attachment." };
-  },
+  // Port of web.py "/api/defect/summary" (defect_summary.pull_today) — mail
+  // tải qua phiên Outlook Web trên máy công ty (trợ lý PC), PDF đọc ở web.
+  "POST /api/defect/summary": (ctx) => pullDefect(ctx),
+  "GET /api/defect/summary": (ctx) => pullDefect(ctx),
 };
 
 export const jobs: Jobs = {};
