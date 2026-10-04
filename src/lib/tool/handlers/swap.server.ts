@@ -381,14 +381,14 @@ export const jobs: Jobs = {
       },
       // Lấy PDF notice từ kho "notices/" (Rule Studio upload) rồi đính kèm
       // lên FliteBrief bằng đúng luồng upload của api/upload.py.
-      uploadAttachment: async (sectorId2, title) => {
+      uploadAttachment: async (title) => {
         const name = noticeMap.get(title.trim().toLowerCase());
         if (!name) return { ok: false, alreadyExists: false, error: `thiếu file "${title}" trong kho notice` };
         const { getFile } = await import("../store.server");
-        const file = await getFile(ctx, `notices/${name}`);
-        if (!file) return { ok: false, alreadyExists: false, error: `không đọc được file ${name}` };
+        const buf = await getFile(ctx, `notices/${name}`);
+        if (!buf) return { ok: false, alreadyExists: false, error: `không đọc được file ${name}` };
         const { uploadAndAttach } = await import("./briefing.server");
-        const r = await uploadAndAttach(sectorId2, new Uint8Array(file.data), name, title);
+        const r = await uploadAndAttach(plan.sector_id, new Uint8Array(buf), name, title);
         return { ok: r.ok, alreadyExists: false, error: r.error };
       },
       onLine: (text, cls) => emit({ type: "line", text, cls }),
