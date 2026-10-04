@@ -113,12 +113,29 @@ header::after{content:none !important;display:none !important}
 header{
   min-height:0 !important;
   padding:8px 18px !important;
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+  display:flex !important;
   align-items:center !important;
   gap:14px !important;
 }
-/* Brand: gọn một cụm, chữ trắng, nhấn vàng */
-header .brand{position:static !important;transform:none !important;margin:0 auto !important}
+/* Dẹp các lớp bọc trang trí của giao diện gốc để bố cục thành 1 hàng: lọc | brand | nút */
+header .md-fit,header .md-stage,header .head-right{display:contents !important}
+header .md-denpyo{
+  display:flex !important;align-items:center !important;gap:10px !important;
+  order:1;background:none !important;border:none !important;box-shadow:none !important;
+  padding:0 !important;
+}
+header .md-denpyo .head,header .md-denpyo .stamp,header .md-denpyo .md-cmd{display:none !important}
+header .md-denpyo .md-row{display:flex !important;align-items:flex-end !important;gap:8px !important;margin:0 !important}
+header .filt-actions{display:flex !important;align-items:center !important;gap:6px !important;margin:0 !important}
+/* Brand: gọn một cụm, chữ trắng, nhấn vàng — đứng giữa */
+header .brand{position:static !important;transform:none !important;margin:0 auto !important;order:2}
+/* Cụm nút phải */
+header .head-ops{
+  order:3;display:flex !important;align-items:center !important;gap:6px !important;
+  position:static !important;margin:0 !important;
+}
+header .hstat{order:3}
+header .hdr-switch,header .theme-switch{order:4;margin:0 !important}
 header .brand h1{
   font-size:21px !important;letter-spacing:.06em !important;
   line-height:1.05 !important;margin:0 !important;
