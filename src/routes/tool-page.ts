@@ -26,6 +26,25 @@ const SHIM = `<script>
   function setCookie(){ var t = tok(); if (t) document.cookie = 'fbt=' + t + '; path=/api; SameSite=Strict; Secure'; }
   setCookie(); setInterval(setCookie, 20000);
   if (navigator.sendBeacon) { navigator.sendBeacon = function(){ return true; }; }
+  // Fit-to-screen: the original layout is designed for ~1440px desktops.
+  // On smaller screens, scale the whole page down proportionally so nothing
+  // overflows or breaks apart; on larger screens keep 100%.
+  var BASE_W = 1440;
+  function fit(){
+    var w = window.innerWidth;
+    var z = Math.min(1, w / BASE_W);
+    if (z >= 0.999) { document.body.style.zoom = ''; document.body.style.transform = ''; document.body.style.width = ''; return; }
+    if ('zoom' in document.body.style) {
+      document.body.style.zoom = z;
+    } else {
+      document.body.style.transformOrigin = '0 0';
+      document.body.style.transform = 'scale(' + z + ')';
+      document.body.style.width = (100 / z) + '%';
+    }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', fit); } else { fit(); }
 })();
 </script>`;
 
