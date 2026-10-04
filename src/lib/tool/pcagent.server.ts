@@ -30,9 +30,9 @@ async function admin() {
 }
 
 export async function enqueue(kind: PcJobKind, payload: Record<string, unknown>): Promise<string> {
-  const { data, error } = (await admin())
+  const { data, error } = await (await admin())
     .from("pc_jobs")
-    .insert({ kind, payload })
+    .insert({ kind, payload: payload as never })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
