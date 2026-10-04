@@ -173,7 +173,7 @@ async function downloadFromFolder(
     hi: Date | null;
     overwrite: boolean;
     existing: Set<string>;
-    onProgress?: (text: string, cs: string) => void;
+    onProgress?: ((text: string, cs: string) => void) | undefined;
   },
 ): Promise<PibResult> {
   const { mailbox, folderName, callsigns, wantList, lo, hi, overwrite, existing, onProgress } = opts;
