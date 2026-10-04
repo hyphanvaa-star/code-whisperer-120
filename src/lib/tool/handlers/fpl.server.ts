@@ -243,7 +243,75 @@ export const routes: Routes = {
     const body = await ctx.json();
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return { error: "Chọn ít nhất một chuyến." };
-    return { error: "Chưa hỗ trợ lấy OFP (PDF FliteBrief) để dựng ATC/EZFW trong môi trường này." };
+    const convert = !!body.convert;
+    const ae = await import("../port/atc_ezfw");
+    const { loadFlights } = await import("../core/gantts.server");
+    const { fbGet } = await import("@/lib/flitebrief.server");
+    const flights = await loadFlights(3);
+    const now = Date.now();
+    const pickFlight = (it: Raw) => {
+      const digits = ae.digitsOf(String(it.flt || ""));
+      if (!digits) return null;
+      const rx = new RegExp(`(?<!\\d)${digits}(?!\\d)`);
+      const dep = String(it.dep || "").toUpperCase().trim();
+      const arr = String(it.arr || "").toUpperCase().trim();
+      let hits = flights.filter((f: any) => rx.test([f.callsign, f.fltno, f.commercial_fltno].filter(Boolean).join(" ")));
+      const byApt = hits.filter((f: any) =>
+        (!dep || f.dep_iata?.toUpperCase() === dep || f.dep_icao?.toUpperCase() === dep) &&
+        (!arr || f.dest_iata?.toUpperCase() === arr || f.dest_icao?.toUpperCase() === arr));
+      if (byApt.length) hits = byApt;
+      const win = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
+      if (win.length) hits = win;
+      hits.sort((a: any, b: any) => Math.abs((a.std?.getTime() ?? 0) - now) - Math.abs((b.std?.getTime() ?? 0) - now));
+      return hits[0] || null;
+    };
+    const pdfText = async (bytes: Uint8Array) => {
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const pdf = await getDocumentProxy(bytes);
+      const { text } = await extractText(pdf, { mergePages: true });
+      return Array.isArray(text) ? text.join("\n") : String(text ?? "");
+    };
+    const missed: string[] = [];
+    const got: { ix: number; f: any; block: string }[] = [];
+    await Promise.all(items.map(async (it: Raw, ix: number) => {
+      const label = `VJ${it.flt} ${it.dep || ""}-${it.arr || ""}`.trim();
+      const f = pickFlight(it);
+      if (!f) { missed.push(`${label}: không thấy trên FliteBrief`); return; }
+      try {
+        const res = await fbGet(`/webapi/sectors/${f.id}/ofp`, "application/pdf");
+        if (!res.ok || res.status === 204) { missed.push(`${label}: chưa có OFP`); return; }
+        const buf = new Uint8Array(await res.arrayBuffer());
+        if (!buf.byteLength) { missed.push(`${label}: chưa có OFP`); return; }
+        got.push({ ix, f, block: ae.extractAtc(await pdfText(buf)) });
+      } catch (e) {
+        missed.push(`${label}: ${(e as Error).message}`);
+      }
+    }));
+    got.sort((a, b) => a.ix - b.ix);
+    if (!got.length) return { error: missed.join("\n") || "Không lấy được ATC chuyến nào." };
+    if (!convert) {
+      const text = ae.joinAtcBlocks(got.map((g) => g.block)).replace(/\r?\n/g, "\r\n");
+      return {
+        ok: true, ok_n: got.length, missed,
+        filename: "ATC-ORG.txt",
+        file: Buffer.from(text, "utf8").toString("base64"),
+      };
+    }
+    const atcFix = await import("../port/atc_fix");
+    const rules = atcFix.load_rules(await getJson<Raw | null>(ctx, "fpl.atc_fix", null));
+    const rows = got.map(({ f, block }) => {
+      const parsed = atcFix.parse_block(block) || {};
+      const [converted, notes, html] = atcFix.fix_block(block, rules);
+      return {
+        id: f.id,
+        callsign: parsed.callsign || f.callsign || "",
+        dep: parsed.dep || f.dep_icao || "",
+        arr: parsed.arr || f.dest_icao || "",
+        original: block.trim(),
+        converted, html, notes,
+      };
+    });
+    return { ok: true, ok_n: rows.length, missed, flights: rows, filename: "ATC-ORG ÐÃ FIX.txt" };
   },
 
   "GET /api/fpltext/convert": async (ctx) => {
