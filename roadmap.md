@@ -26,3 +26,16 @@
 - [x] Check ATC avi (dán kết quả AviWeb → REG/STD CHECK; tự lấy chờ tài khoản AviWeb): bảng # FLT NO STATUS REG REG CHECK EOBT STD CHECK DOF GHI CHÚ
 - [x] Giới hạn tàu và sân bay: 4 bảng Tàu/Sân bay/Curfew/Đặc biệt + tải defect summary
 - [x] Thiết lập file add: Notice Rule Studio (tổng/đang dùng/hết hạn, cột TRẠNG THÁI…NGÀY HẾT HIỆU LỰC)
+
+## Bản đúng 100%: giao diện gốc + chuyển từng chức năng máy chủ (từ 04/10)
+- [x] Hạ tầng: giao diện gốc nguyên bản ở /tool, đăng nhập thật thay gate, /api/* chung, job stream, kho file
+- [ ] core: flights/flight/ofp, attch_check, row, limits_check, ofp, verify, opscore, atfm, crews, weights, extra, est
+- [ ] fpl: /api/fpltext/* (fpl_tool, atcfpl, atc_chg, atc_fix, pcr_limits), version/chg
+- [ ] notam: notam_check, notam_track, notam_pin (/api/notam/*)
+- [ ] aip: aip_* (/api/aip/*, notam/vnchart)
+- [ ] wx: taf, metwx, extra_wx, wx_overlay, graph_pib, briefing, briefing_release (/api/taf/*, /api/wx/*, /api/briefing/*, /api/pib/download)
+- [ ] excel: excelcmp, xlsdiff, handover (/api/excel/*, /api/version/*, /api/handover*)
+- [ ] limits: /api/limits*, /api/defect/* (defect_summary, defect_pdf)
+- [ ] notices+swap: notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
+- [ ] atc+autoload+misc: atc_check, atc files/submit, atcezfw, omni, owa, gd, credentials, paths, chat, dsp-layout, disk/clean, download
+- [ ] Ảnh gốc còn thiếu (logo VJ, hello-kitty, cat-paw, notam-apron-tower, acft, flags, hanyi/*.png) — cần bạn gửi thư mục static
