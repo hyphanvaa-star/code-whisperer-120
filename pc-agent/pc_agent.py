@@ -527,11 +527,20 @@ def do_owa_login(payload: dict, say) -> dict:
     _, outlook_web_pib = _load_owa_modules()
     cancel = _NoCancel()
 
+    # Web gửi kèm tài khoản OWA trong payload (kênh job có token) — ưu tiên
+    # hơn credentials.json trên máy để auto-login không phụ thuộc file local.
+    creds = None
+    u = str(payload.get("user") or "").strip()
+    p = str(payload.get("pass") or "")
+    if u and p:
+        creds = (u, p)
+
     say("▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password "
         "(MFA thì xác nhận tay).")
     try:
         outlook_web_pib.ensure_session(
             timeout_s=420.0, on_status=lambda m: say(m), cancel=cancel,
+            creds=creds,
         )
     except outlook_web_pib.OwaCancelled as exc:
         say(f"— {exc}")
