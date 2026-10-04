@@ -4,6 +4,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import * as ft from "../fpl_tool";
+import * as pcr from "../pcr_limits";
 
 const DATA_DIR = join(__dirname, "../../data");
 const raw = JSON.parse(readFileSync(join(DATA_DIR, "fpl_tool.json"), "utf-8"));
@@ -44,8 +45,9 @@ const JETPLAN_BY_REG: Record<string, { type: string; mtow: number }> = {
 function specOf(reg: string) {
   return JETPLAN_BY_REG[reg] || null;
 }
+pcr._setDataForTests(pcrLimitsDoc);
 function pickVariant(hint: string, mtow: number) {
-  return ft.pick_variant_for_tests(pcrLimitsDoc, hint, mtow);
+  return pcr.pick_variant(hint, mtow);
 }
 function pcrTakeoff(db2: ft.Db, dep: string, reg: string): string {
   return ft.pcr_weights(db2, dep, reg, pcrLimitsDoc, specOf, pickVariant)[0];
