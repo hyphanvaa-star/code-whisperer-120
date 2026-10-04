@@ -78,7 +78,7 @@ async function findFlight(id: number): Promise<Flight | null> {
 export const routes: Routes = {
   // web.py _api_notam_track(fid): đối chiếu NOTAM 24H với track của một chuyến.
   "GET /api/notam/track": async (ctx) => {
-    const fid = parseInt(q(ctx.params, "fid"), 10);
+    const fid = parseInt(q(ctx.params, "fid") || q(ctx.params, "id"), 10);
     const tid = q(ctx.params, "tid");
     if (!fid || Number.isNaN(fid)) return { error: "thiếu fid (mã chuyến)." };
     const flight = await findFlight(fid);
