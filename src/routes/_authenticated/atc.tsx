@@ -81,8 +81,7 @@ function AtcPage() {
       "REG CHECK": a && f ? (normReg(a.reg) === normReg(f.reg) ? "TRUE" : "FALSE") : "N/A",
       EOBT: a?.eobt ?? "", STD: hhmm(f?.std ?? null), "STD CHECK": a?.eobt && f ? (a.eobt === hhmm(f.std) ? "TRUE" : "FALSE") : "", DOF: a?.dof ?? dofOf(f?.std ?? null),
     }));
-    const _xlMod = await import("exceljs");
-  const ExcelJS = (_xlMod.default ?? _xlMod) as typeof _xlMod;
+    const ExcelJS = await (await import("@/lib/exceljs-load")).loadExcelJS();
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("ATC");
     const cols = Object.keys(data[0] ?? {});
