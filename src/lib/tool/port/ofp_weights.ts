@@ -472,7 +472,7 @@ export async function ofpTextFromPdf(bytes: Uint8Array | ArrayBuffer): Promise<s
   // runtimes returns a buffer type pdf.js's worker bridge cannot structuredClone.
   const buf = new Uint8Array(view.length);
   buf.set(view);
-  const doc = await getDocumentProxy(buf, { disableWorker: true });
+  const doc = await getDocumentProxy(buf, { disableWorker: true } as Parameters<typeof getDocumentProxy>[1]);
   const { text } = await extractText(doc, { mergePages: false });
   const pages = Array.isArray(text) ? text : [text];
   return pages.join("\n");
