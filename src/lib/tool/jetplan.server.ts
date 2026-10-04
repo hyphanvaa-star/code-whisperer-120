@@ -120,7 +120,7 @@ export async function ensureRegs(ctx: Ctx, regs: string[]): Promise<void> {
     try {
       for (const row of parseList(await servlet(jar, { query: "650" }))) {
         const cur = cache.rows[row.reg];
-        cache.rows[row.reg] = { cap: null, mtow: null, mlwt: null, fuel_flow: "", ...cur, name: row.name, type: cur?.type || row.type, fpm: row.fpm || cur?.fpm || "" };
+        cache.rows[row.reg] = { cap: cur?.cap ?? null, mtow: cur?.mtow ?? null, mlwt: cur?.mlwt ?? null, fuel_flow: cur?.fuel_flow ?? "", name: row.name, type: cur?.type || row.type, fpm: row.fpm || cur?.fpm || "" };
       }
     } catch (e) { console.warn("JetPlan list:", e); }
   }
