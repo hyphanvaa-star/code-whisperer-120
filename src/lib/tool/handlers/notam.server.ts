@@ -3,6 +3,7 @@ import { getJson, setJson } from "../store.server";
 import { fbJson } from "../../flitebrief.server";
 import * as pin from "../port/notam_pin";
 import { normIcao, apply24h, placeFromPayload, parseLookupCodes } from "../port/notam_check";
+import * as vn from "../port/aip_vn_chart";
 
 // Port of the web.py "/api/notam/pins*" and "/api/notam/lookup" endpoints
 // (notam_pin.py / notam_check.lookup_places). Pin store persisted under "notam.pins"
@@ -56,6 +57,99 @@ async function lookupPlaces(raw: string, kind: string) {
     return apply24h(place);
   });
   return { ok: true, kind: want, window: "24h", codes, places, error: "" };
+}
+
+
+// --- /api/notam/vnchart (aip_vn_chart.py): bản đồ Việt Nam từ AIP VATM đang
+// hiệu lực. Cache dưới key "notam.vnchart" (thay cho data/aip_vn/chart.json).
+const VNCHART_KEY = "notam.vnchart";
+const VNCHART_ROOT = "https://aim.vatm.vn/images/stories/vnaic.vn/SanPhamDichVu/AIPVietNam/AIP/";
+const VNCHART_HISTORY_URL = VNCHART_ROOT + "history-en-GB.html";
+const VNCHART_UA = { "User-Agent": "Mozilla/5.0 DispatchBoard-AIP/1.0" };
+
+function vnChartPage(cycle: string, name: string): string {
+  return `${VNCHART_ROOT}${cycle}/html/eAIP/${name}`;
+}
+
+async function vnChartHttp(url: string, timeoutMs = 60000): Promise<string> {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    const resp = await fetch(url, { headers: VNCHART_UA, signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!resp.ok) return "";
+    return await resp.text();
+  } catch {
+    return "";
+  }
+}
+
+async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart> {
+  const chart = vn.empty(cycle, effective);
+  const [enr31, enr33, enr41, enr44, ad13] = await Promise.all([
+    vnChartHttp(vnChartPage(cycle, "VV-ENR-3.1-en-GB.html")),
+    vnChartHttp(vnChartPage(cycle, "VV-ENR-3.3-en-GB.html")),
+    vnChartHttp(vnChartPage(cycle, "VV-ENR-4.1-en-GB.html")),
+    vnChartHttp(vnChartPage(cycle, "VV-ENR-4.4-en-GB.html")),
+    vnChartHttp(vnChartPage(cycle, "VV-AD-1.3-en-GB.html")),
+  ]);
+  chart.routes = [...vn.parseRoutes(enr31), ...vn.parseRoutes(enr33)];
+  chart.waypoints = vn.parseWaypoints(enr44);
+  chart.navaids = vn.parseNavaids(enr41);
+  const index = vn.parseAirports(ad13);
+  const airports: vn.ChartAirport[] = [];
+  await Promise.all(
+    index.map(async (row) => {
+      const html = await vnChartHttp(vnChartPage(cycle, `VV-AD-2.${row.icao}-en-GB.html`));
+      const pt = html ? vn.parseArp(html) : null;
+      if (pt) airports.push({ icao: row.icao, name: row.name, lat: pt[0], lon: pt[1] });
+    }),
+  );
+  chart.airports = airports;
+  return chart;
+}
+
+async function vnChartEnsure(ctx: Parameters<Routes[string]>[0]): Promise<vn.Chart> {
+  const have = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
+  const hist = await vnChartHttp(VNCHART_HISTORY_URL);
+  const [cycle, effective] = hist ? vn.currentIssue(hist) : ["", ""];
+  if (have && (!cycle || have.cycle === cycle)) return have;
+  if (!cycle) return have ?? vn.empty();
+  const built = await vnChartBuild(cycle, effective);
+  if (built.routes.length || built.airports.length) {
+    await setJson(ctx, VNCHART_KEY, built);
+    return built;
+  }
+  return have ?? vn.empty();
+}
+
+// --- /api/notam/track/progress (web.py _get_notam_progress): tiến độ của một
+// lượt "tid" (Check NOTAM / Check NOTAM tracking), lưu trong store thay vì
+// biến trong tiến trình (khi job chạy thì handler atc/notam ghi vào đây).
+const NOTAM_PROGRESS_KEY = "notam.progress";
+const NOTAM_PROGRESS_TTL_S = 900;
+
+type NotamProgressStore = Record<string, [number, string]>;
+
+export async function getNotamProgress(ctx: Parameters<Routes[string]>[0], tid: string): Promise<string> {
+  const stamp = String(tid || "").trim();
+  if (!stamp) return "";
+  const store = await getJson<NotamProgressStore>(ctx, NOTAM_PROGRESS_KEY, {});
+  const hit = store[stamp];
+  return hit ? hit[1] : "";
+}
+
+export async function setNotamProgress(ctx: Parameters<Routes[string]>[0], tid: string, text: string): Promise<void> {
+  const stamp = String(tid || "").trim();
+  if (!stamp || !/^[A-Za-z0-9_-]{1,40}$/.test(stamp)) return;
+  const store = await getJson<NotamProgressStore>(ctx, NOTAM_PROGRESS_KEY, {});
+  const now = Date.now() / 1000;
+  store[stamp] = [now, String(text || "")];
+  for (const key of Object.keys(store)) {
+    const entry = store[key];
+    if (entry && now - entry[0] > NOTAM_PROGRESS_TTL_S) delete store[key];
+  }
+  await setJson(ctx, NOTAM_PROGRESS_KEY, store);
 }
 
 export const routes: Routes = {
@@ -142,6 +236,24 @@ export const routes: Routes = {
         headers: { "content-type": "application/json" },
       });
     }
+  },
+  "GET /api/notam/vnchart": async (ctx) => {
+    const data = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
+    if (data && (data.airports.length || data.routes.length)) return data;
+    // web.py: tải nền trong luồng riêng rồi trả "pending" ngay — worker này
+    // không có luồng nền nên tải luôn (không chờ lâu lần sau vì đã cache).
+    try {
+      const built = await vnChartEnsure(ctx);
+      if (built.airports.length || built.routes.length) return built;
+    } catch {
+      // bỏ qua, trả pending như dưới
+    }
+    return { ...vn.empty(), pending: true };
+  },
+
+  "GET /api/notam/track/progress": async (ctx) => {
+    const tid = ctx.params.get("tid") ?? "";
+    return { text: await getNotamProgress(ctx, tid) };
   },
 };
 
