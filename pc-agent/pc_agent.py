@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 """Trợ lý PC cho Dispatch Board — chạy trên máy công ty.
 
-Web gửi lệnh (in GD tới máy RICOH, ghi file xuống ổ D:, mở hộp thoại chọn
-thư mục); script này nhận lệnh và thực hiện như tool gốc.
+Web gửi lệnh (in GD tới máy RICOH, ghi file xuống ổ D:, mở Outlook Web...);
+script này nhận lệnh và thực hiện như tool gốc.
 
-Cài đặt (một lần):
-    pip install requests pywin32 openpyxl
-
-Chạy:
-    set PC_AGENT_URL=https://code-whisperer-834.lovable.app
-    set PC_AGENT_TOKEN=<token do quản trị cấp>
-    python pc_agent.py
+CÁCH DÙNG (không cần gõ lệnh):
+    Double-click file "cai-tro-ly.bat" đi kèm — nó tự cài Python + thư viện
+    rồi chạy trợ lý này. Cấu hình đã được ghi sẵn bên dưới (DEFAULT_*) hoặc
+    trong file pc_agent_config.json nằm cạnh script. Muốn đổi thì sửa file
+    pc_agent_config.json: {"url": ..., "token": ..., "tool_dir": ...}
 """
 
 from __future__ import annotations
@@ -32,8 +30,44 @@ POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
 
-BASE_URL = os.environ.get("PC_AGENT_URL", "").rstrip("/")
-TOKEN = os.environ.get("PC_AGENT_TOKEN", "")
+# Cấu hình mặc định — ghi sẵn để người dùng chỉ cần double-click, không gõ lệnh.
+DEFAULT_URL = "https://code-whisperer-834.lovable.app"
+DEFAULT_TOKEN = "Hydeptrai@123"
+
+
+def _load_config() -> dict:
+    """Ưu tiên: biến môi trường > pc_agent_config.json cạnh script > mặc định."""
+    cfg: dict = {}
+    cfg_path = Path(__file__).resolve().with_name("pc_agent_config.json")
+    try:
+        if cfg_path.is_file():
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return {
+        "url": (os.environ.get("PC_AGENT_URL") or cfg.get("url") or DEFAULT_URL).rstrip("/"),
+        "token": os.environ.get("PC_AGENT_TOKEN") or cfg.get("token") or DEFAULT_TOKEN,
+        "tool_dir": os.environ.get("PC_TOOL_DIR") or cfg.get("tool_dir") or "",
+        "_cfg_path": cfg_path,
+    }
+
+
+_CFG = _load_config()
+BASE_URL = _CFG["url"]
+TOKEN = _CFG["token"]
+
+
+def _save_config(**kw) -> None:
+    """Ghi nhớ cấu hình (vd tool_dir người dùng chọn) vào pc_agent_config.json."""
+    try:
+        cur = {}
+        p: Path = _CFG["_cfg_path"]
+        if p.is_file():
+            cur = json.loads(p.read_text(encoding="utf-8"))
+        cur.update(kw)
+        p.write_text(json.dumps(cur, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
 
 FOLDER_NAME = "GENDEC"
 PRINTER_HINT = "RICOH"
