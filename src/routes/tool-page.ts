@@ -152,6 +152,95 @@ td{border-bottom:1px solid rgba(21,24,31,.05)}
 }
 /* Chọn văn bản: đỏ Vietjet nhạt */
 ::selection{background:rgba(196,30,58,.18)}
+/* ===== Hiện đại hoá tổng thể: bỏ tông hồng/magenta, chuyển sang
+   xám than chuyên nghiệp + đỏ Vietjet. Chỉ đổi màu/hình thức. ===== */
+/* Đầu bảng chính và mọi đầu bảng magenta -> xám than đậm, chữ trắng */
+#wrapGeneral .gtable thead th,
+.xlstbl thead th,
+#wrapCompare .cmptbl thead th,
+#wrapVer .tooltbl thead th,
+#wrapAtcCheck #acTbl thead th{
+  background:linear-gradient(180deg,#262E3B 0%,#1B222D 100%) !important;
+  color:#E8ECF3 !important;
+  border-color:#1B222D !important;
+  border-bottom:2px solid var(--klein) !important;
+  text-shadow:none;
+  font-size:10px;letter-spacing:.09em;
+}
+#wrapGeneral .gtable thead th:first-child::before{
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.16);
+}
+/* Đầu bảng hồng nhạt -> xám sáng trung tính, chữ đỏ đậm */
+#wrapTool .tooltbl thead th,
+#wrapLimits .limtbl thead th{
+  background:#EEF1F5 !important;
+  color:#9F1B32 !important;
+  border-bottom:2px solid var(--klein) !important;
+}
+/* Các điểm nhấn hồng đậm -> đỏ Vietjet */
+.cmp-pick .hd,.nm-place .uses,.nm-tune-pop h5,.nm-place-head,#ftAtcMiss{color:var(--klein) !important}
+.nm-find > button{background:var(--klein) !important}
+.ftci input:focus,.fttx input:focus{border-color:var(--klein) !important}
+.ftcrew-menu button.on{background:rgba(196,30,58,.12) !important}
+/* Hàng được chọn trong bảng chính: nền đỏ nhạt + gạch trái đỏ */
+#wrapGeneral .gtable tbody tr.sel td,
+#wrapGeneral .gtable tbody tr.on td{
+  background:rgba(196,30,58,.07) !important;
+  box-shadow:inset 3px 0 0 var(--klein);
+}
+/* Ô ngày/giờ trong bảng: font số đều, dễ đọc */
+#wrapGeneral .gtable td{font-variant-numeric:tabular-nums}
+/* Thanh tab chức năng (Tạo KHB, Giao ca...): nền trắng sạch, pill rõ ràng */
+.toolbars,nav.tabs,.subtabs{
+  background:rgba(255,255,255,.66);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+/* Nút bấm chính: gradient đỏ Vietjet thay xanh tím */
+.btn.primary,.toolbars .btn.t-go{
+  background:linear-gradient(135deg,#D8263F,#A31328) !important;
+  box-shadow:0 2px 10px rgba(196,30,58,.28);
+}
+.btn.primary:hover,.toolbars .btn.t-go:hover{
+  background:linear-gradient(135deg,#C41E3A,#8F1123) !important;
+}
+/* Khung chi tiết bên phải: viền mảnh, bo góc đồng bộ */
+#detailWrap{
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 8px 28px rgba(10,16,40,.14);
+}
+.detail-tabs{
+  background:rgba(255,255,255,.8);
+  backdrop-filter:blur(10px);
+}
+.dtab.on{color:var(--klein);box-shadow:inset 0 -2px 0 var(--klein)}
+/* Thanh tab chế độ (Tạo KHB / Giao ca / Hiển thị chung...): bỏ hồng,
+   chuyển sang xám trung tính + tab đang chọn đỏ Vietjet */
+.modes{
+  background:rgba(255,255,255,.78) !important;
+  border:1px solid rgba(21,24,31,.10) !important;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+.mode{
+  color:#4A5160 !important;
+  background:transparent !important;
+  border:1px solid transparent !important;
+}
+.mode:hover{background:rgba(21,24,31,.05) !important}
+.mode.on{
+  color:#fff !important;
+  background:linear-gradient(135deg,#D8263F,#A31328) !important;
+  box-shadow:0 2px 8px rgba(196,30,58,.30);
+}
+/* Header: tăng độ đục để nền ảnh không loang hồng qua */
+header{background:rgba(255,255,255,.88) !important}
+/* Nút hành động trên header (Acc/TAF/Crew/Refresh/OFP): giữ màu trạng thái,
+   chỉ làm bóng và bo góc hiện đại hơn */
+.btn.act{border-radius:10px;box-shadow:0 2px 8px rgba(10,16,40,.14)}
+.btn.act:hover:not(:disabled){box-shadow:0 5px 16px rgba(10,16,40,.20)}
 /* Giảm gắt ảnh nền: lớp phủ sáng mỏng để chữ nổi hơn */
 body::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
