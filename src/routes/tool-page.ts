@@ -855,6 +855,7 @@ header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
   border:1px solid var(--x-red) !important;border-radius:5px !important;background:var(--x-red) !important;color:#fff !important;
   box-shadow:0 4px 0 var(--x-red-d) !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
   transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
+  opacity:1 !important;visibility:visible !important;
 }
 header#mdRoom .hdr-switch{position:absolute !important;top:28px !important;right:158px !important}
 header#mdRoom .theme-switch{position:absolute !important;top:28px !important;right:88px !important}
