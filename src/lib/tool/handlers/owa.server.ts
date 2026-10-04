@@ -143,8 +143,21 @@ export const jobs: Jobs = {
       return;
     }
     try {
+      // Phiên Outlook trên máy công ty còn sống thì không mở lại Chrome —
+      // tránh cửa sổ đăng nhập nhảy ra mỗi lần tải lại trang.
+      const pid = await pc.enqueueDeduped("owa_fpl_watch", { after: 0 }, 5_000);
+      const st = await pc.waitResult(pid, 15_000);
+      if (st["running"]) {
+        emit({ type: "line", text: "✓ Phiên Outlook Web trên máy công ty còn sống — không cần mở Chrome." });
+        emit({ type: "end", code: 0, elapsed: (Date.now() - t0) / 1000, ok: 1, skipped: 0, failed: 0, logged_in: true, owa_state: "healthy", source: "pc_session" });
+        return;
+      }
+    } catch {
+      /* chưa kiểm tra được — cứ thử đăng nhập như thường */
+    }
+    try {
       emit({ type: "line", text: "▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password (MFA thì xác nhận tay)." });
-      const id = await pc.enqueue("owa_login", {});
+      const id = await pc.enqueueDeduped("owa_login", {}, 120_000);
       let lastBeat = 0;
       const r = await pc.waitResult(id, 450_000, (elapsed) => {
         if (elapsed - lastBeat >= 30) {
