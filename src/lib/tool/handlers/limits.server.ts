@@ -1,5 +1,6 @@
 import type { Jobs, Routes } from "../types";
 import { getJson, setJson } from "../store.server";
+import { DefectPdfError, processUpload } from "../port/defect_pdf";
 
 // Port of web.py limits.json endpoints ("/api/limits", "/api/limits/status").
 // Storage: app_settings key "limits" — value is the {aircraft,airports,curfew,special}
@@ -144,5 +145,72 @@ export const routes: Routes = {
     }
   },
 };
+
+const DEFECT_SUMMARY_KEY = "defect.summary";
+
+interface DefectSummary {
+  exists: boolean;
+  file: string;
+  source: string;
+  rows: number;
+  aircraft_count: number;
+  raw_rows: number;
+  saved_at: string;
+  aircraft: Record<string, unknown>[];
+}
+
+function emptyDefectSummary(): DefectSummary {
+  return { exists: false, file: "", source: "", rows: 0, aircraft_count: 0, raw_rows: 0, saved_at: "", aircraft: [] };
+}
+
+Object.assign(routes, {
+  // Port of web.py `/api/defect/status` (defect_pdf.status()).
+  "GET /api/defect/status": async (ctx) => {
+    const saved = await getJson<DefectSummary | null>(ctx, DEFECT_SUMMARY_KEY, null);
+    return saved ?? emptyDefectSummary();
+  },
+
+  // Port of web.py `/api/defect/upload` (_api_defect_upload -> defect_pdf.process_upload).
+  // Raw PDF bytes in body + X-Filename header, same convention as /api/excel/upload.
+  "POST /api/defect/upload": async (ctx) => {
+    const lengthHeader = ctx.request.headers.get("content-length");
+    const length = lengthHeader ? Number.parseInt(lengthHeader, 10) : 0;
+    const buf = await ctx.request.arrayBuffer();
+    const effLen = length || buf.byteLength;
+    if (!effLen) {
+      return new Response(JSON.stringify({ error: "Không nhận được nội dung file" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    if (effLen > 50 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: "File PDF quá lớn (> 50 MB)" }), { status: 413, headers: { "Content-Type": "application/json" } });
+    }
+    const rawName = ctx.request.headers.get("x-filename") || "defect.pdf";
+    let name: string;
+    try {
+      name = decodeURIComponent(rawName);
+    } catch {
+      name = rawName;
+    }
+    try {
+      const result = await processUpload(buf, { sourceName: name });
+      const summary: DefectSummary = {
+        exists: true,
+        file: result["source"] as string,
+        source: result["source"] as string,
+        rows: result.rows,
+        aircraft_count: result.aircraft_count,
+        raw_rows: result.raw_rows,
+        saved_at: result.saved_at,
+        aircraft: result.aircraft,
+      };
+      await setJson(ctx, DEFECT_SUMMARY_KEY, summary);
+      return { ...summary, ok: true };
+    } catch (exc) {
+      if (exc instanceof DefectPdfError) {
+        return new Response(JSON.stringify({ error: exc.message }), { status: 400, headers: { "Content-Type": "application/json" } });
+      }
+      return { error: exc instanceof Error ? `${exc.name}: ${exc.message}` : String(exc) };
+    }
+  },
+} satisfies Routes);
 
 export const jobs: Jobs = {};
