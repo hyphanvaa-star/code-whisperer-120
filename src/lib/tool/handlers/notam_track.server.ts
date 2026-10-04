@@ -20,8 +20,7 @@ import { setNotamProgress } from "./notam.server";
 // So `fetchTrack` below returns an honest Vietnamese error and an empty track instead
 // of a fabricated line; distance-to-track math in notam_track.ts already degrades to
 // `dist_nm: null` ("không tính được") in that case, same as upstream without its KML.
-const KML_NOT_PORTED =
-  "Chưa chuyển được phần lấy track KML từ JetPlan (jetplan_kml.py) sang bản web — chỉ đối chiếu NOTAM sân/FIR, chưa vẽ được track trên bản đồ.";
+import { trackFor } from "../port/jetplan_kml";
 
 async function fetchPlace(code: string, want: string): Promise<Place> {
   const icao = normIcao(code);
@@ -58,8 +57,16 @@ async function fetchPlacesFor(flights: Flight[]): Promise<Place[]> {
   return [...places, ...firPlaces];
 }
 
-async function fetchTrack(): Promise<{ track: Track; error: string }> {
-  return { track: { plan: "", via: "", points: [], line: [] }, error: KML_NOT_PORTED };
+async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string }> {
+  try {
+    const t = await trackFor(flight);
+    return { track: t as unknown as Track, error: "" };
+  } catch (exc) {
+    return {
+      track: { plan: "", via: "", points: [], line: [] },
+      error: String((exc as Error)?.message ?? exc),
+    };
+  }
 }
 
 async function findFlight(id: number): Promise<Flight | null> {
