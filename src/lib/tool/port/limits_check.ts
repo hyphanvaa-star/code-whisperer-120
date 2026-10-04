@@ -23,7 +23,7 @@ const ICAO_IATA: Record<string, string> = {
   RCFN: "TTT", RCBS: "KNH", RCYU: "HUN",
   VAAH: "AMD", VLVT: "VTE",
 };
-const IATA_ICAO: Record<string, string> = Object.fromEntries(Object.entries(ICAO_IATA).map(([k, v]) => [v, k]));
+export const IATA_ICAO: Record<string, string> = Object.fromEntries(Object.entries(ICAO_IATA).map(([k, v]) => [v, k]));
 const VN_IATA = new Set(Object.entries(ICAO_IATA).filter(([icao]) => icao.startsWith("VV")).map(([, iata]) => iata));
 
 function toIata(code: string): string {

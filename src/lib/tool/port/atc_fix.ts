@@ -1,4 +1,5 @@
 // Port of atc_fix.py — fix ATC FPL blocks per SID/STAR + FL rules.
+import { IATA_ICAO } from "./limits_check";
 export type Raw = Record<string, any>;
 
 export const WRAP = 69;
@@ -47,6 +48,7 @@ export const _RE_AERO = RE_AERO;
 export function _apt_cell(text: string): string {
   const raw = String(text || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (raw.length === 4) return raw;
+  if (raw.length === 3) return IATA_ICAO[raw] || raw;
   return raw;
 }
 
