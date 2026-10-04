@@ -9,6 +9,7 @@ import ciSeed from "../data/fpl/cost_index.json";
 import taxiSeed from "../data/fpl/taxi_fuel.json";
 import routeSeed from "../data/fpl/route_suffix.json";
 import pcrSeed from "../data/pcr_limits.json";
+import * as excelMod from "./excel.server";
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
 // data/fpl_tool.json + data/fpl/*.json files web.py reads/writes with app_settings
@@ -48,8 +49,19 @@ async function loadPcrDoc(ctx: Ctx): Promise<Raw> {
 }
 
 async function loadDb(ctx: Ctx): Promise<ft.Db | null> {
-  const raw = await loadRaw(ctx);
-  if (!raw || !Array.isArray(raw.flights) || !raw.flights.length) return null;
+  // Port of fpl_tool.with_crewlist(): flights always come from the Crewlist
+  // currently loaded in the tool (never from the old Sohee snapshot).
+  const state = await excelMod.currentExcel(ctx);
+  if (!state) return null;
+  let flights: Raw[] = [];
+  try {
+    const { sheets } = await excelMod.readSheet(ctx, state.file);
+    if (sheets.length) flights = ft.flights_from_crew_sheet(excelMod.pickSheet(sheets, state.sheet) as any);
+  } catch {
+    return null;
+  }
+  const base = await loadRaw(ctx);
+  const raw: Raw = { ...(base || {}), flights, source: state.file };
   const [altRoutesDoc, eraDoc, ciDoc, taxiDoc] = await Promise.all([
     loadAltDoc(ctx), loadEraDoc(ctx), loadCiDoc(ctx), loadTaxiDoc(ctx),
   ]);
