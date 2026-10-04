@@ -551,7 +551,31 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
     _load_owa_modules()
     import owa_fpl_watch  # noqa: E402  (module của tool gốc)
     after = int(payload.get("after") or 0)
-    return owa_fpl_watch.status(after=after)
+    st = owa_fpl_watch.status(after=after)
+    # Web không đọc được ổ máy công ty: gửi kèm file Excel FPL VER (old/new)
+    # để web lưu vào kho Excel, tab "Dữ liệu thay đổi theo ver" mới so được.
+    try:
+        ver = st.get("ver") or {}
+        import config  # noqa: E402
+        dirs = [Path(st.get("dest_excel") or "data/excel"), Path(st.get("dest") or "."), Path(getattr(config, "EXCEL_DIR", "") or "data/excel"), Path("data/excel"), Path(r"D:\FPL")]
+        ups = []
+        for name in {ver.get("old") or "", ver.get("new") or ""}:
+            if not name or name in _SENT_VER:
+                continue
+            for d in dirs:
+                f = d / name
+                if f.is_file() and f.stat().st_size < 25 * 1024 * 1024:
+                    ups.append({"name": name, "b64": base64.b64encode(f.read_bytes()).decode()})
+                    _SENT_VER.add(name)
+                    break
+        if ups:
+            st["uploads"] = ups
+    except Exception as e:  # không làm hỏng lượt dò
+        st.setdefault("lines", []).append({"text": f"⚠ Không gửi được file FPL VER lên web: {e}", "cls": "bad"})
+    return st
+
+
+_SENT_VER: set = set()
 
 
 def do_owa_pib(payload: dict, say) -> dict:

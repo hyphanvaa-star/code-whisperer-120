@@ -32,7 +32,20 @@ export const routes: Routes = {
       // Gộp các lượt thăm dò trùng nhau (nhiều tab mở cùng lúc) thành một job
       // trên máy công ty thay vì đẩy một đống job giống hệt nhau.
       const id = await pc.enqueueDeduped("owa_fpl_watch", { after }, 8_000);
-      const r = await pc.waitResult(id, 20_000);
+      const r = (await pc.waitResult(id, 20_000)) as Record<string, any>;
+      const ups = Array.isArray(r?.uploads) ? r.uploads : [];
+      if (ups.length) {
+        const { putFile } = await import("../store.server");
+        const { safeFilename } = await import("../core/models");
+        for (const u of ups) {
+          const name = safeFilename(String(u?.name || ""));
+          if (!name || !/\.(xlsx|xlsm)$/i.test(name) || typeof u?.b64 !== "string") continue;
+          try {
+            await putFile(ctx, `excel/${name}`, Buffer.from(u.b64, "base64"), "application/octet-stream");
+          } catch (e) { console.warn("FPL VER save:", e); }
+        }
+        delete r.uploads;
+      }
       return r;
     } catch (e) {
       return { running: false, last_at: 0, count: 0, items: [], lines: [], until: after, error: e instanceof Error ? e.message : String(e) };
