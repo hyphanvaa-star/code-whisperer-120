@@ -37,6 +37,13 @@ const SHIM = `<script>
     if (!b) return;
     b.style.zoom = ''; b.style.transform = ''; b.style.width = '';
     var need = Math.max(de.scrollWidth, b.scrollWidth, BASE_W);
+    // Fixed/absolute rows (header buttons, switches) may not expand
+    // scrollWidth — measure the real right edge of every element instead.
+    var els = b.querySelectorAll('*');
+    for (var i = 0; i < els.length; i++) {
+      var r = els[i].getBoundingClientRect();
+      if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
+    }
     var z = Math.min(1, window.innerWidth / need);
     if (z >= 0.999) { de.style.overflowX = ''; return; }
     if ('zoom' in b.style) {
