@@ -90,3 +90,23 @@ Object.assign(routes, {
     error: "Chức năng tự động đính kèm (ghi vào FliteBrief) đang được chuyển sang bản mới — chưa dùng được ở đây.",
   }),
 });
+
+// Port of web.py _api_notice_rule_file(): upload một PDF notice từ Rule Studio
+// into store (web.py saves to the Notice folder on disk; here we keep it in
+// the private bucket under notices/<safe-name>.pdf so Rule Studio can refer to
+// it by title the same way).
+Object.assign(routes, {
+  "POST /api/notices/rule-file": async (ctx: Parameters<Routes[string]>[0]) => {
+    const { putFile } = await import("../store.server");
+    const buf = await ctx.request.arrayBuffer();
+    if (!buf.byteLength) return { error: "Không nhận được nội dung file" };
+    if (buf.byteLength > 50 * 1024 * 1024) return { error: "File PDF quá lớn (> 50 MB)" };
+    const header = ctx.request.headers.get("X-Filename") || "";
+    const raw = header ? decodeURIComponent(header) : "notice.pdf";
+    const safe = raw.replace(/[\\/:*?"<>|]/g, "_").trim() || "notice.pdf";
+    const name = safe.toLowerCase().endsWith(".pdf") ? safe : `${safe}.pdf`;
+    const title = name.replace(/\.pdf$/i, "");
+    await putFile(ctx, `notices/${name}`, buf, "application/pdf");
+    return { ok: true, title, name, size: buf.byteLength };
+  },
+});
