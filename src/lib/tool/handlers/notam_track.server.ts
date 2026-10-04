@@ -1,7 +1,7 @@
 import type { Jobs, Routes } from "../types";
 import { q } from "../types";
 import type { Flight } from "../core/models";
-import { loadFlights } from "../core/gantts.server";
+import { loadFlights, applyFilters } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
 import { normIcao, placeFromPayload } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
@@ -102,8 +102,19 @@ export const routes: Routes = {
     const daysRaw = q(ctx.params, "days", "1");
     const tid = q(ctx.params, "tid");
     const days = Math.max(1, Math.min(14, parseInt(daysRaw, 10) || 1));
-    const flights = await loadFlights(days);
-    if (!flights.length) return { ok: false, error: "Không có chuyến nào trong khoảng ngày đã chọn.", places: [] };
+    // Chỉ check các chuyến của DSP đang chọn (và khung giờ back/ahead) —
+    // giống web.py: bộ lọc dispatcher trên tab Check NOTAM quyết định phạm vi.
+    const flights = applyFilters(await loadFlights(days), ctx.params);
+    if (!flights.length) {
+      const dsp = q(ctx.params, "dispatcher");
+      return {
+        ok: false,
+        error: dsp
+          ? `Không có chuyến nào của DSP "${dsp}" trong khoảng ngày đã chọn.`
+          : "Không có chuyến nào trong khoảng ngày đã chọn.",
+        places: [],
+      };
+    }
     try {
       const result = await runDomesticFleet(flights, {
         fetchPlaces: (f) => fetchPlacesFor([f]),
