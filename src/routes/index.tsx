@@ -20,7 +20,7 @@ function Index() {
   const navigate = useNavigate();
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/board", replace: true });
+      if (data.session) navigate({ to: "/tool", replace: true });
     });
   }, [navigate]);
 
