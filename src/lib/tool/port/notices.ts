@@ -167,18 +167,39 @@ function vnDate(d: Date): string {
   return t.toISOString().slice(0, 10);
 }
 
-/** Port of web.py pick_flights (active window: STD within ±1h) used by pick_notice_flights. */
+const OPS_BACK_H = 6, OPS_AHEAD_H = 24;
+
+/** Port of web.py in_ops_window: STD in [now-6h, now+24h] with VN-day spill rules. */
+export function inOpsWindow(f: Flight, now = new Date()): boolean {
+  if (!f.std) return false;
+  const std = f.std.getTime();
+  const lo = now.getTime() - OPS_BACK_H * 3600e3;
+  const hi = now.getTime() + OPS_AHEAD_H * 3600e3;
+  if (std < lo || std > hi) return false;
+  const stdDay = vnDate(f.std);
+  const nowDay = vnDate(now);
+  if (stdDay === nowDay) return true;
+  const yesterday = vnDate(new Date(now.getTime() - 24 * 3600e3));
+  const tomorrow = vnDate(new Date(now.getTime() + 24 * 3600e3));
+  if (stdDay === yesterday && std >= lo) return true;
+  if (stdDay === tomorrow && std <= hi) return true;
+  return false;
+}
+
+/** Port of web.py pick_flights (keeps bare numeric callsigns matching VJC + number). */
 export function pickFlights(flights: Flight[], callsigns: string[], todayOnly = true): Flight[] {
-  const needles = callsigns.map((c) => c.trim().toUpperCase()).filter(Boolean);
-  if (!needles.length) return [];
-  const now = Date.now();
+  const keep = new Set<string>();
+  for (const c of callsigns) {
+    const s = String(c || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+    if (!s) continue;
+    keep.add(/[A-Z]/.test(s) ? s : `VJC${s}`);
+  }
+  if (!keep.size) return [];
+  const now = new Date();
   return flights.filter((f) => {
-    const cs = f.callsign.toUpperCase();
-    if (!needles.some((n) => cs.includes(n))) return false;
-    if (!todayOnly) return true;
-    if (!f.std) return false;
-    const diffH = Math.abs(f.std.getTime() - now) / 3600e3;
-    return diffH <= 25; // "quá STD 1 giờ" window handled by caller's active_ids logic upstream in web.py pick_flights; keep generous match here
+    if (!keep.has(f.callsign.toUpperCase())) return false;
+    if (todayOnly && !inOpsWindow(f, now)) return false;
+    return true;
   });
 }
 
