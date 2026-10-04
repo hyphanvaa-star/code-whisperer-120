@@ -134,33 +134,36 @@ function decodeCsv(buf: ArrayBuffer): string {
   }
 }
 
+// SheetJS reads cached values (like openpyxl data_only=True) and tolerates
+// files with pictures/drawings/odd styles that crash ExcelJS.
 async function rawXlsx(buf: ArrayBuffer): Promise<Array<[string, unknown[][]]>> {
-  const ExcelJS = await (await import("@/lib/exceljs-load")).loadExcelJS();
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buf);
+  const XLSX = await import("xlsx");
+  let wb;
+  try {
+    wb = XLSX.read(new Uint8Array(buf), { type: "array", cellDates: true, cellStyles: false, bookVBA: false });
+  } catch (e) {
+    throw new ExcelError(`File Excel bị hỏng hoặc không đúng định dạng: ${(e as Error).message}`);
+  }
   const out: Array<[string, unknown[][]]> = [];
-  wb.eachSheet((ws) => {
-    const rows: unknown[][] = [];
-    let i = 0;
-    ws.eachRow({ includeEmpty: true }, (row) => {
-      if (i >= MAX_ROWS) return;
-      const vals: unknown[] = [];
-      const cellCount = Math.max(row.cellCount, ws.columnCount);
-      for (let c = 1; c <= cellCount; c++) {
-        const cell = row.getCell(c);
-        let v: unknown = cell.value;
-        if (v && typeof v === "object" && "result" in (v as Record<string, unknown>)) {
-          v = (v as Record<string, unknown>)["result"];
-        } else if (v && typeof v === "object" && "text" in (v as Record<string, unknown>)) {
-          v = (v as Record<string, unknown>)["text"];
-        }
-        vals.push(v === undefined ? null : v);
-      }
-      rows.push(vals);
-      i++;
+  for (const name of wb.SheetNames) {
+    const ws = wb.Sheets[name];
+    if (!ws || !ws["!ref"]) {
+      out.push([name, []]);
+      continue;
+    }
+    const range = XLSX.utils.decode_range(ws["!ref"]);
+    range.s.r = 0;
+    range.s.c = 0;
+    if (range.e.r >= MAX_ROWS) range.e.r = MAX_ROWS - 1;
+    const rows = XLSX.utils.sheet_to_json<unknown[]>(ws, {
+      header: 1,
+      raw: true,
+      defval: null,
+      blankrows: true,
+      range,
     });
-    out.push([ws.name, rows]);
-  });
+    out.push([name, rows.map((r) => r.map((v) => (v === undefined ? null : v)))]);
+  }
   return out;
 }
 
