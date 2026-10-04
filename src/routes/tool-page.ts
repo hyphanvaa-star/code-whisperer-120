@@ -504,8 +504,18 @@ header .hstat > span *,.head-ops .xls-name *{color:var(--pp-ink) !important;-web
   box-shadow:inset 0 -3px 0 #FFC900 !important;
 }
 .mode.on::after{display:none !important}
-/* Badge số: nằm trên, luôn hiện, không bị cắt */
-.mode-bang{z-index:20 !important}
+/* Badge số: nổi hẳn phía trên góc phải tab, nền vàng chữ đen để không lẫn vào nút đỏ */
+@keyframes pp-bang-blink{0%,100%{background:#FFC900;color:#1a1d24}50%{background:#fff;color:#c0362c}}
+.mode-bang,.mode .mode-bang{
+  top:-15px !important;left:auto !important;right:-8px !important;z-index:20 !important;
+  min-width:22px !important;height:20px !important;padding:0 6px !important;
+  background:#FFC900 !important;color:#1a1d24 !important;-webkit-text-fill-color:currentColor !important;
+  border:2px solid #fff !important;border-radius:10px !important;
+  font-size:11.5px !important;font-weight:800 !important;
+  box-shadow:0 2px 6px rgba(20,18,16,.25) !important;
+  animation:none !important;
+}
+#estBang.on,#genBang.att-wrong{animation:pp-bang-blink 1s ease-in-out infinite !important}
 .aside-head,.modes,.aside-head .modes{overflow:visible !important}
 /* Nút Board / Đêm cùng kiểu đỏ chữ trắng */
 header .theme-toggle,header #btnBoard,header #btnNight,header .board-btn,header .night-btn{
