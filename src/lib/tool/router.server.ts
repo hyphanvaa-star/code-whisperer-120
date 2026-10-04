@@ -19,6 +19,7 @@ import * as handover from "./handlers/handover.server";
 import * as pc from "./handlers/pc.server";
 import * as owa from "./handlers/owa.server";
 import * as crew from "./handlers/crew.server";
+import * as notamTrack from "./handlers/notam_track.server";
 import * as briefingRelease from "./handlers/briefing_release.server";
 
 const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, briefingRelease, swap, autoload, misc, handover, pc, owa, crew];
