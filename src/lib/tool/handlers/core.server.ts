@@ -5,7 +5,8 @@ import { attchCheck, attchContext, type AttchCtx, type AttchResult } from "../po
 import { checkFlightLimits, needsOfpLimitCheck, type LimitsData } from "../port/limits_check";
 import { ofpAckNeeded } from "../port/verify";
 import { adviceForFlight } from "../port/taf";
-import { getJson } from "../store.server";
+import { getJson, setJson } from "../store.server";
+import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
 
 const EMPTY_LIMITS: LimitsData = { aircraft: [], airports: [], curfew: [], special: [] };
 
@@ -204,6 +205,111 @@ function detail(f: Flight, crews: Flight["crews"]) {
   };
 }
 
+
+// ---------------- api/ofp.py get_weights_bulk / extra_status / omni (worker port) ----------------
+// Worker has no local disk cache keyed by PDF hash, so we cache the parsed
+// Weights dict per sector id in app_settings with a 10-minute TTL instead of
+// web.py's on-disk {id}.json + pdf-hash check. cache=1 (revalidate=false in
+// Python) reuses that cache without hitting FliteBrief; otherwise we always
+// fetch fresh, same as web.py's default revalidate=True.
+const OFP_WEIGHTS_TTL_MS = 10 * 60 * 1000;
+
+interface CachedWeights {
+  w: Record<string, unknown>;
+  at: number;
+}
+
+function planKeyOf(v: unknown): string {
+  const s = String(v ?? "").trim();
+  return /^\d+$/.test(s) ? String(parseInt(s, 10)) : s;
+}
+
+/** Port of web.py `ofp.cache_stale_vs_gantt`. */
+function cacheStaleVsGantt(w: Record<string, unknown> | null, flight: Flight | undefined | null): boolean {
+  if (w == null || flight == null) return false;
+  const fp = planKeyOf(flight.plan_no);
+  const wp = planKeyOf(w["plan_no"]);
+  if (fp && wp && fp !== wp) return true;
+  const gtow = flight.planned_takeoff_weight;
+  const glwt = flight.landing_weight;
+  const tow = w["tow"] as number | null;
+  const lwt = w["lwt"] as number | null;
+  if (gtow && tow != null && Math.abs(Number(tow) - Number(gtow)) > 1) return true;
+  if (glwt && lwt != null && Math.abs(Number(lwt) - Number(glwt)) > 1) return true;
+  return false;
+}
+
+async function fetchOneWeight(
+  ctx: Parameters<Routes["GET /api/weights"]>[0],
+  sectorId: number,
+  revalidate: boolean,
+): Promise<Record<string, unknown> | null> {
+  const key = `ofp.w.${sectorId}`;
+  if (!revalidate) {
+    const cached = await getJson<CachedWeights | null>(ctx, key, null);
+    if (cached && Date.now() - cached.at < OFP_WEIGHTS_TTL_MS) return cached.w;
+  }
+  const readCacheFallback = async (): Promise<Record<string, unknown> | null> => {
+    const cached = await getJson<CachedWeights | null>(ctx, key, null);
+    return cached ? cached.w : null;
+  };
+  try {
+    const { fbGet } = await import("@/lib/flitebrief.server");
+    const res = await fbGet(`/webapi/sectors/${sectorId}/ofp`, "application/pdf");
+    if (!res.ok || res.status === 204) return readCacheFallback();
+    const buf = await res.arrayBuffer();
+    if (!buf.byteLength) return readCacheFallback();
+    let w: Weights;
+    try {
+      w = await parseWeights(buf, sectorId);
+    } catch (exc) {
+      if (exc instanceof OfpError) return readCacheFallback();
+      throw exc;
+    }
+    const dict = w.toDict();
+    await setJson(ctx, key, { w: dict, at: Date.now() } satisfies CachedWeights);
+    return dict;
+  } catch {
+    return readCacheFallback();
+  }
+}
+
+/** Port of web.py `api.ofp.get_weights_bulk` (network part only — no JetPlan/PCR, ported elsewhere if needed). */
+async function getWeightsBulk(
+  ctx: Parameters<Routes["GET /api/weights"]>[0],
+  sectorIds: number[],
+  revalidate: boolean,
+): Promise<Map<number, Record<string, unknown>>> {
+  const ids = Array.from(new Set(sectorIds));
+  const out = new Map<number, Record<string, unknown>>();
+  const CONCURRENCY = 6;
+  let next = 0;
+  async function worker() {
+    while (next < ids.length) {
+      const i = next++;
+      const sectorId = ids[i]!;
+      const w = await fetchOneWeight(ctx, sectorId, revalidate);
+      if (w) out.set(sectorId, w);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, ids.length) }, () => worker()));
+  return out;
+}
+
+/** Port of web.py `_limits_revision()` — mtime of limits.json. We store limits
+ * in app_settings instead of a file, so use that row's updated_at as the
+ * revision marker (falls back to "0" like a missing file). */
+async function limitsRevision(ctx: Parameters<Routes["GET /api/weights"]>[0]): Promise<string> {
+  try {
+    const { data } = await ctx.supabase.from("app_settings").select("updated_at").eq("key", "limits").maybeSingle();
+    return data?.updated_at ? String(new Date(data.updated_at as string).getTime() / 1000) : "0";
+  } catch {
+    return "0";
+  }
+}
+
+const OMNI_NO_ACCOUNT_ERROR = { error: "Chưa có tài khoản Omni — nhờ quản trị lưu tài khoản." };
+
 // Port of the web.py endpoints for group "core". Keep JSON shapes identical to web.py.
 export const routes: Routes = {
   // Web app has real login, so the local passcode gate is always open.
@@ -216,6 +322,76 @@ export const routes: Routes = {
   "POST /api/tab-close": () => ({ ok: true }),
   "POST /api/quit": () => ({ ok: true }),
   "POST /api/stop": () => ({ ok: true }),
+  "GET /api/extra": () => ({ ready: false, count: 0, times: {} }),
+  "GET /api/est/status": () => ({ total: 0, at: null }),
+  "GET /api/est/refresh": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
+  "POST /api/est/refresh": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
+  "GET /api/est/match": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
+  "POST /api/est/match": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
+  "GET /api/weights": async (ctx) => {
+    const { params } = ctx;
+    const ids = (params.get("ids") || "")
+      .split(",")
+      .map((x) => x.trim())
+      .filter((x) => /^\d+$/.test(x))
+      .map((x) => Number(x));
+    if (!ids.length) return { weights: {}, limit_warns: {} };
+    if (ids.length > 200) return { error: "tối đa 200 sector mỗi lô" };
+
+    const days = parseInt(params.get("days") || "1", 10) || 1;
+    const flights = await loadFlights(days);
+    const fetchable = new Set(
+      flights.filter((f) => ["REL", "PEN", "PRO"].includes((f.ofp_status || "").trim().toUpperCase()) || f.has_ofp).map((f) => f.id),
+    );
+    const want = ids.filter((i) => fetchable.has(i));
+    const byId = new Map(flights.filter((f) => want.includes(f.id)).map((f) => [f.id, f] as const));
+    const asked = new Set(ids);
+    const planNow: Record<string, { ofp: string; reg: string }> = {};
+    for (const f of flights) if (asked.has(f.id)) planNow[String(f.id)] = { ofp: f.ofp_status || "", reg: f.reg || "" };
+
+    const useCacheOnly = params.get("cache") === "1";
+    const limits = await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS);
+    const rev = await limitsRevision(ctx);
+
+    let ws: Map<number, Record<string, unknown>>;
+    try {
+      ws = want.length ? await getWeightsBulk(ctx, want, !useCacheOnly) : new Map();
+    } catch (exc) {
+      return {
+        weights: {},
+        margin_kg: MARGIN_KG,
+        no_ofp: ids.filter((i) => !fetchable.has(i)),
+        ofp_failed: want,
+        plan_now: planNow,
+        limit_warns: {},
+        limit_revision: rev,
+        ofp_note: exc instanceof Error ? exc.message : String(exc),
+      };
+    }
+
+    const limitWarns: Record<string, unknown> = {};
+    const payload: Record<string, Record<string, unknown>> = {};
+    for (const [sectorId, wdict] of ws) {
+      const d: Record<string, unknown> = { ...wdict };
+      const flight = byId.get(sectorId);
+      const stale = cacheStaleVsGantt(wdict, flight);
+      if (stale) d["cfp_mismatch"] = true;
+      payload[String(sectorId)] = d;
+      if (!flight || stale) continue;
+      const warns = checkFlightLimits(flight, limits, wdict);
+      limitWarns[String(sectorId)] = warns;
+    }
+
+    return {
+      weights: payload,
+      margin_kg: MARGIN_KG,
+      no_ofp: ids.filter((i) => !fetchable.has(i)),
+      ofp_failed: want.filter((i) => !ws.has(i)),
+      plan_now: planNow,
+      limit_warns: limitWarns,
+      limit_revision: rev,
+    };
+  },
   "GET /api/dispatchers": async ({ params }) => {
     const days = parseInt(params.get("days") || "1", 10) || 1;
     const flights = await loadFlights(days);
