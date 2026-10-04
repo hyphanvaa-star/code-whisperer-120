@@ -232,8 +232,7 @@ function Handover() {
 }
 
 async function exportXlsx(p: { shift: string; date: string; dsp: string; toDsp: string; rows: HandoverRow[] }) {
-  const _xlMod = await import("exceljs");
-  const ExcelJS = (_xlMod.default ?? _xlMod) as typeof _xlMod;
+  const ExcelJS = await (await import("@/lib/exceljs-load")).loadExcelJS();
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Sheet1");
   const headers = ["CHUYẾN BAY", "DEP", "ARR", "A/C", "STD", "STA", "PAYLOAD", "EXTRA FUEL", "ATC FILING", "EZFW", "ATFM FILLING", "NOTE"];
