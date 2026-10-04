@@ -137,10 +137,10 @@ header .hstat,header .head-ops,header .md-hang,header .crew-jobs,header .quit-so
 header .hstat > button,header .md-chochin{order:3 !important}
 header .xls-name{order:3 !important}
 header .live-ops{order:3 !important}
-header #btnOfpCheck{order:4 !important}
+header #btnOfpCheck#btnOfpCheck{order:4 !important}
 header #ofpCheckStat{order:5 !important}
 header #btnQuit{display:none !important}
-header #aiFab{order:6 !important}
+header #aiFab#aiFab{order:6 !important}
 header .hdr-switch{order:7 !important;margin:0 !important}
 header .theme-switch{order:8 !important;margin:0 !important}
 header .brand h1{
