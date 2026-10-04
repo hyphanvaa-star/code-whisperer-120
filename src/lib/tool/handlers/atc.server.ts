@@ -135,7 +135,7 @@ export const jobs: Jobs = {
         emit({ type: "line", text, cls: "sys" }),
       );
       for (const r of results) {
-        if (r.ok) emit({ type: "line", text: `✓ ${r.callsign}: ${r.status ?? "?"}${r.flight_time ? " · " + r.flight_time : ""}`, cls: "ok" });
+        if (r.ok) emit({ type: "line", text: `✓ ${r.callsign}: ${r.status ?? "?"} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"} · DOF ${r.dof ?? "?"}`, cls: "ok" });
         else emit({ type: "line", text: `✗ ${r.callsign}: ${r.error ?? "lỗi"}`, cls: "bad" });
       }
       const ok = results.filter((r) => r.ok).length;
