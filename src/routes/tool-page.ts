@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import icaoCountries from "@/lib/tool/data/icao-countries.json";
 import dispatchSkyHeader from "@/assets/dispatch-sky-header.jpg";
+import headerReference from "@/assets/dispatch-header-reference.jpg.asset.json";
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that (1) skips the local passcode gate because the web app has real login,
@@ -812,10 +813,10 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 /* ================= HEADER OPS — thành phần thật, bố cục theo ảnh tham chiếu ================= */
 header#mdRoom{
   position:relative !important;
-  min-height:232px !important;height:232px !important;padding:0 !important;box-sizing:border-box !important;
+  min-height:229px !important;height:229px !important;padding:0 !important;box-sizing:border-box !important;
   display:block !important;overflow:hidden !important;
-  background-color:var(--x-bg) !important;background-image:linear-gradient(90deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.74) 38%,rgba(255,255,255,.42) 66%,rgba(255,255,255,.76) 100%),var(--dispatch-sky) !important;
-  background-position:center 47% !important;background-size:cover !important;background-repeat:no-repeat !important;
+  background-color:#fff !important;background-image:var(--header-reference) !important;
+  background-position:center center !important;background-size:100% 100% !important;background-repeat:no-repeat !important;
   border:0 !important;box-shadow:0 8px 22px rgba(20,36,52,.18) !important;
 }
 header#mdRoom .hdr-sky,header#mdRoom .brand-peek,header#mdRoom .room,header#mdRoom .rays,
@@ -829,26 +830,26 @@ header#mdRoom .hishaku,header#mdRoom .wagashi,header#mdRoom .yunomi,header#mdRoo
 header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom .md-sign,
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
-header#mdRoom::after{content:"";position:absolute;inset:auto 0 0;height:4px;background:linear-gradient(90deg,var(--x-red) 0 72%,var(--x-yel) 72% 100%);z-index:30}
+.ops-header-brand,.ops-header-title{display:none !important}
 .ops-header-brand{position:absolute;left:2.1%;top:20px;width:270px;height:70px;z-index:16;color:var(--x-red);text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:flex-end;gap:9px}.ops-vj-mark strong{font:900 25px/1 var(--x-sans);font-style:italic;color:var(--x-red);letter-spacing:0}.ops-vj-mark span{font:800 9px/1.15 var(--x-sans);max-width:74px;padding-bottom:2px;color:var(--x-ink)}
 .ops-header-brand small{display:block;width:238px;margin-top:8px;padding:5px 8px;border-left:5px solid var(--x-yel);background:var(--x-red);color:#fff;font:800 8px/1 var(--x-sans);letter-spacing:.08em}
 .ops-header-title{position:absolute;left:50%;top:20px;z-index:16;transform:translateX(-50%);text-align:center;text-transform:uppercase;white-space:nowrap}
 .ops-header-title strong{display:block;color:var(--x-red);font:900 29px/1 var(--x-sans);letter-spacing:0}.ops-header-title span{display:block;margin-top:7px;color:var(--x-ink);font:700 9px/1 var(--x-sans);letter-spacing:.14em}
-.ops-header-live{position:absolute;right:2.1%;top:13px;height:70px;display:flex;align-items:center;gap:18px;z-index:21;color:var(--x-ink)}
+.ops-header-live{position:absolute;right:1.4%;top:12px;height:64px;display:flex;align-items:center;gap:13px;z-index:24;color:var(--x-ink);padding:4px 7px 4px 12px;border-radius:10px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px)}
 .ops-weather{display:grid;grid-template-columns:30px auto auto;align-items:center;gap:8px;padding-right:18px;border-right:1px solid rgba(20,36,52,.2)}.ops-weather-icon{font-size:25px}.ops-weather>strong{font:800 21px/1 var(--x-sans);color:var(--x-red)}.ops-weather>span:last-child{display:flex;flex-direction:column;gap:4px}.ops-weather b,.ops-weather small{font:800 8px/1 var(--x-sans);letter-spacing:.06em}.ops-weather small{font-weight:600;color:var(--x-mute);text-transform:none}
 .ops-clock{display:flex;flex-direction:column;align-items:flex-end;min-width:82px}.ops-clock strong{font:800 24px/1 var(--x-mono);color:var(--x-ink)}.ops-clock span{margin-top:6px;font:700 8px/1 var(--x-sans);color:var(--x-red)}
 .ops-avatar{width:34px;height:34px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:var(--x-red);box-shadow:0 2px 8px rgba(20,36,52,.2);color:#fff;font:800 11px var(--x-sans)}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
-  display:block !important;position:absolute !important;left:2.1% !important;top:101px !important;
-  width:68.8% !important;height:103px !important;padding:0 !important;margin:0 !important;z-index:12 !important;
+  display:block !important;position:absolute !important;left:10.42% !important;top:43.93% !important;
+  width:50.73% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:12 !important;
 }
 header#mdRoom .md-denpyo{
-  display:grid !important;grid-template-columns:1.15fr 1fr .82fr .82fr .95fr 1.2fr !important;
-  align-items:center !important;gap:0 12px !important;width:100% !important;height:100% !important;
-  padding:19px 21px !important;margin:0 !important;background:rgba(255,255,255,.95) !important;
-  border:1px solid rgba(255,255,255,.9) !important;border-radius:12px !important;box-shadow:0 10px 28px rgba(20,36,52,.13) !important;backdrop-filter:blur(12px) !important;position:relative !important;
+  display:grid !important;grid-template-columns:1.22fr .95fr .9fr .9fr 1fr 1.32fr !important;
+  align-items:end !important;gap:0 10px !important;width:100% !important;height:100% !important;
+  padding:15px 16px 11px 21px !important;margin:0 !important;background:transparent !important;
+  border:0 !important;border-radius:0 !important;box-shadow:none !important;backdrop-filter:none !important;position:relative !important;
 }
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
@@ -864,28 +865,28 @@ header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
-  display:block !important;font-size:9px !important;line-height:1 !important;margin:0 0 9px !important;
-  font-weight:800 !important;letter-spacing:.04em !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;
+  display:block !important;font-size:8px !important;line-height:1 !important;margin:0 0 7px !important;
+  font-weight:800 !important;letter-spacing:0 !important;color:transparent !important;opacity:0 !important;text-transform:uppercase !important;
 }
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
-  width:100% !important;height:35px !important;border:1px solid rgba(227,25,55,.28) !important;border-radius:7px !important;
+  width:100% !important;height:30px !important;border:1px solid rgba(227,25,55,.32) !important;border-radius:7px !important;
   background:#fff !important;box-shadow:0 2px 7px rgba(22,38,53,.05) !important;font:800 11px var(--x-sans) !important;
   color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;padding:0 10px !important;
 }
 header#mdRoom #fDispatcher{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border-color:rgba(227,25,55,.72) !important}
 header#mdRoom input::placeholder{color:rgba(227,25,55,.45) !important;-webkit-text-fill-color:rgba(227,25,55,.45) !important}
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
-header#mdRoom .md-denpyo .md-row:not(.line){height:53px !important}
+header#mdRoom .md-denpyo .md-row:not(.line){height:43px !important}
 header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{display:none !important}
 /* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
-  position:absolute !important;top:156px !important;right:2.1% !important;bottom:auto !important;left:auto !important;
-  display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:8px !important;align-items:stretch !important;
-  width:24.6% !important;height:48px !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:20 !important;
+  position:absolute !important;top:60.66% !important;right:.68% !important;bottom:auto !important;left:auto !important;
+  display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:.5% !important;align-items:stretch !important;
+  width:15.67% !important;height:28.2% !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:20 !important;
 }
 header#mdRoom .filt-actions .btn{
-  height:100% !important;min-width:0 !important;padding:4px !important;border:1px solid rgba(227,25,55,.42) !important;border-radius:7px !important;
+  height:100% !important;min-width:0 !important;padding:3px !important;border:1px solid rgba(227,25,55,.42) !important;border-radius:8px !important;
   background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
   box-shadow:0 3px 10px rgba(22,38,53,.08) !important;font:800 9px var(--x-sans) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
@@ -914,16 +915,16 @@ header#mdRoom .head-right{
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat,header#mdRoom #btnQuit{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  position:absolute !important;top:101px !important;width:5.65% !important;height:47px !important;min-width:0 !important;
-  margin:0 !important;padding:4px !important;border-radius:7px !important;box-shadow:0 3px 10px rgba(22,38,53,.08) !important;
+  position:absolute !important;top:39.34% !important;width:3.7% !important;height:21.64% !important;min-width:0 !important;
+  margin:0 !important;padding:3px !important;border-radius:8px !important;box-shadow:0 3px 10px rgba(22,38,53,.08) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
   background:#fff !important;border:1px solid rgba(227,25,55,.42) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
   opacity:1 !important;pointer-events:auto !important;cursor:pointer !important;
 }
-header#mdRoom #btnOfpCheck{left:73.3% !important}
-header#mdRoom .hdr-switch{left:79.65% !important;right:auto !important;transform:none !important;visibility:visible !important}
-header#mdRoom .theme-switch{left:86% !important;right:auto !important;transform:none !important;visibility:visible !important}
-header#mdRoom #aiFab{left:92.35% !important;right:auto !important}
+header#mdRoom #btnOfpCheck{left:83.14% !important}
+header#mdRoom .hdr-switch{left:87.07% !important;right:auto !important;transform:none !important;visibility:visible !important}
+header#mdRoom .theme-switch{left:91.02% !important;right:auto !important;transform:none !important;visibility:visible !important}
+header#mdRoom #aiFab{left:94.95% !important;right:auto !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
 header#mdRoom #aiFab::before{content:"✦" !important;width:auto !important;height:auto !important;border-radius:0 !important;background:none !important;color:var(--x-red) !important;font-size:14px !important}
 header#mdRoom #aiFab .n{font-size:9px !important;font-weight:800 !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
@@ -932,7 +933,7 @@ header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
 header#mdRoom .hdr-switch::before{content:"▦" !important}header#mdRoom .theme-switch::before{content:"◐" !important}header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;width:auto !important;height:auto !important;font-size:15px !important;line-height:1 !important;flex:none !important;background:none !important;color:var(--x-red) !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:9px !important;font-weight:800 !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;opacity:1 !important;text-transform:uppercase !important}
-.aside-head{top:240px !important}
+.aside-head{top:237px !important}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
@@ -948,7 +949,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--header-reference:url("${headerReference.url}")}</style>` + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
     .replace(
       "const AP_EXACT = {",
