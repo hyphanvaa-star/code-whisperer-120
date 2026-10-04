@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import icaoCountries from "@/lib/tool/data/icao-countries.json";
 import dispatchSkyHeader from "@/assets/dispatch-sky-header.jpg";
-import headerReference from "@/assets/dispatch-header-reference.jpg.asset.json";
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that (1) skips the local passcode gate because the web app has real login,
@@ -67,6 +66,31 @@ const SHIM = `<script>
   window.addEventListener('load', function(){
     var room=document.getElementById('mdRoom'), actions=document.querySelector('.filt-actions');
     if(room && actions && actions.parentElement!==room) room.appendChild(actions);
+    if(room && !document.getElementById('opsHeaderBrand')){
+      var brand=document.createElement('div');
+      brand.id='opsHeaderBrand'; brand.className='ops-header-brand';
+      brand.innerHTML='<div class="ops-vj-mark"><strong>vietjetAir.com</strong><span>OPERATION CONTROL</span></div><small>SAFE FLIGHT · ON TIME · TOGETHER</small>';
+      var title=document.createElement('div');
+      title.className='ops-header-title';
+      title.innerHTML='<strong>DISPATCH BOARD</strong><span>A product by Rosie</span>';
+      var live=document.createElement('div');
+      live.className='ops-header-live';
+      live.innerHTML='<div class="ops-weather" title="Thời tiết hiện tại tại TP. Hồ Chí Minh"><span class="ops-weather-icon">☀</span><strong id="opsWeatherTemp">--°C</strong><span><b>HO CHI MINH</b><small id="opsWeatherText">Đang cập nhật…</small></span></div><div class="ops-clock" title="Giờ địa phương TP. Hồ Chí Minh"><strong id="opsClockTime">--:--</strong><span id="opsClockDate">-- --- ----</span></div><div class="ops-avatar" title="Tài khoản đang đăng nhập">JH</div>';
+      room.appendChild(brand); room.appendChild(title); room.appendChild(live);
+      var tick=function(){
+        var now=new Date();
+        var parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',hour:'2-digit',minute:'2-digit',hour12:false}).format(now);
+        var date=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Ho_Chi_Minh',day:'2-digit',month:'short',year:'numeric'}).format(now).toUpperCase();
+        var t=document.getElementById('opsClockTime'),d=document.getElementById('opsClockDate'); if(t)t.textContent=parts;if(d)d.textContent=date;
+      };
+      tick(); setInterval(tick,1000);
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=10.8231&longitude=106.6297&current=temperature_2m,weather_code&timezone=Asia%2FBangkok').then(function(r){return r.json()}).then(function(w){
+        var cur=w&&w.current;if(!cur)return;var code=Number(cur.weather_code),label=code===0?'Trời quang':code<4?'Có mây':code<50?'Sương mù':code<70?'Có mưa':code<80?'Mưa rào':code<90?'Mưa lớn':'Dông';
+        var icon=code===0?'☀':code<4?'⛅':code<50?'☁':code<90?'🌧':'⛈';
+        var temp=document.getElementById('opsWeatherTemp'),text=document.getElementById('opsWeatherText'),ico=room.querySelector('.ops-weather-icon');
+        if(temp)temp.textContent=Math.round(Number(cur.temperature_2m))+'°C';if(text)text.textContent=label;if(ico)ico.textContent=icon;
+      }).catch(function(){var text=document.getElementById('opsWeatherText');if(text)text.textContent='Chưa có dữ liệu';});
+    }
     fit(); setTimeout(fit, 800); setTimeout(fit, 2500);
   });
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', fit); } else { fit(); }
@@ -785,13 +809,13 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 .toolbar .btn:hover,.toolbars .btn:hover,.subtabs .btn:hover,.sheet .btn:hover,.lim-pane .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 .xt-kg{min-width:0 !important}.xt-min{margin-right:3px !important;min-width:30px !important;padding:0 3px !important}td.extra-cell{overflow:hidden !important;white-space:nowrap !important}
 
-/* ================= HEADER OPS — dựng đúng ảnh mẫu người dùng cung cấp ================= */
+/* ================= HEADER OPS — thành phần thật, bố cục theo ảnh tham chiếu ================= */
 header#mdRoom{
   position:relative !important;
-  min-height:229px !important;height:229px !important;padding:0 !important;box-sizing:border-box !important;
+  min-height:232px !important;height:232px !important;padding:0 !important;box-sizing:border-box !important;
   display:block !important;overflow:hidden !important;
-  background-color:#fff !important;background-image:var(--header-reference) !important;
-  background-position:center center !important;background-size:100% 100% !important;background-repeat:no-repeat !important;
+  background-color:var(--x-bg) !important;background-image:linear-gradient(90deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.74) 38%,rgba(255,255,255,.42) 66%,rgba(255,255,255,.76) 100%),var(--dispatch-sky) !important;
+  background-position:center 47% !important;background-size:cover !important;background-repeat:no-repeat !important;
   border:0 !important;box-shadow:0 8px 22px rgba(20,36,52,.18) !important;
 }
 header#mdRoom .hdr-sky,header#mdRoom .brand-peek,header#mdRoom .room,header#mdRoom .rays,
@@ -805,16 +829,26 @@ header#mdRoom .hishaku,header#mdRoom .wagashi,header#mdRoom .yunomi,header#mdRoo
 header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom .md-sign,
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
-/* Ô lọc thật phủ đúng lên sáu ô trong ảnh; nền ảnh giữ nguyên phần nhãn và khung. */
+header#mdRoom::after{content:"";position:absolute;inset:auto 0 0;height:4px;background:linear-gradient(90deg,var(--x-red) 0 72%,var(--x-yel) 72% 100%);z-index:30}
+.ops-header-brand{position:absolute;left:2.1%;top:20px;width:270px;height:70px;z-index:16;color:var(--x-red);text-transform:uppercase}
+.ops-vj-mark{display:flex;align-items:flex-end;gap:9px}.ops-vj-mark strong{font:900 25px/1 var(--x-sans);font-style:italic;color:var(--x-red);letter-spacing:0}.ops-vj-mark span{font:800 9px/1.15 var(--x-sans);max-width:74px;padding-bottom:2px;color:var(--x-ink)}
+.ops-header-brand small{display:block;width:238px;margin-top:8px;padding:5px 8px;border-left:5px solid var(--x-yel);background:var(--x-red);color:#fff;font:800 8px/1 var(--x-sans);letter-spacing:.08em}
+.ops-header-title{position:absolute;left:50%;top:20px;z-index:16;transform:translateX(-50%);text-align:center;text-transform:uppercase;white-space:nowrap}
+.ops-header-title strong{display:block;color:var(--x-red);font:900 29px/1 var(--x-sans);letter-spacing:0}.ops-header-title span{display:block;margin-top:7px;color:var(--x-ink);font:700 9px/1 var(--x-sans);letter-spacing:.14em}
+.ops-header-live{position:absolute;right:2.1%;top:13px;height:70px;display:flex;align-items:center;gap:18px;z-index:21;color:var(--x-ink)}
+.ops-weather{display:grid;grid-template-columns:30px auto auto;align-items:center;gap:8px;padding-right:18px;border-right:1px solid rgba(20,36,52,.2)}.ops-weather-icon{font-size:25px}.ops-weather>strong{font:800 21px/1 var(--x-sans);color:var(--x-red)}.ops-weather>span:last-child{display:flex;flex-direction:column;gap:4px}.ops-weather b,.ops-weather small{font:800 8px/1 var(--x-sans);letter-spacing:.06em}.ops-weather small{font-weight:600;color:var(--x-mute);text-transform:none}
+.ops-clock{display:flex;flex-direction:column;align-items:flex-end;min-width:82px}.ops-clock strong{font:800 24px/1 var(--x-mono);color:var(--x-ink)}.ops-clock span{margin-top:6px;font:700 8px/1 var(--x-sans);color:var(--x-red)}
+.ops-avatar{width:34px;height:34px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:var(--x-red);box-shadow:0 2px 8px rgba(20,36,52,.2);color:#fff;font:800 11px var(--x-sans)}
+/* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
-  display:block !important;position:absolute !important;left:10.42% !important;top:43.93% !important;
-  width:50.73% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:12 !important;
+  display:block !important;position:absolute !important;left:2.1% !important;top:101px !important;
+  width:68.8% !important;height:103px !important;padding:0 !important;margin:0 !important;z-index:12 !important;
 }
 header#mdRoom .md-denpyo{
-  display:grid !important;grid-template-columns:1.22fr .95fr .9fr .9fr 1fr 1.32fr !important;
-  align-items:end !important;gap:0 10px !important;width:100% !important;height:100% !important;
-  padding:15px 16px 11px 21px !important;margin:0 !important;background:transparent !important;
-  border:0 !important;border-radius:0 !important;box-shadow:none !important;backdrop-filter:none !important;position:relative !important;
+  display:grid !important;grid-template-columns:1.15fr 1fr .82fr .82fr .95fr 1.2fr !important;
+  align-items:center !important;gap:0 12px !important;width:100% !important;height:100% !important;
+  padding:19px 21px !important;margin:0 !important;background:rgba(255,255,255,.95) !important;
+  border:1px solid rgba(255,255,255,.9) !important;border-radius:12px !important;box-shadow:0 10px 28px rgba(20,36,52,.13) !important;backdrop-filter:blur(12px) !important;position:relative !important;
 }
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
@@ -830,34 +864,37 @@ header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
-  display:block !important;font-size:8px !important;line-height:1 !important;margin:0 0 7px !important;
-  font-weight:800 !important;letter-spacing:0 !important;color:transparent !important;opacity:0 !important;text-transform:uppercase !important;
+  display:block !important;font-size:9px !important;line-height:1 !important;margin:0 0 9px !important;
+  font-weight:800 !important;letter-spacing:.04em !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;
 }
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
-  width:100% !important;height:30px !important;border:1px solid rgba(202,207,213,.55) !important;border-radius:7px !important;
-  background:rgba(255,255,255,.98) !important;box-shadow:0 2px 8px rgba(22,38,53,.05) !important;font:700 11px var(--x-sans) !important;
-  color:#5f6268 !important;-webkit-text-fill-color:#5f6268 !important;padding:0 10px !important;
+  width:100% !important;height:35px !important;border:1px solid rgba(227,25,55,.28) !important;border-radius:7px !important;
+  background:#fff !important;box-shadow:0 2px 7px rgba(22,38,53,.05) !important;font:800 11px var(--x-sans) !important;
+  color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;padding:0 10px !important;
 }
 header#mdRoom #fDispatcher{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border-color:rgba(227,25,55,.72) !important}
 header#mdRoom input::placeholder{color:rgba(227,25,55,.45) !important;-webkit-text-fill-color:rgba(227,25,55,.45) !important}
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
-header#mdRoom .md-denpyo .md-row:not(.line){height:43px !important}
+header#mdRoom .md-denpyo .md-row:not(.line){height:53px !important}
 header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{display:none !important}
 /* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
-  position:absolute !important;top:60.66% !important;right:.68% !important;bottom:auto !important;left:auto !important;
-  display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:.5% !important;align-items:stretch !important;
-  width:15.67% !important;height:28.2% !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:20 !important;
+  position:absolute !important;top:156px !important;right:2.1% !important;bottom:auto !important;left:auto !important;
+  display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:8px !important;align-items:stretch !important;
+  width:24.6% !important;height:48px !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:20 !important;
 }
 header#mdRoom .filt-actions .btn{
-  height:100% !important;min-width:0 !important;padding:0 !important;border:0 !important;border-radius:8px !important;
-  background:transparent !important;color:transparent !important;-webkit-text-fill-color:transparent !important;
-  box-shadow:none !important;font-size:0 !important;
+  height:100% !important;min-width:0 !important;padding:4px !important;border:1px solid rgba(227,25,55,.42) !important;border-radius:7px !important;
+  background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
+  box-shadow:0 3px 10px rgba(22,38,53,.08) !important;font:800 9px var(--x-sans) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
-  text-transform:uppercase !important;letter-spacing:0 !important;opacity:.01 !important;cursor:pointer !important;
+  text-transform:uppercase !important;letter-spacing:0 !important;opacity:1 !important;cursor:pointer !important;
 }
-header#mdRoom .filt-actions .btn::before{display:none !important}
+header#mdRoom .filt-actions .btn::before{display:block !important;content:attr(data-ico) !important;font:700 15px/1 var(--x-sans) !important;color:var(--x-red) !important}
+header#mdRoom .filt-actions #btnAcc .who{display:block !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font:800 9px/1 var(--x-sans) !important}
+header#mdRoom .filt-actions .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important}header#mdRoom .filt-actions .btn:hover::before{color:#fff !important}
+header#mdRoom .filt-actions #btnAcc:hover .who{color:#fff !important;-webkit-text-fill-color:#fff !important}
 /* --- GIỮA: Dispatch Board --- */
 header#mdRoom .brand{
   display:none !important;
@@ -877,25 +914,25 @@ header#mdRoom .head-right{
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat,header#mdRoom #btnQuit{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  position:absolute !important;top:39.34% !important;width:3.7% !important;height:21.64% !important;min-width:0 !important;
-  margin:0 !important;padding:0 !important;border-radius:8px !important;box-shadow:none !important;
+  position:absolute !important;top:101px !important;width:5.65% !important;height:47px !important;min-width:0 !important;
+  margin:0 !important;padding:4px !important;border-radius:7px !important;box-shadow:0 3px 10px rgba(22,38,53,.08) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
-  background:transparent !important;border:0 !important;color:transparent !important;-webkit-text-fill-color:transparent !important;
-  opacity:.01 !important;pointer-events:auto !important;cursor:pointer !important;
+  background:#fff !important;border:1px solid rgba(227,25,55,.42) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
+  opacity:1 !important;pointer-events:auto !important;cursor:pointer !important;
 }
-header#mdRoom #btnOfpCheck{left:83.14% !important}
-header#mdRoom .hdr-switch{left:87.07% !important;right:auto !important;transform:none !important;visibility:visible !important}
-header#mdRoom .theme-switch{left:91.02% !important;right:auto !important;transform:none !important;visibility:visible !important}
-header#mdRoom #aiFab{left:94.95% !important;right:auto !important}
+header#mdRoom #btnOfpCheck{left:73.3% !important}
+header#mdRoom .hdr-switch{left:79.65% !important;right:auto !important;transform:none !important;visibility:visible !important}
+header#mdRoom .theme-switch{left:86% !important;right:auto !important;transform:none !important;visibility:visible !important}
+header#mdRoom #aiFab{left:92.35% !important;right:auto !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
-header#mdRoom #aiFab::before{width:15px !important;height:15px !important;border-radius:0 !important;background-color:#fff !important}
-header#mdRoom #aiFab .n{font-size:8.5px !important;font-weight:800 !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
-header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red-d) !important;transform:translateY(-1px) !important;box-shadow:0 4px 0 #8f1026 !important}
+header#mdRoom #aiFab::before{content:"✦" !important;width:auto !important;height:auto !important;border-radius:0 !important;background:none !important;color:var(--x-red) !important;font-size:14px !important}
+header#mdRoom #aiFab .n{font-size:9px !important;font-weight:800 !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
+header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important;box-shadow:0 6px 12px rgba(176,16,40,.2) !important}
 header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(2px) !important;box-shadow:0 1px 0 #8f1026 !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
-header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;width:15px !important;height:15px !important;font-size:15px !important;line-height:1 !important;flex:none !important;background-color:#fff !important;color:#fff !important}
-header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:8.5px !important;font-weight:800 !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:1 !important;text-transform:uppercase !important}
-.aside-head{top:237px !important}
+header#mdRoom .hdr-switch::before{content:"▦" !important}header#mdRoom .theme-switch::before{content:"◐" !important}header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;width:auto !important;height:auto !important;font-size:15px !important;line-height:1 !important;flex:none !important;background:none !important;color:var(--x-red) !important}
+header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:9px !important;font-weight:800 !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;opacity:1 !important;text-transform:uppercase !important}
+.aside-head{top:240px !important}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
@@ -911,7 +948,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--header-reference:url("${headerReference.url}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}")}</style>` + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
     .replace(
       "const AP_EXACT = {",

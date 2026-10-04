@@ -52,3 +52,4 @@
 - [ ] Redesign toàn bộ bảng + nút (hiện đại, chuyên nghiệp, sáng) — chờ user chọn phong cách; không Publish khi chưa được yêu cầu
 - [x] Đổi BỐ CỤC thật (không chỉ màu): tab thành menu dọc trái, header gọn 1 hàng
 - [x] Phác thảo thêm và áp mẫu phím vuông buồng lái, giữ Dispatch Board ở giữa
+- [x] Dựng header VietJet bằng thành phần thật: 6 bộ lọc, 8 nút, thời tiết TP.HCM và đồng hồ trực tiếp
