@@ -863,6 +863,27 @@ header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block 
   header#mdRoom .brand .sig{font-size:6px !important}
   header#mdRoom .head-right{position:static !important;right:auto !important;bottom:auto !important;z-index:auto !important;padding:8px !important}
 }
+@media(max-width:900px){
+  header#mdRoom{
+    height:166px !important;min-height:166px !important;padding:8px 10px !important;
+    grid-template-columns:184px minmax(0,1fr) !important;grid-template-rows:56px 86px !important;
+    gap:8px 10px !important;background-position:center !important;
+  }
+  header#mdRoom .brand{grid-column:1 !important;grid-row:1 !important;width:184px !important;height:56px !important;justify-self:start !important;box-shadow:5px 5px 0 rgba(125,20,39,.14) !important}
+  header#mdRoom .brand h1{font-size:17px !important}
+  header#mdRoom .brand .sig{font-size:5px !important;margin-top:4px !important}
+  header#mdRoom .brand-vj{font-size:6px !important;margin-top:3px !important}
+  header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:4px 6px !important;gap:5px !important;background:rgba(255,255,255,.84) !important}
+  header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{width:64px !important;min-width:64px !important;height:44px !important;padding:0 5px !important}
+  header#mdRoom #aiFab{width:78px !important;min-width:78px !important}
+  header#mdRoom .md-denpyo{grid-column:1 / -1 !important;grid-row:2 !important;grid-template-columns:112px minmax(0,1fr) !important;grid-template-rows:34px 32px !important;width:100% !important;height:86px !important;padding:7px 8px !important;gap:4px 7px !important}
+  header#mdRoom .md-denpyo .filt-rail{gap:5px !important;grid-template-columns:1.05fr .75fr .75fr .9fr 1.22fr !important}
+  header#mdRoom .md-denpyo .filt-actions{gap:5px !important}
+  header#mdRoom .filt-actions .btn{height:27px !important;min-width:62px !important;padding:0 7px !important;font-size:9px !important}
+  header#mdRoom input,header#mdRoom select{height:25px !important;font-size:9px !important}
+  header#mdRoom .field label{font-size:6px !important}
+  .aside-head{top:166px !important}
+}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
