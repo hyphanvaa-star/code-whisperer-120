@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import icaoCountries from "@/lib/tool/data/icao-countries.json";
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that (1) skips the local passcode gate because the web app has real login,
@@ -866,6 +867,24 @@ async function page(): Promise<string> {
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
+    .replace(
+      "const AP_EXACT = {",
+      `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
+    )
+    .replace(
+      '  let hit = AP_EXACT[c] || AP_META[c.slice(0, 2)];',
+      '  let hit = AP_EXACT[c] || AP_META[c.slice(0, 2)];\n'
+      + '  const airportIso = ICAO_COUNTRIES[c] || "";\n'
+      + '  if(airportIso && (!hit || hit[3] !== airportIso)){\n'
+      + '    let country = airportIso.toUpperCase();\n'
+      + '    try { country = new Intl.DisplayNames(["vi"], {type:"region"}).of(country) || country; } catch(e){}\n'
+      + '    hit = [country, "", hit ? hit[2] : "", airportIso];\n'
+      + '  }',
+    )
+    .replace(
+      'src="/static/flags/\' + iso + \'.png"',
+      'src="/static/flags/\' + iso + \'.svg"',
+    )
     .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night.png")
     // Xuất briefing: khi job xong có link tải, tự động tải ZIP về máy người dùng.
     .replace(
