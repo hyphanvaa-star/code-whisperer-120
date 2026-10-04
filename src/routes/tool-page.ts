@@ -752,12 +752,12 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 /* Bảng: không khối đỏ — đầu bảng trắng chữ đỏ, gạch đỏ; dòng thoáng phẳng */
 aside,main.split2{border-radius:12px !important;overflow:hidden}
 table thead th,table > tr:first-child > th,.tooltbl th{
-  background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
-  border-bottom:2px solid var(--x-red) !important;position:sticky;top:0;z-index:2;
+  background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border-bottom:2px solid var(--x-yel) !important;position:sticky;top:0;z-index:2;
 }
-table thead th *{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important}
+table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
 table tbody tr:nth-child(even) > td{background:#fff}
-table thead,table thead tr{background:#fff !important;background-image:none !important}
+
 table tbody td{border-bottom:1px solid var(--x-line2) !important}
 table tbody tr:hover > td{background:#FAFBFC !important}
 table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table tbody tr.selected > td{background:var(--x-red-50) !important}
