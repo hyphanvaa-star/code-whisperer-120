@@ -14,9 +14,9 @@ function offline() {
 
 export const routes: Routes = {
   // web.py "/api/owa/login" -> start_owa_login(): job id, streamed over /api/stream.
-  "POST /api/owa/login": async (ctx) => {
-    const agent = await pc.agentInfo(ctx);
-    if (!pc.agentOnline(agent)) return offline();
+  // Job tự thử đăng nhập thẳng từ máy chủ trước, chỉ cần trợ lý PC khi
+  // Microsoft từ chối đăng nhập từ xa (khoá tài khoản, ADFS, MFA).
+  "POST /api/owa/login": async (_ctx) => {
     return { id: jobId("owa_login", {}) };
   },
 
@@ -57,8 +57,6 @@ export const routes: Routes = {
     if (!callsigns.filter((c) => String(c || "").trim()).length) {
       return { error: "Chưa có số hiệu chuyến bay nào trong cột PIB/WX." };
     }
-    const agent = await pc.agentInfo(ctx);
-    if (!pc.agentOnline(agent)) return offline();
     const hours = Number(payload["hours"] ?? 10) || 10;
     const overwrite = !!payload["overwrite"];
     return { id: jobId("owa_pib", { callsigns, hours, overwrite }) };
