@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { timingSafeEqual } from "crypto";
 
-/** Shared-token check for the company-PC helper. */
+/** Shared-token check for the company-PC helper (reads env at call time). */
 function authorized(request: Request): boolean {
   const token = request.headers.get("x-pc-agent-token") ?? "";
   const want = process.env["PC_AGENT_TOKEN"] ?? "";
