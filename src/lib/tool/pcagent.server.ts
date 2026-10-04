@@ -64,6 +64,35 @@ export async function enqueue(kind: PcJobKind, payload: Record<string, unknown>)
   return (data as { id: string }).id;
 }
 
+/**
+ * Enqueue a job, reusing an identical pending/running job created within
+ * `windowMs` — collapses duplicate button clicks and open tabs into one PC
+ * task (e.g. several tabs polling /api/owa/fpl-watch, or two login attempts
+ * racing both opening a Chrome window on the company PC).
+ */
+export async function enqueueDeduped(
+  kind: PcJobKind,
+  payload: Record<string, unknown>,
+  windowMs = 15_000,
+): Promise<string> {
+  const a = await admin();
+  const since = new Date(Date.now() - windowMs).toISOString();
+  const { data, error } = await a
+    .from("pc_jobs")
+    .select("id, payload")
+    .eq("kind", kind)
+    .in("status", ["pending", "running"])
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw new Error(error.message);
+  const want = JSON.stringify(payload);
+  const rows = (data ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>;
+  const hit = rows.find((r) => JSON.stringify(r.payload ?? {}) === want);
+  if (hit) return hit.id;
+  return enqueue(kind, payload);
+}
+
 /** Poll a job row until the agent reports. Throws on failure / timeout. */
 export async function waitResult(
   id: string,

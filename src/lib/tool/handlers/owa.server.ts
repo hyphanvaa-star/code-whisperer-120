@@ -29,7 +29,9 @@ export const routes: Routes = {
       return { running: false, last_at: 0, count: 0, items: [], lines: [], until: after, error: offline().error };
     }
     try {
-      const id = await pc.enqueue("owa_fpl_watch", { after });
+      // Gộp các lượt thăm dò trùng nhau (nhiều tab mở cùng lúc) thành một job
+      // trên máy công ty thay vì đẩy một đống job giống hệt nhau.
+      const id = await pc.enqueueDeduped("owa_fpl_watch", { after }, 8_000);
       const r = await pc.waitResult(id, 20_000);
       return r;
     } catch (e) {
@@ -141,8 +143,21 @@ export const jobs: Jobs = {
       return;
     }
     try {
+      // Phiên Outlook trên máy công ty còn sống thì không mở lại Chrome —
+      // tránh cửa sổ đăng nhập nhảy ra mỗi lần tải lại trang.
+      const pid = await pc.enqueueDeduped("owa_fpl_watch", { after: 0 }, 5_000);
+      const st = await pc.waitResult(pid, 15_000);
+      if (st["running"]) {
+        emit({ type: "line", text: "✓ Phiên Outlook Web trên máy công ty còn sống — không cần mở Chrome." });
+        emit({ type: "end", code: 0, elapsed: (Date.now() - t0) / 1000, ok: 1, skipped: 0, failed: 0, logged_in: true, owa_state: "healthy", source: "pc_session" });
+        return;
+      }
+    } catch {
+      /* chưa kiểm tra được — cứ thử đăng nhập như thường */
+    }
+    try {
       emit({ type: "line", text: "▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password (MFA thì xác nhận tay)." });
-      const id = await pc.enqueue("owa_login", {});
+      const id = await pc.enqueueDeduped("owa_login", {}, 120_000);
       let lastBeat = 0;
       const r = await pc.waitResult(id, 450_000, (elapsed) => {
         if (elapsed - lastBeat >= 30) {
