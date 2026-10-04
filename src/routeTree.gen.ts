@@ -28,6 +28,8 @@ import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedVerRouteImport } from './routes/_authenticated/ver'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiFbFileRouteImport } from './routes/api/fb.file'
+import { Route as ApiPublicPcAgentPollRouteImport } from './routes/api/public/pc-agent/poll'
+import { Route as ApiPublicPcAgentReportRouteImport } from './routes/api/public/pc-agent/report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -123,6 +125,16 @@ const ApiFbFileRoute = ApiFbFileRouteImport.update({
   path: '/api/fb/file',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPcAgentPollRoute = ApiPublicPcAgentPollRouteImport.update({
+  id: '/api/public/pc-agent/poll',
+  path: '/api/public/pc-agent/poll',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPcAgentReportRoute = ApiPublicPcAgentReportRouteImport.update({
+  id: '/api/public/pc-agent/report',
+  path: '/api/public/pc-agent/report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +155,8 @@ export interface FileRoutesByFullPath {
   '/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
+  '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
+  '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,6 +177,8 @@ export interface FileRoutesByTo {
   '/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
+  '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
+  '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,6 +201,8 @@ export interface FileRoutesById {
   '/_authenticated/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
+  '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
+  '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +225,8 @@ export interface FileRouteTypes {
     | '/ver'
     | '/api/$'
     | '/api/fb/file'
+    | '/api/public/pc-agent/poll'
+    | '/api/public/pc-agent/report'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,6 +247,8 @@ export interface FileRouteTypes {
     | '/ver'
     | '/api/$'
     | '/api/fb/file'
+    | '/api/public/pc-agent/poll'
+    | '/api/public/pc-agent/report'
   id:
     | '__root__'
     | '/'
@@ -248,6 +270,8 @@ export interface FileRouteTypes {
     | '/_authenticated/ver'
     | '/api/$'
     | '/api/fb/file'
+    | '/api/public/pc-agent/poll'
+    | '/api/public/pc-agent/report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +281,8 @@ export interface RootRouteChildren {
   ToolPageRoute: typeof ToolPageRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiFbFileRoute: typeof ApiFbFileRoute
+  ApiPublicPcAgentPollRoute: typeof ApiPublicPcAgentPollRoute
+  ApiPublicPcAgentReportRoute: typeof ApiPublicPcAgentReportRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -394,6 +420,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFbFileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pc-agent/poll': {
+      id: '/api/public/pc-agent/poll'
+      path: '/api/public/pc-agent/poll'
+      fullPath: '/api/public/pc-agent/poll'
+      preLoaderRoute: typeof ApiPublicPcAgentPollRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pc-agent/report': {
+      id: '/api/public/pc-agent/report'
+      path: '/api/public/pc-agent/report'
+      fullPath: '/api/public/pc-agent/report'
+      preLoaderRoute: typeof ApiPublicPcAgentReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -439,6 +479,8 @@ const rootRouteChildren: RootRouteChildren = {
   ToolPageRoute: ToolPageRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiFbFileRoute: ApiFbFileRoute,
+  ApiPublicPcAgentPollRoute: ApiPublicPcAgentPollRoute,
+  ApiPublicPcAgentReportRoute: ApiPublicPcAgentReportRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
