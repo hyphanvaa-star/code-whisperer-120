@@ -536,6 +536,8 @@ tbody tr:hover:nth-child(even){background:rgba(255,201,0,.30)}
 ::selection{background:rgba(255,201,0,.55)}
 </style>`;
 
+let cached: string | null = null;
+
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
