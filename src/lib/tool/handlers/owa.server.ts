@@ -1,6 +1,7 @@
 import type { Jobs, Routes } from "../types";
 import { jobId } from "../jobs";
 import * as pc from "../pcagent.server";
+import * as ae from "../port/atc_ezfw";
 
 // Port of web.py OWA/PIB endpoints (start_owa_login, owa_fpl_watch.status,
 // start_pib_download): the real Outlook-Web/Selenium session must run on the
@@ -36,6 +37,19 @@ export const routes: Routes = {
     }
   },
 
+  // web.py "/api/atcezfw/draft" -> start_ae_draft(): cắt ATC/EZFW từ OFP rồi
+  // enqueue một nháp Outlook (desktop, qua trợ lý PC) cho mỗi chuyến gõ vào ô.
+  "POST /api/atcezfw/draft": async (ctx) => {
+    const payload = await ctx.json();
+    const flight = String(payload["flight"] || "").trim();
+    if (!flight) return { error: "Nhập số hiệu chuyến, ví dụ 5513." };
+    const agent = await pc.agentInfo(ctx);
+    if (!pc.agentOnline(agent)) return offline();
+    const wants = ae.flightsOf(flight);
+    if (!wants.length) return { error: "Nhập số hiệu chuyến, ví dụ 5513 hoặc 5513 1832." };
+    return { id: jobId("atcezfw_draft", { wants }) };
+  },
+
   // web.py "/api/pib/download" -> start_pib_download(): job id, streamed.
   "POST /api/pib/download": async (ctx) => {
     const payload = await ctx.json();
@@ -52,6 +66,60 @@ export const routes: Routes = {
 };
 
 export const jobs: Jobs = {
+  // Port of web.py start_ae_draft(): cắt ATC/EZFW từ OFP FliteBrief rồi giao
+  // trợ lý PC soạn nháp Outlook (desktop COM, không gửi) cho mỗi chuyến.
+  atcezfw_draft: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const wants = (params["wants"] as string[] | undefined) ?? [];
+    let ok = 0;
+    const subjects: string[] = [];
+    const files: string[] = [];
+    try {
+      const { fbGet } = await import("@/lib/flitebrief.server");
+      const { loadFlights } = await import("../core/gantts.server");
+      const flights = await loadFlights(2);
+      const known: ae.AeFlight[] = flights.map((f) => ({
+        id: f.id,
+        callsign: f.callsign || "",
+        fltno: f.fltno,
+        commercial_fltno: f.commercial_fltno,
+        std: f.std,
+      }));
+      for (let i = 0; i < wants.length; i++) {
+        const want = wants[i]!;
+        emit({ type: "line", text: `── ${want} (${i + 1}/${wants.length})` });
+        try {
+          const flight = ae.findFlight(known, want);
+          const pdf = await fbGet(`/webapi/sectors/${flight.id}/ofp`, "application/pdf");
+          if (!pdf.ok) throw new ae.AeError(`${flight.callsign}: chưa lấy được OFP`);
+          const bytes = new Uint8Array(await pdf.arrayBuffer());
+          const { ofpTextFromPdf } = await import("../port/ofp_weights");
+          const text = await ofpTextFromPdf(bytes);
+          const atc = ae.extractAtc(text).trim();
+          const ezfw = ae.extractEzfw(text);
+          const subject = ae.subjectOf(flight.callsign, flight.std);
+          const attachments = [
+            { name: `ATC_${ae.fileCallsign(flight.callsign)}.txt`, data_b64: Buffer.from(atc, "utf-8").toString("base64") },
+            { name: `EZFW_${ae.fileCallsign(flight.callsign)}.txt`, data_b64: Buffer.from(ezfw, "utf-8").toString("base64") },
+          ];
+          const id = await pc.enqueue("outlook_draft", { subject, body: ae.BODY, attachments });
+          const r = await pc.waitResult(id, 120_000);
+          emit({ type: "line", text: `✓ ${subject}` });
+          ok += 1;
+          subjects.push(subject);
+          files.push(attachments[0]!.name, attachments[1]!.name);
+          void r;
+        } catch (exc) {
+          const msg = exc instanceof Error ? exc.message : String(exc);
+          emit({ type: "line", text: `✗ ${want}: ${msg}`, cls: "bad" });
+        }
+      }
+    } catch (exc) {
+      emit({ type: "line", text: `✗ ${exc instanceof Error ? exc.message : String(exc)}`, cls: "bad" });
+    }
+    emit({ type: "end", code: ok ? 0 : 1, elapsed: (Date.now() - t0) / 1000, ok, failed: wants.length - ok, subject: subjects.join(" · "), files });
+  },
+
   // Port of web.py start_owa_login(): giao trợ lý PC mở Outlook Web thật rồi
   // relay log + kết quả cuối cùng y hệt shape gốc.
   owa_login: async (_params, emit, ctx) => {

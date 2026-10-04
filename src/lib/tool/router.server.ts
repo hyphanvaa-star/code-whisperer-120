@@ -18,8 +18,9 @@ import * as misc from "./handlers/misc.server";
 import * as handover from "./handlers/handover.server";
 import * as pc from "./handlers/pc.server";
 import * as owa from "./handlers/owa.server";
+import * as crew from "./handlers/crew.server";
 
-const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, swap, autoload, misc, handover, pc, owa];
+const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, swap, autoload, misc, handover, pc, owa, crew];
 
 const ROUTES: Routes = Object.assign({}, ...GROUPS.map((g) => g.routes));
 const JOBS: Record<string, JobFn> = Object.assign({}, ...GROUPS.map((g) => g.jobs));
