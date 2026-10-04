@@ -28,3 +28,13 @@ thư mục Startup (Win+R → `shell:startup`).
 Token lấy từ quản trị viên (được tạo sẵn trong kho bảo mật của web). Khi trợ
 lý đang chạy, trang web sẽ nhận diện máy in và báo "đã kết nối"; tắt trợ lý
 thì các nút in GD / chọn thư mục sẽ báo "trợ lý PC chưa kết nối".
+
+## Check FPL trên AviWeb (Selenium)
+
+Lệnh `aviweb_check` chạy đúng code `atc_check.py` của tool gốc bằng Chrome thật trên máy này:
+
+1. Cài thêm: `python -m pip install selenium` (Chrome đã có sẵn trên máy).
+2. Đặt biến môi trường `PC_TOOL_DIR` trỏ tới thư mục tool gốc (nơi có `atc_check.py`, `config.py`) — ví dụ `D:\DispatchBoard`. Nếu không đặt, trợ lý tự tìm ở `C:\DispatchBoard`, `D:\DispatchBoard`, `~/DispatchBoard`, `~/Desktop/DispatchBoard`.
+3. Tài khoản AviWeb lấy từ `config.py` của tool gốc trên máy — không gửi qua web.
+
+Trên web: tab ATC → Check ATC → web gửi danh sách chuyến cho trợ lý, log hiện dần như tool gốc, kết quả (trạng thái, giờ bay, tàu, DOF) đổ về bảng.
