@@ -40,8 +40,8 @@ const SHIM = `<script>
     var z = Math.min(1, window.innerWidth / need);
     if (z >= 0.999) { de.style.overflowX = ''; return; }
     if ('zoom' in b.style) {
+      // zoom already reflows the layout viewport; do NOT also set width.
       b.style.zoom = z;
-      b.style.width = (100 / z) + '%';
     } else {
       b.style.transformOrigin = '0 0';
       b.style.transform = 'scale(' + z + ')';
