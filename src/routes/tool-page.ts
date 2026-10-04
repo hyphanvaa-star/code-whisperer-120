@@ -873,9 +873,12 @@ header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block 
   header#mdRoom .brand h1{font-size:17px !important}
   header#mdRoom .brand .sig{font-size:5px !important;margin-top:4px !important}
   header#mdRoom .brand-vj{font-size:6px !important;margin-top:3px !important}
-  header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:4px 6px !important;gap:5px !important;background:rgba(255,255,255,.84) !important}
-  header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{width:64px !important;min-width:64px !important;height:44px !important;padding:0 5px !important}
-  header#mdRoom #aiFab{width:78px !important;min-width:78px !important}
+  header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:rgba(255,255,255,.84) !important}
+  header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{position:absolute !important;top:14px !important;width:64px !important;min-width:64px !important;height:44px !important;padding:0 5px !important;z-index:70 !important}
+  header#mdRoom #btnOfpCheck{right:232px !important}
+  header#mdRoom .hdr-switch{right:162px !important}
+  header#mdRoom .theme-switch{right:92px !important}
+  header#mdRoom #aiFab{right:8px !important;width:78px !important;min-width:78px !important}
   header#mdRoom .md-denpyo{grid-column:1 / -1 !important;grid-row:2 !important;grid-template-columns:112px minmax(0,1fr) !important;grid-template-rows:34px 32px !important;width:100% !important;height:86px !important;padding:7px 8px !important;gap:4px 7px !important}
   header#mdRoom .md-denpyo .filt-rail{gap:5px !important;grid-template-columns:1.05fr .75fr .75fr .9fr 1.22fr !important}
   header#mdRoom .md-denpyo .filt-actions{gap:5px !important}
