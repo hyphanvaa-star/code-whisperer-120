@@ -384,109 +384,115 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link 
 // bố cục, thứ tự nút và mọi logic giữ nguyên theo SKIN phía trên.
 const POPART = `<style id="popart-skin">
 :root{
-  --pa-yellow:#FFC900; --pa-ink:#141210; --pa-red:#E31937; --pa-paper:#F6F1E6;
+  --pp-red:#E31937; --pp-red-deep:#B01026; --pp-yellow:#FFC900;
+  --pp-ink:#141210; --pp-paper:#F7F6F2; --pp-line:rgba(20,18,16,.14);
 }
-/* Nền giấy in sáng — tuyệt đối không nền tối */
+/* Nền sáng sạch — tuyệt đối không nền tối */
 body,.app{
-  background:var(--pa-paper) !important;
+  background:var(--pp-paper) !important;
   background-image:none !important;
   font-family:'Inter',system-ui,sans-serif !important;
 }
-/* ===== HEADER: dải vàng pop-art + halftone mực ===== */
+/* ===== HEADER: dải đỏ poster kiểu properprompts ===== */
 header{
-  background-color:var(--pa-yellow) !important;
-  background-image:radial-gradient(circle,rgba(20,18,16,.13) 1.4px,transparent 1.4px) !important;
-  background-size:11px 11px !important;
-  border-bottom:3px solid var(--pa-ink) !important;
-  box-shadow:0 4px 0 rgba(20,18,16,.85) !important;
+  background:#fff !important;
+  background-image:none !important;
+  border-bottom:3px solid var(--pp-red) !important;
+  box-shadow:0 2px 0 rgba(20,18,16,.06) !important;
 }
-/* Brand: chữ mực đậm kiểu Archivo Black, "Board" tô đỏ */
+/* Brand: display khổng lồ chữ đỏ — điểm nhấn poster */
 header .brand h1{
   font-family:'Archivo Black',sans-serif !important;
-  color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important;
-  text-shadow:2px 2px 0 rgba(255,255,255,.75) !important;
-  letter-spacing:.02em !important;
+  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
+  letter-spacing:-.01em !important;
+  font-size:24px !important;
+  line-height:1.05 !important;
+  text-transform:uppercase !important;
+  text-shadow:none !important;
 }
 header .brand .sub,header .brand .sig,header .brand *{
-  color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important;text-shadow:none !important;
+  color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important;text-shadow:none !important;
 }
-header .brand .brand-board{color:var(--pa-red) !important;-webkit-text-fill-color:var(--pa-red) !important}
+header .brand .brand-board{color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important}
 header .brand .brand-vj{
-  background:#fff !important;
-  color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important;
-  border:2px solid var(--pa-ink) !important;border-radius:999px !important;
-  box-shadow:2px 2px 0 var(--pa-ink) !important;
+  background:var(--pp-red) !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:none !important;border-radius:6px !important;
+  box-shadow:none !important;font-weight:800 !important;letter-spacing:.06em !important;
 }
 header label,header .flt label,header .flt span{
-  color:var(--pa-ink) !important;opacity:.92 !important;font-weight:800 !important;
+  color:var(--pp-ink) !important;opacity:.85 !important;font-weight:800 !important;
 }
-/* Ô lọc: panel trắng viền mực, bóng cứng */
+/* Ô lọc: khối trắng gọn, viền mảnh */
 .filt-rail{
-  background:#fff !important;border:2px solid var(--pa-ink) !important;
-  border-radius:10px !important;box-shadow:3px 3px 0 var(--pa-ink) !important;
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
 }
-.filt-rail:focus-within{border-color:var(--pa-red) !important;box-shadow:3px 3px 0 var(--pa-red) !important}
+.filt-rail:focus-within{border-color:var(--pp-red) !important}
 header input,header select{
   background:#fff !important;
-  border:2px solid var(--pa-ink) !important;
-  color:var(--pa-ink) !important;
+  border:1px solid var(--pp-line) !important;
+  color:var(--pp-ink) !important;
   border-radius:8px !important;
-  box-shadow:2px 2px 0 var(--pa-ink) !important;
+  box-shadow:none !important;
   font-weight:700 !important;
 }
-header input:focus,header select:focus{border-color:var(--pa-red) !important;box-shadow:2px 2px 0 var(--pa-red) !important}
-/* Nút header: pill trắng viền mực — hover "ấn xuống" vào bóng */
+header input:focus,header select:focus{border-color:var(--pp-red) !important;box-shadow:0 0 0 2px rgba(227,25,55,.15) !important}
+/* Nút header: pill trắng chữ đỏ, hover nền đỏ chữ trắng */
 .filt-actions .btn,.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab,
 header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,header:not(.md) #btnReload,header:not(.md) #btnOfpCheck{
   background:#fff !important;background-image:none !important;
-  color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important;
-  border:2px solid var(--pa-ink) !important;border-radius:10px !important;
-  box-shadow:3px 3px 0 var(--pa-ink) !important;
+  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
+  border:1.5px solid rgba(227,25,55,.45) !important;border-radius:8px !important;
+  box-shadow:none !important;
   font-weight:800 !important;
 }
 .filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{
-  color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important;
+  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
 }
 .filt-actions .btn:hover,.head-ops .ai-fab:hover,
 header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btnPickXls:hover,header:not(.md) #btnReload:hover,header:not(.md) #btnOfpCheck:hover{
-  background:#fff !important;transform:translate(2px,2px) !important;
-  box-shadow:1px 1px 0 var(--pa-ink) !important;border-color:var(--pa-ink) !important;
+  background:var(--pp-red) !important;border-color:var(--pp-red) !important;
 }
-/* Nút hành động chính & sohee AI: đỏ đặc, bóng mực cứng */
+.filt-actions .btn:hover *,header:not(.md) #btnAcc:hover *,header:not(.md) #btnTaf:hover *,
+header:not(.md) #btnPickXls:hover *,header:not(.md) #btnReload:hover *,header:not(.md) #btnOfpCheck:hover *{
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+}
+/* Nút hành động chính & sohee AI: đỏ đặc chữ trắng */
 .head-ops .btn.act,.head-ops .btn.acbtn,header #aiFab#aiFab{
-  background:var(--pa-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
-  border:2px solid var(--pa-ink) !important;box-shadow:3px 3px 0 var(--pa-ink) !important;
+  background:var(--pp-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1.5px solid var(--pp-red) !important;box-shadow:none !important;
 }
 .head-ops .btn.act *,.head-ops .btn.acbtn *,header #aiFab *{color:#fff !important;-webkit-text-fill-color:#fff !important}
-.head-ops .btn.act:hover,header #aiFab:hover{transform:translate(2px,2px) !important;box-shadow:1px 1px 0 var(--pa-ink) !important}
-/* Chip thống kê / tên file: pill trắng viền mực */
+/* Chip thống kê / tên file: pill trắng viền mảnh */
 header .hstat > span,.head-ops .xls-name{
-  background:#fff !important;border:2px solid var(--pa-ink) !important;
-  color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important;
-  border-radius:999px !important;box-shadow:2px 2px 0 var(--pa-ink) !important;
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important;
+  border-radius:999px !important;box-shadow:none !important;
 }
-header .hstat > span *,.head-ops .xls-name *{color:var(--pa-ink) !important;-webkit-text-fill-color:var(--pa-ink) !important}
-/* ===== THANH TAB CHẾ ĐỘ: panel trắng viền mực, tab chọn đỏ ===== */
+header .hstat > span *,.head-ops .xls-name *{color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important}
+/* ===== THANH TAB CHẾ ĐỘ: trắng sạch, tab chọn đỏ ===== */
 .modes{
-  background:#fff !important;border:2px solid var(--pa-ink) !important;
-  border-radius:12px !important;box-shadow:4px 4px 0 var(--pa-ink) !important;
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
 }
-.mode{color:var(--pa-ink) !important;font-weight:700 !important}
-.mode:hover{background:rgba(20,18,16,.06) !important;color:var(--pa-ink) !important}
+.mode{color:var(--pp-ink) !important;font-weight:700 !important;border-radius:7px !important}
+.mode:hover{background:rgba(227,25,55,.07) !important;color:var(--pp-red) !important}
 .mode.on{
-  background:var(--pa-red) !important;color:#fff !important;
-  border:2px solid var(--pa-ink) !important;box-shadow:2px 2px 0 var(--pa-ink) !important;
+  background:var(--pp-red) !important;color:#fff !important;
+  border:none !important;box-shadow:none !important;
 }
-/* Thanh toolbar phụ: panel trắng viền mực */
+/* Thanh toolbar phụ */
 .toolbars,nav.tabs,.subtabs{
-  background:#fff !important;border:2px solid var(--pa-ink) !important;
-  border-radius:12px !important;box-shadow:4px 4px 0 var(--pa-ink) !important;
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
 }
-/* ===== BẢNG: đầu bảng đỏ, gạch mực đậm dưới ===== */
+/* ===== BẢNG: đầu bảng đỏ poster, gạch đỏ đậm dưới ===== */
 thead th{
-  background:var(--pa-red) !important;
-  border-bottom:3px solid var(--pa-ink) !important;
+  background:var(--pp-red) !important;
+  border-bottom:3px solid var(--pp-red-deep) !important;
   color:#fff !important;text-shadow:none !important;
+  letter-spacing:.04em !important;
 }
 #wrapGeneral .gtable thead th,
 .xlstbl thead th,
@@ -495,44 +501,43 @@ thead th{
 #wrapAtcCheck #acTbl thead th,
 #wrapTool .tooltbl thead th,
 #wrapLimits .limtbl thead th{
-  background:var(--pa-red) !important;color:#fff !important;
-  border-color:var(--pa-ink) !important;
-  border-bottom:3px solid var(--pa-ink) !important;
+  background:var(--pp-red) !important;color:#fff !important;
+  border-color:var(--pp-red-deep) !important;
+  border-bottom:3px solid var(--pp-red-deep) !important;
 }
-tbody tr:hover{background:rgba(255,201,0,.30)}
-tbody tr:hover:nth-child(even){background:rgba(255,201,0,.30)}
+tbody tr:hover{background:rgba(255,201,0,.22)}
+tbody tr:hover:nth-child(even){background:rgba(255,201,0,.22)}
 #wrapGeneral .gtable tbody tr.sel td,
 #wrapGeneral .gtable tbody tr.on td{
-  background:rgba(255,201,0,.35) !important;
-  box-shadow:inset 3px 0 0 var(--pa-red);
+  background:rgba(255,201,0,.30) !important;
+  box-shadow:inset 3px 0 0 var(--pp-red);
 }
-/* ===== NÚT CHÍNH: đỏ đặc viền mực, nhấn xuống ===== */
+/* ===== NÚT CHÍNH: đỏ đặc, gọn ===== */
 .btn.primary,.toolbars .btn.t-go{
-  background:var(--pa-red) !important;color:#fff !important;
-  border:2px solid var(--pa-ink) !important;border-radius:8px !important;
-  box-shadow:3px 3px 0 var(--pa-ink) !important;
+  background:var(--pp-red) !important;color:#fff !important;
+  border:none !important;border-radius:8px !important;
+  box-shadow:none !important;
 }
 .btn.primary:hover,.toolbars .btn.t-go:hover{
-  background:var(--pa-red) !important;transform:translate(2px,2px);
-  box-shadow:1px 1px 0 var(--pa-ink) !important;
+  background:var(--pp-red-deep) !important;
 }
-/* ===== PANEL CHI TIẾT & POPUP: panel comic viền mực ===== */
+/* ===== PANEL CHI TIẾT & POPUP: thẻ trắng viền mảnh ===== */
 #detailWrap{
-  border:3px solid var(--pa-ink) !important;border-radius:12px !important;
-  box-shadow:6px 6px 0 rgba(20,18,16,.9) !important;
+  border:1px solid var(--pp-line) !important;border-radius:12px !important;
+  box-shadow:0 10px 30px -18px rgba(20,18,16,.35) !important;
 }
 .detail-tabs{background:#fff !important}
-.dtab.on{color:var(--pa-red);box-shadow:inset 0 -3px 0 var(--pa-red);font-weight:800}
+.dtab.on{color:var(--pp-red);box-shadow:inset 0 -3px 0 var(--pp-red);font-weight:800}
 .modal,.popup,.dialog,[class*="modal"],[class*="popup"]{
-  border:2px solid var(--pa-ink) !important;border-radius:12px !important;
-  box-shadow:8px 8px 0 rgba(20,18,16,.85) !important;
+  border:1px solid var(--pp-line) !important;border-radius:12px !important;
+  box-shadow:0 24px 60px -30px rgba(20,18,16,.45) !important;
 }
 /* ===== ĐIỂM NHẤN PHỤ ===== */
-.cmp-pick .hd,.nm-place .uses,.nm-tune-pop h5,.nm-place-head,#ftAtcMiss{color:var(--pa-red) !important}
-.nm-find > button{background:var(--pa-red) !important}
+.cmp-pick .hd,.nm-place .uses,.nm-tune-pop h5,.nm-place-head,#ftAtcMiss{color:var(--pp-red) !important}
+.nm-find > button{background:var(--pp-red) !important}
 /* ===== THANH CUỘN & CHỌN CHỮ ===== */
-::-webkit-scrollbar-thumb{background:var(--pa-ink);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
-::-webkit-scrollbar-thumb:hover{background:var(--pa-red);background-clip:padding-box}
+::-webkit-scrollbar-thumb{background:rgba(20,18,16,.35);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--pp-red);background-clip:padding-box}
 ::selection{background:rgba(255,201,0,.55)}
 </style>`;
 
