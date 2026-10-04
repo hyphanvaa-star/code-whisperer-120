@@ -9,6 +9,8 @@ import { getJson, setJson } from "../store.server";
 import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
 import * as omni from "../port/omni";
 import { getSnapshot, hasOooi, matchTrack, overlayOf, type Track } from "../opscore.server";
+import * as jetplan from "../jetplan.server";
+import * as pcr from "../port/pcr_limits";
 
 const EMPTY_LIMITS: LimitsData = { aircraft: [], airports: [], curfew: [], special: [] };
 
@@ -538,6 +540,26 @@ export const routes: Routes = {
       limitWarns[String(sectorId)] = warns;
     }
 
+    try {
+      const regs = [...ws.keys()].map((sid) => byId.get(sid)).filter((f) => f && f.reg && !payload[String(f.id)]?.["cfp_mismatch"]).map((f) => f!.reg);
+      await jetplan.ensureRegs(ctx, regs);
+      for (const [sid, weights] of ws) {
+        const flight = byId.get(sid);
+        const d = payload[String(sid)]!;
+        if (d["cfp_mismatch"]) continue;
+        const cap = await jetplan.lookup(ctx, flight ? flight.reg : "");
+        if (cap) {
+          d["fuel_cap"] = cap.cap;
+          d["fuel_cap_type"] = cap.type;
+          d["fuel_cap_limit"] = cap.limit;
+          d["fleet_mtow"] = cap.mtow;
+        }
+        if (flight) d["pcr"] = pcr.pack_for_weights(pcr.check_flight(flight, weights, { fleet_mtow: cap?.mtow ?? null }));
+      }
+    } catch (exc) {
+      console.debug("JetPlan AC / PCR:", exc);
+    }
+
     return {
       weights: payload,
       margin_kg: MARGIN_KG,
@@ -623,7 +645,12 @@ export const routes: Routes = {
         // FliteBrief crews fetch failing shouldn't break the rest of the detail.
       }
     }
-    return detail(flight, crews, await omniLoadOf(ctx, flight));
+    let jp: unknown = null;
+    try {
+      await jetplan.ensureRegs(ctx, [flight.reg]);
+      jp = await jetplan.specs(ctx, flight.reg);
+    } catch { /* web.py ignores JetPlan failures here */ }
+    return { ...detail(flight, crews, await omniLoadOf(ctx, flight)), jetplan: jp };
   },
 };
 export const jobs: Jobs = {};
