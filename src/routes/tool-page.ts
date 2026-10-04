@@ -375,14 +375,186 @@ td{border-bottom:1px solid rgba(26,29,36,.05)}
 ::selection{background:rgba(255,201,0,.45)}
 </style>`;
 
+// Font pop-art (Archivo Black + Inter) — nạp qua <link> trong head của trang tool.
+const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">`;
+
+// Lớp POP-ART: áp dụng phong cách comic-print của mẫu BLARE người dùng cung cấp
+// (vàng #FFC900 làm nền, viền mực, bóng đổ cứng 0-blur, đỏ #E31937 làm nhấn,
+// halftone dot, font display Archivo Black). Nạp SAU SKIN để đè màu sắc;
+// bố cục, thứ tự nút và mọi logic giữ nguyên theo SKIN phía trên.
+const POPART = `<style id="popart-skin">
+:root{
+  --pp-red:#E31937; --pp-red-deep:#B01026; --pp-yellow:#FFC900;
+  --pp-ink:#141210; --pp-paper:#F7F6F2; --pp-line:rgba(20,18,16,.14);
+}
+/* Nền sáng sạch — tuyệt đối không nền tối */
+body,.app{
+  background:var(--pp-paper) !important;
+  background-image:none !important;
+  font-family:'Inter',system-ui,sans-serif !important;
+}
+/* ===== HEADER: dải đỏ poster kiểu properprompts ===== */
+header{
+  background:#fff !important;
+  background-image:none !important;
+  border-bottom:3px solid var(--pp-red) !important;
+  box-shadow:0 2px 0 rgba(20,18,16,.06) !important;
+}
+/* Brand: display khổng lồ chữ đỏ — điểm nhấn poster */
+header .brand h1{
+  font-family:'Archivo Black',sans-serif !important;
+  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
+  letter-spacing:-.01em !important;
+  font-size:24px !important;
+  line-height:1.05 !important;
+  text-transform:uppercase !important;
+  text-shadow:none !important;
+}
+header .brand .sub,header .brand .sig,header .brand *{
+  color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important;text-shadow:none !important;
+}
+header .brand .brand-board{color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important}
+/* Dòng chữ ký: tắt animation gốc (gây đè chữ khi đứng ở keyframe đầu) */
+header .brand .sig{
+  animation:none !important;transform:none !important;
+  opacity:.65 !important;margin-top:3px !important;
+}
+header .brand .brand-vj{
+  margin-top:4px !important;
+  background:var(--pp-red) !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:none !important;border-radius:6px !important;
+  box-shadow:none !important;font-weight:800 !important;letter-spacing:.06em !important;
+}
+header label,header .flt label,header .flt span{
+  color:var(--pp-ink) !important;opacity:.85 !important;font-weight:800 !important;
+}
+/* Ô lọc: khối trắng gọn, viền mảnh */
+.filt-rail{
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
+}
+.filt-rail:focus-within{border-color:var(--pp-red) !important}
+header input,header select{
+  background:#fff !important;
+  border:1px solid var(--pp-line) !important;
+  color:var(--pp-ink) !important;
+  border-radius:8px !important;
+  box-shadow:none !important;
+  font-weight:700 !important;
+}
+header input:focus,header select:focus{border-color:var(--pp-red) !important;box-shadow:0 0 0 2px rgba(227,25,55,.15) !important}
+/* Nút header: pill trắng chữ đỏ, hover nền đỏ chữ trắng */
+.filt-actions .btn,.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab,
+header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,header:not(.md) #btnReload,header:not(.md) #btnOfpCheck{
+  background:#fff !important;background-image:none !important;
+  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
+  border:1.5px solid rgba(227,25,55,.45) !important;border-radius:8px !important;
+  box-shadow:none !important;
+  font-weight:800 !important;
+}
+.filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{
+  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
+}
+.filt-actions .btn:hover,.head-ops .ai-fab:hover,
+header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btnPickXls:hover,header:not(.md) #btnReload:hover,header:not(.md) #btnOfpCheck:hover{
+  background:var(--pp-red) !important;border-color:var(--pp-red) !important;
+}
+.filt-actions .btn:hover *,header:not(.md) #btnAcc:hover *,header:not(.md) #btnTaf:hover *,
+header:not(.md) #btnPickXls:hover *,header:not(.md) #btnReload:hover *,header:not(.md) #btnOfpCheck:hover *{
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+}
+/* Nút hành động chính & sohee AI: đỏ đặc chữ trắng */
+.head-ops .btn.act,.head-ops .btn.acbtn,header #aiFab#aiFab{
+  background:var(--pp-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1.5px solid var(--pp-red) !important;box-shadow:none !important;
+}
+.head-ops .btn.act *,.head-ops .btn.acbtn *,header #aiFab *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+/* Chip thống kê / tên file: pill trắng viền mảnh */
+header .hstat > span,.head-ops .xls-name{
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important;
+  border-radius:999px !important;box-shadow:none !important;
+}
+header .hstat > span *,.head-ops .xls-name *{color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important}
+/* ===== THANH TAB CHẾ ĐỘ: trắng sạch, tab chọn đỏ ===== */
+.modes{
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
+}
+.mode{color:var(--pp-ink) !important;font-weight:700 !important;border-radius:7px !important}
+.mode:hover{background:rgba(227,25,55,.07) !important;color:var(--pp-red) !important}
+.mode.on{
+  background:var(--pp-red) !important;color:#fff !important;
+  border:none !important;box-shadow:none !important;
+}
+/* Thanh toolbar phụ */
+.toolbars,nav.tabs,.subtabs{
+  background:#fff !important;border:1px solid var(--pp-line) !important;
+  border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
+}
+/* ===== BẢNG: đầu bảng đỏ poster, gạch đỏ đậm dưới ===== */
+thead th{
+  background:var(--pp-red) !important;
+  border-bottom:3px solid var(--pp-red-deep) !important;
+  color:#fff !important;text-shadow:none !important;
+  letter-spacing:.04em !important;
+}
+#wrapGeneral .gtable thead th,
+.xlstbl thead th,
+#wrapCompare .cmptbl thead th,
+#wrapVer .tooltbl thead th,
+#wrapAtcCheck #acTbl thead th,
+#wrapTool .tooltbl thead th,
+#wrapLimits .limtbl thead th{
+  background:var(--pp-red) !important;color:#fff !important;
+  border-color:var(--pp-red-deep) !important;
+  border-bottom:3px solid var(--pp-red-deep) !important;
+}
+tbody tr:hover{background:rgba(255,201,0,.22)}
+tbody tr:hover:nth-child(even){background:rgba(255,201,0,.22)}
+#wrapGeneral .gtable tbody tr.sel td,
+#wrapGeneral .gtable tbody tr.on td{
+  background:rgba(255,201,0,.30) !important;
+  box-shadow:inset 3px 0 0 var(--pp-red);
+}
+/* ===== NÚT CHÍNH: đỏ đặc, gọn ===== */
+.btn.primary,.toolbars .btn.t-go{
+  background:var(--pp-red) !important;color:#fff !important;
+  border:none !important;border-radius:8px !important;
+  box-shadow:none !important;
+}
+.btn.primary:hover,.toolbars .btn.t-go:hover{
+  background:var(--pp-red-deep) !important;
+}
+/* ===== PANEL CHI TIẾT & POPUP: thẻ trắng viền mảnh ===== */
+#detailWrap{
+  border:1px solid var(--pp-line) !important;border-radius:12px !important;
+  box-shadow:0 10px 30px -18px rgba(20,18,16,.35) !important;
+}
+.detail-tabs{background:#fff !important}
+.dtab.on{color:var(--pp-red);box-shadow:inset 0 -3px 0 var(--pp-red);font-weight:800}
+.modal,.popup,.dialog,[class*="modal"],[class*="popup"]{
+  border:1px solid var(--pp-line) !important;border-radius:12px !important;
+  box-shadow:0 24px 60px -30px rgba(20,18,16,.45) !important;
+}
+/* ===== ĐIỂM NHẤN PHỤ ===== */
+.cmp-pick .hd,.nm-place .uses,.nm-tune-pop h5,.nm-place-head,#ftAtcMiss{color:var(--pp-red) !important}
+.nm-find > button{background:var(--pp-red) !important}
+/* ===== THANH CUỘN & CHỌN CHỮ ===== */
+::-webkit-scrollbar-thumb{background:rgba(20,18,16,.35);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--pp-red);background-clip:padding-box}
+::selection{background:rgba(255,201,0,.55)}
+</style>`;
+
 let cached: string | null = null;
 
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
-    .replace("<head>", "<head>" + SHIM)
-    .replace("</head>", SKIN + "</head>")
+    .replace("<head>", "<head>" + FONTS + SHIM)
+    .replace("</head>", SKIN + POPART + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
     .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night.png")
     // Xuất briefing: khi job xong có link tải, tự động tải ZIP về máy người dùng.
