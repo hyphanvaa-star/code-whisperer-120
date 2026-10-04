@@ -181,7 +181,9 @@ header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btn
 }
 .filt-actions .btn::before,header:not(.md) #btnAcc::before,header:not(.md) #btnTaf::before,
 header:not(.md) #btnPickXls::before,header:not(.md) #btnReload::before,header:not(.md) #btnOfpCheck::before{
-  background:none !important;box-shadow:none !important;
+  width:15px !important;height:15px !important;border-radius:0 !important;
+  background:currentColor !important;border:0 !important;box-shadow:none !important;
+  font-size:0 !important;line-height:0 !important;
 }
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
 header .brand .sub{opacity:.85}
