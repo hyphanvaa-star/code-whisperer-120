@@ -666,8 +666,8 @@ table thead th:first-child{border-top-left-radius:6px}
 table thead th:last-child{border-top-right-radius:6px}
 table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
 table tbody td{
-  font-size:12px !important;color:var(--x-ink) !important;padding:5px 8px !important;
-  border:0 !important;border-bottom:1px solid var(--x-line2) !important;background:#fff;
+  font-size:12px !important;color:var(--x-ink) !important;
+  border:0 !important;border-bottom:1px solid var(--x-line2) !important;background:#fff;padding-top:3px !important;padding-bottom:3px !important;
 }
 table tbody tr:nth-child(even) > td{background:#FAFAFB}
 table tbody tr:hover > td{background:var(--x-red-50) !important}
@@ -709,7 +709,6 @@ td .dim,.dim{color:var(--x-mute) !important}
 
 /* gọn: dòng thấp, nhiều dòng */
 table tbody tr{height:auto !important}
-table tbody td{padding:3px 8px !important;line-height:1.25 !important;height:auto !important}
 .aside-head{background:#fff !important;background-image:none !important;border:0 !important;box-shadow:none !important;border-bottom:1px solid var(--x-line) !important}
 .aside-head .modes{border:0 !important;box-shadow:none !important}
 /* ---------- PHỤ ---------- */
