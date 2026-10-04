@@ -166,6 +166,10 @@ header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,head
   border-radius:9px !important;font-size:12px !important;font-weight:600;
   padding:0 13px !important;box-shadow:none !important;
   height:34px !important;min-height:0 !important;
+  width:auto !important;flex:0 0 auto !important;
+  overflow:visible !important;white-space:nowrap !important;
+  order:0 !important;margin:0 !important;
+  display:inline-flex !important;align-items:center !important;gap:7px !important;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 .filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{color:#fff !important;-webkit-text-fill-color:#fff !important}
