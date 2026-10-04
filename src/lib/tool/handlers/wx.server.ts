@@ -44,6 +44,7 @@ export const routes: Routes = {
   "GET /api/taf/refresh": async (ctx) => {
     try {
       const info: TafSnapshot = await fetchLatest();
+      if (!info.count) return { error: `Đài TAF (${info.source}) không trả bản TAF nào — thử lại sau ít phút.` };
       await setJson(ctx, CACHE_KEY, info);
       return {
         ok: true,
