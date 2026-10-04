@@ -47,6 +47,9 @@ const SHIM = `<script>
       if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
     }
     var z = Math.min(1, window.innerWidth / need);
+    // Narrow-screen CSS keys off viewport width; while zoom-fit is active the
+    // real layout width is innerWidth/z, so mark <html> and disable those rules.
+    de.classList.toggle('fit-scaled', z < 0.999);
     if (z >= 0.999) { de.style.overflowX = ''; return; }
     if ('zoom' in b.style) {
       // zoom already reflows the layout viewport; do NOT also set width.
@@ -779,9 +782,9 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 
 /* ================= HEADER OPS — phím vuông buồng lái ================= */
 header#mdRoom{
-  min-height:112px !important;height:112px !important;padding:0 22px !important;
-  display:grid !important;grid-template-columns:minmax(560px,1fr) 286px minmax(330px,1fr) !important;
-  grid-template-rows:1fr !important;column-gap:24px !important;align-items:center !important;
+  min-height:168px !important;height:auto !important;padding:10px 22px 12px !important;
+  display:grid !important;grid-template-columns:minmax(0,1fr) 286px minmax(0,1fr) !important;
+  grid-template-rows:84px 58px !important;column-gap:24px !important;row-gap:8px !important;align-items:center !important;
   background-color:#dbeeff !important;background-image:linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)),var(--dispatch-sky) !important;
   background-position:center 46% !important;background-size:cover !important;
   border-top:4px solid var(--x-red) !important;border-bottom:1px solid rgba(104,137,168,.34) !important;
@@ -803,22 +806,33 @@ header#mdRoom .brand .sig{font-size:8px !important;white-space:nowrap !important
 header#mdRoom .brand-vj{display:block !important;margin-top:4px !important;font-size:8px !important;font-weight:800 !important;letter-spacing:.18em !important;color:var(--x-yellow) !important;-webkit-text-fill-color:var(--x-yellow) !important;text-transform:uppercase !important}
 
 header#mdRoom .md-denpyo{
-  grid-column:1 !important;grid-row:1 !important;order:unset !important;min-width:0 !important;width:100% !important;
-  display:grid !important;grid-template-columns:124px minmax(410px,1fr) !important;grid-template-rows:38px 34px !important;
-  gap:5px 10px !important;align-items:center !important;padding:8px 10px !important;
-  background:rgba(255,255,255,.9) !important;border:1px solid rgba(255,255,255,.96) !important;box-shadow:0 8px 22px rgba(30,69,103,.15) !important;backdrop-filter:blur(10px) !important;
+  grid-column:1 / -1 !important;grid-row:2 !important;order:unset !important;min-width:0 !important;width:100% !important;
+  display:flex !important;flex-wrap:nowrap !important;align-items:center !important;gap:0 !important;
+  height:58px !important;padding:6px 12px 6px 18px !important;
+  background:#fff !important;border:1px solid rgba(97,123,148,.32) !important;border-radius:999px !important;
+  box-shadow:0 14px 30px rgba(30,69,103,.18) !important;backdrop-filter:none !important;
 }
-header#mdRoom .md-denpyo .md-row:first-of-type{grid-column:1 !important;grid-row:1 / span 2 !important;display:flex !important;align-items:center !important}
+header#mdRoom .md-denpyo .md-row:not(.line){grid-column:auto !important;grid-row:auto !important;display:flex !important;align-items:center !important;width:158px !important;flex:none !important;padding-right:14px !important;position:relative !important}
+header#mdRoom .md-denpyo .md-row:not(.line)::after{content:"" !important;position:absolute !important;right:0 !important;top:9px !important;bottom:9px !important;width:1px !important;background:var(--x-line) !important}
 header#mdRoom .md-denpyo .filt-rail{
-  grid-column:2 !important;grid-row:1 !important;display:grid !important;
-  grid-template-columns:1.05fr .8fr .8fr .9fr 1.25fr !important;gap:10px !important;
-  padding:0 !important;border:0 !important;background:transparent !important;
+  grid-column:auto !important;grid-row:auto !important;display:grid !important;flex:1 1 auto !important;min-width:0 !important;max-width:none !important;
+  grid-template-columns:repeat(5, minmax(0,1fr)) !important;gap:0 6px !important;
+  padding:0 12px !important;border:0 !important;background:transparent !important;box-shadow:none !important;
 }
-header#mdRoom .md-denpyo .filt-actions{grid-column:2 !important;grid-row:2 !important;display:flex !important;gap:7px !important;align-items:start !important}
-header#mdRoom .field{min-width:0 !important;width:100% !important;gap:3px !important}
+header#mdRoom .md-denpyo .filt-rail .field{position:relative !important;padding:0 8px !important}
+header#mdRoom .md-denpyo .filt-rail .field:not(:last-child)::after{content:"" !important;position:absolute !important;right:-3px !important;top:12px !important;bottom:4px !important;width:1px !important;background:var(--x-line) !important}
+header#mdRoom .md-denpyo .filt-actions{
+  grid-column:auto !important;grid-row:auto !important;display:flex !important;gap:6px !important;align-items:center !important;
+  flex:0 0 auto !important;width:auto !important;padding-left:14px !important;border-left:1px solid var(--x-line) !important;
+}
+header#mdRoom .field{min-width:0 !important;width:100% !important;gap:2px !important}
 header#mdRoom .field label{font-size:8px !important;font-weight:700 !important;letter-spacing:.1em !important;color:var(--x-mute) !important;opacity:1 !important}
-header#mdRoom input,header#mdRoom select{width:100% !important;height:28px !important;border:1px solid rgba(97,123,148,.42) !important;border-radius:2px !important;background:rgba(255,255,255,.92) !important;box-shadow:0 1px 3px rgba(30,69,103,.08) !important;font:600 11px var(--x-mono) !important}
-header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px var(--x-red-50) !important}
+header#mdRoom input,header#mdRoom select{
+  width:100% !important;height:30px !important;border:1px solid #E2E8F1 !important;border-radius:8px !important;
+  background:#F5F8FB !important;box-shadow:none !important;font:600 11px var(--x-mono) !important;
+  color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;padding:0 8px !important;
+}
+header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
 
 header#mdRoom .filt-actions .btn{
   height:32px !important;min-width:78px !important;padding:0 10px !important;border:0 !important;border-radius:4px !important;
@@ -832,9 +846,9 @@ header#mdRoom .filt-actions .btn:active{transform:translateY(3px) !important;box
 
 header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;justify-content:flex-end !important;gap:8px !important;
-  flex-wrap:nowrap !important;width:100% !important;height:74px !important;padding:7px 10px 11px !important;border:1px solid rgba(255,255,255,.96) !important;
+  flex-wrap:nowrap !important;width:auto !important;height:74px !important;padding:7px 12px 11px !important;border:1px solid rgba(255,255,255,.96) !important;
   background:rgba(255,255,255,.9) !important;box-shadow:0 8px 22px rgba(30,69,103,.15) !important;backdrop-filter:blur(10px) !important;
-  position:relative !important;
+  position:relative !important;justify-self:end !important;border-radius:14px !important;
 }
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
@@ -866,38 +880,46 @@ header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
 header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;font-size:17px !important;line-height:1 !important;flex:none !important;background-color:#fff !important;color:#fff !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:9px !important;font-weight:800 !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:1 !important;text-transform:uppercase !important}
-.aside-head{top:112px !important}
+.aside-head{top:173px !important}
 
 @media(max-width:1180px){
-  header#mdRoom{grid-template-columns:minmax(520px,1fr) 190px 320px !important;column-gap:10px !important;padding:0 10px !important}
-  header#mdRoom .brand{width:190px !important}
-  header#mdRoom .brand h1{font-size:19px !important}
-  header#mdRoom .brand .sig{font-size:6px !important}
-  header#mdRoom .head-right{position:static !important;right:auto !important;bottom:auto !important;z-index:auto !important;padding:8px !important}
+  html:not(.fit-scaled) header#mdRoom{grid-template-columns:minmax(0,1fr) 190px minmax(0,1fr) !important;column-gap:10px !important;padding:8px 10px 10px !important}
+  html:not(.fit-scaled) header#mdRoom .brand{width:190px !important}
+  html:not(.fit-scaled) header#mdRoom .brand h1{font-size:19px !important}
+  html:not(.fit-scaled) header#mdRoom .brand .sig{font-size:6px !important}
+  html:not(.fit-scaled) header#mdRoom .head-right{position:static !important;right:auto !important;bottom:auto !important;z-index:auto !important;padding:8px !important;height:64px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo{flex-wrap:wrap !important;height:auto !important;border-radius:20px !important;padding:8px 16px !important;row-gap:8px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .md-row:not(.line){width:150px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .filt-rail{flex:1 1 400px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .filt-actions{flex:1 1 100% !important;border-left:0 !important;border-top:1px solid var(--x-line) !important;padding:8px 0 0 !important}
+  html:not(.fit-scaled) .aside-head{top:232px !important}
 }
 @media(max-width:900px){
-  header#mdRoom{
-    height:166px !important;min-height:166px !important;padding:8px 10px !important;
-    grid-template-columns:184px minmax(0,1fr) !important;grid-template-rows:56px 86px !important;
+  html:not(.fit-scaled) header#mdRoom{
+    height:auto !important;min-height:0 !important;overflow:visible !important;padding:8px 10px 10px !important;
+    grid-template-columns:184px minmax(0,1fr) !important;grid-template-rows:56px auto !important;
     gap:8px 10px !important;background-position:center !important;
   }
-  header#mdRoom .brand{grid-column:1 !important;grid-row:1 !important;width:184px !important;height:56px !important;justify-self:start !important;box-shadow:5px 5px 0 rgba(125,20,39,.14) !important}
-  header#mdRoom .brand h1{font-size:17px !important}
-  header#mdRoom .brand .sig{font-size:5px !important;margin-top:4px !important}
-  header#mdRoom .brand-vj{font-size:6px !important;margin-top:3px !important}
-  header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:rgba(255,255,255,.84) !important}
-  header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{position:absolute !important;top:14px !important;width:64px !important;min-width:64px !important;height:44px !important;padding:0 5px !important;z-index:70 !important}
-  header#mdRoom #btnOfpCheck{right:232px !important}
-  header#mdRoom .hdr-switch{right:162px !important}
-  header#mdRoom .theme-switch{right:92px !important}
-  header#mdRoom #aiFab{right:8px !important;width:78px !important;min-width:78px !important}
-  header#mdRoom .md-denpyo{grid-column:1 / -1 !important;grid-row:2 !important;grid-template-columns:112px minmax(0,1fr) !important;grid-template-rows:34px 32px !important;width:100% !important;height:86px !important;padding:7px 8px !important;gap:4px 7px !important}
-  header#mdRoom .md-denpyo .filt-rail{gap:5px !important;grid-template-columns:1.05fr .75fr .75fr .9fr 1.22fr !important}
-  header#mdRoom .md-denpyo .filt-actions{gap:5px !important}
-  header#mdRoom .filt-actions .btn{height:27px !important;min-width:62px !important;padding:0 7px !important;font-size:9px !important}
-  header#mdRoom input,header#mdRoom select{height:25px !important;font-size:9px !important}
-  header#mdRoom .field label{font-size:6px !important}
-  .aside-head{top:166px !important}
+  html:not(.fit-scaled) header#mdRoom .brand{grid-column:1 !important;grid-row:1 !important;width:184px !important;height:56px !important;justify-self:start !important;box-shadow:5px 5px 0 rgba(125,20,39,.14) !important}
+  html:not(.fit-scaled) header#mdRoom .brand h1{font-size:17px !important}
+  html:not(.fit-scaled) header#mdRoom .brand .sig{font-size:5px !important;margin-top:4px !important}
+  html:not(.fit-scaled) header#mdRoom .brand-vj{font-size:6px !important;margin-top:3px !important}
+  html:not(.fit-scaled) header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:rgba(255,255,255,.84) !important}
+  html:not(.fit-scaled) header#mdRoom #btnOfpCheck,html:not(.fit-scaled) header#mdRoom #aiFab,html:not(.fit-scaled) header#mdRoom .hdr-switch,html:not(.fit-scaled) header#mdRoom .theme-switch{position:absolute !important;top:14px !important;width:64px !important;min-width:64px !important;height:44px !important;padding:0 5px !important;z-index:70 !important}
+  html:not(.fit-scaled) header#mdRoom #btnOfpCheck{right:232px !important}
+  html:not(.fit-scaled) header#mdRoom .hdr-switch{right:162px !important}
+  html:not(.fit-scaled) header#mdRoom .theme-switch{right:92px !important}
+  html:not(.fit-scaled) header#mdRoom #aiFab{right:8px !important;width:78px !important;min-width:78px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo{grid-column:1 / -1 !important;grid-row:2 !important;flex-wrap:wrap !important;width:100% !important;height:auto !important;padding:8px 14px !important;gap:0 !important;row-gap:6px !important;border-radius:16px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .md-row:not(.line){width:100% !important;padding-right:0 !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .md-row:not(.line)::after{display:none !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .filt-rail{width:100% !important;flex:1 1 100% !important;padding:0 !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .filt-rail .field{padding:0 6px !important}
+  html:not(.fit-scaled) header#mdRoom .md-denpyo .filt-actions{width:100% !important;border-left:0 !important;border-top:1px solid var(--x-line) !important;padding:6px 0 0 !important;margin-top:2px !important}
+  html:not(.fit-scaled) header#mdRoom .filt-actions .btn{height:27px !important;min-width:62px !important;padding:0 7px !important;font-size:9px !important}
+  html:not(.fit-scaled) header#mdRoom input,html:not(.fit-scaled) header#mdRoom select{height:25px !important;font-size:9px !important}
+  html:not(.fit-scaled) header#mdRoom .field label{font-size:6px !important}
+  html:not(.fit-scaled) .aside-head{top:244px !important}
 }
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
