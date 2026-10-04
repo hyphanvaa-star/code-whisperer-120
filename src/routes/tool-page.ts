@@ -47,6 +47,9 @@ const SHIM = `<script>
       if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
     }
     var z = Math.min(1, window.innerWidth / need);
+    // Narrow-screen CSS keys off viewport width; while zoom-fit is active the
+    // real layout width is innerWidth/z, so mark <html> and disable those rules.
+    de.classList.toggle('fit-scaled', z < 0.999);
     if (z >= 0.999) { de.style.overflowX = ''; return; }
     if ('zoom' in b.style) {
       // zoom already reflows the layout viewport; do NOT also set width.
