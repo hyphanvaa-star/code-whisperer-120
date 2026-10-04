@@ -64,7 +64,11 @@ const SHIM = `<script>
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
-  window.addEventListener('load', function(){ fit(); setTimeout(fit, 800); setTimeout(fit, 2500); });
+  window.addEventListener('load', function(){
+    var room=document.getElementById('mdRoom'), actions=document.querySelector('.filt-actions');
+    if(room && actions && actions.parentElement!==room) room.appendChild(actions);
+    fit(); setTimeout(fit, 800); setTimeout(fit, 2500);
+  });
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', fit); } else { fit(); }
 })();
 </script>`;
