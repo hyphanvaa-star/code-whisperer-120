@@ -39,8 +39,8 @@ async function page(): Promise<string> {
   cached = raw
     .replace("<head>", "<head>" + SHIM)
     .replace("(async function gateBoot(){", GATE_SKIP)
-    .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night-hq.webp")
-    .split("/static/shanghai-bund-clock-night-true-hd.jpg").join("/static/shanghai-bund-clock-night-hq.webp");
+    .split("/static/shanghai-bund-inner-true-hd.jpg").join("/static/shanghai-bund-night.png")
+    ;
   return cached;
 }
 
