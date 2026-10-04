@@ -86,6 +86,7 @@ async function page(): Promise<string> {
     // Mở web KHÔNG tự đăng nhập Outlook nữa (tránh cửa sổ Microsoft Sign-in
     // hiện lên trên máy công ty) — chỉ chạy khi bấm nút "Đăng nhập Outlook".
     .replace("  startOwaBoot();", "  /* startOwaBoot() tắt: chỉ đăng nhập Outlook khi bấm nút */")
+    .replace("    if(ok) await defPullSummary({quiet: true});", "    /* defect summary chỉ tải khi bấm nút */")
     ;
   return cached;
 }
