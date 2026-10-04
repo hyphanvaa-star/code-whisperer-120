@@ -1,0 +1,497 @@
+{
+  "aircraft": [
+    {
+      "reg": "VN-A522",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A631",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A632",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A634",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A635",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A637",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A639",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A641",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A642",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A643",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A649",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A651",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A657",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A687",
+      "defect": "LOW EGT",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A677",
+      "defect": "01 TDP AT AFT CARGO COMPRT BROKEN",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A810",
+      "defect": "SATCOM DATA MODE CONSIDER INOP",
+      "limit": "PROCEDURES DO NOT REQUIRE THE USE OF THE SATCOM"
+    },
+    {
+      "reg": "VN-A636",
+      "defect": "LAV D DOOR HINGE CLEARANCE EXCESSIVE( INTERIOR VISIBLE FROM OUTSIDE)",
+      "limit": "LAV D CONSIDER INOP"
+    },
+    {
+      "reg": "VN-A542",
+      "defect": "BAD SMELL IN LAV A",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A670",
+      "defect": "NON CAT III OPERATION DUE TO AUTOLAND NOT PERFORMED.",
+      "limit": "A/C DOWNGRADED TO CAT I LANDING"
+    },
+    {
+      "reg": "VN-A575",
+      "defect": "FM: NO ADF 1 DATA (INTM)",
+      "limit": "NAVIGATION AND APPROACH PROCEDURES ARE NOT BASED ON THE USE OF ADF"
+    },
+    {
+      "reg": "VN-A815",
+      "defect": "ENGINE REV1 FAULT",
+      "limit": "DETERMINE THE ASSOCIATED FLIGHT MANUAL PERFORMANCE PENALTIES WITH THE OCTOPUS PROGRAM"
+    },
+    {
+      "reg": "VN-A820",
+      "defect": "ON FINAL APP INTO SYD F/O LOST HIS PFD. 3 RESETS WERE TRIED BY SWITCHING THE DISPLAY OFF/ON AND NO JOY. [OPS]: - RNP AR OPERATIONS ARE NOT PERMITTED - MAXIMUM LANDING CAPABILITY IS CAT 2",
+      "limit": "RNP AR OPERATIONS ARE NOT PERMITTED\nMAXIMUM LANDING CAPABILITY IS CAT 2"
+    },
+    {
+      "reg": "VN-A629",
+      "defect": "CAPTAIN`S ND FAULT DUIRING FLIGHT",
+      "limit": "RNP AR OPERATIONS ARE NOT PERMITTED\nPERFORM RNP APCH, RNAV 10, RNAV 5, RNAV 1 / RNAV 2, RNP 4, RNP 2 AND RNP 1 OPERATIONS DEPENDS ON PM OR PF SIDE AFFECTED\nMAXIMUM LANDING CAPABILITY IS CAT 2"
+    },
+    {
+      "reg": "VN-A689",
+      "defect": "WATER LEAKAGE FROM FWD GALLEY WATER TAP",
+      "limit": "FWD GALLEY WATER FAUCET NOT USED"
+    },
+    {
+      "reg": "VN-A663",
+      "defect": "AFT GALLEY BTW 521A & 521B INTERMEDIATE LATCH MISSING",
+      "limit": "GALLEY HALF-SIZE TROLLEYS AND STANDARD UNITS ARE NOT USED AT THE AFFECTED LOCATION"
+    },
+    {
+      "reg": "VN-A640",
+      "defect": "COMPARTMENT 412/413 PANEL CRACKED AND DELAMINATION AT AFT GALLEY",
+      "limit": "APPLY PLACARD TROLLEY MUST BE EMPTY."
+    },
+    {
+      "reg": "VN-A674",
+      "defect": "PFR FAILURE MESSAGE \" HF1(3RE1)/COAX SOURCE HF1",
+      "limit": "THE AIRCRAFT IS OPERATED WITHIN VHF COVERAGE.\nEDTO IS NOT CONDUCTED"
+    },
+    {
+      "reg": "VN-A201",
+      "defect": "NO ADF 1 DATA",
+      "limit": "NAVIGATION AND APPROACH PROCEDURES ARE NOT BASED ON THE USE OF THE ADF."
+    },
+    {
+      "reg": "VN-A699",
+      "defect": "HF1(3RE1)",
+      "limit": "THE AIRCRAFT IS OPERATED WITHIN VHF COVERAGE.\nEDTO IS NOT CONDUCTED"
+    },
+    {
+      "reg": "VN-A693",
+      "defect": "FOUND COCKPIT OXYGEN ON DOOR SD PAGE OF CAPT SIDE SHOW 720 PSI",
+      "limit": "ENOUGH FOR ONLY CAPT ON CAPT SIDE"
+    },
+    {
+      "reg": "VN-A666",
+      "defect": "COCKPIT DOOR NO 3 CAMERA BLUR",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A662",
+      "defect": "CABIN FWD F.A.K SEAL PEELED OFF",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A539",
+      "defect": "THE OPEN/LOCKED LIGHT OF AFT CARGO DOOR INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A201",
+      "defect": "TRANSFFERRED ITEM#4 FROM CCL# 000454 \"OPENED FAK AT 01ABC\"",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A549",
+      "defect": "FAK AT 01ABC OPENED (SEAL:30032)",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A651",
+      "defect": "XFR FROM CCL PAGE 014820: FAK 01ABC OPENED",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A544",
+      "defect": "FAK AT 17DEF OPENED",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A639",
+      "defect": "FAK 1ABC OPENED",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A629",
+      "defect": "TXF CCL FAK AT OHB 1ABC OPENED",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A554",
+      "defect": "FAK AT 01ABC OPENED.",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A676",
+      "defect": "REF CABIN LOG 019068-04: OPENED FAK 01 ABC, SERIAL NO: 37747",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A580",
+      "defect": "XFER FROM CCL 019323: FAK 1ABC OPEN WITH SEAL 47607",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A536",
+      "defect": "AFT CRG DR OPEN AND LOCK INDICATOR WAS INOP AGAIN.",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A812",
+      "defect": "WINDOW LIGHT AT SEAT 43KJH AND 40ABC WAS NOT ILLUMINATED.",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A552",
+      "defect": "PRERECORDED ANNOUNCEMENT AND MUSIC REPRODUCER (PRAM) INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A646",
+      "defect": "CABIN LOUD SPEAKER AT SEAT ROW 6L, 10R, 11L, 11R, 14L, 16L, 22L, 22R, 24L, 26L, 29L, 31L, 33R, 35R, 37L, 39L, 39R, 40L, 40R INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A651",
+      "defect": "F/O EFB MOUNTING DEVICE IS BROKEN.",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A815",
+      "defect": "PFR MSG CAMERA1 (12RA) ATA 237251 SUORCE CDSS",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A815",
+      "defect": "LOWER BEACON LIGHT INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A202",
+      "defect": "ENG2 FIRE LOOP A FAULT DURING CRUISE",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A578",
+      "defect": "FOUND CEILING LIGHT AT 10ABC INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A698",
+      "defect": "DOOR 4R CABIN HANDSET (330RH11) INOP DUE TO LOUDSPEAKER INOP .",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A661",
+      "defect": "EMERGENCY OXYGEN CONTAINER AT MIDDLE CEILING PANEL-AFT GALLEY INOP DUE TO LOOSEN",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A516",
+      "defect": "FAK AT 01ABC OPEN, SEAL 33866",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A532",
+      "defect": "CABIN CREW STATION LOUDSPEAKER AT DOOR 2R U/S",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A663",
+      "defect": "PERMANENT DEACTIVATION OF THE RAIN REPELLENT",
+      "limit": "FOR CAT II AND CAT III OPERATIONS, THE WINDSHIELD WIPER FOR PF MUST BE OPERATIVE."
+    },
+    {
+      "reg": "VN-A657",
+      "defect": "FOUND FWD CARGO DOOR OPEN/LOCKED INDICATOR LIGHT INOP.",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A535",
+      "defect": "COCKPIT DOOR VIDEO PB INOP - CAN NOT SWITCH OR TURN OFF THE CAMERA",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A201",
+      "defect": "RAIN REPELLENT SYSTEM INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A699",
+      "defect": "TWO AMBER DASHES APPEAR ON LAST TWO DIGITS OF FUEL ON BOARD INDICATION ON UPPER ECAM DISPLAY AND ALSO ON RIGHT HAND SIDE FUEL TANK INDICATION",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A815",
+      "defect": "REF CCL NO D0000690 OPEN FAK AT C1-2 SEAL: 36349",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A530",
+      "defect": "WO.8473835 REPLACE IPRAM TO UPLOAD MUSIC Q3-2026REV01",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A820",
+      "defect": "REF CCL PAGE 008336 ITEM 2.FAK C101L OPENED.SEAL 39787",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A544",
+      "defect": "AFT CARGO DOOR OPEN/LOCKED INDICATOR LIGHT INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A654",
+      "defect": "PRERECORDED ANNOUCEMENT AND MUSIC REPRODUCER (PRAM) INOP DUE TO IPRAM CARD REMOVED",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A685",
+      "defect": "FOUND BRAKE FAN #1 INOP.",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A812",
+      "defect": "REF CCL NO D2024-030148 ITEM 3 FAK AT C1-2 WAS OPENED SEAL: 29923",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A651",
+      "defect": "BRAKE FAN # 4 INOP",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A540",
+      "defect": "CABIN SEAT WITH ESCUTCHEON DAMAGED AND MISSED AT SEAT 2E, 4E, 5AC, 6CD, 7A, 8AD, 9A, 10AD, 14A, 15C, 17E, 18D, 19A, 22F, 28A, 29CD, 31E, 32BC, 33AF, 34F, 36DE, 37E, 40F",
+      "limit": ""
+    },
+    {
+      "reg": "VN-A575",
+      "defect": "01 PORTABLE OXYGEN UNIT USED AND REMOVED",
+      "limit": ""
+    }
+  ],
+  "airports": [
+    {
+      "code": "HPH",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "HUI",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "VCL",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "DIN",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "THD",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "PXU",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "BMV",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "TNN",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "TTT",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "KNH",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "HUN",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "AMD",
+      "limit": "NO APU SERVICE"
+    },
+    {
+      "code": "VTE",
+      "limit": "NO APU SERVICE"
+    }
+  ],
+  "curfew": [
+    {
+      "code": "THD",
+      "start": "16:00",
+      "end": "23:00"
+    },
+    {
+      "code": "PXU",
+      "start": "14:00",
+      "end": "23:00"
+    },
+    {
+      "code": "VCA",
+      "start": "14:00",
+      "end": "23:00"
+    },
+    {
+      "code": "VDH",
+      "start": "14:00",
+      "end": "23:00"
+    },
+    {
+      "code": "VCL",
+      "start": "11:30",
+      "end": "23:00"
+    },
+    {
+      "code": "TBB",
+      "start": "14:00",
+      "end": "23:00"
+    },
+    {
+      "code": "DIN",
+      "start": "14:00",
+      "end": "23:00"
+    },
+    {
+      "code": "CJU",
+      "start": "14:00",
+      "end": "21:00"
+    },
+    {
+      "code": "PUS",
+      "start": "14:00",
+      "end": "21:00"
+    },
+    {
+      "code": "SDJ",
+      "start": "14:00",
+      "end": "21:00"
+    },
+    {
+      "code": "GMP",
+      "start": "14:00",
+      "end": "21:00"
+    },
+    {
+      "code": "NRT",
+      "start": "15:10",
+      "end": "20:30"
+    },
+    {
+      "code": "PQC",
+      "start": "18:30",
+      "end": "00:30"
+    }
+  ],
+  "special": [
+    {
+      "reg": "A333 TYPE",
+      "code": "HUI",
+      "limit": "NOT CHOOSE HUI AS DESTINATION ALTERNATE OR TAKE OFF ALTERNATE"
+    },
+    {
+      "reg": "A21 NEO",
+      "code": "MFM",
+      "limit": "NOT OPS TO THIS AIRPORT INCLUDING AS AN ALTERNATE"
+    },
+    {
+      "reg": "A320",
+      "code": "VCL",
+      "limit": "ONLY OPS A320 TYPE"
+    },
+    {
+      "reg": "A333 TPYE",
+      "code": "VII",
+      "limit": "NOT CHOOSE VII AS DESTINATION ALTERNATE OR TAKE OFF ALTERNATE"
+    }
+  ]
+}

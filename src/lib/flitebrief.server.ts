@@ -113,3 +113,47 @@ export async function fbJson<T = unknown>(path: string): Promise<T> {
   if (!res.ok) throw new FliteBriefError(`FliteBrief trả lỗi ${res.status}`);
   return (await res.json()) as T;
 }
+
+/**
+ * Any FliteBrief call (POST/PUT/DELETE, JSON or multipart) with the shared
+ * session — port of api/auth.py FliteBriefSession.request. Re-logins once.
+ * `body` may be a FormData, URLSearchParams, string, or object (sent as JSON).
+ */
+export async function fbRequest(
+  method: string,
+  path: string,
+  opts: { body?: unknown; accept?: string; headers?: Record<string, string> } = {},
+): Promise<Response> {
+  const send = async (jar: Jar) => {
+    const headers: Record<string, string> = {
+      "User-Agent": UA,
+      Accept: opts.accept ?? "application/json",
+      Cookie: jarHeader(jar),
+      "X-Requested-With": "XMLHttpRequest",
+      ...(opts.headers ?? {}),
+    };
+    let body: BodyInit | null = null;
+    const b = opts.body;
+    if (b instanceof FormData || b instanceof URLSearchParams || typeof b === "string" || b instanceof Blob || b instanceof ArrayBuffer || b instanceof Uint8Array) {
+      body = b as BodyInit;
+    } else if (b !== undefined) {
+      body = JSON.stringify(b);
+      headers["Content-Type"] ??= "application/json";
+    }
+    const res = await fetch(BASE + path, { method, headers, body, redirect: "manual" });
+    absorb(jar, res);
+    return res;
+  };
+  let jar = await loadJar();
+  if (jar.size) {
+    const res = await send(jar);
+    if (res.status !== 401 && res.status !== 403 && !(res.status >= 300 && res.status < 400)) {
+      await saveJar(jar);
+      return res;
+    }
+  }
+  jar = await login();
+  return send(jar);
+}
+
+export const FB_BASE = BASE;

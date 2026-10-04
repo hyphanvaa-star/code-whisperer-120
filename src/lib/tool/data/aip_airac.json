@@ -1,0 +1,118 @@
+{
+  "note": "expires là ngày bản AIRAC sau bắt đầu hiệu lực. Bản đang vẽ còn dùng đến hết ngày hôm trước. Chỉ các nước đã vẽ dữ liệu lên bản đồ.",
+  "countries": {
+    "AU": {
+      "name": "Australia",
+      "cycle": "2026-11-26",
+      "effective": "2026-11-26",
+      "expires": "2026-12-24",
+      "calendar": "icao"
+    },
+    "CN": {
+      "name": "China",
+      "cycle": "2026-09",
+      "effective": "",
+      "expires": "",
+      "calendar": "",
+      "note": "Kỳ đang vẽ chỉ ghi tháng 2026-09, không có ngày AIRAC."
+    },
+    "HK": {
+      "name": "Hong Kong",
+      "cycle": "eaip_20260903/2026-10-01",
+      "effective": "2026-10-01",
+      "expires": "2026-10-29",
+      "calendar": "icao",
+      "note": "20260903 là ngày xuất bản thư mục, không phải ngày hết hạn."
+    },
+    "ID": {
+      "name": "Indonesia",
+      "cycle": "2026-08-06",
+      "effective": "2026-08-06",
+      "expires": "2026-09-03",
+      "calendar": "icao"
+    },
+    "IN": {
+      "name": "India",
+      "cycle": "eaip-v2-09-2026",
+      "effective": "2026-09-03",
+      "expires": "2026-10-01",
+      "calendar": "icao",
+      "note": "Mã kỳ 09-2026. Tháng 9 chỉ có một AIRAC, ngày 03 SEP."
+    },
+    "JP": {
+      "name": "Japan",
+      "cycle": "20261001",
+      "effective": "2026-10-01",
+      "expires": "2026-10-29",
+      "calendar": "icao"
+    },
+    "KH": {
+      "name": "Cambodia",
+      "cycle": "2026-09-03",
+      "effective": "2026-09-03",
+      "expires": "2026-10-01",
+      "calendar": "icao"
+    },
+    "KR": {
+      "name": "Korea",
+      "cycle": "2026-09-17",
+      "effective": "2026-09-17",
+      "expires": "2026-10-15",
+      "calendar": "kr",
+      "note": "Gói Hàn 28 ngày kể từ 2026-06-25, không trùng thứ Năm ICAO."
+    },
+    "LA": {
+      "name": "Laos",
+      "cycle": "2020-12-31",
+      "effective": "2020-12-31",
+      "expires": "2021-01-28",
+      "calendar": "icao",
+      "note": "Bản đang vẽ là AIRAC 31 DEC 2020."
+    },
+    "MY": {
+      "name": "Malaysia",
+      "cycle": "2026-08-11/html/",
+      "effective": "2026-08-11",
+      "expires": "",
+      "calendar": "",
+      "note": "Ngày trong thư mục không nằm trên lịch AIRAC 28 ngày."
+    },
+    "PH": {
+      "name": "Philippines",
+      "cycle": "eais-333CA4C9CF2FF14AAD01C547E10303A8/4NPZJ5FNRMQVU/EN/2013-04-04-AIRAC",
+      "effective": "",
+      "expires": "",
+      "calendar": "",
+      "note": "Đường EAD không ghi ngày AIRAC của bản đang vẽ. Mốc 2013-04-04 trong đường dẫn không dùng làm ngày hết hạn."
+    },
+    "SG": {
+      "name": "Singapore",
+      "cycle": "/aim-content/uploads/aip/01-OCT-2026/AIP-1/2026-09-03-000000/html/",
+      "effective": "2026-10-01",
+      "expires": "2026-10-29",
+      "calendar": "icao",
+      "note": "Tên kỳ 01-OCT-2026. Đường dẫn còn đóng dấu 2026-09-03."
+    },
+    "TH": {
+      "name": "Thailand",
+      "cycle": "2026-10-01-AIRAC/html/",
+      "effective": "2026-10-01",
+      "expires": "2026-10-29",
+      "calendar": "icao"
+    },
+    "TW": {
+      "name": "Taipei",
+      "cycle": "AIRAC AIP AMDT 04-26_2026_10_01",
+      "effective": "2026-10-01",
+      "expires": "2026-10-29",
+      "calendar": "icao"
+    },
+    "VN": {
+      "name": "Việt Nam",
+      "cycle": "2026-10-01-AIRAC",
+      "effective": "2026-10-01",
+      "expires": "2026-10-29",
+      "calendar": "icao"
+    }
+  }
+}
