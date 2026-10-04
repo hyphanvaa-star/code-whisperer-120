@@ -105,8 +105,9 @@ header{
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
 }
-/* Tắt lớp phủ trắng mờ của giao diện gốc làm header bị loang hồng */
+/* Tắt lớp phủ trắng mờ + lớp trang trí "bầu trời" hồng của giao diện gốc */
 header::after{content:none !important;display:none !important}
+.hdr-sky,.hdr-sky *,.hdr-sky::before,.hdr-sky::after{display:none !important}
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
 header .brand .sub{opacity:.85}
 /* Ô lọc trên header: nền trắng trong dải đỏ */
