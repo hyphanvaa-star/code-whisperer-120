@@ -1,13 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { timingSafeEqual } from "crypto";
 
-function authorized(request: Request): boolean {
+async function authorized(request: Request): Promise<boolean> {
   const token = request.headers.get("x-pc-agent-token") ?? "";
-  const want = process.env["PC_AGENT_TOKEN"] ?? "";
-  if (!token || !want) return false;
-  const a = Buffer.from(token);
-  const b = Buffer.from(want);
-  return a.length === b.length && timingSafeEqual(a, b);
+  const { checkAgentToken } = await import("@/lib/tool/pcagent.server");
+  return checkAgentToken(token);
 }
 
 export const Route = createFileRoute("/api/public/pc-agent/report")({

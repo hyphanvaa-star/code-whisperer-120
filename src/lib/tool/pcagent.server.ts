@@ -29,6 +29,31 @@ async function admin() {
   return supabaseAdmin;
 }
 
+/**
+ * Shared-token check for the PC helper. Accepts the PC_AGENT_TOKEN env secret
+ * or the `pc_agent.token` app_settings value (DB fallback so token rotation
+ * works without waiting for a redeploy).
+ */
+export async function checkAgentToken(token: string): Promise<boolean> {
+  if (!token) return false;
+  const candidates: string[] = [];
+  const env = process.env["PC_AGENT_TOKEN"];
+  if (env) candidates.push(env);
+  const { data } = await (await admin())
+    .from("app_settings")
+    .select("value")
+    .eq("key", "pc_agent.token")
+    .maybeSingle();
+  const dbToken = (data?.value as { token?: string } | null)?.token;
+  if (dbToken) candidates.push(dbToken);
+  const { timingSafeEqual } = await import("crypto");
+  const a = Buffer.from(token);
+  return candidates.some((c) => {
+    const b = Buffer.from(c);
+    return a.length === b.length && timingSafeEqual(a, b);
+  });
+}
+
 export async function enqueue(kind: PcJobKind, payload: Record<string, unknown>): Promise<string> {
   const { data, error } = await (await admin())
     .from("pc_jobs")
