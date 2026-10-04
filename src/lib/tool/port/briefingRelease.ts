@@ -697,3 +697,179 @@ export function pdfFilename(sheet: ReleaseSheet): string {
   const cs = (sheet.callsign || "FLIGHT").toUpperCase().replace(/[^A-Z0-9]/g, "");
   return `${cs}_Briefing.pdf`;
 }
+
+export function editKey(callsign: unknown): string {
+  const raw = String(callsign ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!raw) return "";
+  if (/^\d+$/.test(raw)) return "VJC" + raw;
+  if (raw.startsWith("VJC")) return raw;
+  if (raw.startsWith("VJ") && /^\d+$/.test(raw.slice(2))) return "VJC" + raw.slice(2);
+  return raw;
+}
+
+export function parseIcaos(raw: unknown): string[] {
+  const parts = Array.isArray(raw) ? raw.map(String) : String(raw ?? "").split(/[\/,;\s]+/);
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const part of parts) {
+    let code = toIcao(part);
+    if (!code) {
+      const compact = String(part).toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (compact.length === 4 && /^[A-Z]+$/.test(compact) && !_NOT_ICAO.has(compact)) code = compact;
+    }
+    if (code && !seen.has(code)) {
+      seen.add(code);
+      out.push(code);
+    }
+  }
+  return out;
+}
+
+export function parseDefects(raw: unknown): string[] {
+  const lines = Array.isArray(raw) ? raw.map(String) : String(raw ?? "").split("\n");
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const line of lines) {
+    let text = line.trim();
+    text = text.replace(/^[-•]\s*/, "");
+    text = text.replace(/^FM:\s*/i, "");
+    const key = text.toUpperCase();
+    if (text && !seen.has(key)) {
+      seen.add(key);
+      out.push(text);
+    }
+  }
+  return out;
+}
+
+function wxTextsOf(data: Record<string, unknown>, idx: number, fallback: string[]): string[] {
+  const key = `wx${idx}`;
+  if (key in data && data[key] !== null && data[key] !== undefined) {
+    const blob = String(data[key]).trim();
+    if (!blob) return ["NIL"];
+    const parts = blob.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    return parts.length ? parts : [blob];
+  }
+  const wx = data["wx"];
+  if (Array.isArray(wx) && idx < wx.length) {
+    const block = wx[idx];
+    if (block && typeof block === "object") {
+      const texts = ((block as Record<string, unknown>)["texts"] as unknown[] | undefined ?? [])
+        .map(String)
+        .filter((t) => t.trim());
+      return texts.length ? texts : fallback.length ? fallback : ["NIL"];
+    }
+    if (typeof block === "string" && block.trim()) return [block.trim()];
+  }
+  return fallback.length ? fallback : ["NIL"];
+}
+
+export function toFields(sheet: ReleaseSheet): Record<string, unknown> {
+  return {
+    callsign: sheet.callsign,
+    published_at: sheet.published_at,
+    dep: sheet.dep,
+    dest: sheet.dest,
+    dest_alts: [...sheet.dest_alts],
+    enroute_alts: [...sheet.enroute_alts],
+    reg: sheet.reg,
+    defects: [...sheet.defects],
+    wx: sheet.wx.map((b) => ({ label: b.label, icaos: [...b.icaos], texts: [...b.texts] })),
+    sig_wx: sheet.sig_wx,
+    notams: padNotams(sheet.notams),
+    permit_addr: sheet.permit_addr,
+    permit_kind: sheet.permit_kind,
+    notes: sheet.notes,
+    ofp_note: sheet.ofp_note,
+  };
+}
+
+export function sheetFromFields(data: Record<string, unknown>): ReleaseSheet {
+  const cs = editKey(data["callsign"]) || String(data["callsign"] ?? "").trim().toUpperCase();
+  const dep = toIcao(data["dep"]) || String(data["dep"] ?? "").toUpperCase().trim();
+  const dest = toIcao(data["dest"]) || String(data["dest"] ?? "").toUpperCase().trim();
+  const destAlts = parseIcaos(data["dest_alts"]);
+  const enroute = parseIcaos(data["enroute_alts"]);
+
+  const titles = ["Dept. APT", "Dest. APT", "Dest. Alternate(s)", "Enr. Alternate(s)"];
+  const codesList: string[][] = [dep ? [dep] : [], dest ? [dest] : [], destAlts, enroute];
+  const wxBlocks: WxBlock[] = codesList.map((codes, i) => {
+    let fallback: string[] = [];
+    const wx = data["wx"];
+    if (Array.isArray(wx) && i < wx.length && wx[i] && typeof wx[i] === "object") {
+      fallback = ((wx[i] as Record<string, unknown>)["texts"] as unknown[] | undefined ?? []).map(String);
+    }
+    return { label: aptLabel(titles[i], codes), icaos: [...codes], texts: wxTextsOf(data, i, fallback) };
+  });
+
+  const notes = data["notes"] === null || data["notes"] === undefined ? NOTES_RED : String(data["notes"]);
+  return newSheet({
+    callsign: cs,
+    published_at: String(data["published_at"] ?? "").trim(),
+    dep,
+    dest,
+    dest_alts: destAlts,
+    enroute_alts: enroute,
+    reg: formatReg(data["reg"]),
+    defects: parseDefects(data["defects"]),
+    wx: wxBlocks,
+    ofp_note: String(data["ofp_note"] ?? ""),
+    notes,
+    permit_addr: String(data["permit_addr"] ?? PERMIT_ADDR),
+    permit_kind: String(data["permit_kind"] ?? PERMIT_KIND),
+    sig_wx: String(data["sig_wx"] ?? "NO SIG").trim() || "NO SIG",
+    notams: notamsFromPayload(data),
+  });
+}
+
+export function toDict(sheet: ReleaseSheet, opts: { edit?: boolean; edited?: boolean } = {}): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    ok: true,
+    callsign: sheet.callsign,
+    published_at: sheet.published_at,
+    dep: sheet.dep,
+    dest: sheet.dest,
+    dest_alts: sheet.dest_alts,
+    enroute_alts: sheet.enroute_alts,
+    reg: sheet.reg,
+    defects: sheet.defects,
+    ofp_note: sheet.ofp_note,
+    html: toHtml(sheet),
+    text: toText(sheet),
+    edited: Boolean(opts.edited),
+  };
+  if (opts.edit) {
+    out["edit_html"] = toEditHtml(sheet);
+    out["fields"] = toFields(sheet);
+  }
+  return out;
+}
+
+export type FetchOfpPdf = (flightId: number) => Promise<Uint8Array | null> | Uint8Array | null;
+export type PdfTextExtractor = (blob: Uint8Array) => Promise<string> | string;
+export type EditsStore = {
+  load: (callsign: string) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
+};
+
+export interface DraftFromFlightOpts extends BuildSheetOpts {
+  fetchPdf: FetchOfpPdf;
+  pdfText: PdfTextExtractor;
+  applyEdits?: boolean;
+  loadEdits?: (callsign: string) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
+}
+
+export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightOpts): Promise<ReleaseSheet> {
+  const blob = await opts.fetchPdf(Number(flight.id));
+  if (!blob) {
+    throw new BriefReleaseError(
+      `Chưa có OFP cho ${flight.callsign || flight.id} — chờ OMC release.`,
+    );
+  }
+  const text = await opts.pdfText(blob);
+  const sheet = buildSheet(flight, text, opts);
+  if (opts.applyEdits !== false && opts.loadEdits) {
+    const saved = await opts.loadEdits(sheet.callsign);
+    if (saved) return sheetFromFields({ ...saved, callsign: sheet.callsign });
+  }
+  return sheet;
+}
