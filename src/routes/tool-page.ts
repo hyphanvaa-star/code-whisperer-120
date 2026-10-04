@@ -779,7 +779,7 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 /* ================= HEADER OPS — thiết kế lại thành bảng điều khiển 2 tầng ================= */
 header#mdRoom{
   min-height:104px !important;height:auto !important;padding:0 18px !important;
-  display:grid !important;grid-template-columns:210px minmax(600px,1fr) 284px !important;
+  display:grid !important;grid-template-columns:210px minmax(600px,1fr) 366px !important;
   grid-template-rows:1fr !important;column-gap:20px !important;align-items:center !important;
   background:#fff !important;border-top:4px solid var(--x-red) !important;border-bottom:1px solid var(--x-line) !important;
   box-shadow:0 8px 24px rgba(30,35,48,.06) !important;
@@ -826,7 +826,7 @@ header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;tran
 
 header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;gap:8px !important;
-  flex-wrap:nowrap !important;width:284px !important;height:52px !important;padding-left:18px !important;border-left:1px solid var(--x-line) !important;
+  flex-wrap:nowrap !important;width:366px !important;height:52px !important;padding-left:18px !important;border-left:1px solid var(--x-line) !important;
 }
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
@@ -834,15 +834,22 @@ header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
   position:absolute !important;top:31px !important;width:auto !important;height:42px !important;min-width:62px !important;margin:0 !important;padding:0 14px !important;
   border-radius:7px !important;box-shadow:none !important;display:flex !important;align-items:center !important;justify-content:center !important;
 }
-header#mdRoom #btnOfpCheck{right:132px !important;background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid var(--x-red) !important}
+header#mdRoom #btnOfpCheck{right:300px !important;background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid var(--x-red) !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
 header#mdRoom #aiFab{right:18px !important;min-width:104px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
 header#mdRoom #aiFab .n{font-size:12px !important;font-weight:800 !important}header#mdRoom #aiFab .sub{font-size:7px !important}
 header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  display:none !important;
+  display:flex !important;position:absolute !important;top:31px !important;width:76px !important;height:42px !important;
+  margin:0 !important;padding:0 10px !important;align-items:center !important;justify-content:center !important;gap:7px !important;
+  border:1px solid var(--x-line) !important;border-radius:7px !important;background:#fff !important;color:var(--x-ink) !important;
+  box-shadow:none !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
 }
-header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{font-size:14px !important;top:6px !important}
-header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{font-size:7px !important;bottom:5px !important;color:var(--x-mute) !important}
+header#mdRoom .hdr-switch{right:216px !important}
+header#mdRoom .theme-switch{right:132px !important}
+header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{border-color:var(--x-red) !important;background:var(--x-red-50) !important}
+header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
+header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;font-size:14px !important;line-height:1 !important;flex:none !important}
+header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:10px !important;font-weight:700 !important;color:var(--x-ink) !important;opacity:1 !important}
 .aside-head{top:104px !important}
 
 @media(max-width:1180px){
