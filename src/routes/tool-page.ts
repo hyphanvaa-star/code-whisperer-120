@@ -489,11 +489,28 @@ header .hstat > span *,.head-ops .xls-name *{color:var(--pp-ink) !important;-web
   padding:28px 12px 4px !important;
 }
 .aside-head .modes{overflow-y:visible !important}
-.mode{color:var(--pp-ink) !important;font-weight:700 !important;border-radius:7px !important;overflow:visible !important}
-.mode:hover{background:rgba(227,25,55,.07) !important;color:var(--pp-red) !important}
-.mode.on{
-  background:var(--pp-red) !important;color:#fff !important;
-  border:none !important;box-shadow:none !important;
+/* Tất cả tab: nền đỏ chữ trắng; tab đang chọn đỏ đậm + gạch vàng */
+.mode,.aside-head .mode{
+  background:var(--pp-red) !important;background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  font-weight:700 !important;border-radius:7px !important;overflow:visible !important;
+  border:none !important;box-shadow:none !important;margin:0 3px !important;
+}
+.mode *:not(.mode-bang):not(.mode-bang *){color:#fff !important;-webkit-text-fill-color:#fff !important}
+.mode svg,.mode svg *{stroke:currentColor !important}
+.mode:hover,.aside-head .mode:hover{background:var(--pp-red-deep) !important;color:#fff !important}
+.mode.on,.aside-head .mode.on{
+  background:var(--pp-red-deep) !important;color:#fff !important;
+  box-shadow:inset 0 -3px 0 #FFC900 !important;
+}
+.mode.on::after{display:none !important}
+/* Badge số: nằm trên, luôn hiện, không bị cắt */
+.mode-bang{z-index:20 !important}
+.aside-head,.modes,.aside-head .modes{overflow:visible !important}
+/* Nút Board / Đêm cùng kiểu đỏ chữ trắng */
+header .theme-toggle,header #btnBoard,header #btnNight,header .board-btn,header .night-btn{
+  background:var(--pp-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:none !important;
 }
 /* Thanh toolbar phụ */
 .toolbars,nav.tabs,.subtabs{
