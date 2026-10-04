@@ -134,15 +134,15 @@ header .brand{position:static !important;transform:none !important;margin:0 auto
 header .hstat,header .head-ops,header .md-hang,header .crew-jobs,header .quit-sohee{
   display:contents !important;
 }
-header .hstat > button,header .md-chochin{order:3}
-header .xls-name{order:3}
-header .live-ops{order:3}
-header #btnOfpCheck{order:4}
-header #ofpCheckStat{order:5}
+header .hstat > button,header .md-chochin{order:3 !important}
+header .xls-name{order:3 !important}
+header .live-ops{order:3 !important}
+header #btnOfpCheck{order:4 !important}
+header #ofpCheckStat{order:5 !important}
 header #btnQuit{display:none !important}
-header #aiFab{order:6}
-header .hdr-switch{order:7;margin:0 !important}
-header .theme-switch{order:8;margin:0 !important}
+header #aiFab{order:6 !important}
+header .hdr-switch{order:7 !important;margin:0 !important}
+header .theme-switch{order:8 !important;margin:0 !important}
 header .brand h1{
   font-size:21px !important;letter-spacing:.06em !important;
   line-height:1.05 !important;margin:0 !important;
