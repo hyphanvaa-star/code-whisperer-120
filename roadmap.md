@@ -47,4 +47,4 @@
 - [x] Trợ lý PC (04/10): bảng pc_jobs + token PC_AGENT_TOKEN + route /api/public/pc-agent/poll|report; endpoint /api/gd/printers|printer|print, /api/paths(|pick), /api/omni/auto đã port — in GD tới RICOH, chọn thư mục, ghi Omni xuống D:\Omni chạy qua trợ lý; script pc-agent/pc_agent.py (bản tải về ở Files/pc-agent)
 - [x] AviWeb check ATC qua trợ lý PC (04/10): /api/atc/check + job atc_check giao lệnh aviweb_check cho pc_agent.py — chạy atc_check.py gốc bằng Selenium trên máy công ty, cần PC_TOOL_DIR
 ## Thêm mới (20:45)
-- [ ] Tham khảo thiết kế https://www.properprompts.ai/ (user khen đẹp) — áp vào redesign giao diện /tool
+- [x] Tham khảo thiết kế properprompts.ai — áp lớp poster đỏ vào /tool (13:50)
