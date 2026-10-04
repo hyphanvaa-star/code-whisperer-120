@@ -7,6 +7,7 @@ import { ofpAckNeeded } from "../port/verify";
 import { adviceForFlight } from "../port/taf";
 import { getJson, setJson } from "../store.server";
 import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
+import * as omni from "../port/omni";
 
 const EMPTY_LIMITS: LimitsData = { aircraft: [], airports: [], curfew: [], special: [] };
 
@@ -149,7 +150,7 @@ function fuelOrderOf(f: Flight): { amount: number; units: string } | null {
   return { amount: last[1], units: last[2] };
 }
 
-function detail(f: Flight, crews: Flight["crews"]) {
+function detail(f: Flight, crews: Flight["crews"], load: Record<string, unknown> = {}) {
   return {
     ...row(f),
     fltno: f.fltno,
@@ -176,6 +177,7 @@ function detail(f: Flight, crews: Flight["crews"]) {
     zfw: Number((f.raw as Record<string, unknown>)["planned_ezfm"]) || null,
     pax_total: f.pax_total,
     cargo: f.cargo,
+    load,
     fuel_order: fuelOrderOf(f),
     released_by: f.released_by_name,
     verified_by: f.verified_by_name,
@@ -308,7 +310,117 @@ async function limitsRevision(ctx: Parameters<Routes["GET /api/weights"]>[0]): P
   }
 }
 
-const OMNI_NO_ACCOUNT_ERROR = { error: "Chưa có tài khoản Omni — nhờ quản trị lưu tài khoản." };
+const OMNI_NO_ACCOUNT_ERROR = { error: "Chưa có tài khoản Omni — gửi cho quản trị để lưu (OMNI_USERNAME/OMNI_PASSWORD)." };
+
+function omniCreds(): omni.OmniCredentials | null {
+  const username = process.env["OMNI_USERNAME"];
+  const password = process.env["OMNI_PASSWORD"];
+  return username && password ? { username, password } : null;
+}
+
+// Replaces web.py's in-process `_OMNI_CACHE` (RAM, shared by threads): Workers
+// share no memory, so the merged OmniFlight rows + fetched-at live in
+// app_settings (key "omni.cache") instead, keyed like web.py's `_omni_key`
+// (digits, dep, arr, std_local minute).
+type OmniCacheRow = Omit<omni.OmniFlight, "std_local" | "cot_utc" | "est_time_utc"> & {
+  std_local: string | null;
+  cot_utc: string | null;
+  est_time_utc: string | null;
+};
+interface OmniCache {
+  rows: OmniCacheRow[];
+  at: number; // epoch seconds, like web.py's time.time()
+}
+const EMPTY_OMNI_CACHE: OmniCache = { rows: [], at: 0 };
+
+function toCacheRow(x: omni.OmniFlight): OmniCacheRow {
+  return { ...x, std_local: x.std_local?.toISOString() ?? null, cot_utc: x.cot_utc?.toISOString() ?? null, est_time_utc: x.est_time_utc?.toISOString() ?? null };
+}
+function fromCacheRow(r: OmniCacheRow): omni.OmniFlight {
+  return { ...r, std_local: r.std_local ? new Date(r.std_local) : null, cot_utc: r.cot_utc ? new Date(r.cot_utc) : null, est_time_utc: r.est_time_utc ? new Date(r.est_time_utc) : null };
+}
+function omniKey(r: OmniCacheRow): string {
+  return `${r.digits}|${r.dep}|${r.arr}|${r.std_local ?? ""}`;
+}
+
+/** Port of web.py `_omni_merge` — gộp danh sách OmniFlight vào cache. */
+function omniMerge(cache: OmniCache, rows: omni.OmniFlight[]): number {
+  const byKey = new Map(cache.rows.map((r) => [omniKey(r), r] as const));
+  let added = 0;
+  for (const r of rows) {
+    const row = toCacheRow(r);
+    const k = omniKey(row);
+    if (!byKey.has(k)) added++;
+    byKey.set(k, row);
+  }
+  cache.rows = Array.from(byKey.values());
+  cache.at = Math.floor(Date.now() / 1000);
+  return added;
+}
+
+/** Port of web.py `omni_refresh()`. */
+async function omniRefresh(ctx: Parameters<Routes["GET /api/weights"]>[0], creds: omni.OmniCredentials) {
+  const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+  const rows = await omni.fetchOmni(creds);
+  const added = omniMerge(cache, rows);
+  await setJson(ctx, "omni.cache", cache);
+  return { total: cache.rows.length, added, fetched: rows.length, at: cache.at };
+}
+
+/** Port of web.py `_omni_rows()` — trả cache; nếu rỗng thì fetch lần đầu. */
+async function omniRowsFor(ctx: Parameters<Routes["GET /api/weights"]>[0], creds: omni.OmniCredentials): Promise<omni.OmniFlight[]> {
+  const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+  if (cache.rows.length) return cache.rows.map(fromCacheRow);
+  await omniRefresh(ctx, creds);
+  const refreshed = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+  return refreshed.rows.map(fromCacheRow);
+}
+
+/** Port of web.py `_omni_load_of` — Bag/CGO/PAX/EST từ Omni cache, không gọi mạng. */
+async function omniLoadOf(ctx: Parameters<Routes["GET /api/weights"]>[0], f: Flight): Promise<Record<string, unknown>> {
+  try {
+    const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+    if (!cache.rows.length) return {};
+    const mt = omni.match([f], cache.rows.map(fromCacheRow)).get(f.id);
+    if (!mt) return {};
+    const x = mt.omni;
+    return { pax: x.pax_weight, bag: x.bag_weight, cargo: x.cargo_confirm, tare: x.tare, est: x.est_payload };
+  } catch {
+    return {};
+  }
+}
+
+/** Port of web.py `est_check()` — EST từ InFlight Omni cho từng chuyến. */
+async function estCheck(ctx: Parameters<Routes["GET /api/weights"]>[0], flights: Flight[], creds: omni.OmniCredentials) {
+  const out: Record<string, unknown> = {};
+  if (!flights.length) return out;
+  let rows: omni.OmniFlight[];
+  try {
+    rows = await omniRowsFor(ctx, creds);
+  } catch (exc) {
+    const msg = `Omni: ${exc instanceof Error ? exc.message : String(exc)}`;
+    for (const f of flights) out[String(f.id)] = { err: msg };
+    return out;
+  }
+  const m = omni.match(flights, rows);
+  for (const f of flights) {
+    const mt = m.get(f.id);
+    if (!mt) {
+      out[String(f.id)] = { err: "không thấy chuyến này trên Omni" };
+      continue;
+    }
+    out[String(f.id)] = {
+      est: mt.omni.est_payload,
+      omni: omni.omniLabel(mt.omni),
+      gap_h: Math.round(mt.gap_h * 10) / 10,
+      pax: mt.omni.pax_weight, bag: mt.omni.bag_weight,
+      cargo: mt.omni.cargo_confirm, tare: mt.omni.tare,
+      note: mt.note,
+      err: "",
+    };
+  }
+  return out;
+}
 
 // Port of the web.py endpoints for group "core". Keep JSON shapes identical to web.py.
 export const routes: Routes = {
@@ -323,11 +435,51 @@ export const routes: Routes = {
   "POST /api/quit": () => ({ ok: true }),
   "POST /api/stop": () => ({ ok: true }),
   "GET /api/extra": () => ({ ready: false, count: 0, times: {} }),
-  "GET /api/est/status": () => ({ total: 0, at: null }),
-  "GET /api/est/refresh": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
-  "POST /api/est/refresh": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
-  "GET /api/est/match": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
-  "POST /api/est/match": () => (process.env["OMNI_USER"] ? { error: "Omni chưa được port đầy đủ" } : OMNI_NO_ACCOUNT_ERROR),
+  "GET /api/est/status": async (ctx) => {
+    const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+    return { total: cache.rows.length, at: cache.at || null };
+  },
+  "GET /api/est/refresh": async (ctx) => {
+    const creds = omniCreds();
+    if (!creds) return OMNI_NO_ACCOUNT_ERROR;
+    try {
+      return await omniRefresh(ctx, creds);
+    } catch (exc) {
+      return { error: exc instanceof Error ? exc.message : String(exc) };
+    }
+  },
+  "GET /api/est/match": async (ctx) => {
+    const { params } = ctx;
+    const ids = new Set(
+      (params.get("ids") || "").split(",").map((x) => x.trim()).filter((x) => /^\d+$/.test(x)).map(Number),
+    );
+    const days = parseInt(params.get("days") || "1", 10) || 1;
+    const flights = ids.size ? (await loadFlights(days)).filter((f) => ids.has(f.id)) : [];
+    const creds = omniCreds();
+    const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+    if (!creds) {
+      const est: Record<string, unknown> = {};
+      for (const f of flights) est[String(f.id)] = { err: "Omni: Chưa có tài khoản — gửi cho quản trị để lưu (OMNI_USERNAME/OMNI_PASSWORD)." };
+      return { est, total: cache.rows.length, at: cache.at || null };
+    }
+    const est = await estCheck(ctx, flights, creds);
+    const cacheAfter = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);
+    return { est, total: cacheAfter.rows.length, at: cacheAfter.at || null };
+  },
+  // web.py's "📂 Omni" manual XLSX upload needs openpyxl-equivalent XLSX parsing
+  // of the dashboard export file; not ported yet (no XLSX reader wired for this
+  // format here) — tải bằng nút "🔄 EST" (Dashboard OMC JSON) thay thế được.
+  "POST /api/est/upload": () => ({ error: "Upload file Omni (XLSX) chưa được port — dùng nút 🔄 EST để lấy trực tiếp." }),
+  // web.py's auto-download writes the OMC export to D:\Omni every hour from the
+  // dispatcher's PC (local filesystem) — impossible from a Cloudflare Worker.
+  "GET /api/omni/auto": () => ({
+    enabled: false, busy: false, dest: "D:\\Omni", last_file: "", last_at: 0,
+    last_error: "Tự động tải Omni xuống ổ D cần PC helper (không chạy được trên máy chủ web) — dùng nút 🔄 EST để lấy EST trực tiếp.",
+    next_at: 0,
+  }),
+  "POST /api/omni/auto": () => ({
+    error: "Tự động tải Omni xuống ổ D cần PC helper (không chạy được trên máy chủ web) — dùng nút 🔄 EST để lấy EST trực tiếp.",
+  }),
   "GET /api/weights": async (ctx) => {
     const { params } = ctx;
     const ids = (params.get("ids") || "")
@@ -466,7 +618,7 @@ export const routes: Routes = {
         // FliteBrief crews fetch failing shouldn't break the rest of the detail.
       }
     }
-    return detail(flight, crews);
+    return detail(flight, crews, await omniLoadOf(ctx, flight));
   },
 };
 export const jobs: Jobs = {};

@@ -4,13 +4,13 @@
 - [x] Giao diện mới: theme đỏ Vietjet, hàng tab, pill Ca sáng/Ca đêm, Quản trị tách trang riêng
 - [x] Tab Giao ca: Nạp theo DSP, tick ATC/EZFW/ATFM, lưu, xuất Excel
 - [x] Tab Dữ liệu so sánh: Excel ↔ FliteBrief (crew/reg, gắn cột, xuất Excel) + so 2 bản kế hoạch (đổi tàu/crew/delay, gợi ý CHG/DLA)
-- [ ] Tab ATC: check FPL trên AviWeb (AviWeb truy cập được từ web — viết lại không cần Selenium)
+- [ ] Tab ATC: check FPL trên AviWeb — CHẶN: AviWeb là ứng dụng Vaadin, bắt buộc trình duyệt thật (Selenium) như tool gốc; web không chạy được → cần trợ lý PC hoặc dán kết quả thủ công (tab Check ATC avi đã có)
 - [x] Tab Notice: luật notice chỉnh được (lưu chung cả nhóm) + kiểm tra đính kèm theo chuyến
 - [x] Tab Tàu/Defect: kiểm tra giới hạn (defect, APU, curfew, sân đóng, loại tàu+sân) + sửa danh sách chung
 - [x] Tab Tạo KHB/FPL: sinh FPL text + FPL.req từ chuyến FliteBrief, bảng tra Sohee
 - [x] Tab NOTAM, Công cụ hỗ trợ (PIB/WX)
 - [ ] Phase 3: Công cụ hỗ trợ — tải WX từ các đài khí tượng (TSN, Đà Nẵng, Nội Bài)
-- [ ] Phase 4: PIB (nguồn Outlook/OWA — cần xác định cách truy cập hộp thư từ web)
+- [ ] Phase 4: PIB (Outlook/OWA) — CHẶN: tài khoản VietJet bắt đăng nhập qua hệ thống nội bộ (ADFS), máy chủ web không tự đăng nhập được; cần IT cấp quyền ứng dụng (Azure app + Mail.Read) hoặc trợ lý PC
 - [ ] Phase 5: AIP / NOTAM / ATC FPL check, crew/reg swap, OPS core, AI chat
 
 - [x] Quyết định: viết lại tối đa trên web; Outlook = hộp thư chung + hộp dự phòng
@@ -38,4 +38,9 @@
 - [~] limits (/api/limits* xong; còn defect_pdf/defect_summary): /api/limits*, /api/defect/* (defect_summary, defect_pdf)
 - [~] notices+swap (rules/preview xong; còn attach/auto, swaps): notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
 - [ ] atc+autoload+misc: atc_check, atc files/submit, atcezfw, omni, owa, gd, credentials, paths, chat, dsp-layout, disk/clean, download
+- [x] Tài khoản dịch vụ đã có trong kho bảo mật (04/10): VJC, OMNI, OWA/Outlook (hộp chung omc@), AviWeb, JetPlan, Opscore, gate
+- [x] OMNI nối xong (04/10): đăng nhập thật OK, /api/est/status|refresh|match chạy thật, cache "omni.cache"; khung Cargo·Load + EST dùng dữ liệu này; còn upload XLSX tay + tự tải về ổ D: (trợ lý PC)
+- [~] AviWeb: logic phân tích FPL đã port; tự đăng nhập CHẶN (Vaadin bắt buộc trình duyệt) — đang hoàn thiện test + thông báo rõ ràng trên nút
+- [~] Outlook/OWA: logic đọc thư FPL/PIB đã port + endpoint sẵn; đăng nhập CHẶN (ADFS nội bộ) — cần IT cấp Azure app hoặc trợ lý PC
+- [ ] JetPlan, Opscore: tài khoản đã lưu, chưa nối (Opscore: STATUS OOOI trên bảng chuyến)
 - [ ] Ảnh gốc còn thiếu (logo VJ, hello-kitty, cat-paw, notam-apron-tower, acft, flags, hanyi/*.png) — cần bạn gửi thư mục static
