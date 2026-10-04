@@ -39,10 +39,13 @@ export const routes: Routes = {
     const cs = (ctx.params.get("callsigns") || "").split(",").filter(Boolean);
     const flights = pickNoticeFlights(await loadFlights(days), cs);
     const rules = await loadRules(ctx);
-    // No local disk in the Worker: we cannot check whether a notice PDF already
-    // exists on the FliteBrief sector until `defect`/attachment lookups are ported,
-    // so `found` conservatively reports "not found" (missing) for every need.
-    const plan = noticesPreview(flights, rules, () => false);
+    // "found" = file PDF của notice đã có trong kho "notices/" (Rule Studio upload).
+    const { listFiles } = await import("../store.server");
+    const stored = new Set(
+      (await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>))
+        .map((f) => f.name.replace(/\.pdf$/i, "").trim().toLowerCase()),
+    );
+    const plan = noticesPreview(flights, rules, (title) => stored.has(title.trim().toLowerCase()));
     let tot = 0, miss = 0;
     const byRule = new Map<string, number>();
     const missingFiles = new Map<string, number>();

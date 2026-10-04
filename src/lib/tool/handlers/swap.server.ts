@@ -27,6 +27,19 @@ async function ruleData(ctx: Parameters<Routes[string]>[0]): Promise<RuleRow[]> 
   return defaultRuleData();
 }
 
+/** Kho file notice PDF trong bucket "notices/<tên>.pdf" (Rule Studio upload).
+ *  Trả map title-thường → tên file để planSwap biết file nào có sẵn. */
+async function noticeFiles(ctx: Parameters<Routes[string]>[0]): Promise<Map<string, string>> {
+  const { listFiles } = await import("../store.server");
+  const files = await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>);
+  const map = new Map<string, string>();
+  for (const f of files) {
+    const stem = f.name.replace(/\.pdf$/i, "").trim().toLowerCase();
+    if (stem) map.set(stem, f.name);
+  }
+  return map;
+}
+
 async function upPrivileges(): Promise<{ create: boolean; delete: boolean }> {
   const { fbJson } = await import("@/lib/flitebrief.server");
   try {
@@ -104,7 +117,11 @@ export const routes: Routes = {
     const newActype = await actypeOf(flights, newReg, f.id);
     const live = await liveAttachments(f.id, f.attachments);
     const rows = await ruleData(ctx);
-    const plan = rs.planSwap(f, newReg, { oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType });
+    const noticeMap = await noticeFiles(ctx);
+    const plan = rs.planSwap(f, newReg, {
+      oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType,
+      fileExists: (title) => noticeMap.has(title.trim().toLowerCase()),
+    });
     const privileges = await upPrivileges();
     return { ...plan, privileges };
   },
@@ -289,7 +306,7 @@ function fbClient(): vf.FbClient {
 }
 
 export const jobs: Jobs = {
-  regswap: async (params, emit) => {
+  regswap: async (params, emit, ctx) => {
     const t0 = Date.now();
     const sectorId = Number(params["sectorId"]);
     const newReg = String(params["newReg"] ?? "");
@@ -316,8 +333,12 @@ export const jobs: Jobs = {
     }
     const newActype = await actypeOf(flights, newReg, f.id);
     const live = await liveAttachments(f.id, f.attachments);
-    const rows = await ruleData({} as Parameters<Routes[string]>[0]);
-    const plan = rs.planSwap(f, newReg, { oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType });
+    const rows = await ruleData(ctx);
+    const noticeMap = await noticeFiles(ctx);
+    const plan = rs.planSwap(f, newReg, {
+      oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType,
+      fileExists: (title) => noticeMap.has(title.trim().toLowerCase()),
+    });
 
     emit({ type: "line", text: `▶ ${plan.callsign} (${plan.route}) · ${plan.old_reg || "?"} → ${plan.new_reg}` });
     if (plan.fb_reg && plan.fb_reg !== plan.old_reg) {
@@ -358,10 +379,18 @@ export const jobs: Jobs = {
         const res = await fbRequest("DELETE", `/webapi/sectors/${sectorId2}/attachments/${id}`);
         return [200, 201, 204].includes(res.status);
       },
-      // No local disk/bucket of notice PDFs is wired into the Worker yet, so
-      // "found" is always false for add items and this is never invoked —
-      // matches the Vietnamese "THIẾU FILE TRÊN ĐĨA" message above honestly.
-      uploadAttachment: async () => ({ ok: false, alreadyExists: false, error: "chưa có kho file trên máy chủ (cần đĩa/kho PC)" }),
+      // Lấy PDF notice từ kho "notices/" (Rule Studio upload) rồi đính kèm
+      // lên FliteBrief bằng đúng luồng upload của api/upload.py.
+      uploadAttachment: async (title) => {
+        const name = noticeMap.get(title.trim().toLowerCase());
+        if (!name) return { ok: false, alreadyExists: false, error: `thiếu file "${title}" trong kho notice` };
+        const { getFile } = await import("../store.server");
+        const buf = await getFile(ctx, `notices/${name}`);
+        if (!buf) return { ok: false, alreadyExists: false, error: `không đọc được file ${name}` };
+        const { uploadAndAttach } = await import("./briefing.server");
+        const r = await uploadAndAttach(plan.sector_id, new Uint8Array(buf), name, title);
+        return r.ok ? { ok: true, alreadyExists: false } : { ok: false, alreadyExists: false, error: r.error ?? "lỗi không rõ" };
+      },
       onLine: (text, cls) => emit({ type: "line", text, cls }),
     });
     emit({ type: "line", text: `⬆ xong: xoá ${r.deleted} · thêm ${r.added} · đã có ${r.skipped} · lỗi ${r.failed}`, cls: r.failed ? "bad" : "" });
