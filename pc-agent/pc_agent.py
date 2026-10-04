@@ -736,6 +736,93 @@ def do_owa_pib(payload: dict, say) -> dict:
     }
 
 
+def _owa_driver(outlook_web_pib):
+    """Tìm driver Selenium Chrome OWA mà module gốc đang giữ (thử vài tên biến
+    thường gặp vì không đọc được source gốc)."""
+    for attr in ("driver", "_driver", "DRV", "drv", "_DRV", "get_driver", "current_driver"):
+        d = getattr(outlook_web_pib, attr, None)
+        if callable(d):
+            try:
+                d = d()
+            except Exception:
+                d = None
+        if d is not None and hasattr(d, "get_cookies"):
+            return d
+    return None
+
+
+def do_owa_draft(payload: dict, say) -> dict:
+    """Soạn nháp trong HỘP THƯ CHUNG omc@vietjetair.com trên Outlook Web (OWA),
+    đúng hành vi tool gốc — KHÔNG mở Outlook desktop.
+
+    Cách làm: dùng phiên Chrome OWA đã đăng nhập (Selenium) để lấy cookie +
+    X-OWA-CANARY, rồi gọi OWA REST API tạo draft trong mailbox chung
+    (POST /api/v2.0/users/omc@vietjetair.com/messages + FileAttachment).
+    Cuối cùng mở thẻ Drafts của hộp thư chung trên Chrome để người dùng
+    kiểm tra và bấm Send tay. Không gửi thư."""
+    config, outlook_web_pib = _load_owa_modules()
+    cancel = _NoCancel()
+
+    subject = str(payload.get("subject") or "")
+    body = str(payload.get("body") or "")
+    to = str(payload.get("to") or "")
+    cc = str(payload.get("cc") or "")
+    attachments = payload.get("attachments") or []
+    mailbox = str(payload.get("mailbox") or getattr(config, "SHARED_MAILBOX", "") or "omc@vietjetair.com")
+
+    say("▶ Kiểm tra phiên Outlook Web…")
+    outlook_web_pib.ensure_session(timeout_s=420.0, on_status=lambda m: say(m), cancel=cancel)
+    driver = _owa_driver(outlook_web_pib)
+    if driver is None:
+        raise RuntimeError("Không tìm thấy cửa sổ Chrome Outlook Web của tool gốc.")
+
+    cookies = {c["name"]: c["value"] for c in driver.get_cookies()}
+    canary = cookies.get("X-OWA-CANARY", "")
+    sess = requests.Session()
+    sess.headers.update({
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json",
+        "X-OWA-CANARY": canary,
+        "User-Agent": "Mozilla/5.0",
+    })
+    base = "https://outlook.office.com/api/v2.0/users/" + mailbox
+
+    msg = {
+        "Subject": subject,
+        "Body": {"ContentType": "Text", "Content": body},
+    }
+    if to:
+        msg["ToRecipients"] = [{"EmailAddress": {"Address": a.strip()}} for a in to.split(";") if a.strip()]
+    if cc:
+        msg["CcRecipients"] = [{"EmailAddress": {"Address": a.strip()}} for a in cc.split(";") if a.strip()]
+
+    r = sess.post(base + "/messages", json=msg, cookies=cookies, timeout=60)
+    if r.status_code not in (200, 201):
+        raise RuntimeError(f"OWA từ chối tạo nháp trong {mailbox}: HTTP {r.status_code} — {r.text[:300]}")
+    draft_id = r.json().get("Id")
+    say(f"✓ nháp trong hộp thư chung {mailbox}: {subject}")
+
+    for i, att in enumerate(attachments):
+        name = str((att or {}).get("name") or f"attachment_{i}.txt")
+        data_b64 = str((att or {}).get("data_b64") or "")
+        ra = sess.post(
+            f"{base}/messages/{draft_id}/attachments",
+            json={"@odata.type": "#Microsoft.OutlookServices.FileAttachment",
+                  "Name": name, "ContentBytes": data_b64},
+            cookies=cookies, timeout=120,
+        )
+        if ra.status_code not in (200, 201):
+            raise RuntimeError(f"OWA từ chối đính kèm {name}: HTTP {ra.status_code} — {ra.text[:300]}")
+        say(f"· đính kèm {name}")
+
+    try:
+        driver.get(f"https://outlook.office.com/mail/{mailbox}/drafts")
+        say("▶ Đã mở thư mục Nháp của hộp thư chung trên Chrome.")
+    except Exception:
+        say("· không mở được thẻ Drafts — nháp vẫn nằm trong hộp thư chung.")
+    return {"subject": subject, "mailbox": mailbox, "draft_id": draft_id}
+
+
 def do_outlook_draft(payload: dict, say) -> dict:
     """Soạn nháp Outlook desktop (COM) — ATC/EZFW hoặc mail khác từ web, không
     gửi. Tương đương đoạn tạo MailItem trong tool gốc (atc_ezfw / outlook
@@ -802,6 +889,7 @@ HANDLERS = {
     "owa_login": do_owa_login,
     "owa_fpl_watch": do_owa_fpl_watch,
     "owa_pib": do_owa_pib,
+    "owa_draft": do_owa_draft,
     "outlook_draft": do_outlook_draft,
 }
 
