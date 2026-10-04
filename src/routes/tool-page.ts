@@ -113,12 +113,36 @@ header::after{content:none !important;display:none !important}
 header{
   min-height:0 !important;
   padding:8px 18px !important;
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+  display:flex !important;
   align-items:center !important;
   gap:14px !important;
 }
-/* Brand: gọn một cụm, chữ trắng, nhấn vàng */
-header .brand{position:static !important;transform:none !important;margin:0 auto !important}
+/* Dẹp các lớp bọc trang trí của giao diện gốc để bố cục thành 1 hàng: lọc | brand | nút */
+header .md-fit,header .md-stage,header .head-right{display:contents !important}
+header .md-denpyo{
+  display:flex !important;align-items:center !important;gap:10px !important;
+  order:1 !important;background:none !important;border:none !important;box-shadow:none !important;
+  padding:0 !important;
+}
+header .md-denpyo .head,header .md-denpyo .stamp,header .md-denpyo .md-cmd{display:none !important}
+header .md-denpyo .md-row{display:flex !important;align-items:flex-end !important;gap:8px !important;margin:0 !important}
+header .filt-actions{display:flex !important;align-items:center !important;gap:6px !important;margin:0 !important}
+/* Brand: gọn một cụm, chữ trắng, nhấn vàng — đứng giữa */
+header .brand{position:static !important;transform:none !important;margin:0 auto !important;order:2 !important}
+/* Cụm nút phải — giao diện gốc dàn phẳng mọi nút thành flex item của header,
+   nên gán thứ tự trực tiếp cho từng nút */
+header .hstat,header .head-ops,header .md-hang,header .crew-jobs,header .quit-sohee{
+  display:contents !important;
+}
+header .hstat > button,header .md-chochin{order:3 !important}
+header .xls-name{order:3 !important}
+header .live-ops{order:3 !important}
+header #btnOfpCheck#btnOfpCheck{order:4 !important}
+header #ofpCheckStat{order:5 !important}
+header #btnQuit{display:none !important}
+header #aiFab#aiFab{order:6 !important}
+header .hdr-switch{order:7 !important;margin:0 !important}
+header .theme-switch{order:8 !important;margin:0 !important}
 header .brand h1{
   font-size:21px !important;letter-spacing:.06em !important;
   line-height:1.05 !important;margin:0 !important;
@@ -166,6 +190,10 @@ header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,head
   border-radius:9px !important;font-size:12px !important;font-weight:600;
   padding:0 13px !important;box-shadow:none !important;
   height:34px !important;min-height:0 !important;
+  width:auto !important;flex:0 0 auto !important;
+  overflow:visible !important;white-space:nowrap !important;
+  order:0 !important;margin:0 !important;
+  display:inline-flex !important;align-items:center !important;gap:7px !important;
   backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
 }
 .filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{color:#fff !important;-webkit-text-fill-color:#fff !important}
@@ -177,7 +205,9 @@ header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btn
 }
 .filt-actions .btn::before,header:not(.md) #btnAcc::before,header:not(.md) #btnTaf::before,
 header:not(.md) #btnPickXls::before,header:not(.md) #btnReload::before,header:not(.md) #btnOfpCheck::before{
-  background:none !important;box-shadow:none !important;
+  width:15px !important;height:15px !important;border-radius:0 !important;
+  background:currentColor !important;border:0 !important;box-shadow:none !important;
+  font-size:0 !important;line-height:0 !important;
 }
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
 header .brand .sub{opacity:.85}
