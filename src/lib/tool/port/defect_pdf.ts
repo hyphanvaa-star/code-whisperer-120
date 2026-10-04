@@ -283,13 +283,28 @@ export function extractFromPositions(pages: PosItem[][]): AircraftLimitRow[] {
       .filter((i) => i.x + i.w / 2 < regHi && /^(?:VN-?)?A\d{3}$/i.test(i.str.trim()))
       .map((i) => ({ reg: i.str.trim(), y: i.y, defect: [] as PosItem[], action: [] as PosItem[] }));
     if (!anchors.length) continue;
+    anchors.sort((a, b) => b.y - a.y);
+    // Ranh giới giữa 2 dòng = giữa khoảng trống dọc lớn nhất của chữ nằm giữa 2 ô AC REG.
+    const ys = [...new Set(body.filter((i) => i.x + i.w / 2 >= defLo).map((i) => Math.round(i.y)))].sort((a, b) => b - a);
+    const cuts: number[] = [];
+    for (let k = 0; k + 1 < anchors.length; k++) {
+      const hiY = anchors[k]!.y, loY = anchors[k + 1]!.y;
+      const pts = [hiY, ...ys.filter((y) => y < hiY && y > loY), loY];
+      let bestGap = -1, cut = (hiY + loY) / 2;
+      for (let q = 0; q + 1 < pts.length; q++) {
+        const g = pts[q]! - pts[q + 1]!;
+        if (g > bestGap) { bestGap = g; cut = (pts[q]! + pts[q + 1]!) / 2; }
+      }
+      cuts.push(cut);
+    }
     for (const it of body) {
       const cx = it.x + it.w / 2;
       const col = cx >= defLo && cx < defHi ? "defect" : cx >= defHi && cx < actHi ? "action" : "";
       if (!col) continue;
-      let best = anchors[0]!;
-      for (const a of anchors) if (Math.abs(a.y - it.y) < Math.abs(best.y - it.y)) best = a;
-      if (Math.abs(best.y - it.y) > 80) continue;
+      let k = 0;
+      while (k < cuts.length && it.y < cuts[k]!) k++;
+      const best = anchors[k]!;
+      if (Math.abs(best.y - it.y) > 120) continue;
       best[col].push(it);
     }
     const join = (xs: PosItem[], nl: boolean) => xs.sort((a, b) => b.y - a.y || a.x - b.x).map((i) => i.str.trim()).join(nl ? "\n" : " ");
