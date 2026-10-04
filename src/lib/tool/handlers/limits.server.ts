@@ -200,7 +200,7 @@ Object.assign(routes, {
         aircraft_count: result.aircraft_count,
         raw_rows: result.raw_rows,
         saved_at: result.saved_at,
-        aircraft: result.aircraft,
+        aircraft: result.aircraft as unknown as Record<string, unknown>[],
       };
       await setJson(ctx, DEFECT_SUMMARY_KEY, summary);
       return { ...summary, ok: true };
