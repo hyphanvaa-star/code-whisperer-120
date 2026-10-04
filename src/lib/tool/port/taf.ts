@@ -457,7 +457,7 @@ async function openSession(): Promise<{ base: string; cookie: string }> {
   const errors: string[] = [];
   for (const base of BASES) {
     try {
-      const r0 = await fetch(`${base}/index.php?cat=2&sub=0`, { redirect: "manual" });
+      const r0 = await fetch(`${base}/index.php?cat=2&sub=0`, { redirect: "manual", signal: AbortSignal.timeout(6000) });
       const cookie0 = r0.headers.get("set-cookie") || "";
       const form = new URLSearchParams({
         act: "login", req: "2,0", txtUsername: USER, txtPassword: PASS, cmdLogin: "Login",
@@ -466,6 +466,7 @@ async function openSession(): Promise<{ base: string; cookie: string }> {
         method: "POST", body: form,
         headers: { "Content-Type": "application/x-www-form-urlencoded", cookie: cookie0 },
         redirect: "manual",
+        signal: AbortSignal.timeout(15000),
       });
       const text = await r1.text();
       const cookie1 = r1.headers.get("set-cookie") || cookie0;
@@ -492,7 +493,7 @@ export type TafSnapshot = {
 export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<TafSnapshot> {
   const { base, cookie } = await openSession();
   const qs0 = new URLSearchParams({ cat: "2", sub: "0", type: "3", cboDatetime: "", cboElement: "" });
-  const r0 = await fetch(`${base}/index.php?${qs0.toString()}`, { headers: { cookie } });
+  const r0 = await fetch(`${base}/index.php?${qs0.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(120000) });
   const html0 = await r0.text();
   let opts_: string[] = datetimeOptions(html0);
   if (opts_.length === 0) {
@@ -506,7 +507,7 @@ export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<Ta
   const used: string[] = [];
   for (const dt of opts_.slice(0, 4)) {
     const qs = new URLSearchParams({ cat: "2", sub: "0", type: "3", cboDatetime: dt, cboElement: "" });
-    const r = await fetch(`${base}/index.php?${qs.toString()}`, { headers: { cookie } });
+    const r = await fetch(`${base}/index.php?${qs.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(120000) });
     const html = await r.text();
     const plain = html.replace(/<[^>]+>/g, "\n");
     let got = 0;
