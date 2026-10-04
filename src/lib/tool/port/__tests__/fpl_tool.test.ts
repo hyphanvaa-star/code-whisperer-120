@@ -147,16 +147,16 @@ describe("FplFormulaTests", () => {
     expect(pcrTakeoff(db, "CXR", "VN-A644")).toBe("");
     expect(pcrTakeoff(db, "DAD", "VN-A644")).toBe("");
     const got = ft.render_fpl(db, { flt: "383", dep: "UIH", arr: "HAN", reg: "VN-A202", ac: 321, etd: "05:05" }, {
-      extra: 0, seq: 1, routeTable: routeDoc.rows,
+      extra: 0, seq: 1, routeTable: routeDoc.rows, pcrTakeoff,
     });
     expect(got).toContain("16F÷A0,I,TO=70625");
     expect(pcrPlus(db, "UIH", "VN-A644")).toBe("76391");
     const chosen = ft.render_fpl(db, { flt: "383", dep: "UIH", arr: "HAN", reg: "VN-A202", ac: 321, etd: "05:05" }, {
-      extra: 0, seq: 1, pcr_choice: "76391", routeTable: routeDoc.rows,
+      extra: 0, seq: 1, pcr_choice: "76391", routeTable: routeDoc.rows, pcrTakeoff,
     });
     expect(chosen).toContain("16F÷A0,I,TO=76391");
     const cleared = ft.render_fpl(db, { flt: "383", dep: "UIH", arr: "HAN", reg: "VN-A202", ac: 321, etd: "05:05" }, {
-      extra: 0, seq: 1, pcr_choice: "", routeTable: routeDoc.rows,
+      extra: 0, seq: 1, pcr_choice: "", routeTable: routeDoc.rows, pcrTakeoff,
     });
     expect(cleared).not.toContain("TO=");
     const plain = ft.render_fpl(db, flight("3900"), { extra: 0, seq: 121, routeTable: routeDoc.rows });

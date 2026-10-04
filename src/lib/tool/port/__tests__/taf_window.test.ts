@@ -38,6 +38,7 @@ describe("taf window advice", () => {
   });
 
   it("window peak is higher than the exact minute", () => {
+    vi.setSystemTime(new Date(Date.UTC(2026, 9, 2, 0, 30)));
     const raw = "TAF VVTS 012300Z 0200/0306 00000KT CAVOK FM020630 24015KT 2000 TSRA BKN008CB=";
     const rec = taf.parseTafBlock(raw)!;
     const when = new Date(Date.UTC(2026, 9, 2, 6, 0));
