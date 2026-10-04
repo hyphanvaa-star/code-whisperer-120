@@ -96,7 +96,7 @@ export function agentOnline(info: AgentInfo | null): boolean {
 
 /** Claim pending jobs for the agent (public poll route, service role). */
 export async function claimPending(limit = 5): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
-  const a = admin();
+  const a = await admin();
   const { data, error } = await a
     .from("pc_jobs")
     .select("id, kind, payload")
@@ -120,7 +120,7 @@ export async function finishJob(id: string, ok: boolean, result: Record<string, 
     .from("pc_jobs")
     .update({
       status: ok ? "done" : "failed",
-      result,
+      result: result as never,
       done_at: new Date().toISOString(),
     })
     .eq("id", id);
