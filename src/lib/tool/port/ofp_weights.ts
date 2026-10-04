@@ -467,8 +467,12 @@ export function parseOperationalText(text: string, sectorId = 0): Weights {
 
 export async function ofpTextFromPdf(bytes: Uint8Array | ArrayBuffer): Promise<string> {
   const { extractText, getDocumentProxy } = await import("unpdf");
-  const buf = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  const doc = await getDocumentProxy(buf);
+  const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  // Force a plain, freshly-allocated buffer: Response#arrayBuffer() under some
+  // runtimes returns a buffer type pdf.js's worker bridge cannot structuredClone.
+  const buf = new Uint8Array(view.length);
+  buf.set(view);
+  const doc = await getDocumentProxy(buf, { disableWorker: true });
   const { text } = await extractText(doc, { mergePages: false });
   const pages = Array.isArray(text) ? text : [text];
   return pages.join("\n");
