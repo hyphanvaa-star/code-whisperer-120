@@ -513,7 +513,7 @@ export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<Ta
   throw new Error("Không kết nối được đài TAF nào.\n" + errors.join("\n"));
 }
 
-async function fetchFrom(base: string, opts: { preferVv?: boolean }): Promise<TafSnapshot> {
+export async function fetchFrom(base: string, opts: { preferVv?: boolean }): Promise<TafSnapshot> {
   const cookie = await openSessionAt(base);
   const qs0 = new URLSearchParams({ cat: "2", sub: "0", type: "3", cboDatetime: "", cboElement: "" });
   const r0 = await fetch(`${base}/index.php?${qs0.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(60000) });
