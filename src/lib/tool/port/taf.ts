@@ -453,12 +453,20 @@ export const BASES = ["http://113.161.121.25", "http://118.69.213.84"];
 const USER = "vietjet";
 const PASS = "Vietjet@air";
 
+function jar(prev: string, h: Headers): string {
+  const m = new Map<string, string>();
+  for (const kv of prev.split(";")) { const t = kv.trim(); const i = t.indexOf("="); if (i > 0) m.set(t.slice(0, i), t.slice(i + 1)); }
+  const list = (h as Headers & { getSetCookie?: () => string[] }).getSetCookie?.() ?? (h.get("set-cookie") ? h.get("set-cookie")!.split(/,(?=\s*[A-Za-z0-9_]+=)/) : []);
+  for (const c of list) { const t = c.split(";")[0].trim(); const i = t.indexOf("="); if (i > 0) m.set(t.slice(0, i), t.slice(i + 1)); }
+  return [...m].map(([k, v]) => `${k}=${v}`).join("; ");
+}
+
 async function openSession(): Promise<{ base: string; cookie: string }> {
   const errors: string[] = [];
   for (const base of BASES) {
     try {
       const r0 = await fetch(`${base}/index.php?cat=2&sub=0`, { redirect: "manual", signal: AbortSignal.timeout(6000) });
-      const cookie0 = r0.headers.get("set-cookie") || "";
+      const cookie0 = jar("", r0.headers);
       const form = new URLSearchParams({
         act: "login", req: "2,0", txtUsername: USER, txtPassword: PASS, cmdLogin: "Login",
       });
@@ -469,7 +477,7 @@ async function openSession(): Promise<{ base: string; cookie: string }> {
         signal: AbortSignal.timeout(15000),
       });
       const text = await r1.text();
-      const cookie1 = r1.headers.get("set-cookie") || cookie0;
+      const cookie1 = jar(cookie0, r1.headers);
       if (text.includes("txtPassword")) throw new Error(`Đăng nhập TAF thất bại tại ${base}`);
       return { base, cookie: cookie1 };
     } catch (exc) {
@@ -496,6 +504,7 @@ export async function fetchLatest(opts: { preferVv?: boolean } = {}): Promise<Ta
   const r0 = await fetch(`${base}/index.php?${qs0.toString()}`, { headers: { cookie }, signal: AbortSignal.timeout(120000) });
   const html0 = await r0.text();
   let opts_: string[] = datetimeOptions(html0);
+  if (opts_.length === 0 && html0.includes("txtPassword")) throw new Error(`Đài TAF ${base} không giữ phiên đăng nhập (bị đẩy về trang login).`);
   if (opts_.length === 0) {
     const now = new Date();
     const h = Math.floor(now.getUTCHours() / 3) * 3;
