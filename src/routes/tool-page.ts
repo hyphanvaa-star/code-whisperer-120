@@ -91,6 +91,12 @@ body{
   letter-spacing:0;
 }
 body::before{content:none !important}
+/* Khung .app của giao diện gốc mang ảnh nền + màu tối -> phủ nền sáng phẳng */
+.app{
+  background:var(--vj-bg) !important;
+  background-image:none !important;
+  color:var(--vj-ink);
+}
 /* ===== HEADER: dải đỏ VietJet đậm, chữ trắng, gạch vàng ===== */
 header{
   background:linear-gradient(180deg,var(--vj-red) 0%,var(--vj-red-dark) 100%) !important;
