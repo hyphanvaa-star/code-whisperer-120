@@ -783,7 +783,7 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 /* ================= HEADER OPS — trái: tìm kiếm | giữa: board | phải: nút ================= */
 header#mdRoom{
   position:relative !important;
-  min-height:0 !important;height:auto !important;padding:12px 22px !important;
+  min-height:144px !important;height:144px !important;padding:12px 22px !important;box-sizing:border-box !important;
   display:grid !important;grid-template-columns:minmax(0,1fr) 286px minmax(0,1fr) !important;
   grid-template-rows:116px !important;column-gap:22px !important;row-gap:0 !important;align-items:stretch !important;
   background-color:#dbeeff !important;background-image:linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)),var(--dispatch-sky) !important;
