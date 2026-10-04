@@ -777,7 +777,7 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 .toolbar .btn:hover,.toolbars .btn:hover,.subtabs .btn:hover,.sheet .btn:hover,.lim-pane .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 .xt-kg{min-width:0 !important}.xt-min{margin-right:3px !important;min-width:30px !important;padding:0 3px !important}td.extra-cell{overflow:hidden !important;white-space:nowrap !important}
 
-/* ================= HEADER OPS — thiết kế lại thành bảng điều khiển 2 tầng ================= */
+/* ================= HEADER OPS — phím vuông buồng lái ================= */
 header#mdRoom{
   min-height:112px !important;height:112px !important;padding:0 22px !important;
   display:grid !important;grid-template-columns:minmax(560px,1fr) 286px minmax(330px,1fr) !important;
@@ -805,8 +805,8 @@ header#mdRoom .brand-vj{display:block !important;margin-top:4px !important;font-
 header#mdRoom .md-denpyo{
   grid-column:1 !important;grid-row:1 !important;order:unset !important;min-width:0 !important;width:100% !important;
   display:grid !important;grid-template-columns:124px minmax(410px,1fr) !important;grid-template-rows:38px 34px !important;
-  gap:5px 10px !important;align-items:end !important;padding:10px 12px !important;
-  background:rgba(255,255,255,.78) !important;border:1px solid rgba(255,255,255,.92) !important;box-shadow:0 4px 18px rgba(30,69,103,.12) !important;backdrop-filter:blur(8px) !important;
+  gap:5px 10px !important;align-items:center !important;padding:8px 10px !important;
+  background:rgba(255,255,255,.9) !important;border:1px solid rgba(255,255,255,.96) !important;box-shadow:0 8px 22px rgba(30,69,103,.15) !important;backdrop-filter:blur(10px) !important;
 }
 header#mdRoom .md-denpyo .md-row:first-of-type{grid-column:1 !important;grid-row:1 / span 2 !important;display:flex !important;align-items:center !important}
 header#mdRoom .md-denpyo .filt-rail{
@@ -821,39 +821,45 @@ header#mdRoom input,header#mdRoom select{width:100% !important;height:28px !impo
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px var(--x-red-50) !important}
 
 header#mdRoom .filt-actions .btn{
-  height:30px !important;min-width:78px !important;padding:0 12px !important;border:0 !important;border-radius:2px !important;
+  height:32px !important;min-width:78px !important;padding:0 10px !important;border:0 !important;border-radius:4px !important;
   background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;
-  box-shadow:none !important;font-size:11px !important;font-weight:700 !important;justify-content:center !important;
+  box-shadow:0 4px 0 var(--x-red-d) !important;font-size:10px !important;font-weight:800 !important;justify-content:center !important;
+  text-transform:uppercase !important;letter-spacing:.04em !important;transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
-header#mdRoom .filt-actions .btn::before{display:none !important}
-header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;transform:none !important}
+header#mdRoom .filt-actions .btn::before{display:block !important;background:#fff !important}
+header#mdRoom .filt-actions .btn:hover{background:var(--x-red-d) !important;transform:translateY(-1px) !important;box-shadow:0 5px 0 #8f1026 !important}
+header#mdRoom .filt-actions .btn:active{transform:translateY(3px) !important;box-shadow:0 1px 0 #8f1026 !important}
 
 header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;display:flex !important;align-items:center !important;justify-content:flex-end !important;gap:8px !important;
-  flex-wrap:nowrap !important;width:100% !important;height:74px !important;padding:10px 12px !important;border:1px solid rgba(255,255,255,.92) !important;
-  background:rgba(255,255,255,.78) !important;box-shadow:0 4px 18px rgba(30,69,103,.12) !important;backdrop-filter:blur(8px) !important;
+  flex-wrap:nowrap !important;width:100% !important;height:74px !important;padding:7px 10px 11px !important;border:1px solid rgba(255,255,255,.96) !important;
+  background:rgba(255,255,255,.9) !important;box-shadow:0 8px 22px rgba(30,69,103,.15) !important;backdrop-filter:blur(10px) !important;
 }
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:flex !important;align-items:center !important;gap:8px !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
-  position:static !important;top:auto !important;right:auto !important;width:70px !important;height:52px !important;min-width:70px !important;margin:0 !important;padding:0 8px !important;
-  border-radius:2px !important;box-shadow:0 2px 6px rgba(30,69,103,.1) !important;display:flex !important;align-items:center !important;justify-content:center !important;
+  position:static !important;top:auto !important;right:auto !important;width:62px !important;height:56px !important;min-width:62px !important;margin:0 !important;padding:5px !important;
+  border-radius:5px !important;box-shadow:0 4px 0 var(--x-red-d) !important;display:flex !important;flex-direction:column !important;gap:4px !important;align-items:center !important;justify-content:center !important;
+  transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
 header#mdRoom #btnOfpCheck{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
-header#mdRoom #aiFab{min-width:88px !important;width:88px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;flex-direction:column !important;gap:0 !important}
-header#mdRoom #aiFab .n{font-size:12px !important;font-weight:800 !important}header#mdRoom #aiFab .sub{font-size:7px !important}
+header#mdRoom #aiFab{min-width:70px !important;width:70px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
+header#mdRoom #aiFab::before{width:19px !important;height:19px !important;border-radius:0 !important;background-color:#fff !important}
+header#mdRoom #aiFab .n{font-size:10px !important;font-weight:800 !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
 header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  display:flex !important;position:static !important;top:auto !important;right:auto !important;width:70px !important;height:52px !important;
-  margin:0 !important;padding:0 10px !important;align-items:center !important;justify-content:center !important;gap:7px !important;
-  border:1px solid rgba(97,123,148,.42) !important;border-radius:2px !important;background:rgba(255,255,255,.92) !important;color:var(--x-ink) !important;
-  box-shadow:none !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
+  display:flex !important;position:static !important;top:auto !important;right:auto !important;width:62px !important;height:56px !important;
+  margin:0 !important;padding:5px !important;align-items:center !important;justify-content:center !important;gap:4px !important;
+  border:1px solid var(--x-red) !important;border-radius:5px !important;background:var(--x-red) !important;color:#fff !important;
+  box-shadow:0 4px 0 var(--x-red-d) !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
+  transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
 header#mdRoom .hdr-switch,header#mdRoom .theme-switch{flex-direction:column !important;gap:4px !important}
-header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{border-color:var(--x-red) !important;background:var(--x-red-50) !important}
+header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red-d) !important;transform:translateY(-1px) !important;box-shadow:0 5px 0 #8f1026 !important}
+header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(3px) !important;box-shadow:0 1px 0 #8f1026 !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
-header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;font-size:14px !important;line-height:1 !important;flex:none !important}
-header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:10px !important;font-weight:700 !important;color:var(--x-ink) !important;opacity:1 !important}
+header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;font-size:17px !important;line-height:1 !important;flex:none !important;background-color:#fff !important;color:#fff !important}
+header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:9px !important;font-weight:800 !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:1 !important;text-transform:uppercase !important}
 .aside-head{top:112px !important}
 
 @media(max-width:1180px){
