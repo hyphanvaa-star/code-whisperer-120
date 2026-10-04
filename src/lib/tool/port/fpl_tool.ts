@@ -920,7 +920,7 @@ export function build_req(
       pay: "pay" in item ? item.pay : undefined,
       utc_choice: "utc" in item ? item.utc : undefined,
       routeTable,
-      pcrTakeoff,
+      ...(pcrTakeoff ? { pcrTakeoff } : {}),
     }));
   }
   return blocks.join("\n\n");
