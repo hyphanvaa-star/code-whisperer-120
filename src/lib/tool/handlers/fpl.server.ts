@@ -294,14 +294,43 @@ export const routes: Routes = {
     }
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return { error: "Chọn ít nhất một chuyến." };
-    return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
+    const kind = atcChg.normalize_msg_kind(kindRaw);
+    const { got, missed } = await fetchAtcBlocks(items);
+    if (!got.length) return { error: missed.join("\n") || "Không lấy được OFP chuyến nào." };
+    const need = atcChg.NEED_13.includes(kind) ? ["-13/"] : [];
+    const rows: Raw[] = [];
+    for (const { ix, f, block } of got) {
+      const fields = atcChg.fields_from_fpl(block);
+      if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
+      const converted = atcChg.render_msg(kind, fields, items[ix] || {});
+      rows.push({
+        id: f.id, callsign: fields.callsign || f.callsign, dep: fields.dep || f.dep_icao,
+        arr: fields.arr || f.dest_icao, original: block.trim(), converted,
+        html: atcChg.msg_html(converted, { need }), notes: [],
+      });
+    }
+    return { ok: true, ok_n: rows.length, missed, flights: rows, kind, filename: atcChg.msg_filename(kind) };
   },
 
   "POST /api/version/chg": async (ctx) => {
     const body = await ctx.json();
     const items = Array.isArray(body.items) ? body.items : [];
     if (!items.length) return { error: "Không có chuyến CHG/DLA trên bảng." };
-    return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
+    const { got, missed } = await fetchAtcBlocks(items);
+    if (!got.length) return { error: missed.join("\n") || "Không lấy được OFP chuyến nào." };
+    const chg: [string, string][] = [], dla: [string, string][] = [];
+    for (const { ix, f, block } of got) {
+      const it = items[ix] || {};
+      const fields = atcChg.fields_from_fpl(block);
+      if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
+      const code = String(it.kind || atcChg.KIND_CHG);
+      const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || "") });
+      const region = atcChg.aro_of(fields.dep || f.dep_icao);
+      (code === atcChg.KIND_DLA ? dla : chg).push([region, msg]);
+    }
+    const text = atcChg.join_export(chg, dla).replace(/\r?\n/g, "\r\n");
+    return { ok: true, ok_n: chg.length + dla.length, missed, filename: "CHG-DLA.txt",
+      file: Buffer.from(text, "utf8").toString("base64") };
   },
 
   "POST /api/fpltext/build": async (ctx) => {
