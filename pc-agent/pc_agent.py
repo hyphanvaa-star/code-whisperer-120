@@ -566,6 +566,7 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
                 f = d / name
                 if f.is_file() and f.stat().st_size < 25 * 1024 * 1024:
                     ups.append({"name": name, "b64": base64.b64encode(f.read_bytes()).decode()})
+                    _SENT_VER.add(name)
                     break
         if ups:
             st["uploads"] = ups
