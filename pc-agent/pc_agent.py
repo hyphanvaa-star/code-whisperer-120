@@ -431,6 +431,75 @@ def do_aviweb_check(payload: dict, say) -> dict:
     }
 
 
+def do_aviweb_submit(payload: dict, say) -> dict:
+    """Gửi FPL lên AviWeb bằng Chrome thật — chạy atcfpl.py của tool gốc."""
+    import inspect
+    tool_dir = _find_tool_dir()
+    if str(tool_dir) not in sys.path:
+        sys.path.insert(0, str(tool_dir))
+    os.chdir(tool_dir)
+    import atcfpl  # noqa: E402  (module của tool gốc)
+
+    name = str(payload.get("name") or "ATC.txt")
+    dest = tool_dir / "data" / "atc"
+    dest.mkdir(parents=True, exist_ok=True)
+    fpath = dest / name
+    fpath.write_text(str(payload.get("text") or ""), encoding="utf-8")
+    say(f"· file ATC: {fpath}")
+
+    def on_progress(d) -> None:
+        if isinstance(d, dict):
+            if d.get("text"):
+                say(str(d["text"]), str(d.get("cls") or ""))
+        elif d:
+            say(str(d))
+
+    fn = None
+    for cand in ("submit_file", "submit_atc_file", "run_file", "submit_fpl_file",
+                 "submit_all", "run_submit", "submit", "run", "main"):
+        f = getattr(atcfpl, cand, None)
+        if callable(f):
+            fn = f
+            break
+    if fn is None:
+        raise RuntimeError("atcfpl.py không có hàm gửi FPL quen thuộc — gửi file atcfpl.py cho Lovable để nối đúng")
+
+    values = {
+        "path": str(fpath), "file": str(fpath), "file_path": str(fpath), "filepath": str(fpath),
+        "atc_file": str(fpath), "headless": bool(payload.get("headless", True)),
+        "limit": payload.get("limit"), "only_labels": payload.get("only_labels") or None,
+        "on_progress": on_progress, "progress": on_progress, "cancel": _NoCancel(),
+        "cancel_event": _NoCancel(),
+    }
+    sig = inspect.signature(fn)
+    args, kwargs = [], {}
+    for pname, prm in sig.parameters.items():
+        if pname in values:
+            if prm.kind == prm.POSITIONAL_ONLY:
+                args.append(values[pname])
+            else:
+                kwargs[pname] = values[pname]
+        elif prm.default is prm.empty and prm.kind in (prm.POSITIONAL_ONLY, prm.POSITIONAL_OR_KEYWORD):
+            args.append(str(fpath))
+    say(f"· chạy atcfpl.{fn.__name__}()")
+    res = fn(*args, **kwargs)
+
+    def g(k, default=None):
+        if isinstance(res, dict):
+            return res.get(k, default)
+        return getattr(res, k, default)
+
+    bad = g("bad") or g("failed_items") or []
+    bad = [b if isinstance(b, dict) else {"flight": str(getattr(b, "flight", b))} for b in bad]
+    ok = g("ok", 0)
+    failed = g("failed", len(bad))
+    return {
+        "ok": len(ok) if isinstance(ok, (list, tuple)) else int(ok or 0),
+        "failed": len(failed) if isinstance(failed, (list, tuple)) else int(failed or 0),
+        "bad": bad,
+        "pending": list(g("pending") or []),
+    }
+
 
 class _NoCancel:
     """Trợ lý PC chưa có kênh huỷ việc đang chạy từ xa — xem README mục Hạn chế."""
@@ -705,6 +774,7 @@ HANDLERS = {
     "save_file": do_save_file,
     "pick_folder": do_pick_folder,
     "aviweb_check": do_aviweb_check,
+    "aviweb_submit": do_aviweb_submit,
     "owa_login": do_owa_login,
     "owa_fpl_watch": do_owa_fpl_watch,
     "owa_pib": do_owa_pib,
