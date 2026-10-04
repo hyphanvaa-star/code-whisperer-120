@@ -156,8 +156,22 @@ header input,header select{
   box-shadow:0 1px 3px rgba(0,0,0,.20) !important;
 }
 .hdr-switch,.theme-switch{transform:scale(.88);transform-origin:right center}
-/* Nút Acc/TAF/Crew/Refresh/OFP giữ màu trạng thái nhưng dẹt bóng, bo gọn */
-.head-ops .btn.act{border-radius:9px !important;font-size:12px !important;padding:0 12px !important}
+/* Nút Acc/TAF/Crew/Refresh/OFP: đồng bộ kính trắng mờ trên nền đỏ — gọn & sang */
+.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab{
+  background:rgba(255,255,255,.12) !important;
+  background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1px solid rgba(255,255,255,.30) !important;
+  border-radius:9px !important;font-size:12px !important;font-weight:600;
+  padding:0 13px !important;box-shadow:none !important;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.head-ops .btn.act *,.head-ops .ai-fab *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+.head-ops .btn.act:hover,.head-ops .btn.acbtn:hover,.head-ops .ai-fab:hover{
+  background:rgba(255,255,255,.22) !important;
+  border-color:rgba(255,201,0,.65) !important;
+  transform:translateY(-1px);
+}
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
 header .brand .sub{opacity:.85}
 /* Ô lọc trên header: nền trắng trong dải đỏ */
