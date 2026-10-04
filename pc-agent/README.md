@@ -38,3 +38,7 @@ Lệnh `aviweb_check` chạy đúng code `atc_check.py` của tool gốc bằng 
 3. Tài khoản AviWeb lấy từ `config.py` của tool gốc trên máy — không gửi qua web.
 
 Trên web: tab ATC → Check ATC → web gửi danh sách chuyến cho trợ lý, log hiện dần như tool gốc, kết quả (trạng thái, giờ bay, tàu, DOF) đổ về bảng.
+
+## Outlook Web (OWA) qua Selenium
+Các nút Đăng nhập OWA, Tải PIB, theo dõi FPL trên web giao việc cho trợ lý; trợ lý chạy đúng code gốc `outlook_web_pib.py`, `owa_fpl_watch.py` (và `outlook_pib.py` dự phòng) trong thư mục `PC_TOOL_DIR`.
+Cần: `pip install selenium`, Chrome trên máy, `PC_TOOL_DIR` trỏ thư mục tool gốc (tài khoản lấy từ config.py trên máy như tool cũ).

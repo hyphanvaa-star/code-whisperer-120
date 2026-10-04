@@ -125,3 +125,46 @@ export function extractEzfw(text: string): string {
   }
   return out + "\n";
 }
+
+// Port of atc_ezfw.py OPS_BACK_H/OPS_AHEAD_H + in_ops_window/find_flight.
+export const OPS_BACK_H = 6.0;
+export const OPS_AHEAD_H = 24.0;
+
+export function inOpsWindow(std: Date | null, now?: Date): boolean {
+  if (!std) return false;
+  const clock = now || new Date();
+  const lo = clock.getTime() - OPS_BACK_H * 3600_000;
+  const hi = clock.getTime() + OPS_AHEAD_H * 3600_000;
+  return std.getTime() >= lo && std.getTime() <= hi;
+}
+
+export interface AeFlight {
+  id: number;
+  callsign: string;
+  fltno?: string;
+  commercial_fltno?: string;
+  std: Date | null;
+}
+
+/** Port of atc_ezfw.find_flight: số hiệu, trong cửa sổ khai thác, STD sớm nhất. */
+export function findFlight(flights: Iterable<AeFlight>, want: string, now?: Date): AeFlight {
+  const digits = digitsOf(want);
+  if (!digits) throw new AeError("Nhập số hiệu chuyến, ví dụ 5513.");
+  const rx = new RegExp(`(?<!\\d)${digits}(?!\\d)`);
+  const hits: AeFlight[] = [];
+  for (const f of flights) {
+    const blob = [f.callsign, f.fltno, f.commercial_fltno].filter(Boolean).join(" ");
+    if (rx.test(blob)) hits.push(f);
+  }
+  if (!hits.length) throw new AeError(`Không thấy chuyến ${digits} trên FliteBrief (cửa sổ đang nạp).`);
+  const fresh = hits.filter((f) => inOpsWindow(f.std, now));
+  if (!fresh.length) {
+    const days = Array.from(new Set(hits.map((f) => (f.std ? `${String(f.std.getUTCDate()).padStart(2, "0")}/${String(f.std.getUTCMonth() + 1).padStart(2, "0")}` : "?")))).sort();
+    throw new AeError(
+      `Chuyến ${digits} chỉ có sector ngoài khung khai thác (−${OPS_BACK_H}h…+${OPS_AHEAD_H}h): ngày ${days.join(", ")}. ` +
+        "Chưa có OFP hôm nay thì chờ OMC release rồi soạn lại.",
+    );
+  }
+  fresh.sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
+  return fresh[0]!;
+}

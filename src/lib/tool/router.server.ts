@@ -17,8 +17,14 @@ import * as autoload from "./handlers/autoload.server";
 import * as misc from "./handlers/misc.server";
 import * as handover from "./handlers/handover.server";
 import * as pc from "./handlers/pc.server";
+import * as owa from "./handlers/owa.server";
+import * as crew from "./handlers/crew.server";
+import * as notamTrack from "./handlers/notam_track.server";
+import * as briefingRelease from "./handlers/briefing_release.server";
+import * as notamTune from "./handlers/notam_tune.server";
+import * as briefswap from "./handlers/briefswap.server";
 
-const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, swap, autoload, misc, handover, pc];
+const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, briefingRelease, swap, autoload, misc, handover, pc, owa, crew, notamTune, briefswap];
 
 const ROUTES: Routes = Object.assign({}, ...GROUPS.map((g) => g.routes));
 const JOBS: Record<string, JobFn> = Object.assign({}, ...GROUPS.map((g) => g.jobs));

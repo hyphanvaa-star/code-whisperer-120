@@ -22,7 +22,7 @@ import re
 import sys
 import time
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -377,11 +377,284 @@ def do_aviweb_check(payload: dict, say) -> dict:
     }
 
 
+
+class _NoCancel:
+    """Trợ lý PC chưa có kênh huỷ việc đang chạy từ xa — xem README mục Hạn chế."""
+
+    def is_set(self) -> bool:
+        return False
+
+
+def _load_owa_modules():
+    """Nạp outlook_web_pib / config từ PC_TOOL_DIR — code gốc y hệt tool Windows."""
+    tool_dir = _find_tool_dir()
+    if str(tool_dir) not in sys.path:
+        sys.path.insert(0, str(tool_dir))
+    os.chdir(tool_dir)  # config.py / profile Chrome OWA dùng đường dẫn tương đối
+    import config  # noqa: E402  (module của tool gốc)
+    import outlook_web_pib  # noqa: E402  (module của tool gốc)
+    return config, outlook_web_pib
+
+
+def do_owa_login(payload: dict, say) -> dict:
+    """Mở Chrome Outlook Web thật (Selenium) — đúng code start_owa_login() của
+    tool gốc, chạy trên máy công ty vì Worker không mở được trình duyệt."""
+    _, outlook_web_pib = _load_owa_modules()
+    cancel = _NoCancel()
+
+    say("▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password "
+        "(MFA thì xác nhận tay).")
+    try:
+        outlook_web_pib.ensure_session(
+            timeout_s=420.0, on_status=lambda m: say(m), cancel=cancel,
+        )
+    except outlook_web_pib.OwaCancelled as exc:
+        say(f"— {exc}")
+        return {"logged_in": False, "owa_state": "stale", "cancelled": True}
+    say("✓ Đã xác nhận Outlook Web đọc được mailbox.")
+    try:
+        import owa_fpl_watch  # noqa: E402  (module của tool gốc)
+        if owa_fpl_watch.ensure_running():
+            say("▶ Theo dõi OMC / FLIGHT PLAN mỗi 15 giây.")
+        else:
+            say("⚠ Phiên Outlook đã có nhưng chưa bật được FPL watch.", "bad")
+    except Exception as exc:
+        say(f"⚠ FPL watch: {exc}", "bad")
+    return {"logged_in": True, "owa_state": "healthy"}
+
+
+def do_owa_fpl_watch(payload: dict, say) -> dict:
+    """Trạng thái watcher OMC / FLIGHT PLAN — đúng owa_fpl_watch.status() gốc."""
+    _load_owa_modules()
+    import owa_fpl_watch  # noqa: E402  (module của tool gốc)
+    after = int(payload.get("after") or 0)
+    return owa_fpl_watch.status(after=after)
+
+
+def do_owa_pib(payload: dict, say) -> dict:
+    """Tải PIB qua Outlook Web — cùng logic start_pib_download() của tool gốc,
+    dùng outlook_web_pib.download() thật (Selenium + Outlook REST)."""
+    config, outlook_web_pib = _load_owa_modules()
+
+    want = [str(c).strip().upper() for c in (payload.get("callsigns") or []) if str(c).strip()]
+    if not want:
+        raise RuntimeError("Chưa có số hiệu chuyến bay nào trong cột PIB/WX.")
+    hours = float(payload.get("hours") or 10.0)
+    overwrite = bool(payload.get("overwrite"))
+    cancel = _NoCancel()
+
+    events: list[dict] = []
+
+    def emit(ev: dict) -> None:
+        events.append(ev)
+
+    def line(text: str, cls: str = "") -> None:
+        emit({"type": "line", "text": text, "cls": cls})
+        say(text, cls)
+
+    def digits(s: str) -> str:
+        return re.sub(r"\D", "", str(s or ""))
+
+    back = {digits(c): c for c in want if digits(c)}
+
+    def to_input(cs: str) -> str:
+        return back.get(digits(cs), cs)
+
+    now = datetime.now(timezone.utc)
+    lo, hi = now - timedelta(hours=hours), now + timedelta(hours=hours)
+    line(
+        f"▶ {len(want)} chuyến · cửa sổ ±{hours:g}h: "
+        f"{lo.astimezone():%d/%m %H:%M} → {hi.astimezone():%d/%m %H:%M} LT"
+        f"  (= {lo:%d/%m %H:%M} → {hi:%d/%m %H:%M} UTC)"
+    )
+
+    seen: set[str] = set()
+
+    def progress(text: str, cs: str = "") -> None:
+        if text in seen:
+            return
+        seen.add(text)
+        emit({"type": "line", "text": f"  {text}", "found": to_input(cs)})
+
+    def auth_status(text: str) -> None:
+        lower = text.lower()
+        if "mfa" in lower or "đăng nhập trên" in lower:
+            state = "interactive_required"
+        elif "sẵn sàng" in lower:
+            state = "healthy"
+        elif "kiểm tra" in lower:
+            state = "checking"
+        else:
+            state = "refreshing"
+        emit({"type": "owa_state", "text": text, "state": state})
+        line(f"· {text}")
+
+    def run_owa(*, force: bool):
+        token = outlook_web_pib.ensure_fresh_token(
+            timeout_s=420.0, on_status=auth_status, cancel=cancel, force=force,
+        )
+        line("· nguồn: Outlook Web — PIB chung OMC (SGN/HAN/DAD), thiếu thì mail cá nhân")
+        return outlook_web_pib.download(
+            token, since=lo, until=hi, callsigns=set(want),
+            overwrite=overwrite, on_progress=progress,
+            out_dir=config.get_path("pibwx"), cancel=cancel,
+        )
+
+    owa_failure: Exception | None = None
+    auth_failed = False
+    try:
+        res = run_owa(force=False)
+    except outlook_web_pib.OwaCancelled:
+        return {"cancelled": True, "ok": 0, "skipped": 0, "failed": 0, "missing": [],
+                "source": "none", "events": events}
+    except outlook_web_pib.OwaAuthError as exc:
+        line(f"⚠ Phiên Outlook Web đổi giữa lúc tải: {exc}", "bad")
+        emit({"type": "owa_state", "text": "Phiên Outlook Web hết hiệu lực", "state": "stale"})
+        outlook_web_pib.invalidate_session()
+        auth_failed = True
+        try:
+            line("· Tự làm mới phiên và thử lại một lần…")
+            res = run_owa(force=True)
+        except outlook_web_pib.OwaCancelled:
+            return {"cancelled": True, "ok": 0, "skipped": 0, "failed": 0, "missing": [],
+                    "source": "none", "events": events}
+        except Exception as retry_exc:
+            owa_failure = retry_exc
+    except Exception as exc:
+        owa_failure = exc
+
+    source = "owa"
+    if owa_failure is None:
+        saved, skipped = len(res.new), len(res.saved) - len(res.new)
+        errors = list(res.errors)
+        got = set(res.by_callsign)
+        emit({"type": "owa_state", "text": "Outlook Web sẵn sàng", "state": "healthy"})
+        try:
+            import owa_fpl_watch  # noqa: E402  (module của tool gốc)
+            owa_fpl_watch.ensure_running()
+        except Exception as exc:
+            say(f"· không bật được tự tải FPL sau PIB: {exc}")
+    else:
+        if isinstance(owa_failure, outlook_web_pib.OwaAuthError):
+            auth_failed = True
+            outlook_web_pib.invalidate_session()
+        emit({"type": "owa_state", "text": str(owa_failure),
+              "state": "stale" if auth_failed else "error"})
+        line(f"✗ Outlook Web không khả dụng: {owa_failure}", "bad")
+        line("· Dùng Outlook desktop (cache offline)…")
+        try:
+            import outlook_pib  # noqa: E402  (module của tool gốc)
+            res = outlook_pib.download(
+                days=hours / 24.0, callsigns=set(want), overwrite=overwrite,
+                out_dir=config.get_path("pibwx"),
+            )
+            saved, skipped = len(res.new), len(res.saved) - len(res.new)
+            errors = list(res.errors)
+            got = set(res.by_callsign)
+            source = "outlook_desktop"
+            seen_names: set[str] = set()
+            for f in res.saved:
+                if f.path.name in seen_names:
+                    continue
+                seen_names.add(f.path.name)
+                emit({
+                    "type": "line",
+                    "text": f"  {'· đã có sẵn: ' if f.skipped else '✓ tải mới: '}{f.path.name}",
+                    "found": to_input(f.callsign),
+                })
+        except Exception as exc2:
+            line(f"✗ không đọc được Outlook desktop: {exc2}", "bad")
+            line("✗ Không tải được PIB vì nguồn Outlook không khả dụng.", "bad")
+            return {"ok": 0, "skipped": 0, "failed": len(want), "missing": want,
+                    "auth_failed": auth_failed, "source": "none", "events": events}
+
+    got_d = {digits(c) for c in got}
+    missing = [c for c in want if digits(c) not in got_d]
+    for c in missing:
+        line(f"✗ {c}: không thấy PIB trong cửa sổ ±{hours:g}h", "bad")
+    for e in errors[:10]:
+        line(f"✗ {e}", "bad")
+
+    manifest = [
+        {"callsign": f.callsign, "filename": f.path.name,
+         "new": not f.skipped, "source": source}
+        for f in res.saved
+        if f.path.is_file() and f.path.stat().st_size > 0
+    ]
+    manifest = list({x["filename"].casefold(): x for x in manifest}.values())
+    return {
+        "ok": saved, "skipped": skipped, "failed": len(missing), "missing": missing,
+        "files": manifest, "source": source, "auth_failed": auth_failed,
+        "folder": str(config.get_path("pibwx")), "events": events,
+    }
+
+
+def do_outlook_draft(payload: dict, say) -> dict:
+    """Soạn nháp Outlook desktop (COM) — ATC/EZFW hoặc mail khác từ web, không
+    gửi. Tương đương đoạn tạo MailItem trong tool gốc (atc_ezfw / outlook
+    draft): CreateItem(0) = olMailItem, .Attachments.Add() file tạm giải mã từ
+    base64, rồi .Save() (và .Display() nếu máy có màn hình) — người dùng tự
+    điền người nhận và bấm Send trên Outlook thật."""
+    import pythoncom
+    import win32com.client
+
+    subject = str(payload.get("subject") or "")
+    body = str(payload.get("body") or "")
+    to = str(payload.get("to") or "")
+    cc = str(payload.get("cc") or "")
+    html = payload.get("html")
+    attachments = payload.get("attachments") or []
+
+    pythoncom.CoInitialize()
+    tmp_dir = Path(os.environ.get("TEMP", ".")) / "pc-agent-draft"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    tmp_paths: list[Path] = []
+    try:
+        outlook = win32com.client.Dispatch("Outlook.Application")
+        mail = outlook.CreateItem(0)  # olMailItem
+        mail.Subject = subject
+        if html:
+            mail.HTMLBody = str(html)
+        else:
+            mail.Body = body
+        if to:
+            mail.To = to
+        if cc:
+            mail.CC = cc
+        for i, att in enumerate(attachments):
+            name = str((att or {}).get("name") or f"attachment_{i}.txt")
+            data_b64 = str((att or {}).get("data_b64") or "")
+            raw = base64.b64decode(data_b64) if data_b64 else b""
+            path = tmp_dir / f"{i}_{name}"
+            path.write_bytes(raw)
+            tmp_paths.append(path)
+            mail.Attachments.Add(str(path))
+            say(f"· đính kèm {name} ({len(raw):,} bytes)")
+        mail.Save()
+        try:
+            mail.Display(False)
+        except Exception:
+            say("· không mở được cửa sổ soạn thư (máy không có màn hình?) — nháp vẫn nằm trong Drafts")
+        say(f"✓ nháp Outlook: {subject}")
+        return {"subject": subject}
+    finally:
+        pythoncom.CoUninitialize()
+        for p in tmp_paths:
+            try:
+                p.unlink(missing_ok=True)
+            except Exception:
+                pass
+
+
 HANDLERS = {
     "gd_print": do_gd_print,
     "save_file": do_save_file,
     "pick_folder": do_pick_folder,
     "aviweb_check": do_aviweb_check,
+    "owa_login": do_owa_login,
+    "owa_fpl_watch": do_owa_fpl_watch,
+    "owa_pib": do_owa_pib,
+    "outlook_draft": do_outlook_draft,
 }
 
 

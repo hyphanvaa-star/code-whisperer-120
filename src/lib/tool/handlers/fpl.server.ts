@@ -266,6 +266,18 @@ export const routes: Routes = {
     return { error: "Chưa hỗ trợ lấy OFP để soạn điện văn trong môi trường này." };
   },
 
+  "POST /api/fpltext/build": async (ctx) => {
+    const body = await ctx.json();
+    const db = await loadDb(ctx);
+    if (!db) return { error: NO_CREWLIST };
+    const items = Array.isArray(body.items) ? (body.items as Raw[]) : [];
+    const dsp = String(body.dsp || "").trim();
+    if (!dsp) return { error: "Chưa điền tên DSP." };
+    const routeDoc = await loadRouteDoc(ctx);
+    const text = ft.build_req(db, items, dsp, routeDoc.rows || []);
+    if (!String(text || "").trim()) return { error: "Chưa chọn chuyến nào." };
+    return { ok: true, text };
+  },
   "POST /api/fpltext/export": async (ctx) => {
     const body = await ctx.json();
     const db = await loadDb(ctx);
