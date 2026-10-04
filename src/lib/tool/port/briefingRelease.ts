@@ -127,3 +127,141 @@ function wrapText(blob: string, width: number): string {
   if (line) lines.push(line);
   return lines.join("\n");
 }
+
+interface FlightLike {
+  callsign?: string | null;
+  dep_icao?: string | null;
+  dep_iata?: string | null;
+  dest_icao?: string | null;
+  dest_iata?: string | null;
+  reg?: string | null;
+  dest_alt1?: string | null;
+  dest_alt2?: string | null;
+  raw?: Record<string, unknown> | null;
+  id?: number | string | null;
+}
+
+export function destAltsOf(flight: FlightLike): string[] {
+  const raw = [
+    flight.dest_alt1 ?? "",
+    flight.dest_alt2 ?? "",
+    (flight.raw?.["dest_alt3"] as string | undefined) ?? "",
+  ];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    const code = toIcao(String(item ?? ""));
+    if (code && !seen.has(code)) {
+      seen.add(code);
+      out.push(code);
+    }
+  }
+  return out;
+}
+
+export interface AircraftRow {
+  reg?: unknown;
+  defect?: unknown;
+  [key: string]: unknown;
+}
+
+export function defectsFor(reg: unknown, aircraft: Iterable<unknown> | null | undefined): string[] {
+  const want = formatReg(reg);
+  if (!want) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const row of aircraft ?? []) {
+    if (!row || typeof row !== "object") continue;
+    const r = row as AircraftRow;
+    const got = formatReg(String(r.reg ?? ""));
+    if (got !== want) continue;
+    const text = String(r.defect ?? "").split(/\s+/).filter(Boolean).join(" ");
+    const key = text.toUpperCase();
+    if (text && !seen.has(key)) {
+      seen.add(key);
+      out.push(text);
+    }
+  }
+  return out;
+}
+
+export interface TafRecord {
+  nil?: boolean;
+  raw?: string | null;
+  issue?: string | null;
+}
+
+export function tafRaw(icao: string, tafs: Record<string, TafRecord> | null | undefined): string {
+  const rec = (tafs ?? {})[(icao ?? "").toUpperCase()];
+  if (!rec) return "NIL";
+  if (rec.nil) return (rec.raw || "NIL").trim() || "NIL";
+  const raw = (rec.raw ?? "").trim();
+  return raw || "NIL";
+}
+
+function rxPrefix(rec: TafRecord | null | undefined): string {
+  if (!rec) return "";
+  const issue = String(rec.issue ?? "").trim();
+  return /^\d{6}$/.test(issue) ? `Rx ${issue}Z ` : "";
+}
+
+export function tafBlock(icao: string, tafs: Record<string, TafRecord> | null | undefined): string {
+  const rec = icao ? (tafs ?? {})[icao.toUpperCase()] : null;
+  const body = tafRaw(icao, tafs);
+  const prefix = rxPrefix(rec);
+  if (body === "NIL") return (prefix + "NIL").trim();
+  if (prefix && !body.toUpperCase().startsWith("RX ")) return prefix + body;
+  return body;
+}
+
+export function defectBullets(items: string[]): string[] {
+  const out: string[] = [];
+  for (const item of items) {
+    let text = item.trim();
+    if (!text) continue;
+    text = text.replace(/^[-•]\s*/, "");
+    if (!/^FM\b/i.test(text)) text = "FM: " + text;
+    out.push("- " + text);
+  }
+  return out;
+}
+
+export interface WxBlock {
+  label: string;
+  icaos: string[];
+  texts: string[];
+}
+
+export interface ReleaseSheet {
+  callsign: string;
+  published_at: string;
+  dep: string;
+  dest: string;
+  dest_alts: string[];
+  enroute_alts: string[];
+  reg: string;
+  defects: string[];
+  wx: WxBlock[];
+  ofp_note: string;
+  notes: string;
+  permit_addr: string;
+  permit_kind: string;
+  sig_wx: string;
+  notams: string[];
+}
+
+export function newSheet(partial: Partial<ReleaseSheet> & Pick<ReleaseSheet, "callsign" | "published_at" | "dep" | "dest" | "dest_alts" | "enroute_alts" | "reg" | "defects" | "wx">): ReleaseSheet {
+  return {
+    ofp_note: "",
+    notes: NOTES_RED,
+    permit_addr: PERMIT_ADDR,
+    permit_kind: PERMIT_KIND,
+    sig_wx: "NO SIG",
+    notams: ["", "", "", "", ""],
+    ...partial,
+  };
+}
+
+export function altsSlash(sheet: ReleaseSheet, kind: "dest" | "enroute"): string {
+  return kind === "dest" ? slash(sheet.dest_alts) : slash(sheet.enroute_alts);
+}

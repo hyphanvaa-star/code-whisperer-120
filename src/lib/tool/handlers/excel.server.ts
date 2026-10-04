@@ -1,5 +1,5 @@
 import type { Ctx, Jobs, Routes } from "../types";
-import { safeFilename, type Flight } from "../core/models";
+import { safeFilename, Flight } from "../core/models";
 import { applyFilters, loadFlights } from "../core/gantts.server";
 import { getFile, getJson, listFiles, putFile, removeFiles, setJson } from "../store.server";
 import * as excelcmp from "../port/excelcmp_compare";
@@ -7,7 +7,6 @@ import { ExcelError, readTable, type Sheet } from "../port/excelcmp_reader";
 import * as xlsdiff from "../port/xlsdiff";
 import { inOpsWindow } from "../port/notices";
 import { ofpAckNeeded } from "../port/verify";
-import { Flight } from "../core/models";
 import { fbJson } from "@/lib/flitebrief.server";
 
 /** Port of web.py attach_crews() used by compare_crew / bind_excel_row — fetches
