@@ -88,6 +88,9 @@ const SHIM = `<script>
         aiFab:'<path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5Z"/>'
       };
       Object.keys(buttonIcons).forEach(function(id){var el=document.getElementById(id);if(el)el.insertAdjacentHTML('afterbegin',iconSvg(buttonIcons[id]));});
+      var board=room.querySelector('.hdr-switch'),theme=room.querySelector('.theme-switch');
+      if(board)board.insertAdjacentHTML('afterbegin',iconSvg('<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M9 9h12M9 15h12"/>'));
+      if(theme)theme.insertAdjacentHTML('afterbegin',iconSvg('<path d="M12 3a9 9 0 1 0 9 9c0-1.1-.2-2.1-.5-3A7 7 0 0 1 12 3Z"/>'));
     }
     if(room && !document.getElementById('opsHeaderBrand')){
       var brand=document.createElement('div');
@@ -891,6 +894,7 @@ header#mdRoom .md-field label,header#mdRoom .field label{
   display:flex !important;align-items:center !important;gap:6px !important;font-size:9px !important;line-height:1 !important;margin:0 !important;
   font-weight:900 !important;letter-spacing:0 !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;white-space:nowrap !important;
 }
+header#mdRoom .md-field label .cl-txt{display:inline !important;font:inherit !important;color:inherit !important;margin:0 !important}
 .ops-field-icon{display:inline-grid !important;place-items:center !important;width:17px !important;height:17px !important;flex:0 0 17px !important;color:var(--x-red) !important}.ops-field-icon svg{display:block !important;width:100% !important;height:100% !important}
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
@@ -957,7 +961,8 @@ header#mdRoom #aiFab .n{font-size:9px !important;font-weight:800 !important;colo
 header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important;box-shadow:0 6px 12px rgba(176,16,40,.2) !important}
 header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(2px) !important;box-shadow:0 1px 0 #8f1026 !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
-header#mdRoom .hdr-switch::before{content:"▦" !important}header#mdRoom .theme-switch::before{content:"◐" !important}header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;width:auto !important;height:auto !important;font-size:15px !important;line-height:1 !important;flex:none !important;background:none !important;color:var(--x-red) !important}
+header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{display:none !important}
+header#mdRoom .hdr-switch .ops-field-icon,header#mdRoom .theme-switch .ops-field-icon{width:17px !important;height:17px !important;flex:0 0 17px !important;color:currentColor !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:9px !important;font-weight:800 !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;opacity:1 !important;text-transform:uppercase !important}
 .aside-head{top:237px !important}
 /* ---------- PHỤ ---------- */
