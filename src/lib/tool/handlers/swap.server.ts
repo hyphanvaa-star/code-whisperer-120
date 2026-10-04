@@ -379,10 +379,18 @@ export const jobs: Jobs = {
         const res = await fbRequest("DELETE", `/webapi/sectors/${sectorId2}/attachments/${id}`);
         return [200, 201, 204].includes(res.status);
       },
-      // No local disk/bucket of notice PDFs is wired into the Worker yet, so
-      // "found" is always false for add items and this is never invoked —
-      // matches the Vietnamese "THIẾU FILE TRÊN ĐĨA" message above honestly.
-      uploadAttachment: async () => ({ ok: false, alreadyExists: false, error: "chưa có kho file trên máy chủ (cần đĩa/kho PC)" }),
+      // Lấy PDF notice từ kho "notices/" (Rule Studio upload) rồi đính kèm
+      // lên FliteBrief bằng đúng luồng upload của api/upload.py.
+      uploadAttachment: async (sectorId2, title) => {
+        const name = noticeMap.get(title.trim().toLowerCase());
+        if (!name) return { ok: false, alreadyExists: false, error: `thiếu file "${title}" trong kho notice` };
+        const { getFile } = await import("../store.server");
+        const file = await getFile(ctx, `notices/${name}`);
+        if (!file) return { ok: false, alreadyExists: false, error: `không đọc được file ${name}` };
+        const { uploadAndAttach } = await import("./briefing.server");
+        const r = await uploadAndAttach(sectorId2, new Uint8Array(file.data), name, title);
+        return { ok: r.ok, alreadyExists: false, error: r.error };
+      },
       onLine: (text, cls) => emit({ type: "line", text, cls }),
     });
     emit({ type: "line", text: `⬆ xong: xoá ${r.deleted} · thêm ${r.added} · đã có ${r.skipped} · lỗi ${r.failed}`, cls: r.failed ? "bad" : "" });
