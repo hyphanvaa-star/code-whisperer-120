@@ -444,23 +444,27 @@ header input,header select{
   font-weight:700 !important;
 }
 header input:focus,header select:focus{border-color:var(--pp-red) !important;box-shadow:0 0 0 2px rgba(227,25,55,.15) !important}
-/* Nút header: pill trắng chữ đỏ, hover nền đỏ chữ trắng */
+/* Nút header: nền đỏ đặc, chữ trắng — theo yêu cầu của người dùng */
 .filt-actions .btn,.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab,
 header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,header:not(.md) #btnReload,header:not(.md) #btnOfpCheck{
-  background:#fff !important;background-image:none !important;
-  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
-  border:1.5px solid rgba(227,25,55,.45) !important;border-radius:8px !important;
-  box-shadow:none !important;
+  background:var(--pp-red) !important;background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1.5px solid var(--pp-red) !important;border-radius:8px !important;
+  box-shadow:0 2px 6px rgba(227,25,55,.28) !important;
   font-weight:800 !important;
 }
-.filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{
-  color:var(--pp-red) !important;-webkit-text-fill-color:var(--pp-red) !important;
+.filt-actions .btn *,.head-ops .btn.act *,.head-ops .btn.acbtn *,.head-ops .ai-fab *,
+header:not(.md) #btnAcc *,header:not(.md) #btnTaf *,header:not(.md) #btnPickXls *,
+header:not(.md) #btnReload *,header:not(.md) #btnOfpCheck *{
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
 }
-.filt-actions .btn:hover,.head-ops .ai-fab:hover,
+.filt-actions .btn:hover,.head-ops .btn.act:hover,.head-ops .btn.acbtn:hover,.head-ops .ai-fab:hover,
 header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btnPickXls:hover,header:not(.md) #btnReload:hover,header:not(.md) #btnOfpCheck:hover{
-  background:var(--pp-red) !important;border-color:var(--pp-red) !important;
+  background:var(--pp-red-deep) !important;border-color:var(--pp-red-deep) !important;
+  box-shadow:0 4px 12px rgba(227,25,55,.36) !important;
 }
-.filt-actions .btn:hover *,header:not(.md) #btnAcc:hover *,header:not(.md) #btnTaf:hover *,
+.filt-actions .btn:hover *,.head-ops .btn.act:hover *,.head-ops .btn.acbtn:hover *,
+header:not(.md) #btnAcc:hover *,header:not(.md) #btnTaf:hover *,
 header:not(.md) #btnPickXls:hover *,header:not(.md) #btnReload:hover *,header:not(.md) #btnOfpCheck:hover *{
   color:#fff !important;-webkit-text-fill-color:#fff !important;
 }
@@ -478,11 +482,14 @@ header .hstat > span,.head-ops .xls-name{
 }
 header .hstat > span *,.head-ops .xls-name *{color:var(--pp-ink) !important;-webkit-text-fill-color:var(--pp-ink) !important}
 /* ===== THANH TAB CHẾ ĐỘ: trắng sạch, tab chọn đỏ ===== */
+/* Chừa 28px phía trên cho badge số (.mode-bang nằm top:-22px) — thiếu là mất số */
 .modes{
   background:#fff !important;border:1px solid var(--pp-line) !important;
   border-radius:10px !important;box-shadow:0 1px 0 rgba(20,18,16,.05) !important;
+  padding:28px 12px 4px !important;
 }
-.mode{color:var(--pp-ink) !important;font-weight:700 !important;border-radius:7px !important}
+.aside-head .modes{overflow-y:visible !important}
+.mode{color:var(--pp-ink) !important;font-weight:700 !important;border-radius:7px !important;overflow:visible !important}
 .mode:hover{background:rgba(227,25,55,.07) !important;color:var(--pp-red) !important}
 .mode.on{
   background:var(--pp-red) !important;color:#fff !important;
