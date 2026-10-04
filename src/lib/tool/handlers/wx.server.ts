@@ -155,7 +155,7 @@ Object.assign(routes, {
   // Port of web.py "/api/wx/download" → start_wx_download(): trả {id} rồi job
   // "wx_download" chạy trong /api/stream. Các đài MET mở được từ internet nên
   // server tự tải trực tiếp (metwx.download), lưu PDF vào store "pibwx/".
-  "POST /api/wx/download": async (ctx) => {
+  "POST /api/wx/download": async (ctx: Parameters<Routes[string]>[0]) => {
     const payload = await ctx.json();
     const callsigns = ((payload["callsigns"] as unknown[]) ?? []).map((x) => String(x).trim().toUpperCase()).filter(Boolean);
     if (!callsigns.length) return { error: "Chưa có số hiệu chuyến bay nào trong cột PIB/WX." };
