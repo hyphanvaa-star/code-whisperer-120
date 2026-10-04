@@ -1,0 +1,806 @@
+{
+  "source": "sohee (2).xlsb",
+  "sheet": "ERA",
+  "columns": {
+    "A": "ROUTE",
+    "B": "ERA"
+  },
+  "routes": [
+    {
+      "route": "CXRALA",
+      "era": "ZWWW"
+    },
+    {
+      "route": "ALACXR",
+      "era": "VVNB"
+    },
+    {
+      "route": "CXRNQZ",
+      "era": "ZWWW"
+    },
+    {
+      "route": "NQZCXR",
+      "era": "VVNB"
+    },
+    {
+      "route": "SGNMEL",
+      "era": "YBAS"
+    },
+    {
+      "route": "MELSGN",
+      "era": "WAAA"
+    },
+    {
+      "route": "SGNBNE",
+      "era": "YBAS"
+    },
+    {
+      "route": "BNESGN",
+      "era": "WAAA"
+    },
+    {
+      "route": "SGNSYD",
+      "era": "YBAS"
+    },
+    {
+      "route": "SYDSGN",
+      "era": "WAAA"
+    },
+    {
+      "route": "SGNHND",
+      "era": "ROAH"
+    },
+    {
+      "route": "HNDSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNNRT",
+      "era": "ROAH"
+    },
+    {
+      "route": "NRTSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNKIX",
+      "era": "ROAH"
+    },
+    {
+      "route": "KIXSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRICN",
+      "era": "RKPC"
+    },
+    {
+      "route": "ICNCXR",
+      "era": "VHHH"
+    },
+    {
+      "route": "SGNICN",
+      "era": "RKPC"
+    },
+    {
+      "route": "ICNSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNPUS",
+      "era": "RCTP"
+    },
+    {
+      "route": "PUSSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "TAEDAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "ICNDAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "SGNBOM",
+      "era": "VOHS"
+    },
+    {
+      "route": "BOMSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "SGNDEL",
+      "era": "VECC"
+    },
+    {
+      "route": "DELSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "DPSHAN",
+      "era": "VVTS"
+    },
+    {
+      "route": "HANBOM",
+      "era": "VOHS"
+    },
+    {
+      "route": "BOMHAN",
+      "era": "VYYY"
+    },
+    {
+      "route": "HPHICN",
+      "era": "ZSHC"
+    },
+    {
+      "route": "ICNHPH",
+      "era": "VHHH"
+    },
+    {
+      "route": "HANNGO",
+      "era": "RKPC"
+    },
+    {
+      "route": "NGOHAN",
+      "era": "ZGGG"
+    },
+    {
+      "route": "HANKIX",
+      "era": "ZSHC"
+    },
+    {
+      "route": "KIXHAN",
+      "era": "ZGGG"
+    },
+    {
+      "route": "HANNRT",
+      "era": "RKTU"
+    },
+    {
+      "route": "NRTHAN",
+      "era": "ZHHH"
+    },
+    {
+      "route": "DLIICN",
+      "era": "ZSHC"
+    },
+    {
+      "route": "ICNDLI",
+      "era": "VHHH"
+    },
+    {
+      "route": "VCAICN",
+      "era": "RCTP"
+    },
+    {
+      "route": "ICNVCA",
+      "era": "VVDN"
+    },
+    {
+      "route": "ICNHAN",
+      "era": "VHHH"
+    },
+    {
+      "route": "FUKHAN",
+      "era": "VHHH"
+    },
+    {
+      "route": "HANDEL",
+      "era": "VECC"
+    },
+    {
+      "route": "PQCICN",
+      "era": "RCTP"
+    },
+    {
+      "route": "ICNPQC",
+      "era": "VVDN"
+    },
+    {
+      "route": "DLIPUS",
+      "era": "RCTP"
+    },
+    {
+      "route": "PUSDLI",
+      "era": "VVDN"
+    },
+    {
+      "route": "PUSHAN",
+      "era": "VHHH"
+    },
+    {
+      "route": "CXRPUS",
+      "era": "RCTP"
+    },
+    {
+      "route": "PUSCXR",
+      "era": "VHHH"
+    },
+    {
+      "route": "DADPUS",
+      "era": "RCTP"
+    },
+    {
+      "route": "PUSDAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "HANDPS",
+      "era": "WBGG"
+    },
+    {
+      "route": "SGNAMD",
+      "era": "VOHS"
+    },
+    {
+      "route": "AMDSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "SGNCOK",
+      "era": "VOHS"
+    },
+    {
+      "route": "COKSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "HANAMD",
+      "era": "VOHS"
+    },
+    {
+      "route": "DLICJJ",
+      "era": "RCTP"
+    },
+    {
+      "route": "CJJDLI",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNMYJ",
+      "era": "RCTP"
+    },
+    {
+      "route": "MYJSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "LHWCXR",
+      "era": "VVNB"
+    },
+    {
+      "route": "CXRTNA",
+      "era": "ZHHH"
+    },
+    {
+      "route": "TNACXR",
+      "era": "VHHH"
+    },
+    {
+      "route": "CXRHET",
+      "era": "ZHHH"
+    },
+    {
+      "route": "HETCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRMWX",
+      "era": "RCTP"
+    },
+    {
+      "route": "MWXCXR",
+      "era": "VMMC"
+    },
+    {
+      "route": "CXRTSN",
+      "era": "ZHHH"
+    },
+    {
+      "route": "TSNCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "HANSDJ",
+      "era": "RJBB"
+    },
+    {
+      "route": "SDJHAN",
+      "era": "ZHHH"
+    },
+    {
+      "route": "DADMYJ",
+      "era": "ROAH"
+    },
+    {
+      "route": "MWXDAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "DADSDJ",
+      "era": "RJBB"
+    },
+    {
+      "route": "SDJDAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "NGODAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "SGNTPE",
+      "era": "RCKH"
+    },
+    {
+      "route": "TPESGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNRMQ",
+      "era": "VHHH"
+    },
+    {
+      "route": "RMQSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "DADTAE",
+      "era": "ZSHC"
+    },
+    {
+      "route": "DADICN",
+      "era": "ZSHC"
+    },
+    {
+      "route": "DPSSGN",
+      "era": "WBKK"
+    },
+    {
+      "route": "SGNDPS",
+      "era": "WARR"
+    },
+    {
+      "route": "SINHAN",
+      "era": "VVDN"
+    },
+    {
+      "route": "HANFUK",
+      "era": "ZSHC"
+    },
+    {
+      "route": "HANICN",
+      "era": "ZSHC"
+    },
+    {
+      "route": "HANPUS",
+      "era": "ZSHC"
+    },
+    {
+      "route": "DELHAN",
+      "era": "VYYY"
+    },
+    {
+      "route": "AMDHAN",
+      "era": "VYYY"
+    },
+    {
+      "route": "SGNDYG",
+      "era": "ZUGY"
+    },
+    {
+      "route": "DYGSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRPVG",
+      "era": "RCTP"
+    },
+    {
+      "route": "PVGCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRLHW",
+      "era": "ZUCK"
+    },
+    {
+      "route": "CXRNGB",
+      "era": "RCTP"
+    },
+    {
+      "route": "NGBCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRTFU",
+      "era": "ZUGY"
+    },
+    {
+      "route": "TFUCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRHGH",
+      "era": "RCTP"
+    },
+    {
+      "route": "HGHCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRWUX",
+      "era": "RCTP"
+    },
+    {
+      "route": "WUXCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRCKG",
+      "era": "ZUGY"
+    },
+    {
+      "route": "CKGCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "DADMWX",
+      "era": "ZSHC"
+    },
+    {
+      "route": "CXRNKG",
+      "era": "ZSCN"
+    },
+    {
+      "route": "NKGCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNTRZ",
+      "era": "VOHS"
+    },
+    {
+      "route": "TRZSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "CXRCZX",
+      "era": "ZSHC"
+    },
+    {
+      "route": "CZXCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "PQCPUS",
+      "era": "RCTP"
+    },
+    {
+      "route": "PUSPQC",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNPVG",
+      "era": "RCTP"
+    },
+    {
+      "route": "PVGSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRSJW",
+      "era": "ZHCC"
+    },
+    {
+      "route": "SJWCXR",
+      "era": "VHHH"
+    },
+    {
+      "route": "CXRYNY",
+      "era": "RKPC"
+    },
+    {
+      "route": "YNYCXR",
+      "era": "VHHH"
+    },
+    {
+      "route": "CXRSHE",
+      "era": "ZBAA"
+    },
+    {
+      "route": "SHECXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "PQCTPE",
+      "era": "RCKH"
+    },
+    {
+      "route": "SGNTFU",
+      "era": "ZPPP"
+    },
+    {
+      "route": "TFUSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "TPEPQC",
+      "era": "VVDN"
+    },
+    {
+      "route": "VCATPE",
+      "era": "RCKH"
+    },
+    {
+      "route": "TPEVCA",
+      "era": "VVTS"
+    },
+    {
+      "route": "CXRTYN",
+      "era": "ZHCC"
+    },
+    {
+      "route": "TYNCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRHFE",
+      "era": "ZGHA"
+    },
+    {
+      "route": "HFECXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRLYI",
+      "era": "HGH"
+    },
+    {
+      "route": "LYICXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRCGO",
+      "era": "ZGHA"
+    },
+    {
+      "route": "CGOCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRNTG",
+      "era": "zshc"
+    },
+    {
+      "route": "NTGCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRXIY",
+      "era": "zutf"
+    },
+    {
+      "route": "XIYCXR",
+      "era": "vvdn"
+    },
+    {
+      "route": "CXRTAO",
+      "era": "rctp"
+    },
+    {
+      "route": "TAOCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRCJU",
+      "era": "rctp"
+    },
+    {
+      "route": "CJUCXR",
+      "era": "RPLC"
+    },
+    {
+      "route": "HANCGK",
+      "era": "wsss"
+    },
+    {
+      "route": "CGKHAN",
+      "era": "vvdn"
+    },
+    {
+      "route": "SGNXIY",
+      "era": "zutf"
+    },
+    {
+      "route": "XIYSGN",
+      "era": "DAD"
+    },
+    {
+      "route": "SGNLJG",
+      "era": "zppp"
+    },
+    {
+      "route": "LJGSGN",
+      "era": "vdpp"
+    },
+    {
+      "route": "PQCKHH",
+      "era": "VHHH"
+    },
+    {
+      "route": "KHHPQC",
+      "era": "VVCR"
+    },
+    {
+      "route": "CXRXFN",
+      "era": "ZGHA"
+    },
+    {
+      "route": "XFNCXR",
+      "era": "DAD"
+    },
+    {
+      "route": "CXRTAE",
+      "era": "CJU"
+    },
+    {
+      "route": "TAECXR",
+      "era": "MNL"
+    },
+    {
+      "route": "PQCRMQ",
+      "era": "rckh"
+    },
+    {
+      "route": "RMQPQC",
+      "era": "vvts"
+    },
+    {
+      "route": "KULHAN",
+      "era": "VVDN"
+    },
+    {
+      "route": "CXRUBN",
+      "era": "ZBAA"
+    },
+    {
+      "route": "UBNCXR",
+      "era": "VHHH"
+    },
+    {
+      "route": "UBNPQC",
+      "era": "VVDN"
+    },
+    {
+      "route": "PQCUBN",
+      "era": "ZLIC"
+    },
+    {
+      "route": "CXRINC",
+      "era": "ZUTF"
+    },
+    {
+      "route": "INCCXR",
+      "era": "VVDN"
+    },
+    {
+      "route": "DADAMD",
+      "era": "vohs"
+    },
+    {
+      "route": "AMDDAD",
+      "era": "vtbs"
+    },
+    {
+      "route": "CXRYNT",
+      "era": "ZSHC"
+    },
+    {
+      "route": "YNTCXR",
+      "era": "DAD"
+    },
+    {
+      "route": "PKXSGN",
+      "era": "DAD"
+    },
+    {
+      "route": "NGOSGN",
+      "era": "DAD"
+    },
+    {
+      "route": "SGNNGO",
+      "era": "ROAH"
+    },
+    {
+      "route": "SGNPKX",
+      "era": "ZSJN"
+    },
+    {
+      "route": "SGNBLR",
+      "era": "VOHS"
+    },
+    {
+      "route": "BLRSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "SGNFUK",
+      "era": "RCTP"
+    },
+    {
+      "route": "FUKSGN",
+      "era": "DAD"
+    },
+    {
+      "route": "DADCJU",
+      "era": "HGH"
+    },
+    {
+      "route": "CJUDAD",
+      "era": "HKG"
+    },
+    {
+      "route": "HANPXK",
+      "era": "ZSJN"
+    },
+    {
+      "route": "PKXHAN",
+      "era": "ZGGG"
+    },
+    {
+      "route": "SGNENH",
+      "era": "ZGHA"
+    },
+    {
+      "route": "ENHSGN",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNUKB",
+      "era": "ROAH"
+    },
+    {
+      "route": "UKBDAD",
+      "era": "VHHH"
+    },
+    {
+      "route": "DADUKB",
+      "era": "ROAH"
+    },
+    {
+      "route": "UKBSGN",
+      "era": "MNL"
+    },
+    {
+      "route": "PQCKIX",
+      "era": "oka"
+    },
+    {
+      "route": "PQCTAE",
+      "era": "RCTP"
+    },
+    {
+      "route": "TAEPQC",
+      "era": "VVDN"
+    },
+    {
+      "route": "SGNHYD",
+      "era": "VEBS"
+    },
+    {
+      "route": "HYDSGN",
+      "era": "VTBS"
+    },
+    {
+      "route": "SGNCMB",
+      "era": "VOHS"
+    },
+    {
+      "route": "CMBSGN",
+      "era": "VTBS"
+    }
+  ]
+}

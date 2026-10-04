@@ -1,0 +1,1293 @@
+{
+  "month": "OCT",
+  "source": "Taxi-out Fuel 4 Q4-2026 (3).xlsx",
+  "standard": {
+    "A333": 500,
+    "A320": 200,
+    "A321": 200,
+    "A21N": 200
+  },
+  "rows": [
+    {
+      "airport": "ALA",
+      "type": "A333",
+      "oct": "370",
+      "nov": "370",
+      "dec": "370"
+    },
+    {
+      "airport": "AMD",
+      "type": "A21N",
+      "oct": "180",
+      "nov": "140",
+      "dec": "120"
+    },
+    {
+      "airport": "AMD",
+      "type": "A320",
+      "oct": "210",
+      "nov": "150",
+      "dec": "120"
+    },
+    {
+      "airport": "AMD",
+      "type": "A321",
+      "oct": "210",
+      "nov": "160",
+      "dec": "130"
+    },
+    {
+      "airport": "BKK",
+      "type": "A21N",
+      "oct": "180",
+      "nov": "160",
+      "dec": "190"
+    },
+    {
+      "airport": "BKK",
+      "type": "A320",
+      "oct": "190",
+      "nov": "180",
+      "dec": "190"
+    },
+    {
+      "airport": "BKK",
+      "type": "A321",
+      "oct": "220",
+      "nov": "230",
+      "dec": "230"
+    },
+    {
+      "airport": "BLR",
+      "type": "A21N",
+      "oct": "180",
+      "nov": "180",
+      "dec": "190"
+    },
+    {
+      "airport": "BLR",
+      "type": "A321",
+      "oct": "200",
+      "nov": "200",
+      "dec": "210"
+    },
+    {
+      "airport": "BMV",
+      "type": "A21N",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "BMV",
+      "type": "A320",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "BMV",
+      "type": "A321",
+      "oct": "80",
+      "nov": "90",
+      "dec": "80"
+    },
+    {
+      "airport": "BNE",
+      "type": "A333",
+      "oct": "290",
+      "nov": "290",
+      "dec": "280"
+    },
+    {
+      "airport": "BOM",
+      "type": "A21N",
+      "oct": "200",
+      "nov": "190",
+      "dec": "200"
+    },
+    {
+      "airport": "BOM",
+      "type": "A321",
+      "oct": "220",
+      "nov": "210",
+      "dec": "220"
+    },
+    {
+      "airport": "BOM",
+      "type": "A333",
+      "oct": "580",
+      "nov": "560",
+      "dec": "560"
+    },
+    {
+      "airport": "BQS",
+      "type": "A21N",
+      "oct": "90",
+      "nov": "120",
+      "dec": "130"
+    },
+    {
+      "airport": "CAN",
+      "type": "A21N",
+      "oct": "230",
+      "nov": "190",
+      "dec": "160"
+    },
+    {
+      "airport": "CAN",
+      "type": "A320",
+      "oct": "240",
+      "nov": "200",
+      "dec": "160"
+    },
+    {
+      "airport": "CAN",
+      "type": "A321",
+      "oct": "270",
+      "nov": "220",
+      "dec": "160"
+    },
+    {
+      "airport": "CEB",
+      "type": "A321",
+      "oct": "90",
+      "nov": "90",
+      "dec": "100"
+    },
+    {
+      "airport": "CGK",
+      "type": "A21N",
+      "oct": "170",
+      "nov": "180",
+      "dec": "190"
+    },
+    {
+      "airport": "CGK",
+      "type": "A320",
+      "oct": "170",
+      "nov": "180",
+      "dec": "190"
+    },
+    {
+      "airport": "CGK",
+      "type": "A321",
+      "oct": "200",
+      "nov": "210",
+      "dec": "220"
+    },
+    {
+      "airport": "COK",
+      "type": "A320",
+      "oct": "110",
+      "nov": "110",
+      "dec": "100"
+    },
+    {
+      "airport": "COK",
+      "type": "A321",
+      "oct": "110",
+      "nov": "110",
+      "dec": "110"
+    },
+    {
+      "airport": "CXR",
+      "type": "A21N",
+      "oct": "100",
+      "nov": "100",
+      "dec": "110"
+    },
+    {
+      "airport": "CXR",
+      "type": "A320",
+      "oct": "110",
+      "nov": "100",
+      "dec": "100"
+    },
+    {
+      "airport": "CXR",
+      "type": "A321",
+      "oct": "130",
+      "nov": "120",
+      "dec": "120"
+    },
+    {
+      "airport": "CXR",
+      "type": "A333",
+      "oct": "320",
+      "nov": "320",
+      "dec": "350"
+    },
+    {
+      "airport": "CZX",
+      "type": "A21N",
+      "oct": "140",
+      "nov": "150",
+      "dec": "150"
+    },
+    {
+      "airport": "CZX",
+      "type": "A321",
+      "oct": "150",
+      "nov": "160",
+      "dec": "160"
+    },
+    {
+      "airport": "DAD",
+      "type": "A21N",
+      "oct": "120",
+      "nov": "110",
+      "dec": "110"
+    },
+    {
+      "airport": "DAD",
+      "type": "A320",
+      "oct": "120",
+      "nov": "120",
+      "dec": "100"
+    },
+    {
+      "airport": "DAD",
+      "type": "A321",
+      "oct": "130",
+      "nov": "130",
+      "dec": "120"
+    },
+    {
+      "airport": "DAD",
+      "type": "A333",
+      "oct": "340",
+      "nov": "340",
+      "dec": "340"
+    },
+    {
+      "airport": "DEL",
+      "type": "A21N",
+      "oct": "180",
+      "nov": "190",
+      "dec": "190"
+    },
+    {
+      "airport": "DEL",
+      "type": "A321",
+      "oct": "200",
+      "nov": "210",
+      "dec": "210"
+    },
+    {
+      "airport": "DEL",
+      "type": "A333",
+      "oct": "570",
+      "nov": "580",
+      "dec": "550"
+    },
+    {
+      "airport": "DLI",
+      "type": "A21N",
+      "oct": "70",
+      "nov": "80",
+      "dec": "70"
+    },
+    {
+      "airport": "DLI",
+      "type": "A320",
+      "oct": "80",
+      "nov": "90",
+      "dec": "80"
+    },
+    {
+      "airport": "DLI",
+      "type": "A321",
+      "oct": "80",
+      "nov": "90",
+      "dec": "90"
+    },
+    {
+      "airport": "DPS",
+      "type": "A21N",
+      "oct": "220",
+      "nov": "190",
+      "dec": "220"
+    },
+    {
+      "airport": "DPS",
+      "type": "A320",
+      "oct": "240",
+      "nov": "170",
+      "dec": "240"
+    },
+    {
+      "airport": "DPS",
+      "type": "A321",
+      "oct": "260",
+      "nov": "200",
+      "dec": "270"
+    },
+    {
+      "airport": "DYG",
+      "type": "A21N",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "DYG",
+      "type": "A321",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "ENH",
+      "type": "A320",
+      "oct": "60",
+      "nov": "60",
+      "dec": "60"
+    },
+    {
+      "airport": "FUK",
+      "type": "A21N",
+      "oct": "130",
+      "nov": "130",
+      "dec": "110"
+    },
+    {
+      "airport": "FUK",
+      "type": "A321",
+      "oct": "140",
+      "nov": "140",
+      "dec": "120"
+    },
+    {
+      "airport": "HAN",
+      "type": "A21N",
+      "oct": "160",
+      "nov": "160",
+      "dec": "160"
+    },
+    {
+      "airport": "HAN",
+      "type": "A320",
+      "oct": "180",
+      "nov": "170",
+      "dec": "190"
+    },
+    {
+      "airport": "HAN",
+      "type": "A321",
+      "oct": "170",
+      "nov": "180",
+      "dec": "190"
+    },
+    {
+      "airport": "HAN",
+      "type": "A333",
+      "oct": "370",
+      "nov": "430",
+      "dec": "440"
+    },
+    {
+      "airport": "HGH",
+      "type": "A21N",
+      "oct": "220",
+      "nov": "220",
+      "dec": "220"
+    },
+    {
+      "airport": "HGH",
+      "type": "A321",
+      "oct": "250",
+      "nov": "240",
+      "dec": "250"
+    },
+    {
+      "airport": "HIJ",
+      "type": "A320",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "HKG",
+      "type": "A21N",
+      "oct": "240",
+      "nov": "250",
+      "dec": "220"
+    },
+    {
+      "airport": "HKG",
+      "type": "A321",
+      "oct": "230",
+      "nov": "250",
+      "dec": "220"
+    },
+    {
+      "airport": "HKT",
+      "type": "A21N",
+      "oct": "130",
+      "nov": "140",
+      "dec": "140"
+    },
+    {
+      "airport": "HKT",
+      "type": "A320",
+      "oct": "140",
+      "nov": "150",
+      "dec": "150"
+    },
+    {
+      "airport": "HKT",
+      "type": "A321",
+      "oct": "150",
+      "nov": "150",
+      "dec": "160"
+    },
+    {
+      "airport": "HND",
+      "type": "A21N",
+      "oct": "200",
+      "nov": "210",
+      "dec": "190"
+    },
+    {
+      "airport": "HPH",
+      "type": "A21N",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "HPH",
+      "type": "A320",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "HPH",
+      "type": "A321",
+      "oct": "90",
+      "nov": "90",
+      "dec": "90"
+    },
+    {
+      "airport": "HRB",
+      "type": "A21N",
+      "oct": "130",
+      "nov": "130",
+      "dec": "130"
+    },
+    {
+      "airport": "HUI",
+      "type": "A21N",
+      "oct": "60",
+      "nov": "60",
+      "dec": "60"
+    },
+    {
+      "airport": "HUI",
+      "type": "A320",
+      "oct": "60",
+      "nov": "60",
+      "dec": "60"
+    },
+    {
+      "airport": "HUI",
+      "type": "A321",
+      "oct": "80",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "HYD",
+      "type": "A21N",
+      "oct": "140",
+      "nov": "140",
+      "dec": "120"
+    },
+    {
+      "airport": "HYD",
+      "type": "A320",
+      "oct": "150",
+      "nov": "150",
+      "dec": "130"
+    },
+    {
+      "airport": "HYD",
+      "type": "A321",
+      "oct": "160",
+      "nov": "160",
+      "dec": "140"
+    },
+    {
+      "airport": "ICN",
+      "type": "A21N",
+      "oct": "170",
+      "nov": "150",
+      "dec": "160"
+    },
+    {
+      "airport": "ICN",
+      "type": "A320",
+      "oct": "200",
+      "nov": "130",
+      "dec": "120"
+    },
+    {
+      "airport": "ICN",
+      "type": "A321",
+      "oct": "200",
+      "nov": "150",
+      "dec": "140"
+    },
+    {
+      "airport": "KHH",
+      "type": "A21N",
+      "oct": "120",
+      "nov": "120",
+      "dec": "120"
+    },
+    {
+      "airport": "KHH",
+      "type": "A320",
+      "oct": "120",
+      "nov": "120",
+      "dec": "130"
+    },
+    {
+      "airport": "KHH",
+      "type": "A321",
+      "oct": "130",
+      "nov": "130",
+      "dec": "140"
+    },
+    {
+      "airport": "KHV",
+      "type": "A21N",
+      "oct": "110",
+      "nov": "110",
+      "dec": "110"
+    },
+    {
+      "airport": "KIX",
+      "type": "A21N",
+      "oct": "270",
+      "nov": "230",
+      "dec": "220"
+    },
+    {
+      "airport": "KIX",
+      "type": "A320",
+      "oct": "270",
+      "nov": "230",
+      "dec": "210"
+    },
+    {
+      "airport": "KIX",
+      "type": "A321",
+      "oct": "270",
+      "nov": "250",
+      "dec": "240"
+    },
+    {
+      "airport": "KJA",
+      "type": "A333",
+      "oct": "330",
+      "nov": "390",
+      "dec": "400"
+    },
+    {
+      "airport": "KMG",
+      "type": "A21N",
+      "oct": "150",
+      "nov": "210",
+      "dec": "210"
+    },
+    {
+      "airport": "KMG",
+      "type": "A321",
+      "oct": "170",
+      "nov": "230",
+      "dec": "230"
+    },
+    {
+      "airport": "KUL",
+      "type": "A21N",
+      "oct": "190",
+      "nov": "210",
+      "dec": "200"
+    },
+    {
+      "airport": "KUL",
+      "type": "A320",
+      "oct": "190",
+      "nov": "220",
+      "dec": "210"
+    },
+    {
+      "airport": "KUL",
+      "type": "A321",
+      "oct": "210",
+      "nov": "280",
+      "dec": "250"
+    },
+    {
+      "airport": "KZN",
+      "type": "A333",
+      "oct": "300",
+      "nov": "450",
+      "dec": "450"
+    },
+    {
+      "airport": "LHW",
+      "type": "A320",
+      "oct": "180",
+      "nov": "180",
+      "dec": "180"
+    },
+    {
+      "airport": "LHW",
+      "type": "A321",
+      "oct": "190",
+      "nov": "190",
+      "dec": "190"
+    },
+    {
+      "airport": "MEL",
+      "type": "A333",
+      "oct": "310",
+      "nov": "300",
+      "dec": "300"
+    },
+    {
+      "airport": "MFM",
+      "type": "A21N",
+      "oct": "130",
+      "nov": "140",
+      "dec": "130"
+    },
+    {
+      "airport": "MFM",
+      "type": "A321",
+      "oct": "140",
+      "nov": "150",
+      "dec": "140"
+    },
+    {
+      "airport": "MNL",
+      "type": "A21N",
+      "oct": "340",
+      "nov": "340",
+      "dec": "340"
+    },
+    {
+      "airport": "MNL",
+      "type": "A320",
+      "oct": "350",
+      "nov": "350",
+      "dec": "350"
+    },
+    {
+      "airport": "MNL",
+      "type": "A321",
+      "oct": "370",
+      "nov": "380",
+      "dec": "310"
+    },
+    {
+      "airport": "NGB",
+      "type": "A21N",
+      "oct": "160",
+      "nov": "230",
+      "dec": "240"
+    },
+    {
+      "airport": "NGB",
+      "type": "A321",
+      "oct": "170",
+      "nov": "240",
+      "dec": "250"
+    },
+    {
+      "airport": "NGO",
+      "type": "A21N",
+      "oct": "100",
+      "nov": "90",
+      "dec": "90"
+    },
+    {
+      "airport": "NGO",
+      "type": "A321",
+      "oct": "90",
+      "nov": "100",
+      "dec": "100"
+    },
+    {
+      "airport": "NKG",
+      "type": "A321",
+      "oct": "200",
+      "nov": "170",
+      "dec": "190"
+    },
+    {
+      "airport": "NQZ",
+      "type": "A333",
+      "oct": "300",
+      "nov": "300",
+      "dec": "310"
+    },
+    {
+      "airport": "NRT",
+      "type": "A21N",
+      "oct": "210",
+      "nov": "170",
+      "dec": "180"
+    },
+    {
+      "airport": "NRT",
+      "type": "A333",
+      "oct": "450",
+      "nov": "390",
+      "dec": "400"
+    },
+    {
+      "airport": "PER",
+      "type": "A21N",
+      "oct": "100",
+      "nov": "110",
+      "dec": "110"
+    },
+    {
+      "airport": "PKX",
+      "type": "A21N",
+      "oct": "180",
+      "nov": "190",
+      "dec": "210"
+    },
+    {
+      "airport": "PKX",
+      "type": "A320",
+      "oct": "200",
+      "nov": "200",
+      "dec": "230"
+    },
+    {
+      "airport": "PKX",
+      "type": "A321",
+      "oct": "200",
+      "nov": "210",
+      "dec": "230"
+    },
+    {
+      "airport": "PQC",
+      "type": "A21N",
+      "oct": "80",
+      "nov": "100",
+      "dec": "110"
+    },
+    {
+      "airport": "PQC",
+      "type": "A320",
+      "oct": "90",
+      "nov": "110",
+      "dec": "120"
+    },
+    {
+      "airport": "PQC",
+      "type": "A321",
+      "oct": "110",
+      "nov": "110",
+      "dec": "120"
+    },
+    {
+      "airport": "PQC",
+      "type": "A333",
+      "oct": "270",
+      "nov": "280",
+      "dec": "310"
+    },
+    {
+      "airport": "PUS",
+      "type": "A21N",
+      "oct": "110",
+      "nov": "130",
+      "dec": "120"
+    },
+    {
+      "airport": "PUS",
+      "type": "A320",
+      "oct": "130",
+      "nov": "150",
+      "dec": "140"
+    },
+    {
+      "airport": "PUS",
+      "type": "A321",
+      "oct": "140",
+      "nov": "160",
+      "dec": "160"
+    },
+    {
+      "airport": "PVG",
+      "type": "A21N",
+      "oct": "170",
+      "nov": "200",
+      "dec": "200"
+    },
+    {
+      "airport": "PVG",
+      "type": "A320",
+      "oct": "180",
+      "nov": "210",
+      "dec": "200"
+    },
+    {
+      "airport": "PVG",
+      "type": "A321",
+      "oct": "190",
+      "nov": "220",
+      "dec": "220"
+    },
+    {
+      "airport": "PXU",
+      "type": "A21N",
+      "oct": "50",
+      "nov": "50",
+      "dec": "40"
+    },
+    {
+      "airport": "PXU",
+      "type": "A320",
+      "oct": "60",
+      "nov": "50",
+      "dec": "40"
+    },
+    {
+      "airport": "PXU",
+      "type": "A321",
+      "oct": "70",
+      "nov": "60",
+      "dec": "40"
+    },
+    {
+      "airport": "RMQ",
+      "type": "A21N",
+      "oct": "130",
+      "nov": "130",
+      "dec": "140"
+    },
+    {
+      "airport": "RMQ",
+      "type": "A320",
+      "oct": "130",
+      "nov": "130",
+      "dec": "140"
+    },
+    {
+      "airport": "RMQ",
+      "type": "A321",
+      "oct": "140",
+      "nov": "140",
+      "dec": "180"
+    },
+    {
+      "airport": "SAI",
+      "type": "A21N",
+      "oct": "70",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "SAI",
+      "type": "A320",
+      "oct": "70",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "SAI",
+      "type": "A321",
+      "oct": "70",
+      "nov": "80",
+      "dec": "90"
+    },
+    {
+      "airport": "SGN",
+      "type": "A21N",
+      "oct": "170",
+      "nov": "180",
+      "dec": "180"
+    },
+    {
+      "airport": "SGN",
+      "type": "A320",
+      "oct": "170",
+      "nov": "190",
+      "dec": "190"
+    },
+    {
+      "airport": "SGN",
+      "type": "A321",
+      "oct": "180",
+      "nov": "200",
+      "dec": "200"
+    },
+    {
+      "airport": "SGN",
+      "type": "A333",
+      "oct": "370",
+      "nov": "440",
+      "dec": "430"
+    },
+    {
+      "airport": "SIN",
+      "type": "A21N",
+      "oct": "160",
+      "nov": "170",
+      "dec": "150"
+    },
+    {
+      "airport": "SIN",
+      "type": "A320",
+      "oct": "180",
+      "nov": "190",
+      "dec": "170"
+    },
+    {
+      "airport": "SIN",
+      "type": "A321",
+      "oct": "200",
+      "nov": "200",
+      "dec": "160"
+    },
+    {
+      "airport": "SJW",
+      "type": "A21N",
+      "oct": "130",
+      "nov": "130",
+      "dec": "110"
+    },
+    {
+      "airport": "SJW",
+      "type": "A321",
+      "oct": "140",
+      "nov": "140",
+      "dec": "120"
+    },
+    {
+      "airport": "SYD",
+      "type": "A333",
+      "oct": "510",
+      "nov": "530",
+      "dec": "470"
+    },
+    {
+      "airport": "TAE",
+      "type": "A21N",
+      "oct": "100",
+      "nov": "100",
+      "dec": "110"
+    },
+    {
+      "airport": "TAE",
+      "type": "A321",
+      "oct": "100",
+      "nov": "110",
+      "dec": "120"
+    },
+    {
+      "airport": "TBB",
+      "type": "A21N",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "TBB",
+      "type": "A320",
+      "oct": "90",
+      "nov": "90",
+      "dec": "80"
+    },
+    {
+      "airport": "TBB",
+      "type": "A321",
+      "oct": "90",
+      "nov": "90",
+      "dec": "80"
+    },
+    {
+      "airport": "TFU",
+      "type": "A21N",
+      "oct": "150",
+      "nov": "160",
+      "dec": "160"
+    },
+    {
+      "airport": "TFU",
+      "type": "A320",
+      "oct": "150",
+      "nov": "170",
+      "dec": "170"
+    },
+    {
+      "airport": "TFU",
+      "type": "A321",
+      "oct": "160",
+      "nov": "180",
+      "dec": "180"
+    },
+    {
+      "airport": "THD",
+      "type": "A21N",
+      "oct": "70",
+      "nov": "70",
+      "dec": "80"
+    },
+    {
+      "airport": "THD",
+      "type": "A320",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "THD",
+      "type": "A321",
+      "oct": "90",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "TPE",
+      "type": "A21N",
+      "oct": "200",
+      "nov": "210",
+      "dec": "180"
+    },
+    {
+      "airport": "TPE",
+      "type": "A320",
+      "oct": "220",
+      "nov": "180",
+      "dec": "170"
+    },
+    {
+      "airport": "TPE",
+      "type": "A321",
+      "oct": "210",
+      "nov": "180",
+      "dec": "180"
+    },
+    {
+      "airport": "TSN",
+      "type": "A21N",
+      "oct": "350",
+      "nov": "260",
+      "dec": "160"
+    },
+    {
+      "airport": "TSN",
+      "type": "A320",
+      "oct": "350",
+      "nov": "260",
+      "dec": "160"
+    },
+    {
+      "airport": "TSN",
+      "type": "A321",
+      "oct": "380",
+      "nov": "280",
+      "dec": "180"
+    },
+    {
+      "airport": "UIH",
+      "type": "A21N",
+      "oct": "60",
+      "nov": "60",
+      "dec": "60"
+    },
+    {
+      "airport": "UIH",
+      "type": "A320",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "UIH",
+      "type": "A321",
+      "oct": "80",
+      "nov": "80",
+      "dec": "70"
+    },
+    {
+      "airport": "VCA",
+      "type": "A21N",
+      "oct": "60",
+      "nov": "60",
+      "dec": "60"
+    },
+    {
+      "airport": "VCA",
+      "type": "A320",
+      "oct": "60",
+      "nov": "70",
+      "dec": "60"
+    },
+    {
+      "airport": "VCA",
+      "type": "A321",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "VCL",
+      "type": "A320",
+      "oct": "90",
+      "nov": "100",
+      "dec": "80"
+    },
+    {
+      "airport": "VDH",
+      "type": "A21N",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "VDH",
+      "type": "A320",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "VDH",
+      "type": "A321",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "VII",
+      "type": "A21N",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "VII",
+      "type": "A320",
+      "oct": "70",
+      "nov": "70",
+      "dec": "70"
+    },
+    {
+      "airport": "VII",
+      "type": "A321",
+      "oct": "80",
+      "nov": "80",
+      "dec": "80"
+    },
+    {
+      "airport": "VTE",
+      "type": "A21N",
+      "oct": "60",
+      "nov": "90",
+      "dec": "60"
+    },
+    {
+      "airport": "VTE",
+      "type": "A320",
+      "oct": "70",
+      "nov": "100",
+      "dec": "60"
+    },
+    {
+      "airport": "VTE",
+      "type": "A321",
+      "oct": "70",
+      "nov": "100",
+      "dec": "70"
+    },
+    {
+      "airport": "VVO",
+      "type": "A21N",
+      "oct": "90",
+      "nov": "90",
+      "dec": "90"
+    },
+    {
+      "airport": "WUH",
+      "type": "A21N",
+      "oct": "160",
+      "nov": "150",
+      "dec": "150"
+    },
+    {
+      "airport": "WUH",
+      "type": "A321",
+      "oct": "180",
+      "nov": "170",
+      "dec": "170"
+    },
+    {
+      "airport": "WUX",
+      "type": "A21N",
+      "oct": "100",
+      "nov": "100",
+      "dec": "110"
+    },
+    {
+      "airport": "WUX",
+      "type": "A321",
+      "oct": "110",
+      "nov": "110",
+      "dec": "120"
+    },
+    {
+      "airport": "XIY",
+      "type": "A21N",
+      "oct": "160",
+      "nov": "160",
+      "dec": "160"
+    },
+    {
+      "airport": "XIY",
+      "type": "A320",
+      "oct": "160",
+      "nov": "160",
+      "dec": "170"
+    },
+    {
+      "airport": "XIY",
+      "type": "A321",
+      "oct": "170",
+      "nov": "170",
+      "dec": "180"
+    },
+    {
+      "airport": "",
+      "type": "",
+      "oct": "",
+      "nov": "",
+      "dec": ""
+    },
+    {
+      "airport": "",
+      "type": "",
+      "oct": "",
+      "nov": "",
+      "dec": ""
+    },
+    {
+      "airport": "",
+      "type": "",
+      "oct": "",
+      "nov": "",
+      "dec": ""
+    }
+  ]
+}

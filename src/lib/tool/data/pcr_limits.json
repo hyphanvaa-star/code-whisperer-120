@@ -1,0 +1,72 @@
+{
+  "source": "VJC-FOET-14072026",
+  "margin_kg": 500,
+  "variants": [
+    {"id": "WV012", "family": "a320", "label": "A320 WV012", "mtow": 77000},
+    {"id": "WV017", "family": "a320", "label": "A320 WV017", "mtow": 78000},
+    {"id": "WV000", "family": "a321ceo", "label": "A321CEO WV000", "mtow": 89000},
+    {"id": "WV001", "family": "a321ceo", "label": "A321CEO WV001", "mtow": 93000},
+    {"id": "WV011", "family": "a321ceo", "label": "A321CEO WV011", "mtow": 93500},
+    {"id": "WV050", "family": "a321neo", "label": "A321NEO WV050", "mtow": 89000},
+    {"id": "WV053", "family": "a321neo", "label": "A321NEO WV053", "mtow": 93500},
+    {"id": "WV052", "family": "a330", "label": "A330 WV052", "mtow": 233000},
+    {"id": "WV054", "family": "a330", "label": "A330 WV054", "mtow": 235000}
+  ],
+  "airports": {
+    "VVBM": {
+      "name": "Buon Ma Thuot", "iata": "BMV",
+      "runways": [{"id": "", "pcr": {"WV012": null, "WV017": null, "WV000": 79153, "WV001": 79039, "WV011": 79122, "WV050": 79153, "WV053": 79122}}]
+    },
+    "VVCA": {
+      "name": "Chu Lai", "iata": "VCL",
+      "runways": [{"id": "", "pcr": {"WV012": 67204, "WV017": 67493, "WV000": 65366, "WV001": 65344, "WV011": 65344, "WV050": 65366, "WV053": 65344},
+                   "p10": {"WV012": 73924, "WV017": 74242, "WV000": 70845, "WV001": 70845, "WV011": 70845, "WV050": 70845, "WV053": 70845}}]
+    },
+    "VVCR": {
+      "name": "Cam Ranh", "iata": "CXR",
+      "runways": [
+        {"id": "02L/20R",
+         "pcr": {"WV012": null, "WV017": null, "WV000": 77031, "WV001": 77027, "WV011": 77027, "WV050": 77031, "WV053": 77027, "WV052": 183407, "WV054": 184958},
+         "p10": {"WV012": null, "WV017": null, "WV000": 83506, "WV001": 83510, "WV011": 83510, "WV050": 83506, "WV053": 83510, "WV052": 196730, "WV054": 198395}},
+        {"id": "02R/20L",
+         "pcr": {"WV012": null, "WV017": null, "WV000": null, "WV001": null, "WV011": null, "WV050": null, "WV053": null, "WV052": null, "WV054": null}}
+      ]
+    },
+    "VVCT": {
+      "name": "Can Tho", "iata": "VCA",
+      "runways": [{"id": "", "pcr": {"WV012": null, "WV017": null, "WV000": null, "WV001": null, "WV011": null, "WV050": null, "WV053": null, "WV052": 229703, "WV054": 231888}}]
+    },
+    "VVDH": {
+      "name": "Dong Hoi", "iata": "VDH",
+      "runways": [{"id": "", "pcr": {"WV012": null, "WV017": null, "WV000": 85883, "WV001": 85891, "WV011": 85891, "WV050": 85883, "WV053": 85891}}]
+    },
+    "VVPK": {
+      "name": "Pleiku", "iata": "PXU",
+      "runways": [{"id": "", "pcr": {"WV012": null, "WV017": null, "WV000": 88752, "WV001": 88658, "WV011": 88752, "WV050": 88752, "WV053": 88752}}]
+    },
+    "VVPC": {
+      "name": "Phu Cat", "iata": "UIH",
+      "runways": [{"id": "", "pcr": {"WV012": 72646, "WV017": 72960, "WV000": 70625, "WV001": 70531, "WV011": 70531, "WV050": 70625, "WV053": 70531},
+                   "p10": {"WV012": 79911, "WV017": 80256, "WV000": 76391, "WV001": 76391, "WV011": 76391, "WV050": 76391, "WV053": 76391}}]
+    },
+    "VVTH": {
+      "name": "Tuy Hoa", "iata": "TBB",
+      "runways": [{"id": "", "pcr": {"WV012": 75233, "WV017": 75557, "WV000": 73185, "WV001": 73177, "WV011": 73177, "WV050": 73185, "WV053": 73177},
+                   "p10": {"WV012": 82756, "WV017": 83113, "WV000": 79358, "WV001": 79358, "WV011": 79358, "WV050": 79358, "WV053": 79358}}]
+    },
+    "VVTX": {
+      "name": "Tho Xuan", "iata": "THD",
+      "runways": [{"id": "", "pcr": {"WV012": null, "WV017": null, "WV000": 87133, "WV001": 87141, "WV011": 87141, "WV050": 87133, "WV053": 87141}}]
+    },
+    "VVDN": {
+      "name": "Da Nang", "iata": "DAD",
+      "runways": [
+        {"id": "17L/35R",
+         "pcr": {"WV012": null, "WV017": null, "WV000": 87230, "WV001": 92697, "WV011": 92697, "WV050": null, "WV053": 92697, "WV052": 230402, "WV054": 232350}},
+        {"id": "17R/35L",
+         "pcr": {"WV012": 77000, "WV017": 78000, "WV000": null, "WV001": 87137, "WV011": 87228, "WV050": 87230, "WV053": 87228, "WV052": 184090, "WV054": 185840},
+         "p10": {"WV012": 84700, "WV017": 85800, "WV000": null, "WV001": 95851, "WV011": 95951, "WV050": 95953, "WV053": 95951, "WV052": 201080, "WV054": 204424}}
+      ]
+    }
+  }
+}

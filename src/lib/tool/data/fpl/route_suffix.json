@@ -1,0 +1,118 @@
+{
+  "columns": [
+    "ROUTE",
+    "KAPLI",
+    "ENVAR",
+    "OPT"
+  ],
+  "rows": [
+    {
+      "route": "DADICN",
+      "kapli": "2",
+      "envar": "1",
+      "opt": ""
+    },
+    {
+      "route": "SGNICN",
+      "kapli": "2",
+      "envar": "1",
+      "opt": ""
+    },
+    {
+      "route": "CXRICN",
+      "kapli": "3",
+      "envar": "1",
+      "opt": ""
+    },
+    {
+      "route": "PQCICN",
+      "kapli": "1",
+      "envar": "2",
+      "opt": ""
+    },
+    {
+      "route": "VCAICN",
+      "kapli": "2",
+      "envar": "1",
+      "opt": ""
+    },
+    {
+      "route": "CXRMWX",
+      "kapli": "2",
+      "envar": "1",
+      "opt": ""
+    },
+    {
+      "route": "SGNVTE",
+      "kapli": "5",
+      "envar": "",
+      "opt": "5"
+    },
+    {
+      "route": "VTESGN",
+      "kapli": "5",
+      "envar": "",
+      "opt": "5"
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    },
+    {
+      "route": "",
+      "kapli": "",
+      "envar": "",
+      "opt": ""
+    }
+  ]
+}
