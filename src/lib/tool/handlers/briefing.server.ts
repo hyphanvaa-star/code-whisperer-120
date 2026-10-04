@@ -1,5 +1,228 @@
 import type { Jobs, Routes } from "../types";
+import { jobId } from "../jobs";
+import * as store from "../store.server";
+import { loadFlights } from "../core/gantts.server";
+import { listBriefFiles, previewBriefing, briefLabel, type BriefFile } from "../port/briefing";
+import { mergeToPdf, MergeError } from "../port/pdfMerge";
 
-// Port of the web.py endpoints for group "briefing". Keep JSON shapes identical to web.py.
-export const routes: Routes = {};
-export const jobs: Jobs = {};
+// Port of web.py briefing.py + pdf_merge.py + the regnotice split/list routes.
+//
+// Original briefing.py reads a local PC folder (config paths "briefing") —
+// not reachable from a Worker. Files are kept instead in the shared private
+// bucket under "briefing/<name>.pdf"; nothing in our scope uploads there yet,
+// so the list is honestly empty until an upload endpoint is wired, same as
+// port/attch.ts's brief_disk already assumes.
+const BRIEF_DIR = "briefing";
+const REG_DIR = "regnotice";
+
+async function briefFiles(ctx: Parameters<Routes[string]>[0]): Promise<BriefFile[]> {
+  const entries = await store.listFiles(ctx, BRIEF_DIR);
+  return listBriefFiles(entries.map((e) => e.name));
+}
+
+async function briefingPreview(ctx: Parameters<Routes[string]>[0], days: number) {
+  const flights = await loadFlights(days);
+  const files = await briefFiles(ctx);
+  const plans = previewBriefing(flights, files);
+  return {
+    folder: BRIEF_DIR,
+    total: plans.length,
+    ready: plans.filter((p) => p.flight && !p.already).length,
+    already: plans.filter((p) => p.already).length,
+    unmatched: plans.filter((p) => !p.flight).length,
+    duplicate_groups: [] as unknown[],
+    rows: plans.map((p) => ({
+      file: p.file.name,
+      callsign: p.file.callsign,
+      flight: p.flight ? briefLabel(p) : "",
+      sector: p.flight ? p.flight.id : 0,
+      sector_id: p.flight ? p.flight.id : 0,
+      already: p.already,
+      note: p.note,
+    })),
+  };
+}
+
+export const routes: Routes = {
+  "GET /api/briefing/preview": async (ctx) => {
+    const days = Number(ctx.params.get("days") ?? "1") || 1;
+    return briefingPreview(ctx, days);
+  },
+
+  "POST /api/briefing/attach": async (ctx) => {
+    const body = await ctx.json();
+    const days = Number(body["days"] ?? 1) || 1;
+    return { id: jobId("briefing_attach", { days, dry_run: !!body["dry_run"], sector_ids: body["sector_ids"] ?? null }) };
+  },
+
+  // web.py _api_merge_pdf: multipart "file" fields, merged in selection order.
+  "POST /api/pdf/merge": async (ctx) => {
+    let form: FormData;
+    try {
+      form = await ctx.request.formData();
+    } catch {
+      return { error: "Không đọc được danh sách file." };
+    }
+    const files: { name: string; data: Uint8Array }[] = [];
+    for (const [key, value] of form.entries()) {
+      if (key !== "file" || !(value instanceof File)) continue;
+      files.push({ name: value.name, data: new Uint8Array(await value.arrayBuffer()) });
+    }
+    try {
+      const r = await mergeToPdf(files);
+      const path = `merged/${r.file}`;
+      await store.putFile(ctx, path, r.bytes, "application/pdf");
+      return { ok: true, path, file: r.file, pages: r.pages, parts: r.parts };
+    } catch (e) {
+      if (e instanceof MergeError) return { error: e.message };
+      return { error: `${e instanceof Error ? e.constructor.name : "Error"}: ${e instanceof Error ? e.message : String(e)}` };
+    }
+  },
+
+  "GET /api/regnotice/list": async (ctx) => {
+    const entries = await store.listFiles(ctx, REG_DIR);
+    const files = entries
+      .map((e) => e.name)
+      .filter((n) => /^VNA.*\.pdf$/i.test(n))
+      .map((n) => n.replace(/\.pdf$/i, "").toUpperCase());
+    return { files };
+  },
+
+  // web.py split_regnotice_pdf: split a combined PDF by "Status of VN-Axxx" page headers.
+  "POST /api/split-regnotice": async (ctx) => {
+    const buf = new Uint8Array(await ctx.request.arrayBuffer());
+    if (!buf.byteLength) return { error: "Không nhận được nội dung file" };
+    if (buf.byteLength > 50 * 1024 * 1024) return { error: "File PDF quá lớn (> 50 MB)" };
+    try {
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const { PDFDocument } = await import("pdf-lib");
+      const pdf = await getDocumentProxy(buf);
+      const { text } = await extractText(pdf, { mergePages: false });
+      const pageTexts = Array.isArray(text) ? text : [text];
+      const pattern = /Status of (VN-A\d{3})/;
+      const codePages = new Map<string, number[]>();
+      let current: string | null = null;
+      for (let i = 0; i < pageTexts.length; i++) {
+        const m = pattern.exec(pageTexts[i] ?? "");
+        if (m) current = m[1]!;
+        if (current) {
+          if (!codePages.has(current)) codePages.set(current, []);
+          codePages.get(current)!.push(i);
+        }
+      }
+      const src = await PDFDocument.load(buf, { ignoreEncryption: true });
+      const results: { code: string; file: string; pages: number }[] = [];
+      for (const code of [...codePages.keys()].sort()) {
+        const pages = codePages.get(code)!;
+        const out = await PDFDocument.create();
+        const copied = await out.copyPages(src, pages);
+        for (const p of copied) out.addPage(p);
+        const fname = `${code.replace("-", "")}.pdf`;
+        const bytes = await out.save();
+        await store.putFile(ctx, `${REG_DIR}/${fname}`, bytes, "application/pdf");
+        results.push({ code, file: fname, pages: pages.length });
+      }
+      return { total: results.length, output_dir: REG_DIR, files: results };
+    } catch (e) {
+      return { error: `${e instanceof Error ? e.constructor.name : "Error"}: ${e instanceof Error ? e.message : String(e)}` };
+    }
+  },
+};
+
+export const jobs: Jobs = {
+  // Port of web.py start_briefing_attach(): upload + attach each file via
+  // FliteBrief's Web API (api/upload.py: POST /webapi/notices/upload, then
+  // POST /webapi/sectors/{id}/attachments).
+  briefing_attach: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const days = Number(params["days"] ?? 1) || 1;
+    const dryRun = !!params["dry_run"];
+    const sectorIds = params["sector_ids"] as unknown[] | null | undefined;
+    const end = (code: number, extra: Record<string, unknown>) =>
+      emit({ type: "end", code, elapsed: (Date.now() - t0) / 1000, ...extra });
+
+    const { fbRequest } = await import("@/lib/flitebrief.server");
+
+    if (!dryRun) {
+      try {
+        const r = await fbRequest("GET", "/webapi/sector/attachments/privileges");
+        const d = r.ok ? ((await r.json()) as Record<string, unknown>) : {};
+        if (!d["create"]) {
+          emit({ type: "line", text: "✗ tài khoản không có quyền đính kèm", cls: "bad" });
+          return end(1, { ok: 0, skipped: 0, failed: 0, missing: [] });
+        }
+      } catch {
+        emit({ type: "line", text: "✗ không đọc được quyền đính kèm", cls: "bad" });
+        return end(1, { ok: 0, skipped: 0, failed: 0, missing: [] });
+      }
+    }
+
+    const flights = await loadFlights(days);
+    const files = await briefFiles(ctx);
+    let plans = previewBriefing(flights, files);
+    if (sectorIds && sectorIds.length) {
+      const keep = new Set(sectorIds.map((v) => Number(v)).filter((n) => Number.isFinite(n)));
+      const keepCs = new Set(flights.filter((f) => keep.has(f.id)).map((f) => f.callsign.toUpperCase()));
+      if (keepCs.size) plans = plans.filter((p) => keepCs.has(p.file.callsign));
+    }
+    if (!plans.length) {
+      emit({ type: "line", text: `✗ folder ${BRIEF_DIR} không có file briefing nào`, cls: "bad" });
+      return end(1, { ok: 0, skipped: 0, failed: 0, missing: [] });
+    }
+
+    const todo = plans.filter((p) => p.flight && !p.already);
+    emit({
+      type: "line",
+      text: `▶ ${plans.length} file trong folder · ${todo.length} cần đính kèm${dryRun ? "  [chạy thử, không ghi]" : ""}`,
+    });
+    for (const p of plans) {
+      if (!p.flight) emit({ type: "line", text: `! ${p.file.callsign}: ${p.note}`, cls: "bad" });
+    }
+
+    let ok = 0, skipped = 0, failed = 0;
+    for (let i = 0; i < todo.length; i++) {
+      const pl = todo[i]!;
+      const flight = pl.flight!;
+      const progress = (i + 1) / Math.max(1, todo.length);
+      if (dryRun) {
+        ok++;
+        emit({ type: "line", text: `· [thử] ${briefLabel(pl)} ← ${pl.file.name}`, progress });
+        continue;
+      }
+      try {
+        const blob = await store.getFile(ctx, `${BRIEF_DIR}/${pl.file.name}`);
+        if (!blob) throw new Error("không đọc được file trong kho");
+        const form = new FormData();
+        form.append("file-upload", new Blob([blob], { type: "application/pdf" }), pl.file.name);
+        const up = await fbRequest("POST", "/webapi/notices/upload", { body: form, accept: "application/json" });
+        const upJson = (await up.json().catch(() => ({}))) as Record<string, unknown>;
+        if (!up.ok || !upJson["result"]) {
+          throw new Error(String(upJson["message"] || `HTTP ${up.status}`));
+        }
+        const fileKey = String(upJson["id"] || "");
+        const orgFile = String(upJson["org_file"] || "");
+        if (!fileKey) throw new Error("không nhận được file_key");
+        const att = await fbRequest("POST", `/webapi/sectors/${flight.id}/attachments`, {
+          body: {
+            file_key: fileKey,
+            org_file_name: orgFile,
+            file_type: "application/pdf",
+            attachment_type: "GENERAL",
+            title: pl.file.callsign + "_Briefing",
+            needs_acknowledging: false,
+          },
+        });
+        if (![200, 201, 204].includes(att.status)) throw new Error(`gắn sector ${flight.id}: HTTP ${att.status}`);
+        ok++;
+        emit({ type: "line", text: `✓ ${briefLabel(pl)} ← ${pl.file.name}`, progress });
+      } catch (e) {
+        failed++;
+        const msg = e instanceof Error ? e.message : String(e);
+        emit({ type: "line", text: `✗ ${briefLabel(pl)}: ${msg}`, cls: "bad", progress });
+      }
+    }
+
+    const missing = plans.filter((p) => !p.flight).map((p) => p.file.callsign);
+    end(failed ? 2 : 0, { ok, skipped, failed, missing });
+  },
+};

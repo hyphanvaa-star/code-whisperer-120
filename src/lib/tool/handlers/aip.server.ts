@@ -16,7 +16,7 @@ export const routes: Routes = {
     const query = ctx.params.get("q") ?? ctx.params.get("query") ?? "";
     try {
       const { blob, contentType } = await aipRffs.viewPage(icao, query);
-      return new Response(blob, {
+      return new Response(blob as BodyInit, {
         status: 200,
         headers: { "Content-Type": contentType, "Cache-Control": "private, max-age=1800" },
       });

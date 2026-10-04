@@ -568,7 +568,7 @@ function resolve(rowdict: Record<string, unknown>, mapping: Record<string, strin
   return [null, "", `không có chuyến nào trong ±${windowH.toFixed(0)}h quanh ${dtStr}; FliteBrief có ${co} (lệch ${near >= 0 ? "+" : ""}${near.toFixed(0)}h) — gần như chắc là chặng của ngày khác, chuyến ngày này chưa vào cửa sổ API`];
 }
 
-function mergeRows(sheet: Sheet, mapping: Record<string, string>): Array<[number, Record<string, unknown>]> {
+export function mergeRows(sheet: Sheet, mapping: Record<string, string>): Array<[number, Record<string, unknown>]> {
   const csCol = mapping["callsign"];
   const crewCol = mapping["crew"];
   const out: Array<[number, Record<string, unknown>]> = [];
