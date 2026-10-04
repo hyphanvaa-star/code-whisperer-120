@@ -780,7 +780,7 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 .toolbar .btn:hover,.toolbars .btn:hover,.subtabs .btn:hover,.sheet .btn:hover,.lim-pane .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 .xt-kg{min-width:0 !important}.xt-min{margin-right:3px !important;min-width:30px !important;padding:0 3px !important}td.extra-cell{overflow:hidden !important;white-space:nowrap !important}
 
-/* ================= HEADER OPS — 2 bên cân xứng: search | board | nút ================= */
+/* ================= HEADER OPS — trái: tìm kiếm | giữa: board | phải: nút ================= */
 header#mdRoom{
   position:relative !important;
   min-height:0 !important;height:auto !important;padding:12px 22px !important;
@@ -791,38 +791,47 @@ header#mdRoom{
   border-top:4px solid var(--x-red) !important;border-bottom:1px solid rgba(104,137,168,.34) !important;
   box-shadow:0 8px 24px rgba(30,69,103,.1) !important;
 }
-/* --- BÊN TRÁI: khung tìm kiếm chuyến --- */
+/* --- BÊN TRÁI: khung tìm kiếm chuyến (qua .md-stage) --- */
+header#mdRoom .md-stage{
+  grid-column:1 !important;grid-row:1 !important;display:block !important;min-width:0 !important;
+  padding:0 !important;margin:0 !important;position:static !important;
+}
 header#mdRoom .md-denpyo{
-  grid-column:1 !important;grid-row:1 !important;order:unset !important;min-width:0 !important;width:100% !important;
   display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;
   grid-auto-rows:min-content !important;align-content:center !important;
-  gap:10px 12px !important;height:116px !important;padding:10px 16px !important;
+  gap:10px 12px !important;width:100% !important;height:116px !important;padding:10px 16px !important;margin:0 !important;
   background:#fff !important;border:1px solid rgba(97,123,148,.32) !important;border-radius:16px !important;
   box-shadow:0 14px 30px rgba(30,69,103,.18) !important;backdrop-filter:none !important;position:static !important;
 }
+header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
-  grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;flex:none !important;padding:0 !important;position:static !important;
+  grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;flex:none !important;
+  padding:0 !important;margin:0 !important;position:static !important;
 }
 header#mdRoom .md-denpyo .md-row:not(.line)::after{display:none !important}
-header#mdRoom .md-denpyo .md-row:not(.line) label,header#mdRoom .field label{font-size:7.5px !important;font-weight:700 !important;letter-spacing:.1em !important;color:var(--x-mute) !important;opacity:1 !important}
 header#mdRoom .md-denpyo .filt-rail{
   display:contents !important;flex:none !important;min-width:0 !important;max-width:none !important;
-  padding:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;
+  padding:0 !important;margin:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;
 }
-header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;padding:0 !important}
+header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;padding:0 !important;margin:0 !important}
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
-header#mdRoom .field{min-width:0 !important;width:100% !important;gap:2px !important}
+header#mdRoom .md-field{min-width:0 !important;width:100% !important;gap:2px !important}
+header#mdRoom .md-field label,header#mdRoom .field label{
+  display:block !important;font-size:7.5px !important;line-height:1.1 !important;margin:0 0 2px !important;
+  font-weight:700 !important;letter-spacing:.1em !important;color:var(--x-mute) !important;opacity:1 !important;
+}
+header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
   width:100% !important;height:27px !important;border:1px solid #E2E8F1 !important;border-radius:7px !important;
   background:#F5F8FB !important;box-shadow:none !important;font:600 10.5px var(--x-mono) !important;
   color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;padding:0 7px !important;
 }
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
-/* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel bên phải --- */
+/* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
-  position:absolute !important;right:22px !important;bottom:22px !important;top:auto !important;left:auto !important;
-  display:flex !important;gap:6px !important;align-items:stretch !important;
-  width:296px !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:5 !important;
+  position:absolute !important;top:74px !important;right:34px !important;bottom:auto !important;left:auto !important;
+  display:flex !important;gap:5px !important;align-items:stretch !important;
+  width:296px !important;height:44px !important;flex:none !important;padding:0 !important;border:0 !important;margin:0 !important;z-index:5 !important;
 }
 header#mdRoom .filt-actions .btn{
   flex:1 1 0 !important;height:44px !important;min-width:0 !important;padding:4px 2px !important;border:0 !important;border-radius:5px !important;
@@ -847,73 +856,35 @@ header#mdRoom .brand h1 .brand-board{color:#fff !important;-webkit-text-fill-col
 header#mdRoom .brand h1::before{display:none !important}
 header#mdRoom .brand .sig{font-size:8px !important;white-space:nowrap !important;letter-spacing:.14em !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:.9 !important;margin-top:8px !important;text-transform:uppercase !important}
 header#mdRoom .brand-vj{display:block !important;margin-top:4px !important;font-size:8px !important;font-weight:800 !important;letter-spacing:.18em !important;color:var(--x-yellow) !important;-webkit-text-fill-color:var(--x-yellow) !important;text-transform:uppercase !important}
-/* --- BÊN PHẢI: panel nút (hàng trên: OFP/Board/Đêm/Sohee) --- */
+/* --- BÊN PHẢI: panel nút trắng, 2 hàng 4 phím đỏ --- */
 header#mdRoom .head-right{
   grid-column:3 !important;grid-row:1 !important;order:unset !important;
-  display:flex !important;align-items:flex-start !important;justify-content:center !important;gap:6px !important;flex-wrap:nowrap !important;
-  width:320px !important;height:116px !important;padding:10px 12px !important;border:1px solid rgba(255,255,255,.96) !important;
+  display:block !important;width:320px !important;height:116px !important;padding:0 !important;margin:0 !important;
+  border:1px solid rgba(255,255,255,.96) !important;border-radius:16px !important;
   background:rgba(255,255,255,.92) !important;box-shadow:0 14px 30px rgba(30,69,103,.18) !important;backdrop-filter:blur(10px) !important;
-  position:relative !important;justify-self:end !important;border-radius:16px !important;
+  position:static !important;justify-self:end !important;
 }
-header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat{display:none !important}
+header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat,header#mdRoom #btnQuit{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
-header#mdRoom #btnOfpCheck,header#mdRoom #aiFab{
-  position:static !important;top:auto !important;right:auto !important;
-  width:auto !important;min-width:0 !important;flex:1 1 0 !important;height:44px !important;margin:0 !important;padding:4px 2px !important;
-  border-radius:5px !important;box-shadow:0 3px 0 var(--x-red-d) !important;display:flex !important;flex-direction:column !important;gap:3px !important;align-items:center !important;justify-content:center !important;
+header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
+  position:absolute !important;top:22px !important;width:70px !important;height:44px !important;min-width:0 !important;
+  margin:0 !important;padding:4px 2px !important;border-radius:5px !important;box-shadow:0 3px 0 var(--x-red-d) !important;
+  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
   transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
 }
-header#mdRoom #btnOfpCheck{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
+header#mdRoom #btnOfpCheck{right:259px !important;background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1px solid var(--x-red) !important}
+header#mdRoom .hdr-switch{right:184px !important;border:1px solid var(--x-red) !important;background:var(--x-red) !important;color:#fff !important;cursor:pointer !important;transform:none !important;z-index:60 !important;opacity:1 !important;visibility:visible !important}
+header#mdRoom .theme-switch{right:109px !important;border:1px solid var(--x-red) !important;background:var(--x-red) !important;color:#fff !important;cursor:pointer !important;transform:none !important;z-index:60 !important;opacity:1 !important;visibility:visible !important}
+header#mdRoom #aiFab{right:34px !important;background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
-header#mdRoom #aiFab{background:var(--x-red) !important;border:1px solid var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 header#mdRoom #aiFab::before{width:15px !important;height:15px !important;border-radius:0 !important;background-color:#fff !important}
 header#mdRoom #aiFab .n{font-size:8.5px !important;font-weight:800 !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
-header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  display:flex !important;position:static !important;top:auto !important;right:auto !important;
-  width:auto !important;min-width:0 !important;flex:1 1 0 !important;height:44px !important;flex-direction:column !important;
-  margin:0 !important;padding:4px 2px !important;align-items:center !important;justify-content:center !important;gap:3px !important;
-  border:1px solid var(--x-red) !important;border-radius:5px !important;background:var(--x-red) !important;color:#fff !important;
-  box-shadow:0 3px 0 var(--x-red-d) !important;cursor:pointer !important;transform:none !important;z-index:60 !important;
-  transition:transform .14s ease,box-shadow .14s ease,background .14s ease !important;
-  opacity:1 !important;visibility:visible !important;
-}
 header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red-d) !important;transform:translateY(-1px) !important;box-shadow:0 4px 0 #8f1026 !important}
 header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(2px) !important;box-shadow:0 1px 0 #8f1026 !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
 header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{position:static !important;width:15px !important;height:15px !important;font-size:15px !important;line-height:1 !important;flex:none !important;background-color:#fff !important;color:#fff !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:8.5px !important;font-weight:800 !important;color:#fff !important;-webkit-text-fill-color:#fff !important;opacity:1 !important;text-transform:uppercase !important}
 .aside-head{top:140px !important}
-
-@media(max-width:1180px){
-  html:not(.fit-scaled) header#mdRoom{grid-template-columns:minmax(0,1fr) 190px minmax(0,1fr) !important;column-gap:12px !important;padding:10px 12px !important}
-  html:not(.fit-scaled) header#mdRoom .brand{width:190px !important;height:74px !important}
-  html:not(.fit-scaled) header#mdRoom .brand h1{font-size:19px !important}
-  html:not(.fit-scaled) header#mdRoom .brand .sig{font-size:6px !important}
-  html:not(.fit-scaled) header#mdRoom .head-right{width:280px !important}
-  html:not(.fit-scaled) header#mdRoom .filt-actions{right:12px !important;bottom:20px !important;width:256px !important}
-  html:not(.fit-scaled) .aside-head{top:136px !important}
-}
-@media(max-width:900px){
-  html:not(.fit-scaled) header#mdRoom{
-    height:auto !important;min-height:0 !important;overflow:visible !important;padding:8px 10px !important;
-    grid-template-columns:184px minmax(0,1fr) !important;grid-template-rows:56px auto !important;
-    gap:8px 10px !important;background-position:center !important;
-  }
-  html:not(.fit-scaled) header#mdRoom .brand{grid-column:1 !important;grid-row:1 !important;width:184px !important;height:56px !important;justify-self:start !important;box-shadow:5px 5px 0 rgba(125,20,39,.14) !important}
-  html:not(.fit-scaled) header#mdRoom .brand h1{font-size:17px !important}
-  html:not(.fit-scaled) header#mdRoom .brand .sig{font-size:5px !important;margin-top:4px !important}
-  html:not(.fit-scaled) header#mdRoom .brand-vj{font-size:6px !important;margin-top:3px !important}
-  html:not(.fit-scaled) header#mdRoom .head-right{grid-column:2 !important;grid-row:1 !important;width:100% !important;height:56px !important;padding:0 !important;align-items:center !important;border:0 !important;box-shadow:none !important;background:rgba(255,255,255,.84) !important}
-  html:not(.fit-scaled) header#mdRoom #btnOfpCheck,html:not(.fit-scaled) header#mdRoom #aiFab,html:not(.fit-scaled) header#mdRoom .hdr-switch,html:not(.fit-scaled) header#mdRoom .theme-switch{position:static !important;width:auto !important;min-width:0 !important;height:44px !important;padding:4px 2px !important}
-  html:not(.fit-scaled) header#mdRoom .md-denpyo{grid-column:1 / -1 !important;grid-row:2 !important;width:100% !important;height:auto !important;padding:10px 14px !important;gap:8px 10px !important;border-radius:14px !important}
-  html:not(.fit-scaled) header#mdRoom .md-denpyo .md-row:not(.line){width:100% !important}
-  html:not(.fit-scaled) header#mdRoom .md-denpyo .filt-rail{display:contents !important}
-  html:not(.fit-scaled) header#mdRoom .filt-actions{position:static !important;grid-column:1 / -1 !important;width:100% !important;margin-top:2px !important}
-  html:not(.fit-scaled) header#mdRoom .filt-actions .btn{height:40px !important;font-size:9px !important}
-  html:not(.fit-scaled) header#mdRoom input,html:not(.fit-scaled) header#mdRoom select{height:26px !important;font-size:9.5px !important}
-  html:not(.fit-scaled) header#mdRoom .field label,html:not(.fit-scaled) header#mdRoom .md-row:not(.line) label{font-size:6.5px !important}
-  html:not(.fit-scaled) .aside-head{top:232px !important}
-}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
