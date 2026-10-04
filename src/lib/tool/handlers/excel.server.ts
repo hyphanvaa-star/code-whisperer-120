@@ -5,6 +5,27 @@ import { getFile, getJson, listFiles, putFile, removeFiles, setJson } from "../s
 import * as excelcmp from "../port/excelcmp_compare";
 import { ExcelError, readTable, type Sheet } from "../port/excelcmp_reader";
 
+/** Port of web.py attach_crews() used by compare_crew / bind_excel_row — fetches
+ * crews from FliteBrief for flights that don't have them yet (same pattern as
+ * core.server.ts's GET /api/flight/* crew fetch). */
+async function attachCrews(flights: Flight[]): Promise<void> {
+  const need = flights.filter((f) => !f.crews.length && f.crew_count);
+  if (!need.length) return;
+  const { fbJson } = await import("@/lib/flitebrief.server");
+  const { Crew } = await import("../core/models");
+  await Promise.all(
+    need.map(async (f) => {
+      try {
+        const data = await fbJson<unknown>(`/webapi/sectors/${f.id}/crews`);
+        const list = Array.isArray(data) ? data : [];
+        f.crews = list.filter((c): c is Record<string, unknown> => !!c && typeof c === "object").map((c) => Crew.fromApi(c, f.id));
+      } catch {
+        // FliteBrief crews fetch failing shouldn't block the batch.
+      }
+    }),
+  );
+}
+
 // Port of the web.py endpoints for group "excel". Keep JSON shapes identical to web.py.
 // data/excel/<name> -> bucket path "excel/<name>"; web.py's config.EXCEL_STATE (current
 // file+sheet) -> app_settings key "excel.current".
@@ -297,6 +318,96 @@ export const routes: Routes = {
     const cur = await currentExcel(ctx);
     if (cur && cur.file === name) await setJson(ctx, STATE_KEY, null);
     return { ok: true, deleted: name, files: await listExcel(ctx) };
+  },
+
+  "GET /api/excel/crew": async (ctx) => {
+    const idsRaw = ctx.params.get("ids") || "";
+    const ids = idsRaw.split(",").map((x) => Number.parseInt(x.trim(), 10)).filter((n) => Number.isFinite(n) && String(n).length);
+    if (!ids.length) return { crew: {} };
+    if (ids.length > 200) return { error: "tối đa 200 sector mỗi lô" };
+
+    const state = await currentExcel(ctx);
+    const filename = ctx.params.get("file") || state?.file || "";
+    if (!filename) return { error: "Chưa nạp file Excel nào." };
+    const sheetName = ctx.params.get("sheet") || state?.sheet || "";
+    const days = Number.parseInt(ctx.params.get("days") || "1", 10) || 1;
+    const flights = applyFilters(await loadFlights(days), ctx.params);
+
+    try {
+      const { sheets } = await readSheet(ctx, filename);
+      const sheet = pickSheet(sheets, sheetName);
+      const detected = excelcmp.detectMapping(sheet.header);
+      if (!("crew" in detected)) return { crew: {} };
+
+      const want = new Set(ids);
+      const need = flights.filter((f) => want.has(f.id) && !f.crews.length);
+      if (need.length) await attachCrews(need);
+
+      const res = excelcmp.compare(sheet, flights, { mapping: detected, tolerance: 0, fields: ["crew"] });
+      const out: Record<string, unknown> = {};
+      for (const r of res.rows) {
+        if (!r.matched || r.sector_id == null || !want.has(r.sector_id)) continue;
+        const cell = r.cells?.["crew"];
+        if (cell && !(String(r.sector_id) in out)) out[String(r.sector_id)] = cell;
+      }
+      return { crew: out };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
+    }
+  },
+
+  "GET /api/excel/bind": async (ctx) => {
+    const sectorId = Number.parseInt(ctx.params.get("sector_id") || "0", 10);
+    const rowNo = Number.parseInt(ctx.params.get("row_no") || "0", 10);
+    if (!Number.isFinite(sectorId) || !Number.isFinite(rowNo)) {
+      return new Response(JSON.stringify({ error: "sector_id hoặc row_no không hợp lệ." }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+    if (!sectorId || !rowNo) {
+      return new Response(JSON.stringify({ error: "Thiếu chuyến hoặc số dòng crewlist." }), { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+
+    const state = await currentExcel(ctx);
+    const filename = ctx.params.get("file") || state?.file || "";
+    if (!filename) return { error: "Chưa nạp file Excel nào." };
+    const sheetName = ctx.params.get("sheet") || state?.sheet || "";
+    const days = Number.parseInt(ctx.params.get("days") || "1", 10) || 1;
+    const flights = await loadFlights(days);
+    const flight = flights.find((f) => f.id === sectorId);
+    if (!flight) {
+      return new Response(JSON.stringify({ error: "Không thấy chuyến này trên FliteBrief." }), { status: 404, headers: { "Content-Type": "application/json" } });
+    }
+
+    try {
+      const { sheets } = await readSheet(ctx, filename);
+      const sheet = pickSheet(sheets, sheetName);
+      const mapping = excelcmp.detectMapping(sheet.header);
+      const found = excelcmp.mergedRow(sheet, mapping, rowNo);
+      if (!found) return { error: `Không thấy dòng ${rowNo} trong crewlist.` };
+      const [no, row] = found;
+      if (!flight.crews.length) await attachCrews([flight]);
+      const cells = excelcmp.cellsForRow(flight, row, mapping);
+
+      const col = (key: string): string => {
+        if (!(key in mapping)) return "";
+        return String(row[mapping[key]!] ?? "").trim();
+      };
+      const cs = col("callsign");
+      const route = [col("dep"), col("dest")].filter(Boolean).join("-");
+      const when = [col("date"), col("std")].filter(Boolean).join(" ");
+      const empty = { verdict: "", detail: "", excel: "—", flite: "", same: null, mapped: false };
+      return {
+        sector_id: flight.id,
+        row_no: no,
+        excel_cs: cs,
+        route,
+        when,
+        crew: cells["crew"] ?? empty,
+        reg: cells["reg"] ?? empty,
+        note: ["gắn tay dòng " + String(no) + ":", cs, route, when].filter(Boolean).join(" "),
+      };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
+    }
   },
 };
 export const jobs: Jobs = {};
