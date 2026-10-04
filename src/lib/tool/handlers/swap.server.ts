@@ -27,6 +27,19 @@ async function ruleData(ctx: Parameters<Routes[string]>[0]): Promise<RuleRow[]> 
   return defaultRuleData();
 }
 
+/** Kho file notice PDF trong bucket "notices/<tên>.pdf" (Rule Studio upload).
+ *  Trả map title-thường → tên file để planSwap biết file nào có sẵn. */
+async function noticeFiles(ctx: Parameters<Routes[string]>[0]): Promise<Map<string, string>> {
+  const { listFiles } = await import("../store.server");
+  const files = await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>);
+  const map = new Map<string, string>();
+  for (const f of files) {
+    const stem = f.name.replace(/\.pdf$/i, "").trim().toLowerCase();
+    if (stem) map.set(stem, f.name);
+  }
+  return map;
+}
+
 async function upPrivileges(): Promise<{ create: boolean; delete: boolean }> {
   const { fbJson } = await import("@/lib/flitebrief.server");
   try {
@@ -104,7 +117,11 @@ export const routes: Routes = {
     const newActype = await actypeOf(flights, newReg, f.id);
     const live = await liveAttachments(f.id, f.attachments);
     const rows = await ruleData(ctx);
-    const plan = rs.planSwap(f, newReg, { oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType });
+    const noticeMap = await noticeFiles(ctx);
+    const plan = rs.planSwap(f, newReg, {
+      oldReg, newActype, ruleData: rows, liveAttachments: live, icaoAcType,
+      fileExists: (title) => noticeMap.has(title.trim().toLowerCase()),
+    });
     const privileges = await upPrivileges();
     return { ...plan, privileges };
   },
