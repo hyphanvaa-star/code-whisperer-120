@@ -140,7 +140,7 @@ export function fplHintFromMessage(
   const mid = String(msg["Id"] ?? msg["id"] ?? "").trim();
   if (!mid) return null;
   const when = msgWhen(msg);
-  const dayOpts: { when: string; today?: string } = { when };
+  const dayOpts: { when?: Date | null; today?: string } = { when };
   if (opts.today !== undefined) dayOpts.today = opts.today;
   return {
     mid,
