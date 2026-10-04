@@ -331,10 +331,57 @@ def do_pick_folder(payload: dict, say) -> dict:
     return {"path": chosen or ""}
 
 
+def _find_tool_dir() -> Path:
+    """Thư mục tool gốc (chứa atc_check.py, config.py) trên máy công ty."""
+    env_dir = os.environ.get("PC_TOOL_DIR", "").strip()
+    cands = [Path(env_dir)] if env_dir else []
+    cands += [
+        Path("C:/DispatchBoard"), Path("D:/DispatchBoard"),
+        Path.home() / "DispatchBoard", Path.home() / "Desktop" / "DispatchBoard",
+    ]
+    for c in cands:
+        if (c / "atc_check.py").is_file():
+            return c
+    raise RuntimeError(
+        "không tìm thấy thư mục tool gốc (atc_check.py) — đặt biến môi trường "
+        "PC_TOOL_DIR trỏ tới thư mục DispatchBoard"
+    )
+
+
+def do_aviweb_check(payload: dict, say) -> dict:
+    """Check trạng thái FPL trên AviWeb bằng Chrome thật (Selenium) — chạy đúng
+    code atc_check.py của tool gốc, tài khoản lấy từ config.py trên máy này."""
+    tool_dir = _find_tool_dir()
+    if str(tool_dir) not in sys.path:
+        sys.path.insert(0, str(tool_dir))
+    os.chdir(tool_dir)  # config.py / profile Chrome của tool gốc dùng đường dẫn tương đối
+    import atc_check  # noqa: E402  (module của tool gốc)
+
+    callsigns = [str(c) for c in payload.get("callsigns") or []]
+    headless = bool(payload.get("headless", True))
+    say(f"· dùng tool gốc tại {tool_dir}")
+
+    def on_progress(d: dict) -> None:
+        if d.get("type") == "line" and d.get("text"):
+            say(str(d["text"]), str(d.get("cls") or ""))
+
+    res = atc_check.check_flights(callsigns, headless=headless, on_progress=on_progress)
+    return {
+        "ok": res.ok,
+        "failed": res.failed,
+        "results": [
+            {"callsign": r.callsign, "status": r.status, "flight_time": r.flight_time,
+             "reg": r.reg, "dof": r.dof, "error": r.error, "ok": r.ok}
+            for r in res.results
+        ],
+    }
+
+
 HANDLERS = {
     "gd_print": do_gd_print,
     "save_file": do_save_file,
     "pick_folder": do_pick_folder,
+    "aviweb_check": do_aviweb_check,
 }
 
 
