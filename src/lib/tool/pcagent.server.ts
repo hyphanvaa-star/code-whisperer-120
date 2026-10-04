@@ -47,7 +47,7 @@ export async function waitResult(
 ): Promise<Record<string, unknown>> {
   const t0 = Date.now();
   for (;;) {
-    const { data, error } = (await admin())
+    const { data, error } = await (await admin())
       .from("pc_jobs")
       .select("status, result")
       .eq("id", id)
@@ -77,9 +77,9 @@ export async function waitResult(
 
 /** Agent heartbeat, written by the public poll route (no user session). */
 export async function recordHeartbeat(info: Omit<AgentInfo, "at">): Promise<void> {
-  const { error } = (await admin()).from("app_settings").upsert({
+  const { error } = await (await admin()).from("app_settings").upsert({
     key: "pc.agent",
-    value: { ...info, at: Date.now() },
+    value: { ...info, at: Date.now() } as never,
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error(error.message);
@@ -116,7 +116,7 @@ export async function claimPending(limit = 5): Promise<Array<{ id: string; kind:
 }
 
 export async function finishJob(id: string, ok: boolean, result: Record<string, unknown>): Promise<void> {
-  const { error } = (await admin())
+  const { error } = await (await admin())
     .from("pc_jobs")
     .update({
       status: ok ? "done" : "failed",
