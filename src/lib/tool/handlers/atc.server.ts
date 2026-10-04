@@ -1,24 +1,20 @@
 import type { Jobs, Routes } from "../types";
 import { AVIWEB_NOT_PORTABLE_MESSAGE, readFplBlocks, fplName } from "../port/aviweb";
+import { jobId } from "../jobs";
+import * as pc from "../pcagent.server";
 
 // Port of the web.py "/api/atc/*" group (atcfpl.py + atc_check.py).
 //
 // AviWeb only exposes its FPL Manager / login through the Vaadin 7 UIDL RPC
 // protocol — there is no plain HTTP endpoint for it (see ../port/aviweb.ts for
 // the reconnaissance notes). The original tool drives a real Chrome window
-// with Selenium for every one of these endpoints (list uploaded files just to
-// pick one to submit, upload+parse a file to stage it for submission, submit
-// FPL blocks to AviWeb, and check FPL status on AviWeb). None of that can run
-// in a Cloudflare Worker, so every endpoint here reports the same honest
-// blocked reason instead of faking success — per the porting brief's
-// "missing credential / PC helper" rule for features that truly need a real
-// browser.
+// with Selenium. A Worker cannot do that, so the Selenium part runs in the PC
+// agent (pc-agent/pc_agent.py) on the company PC, which imports the original
+// atc_check.py: the web enqueues an "aviweb_check" row in pc_jobs and streams
+// the agent's progress back over /api/stream, exactly like gd_print.
 //
-// "/api/atc/upload" and "/api/atc/files" do have a pure, portable half (parsing
-// the uploaded ATC text file into FPL blocks via readFplBlocks/fplName), so we
-// still do that parsing here — it is exactly the data the original list/upload
-// screens show — but there is nowhere to actually submit or check those blocks
-// against AviWeb, so submit/check always report the blocked message.
+// "/api/atc/upload" still parses the uploaded ATC text into FPL blocks fully
+// offline (readFplBlocks/fplName) — that half never needed a browser.
 
 export const routes: Routes = {
   "GET /api/atc/files": async () => {
@@ -37,9 +33,8 @@ export const routes: Routes = {
     }
     const header = ctx.request.headers.get("X-Filename") || "";
     const name = header ? decodeURIComponent(header) : "ATC.txt";
-    // Parsing works fully offline; only the "submit this to AviWeb" step needs a
-    // real browser, so we report that honestly instead of pretending the file is
-    // staged somewhere a later submit could reach it.
+    // Parsing works fully offline; submitting to AviWeb still needs the PC
+    // agent's real browser.
     return {
       path: "",
       name,
@@ -58,9 +53,61 @@ export const routes: Routes = {
     return { error: AVIWEB_NOT_PORTABLE_MESSAGE };
   },
 
-  "POST /api/atc/check": async () => {
-    return { error: AVIWEB_NOT_PORTABLE_MESSAGE };
+  // Port of web.py "/api/atc/check": start_atc_check() → background job whose
+  // progress streams over SSE. Here the Selenium run happens on the company PC
+  // via the agent; the job below relays its lines and final rows.
+  "POST /api/atc/check": async (ctx) => {
+    const payload = (await ctx.request.json().catch(() => ({}))) as Record<string, unknown>;
+    const cs = (payload["callsigns"] as string[] | undefined) ?? [];
+    if (!cs.length) return { error: "chưa có chuyến nào" };
+    const agent = await pc.agentInfo(ctx);
+    if (!pc.agentOnline(agent)) {
+      return { error: "Trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi check lại." };
+    }
+    return { id: jobId("atc_check", { callsigns: cs, headless: payload["headless"] !== false }) };
   },
 };
 
-export const jobs: Jobs = {};
+export const jobs: Jobs = {
+  // Port of web.py start_atc_check(): giao trợ lý PC chạy atc_check.check_flights
+  // bằng Chrome thật trên máy công ty, rồi truyền log + kết quả về đây.
+  atc_check: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const callsigns = (params["callsigns"] as string[] | undefined) ?? [];
+    const headless = params["headless"] !== false;
+    if (!callsigns.length) {
+      emit({ type: "line", text: "✗ Không có chuyến nào để check.", cls: "bad" });
+      emit({ type: "end", code: 1, elapsed: 0, ok: 0, failed: 1, results: [] });
+      return;
+    }
+    const agent = await pc.agentInfo(ctx);
+    if (!pc.agentOnline(agent)) {
+      emit({ type: "line", text: "✗ Trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi check lại.", cls: "bad" });
+      emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, failed: 1, results: [] });
+      return;
+    }
+    try {
+      const id = await pc.enqueue("aviweb_check", { callsigns, headless });
+      emit({ type: "line", text: `· đã gửi ${callsigns.length} chuyến cho trợ lý PC — đang mở AviWeb…`, cls: "sys" });
+      let lastBeat = 0;
+      const r = await pc.waitResult(id, 900_000, (elapsed) => {
+        if (elapsed - lastBeat >= 30) {
+          lastBeat = elapsed;
+          emit({ type: "line", text: `· đang chờ trợ lý PC… (${Math.round(elapsed)}s)`, cls: "sys" });
+        }
+      });
+      const lines = (r["lines"] as Array<{ text?: string; cls?: string } | string> | undefined) ?? [];
+      for (const l of lines) {
+        if (typeof l === "string") emit({ type: "line", text: l });
+        else if (l.text) emit({ type: "line", text: l.text, cls: l.cls || "" });
+      }
+      const results = (r["results"] as unknown[] | undefined) ?? [];
+      const ok = Number(r["ok"] ?? 0);
+      const failed = Number(r["failed"] ?? 0);
+      emit({ type: "end", code: failed ? 2 : 0, elapsed: (Date.now() - t0) / 1000, ok, failed, results });
+    } catch (e) {
+      emit({ type: "line", text: `✗ ${e instanceof Error ? e.message : String(e)}`, cls: "bad" });
+      emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, failed: 1, results: [] });
+    }
+  },
+};

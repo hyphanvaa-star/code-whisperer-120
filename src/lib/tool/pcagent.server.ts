@@ -8,7 +8,7 @@
 import type { Ctx } from "./types";
 import { getJson } from "./store.server";
 
-export type PcJobKind = "gd_print" | "pick_folder" | "save_file";
+export type PcJobKind = "gd_print" | "pick_folder" | "save_file" | "aviweb_check";
 
 export interface AgentPrinter {
   name: string;
