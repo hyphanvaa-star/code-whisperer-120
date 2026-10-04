@@ -943,3 +943,42 @@ export function req_bytes(text: string): Uint8Array {
   for (let i = 0; i < body.length; i++) out[i] = body.charCodeAt(i) & 0xff;
   return out;
 }
+
+export function _crew_col(header: string[], ...names: string[]): string {
+  const folded = header.map((h) => [h, String(h ?? "").trim().toLowerCase()] as const);
+  for (const want of names) {
+    const key = want.trim().toLowerCase();
+    for (const [o, n] of folded) if (n === key) return o;
+  }
+  for (const want of names) {
+    const key = want.trim().toLowerCase();
+    for (const [o, n] of folded) if (n.includes(key)) return o;
+  }
+  return "";
+}
+
+/** Port of fpl_tool.flights_from_crew_sheet(). */
+export function flights_from_crew_sheet(sheet: { header: string[]; header_row: number; rows: any[][] }): Raw[] {
+  const header = sheet.header.map((h) => String(h ?? ""));
+  const keys: Record<string, string> = {
+    FLT: _crew_col(header, "FLT", "Flight No", "flightno", "callsign"),
+    DATE: _crew_col(header, "DATE", "Flight Date"),
+    REG: _crew_col(header, "REG", "Registration"),
+    AC: _crew_col(header, "AC", "ACFT"),
+    DEP: _crew_col(header, "DEP", "Departure"),
+    ARR: _crew_col(header, "ARR", "Arrival", "DEST"),
+    STD: _crew_col(header, "STD"),
+    STA: _crew_col(header, "STA"),
+    ETD: _crew_col(header, "ETD"),
+    ETA: _crew_col(header, "ETA"),
+    Crew: _crew_col(header, "Crew"),
+  };
+  const idx: Record<string, number> = {};
+  for (const [k, col] of Object.entries(keys)) idx[k] = col ? header.indexOf(col) : -1;
+  const rows = sheet.rows.map((r) => {
+    const o: Raw = {};
+    for (const k of Object.keys(keys)) o[k] = idx[k] >= 0 ? r[idx[k]] ?? null : null;
+    return o;
+  });
+  return flights_from_crew_rows(rows, Number(sheet.header_row) + 2);
+}
