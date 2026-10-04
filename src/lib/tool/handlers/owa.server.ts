@@ -118,14 +118,26 @@ export const jobs: Jobs = {
     emit({ type: "end", code: ok ? 0 : 1, elapsed: (Date.now() - t0) / 1000, ok, failed: wants.length - ok, subject: subjects.join(" · "), files });
   },
 
-  // Port of web.py start_owa_login(): giao trợ lý PC mở Outlook Web thật rồi
-  // relay log + kết quả cuối cùng y hệt shape gốc.
+  // Port of web.py start_owa_login(): thử đăng nhập thẳng từ máy chủ (ROPC,
+  // port/owa_pib.ensureToken) — không cần trợ lý PC. Chỉ khi Microsoft từ chối
+  // (khoá tài khoản/ADFS/MFA) mới nhờ trợ lý PC mở Chrome Outlook Web thật.
   owa_login: async (_params, emit, ctx) => {
     const t0 = Date.now();
+    try {
+      const { ensureToken } = await import("../port/owa_pib");
+      emit({ type: "line", text: "▶ Đăng nhập Outlook trực tiếp từ máy chủ web…" });
+      await ensureToken(ctx, (m) => emit({ type: "line", text: `· ${m}` }));
+      emit({ type: "line", text: "✓ Outlook Web đọc được mailbox — không cần trợ lý PC." });
+      emit({ type: "end", code: 0, elapsed: (Date.now() - t0) / 1000, ok: 1, skipped: 0, failed: 0, logged_in: true, owa_state: "healthy", source: "server" });
+      return;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      emit({ type: "line", text: `· đăng nhập trực tiếp không được: ${msg}`, cls: "bad" });
+    }
     const agent = await pc.agentInfo(ctx);
     if (!pc.agentOnline(agent)) {
       emit({ type: "line", text: `✗ ${offline().error}`, cls: "bad" });
-      emit({ type: "end", code: 1, elapsed: 0, ok: 0, skipped: 0, failed: 1, logged_in: false, owa_state: "stale" });
+      emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, skipped: 0, failed: 1, logged_in: false, owa_state: "stale" });
       return;
     }
     try {
