@@ -171,15 +171,57 @@ export const jobs: Jobs = {
     }
   },
 
-  // Port of web.py start_pib_download(): relay trợ lý PC (owa_pib) — cùng
-  // shape line/owa_state/end mà tlRun() trên page.html đang đọc.
+  // Port of web.py start_pib_download(): thử tải PIB thẳng trên máy chủ web
+  // (port/owa_pib.downloadPib — Outlook REST, không cần trợ lý PC). Chỉ khi
+  // Microsoft từ chối phiên mới nhờ trợ lý PC (Selenium) như tool gốc.
   owa_pib: async (params, emit, ctx) => {
     const t0 = Date.now();
     const callsigns = (params["callsigns"] as string[] | undefined) ?? [];
+    const hours = Number(params["hours"] ?? 10) || 10;
+    const overwrite = !!params["overwrite"];
+    try {
+      const { downloadPib, invalidateToken } = await import("../port/owa_pib");
+      emit({ type: "line", text: `▶ ${callsigns.length} chuyến · tải PIB trực tiếp từ Outlook (máy chủ web), cửa sổ ±${hours}h` });
+      const res = await downloadPib(ctx, {
+        callsigns,
+        hours,
+        overwrite,
+        onProgress: (text, cs) => emit({ type: "line", text: `  ${text}`, found: cs || undefined }),
+      });
+      const saved = res.saved.filter((f) => !f.skipped).length;
+      const skipped = res.saved.length - saved;
+      for (const c of res.missing) emit({ type: "line", text: `✗ ${c}: không thấy PIB trong cửa sổ ±${hours}h`, cls: "bad" });
+      for (const e of res.errors.slice(0, 10)) emit({ type: "line", text: `✗ ${e}`, cls: "bad" });
+      emit({
+        type: "end",
+        code: res.missing.length ? 2 : 0,
+        elapsed: (Date.now() - t0) / 1000,
+        ok: saved,
+        skipped,
+        failed: res.missing.length,
+        missing: res.missing,
+        files: res.saved.map((f) => ({ callsign: f.callsign, filename: f.filename, new: !f.skipped, source: "owa_server" })),
+        source: "owa_server",
+        auth_failed: false,
+      });
+      return;
+    } catch (e) {
+      const { OwaAuthError } = await import("../port/owa");
+      const msg = e instanceof Error ? e.message : String(e);
+      if (e instanceof OwaAuthError) {
+        const { invalidateToken } = await import("../port/owa_pib");
+        await invalidateToken(ctx).catch(() => {});
+        emit({ type: "owa_state", text: "Phiên Outlook bị từ chối", state: "stale" });
+        emit({ type: "line", text: `· máy chủ không đăng nhập được: ${msg}`, cls: "bad" });
+        emit({ type: "line", text: "· chuyển sang trợ lý PC (Chrome thật)…" });
+      } else {
+        emit({ type: "line", text: `· tải trực tiếp lỗi: ${msg} — thử trợ lý PC…`, cls: "bad" });
+      }
+    }
     const agent = await pc.agentInfo(ctx);
     if (!pc.agentOnline(agent)) {
       emit({ type: "line", text: `✗ ${offline().error}`, cls: "bad" });
-      emit({ type: "end", code: 1, elapsed: 0, ok: 0, skipped: 0, failed: callsigns.length, missing: callsigns });
+      emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, skipped: 0, failed: callsigns.length, missing: callsigns });
       return;
     }
     try {
