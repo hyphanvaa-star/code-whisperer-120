@@ -108,6 +108,77 @@ header{
 /* Tắt lớp phủ trắng mờ + lớp trang trí "bầu trời" hồng của giao diện gốc */
 header::after{content:none !important;display:none !important}
 .hdr-sky,.hdr-sky *,.hdr-sky::before,.hdr-sky::after{display:none !important}
+/* ===== HEADER GỌN & SANG: bỏ mèo Hello Kitty, nén chiều cao, tinh giản ===== */
+.brand-peek,.brand-peek *{display:none !important}
+header{
+  min-height:0 !important;
+  padding:8px 18px !important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:14px !important;
+}
+/* Brand: gọn một cụm, chữ trắng, nhấn vàng */
+header .brand{position:static !important;transform:none !important;margin:0 auto !important}
+header .brand h1{
+  font-size:21px !important;letter-spacing:.06em !important;
+  line-height:1.05 !important;margin:0 !important;
+}
+header .brand .brand-board{color:var(--vj-yellow) !important;-webkit-text-fill-color:var(--vj-yellow) !important}
+header .brand .sig{
+  font-size:9px !important;letter-spacing:.18em !important;text-transform:uppercase;
+  opacity:.6 !important;margin-top:1px !important;
+}
+header .brand .brand-vj{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10px !important;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--vj-yellow) !important;-webkit-text-fill-color:var(--vj-yellow) !important;
+  border:1px solid rgba(255,201,0,.55);border-radius:999px;padding:2px 10px;margin-top:4px;
+  background:rgba(0,0,0,.12);
+}
+/* Bộ lọc: nhãn nhỏ thanh mảnh, ô trắng gọn */
+.filters{gap:8px !important}
+.field label{font-size:8.5px !important;letter-spacing:.14em !important;opacity:.75}
+header input,header select{
+  height:30px !important;padding:3px 10px !important;font-size:12.5px !important;
+  border:none !important;border-radius:8px !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.18) !important;
+}
+.filt-rail{
+  background:rgba(255,255,255,.10) !important;
+  border:1px solid rgba(255,255,255,.22) !important;
+  box-shadow:none !important;border-radius:10px !important;padding:5px 6px !important;
+}
+.filt-rail:focus-within{border-color:rgba(255,201,0,.6) !important;box-shadow:0 0 0 3px rgba(255,201,0,.15) !important}
+/* Cụm nút phải: đồng bộ kính trắng mờ, gọn hàng */
+.head-ops{gap:6px !important}
+.head-ops .btn,.head-ops .ai-fab,.head-ops label.hdr-switch,.head-ops label.theme-switch{
+  height:34px !important;border-radius:9px !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.20) !important;
+}
+.hdr-switch,.theme-switch{transform:scale(.88);transform-origin:right center}
+/* Nút Acc/TAF/Crew/Refresh/OFP: đồng bộ kính trắng mờ trên nền đỏ — gọn & sang */
+.filt-actions .btn,.head-ops .btn.act,.head-ops .btn.acbtn,.head-ops .ai-fab,
+header:not(.md) #btnAcc,header:not(.md) #btnTaf,header:not(.md) #btnPickXls,header:not(.md) #btnReload,header:not(.md) #btnOfpCheck{
+  background:rgba(255,255,255,.12) !important;
+  background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:1px solid rgba(255,255,255,.30) !important;
+  border-radius:9px !important;font-size:12px !important;font-weight:600;
+  padding:0 13px !important;box-shadow:none !important;
+  height:34px !important;min-height:0 !important;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.filt-actions .btn *,.head-ops .ai-fab *,header:not(.md) #btnAcc *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+.filt-actions .btn:hover,.head-ops .btn.act:hover,.head-ops .ai-fab:hover,
+header:not(.md) #btnAcc:hover,header:not(.md) #btnTaf:hover,header:not(.md) #btnPickXls:hover,header:not(.md) #btnReload:hover,header:not(.md) #btnOfpCheck:hover{
+  background:rgba(255,255,255,.22) !important;
+  border-color:rgba(255,201,0,.65) !important;
+  transform:translateY(-1px);
+}
+.filt-actions .btn::before,header:not(.md) #btnAcc::before,header:not(.md) #btnTaf::before,
+header:not(.md) #btnPickXls::before,header:not(.md) #btnReload::before,header:not(.md) #btnOfpCheck::before{
+  background:none !important;box-shadow:none !important;
+}
 header .brand h1,header .brand .sub,header .brand *{color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,.25);-webkit-text-fill-color:#fff !important}
 header .brand .sub{opacity:.85}
 /* Ô lọc trên header: nền trắng trong dải đỏ */
