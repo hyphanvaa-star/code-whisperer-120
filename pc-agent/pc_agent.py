@@ -879,6 +879,93 @@ def do_outlook_draft(payload: dict, say) -> dict:
             except Exception:
                 pass
 
+def _find_pdf(obj, depth=0):
+    """Tìm file PDF / bytes PDF trong kết quả trả về của module gốc."""
+    if depth > 4 or obj is None:
+        return None
+    if isinstance(obj, (bytes, bytearray)) and bytes(obj[:4]) == b"%PDF":
+        return bytes(obj)
+    if isinstance(obj, (str, Path)):
+        try:
+            f = Path(obj)
+            if f.suffix.lower() == ".pdf" and f.is_file():
+                return f
+        except Exception:
+            return None
+        return None
+    if isinstance(obj, dict):
+        for k in ("pdf", "path", "file", "pdf_path", "saved", "data", "content"):
+            if k in obj:
+                r = _find_pdf(obj[k], depth + 1)
+                if r is not None:
+                    return r
+        vals = obj.values()
+    elif isinstance(obj, (list, tuple, set)):
+        vals = obj
+    else:
+        vals = [getattr(obj, a) for a in ("path", "pdf", "file", "content", "data") if hasattr(obj, a)]
+    for v in vals:
+        r = _find_pdf(v, depth + 1)
+        if r is not None:
+            return r
+    return None
+
+
+def _meta(obj, *keys):
+    if isinstance(obj, dict):
+        for k in keys:
+            if obj.get(k):
+                return str(obj[k])
+    for k in keys:
+        v = getattr(obj, k, None)
+        if v:
+            return str(v)
+    if isinstance(obj, (list, tuple)):
+        for v in obj:
+            m = _meta(v, *keys)
+            if m:
+                return m
+    return ""
+
+
+def do_defect_pdf(payload: dict, say) -> dict:
+    """Tải PDF "AIRCRAFT TECHNICAL SUMMARY" hôm nay qua Outlook Web — gọi đúng
+    defect_summary.py của tool gốc; web tự đọc PDF thành bảng Tàu/Defect."""
+    import inspect
+    _, outlook_web_pib = _load_owa_modules()
+    import defect_summary  # noqa: E402  (module của tool gốc)
+    say("▶ Tìm mail AIRCRAFT TECHNICAL SUMMARY hôm nay…")
+    fn = getattr(defect_summary, "fetch_today_pdf", None) or getattr(defect_summary, "pull_today")
+    params = inspect.signature(fn).parameters
+    kw = {}
+    if "on_status" in params:
+        kw["on_status"] = lambda m: say(str(m))
+    if "on_progress" in params:
+        kw["on_progress"] = lambda *a: say(" ".join(map(str, a)))
+    args = []
+    first = next(iter(params), "")
+    if first in ("token", "tok", "access_token") or "token" in params:
+        token = outlook_web_pib.ensure_fresh_token(timeout_s=420.0, on_status=lambda m: say(m), cancel=_NoCancel(), force=False)
+        if first in ("token", "tok", "access_token"):
+            args.append(token)
+        else:
+            kw["token"] = token
+    res = fn(*args, **kw)
+    pdf = _find_pdf(res)
+    if pdf is None:
+        raise RuntimeError(f"Không thấy file PDF defect summary trong kết quả: {str(res)[:300]}")
+    if isinstance(pdf, Path):
+        name, data = pdf.name, pdf.read_bytes()
+    else:
+        name, data = (_meta(res, "name", "filename") or "defect_summary.pdf"), pdf
+    say(f"✓ Lấy được {name}")
+    return {
+        "name": name, "b64": base64.b64encode(data).decode(),
+        "subject": _meta(res, "subject", "Subject"),
+        "sent": _meta(res, "sent", "sent_at", "SentDateTime", "when"),
+        "slot": _meta(res, "slot"),
+    }
+
 
 HANDLERS = {
     "gd_print": do_gd_print,
@@ -891,6 +978,7 @@ HANDLERS = {
     "owa_pib": do_owa_pib,
     "owa_draft": do_owa_draft,
     "outlook_draft": do_outlook_draft,
+    "defect_pdf": do_defect_pdf,
 }
 
 
