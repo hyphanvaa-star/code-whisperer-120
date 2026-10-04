@@ -150,7 +150,7 @@ function fuelOrderOf(f: Flight): { amount: number; units: string } | null {
   return { amount: last[1], units: last[2] };
 }
 
-function detail(f: Flight, crews: Flight["crews"]) {
+function detail(f: Flight, crews: Flight["crews"], load: Record<string, unknown> = {}) {
   return {
     ...row(f),
     fltno: f.fltno,
@@ -177,6 +177,7 @@ function detail(f: Flight, crews: Flight["crews"]) {
     zfw: Number((f.raw as Record<string, unknown>)["planned_ezfm"]) || null,
     pax_total: f.pax_total,
     cargo: f.cargo,
+    load,
     fuel_order: fuelOrderOf(f),
     released_by: f.released_by_name,
     verified_by: f.verified_by_name,
