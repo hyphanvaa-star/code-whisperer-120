@@ -15,8 +15,9 @@ import * as briefing from "./handlers/briefing.server";
 import * as swap from "./handlers/swap.server";
 import * as autoload from "./handlers/autoload.server";
 import * as misc from "./handlers/misc.server";
+import * as handover from "./handlers/handover.server";
 
-const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, swap, autoload, misc];
+const GROUPS = [core, fpl, notam, aip, wx, excel, limits, notices, atc, briefing, swap, autoload, misc, handover];
 
 const ROUTES: Routes = Object.assign({}, ...GROUPS.map((g) => g.routes));
 const JOBS: Record<string, JobFn> = Object.assign({}, ...GROUPS.map((g) => g.jobs));
