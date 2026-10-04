@@ -214,3 +214,30 @@ Object.assign(routes, {
 } satisfies Routes);
 
 export const jobs: Jobs = {};
+
+// GET /api/defect/excel — web.py _api_defect_download (defect_pdf.read_excel_bytes)
+Object.assign(routes, {
+  "GET /api/defect/excel": async (ctx) => {
+    const s = await getJson<DefectSummary | null>(ctx, DEFECT_SUMMARY_KEY, null);
+    if (!s || !s.exists || !Array.isArray(s.aircraft)) {
+      return new Response("Chưa có file defect Excel đã lưu.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+    }
+    const { legacyExcelRows } = await import("../port/defect_pdf");
+    const ExcelJS = (await import("exceljs")).default;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Sheet1");
+    ws.addRow(["TÀU GIỚI HẠN", "DEFECT ẢNH HƯỞNG"]);
+    for (const r of legacyExcelRows(s.aircraft as never)) ws.addRow(r);
+    ws.getColumn(1).width = 16;
+    ws.getColumn(2).width = 80;
+    const buf = await wb.xlsx.writeBuffer();
+    const stem = String(s.source || s.file || "defect").replace(/\.[^.]+$/, "");
+    return new Response(buf as ArrayBuffer, {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Cache-Control": "private, no-store",
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(stem + "_output.xlsx")}"`,
+      },
+    });
+  },
+} satisfies Routes);

@@ -17,18 +17,18 @@ interface ExcelState {
   file: string;
   sheet: string;
 }
-interface CurrentExcel {
+export interface CurrentExcel {
   file: string;
   sheet: string;
   modified: number;
 }
 
 /** Port of web.py safe_filename() usage here. */
-function safeName(name: string): string {
+export function safeName(name: string): string {
   return safeFilename(name || "");
 }
 
-async function currentExcel(ctx: Ctx): Promise<CurrentExcel | null> {
+export async function currentExcel(ctx: Ctx): Promise<CurrentExcel | null> {
   const state = await getJson<ExcelState | null>(ctx, STATE_KEY, null);
   if (!state || !state.file) return null;
   const files = await listFiles(ctx, EXCEL_DIR);
@@ -50,7 +50,7 @@ async function listExcel(ctx: Ctx) {
     .sort((a, b) => (b.modified as number) - (a.modified as number));
 }
 
-async function readSheet(ctx: Ctx, filename: string): Promise<{ path: string; buf: ArrayBuffer; sheets: Sheet[] }> {
+export async function readSheet(ctx: Ctx, filename: string): Promise<{ path: string; buf: ArrayBuffer; sheets: Sheet[] }> {
   const name = safeName(filename);
   const path = `${EXCEL_DIR}/${name}`;
   const buf = await getFile(ctx, path);
@@ -59,7 +59,7 @@ async function readSheet(ctx: Ctx, filename: string): Promise<{ path: string; bu
   return { path, buf, sheets };
 }
 
-function pickSheet(sheets: Sheet[], sheetName: string): Sheet {
+export function pickSheet(sheets: Sheet[], sheetName: string): Sheet {
   return sheets.find((s) => s.name === sheetName) ?? sheets[0]!;
 }
 
