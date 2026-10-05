@@ -983,7 +983,7 @@ header#mdRoom #btnOfpCheck{background:var(--x-red) !important;border-color:var(-
 header#mdRoom #btnOfpCheck .ops-field-icon{color:#fff !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
 header#mdRoom #aiFab::before{content:"✦" !important;width:auto !important;height:auto !important;border-radius:0 !important;background:none !important;color:var(--x-red) !important;font-size:14px !important}
-header#mdRoom #aiFab .n{font-size:8.5px !important;font-weight:900 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
+header#mdRoom #aiFab .n{font-size:10px !important;font-weight:900 !important;line-height:1.05 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
 header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important;box-shadow:0 6px 12px rgba(176,16,40,.2) !important}
 header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(2px) !important;box-shadow:0 1px 0 #8f1026 !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
