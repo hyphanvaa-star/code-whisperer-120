@@ -907,7 +907,7 @@ header#mdRoom .md-stage{
   width:calc(37% - 41px) !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
 }
 header#mdRoom .md-denpyo{
-  display:grid !important;grid-template-columns:1.18fr .8fr .92fr .84fr .84fr 1fr 1.4fr !important;
+  display:grid !important;grid-template-columns:1.18fr .92fr .84fr .84fr 1fr 1.4fr !important;
   align-items:stretch !important;gap:0 !important;width:100% !important;height:100% !important;
   padding:6px 4px !important;margin:0 !important;background:rgba(255,255,255,.96) !important;
   border:1px solid rgba(255,255,255,.95) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.14) !important;backdrop-filter:blur(12px) !important;position:relative !important;
