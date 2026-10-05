@@ -74,7 +74,8 @@ const SHIM = `<script>
         var efbField=document.createElement('div');
         efbField.className='md-field field f-efb';
         efbField.innerHTML='<label for="fEfb"><i class="jp">EFB</i> EFB</label><input type="text" id="fEfb" placeholder="EFB-01" autocomplete="off" spellcheck="false">';
-        dispField.parentElement.insertBefore(efbField, dispField.nextSibling);
+        var denpyo=dispField.closest('.md-denpyo')||room;
+        denpyo.insertBefore(efbField, dispField.parentElement.nextSibling);
         var efbInput=efbField.querySelector('#fEfb');
         try{ efbInput.value=localStorage.getItem('fb_efb')||''; }catch(e){}
         efbInput.addEventListener('input', function(){ try{ localStorage.setItem('fb_efb', this.value); }catch(e){} });
