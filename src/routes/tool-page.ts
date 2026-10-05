@@ -79,7 +79,28 @@ const SHIM = `<script>
         var efbInput=efbField.querySelector('#fEfb');
         try{ efbInput.value=localStorage.getItem('fb_efb')||''; }catch(e){}
         efbInput.addEventListener('input', function(){ try{ localStorage.setItem('fb_efb', this.value); }catch(e){} });
-        // Tự lấy mã EFB mới nhất từ mail EFB hộp thư chung khi ô còn trống.
+        // Nút ↻: lấy mã EFB qua trợ lý PC (mở Outlook trên máy công ty) —
+        // chỉ chạy khi người dùng bấm, không tự chạy khi mở trang.
+        var efbBtn=document.createElement('button');
+        efbBtn.type='button';
+        efbBtn.className='efb-refresh';
+        efbBtn.title='Lấy mã EFB mới nhất từ mail hộp thư chung (qua trợ lý PC)';
+        efbBtn.textContent='↻';
+        efbBtn.addEventListener('click', function(){
+          efbBtn.disabled=true;
+          fetch('/api/efb/latest?pc=1').then(function(r){return r.json();}).then(function(d){
+            efbBtn.disabled=false;
+            if(d && d.value){
+              efbInput.value=d.value;
+              try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
+            }else{
+              alert((d && d.error) || 'Không đọc được mail EFB từ hộp thư chung.');
+            }
+          }).catch(function(){ efbBtn.disabled=false; });
+        });
+        efbField.appendChild(efbBtn);
+        // Tự lấy mã EFB mới nhất khi ô còn trống — CHỈ thử từ máy chủ,
+        // không bật Outlook trên máy công ty (tránh popup đăng nhập).
         if(!efbInput.value){
           fetch('/api/efb/latest').then(function(r){return r.json();}).then(function(d){
             if(d && d.value && !efbInput.value){

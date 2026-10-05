@@ -15,7 +15,9 @@ function offline() {
 export const routes: Routes = {
   // Mã EFB mới nhất từ mail "EFB Flysmart Version ..." trong hộp thư chung
   // OMC. Thử Outlook REST trực tiếp trước; tenant chặn (ADFS/MFA) thì dự
-  // phòng qua trợ lý PC (lệnh owa_efb đọc Outlook desktop).
+  // phòng qua trợ lý PC (lệnh owa_efb đọc Outlook desktop) — nhưng CHỈ khi
+  // người dùng chủ động bấm nút (?pc=1), vì lệnh này mở Outlook trên máy
+  // công ty. Lượt tự điền khi mở trang không được bật Outlook.
   "GET /api/efb/latest": async (ctx) => {
     try {
       const { fetchLatestEfb } = await import("../port/owa_efb");
@@ -26,6 +28,9 @@ export const routes: Routes = {
       if (!(e instanceof OwaAuthError)) {
         return { error: e instanceof Error ? e.message : String(e) };
       }
+    }
+    if (ctx.params.get("pc") !== "1") {
+      return { error: "Máy chủ bị Microsoft chặn đăng nhập hộp thư chung — bấm nút ↻ cạnh ô EFB để lấy qua trợ lý PC.", need_pc: true };
     }
     const agent = await pc.agentInfo(ctx);
     if (!pc.agentOnline(agent)) return { error: offline().error };
