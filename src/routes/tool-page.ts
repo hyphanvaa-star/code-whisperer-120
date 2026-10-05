@@ -856,7 +856,6 @@ header#mdRoom .md-fit{display:block !important;position:static !important;width:
 header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:15.2%;height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
 .ops-header-brand{display:block !important;position:absolute;left:1.25%;top:22px;width:12.4%;height:182px;z-index:16;color:#fff;text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:center;gap:7px}.ops-vj-mark .ops-vj-logo{display:block;width:124px;height:36px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 7px/1.15 var(--x-sans);color:#fff}
-.ops-header-brand small{display:block;margin-top:22px;padding-top:14px;border-top:2px solid var(--x-yel);color:#fff;font:800 8px/1.6 var(--x-sans);letter-spacing:.2em}
 .ops-sohee{display:block;margin-top:22px;padding-top:14px;border-top:2px solid var(--x-yel);text-transform:none}
 .ops-sohee strong{display:block;color:var(--x-red);font:900 24px/1 var(--x-sans);letter-spacing:.02em;text-transform:uppercase;text-shadow:0 1px 5px rgba(255,255,255,.85)}
 .ops-sohee span{display:block;margin-top:6px;color:var(--x-ink);font:700 9px/1 var(--x-sans);letter-spacing:.06em;text-shadow:0 1px 4px rgba(255,255,255,.8)}
