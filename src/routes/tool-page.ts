@@ -79,7 +79,33 @@ const SHIM = `<script>
         var efbInput=efbField.querySelector('#fEfb');
         try{ efbInput.value=localStorage.getItem('fb_efb')||''; }catch(e){}
         efbInput.addEventListener('input', function(){ try{ localStorage.setItem('fb_efb', this.value); }catch(e){} });
+        // Tự lấy mã EFB mới nhất từ mail EFB hộp thư chung khi ô còn trống.
+        if(!efbInput.value){
+          fetch('/api/efb/latest').then(function(r){return r.json();}).then(function(d){
+            if(d && d.value && !efbInput.value){
+              efbInput.value=d.value;
+              try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
+            }
+          }).catch(function(){});
+        }
       }
+    }
+    // Cảnh báo thiếu mã EFB giống cảnh báo thiếu tên DSP khi Tạo KHB.
+    if(typeof window.ftBuild==='function' && !window.ftBuild.__efbWrapped){
+      var origFtBuild=window.ftBuild;
+      var wrappedFtBuild=function(write){
+        var eb=document.getElementById('fEfb');
+        if(eb && !(eb.value||'').trim()){
+          alert('Chưa có mã EFB — không đọc được từ mail EFB hộp thư chung, hãy điền tay vào ô EFB.');
+          var st=document.getElementById('ftStat');
+          if(st) st.textContent='Chưa có mã EFB.';
+          eb.focus();
+          return;
+        }
+        return origFtBuild(write);
+      };
+      wrappedFtBuild.__efbWrapped=true;
+      window.ftBuild=wrappedFtBuild;
     }
     if(room && !room.querySelector('.ops-field-icon')){
       var iconSvg=function(paths){return '<span class="ops-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg></span>';};
