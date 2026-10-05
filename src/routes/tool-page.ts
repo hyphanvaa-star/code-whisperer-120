@@ -384,6 +384,10 @@ thead th{
   background:rgba(255,255,255,.14);
   border-color:rgba(255,255,255,.25);
 }
+/* Giữ tiêu đề cột Callsign dính khi cuộn (CSS gốc ép position:relative) */
+#wrapGeneral .gtable thead th:first-child{
+  position:sticky !important;top:0;z-index:4;
+}
 tbody tr{transition:background .12s ease}
 tbody tr:hover{background:var(--vj-yellow-soft)}
 tbody tr:nth-child(even){background:rgba(26,29,36,.02)}
