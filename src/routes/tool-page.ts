@@ -964,6 +964,9 @@ header#mdRoom .md-denpyo{
 #ftExport:hover{filter:brightness(1.06)}
 #wrapFplText .ftdsp.ftefb{padding:4px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
 #wrapFplText .ftdsp.ftefb input{width:150px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+#wrapFplText .efb-refresh{border:1px solid rgba(227,25,55,.25);background:#fff;color:#E31937;border-radius:8px;width:26px;height:26px;font-size:14px;font-weight:800;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+#wrapFplText .efb-refresh:hover{background:#E31937;color:#fff}
+#wrapFplText .efb-refresh:disabled{opacity:.5;cursor:wait}
 html.night #wrapFplText .ftdsp.ftefb{background:#1e2430;border-color:#3a4050}
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
