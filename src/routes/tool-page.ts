@@ -792,7 +792,7 @@ header .btn:hover{background:var(--x-red-50) !important;border-color:var(--x-red
 header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important}
 
 /* Khung chính: menu dọc trái | bảng | chi tiết */
-.body{grid-template-columns:minmax(0,1fr) 420px !important;padding-left:248px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
+.body{grid-template-columns:minmax(0,1fr) calc(420px + 5cm) !important;padding-left:248px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
 .aside-head{
   position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:236px !important;display:block !important;z-index:30 !important;
   background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
