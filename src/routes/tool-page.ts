@@ -880,6 +880,8 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 
 /* Khung chính: menu dọc trái | bảng | chi tiết */
 .body{grid-template-columns:minmax(0,1fr) calc(420px + 5cm) !important;padding-left:248px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
+/* Check NOTAM: bản đồ bên phải nới rộng sang trái thêm 5cm */
+.app > .body:has(#wrapNotam:not([style*="none"])){grid-template-columns:minmax(0,1fr) calc(420px + 10cm) !important}
 .aside-head{
   position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:236px !important;display:block !important;z-index:30 !important;
   background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
