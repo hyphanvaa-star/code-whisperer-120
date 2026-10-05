@@ -934,19 +934,19 @@ header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{displ
 header#mdRoom .filt-actions{
   position:absolute !important;top:60.66% !important;right:.68% !important;bottom:auto !important;left:auto !important;
   display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:7px !important;align-items:stretch !important;
-  width:15.67% !important;height:28.2% !important;flex:none !important;padding:7px !important;border:1px solid rgba(255,255,255,.76) !important;border-radius:14px !important;margin:0 !important;z-index:20 !important;background:rgba(244,247,249,.88) !important;box-shadow:0 10px 24px rgba(20,36,52,.22),inset 0 1px 0 rgba(255,255,255,.9) !important;backdrop-filter:blur(14px) saturate(1.15) !important;
+  width:16.6% !important;height:28.2% !important;flex:none !important;padding:7px !important;border:1px solid rgba(255,255,255,.76) !important;border-radius:14px !important;margin:0 !important;z-index:20 !important;background:rgba(244,247,249,.88) !important;box-shadow:0 10px 24px rgba(20,36,52,.22),inset 0 1px 0 rgba(255,255,255,.9) !important;backdrop-filter:blur(14px) saturate(1.15) !important;
 }
 header#mdRoom .filt-actions .btn{
-  height:100% !important;min-width:0 !important;padding:4px 2px !important;border:1px solid rgba(255,255,255,.96) !important;border-radius:9px !important;
+  height:100% !important;min-width:0 !important;padding:3px 2px !important;border:1px solid rgba(255,255,255,.96) !important;border-radius:9px !important;
   background:rgba(255,255,255,.96) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;
-  box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;font:900 8.5px var(--x-sans) !important;
-  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:4px !important;
+  box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;font:900 10.5px/1.05 var(--x-sans) !important;
+  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
   text-transform:uppercase !important;letter-spacing:0 !important;opacity:1 !important;cursor:pointer !important;
 }
 header#mdRoom .filt-actions .btn::before{display:block !important;content:attr(data-ico) !important;font:700 15px/1 var(--x-sans) !important;color:var(--x-red) !important}
 header#mdRoom .filt-actions .btn::before,header#mdRoom #btnOfpCheck::before,header#mdRoom #aiFab::before{display:none !important}
 header#mdRoom .filt-actions .ops-field-icon,header#mdRoom #btnOfpCheck .ops-field-icon,header#mdRoom #aiFab .ops-field-icon{width:18px !important;height:18px !important;flex:0 0 18px !important;color:var(--x-red) !important}
-header#mdRoom .filt-actions #btnAcc .who{display:block !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;font:900 8.5px/1 var(--x-sans) !important}
+header#mdRoom .filt-actions #btnAcc .who{display:block !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;font:900 10.5px/1 var(--x-sans) !important}
 header#mdRoom .filt-actions .btn:hover{background:var(--x-red) !important;border-color:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important;box-shadow:0 8px 16px rgba(176,16,40,.28) !important}header#mdRoom .filt-actions .btn:hover .ops-field-icon{color:#fff !important}
 header#mdRoom .filt-actions #btnAcc:hover .who{color:#fff !important;-webkit-text-fill-color:#fff !important}
 header#mdRoom .filt-actions .btn:active{transform:translateY(1px) !important;box-shadow:0 2px 6px rgba(22,38,53,.16) !important}
@@ -970,9 +970,9 @@ header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdR
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
   position:absolute !important;top:39.34% !important;width:3.7% !important;height:21.64% !important;min-width:0 !important;
-  margin:0 !important;padding:4px 2px !important;border-radius:9px !important;box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;
-  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:4px !important;
-  background:rgba(255,255,255,.96) !important;border:1px solid rgba(255,255,255,.96) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;
+  margin:0 !important;padding:3px 2px !important;border-radius:9px !important;box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;
+  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
+  background:rgba(255,255,255,.96) !important;border:1px solid rgba(255,255,255,.96) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;font:900 10px/1.05 var(--x-sans) !important;
   opacity:1 !important;pointer-events:auto !important;cursor:pointer !important;
 }
 header#mdRoom #btnOfpCheck{left:83.14% !important}
@@ -983,13 +983,13 @@ header#mdRoom #btnOfpCheck{background:var(--x-red) !important;border-color:var(-
 header#mdRoom #btnOfpCheck .ops-field-icon{color:#fff !important}
 header#mdRoom #btnOfpCheck small{display:none !important}
 header#mdRoom #aiFab::before{content:"✦" !important;width:auto !important;height:auto !important;border-radius:0 !important;background:none !important;color:var(--x-red) !important;font-size:14px !important}
-header#mdRoom #aiFab .n{font-size:8.5px !important;font-weight:900 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
+header#mdRoom #aiFab .n{font-size:10.5px !important;font-weight:900 !important;line-height:1.05 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;text-transform:uppercase !important}header#mdRoom #aiFab .sub{display:none !important}
 header#mdRoom #btnOfpCheck:hover,header#mdRoom #aiFab:hover,header#mdRoom .hdr-switch:hover,header#mdRoom .theme-switch:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;transform:translateY(-2px) !important;box-shadow:0 6px 12px rgba(176,16,40,.2) !important}
 header#mdRoom #btnOfpCheck:active,header#mdRoom #aiFab:active,header#mdRoom .hdr-switch:active,header#mdRoom .theme-switch:active{transform:translateY(2px) !important;box-shadow:0 1px 0 #8f1026 !important}
 header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .theme-switch-lab.l,header#mdRoom .theme-switch-paw{display:none !important}
 header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{display:none !important}
 header#mdRoom .hdr-switch .ops-field-icon,header#mdRoom .theme-switch .ops-field-icon{width:17px !important;height:17px !important;flex:0 0 17px !important;color:currentColor !important}
-header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:8.5px !important;font-weight:900 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important}
+header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:10.5px !important;font-weight:900 !important;line-height:1.05 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important}
 .aside-head{top:237px !important}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
