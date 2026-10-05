@@ -926,6 +926,12 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
   border:1px solid var(--x-red) !important;box-shadow:none !important;border-radius:8px !important;
 }
 .toolbar .btn:hover,.toolbars .btn:hover,.subtabs .btn:hover,.sheet .btn:hover,.lim-pane .btn:hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
+/* Nút nền đỏ đặc (primary / t-go / act): chữ trắng, không bị che */
+.btn.primary,.btn.t-go,.btn.act,.btn[aria-pressed="true"],
+.toolbar .btn.primary,.toolbars .btn.primary,.toolbars .btn.t-go,.toolbar .btn.t-go,.subtabs .btn.primary,.sheet .btn.primary,.lim-pane .btn.primary{
+  background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important;
+}
+.btn.primary *,.btn.t-go *,.btn.act *{color:#fff !important;-webkit-text-fill-color:#fff !important}
 .xt-kg{min-width:0 !important}.xt-min{margin-right:3px !important;min-width:30px !important;padding:0 3px !important}td.extra-cell{overflow:hidden !important;white-space:nowrap !important}
 
 /* ================= HEADER OPS — thành phần thật, bố cục theo ảnh tham chiếu ================= */
