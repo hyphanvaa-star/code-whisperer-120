@@ -868,25 +868,25 @@ header#mdRoom::before{content:"";display:block !important;position:absolute;left
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
   display:block !important;position:absolute !important;left:10.42% !important;top:43.93% !important;
-  width:50.73% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
+  width:44.5% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
 }
 header#mdRoom .md-denpyo{
   display:grid !important;grid-template-columns:1.22fr .95fr .9fr .9fr 1fr 1.32fr !important;
   align-items:stretch !important;gap:0 !important;width:100% !important;height:100% !important;
-  padding:9px 12px !important;margin:0 !important;background:rgba(255,255,255,.96) !important;
+  padding:8px 7px !important;margin:0 !important;background:rgba(255,255,255,.96) !important;
   border:1px solid rgba(255,255,255,.95) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.14) !important;backdrop-filter:blur(12px) !important;position:relative !important;
 }
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
   grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;height:100% !important;flex:none !important;
-  padding:0 10px !important;margin:0 !important;position:static !important;border-right:1px solid rgba(32,42,56,.1) !important;
+  padding:0 6px !important;margin:0 !important;position:static !important;border-right:1px solid rgba(32,42,56,.1) !important;
 }
 header#mdRoom .md-denpyo .md-row:not(.line)::after{display:none !important}
 header#mdRoom .md-denpyo .filt-rail{
   display:contents !important;flex:none !important;min-width:0 !important;max-width:none !important;
   padding:0 !important;margin:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;
 }
-header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:100% !important;padding:0 10px !important;margin:0 !important;border-right:1px solid rgba(32,42,56,.1) !important}
+header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:100% !important;padding:0 6px !important;margin:0 !important;border-right:1px solid rgba(32,42,56,.1) !important}
 header#mdRoom .md-denpyo .filt-rail > *:last-child{border-right:0 !important}
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;height:100% !important;display:grid !important;grid-template-rows:22px 34px !important;align-content:center !important;gap:3px !important}
@@ -900,10 +900,10 @@ header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none 
 header#mdRoom input,header#mdRoom select{
   width:100% !important;height:34px !important;border:1px solid rgba(49,61,76,.14) !important;border-radius:7px !important;
   background:#fff !important;box-shadow:0 2px 8px rgba(22,38,53,.07) !important;font:800 11px var(--x-sans) !important;
-  color:#59606b !important;-webkit-text-fill-color:#59606b !important;padding:0 11px !important;
+  color:#16181d !important;-webkit-text-fill-color:#16181d !important;padding:0 9px !important;
 }
-header#mdRoom #fDispatcher{color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border-color:rgba(227,25,55,.72) !important}
-header#mdRoom input::placeholder{color:rgba(227,25,55,.45) !important;-webkit-text-fill-color:rgba(227,25,55,.45) !important}
+header#mdRoom #fDispatcher{color:#16181d !important;-webkit-text-fill-color:#16181d !important}
+header#mdRoom input::placeholder{color:rgba(22,24,29,.42) !important;-webkit-text-fill-color:rgba(22,24,29,.42) !important}
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){height:100% !important}
 header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{display:none !important}
