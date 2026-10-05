@@ -993,8 +993,20 @@ def do_owa_efb(payload: dict, say) -> dict:
         outlook = win32com.client.Dispatch("Outlook.Application")
         ns = outlook.GetNamespace("MAPI")
         # Duyệt mọi store; ưu tiên thư mục có chữ EFB, sau đó tới Inbox.
+        # Lưu ý: duyệt ns.Stores có thể văng lỗi OLE khi Outlook chưa cấu hình
+        # xong tài khoản — khi đó quay về hộp thư mặc định (Inbox).
         efb_folders, inboxes = [], []
-        for store in ns.Stores:
+        stores = []
+        try:
+            count = ns.Stores.Count
+            for i in range(1, count + 1):
+                try:
+                    stores.append(ns.Stores.Item(i))
+                except Exception:
+                    pass
+        except Exception as e:
+            say(f"· không duyệt được danh sách hộp thư ({e}) — dùng Inbox mặc định")
+        for store in stores:
             try:
                 root = store.GetRootFolder()
             except Exception:
@@ -1014,6 +1026,14 @@ def do_owa_efb(payload: dict, say) -> dict:
                     stack.extend(list(folder.Folders))
                 except Exception:
                     pass
+        if not efb_folders and not inboxes:
+            try:
+                inboxes.append(ns.GetDefaultFolder(6))  # olFolderInbox
+            except Exception as e:
+                raise RuntimeError(
+                    "Outlook chưa sẵn sàng (chưa đăng nhập/cấu hình tài khoản): "
+                    f"{e}"
+                )
         for folder in efb_folders + inboxes:
             say(f"· thư mục Outlook: {folder.Name}")
             items = folder.Items
