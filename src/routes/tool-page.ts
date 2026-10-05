@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import icaoCountries from "@/lib/tool/data/icao-countries.json";
 import dispatchSkyHeader from "@/assets/dispatch-sky-header.jpg";
-import dispatchAirportClean from "@/assets/vietjet-starlink-header.jpg";
+import dispatchAirportClean from "@/assets/vietjet-starlink-header-web.jpg?inline";
 import vietjetLogo from "@/assets/vj-logo.png";
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
