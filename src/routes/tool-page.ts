@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import icaoCountries from "@/lib/tool/data/icao-countries.json";
 import dispatchSkyHeader from "@/assets/dispatch-sky-header.jpg";
-import dispatchAirportClean from "@/assets/dispatch-airport-clean.jpg";
+import dispatchAirportClean from "@/assets/vietjet-starlink-header.jpg";
 import vietjetLogo from "@/assets/vj-logo.png";
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
@@ -840,7 +840,8 @@ header#mdRoom{
   position:relative !important;
   min-height:229px !important;height:229px !important;padding:0 !important;box-sizing:border-box !important;
   display:block !important;overflow:hidden !important;
-  background-color:#fff !important;background-image:linear-gradient(90deg,rgba(255,255,255,.12),rgba(255,255,255,.02)),var(--airport-clean) !important;
+  background-color:#fff !important;background-image:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.01)),var(--airport-clean) !important;
+  background-size:cover !important;background-position:center 54% !important;background-repeat:no-repeat !important;
   background-position:center center !important;background-size:cover !important;background-repeat:no-repeat !important;
   border:0 !important;box-shadow:0 8px 22px rgba(20,36,52,.18) !important;
 }
