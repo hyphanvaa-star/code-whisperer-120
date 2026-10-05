@@ -694,6 +694,16 @@ header label,header .lab,header .tlbl{font-family:var(--x-sans) !important;font-
 .btn.small{font-size:11px !important;padding:3px 9px !important}
 .btn.ghost,.btn.sec,.btn.secondary,.btn.light{background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border-color:var(--x-red-100) !important;box-shadow:none !important}
 .btn.ghost:hover,.btn.sec:hover,.btn.secondary:hover,.btn.light:hover{background:var(--x-red-50) !important}
+/* FPL toolbar2: nút nền trắng chữ đỏ, phóng to nhẹ */
+.toolbar2 .ft-tool-group .btn.small{
+  font-size:12.5px !important;font-weight:700 !important;padding:6px 13px !important;border-radius:8px !important;
+  background:#fff !important;background-image:none !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;
+  border:1.5px solid var(--x-red) !important;box-shadow:0 1px 3px rgba(227,25,55,.22) !important;
+}
+.toolbar2 .ft-tool-group .btn.small:hover{background:var(--x-red-50) !important;border-color:var(--x-red) !important;box-shadow:0 2px 6px rgba(227,25,55,.3) !important}
+.toolbar2 .ft-tool-group .btn.small.act,.toolbar2 .ft-tool-group .btn.small[aria-pressed="true"]{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
+.toolbar2 .ft-tool-group .btn.small.act *,.toolbar2 .ft-tool-group .btn.small[aria-pressed="true"] *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+.toolbar2 .ft-tool-group .btn.small:disabled{background:#f2f2f2 !important;border-color:#d9d9d9 !important;color:#b9b9b9 !important;-webkit-text-fill-color:#b9b9b9 !important;box-shadow:none !important}
 
 /* ---------- Ô NHẬP ---------- */
 input[type=text],input[type=search],input[type=number],input[type=password],input[type=date],input[type=time],input:not([type]),select,textarea{
