@@ -68,6 +68,18 @@ const SHIM = `<script>
   window.addEventListener('load', function(){
     var room=document.getElementById('mdRoom'), actions=document.querySelector('.filt-actions');
     if(room && actions && actions.parentElement!==room) room.appendChild(actions);
+    if(room && !document.getElementById('fEfb')){
+      var dispField=room.querySelector('.md-field.md-disp');
+      if(dispField){
+        var efbField=document.createElement('div');
+        efbField.className='md-field field f-efb';
+        efbField.innerHTML='<label for="fEfb"><i class="jp">EFB</i> EFB</label><input type="text" id="fEfb" placeholder="EFB-01" autocomplete="off" spellcheck="false">';
+        dispField.parentElement.insertBefore(efbField, dispField.nextSibling);
+        var efbInput=efbField.querySelector('#fEfb');
+        try{ efbInput.value=localStorage.getItem('fb_efb')||''; }catch(e){}
+        efbInput.addEventListener('input', function(){ try{ localStorage.setItem('fb_efb', this.value); }catch(e){} });
+      }
+    }
     if(room && !room.querySelector('.ops-field-icon')){
       var iconSvg=function(paths){return '<span class="ops-field-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg></span>';};
       var fieldIcons={
@@ -76,7 +88,8 @@ const SHIM = `<script>
         fDep:'<path d="M10.5 21 14 11l7-7-10 3.5L4 4l2.5 7L3 14l7.5-3Z"/>',
         fDest:'<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
         fReg:'<path d="M2 16h20L13 9V4l-2-1-1 6-4-2-2 1 3 4-5 2Z"/>',
-        fWindow:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>'
+        fWindow:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>',
+        fEfb:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'
       };
       Object.keys(fieldIcons).forEach(function(id){var el=document.getElementById(id),lab=el&&document.querySelector('label[for="'+id+'"]');if(lab)lab.insertAdjacentHTML('afterbegin',iconSvg(fieldIcons[id]));});
       var buttonIcons={
