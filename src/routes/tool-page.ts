@@ -68,14 +68,14 @@ const SHIM = `<script>
   window.addEventListener('load', function(){
     var room=document.getElementById('mdRoom'), actions=document.querySelector('.filt-actions');
     if(room && actions && actions.parentElement!==room) room.appendChild(actions);
-    if(room && !document.getElementById('fEfb')){
-      var dispField=room.querySelector('.md-field.md-disp');
-      if(dispField){
-        var efbField=document.createElement('div');
-        efbField.className='md-field field f-efb';
-        efbField.innerHTML='<label for="fEfb"><i class="jp">EFB</i> EFB</label><input type="text" id="fEfb" placeholder="EFB-01" autocomplete="off" spellcheck="false">';
-        var denpyo=dispField.closest('.md-denpyo')||room;
-        denpyo.insertBefore(efbField, dispField.parentElement.nextSibling);
+    // EFB field lives in the Tạo KHB tab, right next to the Dispatcher box.
+    if(!document.getElementById('fEfb')){
+      var ftDsp=document.getElementById('ftDspBox');
+      if(ftDsp){
+        var efbField=document.createElement('label');
+        efbField.className='ftdsp ftefb';
+        efbField.innerHTML='EFB : <input type="text" id="fEfb" placeholder="EFB-01" autocomplete="off" spellcheck="false">';
+        ftDsp.closest('label').insertAdjacentElement('afterend', efbField);
         var efbInput=efbField.querySelector('#fEfb');
         try{ efbInput.value=localStorage.getItem('fb_efb')||''; }catch(e){}
         efbInput.addEventListener('input', function(){ try{ localStorage.setItem('fb_efb', this.value); }catch(e){} });
@@ -912,7 +912,12 @@ header#mdRoom .md-denpyo{
   padding:6px 4px !important;margin:0 !important;background:rgba(255,255,255,.96) !important;
   border:1px solid rgba(255,255,255,.95) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.14) !important;backdrop-filter:blur(12px) !important;position:relative !important;
 }
-header#mdRoom .md-denpyo .md-field.f-efb{grid-column:2 !important;border-right:1px solid rgba(32,42,56,.1) !important}
+#ftPreviewBtn{display:none !important}
+#ftExport{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border:1.5px solid var(--x-red) !important;box-shadow:0 2px 6px rgba(227,25,55,.28) !important}
+#ftExport:hover{filter:brightness(1.06)}
+#wrapFplText .ftdsp.ftefb{padding:4px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
+#wrapFplText .ftdsp.ftefb input{width:150px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+html.night #wrapFplText .ftdsp.ftefb{background:#1e2430;border-color:#3a4050}
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
   grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;height:100% !important;flex:none !important;
