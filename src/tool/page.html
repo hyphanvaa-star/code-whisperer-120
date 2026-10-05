@@ -11456,6 +11456,7 @@ function owaEnsureLogin(opts){
                 write("✓ Outlook Web sẵn sàng.", "ok");
               }
               fplWatchStartUi();
+              try{ if(window.__efbAutoFill) window.__efbAutoFill(); }catch(e){}
             }
             resolve(!!m.logged_in);
           }
