@@ -79,7 +79,28 @@ const SHIM = `<script>
         var efbInput=efbField.querySelector('#fEfb');
         try{ efbInput.value=localStorage.getItem('fb_efb')||''; }catch(e){}
         efbInput.addEventListener('input', function(){ try{ localStorage.setItem('fb_efb', this.value); }catch(e){} });
-        // Tự lấy mã EFB mới nhất từ mail EFB hộp thư chung khi ô còn trống.
+        // Nút ↻: lấy mã EFB qua trợ lý PC (mở Outlook trên máy công ty) —
+        // chỉ chạy khi người dùng bấm, không tự chạy khi mở trang.
+        var efbBtn=document.createElement('button');
+        efbBtn.type='button';
+        efbBtn.className='efb-refresh';
+        efbBtn.title='Lấy mã EFB mới nhất từ mail hộp thư chung (qua trợ lý PC)';
+        efbBtn.textContent='↻';
+        efbBtn.addEventListener('click', function(){
+          efbBtn.disabled=true;
+          fetch('/api/efb/latest?pc=1').then(function(r){return r.json();}).then(function(d){
+            efbBtn.disabled=false;
+            if(d && d.value){
+              efbInput.value=d.value;
+              try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
+            }else{
+              alert((d && d.error) || 'Không đọc được mail EFB từ hộp thư chung.');
+            }
+          }).catch(function(){ efbBtn.disabled=false; });
+        });
+        efbField.appendChild(efbBtn);
+        // Tự lấy mã EFB mới nhất khi ô còn trống — CHỈ thử từ máy chủ,
+        // không bật Outlook trên máy công ty (tránh popup đăng nhập).
         if(!efbInput.value){
           fetch('/api/efb/latest').then(function(r){return r.json();}).then(function(d){
             if(d && d.value && !efbInput.value){
@@ -943,6 +964,9 @@ header#mdRoom .md-denpyo{
 #ftExport:hover{filter:brightness(1.06)}
 #wrapFplText .ftdsp.ftefb{padding:4px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;display:flex;align-items:center;gap:6px;font-weight:700;white-space:nowrap}
 #wrapFplText .ftdsp.ftefb input{width:150px;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+#wrapFplText .efb-refresh{border:1px solid rgba(227,25,55,.25);background:#fff;color:#E31937;border-radius:8px;width:26px;height:26px;font-size:14px;font-weight:800;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+#wrapFplText .efb-refresh:hover{background:#E31937;color:#fff}
+#wrapFplText .efb-refresh:disabled{opacity:.5;cursor:wait}
 html.night #wrapFplText .ftdsp.ftefb{background:#1e2430;border-color:#3a4050}
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
