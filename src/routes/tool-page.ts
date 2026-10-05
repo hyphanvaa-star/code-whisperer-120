@@ -738,31 +738,40 @@ td .dim,.dim{color:var(--x-mute) !important}
 .mode,.aside-head .mode{font-family:var(--x-sans) !important;font-weight:600 !important;font-size:12px !important;border-radius:6px !important}
 .mode.on,.aside-head .mode.on{background:var(--x-red-d) !important;box-shadow:inset 0 -3px 0 var(--x-yel) !important}
 
-/* ---------- THẺ CHI TIẾT CHUYẾN (chuyển sang sáng) ---------- */
-.fi-pane,#pane.fi-pane{background:var(--x-bg) !important}
-.fi-board{color:var(--x-ink) !important}
-.fi-card,.fi-card.fi-acft{background:#fff !important;border:1px solid var(--x-line) !important;border-radius:var(--x-r) !important;box-shadow:var(--x-sh) !important}
-.fi-k,.fi-fuel .lab,.fi-grid .lab,.fi-leg .dir,.fi-oooi .k,.fi-load th{color:var(--x-red) !important;font-family:var(--x-sans) !important;font-weight:700 !important;background:transparent !important;-webkit-text-fill-color:var(--x-red) !important;border:0 !important;text-transform:uppercase}
-.fi-id,.fi-reg,.fi-leg .codes,.fi-type b,.fi-fuel .val,.fi-grid .val,.fi-load tr.tot td,.fi-files li{color:var(--x-ink) !important}
-.fi-id .rt,.fi-date,.fi-leg .meta,.fi-fuel .u,.fi-files .who,.fi-files-empty,.fi-spec{color:var(--x-mute) !important}
-.fi-leg .nm,.fi-load td,.fi-type{color:var(--x-ink2) !important}
-.fi-load td{background:transparent !important;border-top:1px solid var(--x-line2) !important;border-bottom:0 !important}
-.fi-leg + .fi-leg,.fi-files li{border-color:var(--x-line2) !important}
-.fi-oooi .dot{background:#D5D9E0 !important;border-color:#D5D9E0 !important}
-.fi-oooi li:not(:last-child)::after{background:#E4E6EA !important}
-.fi-oooi li.done .dot{background:var(--x-ok) !important;border-color:var(--x-ok) !important;box-shadow:none !important}
-.fi-oooi li.now .dot{box-shadow:0 0 0 4px rgba(21,128,61,.18) !important}
-.fi-oooi li.done:not(:last-child)::after{background:var(--x-ok) !important;box-shadow:none !important}
-.fi-oooi .t{color:var(--x-mute) !important;text-shadow:none !important}
-.fi-oooi li.done .t{color:var(--x-ok) !important;text-shadow:none !important}
-.fi-board .lim-banner{background:var(--x-red-50) !important;border:1px solid var(--x-red-100) !important;color:var(--x-red-d) !important}
-.fi-board .lim-banner *{color:var(--x-red-d) !important}
-.fi-board .vd.air{color:#1D4ED8 !important;background:#E6EEFF !important}
-.fi-board .vd.taxi{color:var(--x-warn) !important;background:var(--x-warn-bg) !important}
-.fi-board .vd.off{color:#C2410C !important;background:#FFEDE3 !important}
-.fi-board .vd.gnd,.fi-board .vd.dim{color:var(--x-ink2) !important;background:#EEF0F3 !important}
-.fi-board .vd.done,.fi-board .vd.complete{color:var(--x-ok) !important;background:var(--x-ok-bg) !important}
-.fi-board .vd.in{color:#0F766E !important;background:#E3F7F3 !important}
+/* ---------- THẺ CHI TIẾT CHUYẾN: nền tối như bản gốc ---------- */
+#detailWrap{background:#12161d !important;border:1px solid #2a3342 !important}
+#detailWrap .pane{background:#12161d !important}
+.detail-tabs{background:#12161d !important;border-bottom:1px solid #2a3342 !important}
+.detail-tabs .hint{color:#8b93a7 !important}
+.dtab{color:#9aa6bb !important;background:transparent !important}
+.dtab:hover{color:#e8edf4 !important;background:rgba(255,255,255,.06) !important}
+.dtab.on{color:#FFC900 !important;background:rgba(255,255,255,.08) !important}
+.fi-pane,#pane.fi-pane{background:#12161d !important}
+.fi-board{color:#e8edf4 !important}
+.fi-card,.fi-card.fi-acft{background:#1b212c !important;border:1px solid #2a3342 !important;border-radius:10px !important;box-shadow:none !important}
+.fi-k,.fi-fuel .lab,.fi-grid .lab,.fi-leg .dir,.fi-oooi .k{color:#8b93a7 !important;font-family:var(--x-sans) !important;font-weight:700 !important;background:transparent !important;-webkit-text-fill-color:#8b93a7 !important;border:0 !important;text-transform:uppercase}
+.fi-load th{background:#232b38 !important;color:#c5cddb !important;-webkit-text-fill-color:#c5cddb !important;border:0 !important;border-bottom:1px solid #2a3342 !important;text-transform:uppercase}
+.fi-id,.fi-reg,.fi-leg .codes,.fi-type b,.fi-fuel .val,.fi-grid .val,.fi-load tr.tot td,.fi-files li{color:#e8edf4 !important;-webkit-text-fill-color:#e8edf4 !important}
+.fi-id .rt,.fi-date,.fi-leg .meta,.fi-fuel .u,.fi-files .who,.fi-files-empty,.fi-spec{color:#8b93a7 !important;-webkit-text-fill-color:#8b93a7 !important}
+.fi-leg .nm,.fi-load td,.fi-type{color:#c5cddb !important;-webkit-text-fill-color:#c5cddb !important}
+.fi-load td{background:transparent !important;border-top:1px solid #2a3342 !important;border-bottom:0 !important}
+.fi-leg + .fi-leg{border-left:1px solid #2a3342 !important}
+.fi-files li{border-top:1px solid #2a3342 !important}
+.fi-oooi .dot{background:#3a4558 !important;border-color:#3a4558 !important}
+.fi-oooi li:not(:last-child)::after{background:#3a4558 !important}
+.fi-oooi li.done .dot{background:#39ff6a !important;border-color:#39ff6a !important;box-shadow:0 0 0 4px rgba(57,255,106,.28) !important}
+.fi-oooi li.now .dot{box-shadow:0 0 0 4px rgba(57,255,106,.28),0 0 12px #39ff6a !important}
+.fi-oooi li.done:not(:last-child)::after{background:#39ff6a !important;box-shadow:none !important}
+.fi-oooi .t{color:#e8edf4 !important;text-shadow:none !important;-webkit-text-fill-color:#e8edf4 !important}
+.fi-oooi li.done .t{color:#7dff9a !important;text-shadow:0 0 8px rgba(57,255,106,.55) !important}
+.fi-board .lim-banner{background:rgba(192,54,44,.16) !important;border:1px solid rgba(192,54,44,.38) !important;color:#f3d4ce !important}
+.fi-board .lim-banner *{color:#f3d4ce !important}
+.fi-board .vd.air{color:#8fb8ff !important;background:rgba(30,64,201,.22) !important}
+.fi-board .vd.taxi{color:#f0b95e !important;background:rgba(180,83,9,.22) !important}
+.fi-board .vd.off{color:#ff9d6b !important;background:rgba(194,65,12,.2) !important}
+.fi-board .vd.gnd,.fi-board .vd.dim{color:#9aa6bb !important;background:rgba(255,255,255,.07) !important}
+.fi-board .vd.done,.fi-board .vd.complete{color:#7dff9a !important;background:rgba(21,128,61,.25) !important}
+.fi-board .vd.in{color:#5ee6d8 !important;background:rgba(15,118,110,.25) !important}
 
 /* gọn: dòng thấp, nhiều dòng */
 table tbody tr{height:auto !important}
