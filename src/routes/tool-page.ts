@@ -99,6 +99,17 @@ const SHIM = `<script>
           }).catch(function(){ efbBtn.disabled=false; });
         });
         efbField.appendChild(efbBtn);
+        // Hook cho page.html gọi sau khi đăng nhập OWA thành công:
+        // tự lấy mã EFB qua trợ lý PC nếu ô còn trống.
+        window.__efbAutoFill=function(){
+          if(efbInput.value) return;
+          fetch('/api/efb/latest?pc=1').then(function(r){return r.json();}).then(function(d){
+            if(d && d.value && !efbInput.value){
+              efbInput.value=d.value;
+              try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
+            }
+          }).catch(function(){});
+        };
         // Tự lấy mã EFB mới nhất khi ô còn trống — CHỈ thử từ máy chủ,
         // không bật Outlook trên máy công ty (tránh popup đăng nhập).
         if(!efbInput.value){
