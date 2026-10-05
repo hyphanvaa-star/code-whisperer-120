@@ -26557,7 +26557,7 @@ function boot(){
   verBangLoad();
   cmpSnapLoad();              // mũi tên PLD / dấu ! OFP so với lần trước
   loadFlights(false);
-  startOwaBoot();
+  // Không tự đăng nhập Outlook Web khi mở trang — chỉ chạy khi bấm nút Đăng nhập OWA.
   refreshTafAge();
   loadRegNoticeList();
   // Lần gọi lúc parse trang diễn ra trước khi gate mở nên API có thể trả 401.
