@@ -25,7 +25,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.0"
+VERSION = "1.1"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -978,6 +978,73 @@ def do_defect_pdf(payload: dict, say) -> dict:
     }
 
 
+RE_EFB = re.compile(r"EFB-[A-Z0-9]+(?:[/.-][A-Z0-9]+)*", re.I)
+
+
+def do_owa_efb(payload: dict, say) -> dict:
+    """Đọc mã EFB mới nhất (EFB-A320F/A330-20261002V0...) từ mail EFB trong
+    hộp thư chung OMC qua Outlook desktop (COM)."""
+    import pythoncom
+    import win32com.client
+
+    say("▶ Tìm mail EFB mới nhất trong Outlook...")
+    pythoncom.CoInitialize()
+    try:
+        outlook = win32com.client.Dispatch("Outlook.Application")
+        ns = outlook.GetNamespace("MAPI")
+        # Duyệt mọi store; ưu tiên thư mục có chữ EFB, sau đó tới Inbox.
+        efb_folders, inboxes = [], []
+        for store in ns.Stores:
+            try:
+                root = store.GetRootFolder()
+            except Exception:
+                continue
+            stack = [root]
+            while stack:
+                folder = stack.pop()
+                try:
+                    name = str(folder.Name or "")
+                except Exception:
+                    continue
+                if "efb" in name.casefold():
+                    efb_folders.append(folder)
+                elif name.casefold() == "inbox":
+                    inboxes.append(folder)
+                try:
+                    stack.extend(list(folder.Folders))
+                except Exception:
+                    pass
+        for folder in efb_folders + inboxes:
+            say(f"· thư mục Outlook: {folder.Name}")
+            items = folder.Items
+            items.Sort("[ReceivedTime]", True)
+            scanned = 0
+            for mail in items:
+                scanned += 1
+                if scanned > 60:
+                    break
+                try:
+                    subj = str(mail.Subject or "")
+                except Exception:
+                    continue
+                if "efb" not in subj.casefold():
+                    continue
+                body = str(getattr(mail, "Body", "") or "")[:3000]
+                m = RE_EFB.search(subj) or RE_EFB.search(body)
+                if not m:
+                    continue
+                when = ""
+                try:
+                    when = mail.ReceivedTime.isoformat()
+                except Exception:
+                    pass
+                say(f"✓ Mã EFB mới nhất: {m.group(0)} ({subj[:60]})")
+                return {"value": m.group(0), "subject": subj, "when": when}
+        raise RuntimeError("Không thấy mail EFB nào trong hộp thư chung.")
+    finally:
+        pythoncom.CoUninitialize()
+
+
 HANDLERS = {
     "gd_print": do_gd_print,
     "save_file": do_save_file,
@@ -990,6 +1057,7 @@ HANDLERS = {
     "owa_draft": do_owa_draft,
     "outlook_draft": do_outlook_draft,
     "defect_pdf": do_defect_pdf,
+    "owa_efb": do_owa_efb,
 }
 
 

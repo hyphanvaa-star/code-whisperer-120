@@ -13,6 +13,34 @@ function offline() {
 }
 
 export const routes: Routes = {
+  // Mã EFB mới nhất từ mail "EFB Flysmart Version ..." trong hộp thư chung
+  // OMC. Thử Outlook REST trực tiếp trước; tenant chặn (ADFS/MFA) thì dự
+  // phòng qua trợ lý PC (lệnh owa_efb đọc Outlook desktop).
+  "GET /api/efb/latest": async (ctx) => {
+    try {
+      const { fetchLatestEfb } = await import("../port/owa_efb");
+      const r = await fetchLatestEfb();
+      return { ok: true, ...r, source: "server" };
+    } catch (e) {
+      const { OwaAuthError } = await import("../port/owa");
+      if (!(e instanceof OwaAuthError)) {
+        return { error: e instanceof Error ? e.message : String(e) };
+      }
+    }
+    const agent = await pc.agentInfo(ctx);
+    if (!pc.agentOnline(agent)) return { error: offline().error };
+    try {
+      const id = await pc.enqueueDeduped("owa_efb", {}, 30_000);
+      const r = (await pc.waitResult(id, 60_000)) as Record<string, any>;
+      if (r?.value) {
+        return { ok: true, value: String(r.value), subject: String(r.subject || ""), when: r.when || null, source: "pc" };
+      }
+      return { error: String(r?.error || "Không đọc được mail EFB từ hộp thư chung.") };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
+    }
+  },
+
   // web.py "/api/owa/login" -> start_owa_login(): job id, streamed over /api/stream.
   // Job tự thử đăng nhập thẳng từ máy chủ trước, chỉ cần trợ lý PC khi
   // Microsoft từ chối đăng nhập từ xa (khoá tài khoản, ADFS, MFA).
