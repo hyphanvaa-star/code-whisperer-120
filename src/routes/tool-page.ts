@@ -941,7 +941,7 @@ header#mdRoom .filt-actions .btn{
   background:rgba(255,255,255,.96) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;
   box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;font:900 10.5px/1.05 var(--x-sans) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
-  text-transform:uppercase !important;letter-spacing:0 !important;opacity:1 !important;cursor:pointer !important;white-space:nowrap !important;overflow:hidden !important;
+  text-transform:uppercase !important;letter-spacing:0 !important;opacity:1 !important;cursor:pointer !important;
 }
 header#mdRoom .filt-actions .btn::before{display:block !important;content:attr(data-ico) !important;font:700 15px/1 var(--x-sans) !important;color:var(--x-red) !important}
 header#mdRoom .filt-actions .btn::before,header#mdRoom #btnOfpCheck::before,header#mdRoom #aiFab::before{display:none !important}
