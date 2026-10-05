@@ -890,20 +890,20 @@ header#mdRoom .md-denpyo .filt-rail{
 header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:100% !important;padding:0 2px !important;margin:0 !important;border-right:1px solid rgba(32,42,56,.1) !important}
 header#mdRoom .md-denpyo .filt-rail > *:last-child{border-right:0 !important}
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
-header#mdRoom .md-field{min-width:0 !important;width:100% !important;height:100% !important;display:grid !important;grid-template-rows:22px 34px !important;align-content:center !important;gap:3px !important}
+header#mdRoom .md-field{min-width:0 !important;width:100% !important;height:100% !important;display:grid !important;grid-template-rows:19px 30px !important;align-content:center !important;gap:2px !important}
 header#mdRoom .md-field label,header#mdRoom .field label{
-  display:flex !important;align-items:center !important;gap:6px !important;font-size:9px !important;line-height:1 !important;margin:0 !important;
-  font-weight:900 !important;letter-spacing:0 !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;white-space:nowrap !important;
+  display:flex !important;align-items:center !important;gap:4px !important;font-size:8px !important;line-height:1 !important;margin:0 !important;
+  font-weight:900 !important;letter-spacing:0 !important;color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important;white-space:nowrap !important;overflow:hidden !important;
 }
-header#mdRoom .md-field label .cl-txt{display:inline !important;font:inherit !important;color:inherit !important;margin:0 !important}
-.ops-field-icon{display:inline-grid !important;place-items:center !important;width:17px !important;height:17px !important;flex:0 0 17px !important;color:var(--x-red) !important}.ops-field-icon svg{display:block !important;width:100% !important;height:100% !important}
+header#mdRoom .md-field label .cl-txt{display:inline !important;font:inherit !important;color:inherit !important;margin:0 !important;overflow:hidden !important;text-overflow:ellipsis !important}
+.ops-field-icon{display:inline-grid !important;place-items:center !important;width:13px !important;height:13px !important;flex:0 0 13px !important;color:var(--x-red) !important}.ops-field-icon svg{display:block !important;width:100% !important;height:100% !important}
 header#mdRoom .md-field label i.jp,header#mdRoom .field label i.jp{display:none !important}
 header#mdRoom input,header#mdRoom select{
-  width:100% !important;height:34px !important;border:1px solid rgba(49,61,76,.14) !important;border-radius:7px !important;
-  background:#fff !important;box-shadow:0 2px 8px rgba(22,38,53,.07) !important;font:800 11px var(--x-sans) !important;
-  color:#16181d !important;-webkit-text-fill-color:#16181d !important;padding:0 9px !important;
+  width:100% !important;height:30px !important;border:1px solid rgba(49,61,76,.14) !important;border-radius:7px !important;
+  background:#fff !important;box-shadow:0 2px 8px rgba(22,38,53,.07) !important;font:800 10.5px var(--x-sans) !important;
+  color:#16181d !important;-webkit-text-fill-color:#16181d !important;padding:0 7px !important;
 }
-header#mdRoom select{font-size:10px !important;padding:0 5px !important;letter-spacing:0 !important}
+header#mdRoom select{font-size:9.5px !important;padding:0 4px !important;letter-spacing:0 !important}
 header#mdRoom #fDispatcher{color:#16181d !important;-webkit-text-fill-color:#16181d !important}
 header#mdRoom input::placeholder{color:rgba(22,24,29,.42) !important;-webkit-text-fill-color:rgba(22,24,29,.42) !important}
 header#mdRoom input:focus,header#mdRoom select:focus{background:#fff !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important;outline:none !important}
