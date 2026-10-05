@@ -1048,7 +1048,10 @@ export const Route = createFileRoute("/tool-page")({
         new Response(await page(), {
           headers: {
             "Content-Type": "text/html; charset=utf-8",
-            "Cache-Control": "no-store",
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "CDN-Cache-Control": "no-store",
+            "Pragma": "no-cache",
+            "Expires": "0",
             "X-Frame-Options": "SAMEORIGIN",
           },
         }),

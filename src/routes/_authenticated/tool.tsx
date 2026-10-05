@@ -24,11 +24,13 @@ declare global {
 
 function ToolPage() {
   const [ready, setReady] = useState(false);
+  const [toolVersion, setToolVersion] = useState("");
   useEffect(() => {
     let token: string | null = null;
     window.__fbToken = () => token;
     supabase.auth.getSession().then(({ data }) => {
       token = data.session?.access_token ?? null;
+      setToolVersion(`${Date.now()}`);
       setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
@@ -37,11 +39,12 @@ function ToolPage() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
-  if (!ready) return <div className="p-6 text-sm text-muted-foreground">Đang mở Dispatch Board…</div>;
+  if (!ready || !toolVersion) return <div className="p-6 text-sm text-muted-foreground">Đang mở Dispatch Board…</div>;
   return (
     <iframe
+      key={toolVersion}
       title="Dispatch Board"
-      src="/tool-page?v=20261005-0237"
+      src={`/tool-page?v=${toolVersion}`}
       className="fixed inset-0 h-screen w-screen border-0"
     />
   );
