@@ -95,10 +95,7 @@ const SHIM = `<script>
     if(room && !document.getElementById('opsHeaderBrand')){
       var brand=document.createElement('div');
       brand.id='opsHeaderBrand'; brand.className='ops-header-brand';
-      brand.innerHTML='<div class="ops-vj-mark"><span class="ops-vj-logo" aria-label="Vietjet Air"></span><span>OPERATION<br>CONTROL</span></div><small>SAFE FLIGHT<br>ON TIME<br>TOGETHER</small>';
-      var title=document.createElement('div');
-      title.className='ops-header-title';
-      title.innerHTML='<strong>SOHEE</strong><span>A product by Rosie</span>';
+      brand.innerHTML='<div class="ops-vj-mark"><span class="ops-vj-logo" aria-label="Vietjet Air"></span><span>OPERATION<br>CONTROL</span></div><div class="ops-sohee"><strong>SOHEE</strong><span>A product by Rosie</span></div>';
       var live=document.createElement('div');
       live.className='ops-header-live';
       live.innerHTML='<div class="ops-weather" title="Thời tiết hiện tại tại TP. Hồ Chí Minh"><span class="ops-weather-icon">☀</span><strong id="opsWeatherTemp">--°C</strong><span><b>HO CHI MINH</b><small id="opsWeatherText">Đang cập nhật…</small></span></div><div class="ops-clock-wrap"><span class="ops-clock-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="ops-clock" title="Giờ địa phương TP. Hồ Chí Minh"><strong id="opsClockTime">--:--</strong><span id="opsClockDate">-- --- ----</span></div></div><div class="ops-account"><div class="ops-avatar" title="Tài khoản đang đăng nhập">JH</div><span class="ops-account-chevron" aria-hidden="true"></span></div>';
