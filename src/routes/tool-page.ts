@@ -903,14 +903,15 @@ header#mdRoom::before{content:"";display:block !important;position:absolute;left
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
   display:block !important;position:absolute !important;left:38px !important;top:58% !important;
-  width:calc(37% - 151px) !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
+  width:calc(37% - 41px) !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
 }
 header#mdRoom .md-denpyo{
-  display:grid !important;grid-template-columns:1.18fr .92fr .84fr .84fr 1fr 1.4fr !important;
+  display:grid !important;grid-template-columns:1.18fr .8fr .92fr .84fr .84fr 1fr 1.4fr !important;
   align-items:stretch !important;gap:0 !important;width:100% !important;height:100% !important;
   padding:6px 4px !important;margin:0 !important;background:rgba(255,255,255,.96) !important;
   border:1px solid rgba(255,255,255,.95) !important;border-radius:10px !important;box-shadow:0 8px 22px rgba(20,36,52,.14) !important;backdrop-filter:blur(12px) !important;position:relative !important;
 }
+header#mdRoom .md-denpyo .md-field.f-efb{grid-column:2 !important;border-right:1px solid rgba(32,42,56,.1) !important}
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
   grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;height:100% !important;flex:none !important;
