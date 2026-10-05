@@ -868,7 +868,7 @@ header#mdRoom::before{content:"";display:block !important;position:absolute;left
 .ops-account{display:flex;align-items:center;gap:11px;padding-left:20px}.ops-avatar{width:36px;height:36px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:var(--x-red);box-shadow:0 3px 10px rgba(0,0,0,.3);color:#fff;font:800 11px var(--x-sans)}.ops-account-chevron{width:8px;height:8px;border-right:2px solid rgba(255,255,255,.9);border-bottom:2px solid rgba(255,255,255,.9);transform:rotate(45deg) translateY(-2px)}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
-  display:block !important;position:absolute !important;left:10.42% !important;top:58% !important;
+  display:block !important;position:absolute !important;left:38px !important;top:58% !important;
   width:44.5% !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
 }
 header#mdRoom .md-denpyo{
