@@ -932,6 +932,8 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
   background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important;
 }
 .btn.primary *,.btn.t-go *,.btn.act *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+#wrapAtcCheck .toolbar2 .btn:not(.primary):not(.t-go){background:#fff !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;border:1px solid rgba(227,25,55,.25) !important}
+#wrapAtcCheck .toolbar2 .btn:not(.primary):not(.t-go):hover{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important}
 .xt-kg{min-width:0 !important}.xt-min{margin-right:3px !important;min-width:30px !important;padding:0 3px !important}td.extra-cell{overflow:hidden !important;white-space:nowrap !important}
 
 /* ================= HEADER OPS — thành phần thật, bố cục theo ảnh tham chiếu ================= */
