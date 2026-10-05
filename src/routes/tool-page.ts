@@ -880,14 +880,14 @@ header#mdRoom .md-denpyo{
 header#mdRoom .md-denpyo .head,header#mdRoom .md-denpyo .stamp,header#mdRoom .md-denpyo .md-cmd{display:none !important}
 header#mdRoom .md-denpyo .md-row:not(.line){
   grid-column:1 !important;grid-row:1 !important;display:block !important;width:auto !important;height:100% !important;flex:none !important;
-  padding:0 3px !important;margin:0 !important;position:static !important;border-right:1px solid rgba(32,42,56,.1) !important;
+  padding:0 2px !important;margin:0 !important;position:static !important;border-right:1px solid rgba(32,42,56,.1) !important;
 }
 header#mdRoom .md-denpyo .md-row:not(.line)::after{display:none !important}
 header#mdRoom .md-denpyo .filt-rail{
   display:contents !important;flex:none !important;min-width:0 !important;max-width:none !important;
   padding:0 !important;margin:0 !important;border:0 !important;background:transparent !important;box-shadow:none !important;
 }
-header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:100% !important;padding:0 3px !important;margin:0 !important;border-right:1px solid rgba(32,42,56,.1) !important}
+header#mdRoom .md-denpyo .filt-rail > *{position:static !important;min-width:0 !important;width:100% !important;height:100% !important;padding:0 2px !important;margin:0 !important;border-right:1px solid rgba(32,42,56,.1) !important}
 header#mdRoom .md-denpyo .filt-rail > *:last-child{border-right:0 !important}
 header#mdRoom .md-denpyo .filt-rail > *::after{display:none !important}
 header#mdRoom .md-field{min-width:0 !important;width:100% !important;height:100% !important;display:grid !important;grid-template-rows:22px 34px !important;align-content:center !important;gap:3px !important}
