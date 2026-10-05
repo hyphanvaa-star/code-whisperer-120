@@ -970,8 +970,8 @@ header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdR
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
   position:absolute !important;top:39.34% !important;width:3.7% !important;height:21.64% !important;min-width:0 !important;
-  margin:0 !important;padding:4px 2px !important;border-radius:9px !important;box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;
-  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:4px !important;
+  margin:0 !important;padding:3px 2px !important;border-radius:9px !important;box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;
+  display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;white-space:nowrap !important;overflow:hidden !important;
   background:rgba(255,255,255,.96) !important;border:1px solid rgba(255,255,255,.96) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;
   opacity:1 !important;pointer-events:auto !important;cursor:pointer !important;
 }
