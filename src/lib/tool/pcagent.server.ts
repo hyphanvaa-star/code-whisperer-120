@@ -8,7 +8,7 @@
 import type { Ctx } from "./types";
 import { getJson } from "./store.server";
 
-export type PcJobKind = "gd_print" | "pick_folder" | "save_file" | "aviweb_check" | "aviweb_submit" | "owa_login" | "owa_fpl_watch" | "owa_pib" | "owa_draft" | "outlook_draft" | "defect_pdf";
+export type PcJobKind = "gd_print" | "pick_folder" | "save_file" | "aviweb_check" | "aviweb_submit" | "owa_login" | "owa_fpl_watch" | "owa_pib" | "owa_draft" | "outlook_draft" | "defect_pdf" | "owa_efb";
 
 export interface AgentPrinter {
   name: string;
