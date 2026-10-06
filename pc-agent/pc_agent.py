@@ -25,7 +25,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.2"
+VERSION = "1.3"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -981,9 +981,47 @@ def do_defect_pdf(payload: dict, say) -> dict:
 RE_EFB = re.compile(r"EFB-[A-Z0-9]+(?:[/.-][A-Z0-9]+)*", re.I)
 
 
+def _efb_via_owa_session(say) -> dict | None:
+    """Dùng phiên Outlook Web (Chrome) đã đăng nhập sẵn — không mở Outlook PC."""
+    try:
+        config, ow = _load_owa_modules()
+        token = ow.get_token(interactive=False)
+    except Exception as e:
+        say(f"· chưa có phiên Outlook Web ({e})")
+        return None
+    s = ow._rest_session(token)
+    boxes = [getattr(config, "OMC_SHARED_MAILBOX", "") or "", ""]
+    for box in boxes:
+        url = ow.rest_root(box) + "/mailfolders/inbox/messages"
+        try:
+            r = s.get(url, params={"$orderby": "ReceivedDateTime desc", "$top": "60",
+                                   "$select": "Subject,BodyPreview,ReceivedDateTime"}, timeout=30)
+        except Exception as e:
+            say(f"· lỗi đọc Outlook Web: {e}")
+            continue
+        if r.status_code != 200:
+            say(f"· Outlook Web {box or 'hộp cá nhân'}: HTTP {r.status_code}")
+            continue
+        for m in r.json().get("value", []):
+            subj = str(m.get("Subject") or "")
+            if "efb" not in subj.casefold():
+                continue
+            hit = RE_EFB.search(subj) or RE_EFB.search(str(m.get("BodyPreview") or ""))
+            if hit:
+                say(f"✓ Mã EFB mới nhất (Outlook Web): {hit.group(0)}")
+                return {"value": hit.group(0), "subject": subj, "when": m.get("ReceivedDateTime", "")}
+    return None
+
+
 def do_owa_efb(payload: dict, say) -> dict:
-    """Đọc mã EFB mới nhất (EFB-A320F/A330-20261002V0...) từ mail EFB trong
-    hộp thư chung OMC qua Outlook desktop (COM)."""
+    """Đọc mã EFB mới nhất từ mail EFB hộp thư chung OMC. Ưu tiên phiên
+    Outlook Web đã đăng nhập; chỉ dùng Outlook desktop (COM) khi không có."""
+    say("▶ Tìm mail EFB qua phiên Outlook Web đã đăng nhập...")
+    got = _efb_via_owa_session(say)
+    if got:
+        return got
+    if not payload.get("allow_desktop"):
+        raise RuntimeError("Chưa có phiên Outlook Web — bấm 'Đăng nhập OWA' trước rồi bấm ↻ cạnh ô EFB.")
     import pythoncom
     import win32com.client
 
