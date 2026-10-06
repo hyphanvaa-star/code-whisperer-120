@@ -25,7 +25,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.3"
+VERSION = "1.4"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -985,31 +985,49 @@ def _efb_via_owa_session(say) -> dict | None:
     """Dùng phiên Outlook Web (Chrome) đã đăng nhập sẵn — không mở Outlook PC."""
     try:
         config, ow = _load_owa_modules()
-        token = ow.get_token(interactive=False)
+        token = ow._load_cached_token() or ow._load_cached_token(ow.MAIL_TOKEN_CACHE)
+        if not token:
+            raise RuntimeError("không có token cache")
     except Exception as e:
         say(f"· chưa có phiên Outlook Web ({e})")
         return None
     s = ow._rest_session(token)
     boxes = [getattr(config, "OMC_SHARED_MAILBOX", "") or "", ""]
     for box in boxes:
-        url = ow.rest_root(box) + "/mailfolders/inbox/messages"
-        try:
-            r = s.get(url, params={"$orderby": "ReceivedDateTime desc", "$top": "60",
-                                   "$select": "Subject,BodyPreview,ReceivedDateTime"}, timeout=30)
-        except Exception as e:
-            say(f"· lỗi đọc Outlook Web: {e}")
-            continue
-        if r.status_code != 200:
-            say(f"· Outlook Web {box or 'hộp cá nhân'}: HTTP {r.status_code}")
-            continue
-        for m in r.json().get("value", []):
-            subj = str(m.get("Subject") or "")
-            if "efb" not in subj.casefold():
+        label = box or "hộp cá nhân"
+        hits = []
+        # $search quét MỌI thư mục (mail EFB có thể bị rule chuyển khỏi Inbox).
+        queries = [
+            ("/messages", {"$search": '"subject:EFB"', "$top": "50",
+                           "$select": "Subject,BodyPreview,ReceivedDateTime"}),
+            ("/mailfolders/inbox/messages", {"$orderby": "ReceivedDateTime desc", "$top": "200",
+                           "$select": "Subject,BodyPreview,ReceivedDateTime"}),
+        ]
+        for path, params in queries:
+            try:
+                r = s.get(ow.rest_root(box) + path, params=params, timeout=30)
+            except Exception as e:
+                say(f"· lỗi đọc Outlook Web ({label}): {e}")
                 continue
-            hit = RE_EFB.search(subj) or RE_EFB.search(str(m.get("BodyPreview") or ""))
-            if hit:
-                say(f"✓ Mã EFB mới nhất (Outlook Web): {hit.group(0)}")
-                return {"value": hit.group(0), "subject": subj, "when": m.get("ReceivedDateTime", "")}
+            if r.status_code != 200:
+                say(f"· Outlook Web {label} {path}: HTTP {r.status_code} {r.text[:160]}")
+                continue
+            vals = r.json().get("value", [])
+            say(f"· {label} {path}: {len(vals)} mail")
+            for m in vals:
+                subj = str(m.get("Subject") or "")
+                hit = RE_EFB.search(subj) or (
+                    "efb" in subj.casefold() and RE_EFB.search(str(m.get("BodyPreview") or "")))
+                if hit:
+                    hits.append((str(m.get("ReceivedDateTime") or ""), hit.group(0), subj))
+            if hits:
+                break
+        if hits:
+            hits.sort(reverse=True)
+            when, val, subj = hits[0]
+            say(f"✓ Mã EFB mới nhất (Outlook Web, {label}): {val}")
+            return {"value": val, "subject": subj, "when": when}
+        say(f"· không thấy mail EFB trong {label}")
     return None
 
 
@@ -1021,7 +1039,7 @@ def do_owa_efb(payload: dict, say) -> dict:
     if got:
         return got
     if not payload.get("allow_desktop"):
-        raise RuntimeError("Chưa có phiên Outlook Web — bấm 'Đăng nhập OWA' trước rồi bấm ↻ cạnh ô EFB.")
+        raise RuntimeError("Không tìm thấy mail EFB qua Outlook Web (xem các dòng · ở trên). Có thể điền tay ô EFB.")
     import pythoncom
     import win32com.client
 
