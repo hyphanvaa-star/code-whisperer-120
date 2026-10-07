@@ -161,6 +161,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_credentials: {
+        Row: {
+          data: Json
+          fb_cookies: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          fb_cookies?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          fb_cookies?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

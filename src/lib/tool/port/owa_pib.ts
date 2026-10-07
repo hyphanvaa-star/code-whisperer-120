@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 // Server-side PIB download over Outlook REST v2.0 — port of
 // outlook_web_pib.py's _download_pib_sources()/_download_outlook_rest(),
 // with Selenium/Chrome replaced by a direct ROPC token (port/owa.ts getToken).
@@ -102,8 +103,8 @@ export async function ensureToken(ctx: Ctx, onStatus?: (msg: string) => void): P
   } else {
     say("Đang đăng nhập Outlook…");
   }
-  const username = process.env["OWA_USERNAME"] || process.env["OUTLOOK_USERNAME"] || "";
-  const password = process.env["OWA_PASSWORD"] || process.env["OUTLOOK_PASSWORD"] || "";
+  const username = credEnv("OWA_USERNAME") || credEnv("OUTLOOK_USERNAME") || "";
+  const password = credEnv("OWA_PASSWORD") || credEnv("OUTLOOK_PASSWORD") || "";
   // Client "Office" first-party (d3590ed6-…) + scope outlook.office.com — đúng
   // tổ hợp tool gốc dùng khi lấy token từ Outlook Web.
   const token = await getToken(username, password, {

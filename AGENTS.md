@@ -25,3 +25,4 @@
 - Server-side Excel reading uses SheetJS (`xlsx` from the SheetJS CDN tarball) because ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, loaded via `src/lib/exceljs-load.ts`.
 - Airport country flags are bundled locally and resolved through the generated global ICAO-to-country dataset so flight cards work without third-party image requests.
 - The embedded `/tool-page` uses a fresh per-load URL nonce plus explicit no-store headers so header/UI revisions never reuse a stale iframe document.
+- Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets), because each dispatcher may use their own account.

@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 import type { Jobs, Routes } from "../types";
 import { OwaAuthError, OwaError, getToken } from "../port/owa";
 
@@ -8,9 +9,9 @@ import { OwaAuthError, OwaError, getToken } from "../port/owa";
 // OWA_PASSWORD) and is not a PC job in the original tool.
 
 function mailEnv(): { username: string; password: string; mailbox: string } {
-  const username = process.env["OWA_USERNAME"] || process.env["OUTLOOK_USERNAME"] || "";
-  const password = process.env["OWA_PASSWORD"] || process.env["OUTLOOK_PASSWORD"] || "";
-  const mailbox = process.env["OUTLOOK_MAILBOX"] || "omc@vietjetair.com";
+  const username = credEnv("OWA_USERNAME") || credEnv("OUTLOOK_USERNAME") || "";
+  const password = credEnv("OWA_PASSWORD") || credEnv("OUTLOOK_PASSWORD") || "";
+  const mailbox = credEnv("OUTLOOK_MAILBOX") || "omc@vietjetair.com";
   return { username, password, mailbox };
 }
 

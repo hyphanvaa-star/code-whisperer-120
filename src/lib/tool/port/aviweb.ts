@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 // Port of atcfpl.py / atc_check.py — AviWeb (VNAIC) FPL check/submit helpers.
 //
 // AviWeb is a Vaadin 7.7.9 application driven by the UIDL RPC protocol. The
@@ -18,8 +19,8 @@ export const AVIWEB_FPL_URL = "https://aviweb.vnaic.vn/AviWeb/#lfplf";
 export const AVIWEB_BASE = "https://aviweb.vnaic.vn/AviWeb";
 
 export function getAviwebCredentials(): { user: string; pass: string } | null {
-  const user = process.env["AVIWEB_USERNAME"];
-  const pass = process.env["AVIWEB_PASSWORD"];
+  const user = credEnv("AVIWEB_USERNAME");
+  const pass = credEnv("AVIWEB_PASSWORD");
   if (!user || !pass) return null;
   return { user, pass };
 }

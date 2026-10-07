@@ -1,3 +1,4 @@
+import { env as credEnv, fbOwner } from "@/lib/tool/creds.server";
 // Server-only FliteBrief client. Logs in with the Symfony form (CSRF), keeps
 // session cookies in the fb_session table so every worker shares one login.
 const BASE = "https://vjc.flitebrief.aero";
@@ -40,11 +41,21 @@ async function admin() {
 
 async function loadJar(): Promise<Jar> {
   const db = await admin();
+  const owner = fbOwner();
+  if (owner) {
+    const { data } = await db.from("user_credentials").select("fb_cookies").eq("user_id", owner).maybeSingle();
+    return parseJar(data?.fb_cookies ?? "");
+  }
   const { data } = await db.from("fb_session").select("cookies").eq("id", 1).maybeSingle();
   return parseJar(data?.cookies ?? "");
 }
 async function saveJar(jar: Jar) {
   const db = await admin();
+  const owner = fbOwner();
+  if (owner) {
+    await db.from("user_credentials").update({ fb_cookies: JSON.stringify(Object.fromEntries(jar)) }).eq("user_id", owner);
+    return;
+  }
   await db
     .from("fb_session")
     .upsert({ id: 1, cookies: JSON.stringify(Object.fromEntries(jar)), updated_at: new Date().toISOString() });
@@ -62,8 +73,8 @@ async function rawGet(jar: Jar, path: string, accept = "application/json") {
 export class FliteBriefError extends Error {}
 
 async function login(): Promise<Jar> {
-  const user = process.env["FLITEBRIEF_USER"];
-  const pass = process.env["FLITEBRIEF_PASS"];
+  const user = credEnv("FLITEBRIEF_USER");
+  const pass = credEnv("FLITEBRIEF_PASS");
   if (!user || !pass) throw new FliteBriefError("Chưa cấu hình tài khoản FliteBrief");
   const jar: Jar = new Map();
   const page = await rawGet(jar, "/login", "text/html");
@@ -157,3 +168,5 @@ export async function fbRequest(
 }
 
 export const FB_BASE = BASE;
+/** Fresh login with the active account (used to verify saved creds). */
+export const fbLoginTest = () => login();

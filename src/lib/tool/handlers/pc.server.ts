@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 /**
  * Port of the web.py endpoints that need the company PC: in GD tới máy RICOH,
  * đường dẫn ổ D:, tải Omni xuống D:\Omni. The PC-side work runs in the PC
@@ -107,8 +108,8 @@ async function crewRegsFor(ctx: Ctx, flight: string): Promise<string[]> {
 }
 
 function omniCreds(): omni.OmniCredentials {
-  const username = process.env["OMNI_USERNAME"];
-  const password = process.env["OMNI_PASSWORD"];
+  const username = credEnv("OMNI_USERNAME");
+  const password = credEnv("OMNI_PASSWORD");
   if (!username || !password) throw new Error("chưa có tài khoản Omni");
   return { username, password };
 }
