@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 import type { Jobs, Routes } from "../types";
 import { jobId } from "../jobs";
 import * as pc from "../pcagent.server";
@@ -207,8 +208,8 @@ export const jobs: Jobs = {
       emit({ type: "line", text: "▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password (MFA thì xác nhận tay)." });
       // Gửi kèm tài khoản OWA (secret phía web) để trợ lý tự điền đăng nhập —
       // kênh job chỉ đọc bằng PC_AGENT_TOKEN nên không lộ ra ngoài.
-      const owaUser = process.env["OWA_USERNAME"] || process.env["OUTLOOK_USERNAME"] || "";
-      const owaPass = process.env["OWA_PASSWORD"] || process.env["OUTLOOK_PASSWORD"] || "";
+      const owaUser = credEnv("OWA_USERNAME") || credEnv("OUTLOOK_USERNAME") || "";
+      const owaPass = credEnv("OWA_PASSWORD") || credEnv("OUTLOOK_PASSWORD") || "";
       const id = await pc.enqueueDeduped("owa_login", { user: owaUser, pass: owaPass }, 120_000);
       let lastBeat = 0;
       const r = await pc.waitResult(id, 450_000, (elapsed) => {

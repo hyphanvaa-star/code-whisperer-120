@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 import type { Jobs, Routes } from "../types";
 import type { Flight } from "../core/models";
 import { applyFilters, listDispatchers, loadFlights } from "../core/gantts.server";
@@ -319,8 +320,8 @@ async function limitsRevision(ctx: Parameters<Routes["GET /api/weights"]>[0]): P
 const OMNI_NO_ACCOUNT_ERROR = { error: "Chưa có tài khoản Omni — gửi cho quản trị để lưu (OMNI_USERNAME/OMNI_PASSWORD)." };
 
 function omniCreds(): omni.OmniCredentials | null {
-  const username = process.env["OMNI_USERNAME"];
-  const password = process.env["OMNI_PASSWORD"];
+  const username = credEnv("OMNI_USERNAME");
+  const password = credEnv("OMNI_PASSWORD");
   return username && password ? { username, password } : null;
 }
 

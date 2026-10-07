@@ -1,3 +1,4 @@
+import { env as credEnv } from "../creds.server";
 // Đọc mã EFB mới nhất từ hộp thư chung OMC (mail "EFB Flysmart Version ...").
 // Giá trị dạng EFB-A320F/A330-20261002V0 nằm trong tiêu đề hoặc nội dung mail.
 // Thử Outlook REST trực tiếp từ máy chủ trước; khi tenant chặn (ADFS/MFA)
@@ -18,9 +19,9 @@ export function extractEfbCode(text: string): string | null {
 }
 
 export async function fetchLatestEfb(): Promise<EfbLatest> {
-  const username = process.env["OWA_USERNAME"] || process.env["OUTLOOK_USERNAME"] || "";
-  const password = process.env["OWA_PASSWORD"] || process.env["OUTLOOK_PASSWORD"] || "";
-  const mailbox = process.env["OUTLOOK_MAILBOX"] || "omc@vietjetair.com";
+  const username = credEnv("OWA_USERNAME") || credEnv("OUTLOOK_USERNAME") || "";
+  const password = credEnv("OWA_PASSWORD") || credEnv("OUTLOOK_PASSWORD") || "";
+  const mailbox = credEnv("OUTLOOK_MAILBOX") || "omc@vietjetair.com";
   if (!username || !password) {
     throw new OwaAuthError("Chưa có tài khoản Outlook — gửi cho quản trị để lưu (OWA_USERNAME/OWA_PASSWORD).");
   }
