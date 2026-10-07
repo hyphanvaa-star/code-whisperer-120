@@ -10893,7 +10893,7 @@ function showRegPdf(reg){
   }
   wrap.classList.remove("empty");
   /* toolbar/navpanes tắt, FitH = trang căn giữa theo chiều ngang — bỏ sidebar linh tinh */
-  const url = "/regnotice/" + nr + ".pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH";
+  const url = "/api/regnotice/file/" + nr + ".pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH";
   if(!frame.src.includes(nr + ".pdf")) frame.src = url;
   label.textContent = reg;
 }

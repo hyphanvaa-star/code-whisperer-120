@@ -41,10 +41,12 @@ export const routes: Routes = {
     const rules = await loadRules(ctx);
     // "found" = file PDF của notice đã có trong kho "notices/" (Rule Studio upload).
     const { listFiles } = await import("../store.server");
-    const stored = new Set(
-      (await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>))
-        .map((f) => f.name.replace(/\.pdf$/i, "").trim().toLowerCase()),
-    );
+    const norm = (f: { name: string }) => f.name.replace(/\.pdf$/i, "").trim().toLowerCase();
+    const stored = new Set([
+      ...(await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>)).map(norm),
+      // File tạm của riêng người này (người không phải quản trị tự thêm).
+      ...(await listFiles(ctx, `notices-tmp/${ctx.userId}`).catch(() => [] as Array<{ name: string }>)).map(norm),
+    ]);
     const plan = noticesPreview(flights, rules, (title) => stored.has(title.trim().toLowerCase()));
     let tot = 0, miss = 0;
     const byRule = new Map<string, number>();
@@ -100,7 +102,7 @@ Object.assign(routes, {
 // it by title the same way).
 Object.assign(routes, {
   "POST /api/notices/rule-file": async (ctx: Parameters<Routes[string]>[0]) => {
-    const { putFile } = await import("../store.server");
+    const { putFile, listFiles, removeFiles } = await import("../store.server");
     const buf = await ctx.request.arrayBuffer();
     if (!buf.byteLength) return { error: "Không nhận được nội dung file" };
     if (buf.byteLength > 50 * 1024 * 1024) return { error: "File PDF quá lớn (> 50 MB)" };
@@ -109,7 +111,22 @@ Object.assign(routes, {
     const safe = raw.replace(/[\\/:*?"<>|]/g, "_").trim() || "notice.pdf";
     const name = safe.toLowerCase().endsWith(".pdf") ? safe : `${safe}.pdf`;
     const title = name.replace(/\.pdf$/i, "");
-    await putFile(ctx, `notices/${name}`, buf, "application/pdf");
-    return { ok: true, title, name, size: buf.byteLength };
+    // Chỉ quản trị mới lưu vào kho chung của máy chủ (dùng cho cả đội).
+    // Người khác: file tạm, chỉ dùng cho tài khoản của họ trong ngày, tự xoá sau 24 giờ.
+    const { data: isAdmin } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" });
+    if (isAdmin) {
+      await putFile(ctx, `notices/${name}`, buf, "application/pdf");
+      return { ok: true, title, name, size: buf.byteLength, shared: true };
+    }
+    const dir = `notices-tmp/${ctx.userId}`;
+    try {
+      const old = (await listFiles(ctx, dir)).filter(
+        (f) => Date.now() - new Date((f as { updated_at?: string }).updated_at ?? 0).getTime() > 24 * 3600_000,
+      );
+      await removeFiles(ctx, old.map((f) => `${dir}/${f.name}`));
+    } catch { /* ignore */ }
+    await putFile(ctx, `${dir}/${name}`, buf, "application/pdf");
+    return { ok: true, title, name, size: buf.byteLength, shared: false, temp: true,
+      note: "File tạm — chỉ dùng cho tài khoản của bạn trong 24 giờ, không lưu vào máy chủ (chỉ quản trị lưu được)." };
   },
 });

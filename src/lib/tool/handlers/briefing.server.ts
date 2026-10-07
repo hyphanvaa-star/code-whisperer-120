@@ -13,7 +13,8 @@ import { mergeToPdf, MergeError } from "../port/pdfMerge";
 // so the list is honestly empty until an upload endpoint is wired, same as
 // port/attch.ts's brief_disk already assumes.
 const BRIEF_DIR = "briefing";
-const REG_DIR = "regnotice";
+// MEL/RegNotice: mỗi người tự tách PDF, lưu riêng theo tài khoản của họ.
+const regDir = (ctx: { userId: string }) => `regnotice/${ctx.userId}`;
 
 async function briefFiles(ctx: Parameters<Routes[string]>[0]): Promise<BriefFile[]> {
   const entries = await store.listFiles(ctx, BRIEF_DIR);
@@ -80,12 +81,19 @@ export const routes: Routes = {
   },
 
   "GET /api/regnotice/list": async (ctx) => {
-    const entries = await store.listFiles(ctx, REG_DIR);
+    const entries = await store.listFiles(ctx, regDir(ctx));
     const files = entries
       .map((e) => e.name)
       .filter((n) => /^VNA.*\.pdf$/i.test(n))
       .map((n) => n.replace(/\.pdf$/i, "").toUpperCase());
     return { files };
+  },
+
+  "GET /api/regnotice/file/*": async (ctx) => {
+    const name = (ctx.route.split("/").pop() || "").replace(/[^A-Za-z0-9.]/g, "").toUpperCase().replace(/\.PDF$/, "") + ".pdf";
+    const buf = await store.getFile(ctx, `${regDir(ctx)}/${name}`);
+    if (!buf) return new Response("Không có file MEL", { status: 404 });
+    return new Response(buf, { headers: { "Content-Type": "application/pdf", "Cache-Control": "private, no-store" } });
   },
 
   // web.py split_regnotice_pdf: split a combined PDF by "Status of VN-Axxx" page headers.
@@ -119,10 +127,10 @@ export const routes: Routes = {
         for (const p of copied) out.addPage(p);
         const fname = `${code.replace("-", "")}.pdf`;
         const bytes = await out.save();
-        await store.putFile(ctx, `${REG_DIR}/${fname}`, bytes, "application/pdf");
+        await store.putFile(ctx, `${regDir(ctx)}/${fname}`, bytes, "application/pdf");
         results.push({ code, file: fname, pages: pages.length });
       }
-      return { total: results.length, output_dir: REG_DIR, files: results };
+      return { total: results.length, output_dir: "MEL của bạn (lưu riêng)", files: results };
     } catch (e) {
       return { error: `${e instanceof Error ? e.constructor.name : "Error"}: ${e instanceof Error ? e.message : String(e)}` };
     }
