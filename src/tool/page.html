@@ -25172,15 +25172,17 @@ async function ftOpenTaxi(){
     const kind = document.createElement("input");
     kind.className = "kind";
     kind.value = rec.type || "";
-    const months = ["oct", "nov", "dec"].map(function(key){
+    const monthKeys = ["oct", "nov", "dec"];
+    const activeIdx = months.indexOf(active);
+    const mInps = monthKeys.map(function(key){
       const inp = document.createElement("input");
       inp.dataset.k = key;
       inp.value = rec[key] == null ? "" : rec[key];
       return inp;
     });
-    [apt, kind].concat(months).forEach(function(inp, i){
+    [apt, kind].concat(mInps).forEach(function(inp, i){
       const td = document.createElement("td");
-      if(i === 2) td.className = "oct";
+      if(i - 2 === activeIdx) td.className = "oct";
       td.appendChild(inp);
       tr.appendChild(td);
     });
