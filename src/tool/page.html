@@ -15724,12 +15724,12 @@ function nmEnsureMap(){
   const sat = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {maxZoom: 19, attribution: "Tiles &copy; Esri"});
-  // SkyVector charts: scale s grows when zooming OUT. Odd scales use a
-  // 1.5 * 2^k grid: Leaflet zoom z -> s = 21 - 2z, tile x/y * 1.5 (z=10 -> s=1, finest).
+  // SkyVector charts: scale s grows when zooming OUT. Even scales use an exact
+  // 2^z grid aligned with Leaflet: s = 22 - 2z (z=10 -> s=2, finest native).
   const SvTile = L.TileLayer.extend({
     getTileUrl: function(c){
       return "https://t.skyvector.com/ABPNMzP6pI9L/" + this.options.svLayer + "/2610/" +
-        (21 - 2 * c.z) + "/" + Math.floor(c.x * 1.5) + "/" + Math.floor(c.y * 1.5) + ".jpg";
+        (22 - 2 * c.z) + "/" + c.x + "/" + c.y + ".jpg";
     }
   });
   const svOpts = {minZoom: 3, maxZoom: 19, maxNativeZoom: 10, keepBuffer: 4,
