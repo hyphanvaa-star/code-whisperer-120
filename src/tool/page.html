@@ -11111,6 +11111,8 @@ async function omniAutoPoll(){
   try{
     const d = await (await fetch("/api/omni/auto")).json();
     paintOmniAuto(d);
+    // Đến giờ thì tự chạy lượt tải (server không có hẹn giờ riêng).
+    if(d.enabled && !d.busy && !omniBusy && (!d.next_at || d.next_at <= Date.now() / 1000)) omniAutoNow();
   }catch(e){}
 }
 async function omniAutoSet(on){
