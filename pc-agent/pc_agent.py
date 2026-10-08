@@ -45,7 +45,7 @@ def _load_config() -> dict:
     except Exception:
         pass
     return {
-        "url": (os.environ.get("PC_AGENT_URL") or cfg.get("url") or DEFAULT_URL).rstrip("/"),
+        "url": (os.environ.get("PC_AGENT_URL") or (cfg.get("url") if "code-whisperer" not in str(cfg.get("url") or "") else "") or DEFAULT_URL).rstrip("/"),
         "token": os.environ.get("PC_AGENT_TOKEN") or cfg.get("token") or DEFAULT_TOKEN,
         "tool_dir": os.environ.get("PC_TOOL_DIR") or cfg.get("tool_dir") or "",
         "_cfg_path": cfg_path,
