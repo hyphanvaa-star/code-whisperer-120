@@ -205,7 +205,25 @@ export function save_cost_index(oldDoc: Raw, rows: Raw[]): Raw {
   return { columns: ["A320", "A321CEO", "A321NEO", "A330"], rows: out };
 }
 
-export function save_taxi(oldDoc: Raw, rows: Raw[]): Raw {
+export const TAXI_MONTH_KEYS = ["oct", "nov", "dec"];
+const MONTH_NAMES = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+export function taxiMonthLabels(doc: Raw | null | undefined): string[] {
+  const raw = (doc && doc.months) || [];
+  return TAXI_MONTH_KEYS.map((_, i) => String(raw[i] || ["OCT", "NOV", "DEC"][i]).trim().toUpperCase() || ["OCT", "NOV", "DEC"][i]);
+}
+
+// Active column = the one whose label matches the current UTC month;
+// fall back to doc.month, then the first column.
+export function taxiActiveIndex(doc: Raw | null | undefined): number {
+  const labels = taxiMonthLabels(doc);
+  const now = MONTH_NAMES[new Date().getUTCMonth()];
+  let idx = labels.indexOf(now);
+  if (idx < 0 && doc && doc.month) idx = labels.indexOf(String(doc.month).trim().toUpperCase());
+  return idx >= 0 ? idx : 0;
+}
+
+export function save_taxi(oldDoc: Raw, rows: Raw[], months?: string[]): Raw {
   const out: Raw[] = [];
   let apt = "";
   for (const rec of rows || []) {
@@ -223,7 +241,13 @@ export function save_taxi(oldDoc: Raw, rows: Raw[]): Raw {
       oct: String(rec.oct || "").trim(), nov: String(rec.nov || "").trim(), dec: String(rec.dec || "").trim(),
     });
   }
-  return { month: "OCT", source: oldDoc.source || "", standard: TAXI_STANDARD, rows: out };
+  const labels = TAXI_MONTH_KEYS.map((_, i) => {
+    const v = String((months || [])[i] || "").trim().toUpperCase();
+    return v || taxiMonthLabels(oldDoc)[i];
+  });
+  const doc: Raw = { month: "OCT", months: labels, source: oldDoc.source || "", standard: TAXI_STANDARD, rows: out };
+  doc.month = labels[taxiActiveIndex(doc)];
+  return doc;
 }
 
 export function save_route_table(rows: Raw[]): Raw {
@@ -375,12 +399,13 @@ export class Db {
     this.pcr_reg = _first(raw.pcr_reg || []);
     const ciDoc = opts?.ciDoc ?? build_cost_index_library(raw);
     this.ci_rows = ciDoc.rows || [];
-    this.taxi_doc = opts?.taxiDoc ?? { month: "OCT", source: "", standard: TAXI_STANDARD, rows: [] };
+    this.taxi_doc = opts?.taxiDoc ?? { month: "OCT", months: ["OCT", "NOV", "DEC"], source: "", standard: TAXI_STANDARD, rows: [] };
+    const taxiKey = TAXI_MONTH_KEYS[taxiActiveIndex(this.taxi_doc)];
     this.taxi_oct = {};
     for (const rec of this.taxi_doc.rows || []) {
       const apt = String(rec.airport || "").trim().toUpperCase();
       const kind = String(rec.type || "").trim().toUpperCase();
-      const val = rec.oct;
+      const val = rec[taxiKey];
       if (apt && kind && val !== "" && val != null) {
         const key = apt + "|" + kind;
         if (!(key in this.taxi_oct)) this.taxi_oct[key] = val;

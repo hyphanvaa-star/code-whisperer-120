@@ -2765,6 +2765,7 @@ html.night .ho-tbl input[type=text]{color:#e8edf4}
 .ftci input:focus,.fttx input:focus{border-color:#8d1a52;background:#fff;outline:none}
 .fttx-wrap{max-height:min(62vh,640px);overflow:auto}
 .fttx td.oct,.fttx th.oct{background:#fff4cc}
+.fttx th input.mon{width:60px;text-align:center;text-transform:uppercase;font-weight:700;color:#1a1a1a}
 .ftlib .crew-foot{margin-top:10px}
 
 /* Flight plan — quét FPL 15s + Omni 1 giờ xuống ổ D: */
@@ -7322,11 +7323,11 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
 <div class="modal" id="ftTaxiModal">
   <div class="sheet ftlib">
     <div class="sheet-head">
-      <h3>Taxi fuel — tháng 10</h3>
+      <h3 id="ftTaxiTitle">Taxi fuel</h3>
       <button class="btn small x" id="ftTaxiClose" type="button">✕</button>
     </div>
     <div class="sheet-body">
-      <p class="note">Đang dùng cột OCT. Sân bay không có trong bảng, hoặc không có loại tàu đó, thì A330 là 500 kg, A320 và A321 là 200 kg. Ba dòng cuối để nạp thêm.</p>
+      <p class="note" id="ftTaxiNote">Sân bay không có trong bảng, hoặc không có loại tàu đó, thì A330 là 500 kg, A320 và A321 là 200 kg. Ba dòng cuối để nạp thêm. Tên 3 cột tháng sửa được — tool tự dùng cột trùng tháng hiện tại.</p>
       <div class="fttx-wrap" id="ftTaxiBox"></div>
       <div class="crew-foot">
         <span class="status" id="ftTaxiMsg"></span>
@@ -25138,15 +25139,28 @@ async function ftOpenTaxi(){
   box.textContent = "Đang đọc…";
   const d = await (await fetch("/api/fpltext/taxi")).json();
   if(d.error){ box.textContent = d.error; return; }
+  const months = d.months || ["OCT", "NOV", "DEC"];
+  const active = d.month || months[0];
+  $("#ftTaxiTitle").textContent = "Taxi fuel — đang dùng cột " + active;
   const table = document.createElement("table");
   table.className = "fttx";
   const head = document.createElement("tr");
-  for(const label of ["AIRPORT", "AIRCRAFT TYPE", "OCT", "NOV", "DEC"]){
+  for(const label of ["AIRPORT", "AIRCRAFT TYPE"]){
     const th = document.createElement("th");
     th.textContent = label;
-    if(label === "OCT") th.className = "oct";
     head.appendChild(th);
   }
+  months.forEach(function(label, i){
+    const th = document.createElement("th");
+    const inp = document.createElement("input");
+    inp.className = "mon";
+    inp.dataset.mi = i;
+    inp.value = label;
+    inp.title = "Tên tháng của cột — sửa được";
+    if(label === active) th.className = "oct";
+    th.appendChild(inp);
+    head.appendChild(th);
+  });
   const thead = document.createElement("thead");
   thead.appendChild(head);
   table.appendChild(thead);
@@ -25159,15 +25173,17 @@ async function ftOpenTaxi(){
     const kind = document.createElement("input");
     kind.className = "kind";
     kind.value = rec.type || "";
-    const months = ["oct", "nov", "dec"].map(function(key){
+    const monthKeys = ["oct", "nov", "dec"];
+    const activeIdx = months.indexOf(active);
+    const mInps = monthKeys.map(function(key){
       const inp = document.createElement("input");
       inp.dataset.k = key;
       inp.value = rec[key] == null ? "" : rec[key];
       return inp;
     });
-    [apt, kind].concat(months).forEach(function(inp, i){
+    [apt, kind].concat(mInps).forEach(function(inp, i){
       const td = document.createElement("td");
-      if(i === 2) td.className = "oct";
+      if(i - 2 === activeIdx) td.className = "oct";
       td.appendChild(inp);
       tr.appendChild(td);
     });
@@ -25257,11 +25273,14 @@ $("#ftCostSave").onclick = async function(){
   $("#ftCostMsg").textContent = d.error || "Đã lưu.";
 };
 $("#ftTaxiSave").onclick = async function(){
+  const months = [];
+  for(const inp of document.querySelectorAll("#ftTaxiBox input.mon")) months.push(inp.value.trim().toUpperCase());
   const d = await (await fetch("/api/fpltext/taxi", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({rows: ftReadTaxi()})
+    body: JSON.stringify({rows: ftReadTaxi(), months: months})
   })).json();
-  $("#ftTaxiMsg").textContent = d.error || "Đã lưu. FPL dùng cột tháng 10.";
+  $("#ftTaxiMsg").textContent = d.error || ("Đã lưu. FPL đang dùng cột " + (d.month || "") + ".");
+  if(!d.error) ftOpenTaxi().catch(function(){});
 };
 $("#ftRouteAdd").onclick = function(){
   const tb = $("#ftRouteBox").querySelector("tbody");

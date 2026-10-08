@@ -114,9 +114,12 @@ export const routes: Routes = {
 
   "GET /api/fpltext/taxi": async (ctx) => {
     const doc = await loadTaxiDoc(ctx);
+    const labels = ft.taxiMonthLabels(doc);
+    const active = labels[ft.taxiActiveIndex(doc)];
     return {
       ok: true,
-      month: doc.month || "OCT",
+      month: active,
+      months: labels,
       source: doc.source || "",
       standard: doc.standard || {},
       rows: doc.rows || [],
@@ -125,9 +128,11 @@ export const routes: Routes = {
   "POST /api/fpltext/taxi": async (ctx) => {
     const body = await ctx.json();
     const old = await loadTaxiDoc(ctx);
-    const doc = ft.save_taxi(old, readRows(body));
+    const months = Array.isArray(body?.months) ? body.months.map((m: any) => String(m)) : undefined;
+    const doc = ft.save_taxi(old, readRows(body), months);
     await setJson(ctx, "fpl.taxi_fuel", doc);
-    return { ok: true, rows: doc.rows || [] };
+    const labels = ft.taxiMonthLabels(doc);
+    return { ok: true, rows: doc.rows || [], months: labels, month: labels[ft.taxiActiveIndex(doc)] };
   },
 
   "GET /api/fpltext/route": async (ctx) => {
