@@ -399,12 +399,13 @@ export class Db {
     this.pcr_reg = _first(raw.pcr_reg || []);
     const ciDoc = opts?.ciDoc ?? build_cost_index_library(raw);
     this.ci_rows = ciDoc.rows || [];
-    this.taxi_doc = opts?.taxiDoc ?? { month: "OCT", source: "", standard: TAXI_STANDARD, rows: [] };
+    this.taxi_doc = opts?.taxiDoc ?? { month: "OCT", months: ["OCT", "NOV", "DEC"], source: "", standard: TAXI_STANDARD, rows: [] };
+    const taxiKey = TAXI_MONTH_KEYS[taxiActiveIndex(this.taxi_doc)];
     this.taxi_oct = {};
     for (const rec of this.taxi_doc.rows || []) {
       const apt = String(rec.airport || "").trim().toUpperCase();
       const kind = String(rec.type || "").trim().toUpperCase();
-      const val = rec.oct;
+      const val = rec[taxiKey];
       if (apt && kind && val !== "" && val != null) {
         const key = apt + "|" + kind;
         if (!(key in this.taxi_oct)) this.taxi_oct[key] = val;
