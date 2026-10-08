@@ -22,7 +22,7 @@ import { setNotamProgress } from "./notam.server";
 // of a fabricated line; distance-to-track math in notam_track.ts already degrades to
 // `dist_nm: null` ("không tính được") in that case, same as upstream without its KML.
 import { trackFor } from "../port/jetplan_kml";
-import { supKeys, type Geom } from "../port/notam_track";
+import { supKeys, notamGeoms, type Geom } from "../port/notam_track";
 import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText } from "../aip_sup.server";
 import { expand_au_area_ids } from '../port/aip_sup';
 import AIP_CATALOG from '../port/aip_catalog.json';
@@ -35,7 +35,7 @@ const AU_CTA_ID = /\bY[A-Z]{3}(?:-Y[A-Z]{3})?\/([A-Z][A-Z0-9'./\-]*(?:\s+[A-Z][A
 async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   bindCtx(ctx);
   const deadline = Date.now() + 20000;
-  const tasks: (() => Promise<void>)[] = [];
+  const tasks: { priority: number; run: () => Promise<void> }[] = [];
   let japanCatalog: ReturnType<typeof japanTrainingRings> | undefined;
   let japanWarnings: ReturnType<typeof japanTrainingRings> | undefined;
   const supRequests = new Map<string, ReturnType<typeof rings_of>>();
@@ -101,12 +101,13 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
         if (geoms.length) n.sup_geoms = geoms;
       };
       // ENR catalog work must not be starved by dozens of unrelated SUP downloads.
-      if (jp && /ENR\s*5\.[13]/i.test(blob)) tasks.unshift(task);
-      else tasks.push(task);
+      const hasBoundary = notamGeoms(n).some(g => g.shape === 'polygon' || g.shape === 'line' || (g.shape === 'circle' && g.source !== 'pin'));
+      tasks.push({ priority: jp && /ENR\s*5\.[13]/i.test(blob) ? 0 : hasBoundary ? 2 : 1, run: task });
     }
   }
+  tasks.sort((a, b) => a.priority - b.priority);
   let i = 0;
-  const worker = async () => { while (i < tasks.length && Date.now() < deadline) { const t = tasks[i++]!; try { await t(); } catch { /* degrade */ } } };
+  const worker = async () => { while (i < tasks.length && Date.now() < deadline) { const t = tasks[i++]; if (!t) return; try { await t.run(); } catch { /* degrade */ } } };
   await Promise.race([
     Promise.all(Array.from({ length: 4 }, worker)),
     new Promise((r) => setTimeout(r, Math.max(0, deadline - Date.now()))),
