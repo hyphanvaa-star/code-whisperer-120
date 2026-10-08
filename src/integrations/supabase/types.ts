@@ -110,6 +110,27 @@ export type Database = {
         }
         Relationships: []
       }
+      omni_session: {
+        Row: {
+          exp: string | null
+          token: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          exp?: string | null
+          token?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          exp?: string | null
+          token?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       pc_jobs: {
         Row: {
           created_at: string
