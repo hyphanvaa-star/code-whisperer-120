@@ -5,6 +5,7 @@
 import type { Ctx } from "./types";
 import { getJson, setJson } from "./store.server";
 import * as p from "./port/aip_sup";
+import AU_DAH from "./data/au_dah.json";
 import type { RingTable, Pt } from "./port/aip_sup";
 import { parseEnr53Text, parseEnr51Text, idsInText } from './port/aip_jp';
 import { parseKrEnrHtml } from './port/aip_enr';
@@ -386,6 +387,9 @@ async function fetchDah(): Promise<Record<string, Pt[]>> {
 
 async function dahRings(ctx: Ctx): Promise<Record<string, Pt[]>> {
   if (_dahMem) return _dahMem;
+  // Bundled snapshot: the live DAH PDF (4 MB) cannot be downloaded+parsed inside a request deadline.
+  const bundled = (AU_DAH.rings || {}) as unknown as Record<string, Pt[]>;
+  if (Object.keys(bundled).length) { _dahMem = bundled; return bundled; }
   const cached = await readDahCache(ctx);
   if (cached !== null) { _dahMem = cached; return cached; }
   try {
