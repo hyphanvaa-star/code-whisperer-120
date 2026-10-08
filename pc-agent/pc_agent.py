@@ -637,7 +637,12 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
     import owa_fpl_watch  # noqa: E402  (module của tool gốc)
     _patch_fpl_watch(owa_fpl_watch)
     after = int(payload.get("after") or 0)
+    # Trợ lý vừa khởi động lại thì số thứ tự dòng log về 0 — web còn giữ số cũ
+    # nên không thấy dòng nào. Số "after" lớn hơn hiện tại → gửi lại từ đầu.
+    if after > int(getattr(owa_fpl_watch, "_seq", 0) or 0):
+        after = 0
     st = owa_fpl_watch.status(after=after)
+    _sync_fpl_dir(st)
     # Web không đọc được ổ máy công ty: gửi kèm file Excel FPL VER (old/new)
     # để web lưu vào kho Excel, tab "Dữ liệu thay đổi theo ver" mới so được.
     try:
@@ -662,6 +667,44 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
 
 
 _SENT_VER: set = set()
+_SYNCED_FPL: set = set()
+
+
+def _sync_fpl_dir(st: dict) -> None:
+    r"""Watcher gốc chỉ copy sang D:\FPL lúc tải mới. Nếu FPL hôm nay đã nằm sẵn
+    trong data/excel (tool gốc tải trước đó, hoặc lúc ấy không có ổ D) thì thư mục
+    FPL vẫn trống — chép bù các file FPL VER (cũ/mới + mọi FPL hôm nay) sang đó."""
+    try:
+        import config  # noqa: E402
+        dest = _fpl_dir()
+        dest.mkdir(parents=True, exist_ok=True)
+        src = Path(st.get("dest_excel") or getattr(config, "EXCEL_DIR", "") or "data/excel")
+        if not src.is_dir() or src.resolve() == dest.resolve():
+            return
+        ver = st.get("ver") or {}
+        names = {ver.get("old") or "", ver.get("new") or ""}
+        today = time.strftime("%Y-%m-%d")
+        for f in src.glob("*.xls*"):
+            if re.search(r"FLIGHT\s*PLAN|\bFPL\b", f.name, re.I) and \
+                    time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today:
+                names.add(f.name)
+        copied = []
+        for name in names:
+            if not name:
+                continue
+            f, t = src / name, dest / name
+            if not f.is_file() or (t.is_file() and t.stat().st_size == f.stat().st_size):
+                continue
+            shutil.copy2(f, t)
+            copied.append(name)
+        for name in copied:
+            if name in _SYNCED_FPL:
+                continue
+            _SYNCED_FPL.add(name)
+            st.setdefault("lines", []).append({"text": f"✓ chép {name} → {dest}", "cls": "ok"})
+            log(f"  ✓ chép {name} → {dest}")
+    except Exception as e:
+        st.setdefault("lines", []).append({"text": f"⚠ Không chép được FPL sang {_fpl_dir()}: {e}", "cls": "bad"})
 
 
 def do_owa_pib(payload: dict, say) -> dict:
