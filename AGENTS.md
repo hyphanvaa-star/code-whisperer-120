@@ -28,6 +28,7 @@
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets), because each dispatcher may use their own account.
 - AIP SUP/DAH rings and hours are fetched in `src/lib/tool/aip_sup.server.ts` (parsers in `port/aip_sup.ts`, cache in app_settings `aip_sup:*`), attached as `notam.sup_geoms` by the Check NOTAM handler, because NOTAM text often only names the SUP area.
 - Japanese ENR training boundaries use the pure `port/aip_jp.ts` parser and country-scoped server cache; injected map geometry fixes preserve resolved server boundaries so client text parsing cannot flatten arcs or join separate areas.
+- Every FliteBrief NOTAM tracking/fleet place is filtered through `apply24h` before enrichment, counting and geometry comparison, because the upstream ICAO payload is ALL rather than the portal's 24H selection.
 - Every publish bumps the version badge #appVersion in src/tool/page.html (V1, V2, …) so users can tell builds apart.
 - All briefing generation paths use `src/lib/tool/briefing-data.server.ts` for cached TAF, aircraft defects and pinned NOTAMs, so draft/export/aircraft replacement cannot silently omit a source.
 - Briefing PDFs use `src/lib/tool/port/briefingPdf.ts` for the original three-column Letter layout with embedded fonts; overflow continues rather than truncating operational text.
