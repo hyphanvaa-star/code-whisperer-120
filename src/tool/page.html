@@ -6930,6 +6930,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   <th class="ho-mark">ATC filing<label class="ho-tick"><input type="checkbox" id="hoAllAtc" title="Tích cả cột ATC"></label></th>
                   <th class="ho-mark">EZFW<label class="ho-tick"><input type="checkbox" id="hoAllEzfw" title="Tích cả cột EZFW"></label></th>
                   <th class="ho-mark">ATFM filling<label class="ho-tick"><input type="checkbox" id="hoAllAtfm" title="Tích cả cột ATFM"></label></th>
+                  <th class="ho-mark">EDTO<label class="ho-tick"><input type="checkbox" id="hoAllEdto" title="Tích cả cột EDTO"></label></th>
                   <th class="ho-note">Note</th>
                 </tr>
               </thead>
@@ -24255,7 +24256,14 @@ $("#mHandover").onclick = () => { setMode("handover"); hoShow(); };
 
 const HO_BLANK = 16;
 const HO_KEY = "dispatch_handover_v1";
-const HO_TICKS = ["atc", "ezfw", "atfm"];
+const HO_TICKS = ["atc", "ezfw", "atfm", "edto"];
+// EZFW / ATFM chỉ áp dụng cho chuyến quốc tế về VN (ARR ở VN, DEP nước ngoài).
+function hoNeedsEzfwAtfm(row){
+  const dep = String((row && row.dep) || "").trim().toUpperCase();
+  const arr = String((row && row.arr) || "").trim().toUpperCase();
+  if(!dep && !arr) return true; // dòng trống: vẫn cho tích tay
+  return arr.indexOf("VV") === 0 && dep.indexOf("VV") !== 0;
+}
 let hoSaved = {shift:"MORNING SHIFT", date:"", from_dsp:"", to_dsp:"", flights:[]};
 let hoReady = false;
 let hoLastTick = null;
