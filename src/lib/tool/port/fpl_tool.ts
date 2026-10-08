@@ -205,7 +205,25 @@ export function save_cost_index(oldDoc: Raw, rows: Raw[]): Raw {
   return { columns: ["A320", "A321CEO", "A321NEO", "A330"], rows: out };
 }
 
-export function save_taxi(oldDoc: Raw, rows: Raw[]): Raw {
+export const TAXI_MONTH_KEYS = ["oct", "nov", "dec"];
+const MONTH_NAMES = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+export function taxiMonthLabels(doc: Raw | null | undefined): string[] {
+  const raw = (doc && doc.months) || [];
+  return TAXI_MONTH_KEYS.map((_, i) => String(raw[i] || ["OCT", "NOV", "DEC"][i]).trim().toUpperCase() || ["OCT", "NOV", "DEC"][i]);
+}
+
+// Active column = the one whose label matches the current UTC month;
+// fall back to doc.month, then the first column.
+export function taxiActiveIndex(doc: Raw | null | undefined): number {
+  const labels = taxiMonthLabels(doc);
+  const now = MONTH_NAMES[new Date().getUTCMonth()];
+  let idx = labels.indexOf(now);
+  if (idx < 0 && doc && doc.month) idx = labels.indexOf(String(doc.month).trim().toUpperCase());
+  return idx >= 0 ? idx : 0;
+}
+
+export function save_taxi(oldDoc: Raw, rows: Raw[], months?: string[]): Raw {
   const out: Raw[] = [];
   let apt = "";
   for (const rec of rows || []) {
