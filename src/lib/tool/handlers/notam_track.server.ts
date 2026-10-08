@@ -21,6 +21,60 @@ import { setNotamProgress } from "./notam.server";
 // of a fabricated line; distance-to-track math in notam_track.ts already degrades to
 // `dist_nm: null` ("không tính được") in that case, same as upstream without its KML.
 import { trackFor } from "../port/jetplan_kml";
+import { supKeys, type Geom } from "../port/notam_track";
+import { bindCtx, rings_of, hours_of, dah_ring, dah_named } from "../aip_sup.server";
+import type { Ctx } from "../types";
+
+const AU_DAH_ID = /\bY[A-Z]{3}\/([MRDP]\d{3,4}[A-Z]?)(?![0-9])/gi;
+const AU_CTA_ID = /\bY[A-Z]{3}(?:-Y[A-Z]{3})?\/([A-Z][A-Z0-9'./\-]*(?:\s+[A-Z][A-Z0-9'./\-]*){0,6}\s+CTA\s+[A-Z]\d{1,2})\b/gi;
+
+/** notam_check.py sup_hours_schedule + AIP SUP/DAH rings — bounded so Check NOTAM never hangs. */
+async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
+  bindCtx(ctx);
+  const deadline = Date.now() + 20000;
+  const tasks: (() => Promise<void>)[] = [];
+  for (const place of places) {
+    const notams = ((place as Record<string, unknown>).notams as Record<string, unknown>[]) || [];
+    for (const n of notams) {
+      const blob = `${String(n.e_field ?? "")} ${String(n.text ?? "")}`;
+      const fir = String(n.qfir ?? (place as Record<string, unknown>).fir ?? place.code ?? "");
+      const keys = supKeys(blob);
+      const au = fir.toUpperCase().startsWith("Y");
+      if (!keys.length && !au) continue;
+      tasks.push(async () => {
+        const geoms: Geom[] = [];
+        for (const key of keys) {
+          if (Date.now() > deadline) return;
+          const table = await rings_of(key, fir);
+          for (const [nr, item] of Object.entries(table)) {
+            if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: `AIP SUP ${key}` });
+          }
+          if (!String(n.d_field ?? "").trim()) {
+            const hours = await hours_of(key, fir);
+            if (hours) { n.d_field = hours; n.d_src = "AIP SUP"; }
+          }
+        }
+        if (au && !geoms.length && Date.now() < deadline) {
+          for (const m of blob.matchAll(AU_DAH_ID)) {
+            const ring = await dah_ring(m[1]!, fir);
+            if (ring.length >= 3) geoms.push({ name: m[1]!.toUpperCase(), shape: "polygon", ring, source: "DAH" });
+          }
+          for (const m of blob.matchAll(AU_CTA_ID)) {
+            const ring = await dah_named(m[1]!, fir);
+            if (ring.length >= 3) geoms.push({ name: m[1]!.toUpperCase(), shape: "polygon", ring, source: "DAH" });
+          }
+        }
+        if (geoms.length) n.sup_geoms = geoms;
+      });
+    }
+  }
+  let i = 0;
+  const worker = async () => { while (i < tasks.length && Date.now() < deadline) { const t = tasks[i++]!; try { await t(); } catch { /* degrade */ } } };
+  await Promise.race([
+    Promise.all(Array.from({ length: 4 }, worker)),
+    new Promise((r) => setTimeout(r, Math.max(0, deadline - Date.now()))),
+  ]);
+}
 
 async function fetchPlace(code: string, want: string): Promise<Place> {
   const icao = normIcao(code);
@@ -85,7 +139,7 @@ export const routes: Routes = {
     if (!flight) return { error: `Không tìm thấy chuyến fid=${fid}.` };
     try {
       const result = await run(flight, {
-        fetchPlaces: (f) => fetchPlacesFor([f]),
+        fetchPlaces: async (f) => { const p = await fetchPlacesFor([f]); await enrichWithSup(ctx, p); return p; },
         fetchTrack,
         onProgress: (text) => void (tid && setNotamProgress(ctx, tid, text)),
       });
@@ -117,9 +171,9 @@ export const routes: Routes = {
     }
     try {
       const result = await runDomesticFleet(flights, {
-        fetchPlaces: (f) => fetchPlacesFor([f]),
+        fetchPlaces: async (f) => { const p = await fetchPlacesFor([f]); await enrichWithSup(ctx, p); return p; },
         fetchTrack,
-        fetchAllPlaces: fetchPlacesFor,
+        fetchAllPlaces: async (fs) => { const p = await fetchPlacesFor(fs); await enrichWithSup(ctx, p); return p; },
         onProgress: (text) => void (tid && setNotamProgress(ctx, tid, text)),
       });
       if (tid) await setNotamProgress(ctx, tid, "Xong");
