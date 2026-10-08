@@ -25,7 +25,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.4"
+VERSION = "1.5"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -312,11 +312,49 @@ def print_sheets(path: Path, printer: str, say) -> None:
         pythoncom.CoUninitialize()
 
 
+def _has_d() -> bool:
+    try:
+        return Path("D:/").exists()
+    except OSError:
+        return False
+
+
+def _fix_drive(p) -> Path:
+    r"""Máy không có ổ D thì mọi đích D:\... chuyển sang C:\... (giữ nguyên thư mục con)."""
+    s = str(p or "")
+    if s[:2].upper() == "D:" and not _has_d():
+        s = "C:" + s[2:]
+    return Path(s)
+
+
+def _patch_config_drive(config) -> None:
+    """config.get_path / ensure_d_folder của tool gốc cứng ổ D — bọc lại để rơi về ổ C."""
+    if getattr(config, "_drive_patched", False):
+        return
+    gp = getattr(config, "get_path", None)
+    if callable(gp):
+        def get_path(*a, **k):
+            return _fix_drive(gp(*a, **k))
+        config.get_path = get_path
+    ed = getattr(config, "ensure_d_folder", None)
+    if callable(ed):
+        def ensure_d_folder(*a, **k):
+            try:
+                res = ed(*a, **k)
+            except Exception:
+                res = gp(*a, **k) if callable(gp) else Path("C:/")
+            out = _fix_drive(res)
+            out.mkdir(parents=True, exist_ok=True)
+            return out
+        config.ensure_d_folder = ensure_d_folder
+    config._drive_patched = True
+
+
 def do_gd_print(payload: dict, say) -> dict:
     flight = str(payload.get("flight") or "")
     crew_regs = [str(r) for r in payload.get("crew_regs") or []]
     printer = str(payload.get("printer") or "")
-    dest = Path(str(payload.get("dest") or "D:/GD"))
+    dest = _fix_drive(str(payload.get("dest") or "D:/GD"))
 
     say(f"▶ tìm GD {flight} trong {FOLDER_NAME}")
     path = download_gd(flight, dest, say)
@@ -341,7 +379,7 @@ def do_gd_print(payload: dict, say) -> dict:
 # --------------------------------------------------------------------------- #
 
 def do_save_file(payload: dict, say) -> dict:
-    d = Path(str(payload.get("dir") or "D:/"))
+    d = _fix_drive(str(payload.get("dir") or "D:/"))
     name = str(payload.get("name") or "file.bin")
     raw = base64.b64decode(str(payload.get("data_b64") or ""))
     d.mkdir(parents=True, exist_ok=True)
@@ -513,7 +551,7 @@ class _NoCancel:
 def _fpl_dir() -> Path:
     """Thư mục nhận Excel FPL VER. Tool gốc cứng D:\\FPL nhưng không phải máy
     nào cũng có ổ D — thiếu thì rơi về C:\\FPL."""
-    if Path("D:/").exists():
+    if _has_d():
         return Path(r"D:\FPL")
     return Path(r"C:\FPL")
 
@@ -537,6 +575,7 @@ def _load_owa_modules():
         sys.path.insert(0, str(tool_dir))
     os.chdir(tool_dir)  # config.py / profile Chrome OWA dùng đường dẫn tương đối
     import config  # noqa: E402  (module của tool gốc)
+    _patch_config_drive(config)
     import outlook_web_pib  # noqa: E402  (module của tool gốc)
     # Máy không có ổ D: chuyển mọi đích FPL/Excel sang C:\FPL trước khi watcher chạy.
     fpl = _fpl_dir()
@@ -1197,10 +1236,10 @@ def main() -> int:
     check_paths: list[str] = []
     while True:
         try:
-            paths_exist = {}
+            paths_exist = {"D:\\": _has_d()}
             for p in check_paths:
                 try:
-                    paths_exist[p] = Path(p).is_dir()
+                    paths_exist[p] = _fix_drive(p).is_dir()
                 except OSError:
                     paths_exist[p] = False
             d = post(POLL_URL, {
