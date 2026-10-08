@@ -63,3 +63,4 @@
 - [x] Publish V3 với slug `sohee-dispatch-tool-v3` (user muốn tên URL có version)
 
 - [x] Trợ lý PC v1.5: mọi đích D:\ (FPL, Omni, GD, PIB) tự rơi về C:\ khi máy không có ổ D; web hiển thị đường dẫn thực tế.
+- [x] Route check trên bản đồ: bỏ viền đen (halo) quanh đường vàng, giữ nguyên đường vàng.
