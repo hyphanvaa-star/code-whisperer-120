@@ -119,16 +119,7 @@ async function omniExportBytes(day: string): Promise<Uint8Array> {
   const { session } = await omni.login(omniCreds());
   const r = await fetch(omni.API + omni.FLIGHTS_EXPORT, {
     method: "POST",
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36",
-      Accept: "*/*",
-      "Content-Type": "application/json",
-      language: "vi",
-      Origin: omni.WEB,
-      Referer: `${omni.WEB}/support/cargo/dashboard`,
-      Authorization: `Bearer ${session.token}`,
-    },
+    headers: omni.headers(session),
     body: JSON.stringify({ flightDate: day }),
   });
   if (r.status !== 200) throw new Error(`tải báo cáo Omni lỗi: HTTP ${r.status}`);
