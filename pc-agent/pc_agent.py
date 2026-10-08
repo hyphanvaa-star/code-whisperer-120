@@ -498,6 +498,38 @@ def do_aviweb_check(payload: dict, say) -> dict:
     headless = bool(payload.get("headless", True))
     say(f"· dùng tool gốc tại {tool_dir}")
 
+    def on_progress(*a) -> None:
+        d = a[0] if a else None
+        if isinstance(d, dict) and d.get("type") == "line" and d.get("text"):
+            say(str(d["text"]), str(d.get("cls") or ""))
+
+    res = atc_check.check_flights(callsigns, headless=headless, on_progress=on_progress)
+    return {
+        "ok": res.ok,
+        "failed": res.failed,
+        "results": [
+            {"callsign": r.callsign, "status": r.status, "flight_time": r.flight_time,
+             "reg": r.reg, "dof": r.dof, "error": r.error, "ok": r.ok}
+            for r in res.results
+        ],
+    }
+
+
+def do_aviweb_submit(payload: dict, say) -> dict:
+    """Gửi FPL lên AviWeb bằng Chrome thật — chạy atcfpl.submit_fpl() của tool gốc."""
+    tool_dir = _find_tool_dir()
+    if str(tool_dir) not in sys.path:
+        sys.path.insert(0, str(tool_dir))
+    os.chdir(tool_dir)
+    import atcfpl  # noqa: E402  (module của tool gốc)
+
+    name = str(payload.get("name") or "ATC.txt")
+    dest = tool_dir / "data" / "atc"
+    dest.mkdir(parents=True, exist_ok=True)
+    fpath = dest / name
+    fpath.write_text(str(payload.get("text") or ""), encoding="utf-8")
+    say(f"· file ATC: {fpath}")
+
     total = len(atcfpl.read_fpl_blocks(fpath))
     state = {"n": 0}
 
