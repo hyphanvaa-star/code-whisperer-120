@@ -25138,15 +25138,28 @@ async function ftOpenTaxi(){
   box.textContent = "Đang đọc…";
   const d = await (await fetch("/api/fpltext/taxi")).json();
   if(d.error){ box.textContent = d.error; return; }
+  const months = d.months || ["OCT", "NOV", "DEC"];
+  const active = d.month || months[0];
+  $("#ftTaxiTitle").textContent = "Taxi fuel — đang dùng cột " + active;
   const table = document.createElement("table");
   table.className = "fttx";
   const head = document.createElement("tr");
-  for(const label of ["AIRPORT", "AIRCRAFT TYPE", "OCT", "NOV", "DEC"]){
+  for(const label of ["AIRPORT", "AIRCRAFT TYPE"]){
     const th = document.createElement("th");
     th.textContent = label;
-    if(label === "OCT") th.className = "oct";
     head.appendChild(th);
   }
+  months.forEach(function(label, i){
+    const th = document.createElement("th");
+    const inp = document.createElement("input");
+    inp.className = "mon";
+    inp.dataset.mi = i;
+    inp.value = label;
+    inp.title = "Tên tháng của cột — sửa được";
+    if(label === active) th.className = "oct";
+    th.appendChild(inp);
+    head.appendChild(th);
+  });
   const thead = document.createElement("thead");
   thead.appendChild(head);
   table.appendChild(thead);
