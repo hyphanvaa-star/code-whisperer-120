@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plane, Lock, Mail, ShieldCheck } from "lucide-react";
+import { Plane, Lock, UserRound, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,13 +21,18 @@ export const Route = createFileRoute("/auth")({
 });
 
 const schema = z.object({
-  email: z.string().trim().email("Email không hợp lệ").max(255),
-  password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự").max(72),
+  id: z
+    .string()
+    .trim()
+    .min(2, "Nhập ID tài khoản")
+    .max(255)
+    .regex(/^[a-z0-9._@-]+$/i, "ID chỉ gồm chữ, số, . _ -"),
+  password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự").max(72),
 });
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -43,15 +48,20 @@ function AuthPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const parsed = schema.safeParse({ email, password });
+    const parsed = schema.safeParse({ id, password });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ");
       return;
     }
+    const raw = parsed.data.id;
+    const account = raw.includes("@") ? raw : `${raw.toLowerCase()}@app.local`;
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword(parsed.data);
-      if (error) toast.error("Sai email hoặc mật khẩu");
+      const { error } = await supabase.auth.signInWithPassword({
+        email: account,
+        password: parsed.data.password,
+      });
+      if (error) toast.error("Sai ID hoặc mật khẩu");
     } finally {
       setBusy(false);
     }
