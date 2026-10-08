@@ -2809,6 +2809,7 @@ html.night #wrapFplText .fttbl input[type=text].ft-ac-a330{color:#86efac;backgro
 .ho-tick input[type=checkbox]:checked:before{content:"";width:5px;height:9px;border:solid #fff;
   border-width:0 2px 2px 0;transform:rotate(45deg);margin-bottom:2px}
 .ho-tbl th .ho-tick{height:auto;padding-top:4px}
+.ho-tbl td.ho-na{color:#9ca3af;text-align:center}
 .ho-tbl th .ho-tick input[type=checkbox]{border-color:#fff;background:#fff}
 .ho-tbl th .ho-tick input[type=checkbox]:checked{background:#22c55e;border-color:#22c55e}
 html.night #wrapHandover{background:#10141c}
@@ -6930,6 +6931,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   <th class="ho-mark">ATC filing<label class="ho-tick"><input type="checkbox" id="hoAllAtc" title="Tích cả cột ATC"></label></th>
                   <th class="ho-mark">EZFW<label class="ho-tick"><input type="checkbox" id="hoAllEzfw" title="Tích cả cột EZFW"></label></th>
                   <th class="ho-mark">ATFM filling<label class="ho-tick"><input type="checkbox" id="hoAllAtfm" title="Tích cả cột ATFM"></label></th>
+                  <th class="ho-mark">EDTO<label class="ho-tick"><input type="checkbox" id="hoAllEdto" title="Tích cả cột EDTO"></label></th>
                   <th class="ho-note">Note</th>
                 </tr>
               </thead>
@@ -24255,7 +24257,14 @@ $("#mHandover").onclick = () => { setMode("handover"); hoShow(); };
 
 const HO_BLANK = 16;
 const HO_KEY = "dispatch_handover_v1";
-const HO_TICKS = ["atc", "ezfw", "atfm"];
+const HO_TICKS = ["atc", "ezfw", "atfm", "edto"];
+// EZFW / ATFM chỉ áp dụng cho chuyến quốc tế về VN (ARR ở VN, DEP nước ngoài).
+function hoNeedsEzfwAtfm(row){
+  const dep = String((row && row.dep) || "").trim().toUpperCase();
+  const arr = String((row && row.arr) || "").trim().toUpperCase();
+  if(!dep && !arr) return true; // dòng trống: vẫn cho tích tay
+  return arr.indexOf("VV") === 0 && dep.indexOf("VV") !== 0;
+}
 let hoSaved = {shift:"MORNING SHIFT", date:"", from_dsp:"", to_dsp:"", flights:[]};
 let hoReady = false;
 let hoLastTick = null;
@@ -24398,6 +24407,7 @@ function hoCollect(){
       atc: tick("atc"),
       ezfw: tick("ezfw"),
       atfm: tick("atfm"),
+      edto: tick("edto"),
       note: get('input[data-ho="note"]'),
     };
     if(!row.key) row.key = (callsign.replace(/\s+/g,"").toUpperCase() + "|" + row.std);
@@ -24449,6 +24459,10 @@ function hoAddRow(row){
     tr.appendChild(hoCell(inp, item[1]));
   });
   HO_TICKS.forEach(function(kind){
+    if((kind === "ezfw" || kind === "atfm") && !hoNeedsEzfwAtfm(row)){
+      tr.appendChild(hoCell(document.createTextNode("—"), "ho-mark ho-na"));
+      return;
+    }
     tr.appendChild(hoCell(hoTickBox(kind, hoIsOn(row && row[kind])), "ho-mark"));
   });
   const note = hoInp(row && row.note, "ho-note");
@@ -24485,6 +24499,7 @@ function hoFromFlight(f, saved){
     atc: hit.atc || "",
     ezfw: hit.ezfw || "",
     atfm: hit.atfm || "",
+    edto: hit.edto || "",
     note: hit.note || "",
   };
 }
@@ -24650,7 +24665,7 @@ document.querySelectorAll("#hoShiftPills [data-ho-shift]").forEach(function(btn)
   el.addEventListener("input", function(){ hoPaintMeta(); hoMarkDirty(); });
   el.addEventListener("change", function(){ hoPaintMeta(); hoMarkDirty(); });
 });
-[["hoAllAtc","atc"],["hoAllEzfw","ezfw"],["hoAllAtfm","atfm"]].forEach(function(item){
+[["hoAllAtc","atc"],["hoAllEzfw","ezfw"],["hoAllAtfm","atfm"],["hoAllEdto","edto"]].forEach(function(item){
   const el = $("#" + item[0]);
   if(!el) return;
   el.addEventListener("click", function(){ hoTickCol(item[1], el.checked); });

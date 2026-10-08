@@ -40,7 +40,8 @@ describe("handover", () => {
     const ws = wb.worksheets[0];
     expect(ws.getCell("I1").value).toBe("MORNING SHIFT HANDOVER");
     expect(ws.getCell(3, 1).value).toBe("CHUYẾN BAY");
-    expect(ws.getCell(3, 12).value).toBe("NOTE");
+    expect(ws.getCell(3, 12).value).toBe("EDTO");
+    expect(ws.getCell(3, 13).value).toBe("NOTE");
     expect(ws.getCell(4, 1).value).toBe("VJC150");
     expect(ws.getCell(4, 9).value).toBe("OK");
 
