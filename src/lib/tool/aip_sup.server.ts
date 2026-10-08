@@ -6,7 +6,7 @@ import type { Ctx } from "./types";
 import { getJson, setJson } from "./store.server";
 import * as p from "./port/aip_sup";
 import type { RingTable, Pt } from "./port/aip_sup";
-import { parseEnr53Text, idsInText } from './port/aip_jp';
+import { parseEnr53Text, parseEnr51Text, idsInText } from './port/aip_jp';
 
 const UA = "DispatchBoard-AIP/1.0";
 const OK_TTL_S = 30 * 24 * 3600;
@@ -454,8 +454,8 @@ export async function hours_of(sup: string, fir = "", requestCtx?: Ctx): Promise
 export { adapterFor as adapter_for, netPaused as net_paused };
 
 /** Read the published Japan ENR training catalog before falling back to a Q-line pin. */
-export async function japanTrainingRings(ctx: Ctx): Promise<Record<string, Pt[]>> {
-  const key = 'aip_enr:jp:5.3:v1';
+export async function japanTrainingRings(ctx: Ctx, section: '5.3' | '5.1' = '5.3'): Promise<Record<string, Pt[]>> {
+  const key = `aip_enr:jp:${section}:v1`;
   const cached = await getJson<{ ts: number; rings: Record<string, Pt[]> } | null>(ctx, key, null);
   if (cached && Date.now() - cached.ts < 7 * 24 * 3600_000 && Object.keys(cached.rings).length) return cached.rings;
   try {
@@ -464,13 +464,14 @@ export async function japanTrainingRings(ctx: Ctx): Promise<Record<string, Pt[]>
     const html = new TextDecoder().decode(history.body);
     const urls: string[] = [];
     for (const m of html.matchAll(/href="(\d{8})\/eAIP\/(\d{8})\/index\.html"/g)) {
-      urls.push(`${AIP_BASE}/f2eapr/AIP/html/${m[1]}/eAIP/${m[2]}/pdf/JP-ENR-5.3-en-JP.pdf`);
+      urls.push(`${AIP_BASE}/f2eapr/AIP/html/${m[1]}/eAIP/${m[2]}/pdf/JP-ENR-${section}-en-JP.pdf`);
     }
-    for (const cycle of await japanCycles(headers)) urls.push(`${AIP_BASE}/f2eapr/AIP/html/${cycle}/eAIP/${cycle}/pdf/JP-ENR-5.3-en-JP.pdf`);
+    for (const cycle of await japanCycles(headers)) urls.push(`${AIP_BASE}/f2eapr/AIP/html/${cycle}/eAIP/${cycle}/pdf/JP-ENR-${section}-en-JP.pdf`);
     for (const url of [...new Set(urls)].slice(0, 8)) {
       const resp = await httpFetch(url, { headers });
       if (resp.status >= 400 || new Uint8Array(resp.body)[0] !== 0x25) continue;
-      const rings = parseEnr53Text(await pdfText(resp.body));
+      const text = await pdfText(resp.body);
+      const rings = section === '5.3' ? parseEnr53Text(text) : parseEnr51Text(text);
       if (!Object.keys(rings).length) continue;
       await setJson(ctx, key, { ts: Date.now(), rings });
       return rings;

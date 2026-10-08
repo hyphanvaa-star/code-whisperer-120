@@ -34,3 +34,16 @@ export function idsInText(table: Record<string, Pt[]>, text: string): string[] {
     return new RegExp(`(?<![A-Z0-9])${escaped}(?![A-Z0-9-])`).test(blob);
   });
 }
+
+/** ENR 5.1 explicit warning-area coordinate rows; skip coast/river descriptions. */
+export function parseEnr51Text(text: string): Record<string, Pt[]> {
+  const out: Record<string, Pt[]> = {};
+  const marks = [...text.matchAll(/\b((?:W|R|D|P)-\d{1,4}[A-Z]?)\b/g)];
+  marks.forEach((mark, i) => {
+    const piece = text.slice(mark.index, marks[i + 1]?.index ?? text.length);
+    if (/waters edge|coast|river|circular area|radius/i.test(piece)) return;
+    const ring = iterLatLon(piece.replace(/N\s*\/\s*/gi, 'N '));
+    if (ring.length >= 3) out[mark[1]] = ring;
+  });
+  return out;
+}

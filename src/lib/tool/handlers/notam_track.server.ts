@@ -37,6 +37,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   const deadline = Date.now() + 20000;
   const tasks: (() => Promise<void>)[] = [];
   let japanCatalog: ReturnType<typeof japanTrainingRings> | undefined;
+  let japanWarnings: ReturnType<typeof japanTrainingRings> | undefined;
   for (const place of places) {
     const notams = ((place as Record<string, unknown>).notams as Record<string, unknown>[]) || [];
     for (const n of notams) {
@@ -46,11 +47,19 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const au = fir.toUpperCase().startsWith("Y");
       const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob);
       if (!keys.length && !au && !jp) continue;
-      tasks.push(async () => {
+      const task = async () => {
         const geoms: Geom[] = [];
         if (jp && /ENR\s*5\.3|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob)) {
           japanCatalog ??= japanTrainingRings(ctx);
           const table = await japanCatalog;
+          for (const name of japanIdsInText(table, blob)) {
+            const ring = table[name];
+            if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+          }
+        }
+        if (jp && /ENR\s*5\.1|WARNING AREA/i.test(blob)) {
+          japanWarnings ??= japanTrainingRings(ctx, '5.1');
+          const table = await japanWarnings;
           for (const name of japanIdsInText(table, blob)) {
             const ring = table[name];
             if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
@@ -85,7 +94,10 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
           }
         }
         if (geoms.length) n.sup_geoms = geoms;
-      });
+      };
+      // ENR catalog work must not be starved by dozens of unrelated SUP downloads.
+      if (jp && /ENR\s*5\.[13]/i.test(blob)) tasks.unshift(task);
+      else tasks.push(task);
     }
   }
   let i = 0;
