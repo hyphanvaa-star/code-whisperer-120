@@ -128,9 +128,9 @@ function AuthPage() {
         </g>
         {/* máy bay trên radar */}
         <g opacity="0.95">
-          <image href={planeIcon} x="330" y="425" width="64" height="64" transform="rotate(-18 362 457)" />
-          <image href={planeIcon} x="815" y="268" width="56" height="56" transform="rotate(38 843 296)" />
-          <image href={planeIcon} x="662" y="580" width="60" height="60" transform="rotate(-52 692 610)" />
+          <image href={planeIcon} x="344" y="439" width="36" height="36" transform="rotate(-18 362 457)" />
+          <image href={planeIcon} x="827" y="280" width="32" height="32" transform="rotate(38 843 296)" />
+          <image href={planeIcon} x="675" y="593" width="34" height="34" transform="rotate(-52 692 610)" />
         </g>
         {/* chấm xanh lá: máy bay đang theo dõi */}
         <g fill="#4ade80">
