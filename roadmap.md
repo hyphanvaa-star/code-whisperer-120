@@ -53,3 +53,4 @@
 - [x] Đổi BỐ CỤC thật (không chỉ màu): tab thành menu dọc trái, header gọn 1 hàng
 - [x] Phác thảo thêm và áp mẫu phím vuông buồng lái, giữ Dispatch Board ở giữa
 - [x] Dựng header VietJet bằng thành phần thật: 6 bộ lọc, 8 nút, thời tiết TP.HCM và đồng hồ trực tiếp
+- [ ] Show version badge (V1, V2…) bumped on every publish
