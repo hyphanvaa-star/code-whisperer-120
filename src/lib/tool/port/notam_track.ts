@@ -319,6 +319,15 @@ export function supKeys(blob: string): string[] {
 export function notamGeoms(notam: Notam): Geom[] {
   const own = notamGeomsText(notam);
   const sup = (notam.sup_geoms as Geom[] | undefined) ?? [];
+  const blob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
+  const ids = namedAreaIds(blob).concat([...blob.toUpperCase().matchAll(/\b((?:ITRA|LION|MOOSE|TIGER|EAGLE|EDIX)(?:-[A-Z0-9]+)+)\b/g)].map((m) => m[1]!));
+  if (sup.length && ids.length) {
+    // NOTAM gọi tên vùng (LION-…, ITRA-…) có trong AIP SUP → ưu tiên vòng SUP, bỏ vòng tự dựng.
+    const norm = (x: string) => x.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const want = new Set(ids.map(norm));
+    const named = sup.filter((g) => [...want].some((w) => norm(g.name).includes(w)));
+    return named.length ? named : sup;
+  }
   if (sup.length && !own.some((g) => g.shape === "polygon" || g.shape === "line")) {
     return [...sup, ...own.filter((g) => g.shape !== "dot")];
   }
