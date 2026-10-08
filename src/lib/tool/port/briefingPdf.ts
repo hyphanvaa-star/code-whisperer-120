@@ -66,7 +66,8 @@ export async function renderBriefingPdf(sheet: ReleaseSheet): Promise<Uint8Array
       return Math.max(body, label, 12.5);
     });
     for (const group of side) {
-      const need = wrap(group.text, COL1 - LEFT - PAD * 2, 9.4 * scale, bold).length * 9.4 * scale * LEADING + PAD * 2;
+      const sideSize = Math.min(9.4 * scale, (COL1 - LEFT - PAD * 2) / bold.widthOfTextAtSize("Limitations", 1));
+      const need = wrap(group.text, COL1 - LEFT - PAD * 2, sideSize, bold).length * sideSize * LEADING + PAD * 2;
       const have = heights.slice(group.start, group.end + 1).reduce((sum, h) => sum + h, 0);
       if (need > have) heights[group.end] = (heights[group.end] ?? 0) + need - have;
     }
@@ -122,7 +123,8 @@ export async function renderBriefingPdf(sheet: ReleaseSheet): Promise<Uint8Array
       line(LEFT, y, LEFT, bottom); line(COL1, y, COL1, bottom); line(RIGHT, y, RIGHT, bottom);
       if (!row.notes) { line(COL2, y, COL2, bottom); textBox(row.label, COL1, y, COL2, bottom, 9.4 * factor); }
       textBox(chunk.join("\n"), xBody, y, RIGHT, bottom, size, font, i >= 5 && i <= 9 && isNotamPlaceholder(row.body), i === 12);
-      if (group && (i === group.end || chunks.length > 1)) textBox(group.text, LEFT, groupStart, COL1, bottom, 9.4 * factor, bold, true);
+      const sideSize = Math.min(9.4 * factor, (COL1 - LEFT - PAD * 2) / bold.widthOfTextAtSize("Limitations", 1));
+      if (group && (i === group.end || chunks.length > 1)) textBox(group.text, LEFT, groupStart, COL1, bottom, sideSize, bold, true);
       if (group && i === group.end) groupStart = bottom;
       y = bottom;
     });
