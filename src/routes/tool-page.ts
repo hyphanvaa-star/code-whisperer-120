@@ -784,6 +784,12 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
   background:#fff !important;border:1px solid var(--x-line) !important;border-radius:6px !important;box-shadow:none !important;
 }
 input:focus,select:focus,textarea:focus{outline:none !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
+/* Ô cảnh báo giới hạn trong bảng chuyến bay phải giữ màu (đè lại luật ô nhập chung) */
+#wrapFplText .fttbl input.ft-lim-crit{color:#b91c1c !important;-webkit-text-fill-color:#b91c1c !important;background:#fecaca !important;border-color:#ef4444 !important;font-weight:800 !important}
+#wrapFplText .fttbl input.ft-lim-warn{color:#92400e !important;-webkit-text-fill-color:#92400e !important;background:#fde68a !important;border-color:#f59e0b !important;font-weight:800 !important}
+#wrapFplText .fttbl input.ft-extra-auto{color:#d10000 !important;-webkit-text-fill-color:#d10000 !important;font-weight:700 !important}
+#wrapFplText .fttbl input[type=text].ft-ac-a330{color:#166534 !important;-webkit-text-fill-color:#166534 !important;background:#bbf7d0 !important;border-color:#22c55e !important;font-weight:800 !important}
+html.night #wrapFplText .fttbl input[type=text].ft-ac-a330{color:#86efac !important;-webkit-text-fill-color:#86efac !important;background:#14532d !important;border-color:#166534 !important}
 input::placeholder,textarea::placeholder{color:#A6ABB5 !important}
 
 /* ---------- KHUNG / THẺ ---------- */
