@@ -115,7 +115,8 @@ function utcStampCompact(): string {
 
 /** Port of handover.xlsx_bytes — logo trái, MORNING/NIGHT SHIFT HANDOVER phải, header dòng 3. */
 export async function xlsxBytes(payload: unknown): Promise<Uint8Array> {
-  const ExcelJS = (await import("exceljs")).default;
+  const { loadExcelJS } = await import("../../exceljs-load");
+  const ExcelJS = await loadExcelJS();
   const data = normalize(payload);
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Sheet1");
