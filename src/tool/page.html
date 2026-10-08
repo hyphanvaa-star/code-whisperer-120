@@ -24077,7 +24077,7 @@ async function ftBuild(write){
   }
   const d = await (await fetch(write ? "/api/fpltext/export" : "/api/fpltext/build", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({items: items, dsp: dsp})
+    body: JSON.stringify({items: items, dsp: dsp, efb: ((document.getElementById("fEfb")||{}).value||"").trim()})
   })).json();
   if(d.error){ alert(d.error); return; }
   $("#ftPreview").textContent = d.text || "";
