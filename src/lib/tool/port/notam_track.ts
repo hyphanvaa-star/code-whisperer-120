@@ -137,11 +137,12 @@ function toNm(val: number, unit: string | undefined): number {
   return val;
 }
 
-export function iterLatLon(text: string): Pt[] {
+export function iterLatLon(text: string, keepRepeats = false): Pt[] {
   const out: Pt[] = [];
   const seen = new Set<string>();
+  let at = 0;
   const add = (lat: number, lon: number) => {
-    const key = `${lat.toFixed(5)},${lon.toFixed(5)}`;
+    const key = keepRepeats ? String(at) : `${lat.toFixed(5)},${lon.toFixed(5)}`;
     if (seen.has(key)) return;
     if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return;
     seen.add(key);
@@ -149,6 +150,7 @@ export function iterLatLon(text: string): Pt[] {
   };
   const raw = String(text || "").replace(/^Q\).*$/gm, "");
   for (const m of raw.matchAll(new RegExp(_LL_COMPACT, "gi"))) {
+    at = m.index ?? 0;
     const [latNum, ns, lonNum, ew] = [m[1], m[2], m[3], m[4]];
     try {
       const [latd, latm, lats] = splitCompact(latNum, true);
@@ -157,6 +159,7 @@ export function iterLatLon(text: string): Pt[] {
     } catch { /* skip */ }
   }
   for (const m of raw.matchAll(new RegExp(_LL, "gi"))) {
+    at = m.index ?? 0;
     const [latd, latm, lats, ns, lond, lonm, lons, ew] = [m[1], m[2], m[3] ?? "0", m[4], m[5], m[6], m[7] ?? "0", m[8]];
     if (+latm >= 60 || +lats >= 60 || +lonm >= 60 || +lons >= 60) continue;
     add(...toLL(+latd, +latm, +lats, ns, +lond, +lonm, +lons, ew));
@@ -479,7 +482,7 @@ export function parseAreas(text: string): Geom[] {
     for (const m of piece.matchAll(/(?:ARC|RADIUS)[\s\S]{0,100}?(?:FM|FROM|CENT(?:ERED|RED|RE)\s+ON)\s*(\d{4,6}(?:\.\d+)?\s*[NS]\s*\d{5,7}(?:\.\d+)?\s*[EW])/gi)) {
       const p = iterLatLon(m[1])[0]; if (p) hubs.push(p);
     }
-    const flat = iterLatLon(clean).filter(p => !hubs.some(h => samePt(p, h)));
+    const flat = iterLatLon(clean, true).filter((p, i, a) => i === 0 || !samePt(p, a[i - 1]!)).filter(p => !hubs.some(h => samePt(p, h)));
     const line = /\bALONG\b|\bEITHER\s+SIDE\s+OF\s+A\s+LINE\b/i.test(clean);
     // Nhiều vùng liệt kê liền nhau: mỗi vùng đóng lại khi quay về điểm đầu của nó.
     const rings: Pt[][] = [];
@@ -489,7 +492,6 @@ export function parseAreas(text: string): Geom[] {
       cur.push(p);
     }
     if (cur.length) rings.push(cur);
-    if (process.env.DBG) console.log(flat.length, rings.map(r=>r.length), hubs);
     const place = /\(\s*(\d+)\s*\)\s*PLACE\s*:/i.exec(piece);
     const name = namedAreaIds(piece)[0] || (place ? `PLACE ${Number(place[1])}` : '');
     for (const r0 of rings) {
