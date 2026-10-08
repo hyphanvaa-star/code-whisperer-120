@@ -38,6 +38,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   const tasks: (() => Promise<void>)[] = [];
   let japanCatalog: ReturnType<typeof japanTrainingRings> | undefined;
   let japanWarnings: ReturnType<typeof japanTrainingRings> | undefined;
+  const supRequests = new Map<string, ReturnType<typeof rings_of>>();
   for (const place of places) {
     const notams = ((place as Record<string, unknown>).notams as Record<string, unknown>[]) || [];
     for (const n of notams) {
@@ -68,13 +69,17 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
         for (const key of keys) {
           if (Date.now() > deadline) return;
           const saved = /^(RJ|RO)/i.test(fir) ? (AIP_CATALOG.sup as unknown as Record<string, Record<string, [string, [number, number][]]>>)[key] : undefined;
-          const table = saved ? Object.fromEntries(Object.entries(saved).map(([nr, [name, ring]]) => [nr, { name, ring }])) : await rings_of(key, fir, ctx);
+          const cacheKey = `${fir}:${key}`;
+          if (!saved && !supRequests.has(cacheKey)) supRequests.set(cacheKey, rings_of(key, fir, ctx));
+          const pending = supRequests.get(cacheKey);
+          const table = saved ? Object.fromEntries(Object.entries(saved).map(([nr, [name, ring]]) => [nr, { name, ring }])) : pending ? await pending : {};
           const wanted = new Set([...blob.matchAll(/\bNR\.?\s*(\d+)\b|\bAREA\s*:?\s*\(\s*(\d+)\s*\)/gi)].map(m => `NR.${Number(m[1] || m[2])}`));
           for (const [nr, item] of Object.entries(table)) {
             if (wanted.size && !wanted.has(nr)) continue;
             if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: 'aip' });
           }
-          if (!String(n.d_field ?? "").trim()) {
+          if (geoms.length) n.sup_geoms = geoms;
+          if (!saved && !String(n.d_field ?? "").trim() && Date.now() < deadline) {
             const hours = await hours_of(key, fir, ctx);
             if (hours) { n.d_field = hours; n.d_src = "AIP SUP"; }
           }

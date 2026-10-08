@@ -11,7 +11,7 @@ import { parseEnr53Text, parseEnr51Text, idsInText } from './port/aip_jp';
 const UA = "DispatchBoard-AIP/1.0";
 const OK_TTL_S = 30 * 24 * 3600;
 const FAIL_TTL_S = 6 * 3600;
-const CACHE_VER = 4;
+const CACHE_VER = 5;
 const DAH_VER = 2;
 const FETCH_TO_MS = 15_000;
 const AUTH_URL = "https://top.swim.mlit.go.jp/swim/webapi/login";
@@ -234,7 +234,7 @@ async function japanCycles(headers: Record<string, string>): Promise<string[]> {
     if (status >= 400) return fallback;
     const html = new TextDecoder().decode(body);
     const out: string[] = [];
-    for (const m of html.matchAll(/\/(\d{8})\/(?:eSUP|eAIP)\//g)) if (!out.includes(m[1]!)) out.push(m[1]!);
+    for (const m of html.matchAll(/(?:href=["']|\/)(\d{8})\/(?:eSUP|eAIP)\//g)) if (!out.includes(m[1])) out.push(m[1]);
     for (const d of fallback) if (!out.includes(d)) out.push(d);
     return out.slice(0, 8);
   } catch {
@@ -249,6 +249,13 @@ async function japanPdfUrl(sup: string, headers: Record<string, string>): Promis
   const pad = String(num).padStart(3, "0");
   const fname = `JP-eSUP-${year}-${pad}-en-JP.pdf`;
   for (const cycle of await japanCycles(headers)) {
+    // The latest SUP PDF is public within the authenticated session; avoid a
+    // slow index scrape and duplicate probe download for every NOTAM reference.
+    const direct = `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/pdf/${fname}`;
+    try {
+      const probe = await httpFetch(direct, { headers });
+      if (probe.status < 400 && new Uint8Array(probe.body)[0] === 0x25) return direct;
+    } catch { /* try index */ }
     const index = `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/JP-eSUPs-en-JP.html`;
     const idx = await httpFetch(index, { headers });
     if (idx.status >= 400) continue;
@@ -256,11 +263,6 @@ async function japanPdfUrl(sup: string, headers: Record<string, string>): Promis
     let hit = new RegExp(`href="(pdf/JP-eSUP-${year}-${pad}-en-JP\\.pdf)"[^>]*>\\s*${num}/${yy}`, "i").exec(html);
     if (!hit) hit = new RegExp(`href="(pdf/${fname.replace(/[.]/g, "\\.")})"`, "i").exec(html);
     if (hit) return `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/${hit[1]}`;
-    const direct = `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/pdf/${fname}`;
-    try {
-      const probe = await httpFetch(direct, { headers });
-      if (probe.status < 400) return direct;
-    } catch { /* try next cycle */ }
   }
   throw new Error(`không thấy PDF SUP ${sup}`);
 }
