@@ -13333,7 +13333,7 @@ function nmDrawFleetRoutes(){
     const f = d.flight || {};
     const legs = nmAddRouteLegs(d.track, d.line, {
       weight: 5, opacity: 1, flightId: (d.flight || {}).id,
-      color: "#1626a8", halo: "#ffffff"
+      color: "#f2c200", halo: "#1a1a1a"
     });
     if(!legs.length) continue;
     nLine++;
@@ -16228,7 +16228,7 @@ function nmDrawNavlog(d){
       if(ny > 0 || (Math.abs(ny) < 1e-6 && nx < 0)){ nx = -nx; ny = -ny; }
       if(Math.abs(nx) > Math.abs(ny)){ dir = nx > 0 ? "right" : "left"; }
       else dir = "top";
-      offs = [Math.round(nx * 10), Math.round(ny * 10)];
+      offs = [Math.round(nx * 26), Math.round(ny * 26)];
     }
     L.circleMarker(latlng, {
       radius: 4, color: "#111", fillColor: "#fff", fillOpacity: 1, weight: 2
@@ -16282,7 +16282,7 @@ function nmDrawTrack(d, keepView){
     nmAwyPickId = "";
   }
   const legs = nmAddRouteLegs(d.track, d.line, {
-    weight: 5, opacity: 1, flightId: f.id, color: "#1626a8", halo: "#ffffff"
+    weight: 5, opacity: 1, flightId: f.id, color: "#f2c200", halo: "#1a1a1a"
   });
   const bounds = [];
   let latlngs = [];
