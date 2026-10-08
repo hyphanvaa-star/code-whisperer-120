@@ -49,6 +49,12 @@ const OMNI_AUTO_DEFAULT: OmniAutoState = {
   last_error: "",
 };
 
+/** Máy công ty không có ổ D (trợ lý PC báo "D:\\" = false) thì D:\\... hiển thị/ghi sang C:\\... */
+function driveFix(path: string, agent: pc.AgentInfo | null | undefined): string {
+  if (/^d:/i.test(path) && agent?.paths_exist?.["D:\\"] === false) return "C:" + path.slice(2);
+  return path;
+}
+
 /** Port of config.paths_status() — exists flags come from the agent heartbeat. */
 async function pathsStatus(ctx: Ctx) {
   const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
@@ -57,7 +63,7 @@ async function pathsStatus(ctx: Ctx) {
   const out: Record<string, Record<string, unknown>> = {};
   for (const [kind, [label, dflt]] of Object.entries(PATH_KEYS)) {
     const custom = (saved[kind] || "").trim();
-    const path = custom || dflt;
+    const path = driveFix(custom || dflt, agent);
     out[kind] = {
       label,
       path,
@@ -137,7 +143,7 @@ function reportName(day: string, at = new Date()): string {
 async function omniAutoStatus(ctx: Ctx) {
   const state = await getJson<OmniAutoState>(ctx, OMNI_AUTO_KEY, OMNI_AUTO_DEFAULT);
   const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
-  const dest = (saved["omni"] || "").trim() || PATH_KEYS["omni"]![1];
+  const dest = driveFix((saved["omni"] || "").trim() || PATH_KEYS["omni"]![1], await pc.agentInfo(ctx));
   return {
     ...state,
     dest,
