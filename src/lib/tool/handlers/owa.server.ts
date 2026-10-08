@@ -135,6 +135,7 @@ export const jobs: Jobs = {
     let ok = 0;
     const subjects: string[] = [];
     const files: string[] = [];
+    const links: string[] = [];
     try {
       const { fbGet } = await import("@/lib/flitebrief.server");
       const { loadFlights } = await import("../core/gantts.server");
