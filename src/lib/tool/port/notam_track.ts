@@ -302,9 +302,32 @@ export function namedAreaIds(text: string): string[] {
   return out;
 }
 
-// Public entry: geometry list for a NOTAM. AIP gazetteer lookups are out of scope
-// (see header note) so only Q-coords/E-field derived shapes are returned.
+/** AIP SUP numbers referenced by a NOTAM: "AIP SUP 055/26", "SUP H141/26", "AIP SUPPLEMENT 12/26". */
+export function supKeys(blob: string): string[] {
+  const out: string[] = [];
+  const re = /\b(?:AIP\s+)?SUP(?:PLEMENT)?\s*(?:NR\.?|NO\.?)?\s*([A-Z]?)\s*(\d{1,3})\s*\/\s*(\d{2})\b/gi;
+  for (const m of String(blob || "").matchAll(re)) {
+    const key = `${(m[1] || "").toUpperCase()}${parseInt(m[2]!, 10).toString().padStart(3, "0").replace(/^0+(?=\d{2,})/, "")}/${m[3]}`;
+    const norm = `${(m[1] || "").toUpperCase()}${m[2]}/${m[3]}`;
+    void key;
+    if (!out.includes(norm)) out.push(norm);
+  }
+  return out;
+}
+
+// Public entry: geometry list for a NOTAM. Shapes from the text come first; when the
+// text has no polygon, rings resolved beforehand from AIP SUP / DAH (handler attaches
+// them as `sup_geoms`, see aip_sup.server.ts) are used — never fabricated.
 export function notamGeoms(notam: Notam): Geom[] {
+  const own = notamGeomsText(notam);
+  const sup = (notam.sup_geoms as Geom[] | undefined) ?? [];
+  if (sup.length && !own.some((g) => g.shape === "polygon" || g.shape === "line")) {
+    return [...sup, ...own.filter((g) => g.shape !== "dot")];
+  }
+  return own;
+}
+
+function notamGeomsText(notam: Notam): Geom[] {
   const tx = String(notam.text ?? "");
   const ef = String(notam.e_field ?? "");
   const blob = `${tx}\n${ef}`;
