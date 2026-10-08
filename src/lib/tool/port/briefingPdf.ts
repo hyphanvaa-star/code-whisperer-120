@@ -38,8 +38,8 @@ function wrap(text: string, width: number, size: number, font: PDFFont): string[
 export async function renderBriefingPdf(sheet: ReleaseSheet): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  const regular = await doc.embedFont(bytes(LIBERATION_SANS_REGULAR_BASE64), { subset: true });
-  const bold = await doc.embedFont(bytes(LIBERATION_SANS_BOLD_BASE64), { subset: true });
+  const regular = await doc.embedFont(bytes(LIBERATION_SANS_REGULAR_BASE64));
+  const bold = await doc.embedFont(bytes(LIBERATION_SANS_BOLD_BASE64));
   const logo = await doc.embedPng(bytes(VJ_LOGO_PNG_BASE64));
   const apt = (title: string, codes: string[]) => codes.length ? `${title}\n(${slash(codes)})` : title;
   const labels = [`Dept. APT (${sheet.dep || "—"})`, `Dest. APT (${sheet.dest || "—"})`, apt("Dest. Alternate(s)", sheet.dest_alts), apt("Enr. Alternate(s)", sheet.enroute_alts)];
@@ -115,11 +115,12 @@ export async function renderBriefingPdf(sheet: ReleaseSheet): Promise<Uint8Array
       if (chunkIndex) { page = doc.addPage([612, 792]); header(); y = TOP; groupStart = TOP; }
       const h = chunks.length > 1 ? Math.max(14, chunk.length * size * LEADING + PAD * 2) : height;
       const bottom = y + h;
-      line(LEFT, y, RIGHT, y); line(LEFT, bottom, RIGHT, bottom);
+      const group = side.find((g) => g.start <= i && g.end >= i);
+      line(group?.start === i || chunkIndex > 0 || y === TOP ? LEFT : COL1, y, RIGHT, y);
+      line(group?.end === i || chunks.length > 1 ? LEFT : COL1, bottom, RIGHT, bottom);
       line(LEFT, y, LEFT, bottom); line(COL1, y, COL1, bottom); line(RIGHT, y, RIGHT, bottom);
       if (!row.notes) { line(COL2, y, COL2, bottom); textBox(row.label, COL1, y, COL2, bottom, 9.4 * factor); }
       textBox(chunk.join("\n"), xBody, y, RIGHT, bottom, size, font, i >= 5 && i <= 9 && isNotamPlaceholder(row.body), i === 12);
-      const group = side.find((g) => g.start <= i && g.end >= i);
       if (group && (i === group.end || chunks.length > 1)) textBox(group.text, LEFT, groupStart, COL1, bottom, 9.4 * factor, bold, true);
       if (group && i === group.end) groupStart = bottom;
       y = bottom;
