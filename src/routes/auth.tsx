@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Plane, Lock, UserRound, ShieldCheck } from "lucide-react";
+import planeIcon from "@/assets/plane-icon.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,10 +127,10 @@ function AuthPage() {
           <path d="M120 860C300 620 520 560 900 240" strokeDasharray="3 10" strokeOpacity="0.25" />
         </g>
         {/* máy bay trên radar */}
-        <g fill="#86efac">
-          <path d="M330 470 l16 -5 -6 -14 4 -2 8 11 13 -4 -4 -8 4 -2 6 7 14 -5 c3 -1 6 1 6 4 s-3 5 -6 6 l-14 5 1 10 -4 2 -5 -9 -12 4 4 8 -4 2 -6 -11 -16 5 c-2 1 -4 0 -4 -2 s1 -4 3 -5 z" transform="rotate(-18 360 460)" />
-          <path d="M330 470 l16 -5 -6 -14 4 -2 8 11 13 -4 -4 -8 4 -2 6 7 14 -5 c3 -1 6 1 6 4 s-3 5 -6 6 l-14 5 1 10 -4 2 -5 -9 -12 4 4 8 -4 2 -6 -11 -16 5 c-2 1 -4 0 -4 -2 s1 -4 3 -5 z" transform="rotate(38 845 300) translate(515 -170)" />
-          <path d="M330 470 l16 -5 -6 -14 4 -2 8 11 13 -4 -4 -8 4 -2 6 7 14 -5 c3 -1 6 1 6 4 s-3 5 -6 6 l-14 5 1 10 -4 2 -5 -9 -12 4 4 8 -4 2 -6 -11 -16 5 c-2 1 -4 0 -4 -2 s1 -4 3 -5 z" transform="rotate(-52 690 610) translate(360 140)" />
+        <g opacity="0.95">
+          <image href={planeIcon} x="344" y="439" width="36" height="36" transform="rotate(-18 362 457)" />
+          <image href={planeIcon} x="827" y="280" width="32" height="32" transform="rotate(38 843 296)" />
+          <image href={planeIcon} x="675" y="593" width="34" height="34" transform="rotate(-52 692 610)" />
         </g>
         {/* chấm xanh lá: máy bay đang theo dõi */}
         <g fill="#4ade80">
