@@ -69,7 +69,7 @@ async function pathsStatus(ctx: Ctx) {
       path,
       default: dflt,
       source: custom ? "file" : "default",
-      exists: existsMap[path] ?? false,
+      exists: existsMap[custom || dflt] ?? existsMap[path] ?? false,
     };
   }
   return { paths: out, file: "paths.json" };
