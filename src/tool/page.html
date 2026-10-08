@@ -13374,7 +13374,7 @@ function nmDrawFleetRoutes(){
     const f = d.flight || {};
     const legs = nmAddRouteLegs(d.track, d.line, {
       weight: 5, opacity: 1, flightId: (d.flight || {}).id,
-      color: "#f2c200", halo: "#1a1a1a"
+      color: "#f2c200"
     });
     if(!legs.length) continue;
     nLine++;
@@ -16341,7 +16341,7 @@ function nmDrawTrack(d, keepView){
     nmAwyPickId = "";
   }
   const legs = nmAddRouteLegs(d.track, d.line, {
-    weight: 5, opacity: 1, flightId: f.id, color: "#f2c200", halo: "#1a1a1a"
+    weight: 5, opacity: 1, flightId: f.id, color: "#f2c200"
   });
   const bounds = [];
   let latlngs = [];
