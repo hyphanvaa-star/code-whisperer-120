@@ -26,7 +26,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.0"
+VERSION = "2.1"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -921,56 +921,46 @@ def do_owa_draft(payload: dict, say) -> dict:
     attachments = payload.get("attachments") or []
     mailbox = str(payload.get("mailbox") or getattr(config, "SHARED_MAILBOX", "") or "omc@vietjetair.com")
 
+    # Tài khoản riêng cho nháp (nếu web gửi kèm) — dùng profile Chrome/token
+    # "mail" riêng của tool gốc, không đụng phiên PIB.
+    creds = None
+    u = str(payload.get("user") or "").strip()
+    pw = str(payload.get("pass") or "")
+    if u and pw:
+        creds = (u, pw)
+    prof = getattr(outlook_web_pib, "MAIL_PROFILE_DIR", None) if creds else None
+    cache = getattr(outlook_web_pib, "MAIL_TOKEN_CACHE", None) if creds else None
     say("▶ Kiểm tra phiên Outlook Web…")
-    outlook_web_pib.ensure_session(timeout_s=420.0, on_status=lambda m: say(m), cancel=cancel)
-    driver = _owa_driver(outlook_web_pib)
-    if driver is None:
-        raise RuntimeError("Không tìm thấy cửa sổ Chrome Outlook Web của tool gốc.")
-
-    cookies = {c["name"]: c["value"] for c in driver.get_cookies()}
-    canary = cookies.get("X-OWA-CANARY", "")
-    sess = requests.Session()
-    sess.headers.update({
-        "Content-Type": "application/json; charset=utf-8",
-        "Accept": "application/json",
-        "X-OWA-CANARY": canary,
-        "User-Agent": "Mozilla/5.0",
-    })
-    base = "https://outlook.office.com/api/v2.0/users/" + mailbox
-
-    msg = {
-        "Subject": subject,
-        "Body": {"ContentType": "Text", "Content": body},
-    }
-    if to:
-        msg["ToRecipients"] = [{"EmailAddress": {"Address": a.strip()}} for a in to.split(";") if a.strip()]
-    if cc:
-        msg["CcRecipients"] = [{"EmailAddress": {"Address": a.strip()}} for a in cc.split(";") if a.strip()]
-
-    r = sess.post(base + "/messages", json=msg, cookies=cookies, timeout=60)
-    if r.status_code not in (200, 201):
-        raise RuntimeError(f"OWA từ chối tạo nháp trong {mailbox}: HTTP {r.status_code} — {r.text[:300]}")
-    draft_id = r.json().get("Id")
-    say(f"✓ nháp trong hộp thư chung {mailbox}: {subject}")
-
-    for i, att in enumerate(attachments):
-        name = str((att or {}).get("name") or f"attachment_{i}.txt")
-        data_b64 = str((att or {}).get("data_b64") or "")
-        ra = sess.post(
-            f"{base}/messages/{draft_id}/attachments",
-            json={"@odata.type": "#Microsoft.OutlookServices.FileAttachment",
-                  "Name": name, "ContentBytes": data_b64},
-            cookies=cookies, timeout=120,
-        )
-        if ra.status_code not in (200, 201):
-            raise RuntimeError(f"OWA từ chối đính kèm {name}: HTTP {ra.status_code} — {ra.text[:300]}")
-        say(f"· đính kèm {name}")
-
+    # Tool gốc dùng token (không giữ driver Selenium) → lấy token đã kiểm tra.
+    token = outlook_web_pib.ensure_fresh_token(
+        timeout_s=420.0, on_status=lambda m: say(m), cancel=cancel,
+        creds=creds, profile_dir=prof, token_cache=cache,
+    )
+    tmp_dir = Path(os.environ.get("TEMP", ".")) / "pc-agent-owa-draft"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    paths = []
     try:
-        driver.get(f"https://outlook.office.com/mail/{mailbox}/drafts")
-        say("▶ Đã mở thư mục Nháp của hộp thư chung trên Chrome.")
-    except Exception:
-        say("· không mở được thẻ Drafts — nháp vẫn nằm trong hộp thư chung.")
+        for i, att in enumerate(attachments):
+            name = str((att or {}).get("name") or f"attachment_{i}.txt")
+            name = re.sub(r'[<>:"/\\|?*]', "_", name)
+            fp = tmp_dir / name
+            fp.write_bytes(base64.b64decode(str((att or {}).get("data_b64") or "")))
+            paths.append(fp)
+        draft_id = outlook_web_pib.create_draft(
+            token, subject=subject, body=body,
+            to=[a.strip() for a in to.split(";") if a.strip()],
+            cc=[a.strip() for a in cc.split(";") if a.strip()],
+            attachments=paths, mailbox=mailbox,
+        )
+    finally:
+        for fp in paths:
+            try:
+                fp.unlink()
+            except Exception:
+                pass
+    say(f"✓ nháp trong hộp thư chung {mailbox}: {subject}")
+    for fp in paths:
+        say(f"· đính kèm {fp.name}")
     return {"subject": subject, "mailbox": mailbox, "draft_id": draft_id}
 
 
