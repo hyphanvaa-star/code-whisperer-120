@@ -28,9 +28,9 @@ export function parseEnr53Text(text: string): Record<string, Pt[]> {
 
 /** Match actual catalog IDs, including CK3 and spacing/hyphen variations. */
 export function idsInText(table: Record<string, Pt[]>, text: string): string[] {
-  const blob = text.toUpperCase().replace(/[\s_]+/g, '');
+  const blob = text.toUpperCase();
   return Object.keys(table).filter((key) => {
-    const escaped = key.toUpperCase().split('-').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('-?');
+    const escaped = key.toUpperCase().split('-').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*-?\\s*');
     return new RegExp(`(?<![A-Z0-9])${escaped}(?![A-Z0-9-])`).test(blob);
   });
 }
