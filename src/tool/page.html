@@ -6720,6 +6720,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
             <button type="button" class="btn small" id="ftAtcBtn" title="Xuất điện văn ICAO gốc từ OFP">Get ATC</button>
             <button type="button" class="btn small" id="ftAtcConvBtn" title="Lấy ATC rồi sửa SID/STAR/FL. Chỗ đổi tô xanh trên file HTML.">Get ATC convert</button>
             <button type="button" class="btn small" id="ftConvBtn" title="Bảng FL, SID đặc biệt, chặng không convert">Data Convert</button>
+            <button type="button" class="btn small" id="ftOfpRulesBtn" title="Bảng điều kiện mà nút OFP trên header dùng để kiểm OFP (vd giờ tới KAPLI)">OFP check data</button>
             <span class="ft-msg" id="ftMsgWrap">
               <button type="button" class="btn small" id="ftMsgBtn" title="Soạn CNL, DLA, CHG từ chuyến đã tick">Tạo điện văn</button>
               <div class="ft-msg-menu" id="ftMsgMenu">
@@ -7145,6 +7146,26 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
   </div>
 </div>
 
+<div class="modal" id="ftOfpRulesModal">
+  <div class="sheet ftlib" style="max-width:1100px;width:96vw">
+    <div class="sheet-head">
+      <h3>OFP check data</h3>
+      <button class="btn small x" id="ftOfpRulesClose" type="button">✕</button>
+    </div>
+    <div class="sheet-body">
+      <p class="note">Nút <b>OFP</b> trên header đọc bảng này khi kiểm OFP. Dòng có <b>Điểm</b> + <b>Giờ giới hạn</b>: giờ tới điểm = ETD + thời gian cộng dồn trong OFP; từ (giới hạn − buffer) là cảnh báo vàng, từ giờ giới hạn là đỏ. Dòng không có điểm chỉ là ghi chú (LIMIT tàu/sân bay/đặc biệt kiểm theo tab Giới hạn).</p>
+      <div style="overflow:auto"><table class="ftci" id="ftOfpRulesTable" style="width:100%">
+        <thead><tr><th>Bật</th><th>NỘI DUNG</th><th>ĐIỀU KIỆN</th><th>NOTE</th><th>Điểm (cách nhau dấu phẩy)</th><th>Giờ giới hạn (Z)</th><th>Buffer (phút)</th><th>Áp dụng</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <div class="crew-foot">
+        <button class="btn small" id="ftOfpRulesAdd" type="button">+ Thêm dòng</button>
+        <span class="status" id="ftOfpRulesMsg"></span>
+        <button class="btn primary small" id="ftOfpRulesSave" type="button">Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal" id="ftCostModal">
   <div class="sheet ftlib">
     <div class="sheet-head">
@@ -9141,8 +9162,20 @@ function markOfpFetchFailed(f){
    hoặc loại tàu khớp câu OPS đặc biệt nói về alternate — takeoff alternate không có
    trong gantts nên phải đọc OFP mới biết. Server đánh dấu bằng needs_ofp_limit_check;
    fallback sang constrainedRegs() cho trường hợp server cũ chưa gửi cờ. */
+let ofpRulesCache = null;
+async function loadOfpRulesCache(){
+  try{ const d = await (await fetch("/api/ofp/rules")).json(); ofpRulesCache = d.rules || []; }
+  catch(e){ ofpRulesCache = ofpRulesCache || []; }
+  return ofpRulesCache;
+}
+function ofpRuleWants(f){
+  if(!(f.ofp_status || "").toUpperCase().match(/^(REL|PEN|PRO)$/)) return false;
+  const dom = String(f.dep || "").startsWith("VV") && String(f.dest || "").startsWith("VV");
+  return (ofpRulesCache || []).some(r => r.enabled !== false && r.type === "waypoint_time"
+    && !(r.scope === "intl" && dom) && !(r.scope === "domestic" && !dom));
+}
 function needsOfpCheck(f){
-  return f.needs_ofp_limit_check === true
+  return f.needs_ofp_limit_check === true || ofpRuleWants(f)
     || Boolean(f.limit_warns && f.limit_warns.length
       && constrainedRegs().has(normRegCode(f.reg)));
 }
@@ -23120,7 +23153,51 @@ $("#btnTaf").onclick = async () => {
     btn.disabled = false; btn.textContent = "TAF";
   }
 };
-$("#btnOfpCheck").onclick = () => loadLimitChecks();
+$("#btnOfpCheck").onclick = async () => { await loadOfpRulesCache(); loadLimitChecks(); };
+function ftOfpRuleRow(r){
+  const tr = document.createElement("tr");
+  tr.dataset.id = r.id || "";
+  const cell = (el) => { const td = document.createElement("td"); td.appendChild(el); tr.appendChild(td); return el; };
+  const inp = (k, v, w) => { const i = document.createElement("input"); i.type = "text"; i.dataset.k = k; i.value = v == null ? "" : v; i.style.width = w || "100%"; return cell(i); };
+  const en = document.createElement("input"); en.type = "checkbox"; en.dataset.k = "enabled"; en.checked = r.enabled !== false; cell(en);
+  inp("name", r.name, "120px"); inp("condition", r.condition, "100%"); inp("note", r.note, "100%");
+  inp("waypoints", (r.waypoints || []).join(", "), "110px");
+  inp("limit_utc", r.limit_utc || "", "60px"); inp("buffer_min", r.buffer_min == null ? "" : r.buffer_min, "50px");
+  const sc = document.createElement("select"); sc.dataset.k = "scope";
+  for(const [v, t] of [["all", "Mọi chuyến"], ["intl", "Quốc tế"], ["domestic", "Nội địa"]]){
+    const o = document.createElement("option"); o.value = v; o.textContent = t; if((r.scope || "all") === v) o.selected = true; sc.appendChild(o);
+  }
+  cell(sc);
+  const del = document.createElement("button"); del.type = "button"; del.className = "btn small"; del.textContent = "✕";
+  del.onclick = () => tr.remove(); cell(del);
+  return tr;
+}
+async function ftOpenOfpRules(){
+  $("#ftOfpRulesMsg").textContent = "Đang đọc…";
+  $("#ftOfpRulesModal").classList.add("open");
+  const rules = await loadOfpRulesCache();
+  const tb = $("#ftOfpRulesTable tbody"); tb.innerHTML = "";
+  for(const r of rules) tb.appendChild(ftOfpRuleRow(r));
+  $("#ftOfpRulesMsg").textContent = "";
+}
+$("#ftOfpRulesBtn").onclick = ftOpenOfpRules;
+$("#ftOfpRulesClose").onclick = () => $("#ftOfpRulesModal").classList.remove("open");
+$("#ftOfpRulesModal").onclick = e => { if(e.target === $("#ftOfpRulesModal")) $("#ftOfpRulesModal").classList.remove("open"); };
+$("#ftOfpRulesAdd").onclick = () => $("#ftOfpRulesTable tbody").appendChild(ftOfpRuleRow({enabled: true, scope: "all"}));
+$("#ftOfpRulesSave").onclick = async function(){
+  const rules = [];
+  for(const tr of $("#ftOfpRulesTable tbody").querySelectorAll("tr")){
+    const r = {id: tr.dataset.id};
+    for(const el of tr.querySelectorAll("[data-k]")) r[el.dataset.k] = el.type === "checkbox" ? el.checked : el.value;
+    rules.push(r);
+  }
+  $("#ftOfpRulesMsg").textContent = "Đang lưu…";
+  const d = await (await fetch("/api/ofp/rules", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({rules})})).json();
+  if(d.error){ $("#ftOfpRulesMsg").textContent = d.error; return; }
+  ofpRulesCache = d.rules || [];
+  for(const k of Object.keys(limCheckCache)) delete limCheckCache[k];
+  $("#ftOfpRulesMsg").textContent = "✓ Đã lưu " + ofpRulesCache.length + " dòng — bấm OFP trên header để kiểm lại.";
+};
 // Con trỏ cạnh nút: bấm là nhảy sang tab Check OFP đang giữ kết quả.
 $("#ofpCheckStat").style.cursor = "pointer";
 $("#ofpCheckStat").onclick = () => setDetailTab("limit");
