@@ -13063,10 +13063,12 @@ function nmPlotHits(hits, bounds){
         });
         const title = (hit.area ? hit.area + "  " : "") + (hit.ident || "")
           + (hit.kind === "FIR" ? "  FIR " + (hit.icao || "") : "");
-        layer.bindPopup("<b>" + title + "</b><br>"
-          + (hit.reasons || []).join(" · ")
-          + (hit.summary ? "<br>" + hit.summary : ""));
-        layer.on("click", () => { nmJumpNotam(hit.icao, hit.ident); });
+        layer.on("click", () => {
+          nmShowSidePop("<b>" + title + "</b><br>"
+            + (hit.reasons || []).join(" · ")
+            + (hit.summary ? "<br>" + hit.summary : ""));
+          nmJumpNotam(hit.icao, hit.ident);
+        });
         layer.addTo(nmDrawGroup);
         if(bounds) bounds.push(layer.getBounds());
         if(hit.ident){
@@ -13098,12 +13100,14 @@ function nmPlotHits(hits, bounds){
     }
     const title = nmHitTitle(hit);
     if(!over){
-      layer.bindPopup(stack.length > 1
-        ? nmStackPopup(stack)
-        : ("<b>" + title + "</b><br>"
-          + (hit.reasons || []).join(" · ")
-          + (hit.summary ? "<br>" + hit.summary : "")));
-      if(stack.length < 2) layer.on("click", () => { nmJumpNotam(hit.icao, hit.ident); });
+      layer.on("click", () => {
+        nmShowSidePop(stack.length > 1
+          ? nmStackPopup(stack)
+          : ("<b>" + title + "</b><br>"
+            + (hit.reasons || []).join(" · ")
+            + (hit.summary ? "<br>" + hit.summary : "")));
+        if(stack.length < 2) nmJumpNotam(hit.icao, hit.ident);
+      });
     }
     layer.addTo(nmDrawGroup);
     if(bounds) bounds.push(layer.getBounds());
