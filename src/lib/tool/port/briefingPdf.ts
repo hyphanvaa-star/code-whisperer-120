@@ -19,7 +19,8 @@ function wrap(text: string, width: number, size: number, font: PDFFont): string[
     for (const token of para.split(/\s+/).filter(Boolean)) {
       const pieces: string[] = [];
       let piece = "";
-      for (const char of token) {
+      if (font.widthOfTextAtSize(token, size) <= width) pieces.push(token);
+      else for (const char of token) {
         if (piece && font.widthOfTextAtSize(piece + char, size) > width) { pieces.push(piece); piece = ""; }
         piece += char;
       }

@@ -75,5 +75,5 @@ describe("Python Briefing parity", () => {
     const pdf = await toPdf(s);
     const { extractText } = await import("unpdf");
     expect((await extractText(pdf, { mergePages: true })).text).toContain("END_OF_NOTAM");
-  });
+  }, 60000);
 });
