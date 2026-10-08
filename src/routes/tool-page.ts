@@ -207,7 +207,6 @@ const SHIM = `<script>
 })();
 </script>`;
 
-const GATE_SKIP = `(async function gateBoot(){ if(window.__WEB_AUTH){ try{ var g=document.getElementById("gate"); if(g) g.style.display="none"; unlockUI(); }catch(e){ console.error(e); } return; }`;
 
 // Lớp "skin" hiện đại: CHỈ đánh bóng hình thức (màu sắc, bo góc, đổ bóng,
 // khoảng thở, hiệu ứng hover/focus, thanh cuộn). Không đổi bố cục, icon,
@@ -1123,7 +1122,6 @@ async function page(): Promise<string> {
     .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
-    .replace("(async function gateBoot(){", GATE_SKIP)
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
