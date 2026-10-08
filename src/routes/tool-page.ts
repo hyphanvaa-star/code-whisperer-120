@@ -785,6 +785,8 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
   font-family:var(--x-sans) !important;font-size:12px !important;color:var(--x-ink) !important;
   background:#fff !important;border:1px solid var(--x-line) !important;border-radius:6px !important;box-shadow:none !important;
 }
+/* Ô nhập trong bảng Briefing: chữ to hơn cỡ chung để dễ đọc */
+#wrapFplText .fttbl input[type=text]{font-size:14px !important;height:32px !important;line-height:32px !important}
 input:focus,select:focus,textarea:focus{outline:none !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
 /* Ô cảnh báo giới hạn trong bảng chuyến bay phải giữ màu (đè lại luật ô nhập chung) */
 #wrapFplText .fttbl input.ft-lim-crit{color:#b91c1c !important;-webkit-text-fill-color:#b91c1c !important;background:#fecaca !important;border-color:#ef4444 !important;font-weight:800 !important}
