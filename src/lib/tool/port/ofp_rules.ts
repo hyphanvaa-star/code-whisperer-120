@@ -99,7 +99,7 @@ export function checkOfpRules(
       const at = abs % 1440;
       const ev = `ETD ${etd}Z + ${Math.floor(wpts[wp]! / 60)}:${String(wpts[wp]! % 60).padStart(2, "0")} → ${wp} ${hhmm(abs)}Z`;
       const cond = `${r.name}: ${wp} phải trước ${r.limit_utc}Z`;
-      if (at >= lim || abs >= 1440) {
+      if (at >= lim) {
         out.push({ kind: "ofp_rule", text: `${cond} — OFP tới ${wp} lúc ${hhmm(abs)}Z (VI PHẠM)`, severity: "critical", check: "ofp", evidence: ev, defect: "", limit: r.condition || r.name });
       } else if (at >= lim - buf) {
         out.push({ kind: "ofp_rule", text: `${cond} — OFP tới ${wp} lúc ${hhmm(abs)}Z, trong buffer ${buf}' (từ ${hhmm(lim - buf)}Z)`, severity: "warning", check: "ofp", evidence: ev, defect: "", limit: r.condition || r.name });
