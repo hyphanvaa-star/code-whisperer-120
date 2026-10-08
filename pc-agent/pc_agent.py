@@ -510,6 +510,14 @@ class _NoCancel:
         return False
 
 
+def _fpl_dir() -> Path:
+    """Thư mục nhận Excel FPL VER. Tool gốc cứng D:\\FPL nhưng không phải máy
+    nào cũng có ổ D — thiếu thì rơi về C:\\FPL."""
+    if Path("D:/").exists():
+        return Path(r"D:\FPL")
+    return Path(r"C:\FPL")
+
+
 def _load_owa_modules():
     """Nạp outlook_web_pib / config từ PC_TOOL_DIR — code gốc y hệt tool Windows."""
     tool_dir = _find_tool_dir()
@@ -518,6 +526,20 @@ def _load_owa_modules():
     os.chdir(tool_dir)  # config.py / profile Chrome OWA dùng đường dẫn tương đối
     import config  # noqa: E402  (module của tool gốc)
     import outlook_web_pib  # noqa: E402  (module của tool gốc)
+    # Máy không có ổ D: chuyển mọi đích FPL/Excel sang C:\FPL trước khi watcher chạy.
+    fpl = _fpl_dir()
+    try:
+        fpl.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+    for mod in (config, outlook_web_pib):
+        for attr in ("EXCEL_DIR", "FPL_DIR", "DEST_DIR", "DEST"):
+            cur = str(getattr(mod, attr, "") or "")
+            if cur.startswith(("D:", "D:/", "D:\\")):
+                try:
+                    setattr(mod, attr, str(fpl))
+                except Exception:
+                    pass
     return config, outlook_web_pib
 
 
