@@ -24263,8 +24263,11 @@ function hoNeedsEzfwAtfm(row){
   const dep = String((row && row.dep) || "").trim().toUpperCase();
   const arr = String((row && row.arr) || "").trim().toUpperCase();
   if(!dep && !arr) return true; // dòng trống: vẫn cho tích tay
-  return arr.indexOf("VV") === 0 && dep.indexOf("VV") !== 0;
+  return hoIsVn(arr) && !hoIsVn(dep);
 }
+// Bảng giao ca dùng mã IATA (SGN, HAN…) — nhận cả ICAO VVxx.
+const HO_VN_IATA = new Set(["SGN","HAN","DAD","CXR","PQC","HPH","VII","HUI","VCA","VCL","BMV","DLI","UIH","THD","VDH","VDO","PXU","TBB","VKG","DIN","CAH","VCS","VCL","VDH"]);
+function hoIsVn(code){ return code.indexOf("VV") === 0 && code.length === 4 || HO_VN_IATA.has(code); }
 let hoSaved = {shift:"MORNING SHIFT", date:"", from_dsp:"", to_dsp:"", flights:[]};
 let hoReady = false;
 let hoLastTick = null;
