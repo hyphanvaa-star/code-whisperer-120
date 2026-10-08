@@ -44,7 +44,7 @@ export function cleanOfpRules(rows: unknown[]): OfpRule[] {
       name, condition: s("condition"), note: s("note"), type,
       ...(type === "waypoint_time" ? { waypoints: wps, limit_utc: lim, buffer_min: Math.max(0, Number(o["buffer_min"]) || 0), scope } : {}),
       enabled: o["enabled"] !== false,
-    });
+    } as OfpRule);
   });
   return out;
 }
