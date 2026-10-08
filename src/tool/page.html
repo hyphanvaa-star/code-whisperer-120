@@ -20428,7 +20428,12 @@ function vPaintDone(kind, row, btn){
 
 /* DSP có chuyến đổi tàu và/hoặc đổi crew trên tab này — lọc + Đổi hàng loạt. */
 function vActionRows(){
-  return ((vLast && vLast.rows) || []).filter(r =>
+  // Dùng đúng object đã vẽ trên bảng (vMergeDuty có thể tạo bản sao) để
+  // giữ liên kết _regBtn/_crewBtn — nếu không nút "Đổi" theo DSP thấy 0 chuyến.
+  const tb = $("#vBody");
+  const drawn = tb ? [...tb.querySelectorAll("tr")].map(tr => tr._row).filter(Boolean) : [];
+  const src = drawn.length ? drawn : ((vLast && vLast.rows) || []);
+  return src.filter(r =>
     r && r.dsp && ((r.reg && r.reg.changed) || (r.crew && r.crew.changed)));
 }
 
