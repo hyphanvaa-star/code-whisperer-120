@@ -232,8 +232,9 @@ export function save_route_table(rows: Raw[]): Raw {
     kapli: String(rec.kapli || "").trim(),
     envar: String(rec.envar || "").trim(),
     opt: String(rec.opt || "").trim(),
+    note: String(rec.note || "").trim(),
   }));
-  return { columns: ["ROUTE", "KAPLI", "ENVAR", "OPT"], rows: out };
+  return { columns: ["ROUTE", "KAPLI", "ENVAR", "OPT", "NOTE"], rows: out };
 }
 
 export function save_alt_rows(oldDoc: Raw, rows: Raw[]): Raw {
