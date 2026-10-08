@@ -489,6 +489,7 @@ export function parseAreas(text: string): Geom[] {
       cur.push(p);
     }
     if (cur.length) rings.push(cur);
+    if (process.env.DBG) console.log(flat.length, rings.map(r=>r.length), hubs);
     const place = /\(\s*(\d+)\s*\)\s*PLACE\s*:/i.exec(piece);
     const name = namedAreaIds(piece)[0] || (place ? `PLACE ${Number(place[1])}` : '');
     for (const r0 of rings) {
