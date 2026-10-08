@@ -64,3 +64,4 @@
 
 - [x] Trợ lý PC v1.5: mọi đích D:\ (FPL, Omni, GD, PIB) tự rơi về C:\ khi máy không có ổ D; web hiển thị đường dẫn thực tế.
 - [x] Route check trên bản đồ: bỏ viền đen (halo) quanh đường vàng, giữ nguyên đường vàng.
+- [ ] Đối chiếu goi-ve-vung-notam.zip: bổ sung hình vùng bị thiếu/chấm cam; kiểm tra parser và hiển thị bản đồ.
