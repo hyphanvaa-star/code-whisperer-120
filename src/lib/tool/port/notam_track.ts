@@ -328,8 +328,8 @@ export function catalogGeoms(blob: string): Geom[] {
   const u = blob.toUpperCase();
   const out: Geom[] = [];
   const seen = new Set<string>();
-  const rings = AIP_CATALOG.rings as Record<string, [number, number][]>;
-  const circles = AIP_CATALOG.circles as Record<string, [number, number, number]>;
+  const rings = AIP_CATALOG.rings as unknown as Record<string, [number, number][]>;
+  const circles = AIP_CATALOG.circles as unknown as Record<string, [number, number, number]>;
   for (const key of [...Object.keys(rings), ...Object.keys(circles)].sort((a, b) => b.length - a.length)) {
     const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/-/g, "\\s*-?\\s*");
     const re = new RegExp(`(?<![A-Z0-9-])${esc}(?![A-Z0-9]|-[A-Z])`);
