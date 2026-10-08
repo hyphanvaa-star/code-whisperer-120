@@ -20,6 +20,9 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
           body = {};
         }
         const pc = await import("@/lib/tool/pcagent.server");
+        if (typeof body["status_of"] === "string") {
+          return Response.json({ status: await pc.jobStatus(body["status_of"] as string) });
+        }
         const printers = Array.isArray(body["printers"]) ? body["printers"] : [];
         const pathsExist =
           body["paths_exist"] && typeof body["paths_exist"] === "object"

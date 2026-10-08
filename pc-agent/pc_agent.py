@@ -19,6 +19,7 @@ import os
 import re
 import shutil
 import sys
+import threading
 import time
 import traceback
 from datetime import datetime, timedelta, timezone
@@ -26,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.3"
+VERSION = "2.4"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -587,11 +588,33 @@ def do_aviweb_submit(payload: dict, say) -> dict:
     }
 
 
+_CANCEL = threading.Event()
+_CURRENT_JOB: list = [None]
+
+
 class _NoCancel:
-    """Trợ lý PC chưa có kênh huỷ việc đang chạy từ xa — xem README mục Hạn chế."""
+    """Báo huỷ khi người dùng bấm Stop trên web (watcher thread hỏi server)."""
 
     def is_set(self) -> bool:
-        return False
+        return _CANCEL.is_set()
+
+    def wait(self, timeout=None) -> bool:
+        return _CANCEL.wait(timeout)
+
+
+def _cancel_watcher() -> None:
+    while True:
+        time.sleep(3)
+        jid = _CURRENT_JOB[0]
+        if not jid or _CANCEL.is_set():
+            continue
+        try:
+            st = post(POLL_URL, {"status_of": jid}).get("status")
+            if st in ("failed", "done", "missing"):
+                _CANCEL.set()
+                log("⏹ lệnh đã bị huỷ trên web — đang dừng…")
+        except Exception:
+            pass
 
 
 def _fpl_dir() -> Path:
@@ -1333,6 +1356,7 @@ def main() -> int:
         return 2
     log(f"Trợ lý PC v{VERSION} — kết nối {BASE_URL}")
     check_paths: list[str] = []
+    threading.Thread(target=_cancel_watcher, daemon=True).start()
     while True:
         try:
             paths_exist = {"D:\\": _has_d()}
@@ -1357,6 +1381,8 @@ def main() -> int:
                     log("  " + text)
 
                 handler = HANDLERS.get(kind)
+                _CANCEL.clear()
+                _CURRENT_JOB[0] = jid
                 try:
                     if handler is None:
                         raise RuntimeError(f"trợ lý không biết lệnh {kind!r}")
@@ -1371,6 +1397,8 @@ def main() -> int:
                         "result": {"error": str(exc), "lines": lines},
                     })
                     log(f"✗ {kind}: {exc}")
+                finally:
+                    _CURRENT_JOB[0] = None
         except KeyboardInterrupt:
             return 0
         except Exception as exc:

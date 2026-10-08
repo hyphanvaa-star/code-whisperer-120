@@ -177,6 +177,24 @@ export async function finishJob(id: string, ok: boolean, result: Record<string, 
       result: result as never,
       done_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .in("status", ["pending", "running"]);
   if (error) throw new Error(error.message);
+}
+
+/** Huỷ mọi lệnh PC đang chờ/đang chạy (nút Stop). Trả số lệnh bị huỷ. */
+export async function cancelAll(): Promise<number> {
+  const { data, error } = await (await admin())
+    .from("pc_jobs")
+    .update({ status: "failed", result: { error: "đã huỷ bởi người dùng", cancelled: true } as never, done_at: new Date().toISOString() })
+    .in("status", ["pending", "running"])
+    .select("id");
+  if (error) throw new Error(error.message);
+  return (data ?? []).length;
+}
+
+/** Trạng thái 1 lệnh — trợ lý PC hỏi để biết có bị huỷ không. */
+export async function jobStatus(id: string): Promise<string> {
+  const { data } = await (await admin()).from("pc_jobs").select("status").eq("id", id).maybeSingle();
+  return String((data as { status?: string } | null)?.status ?? "missing");
 }

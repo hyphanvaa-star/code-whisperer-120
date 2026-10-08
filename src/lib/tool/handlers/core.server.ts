@@ -453,7 +453,10 @@ export const routes: Routes = {
   "GET /api/tab-close": () => ({ ok: true }),
   "POST /api/tab-close": () => ({ ok: true }),
   "POST /api/quit": () => ({ ok: true }),
-  "POST /api/stop": () => ({ ok: true }),
+  "POST /api/stop": async () => {
+    const { cancelAll } = await import("../pcagent.server");
+    return { ok: true, count: await cancelAll() };
+  },
   "GET /api/extra": () => ({ ready: false, count: 0, times: {} }),
   "GET /api/est/status": async (ctx) => {
     const cache = await getJson<OmniCache>(ctx, "omni.cache", EMPTY_OMNI_CACHE);

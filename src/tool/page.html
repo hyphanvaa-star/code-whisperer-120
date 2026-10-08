@@ -10692,6 +10692,16 @@ function runningJobs({includePibWx=true}={}){
 /** Huỷ mọi thao tác đang chạy (giống Esc). Không tắt server. */
 function stopRunningJobs(){
   let n = 0;
+  // huỷ hẳn: đóng mọi luồng đang chạy để nút/trạng thái trả về ngay
+  setTimeout(() => {
+    for(const es of Array.from(window.__allEs || [])){
+      if(es.readyState === 2) continue;
+      try{ es.close(); }catch(e){}
+      try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){}
+    }
+    window.__allEs = new Set();
+    write("⏹ đã huỷ lệnh đang chạy", "sys");
+  }, 0);
   const jobs = runningJobs();
   for(const [j, what] of jobs){
     if(j === tlJob) tlChain = false;
