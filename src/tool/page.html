@@ -23195,7 +23195,7 @@ $("#ftOfpRulesSave").onclick = async function(){
   const d = await (await fetch("/api/ofp/rules", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({rules})})).json();
   if(d.error){ $("#ftOfpRulesMsg").textContent = d.error; return; }
   ofpRulesCache = d.rules || [];
-  limCheckCache = {};
+  for(const k of Object.keys(limCheckCache)) delete limCheckCache[k];
   $("#ftOfpRulesMsg").textContent = "✓ Đã lưu " + ofpRulesCache.length + " dòng — bấm OFP trên header để kiểm lại.";
 };
 // Con trỏ cạnh nút: bấm là nhảy sang tab Check OFP đang giữ kết quả.
