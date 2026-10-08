@@ -1,4 +1,5 @@
 import { env as credEnv } from "../creds.server";
+import { checkOfpRules, cleanOfpRules, DEFAULT_OFP_RULES, parseWaypointTimes, type OfpRule } from "../port/ofp_rules";
 import type { Jobs, Routes } from "../types";
 import type { Flight } from "../core/models";
 import { applyFilters, listDispatchers, loadFlights } from "../core/gantts.server";
@@ -257,7 +258,7 @@ async function fetchOneWeight(
   const key = `ofp.w.${sectorId}`;
   if (!revalidate) {
     const cached = await getJson<CachedWeights | null>(ctx, key, null);
-    if (cached && Date.now() - cached.at < OFP_WEIGHTS_TTL_MS) return cached.w;
+    if (cached && cached.w && "wpts" in cached.w && Date.now() - cached.at < OFP_WEIGHTS_TTL_MS) return cached.w;
   }
   const readCacheFallback = async (): Promise<Record<string, unknown> | null> => {
     const cached = await getJson<CachedWeights | null>(ctx, key, null);
@@ -270,13 +271,23 @@ async function fetchOneWeight(
     const buf = await res.arrayBuffer();
     if (!buf.byteLength) return readCacheFallback();
     let w: Weights;
+    let ofpText = "";
     try {
-      w = await parseWeights(buf, sectorId);
+      const { ofpTextFromPdf, parseOperationalText } = await import("../port/ofp_weights");
+      try {
+        ofpText = await ofpTextFromPdf(buf);
+      } catch (exc) {
+        throw new OfpError(`đọc PDF lỗi: ${String(exc)}`);
+      }
+      w = parseOperationalText(ofpText, sectorId);
     } catch (exc) {
       if (exc instanceof OfpError) return readCacheFallback();
       throw exc;
     }
     const dict = w.toDict();
+    const wt = parseWaypointTimes(ofpText);
+    dict["etd"] = wt.etd;
+    dict["wpts"] = wt.wpts;
     await setJson(ctx, key, { w: dict, at: Date.now() } satisfies CachedWeights);
     return dict;
   } catch {
@@ -309,6 +320,11 @@ async function getWeightsBulk(
 /** Port of web.py `_limits_revision()` — mtime of limits.json. We store limits
  * in app_settings instead of a file, so use that row's updated_at as the
  * revision marker (falls back to "0" like a missing file). */
+async function loadOfpRules(ctx: Parameters<Routes["GET /api/weights"]>[0]): Promise<OfpRule[]> {
+  const raw = await getJson<unknown>(ctx, "ofp_check_rules", null);
+  return Array.isArray(raw) ? cleanOfpRules(raw) : DEFAULT_OFP_RULES;
+}
+
 async function limitsRevision(ctx: Parameters<Routes["GET /api/weights"]>[0]): Promise<string> {
   try {
     const { data } = await ctx.supabase.from("app_settings").select("updated_at").eq("key", "limits").maybeSingle();
@@ -503,6 +519,16 @@ export const routes: Routes = {
   "POST /api/omni/auto": () => ({
     error: "Tự động tải Omni xuống ổ D cần PC helper (không chạy được trên máy chủ web) — dùng nút 🔄 EST để lấy EST trực tiếp.",
   }),
+  "GET /api/ofp/rules": async (ctx) => ({ rules: await loadOfpRules(ctx) }),
+  "POST /api/ofp/rules": async (ctx) => {
+    const { data: isAdmin } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" });
+    if (!isAdmin) return { error: "Chỉ tài khoản quản trị mới sửa được OFP check data." };
+    const body = (await ctx.json()) as Record<string, unknown>;
+    if (!Array.isArray(body["rules"])) return { error: "rules phải là danh sách" };
+    const rules = cleanOfpRules(body["rules"] as unknown[]);
+    await setJson(ctx, "ofp_check_rules", rules);
+    return { ok: true, rules };
+  },
   "GET /api/weights": async (ctx) => {
     const { params } = ctx;
     const ids = (params.get("ids") || "")
@@ -527,6 +553,7 @@ export const routes: Routes = {
     const useCacheOnly = params.get("cache") === "1";
     const limits = await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS);
     const rev = await limitsRevision(ctx);
+    const ofpRules = await loadOfpRules(ctx);
 
     let ws: Map<number, Record<string, unknown>>;
     try {
@@ -553,7 +580,7 @@ export const routes: Routes = {
       if (stale) d["cfp_mismatch"] = true;
       payload[String(sectorId)] = d;
       if (!flight || stale) continue;
-      const warns = checkFlightLimits(flight, limits, wdict);
+      const warns = [...checkFlightLimits(flight, limits, wdict), ...checkOfpRules(flight, ofpRules, wdict)];
       limitWarns[String(sectorId)] = warns;
     }
 

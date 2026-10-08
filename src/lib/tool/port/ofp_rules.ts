@@ -22,7 +22,7 @@ export const DEFAULT_OFP_RULES: OfpRule[] = [
   {
     id: "kapli_envar", name: "KAPLI/ENVAR", condition: "TIME TO KAPLI < 1700Z ( BUFFER 15M)",
     note: "giá trị thời gian trong ofp tới điểm kapli phải bé hơn 1700z , buffer 15 phút là 1645z là phải warning lên",
-    type: "waypoint_time", waypoints: ["KAPLI", "ENVAR"], limit_utc: "1700", buffer_min: 15, scope: "all", enabled: true,
+    type: "waypoint_time", waypoints: ["KAPLI"], limit_utc: "1700", buffer_min: 15, scope: "all", enabled: true,
   },
 ];
 
