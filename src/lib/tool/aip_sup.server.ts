@@ -7,6 +7,7 @@ import { getJson, setJson } from "./store.server";
 import * as p from "./port/aip_sup";
 import type { RingTable, Pt } from "./port/aip_sup";
 import { parseEnr53Text, parseEnr51Text, idsInText } from './port/aip_jp';
+import { parseKrEnrHtml } from './port/aip_enr';
 
 const UA = "DispatchBoard-AIP/1.0";
 const OK_TTL_S = 30 * 24 * 3600;
@@ -483,3 +484,21 @@ export async function japanTrainingRings(ctx: Ctx, section: '5.3' | '5.1' = '5.3
 }
 
 export { idsInText as japanIdsInText };
+
+/** KOCA's published ENR 5.1 boundaries; never substitute Q-line circles. */
+export async function koreaRestrictedRings(ctx: Ctx): Promise<Record<string, Pt[]>> {
+  const key = 'aip_enr:kr:5.1:v1';
+  const cached = await getJson<{ ts: number; rings: Record<string, Pt[]> } | null>(ctx, key, null);
+  if (cached && Date.now() - cached.ts < 7 * 24 * 3600_000 && Object.keys(cached.rings).length) return cached.rings;
+  for (const cycle of ['2026-10-01', '2026-06-25', '2026-05-14']) {
+    try {
+      const response = await httpFetch(`https://aim.koca.go.kr/eaipPub/Package/${cycle}/html/eAIP/KR-ENR-5.1-en-GB.html`);
+      if (response.status >= 400) continue;
+      const rings = parseKrEnrHtml(new TextDecoder().decode(response.body));
+      if (!Object.keys(rings).length) continue;
+      await setJson(ctx, key, { ts: Date.now(), rings, cycle });
+      return rings;
+    } catch { /* unresolved remains a clearly marked pin */ }
+  }
+  return {};
+}

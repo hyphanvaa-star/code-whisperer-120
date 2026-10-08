@@ -22,8 +22,8 @@ import { setNotamProgress } from "./notam.server";
 // of a fabricated line; distance-to-track math in notam_track.ts already degrades to
 // `dist_nm: null` ("không tính được") in that case, same as upstream without its KML.
 import { trackFor } from "../port/jetplan_kml";
-import { supKeys, notamGeoms, type Geom } from "../port/notam_track";
-import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText } from "../aip_sup.server";
+import { supKeys, namedAreaIds, notamGeoms, type Geom } from "../port/notam_track";
+import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText, koreaRestrictedRings } from "../aip_sup.server";
 import { expand_au_area_ids } from '../port/aip_sup';
 import AIP_CATALOG from '../port/aip_catalog.json';
 import type { Ctx } from "../types";
@@ -38,6 +38,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   const tasks: { priority: number; run: () => Promise<void> }[] = [];
   let japanCatalog: ReturnType<typeof japanTrainingRings> | undefined;
   let japanWarnings: ReturnType<typeof japanTrainingRings> | undefined;
+  let koreaCatalog: ReturnType<typeof koreaRestrictedRings> | undefined;
   const supRequests = new Map<string, ReturnType<typeof rings_of>>();
   for (const place of places) {
     const notams = ((place as Record<string, unknown>).notams as Record<string, unknown>[]) || [];
@@ -47,9 +48,18 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const keys = supKeys(blob);
       const au = fir.toUpperCase().startsWith("Y");
       const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob);
-      if (!keys.length && !au && !jp) continue;
+      const krIds = /^RK/i.test(fir) ? namedAreaIds(blob).filter(id => /^RK[DRP]/.test(id)) : [];
+      if (!keys.length && !au && !jp && !krIds.length) continue;
       const task = async () => {
         const geoms: Geom[] = [];
+        if (krIds.length) {
+          koreaCatalog ??= koreaRestrictedRings(ctx);
+          const table = await koreaCatalog;
+          for (const name of krIds) {
+            const ring = table[name];
+            if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+          }
+        }
         if (jp && /ENR\s*5\.3|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob)) {
           japanCatalog ??= japanTrainingRings(ctx);
           const table = await japanCatalog;
