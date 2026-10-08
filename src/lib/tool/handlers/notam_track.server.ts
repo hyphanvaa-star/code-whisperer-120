@@ -3,7 +3,7 @@ import { q } from "../types";
 import type { Flight } from "../core/models";
 import { loadFlights, applyFilters } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
-import { normIcao, placeFromPayload } from "../port/notam_check";
+import { normIcao, apply24h, placeFromPayload } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
 import { flightAirfields as tuneAirfields, locationsOf } from "../port/notam_check_tune";
 import { setNotamProgress } from "./notam.server";
@@ -124,7 +124,8 @@ async function fetchPlace(code: string, want: string): Promise<Place> {
   }
   try {
     const payload = await fbJson<Record<string, unknown>>(`/webapi/icaos/${icao}`);
-    return placeFromPayload(icao, payload, want) as Place;
+    // Filter the portal's ALL payload before enrichment, summaries and map hits.
+    return apply24h(placeFromPayload(icao, payload, want)) as Place;
   } catch (exc) {
     return {
       code: icao, kind: "", name: "", iata: "", fir: "", notam_count: 0, notams: [],

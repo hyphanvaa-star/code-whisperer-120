@@ -41,9 +41,11 @@ function ident(row: Record<string, unknown>): string {
 export function parseNotamWhen(raw: unknown, endOfDay = false): Date | null {
   let text = String(raw ?? "").trim();
   if (!text || PERM.has(text.toUpperCase())) return null;
-  text = text.replace(/Z/g, "").trim();
-  const iso = new Date(text.includes("T") ? text + "Z" : text.replace(" ", "T") + "Z");
-  if (!Number.isNaN(iso.getTime()) && /\d{4}-\d{2}-\d{2}/.test(text)) return iso;
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    const normalized = text.replace(" ", "T");
+    const iso = new Date(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalized) ? normalized : normalized + "Z");
+    if (!Number.isNaN(iso.getTime())) return iso;
+  }
   const digits = text.replace(/\D/g, "");
   if (digits.length >= 12) {
     const y = +digits.slice(0, 4), mo = +digits.slice(4, 6) - 1, d = +digits.slice(6, 8);
