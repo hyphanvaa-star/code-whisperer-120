@@ -1,6 +1,11 @@
 {
   "month": "OCT",
-  "source": "Taxi-out Fuel 4 Q4-2026 (3).xlsx",
+  "months": [
+    "OCT",
+    "NOV",
+    "DEC"
+  ],
+  "source": "Taxi-out Fuel 4 Q4-2026_4.xlsx",
   "standard": {
     "A333": 500,
     "A320": 200,
@@ -1267,60 +1272,6 @@
       "oct": "170",
       "nov": "170",
       "dec": "180"
-    },
-    {
-      "airport": "",
-      "type": "",
-      "oct": "",
-      "nov": "",
-      "dec": ""
-    },
-    {
-      "airport": "",
-      "type": "",
-      "oct": "",
-      "nov": "",
-      "dec": ""
-    },
-    {
-      "airport": "",
-      "type": "",
-      "oct": "",
-      "nov": "",
-      "dec": ""
-    },
-    {
-      "airport": "VVTS",
-      "type": "A333",
-      "oct": "500",
-      "nov": "500",
-      "dec": "500"
-    },
-    {
-      "airport": "VVTS",
-      "type": "A21N",
-      "oct": "500",
-      "nov": "500",
-      "dec": "500"
-    },
-    {
-      "airport": "VVTS",
-      "type": "A320",
-      "oct": "500",
-      "nov": "500",
-      "dec": "500"
-    },
-    {
-      "airport": "VVTS",
-      "type": "A321",
-      "oct": "500",
-      "nov": "500",
-      "dec": "500"
     }
-  ],
-  "months": [
-    "OCT",
-    "NOV",
-    "DEC"
   ]
 }
