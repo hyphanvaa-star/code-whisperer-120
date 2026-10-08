@@ -656,7 +656,9 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
         today = time.strftime("%Y-%m-%d")
         for f in _fpl_dir().glob("*.xls*"):
             if re.search(r"FLIGHT\s*PLAN|\bFPL\b", f.name, re.I) and \
-                    time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today:
+                    time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today or \
+                    re.search(r"FLIGHT\s*PLAN|\bFPL\b", f.name, re.I) and \
+                    re.search(r"ON\s*0?%d\s*%s" % (int(time.strftime("%d")), time.strftime("%b").upper()), f.name.upper()):
                 names.add(f.name)
         have = payload.get("have")
         def _safe(n):
