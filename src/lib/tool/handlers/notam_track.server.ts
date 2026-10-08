@@ -26,6 +26,7 @@ import { supKeys, namedAreaIds, notamGeoms, type Geom } from "../port/notam_trac
 import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText, koreaRestrictedRings } from "../aip_sup.server";
 import { expand_au_area_ids } from '../port/aip_sup';
 import AIP_CATALOG from '../port/aip_catalog.json';
+import { enrIdsInText, enrRing } from '../port/aip_enr_catalog';
 import type { Ctx } from "../types";
 
 const AU_DAH_ID = /\bY[A-Z]{3}\/([MRDP]\d{3,4}[A-Z]?)(?![0-9])/gi;
@@ -49,9 +50,14 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const au = fir.toUpperCase().startsWith("Y");
       const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob);
       const krIds = /^RK/i.test(fir) ? namedAreaIds(blob).filter(id => /^RK[DRP]/.test(id)) : [];
-      if (!keys.length && !au && !jp && !krIds.length) continue;
+      const enrIds = enrIdsInText(blob);
+      if (!keys.length && !au && !jp && !krIds.length && !enrIds.length) continue;
       const task = async () => {
         const geoms: Geom[] = [];
+        for (const name of enrIds) {
+          const ring = enrRing(name);
+          if (ring.length >= 3 && !geoms.some(g => g.name === name)) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+        }
         if (krIds.length) {
           koreaCatalog ??= koreaRestrictedRings(ctx);
           const table = await koreaCatalog;
