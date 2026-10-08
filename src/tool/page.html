@@ -13642,7 +13642,9 @@ function nmPaintVerdictSection(sec, items){
   const uniqRows = list => {
     const seen = new Set();
     return (list || []).filter(r => {
-      const k = String((r && r.label) || "").trim() + "|" + String((r && r.ident) || "").trim() + "|" + String((r && r.value) || "").trim();
+      const val = String((r && r.value) || "").trim();
+      const ids = (String((r && r.ident) || "") + " " + val).match(/\b[A-Z]{1,2}\d{3,5}\/\d{2}\b/g);
+      const k = String((r && r.label) || "").trim() + "|" + (ids ? [...new Set(ids)].sort().join(",") : val);
       if(seen.has(k)) return false;
       seen.add(k);
       return true;
