@@ -366,7 +366,8 @@ async function fetchFlightsDay(
 ): Promise<OmniFlight[]> {
   let r = await postJson(session, FLIGHTS, { flightDate: day });
   if (r.status === 401) {
-    const relog = await login(creds);
+    if (tokenStore) await tokenStore.clear(creds.username).catch(() => undefined);
+    const relog = await login(creds, true);
     session = relog.session;
     onRelogin?.(session);
     r = await postJson(session, FLIGHTS, { flightDate: day });
