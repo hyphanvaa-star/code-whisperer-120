@@ -66,3 +66,7 @@
 - [x] Route check trên bản đồ: bỏ viền đen (halo) quanh đường vàng, giữ nguyên đường vàng.
 - [x] Đối chiếu goi-ve-vung-notam.zip: bổ sung parser tọa độ/cung/nhiều vùng, Japan ENR/SUP và KOCA ENR; kiểm tra thực tế VJC822/VJC834. VJC834 còn 1 chấm cam D2983/26 chưa xác định được đường bao từ nguồn, không tự bịa hình; chưa publish.
 - [x] So sánh VJC834: Tracking thiếu apply24h nên lấy ALL; sửa trước đếm/vẽ. Kiểm tra thực tế còn 1154 NOTAM so với ảnh cũ 1152 (nguồn thay đổi + VVHM thêm); bộ lọc và parser có regression tests.
+
+## Giao diện đăng nhập / nền trang
+- [ ] Đổi nền trang đăng nhập cho đẹp hơn (đang làm)
+- [ ] Bỏ nút/biểu tượng người dùng gửi (image-60) — xác định đúng phần tử rồi xoá
