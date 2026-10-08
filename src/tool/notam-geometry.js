@@ -20,6 +20,11 @@
     return originalRefresh(hit);
   };
   const originalFind = nmFindHit;
+  const originalPlot = nmPlotHits;
+  nmPlotHits = function (hits, bounds) {
+    // Both shape and dot passes must see the upgraded geometry, not raw hits.
+    return originalPlot((hits || []).map(nmRefreshHitGeom).filter(Boolean), bounds);
+  };
   nmFindHit = function (ident) {
     const want = String(ident || '').toUpperCase();
     const resolved = (nmTrackData ? nmHitsOf(nmTrackData) : []).concat(nmFleetHits());
