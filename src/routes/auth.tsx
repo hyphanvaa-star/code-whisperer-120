@@ -125,9 +125,6 @@ function AuthPage() {
           <path d="M-60 300C300 300 520 520 1260 470" strokeDasharray="5 14" strokeOpacity="0.3" />
           <path d="M120 860C300 620 520 560 900 240" strokeDasharray="3 10" strokeOpacity="0.25" />
         </g>
-        {/* máy bay trên radar */}
-        <g opacity="0.95">
-        </g>
         {/* chấm xanh lá: máy bay đang theo dõi */}
         <g fill="#4ade80">
           <circle className="atc-blink" cx="240" cy="250" r="5" />
