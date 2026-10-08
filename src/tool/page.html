@@ -2555,13 +2555,13 @@ main.nm-track #wrapXls,main.nm-track #xlsbar{display:none !important}
 .nm-vn-ndb{display:block;width:8px;height:8px;margin:2px auto 0;border-radius:50%;
   background:#1d4ed8;box-shadow:0 0 0 2px #fff;
   transform:scale(var(--nm-sym, 1));transform-origin:center}
-.nm-awy-lab{background:#fff !important;border:1px solid #f2b6cf !important;color:#c62a72;cursor:pointer;
+.nm-awy-lab{background:#fff !important;border:1px solid #1e3a8a !important;color:#1e3a8a;cursor:pointer;
   font:800 var(--nm-awy, 15px)/1.1 "JetBrains Mono",ui-monospace,Consolas,monospace;
   font-size:var(--nm-awy, 15px) !important;
   text-shadow:none;white-space:nowrap;margin:0;
   padding:calc(var(--nm-awy, 15px) * .12) calc(var(--nm-awy, 15px) * .45);
-  border-radius:4px;width:auto !important;height:auto !important;
-  transform:translate(-50%,-50%)}
+  border-radius:3px;width:auto !important;height:auto !important;
+  translate:-50% -50%;rotate:var(--nm-rot, 0deg)}
 .nm-awy-lab.on{border-color:#c62a72 !important;box-shadow:0 0 0 2px #c62a72}
 .leaflet-interactive.nm-route-leg{cursor:pointer}
 .nm-area-lab{background:transparent !important;border:0 !important;box-shadow:none !important;
@@ -15155,6 +15155,11 @@ function nmPlaceAwyLabs(){
       (a.x + b.x) / 2 + (-dy / len) * off,
       (a.y + b.y) / 2 + (dx / len) * off
     )));
+    let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+    if(deg > 90) deg -= 180; else if(deg < -90) deg += 180;
+    const el = layer.getElement && layer.getElement();
+    if(el) el.style.setProperty("--nm-rot", deg.toFixed(1) + "deg");
+    layer._nmRot = deg;
   });
 }
 function nmAtsLabel(cc){
@@ -16164,7 +16169,7 @@ function nmDrawAirways(d){
       const bPt = nmMap.latLngToContainerPoint([Number(p.lat), Number(p.lon)]);
       const dx = bPt.x - aPt.x, dy = bPt.y - aPt.y;
       const len = Math.hypot(dx, dy) || 1;
-      const off = -24;
+      const off = 0;
       const mid = nmMap.containerPointToLatLng(L.point(
         (aPt.x + bPt.x) / 2 + (-dy / len) * off,
         (aPt.y + bPt.y) / 2 + (dx / len) * off
@@ -16181,6 +16186,10 @@ function nmDrawAirways(d){
         nmToggleAwy(awy, fid);
       });
       mk.addTo(nmDrawGroup);
+      { let deg = Math.atan2(dy, dx) * 180 / Math.PI;
+        if(deg > 90) deg -= 180; else if(deg < -90) deg += 180;
+        const el = mk.getElement && mk.getElement();
+        if(el) el.style.setProperty("--nm-rot", deg.toFixed(1) + "deg"); }
     }
     if(awy) prevAwy = awy;
   }
@@ -16208,10 +16217,23 @@ function nmDrawNavlog(d){
     const fl = Number(p.fl_ft) > 0 ? "FL" + Math.round(Number(p.fl_ft) / 100) : "";
     const lab = [name, eta, fl].filter(Boolean).join(" ");
     const tip = lab + (awy ? "  " + awy : "");
+    // Tên điểm nằm ngoài đường bay: đẩy theo pháp tuyến của route (phía trên).
+    let dir = "right", offs = [6, 0];
+    if(nmMap){
+      const pa = pts[Math.max(0, i - 1)], pb = pts[Math.min(pts.length - 1, i + 1)];
+      const A = nmMap.latLngToContainerPoint([Number(pa.lat), Number(pa.lon)]);
+      const B = nmMap.latLngToContainerPoint([Number(pb.lat), Number(pb.lon)]);
+      let nx = -(B.y - A.y), ny = B.x - A.x;
+      const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+      if(ny > 0 || (Math.abs(ny) < 1e-6 && nx < 0)){ nx = -nx; ny = -ny; }
+      if(Math.abs(nx) > Math.abs(ny)){ dir = nx > 0 ? "right" : "left"; }
+      else dir = "top";
+      offs = [Math.round(nx * 10), Math.round(ny * 10)];
+    }
     L.circleMarker(latlng, {
       radius: 4, color: "#111", fillColor: "#fff", fillOpacity: 1, weight: 2
     }).bindTooltip(lab, {
-      permanent: true, direction: "right", offset: [6, 0],
+      permanent: true, direction: dir, offset: offs,
       className: "nm-wpt-lab", opacity: 0.95
     }).bindPopup(tip).addTo(nmDrawGroup);
   }
