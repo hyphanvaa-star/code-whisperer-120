@@ -11039,13 +11039,23 @@ async function aeStartDraft(){
               : "thất bại — xem log";
             msg.className = "status" + (m.ok ? " ok" : " bad");
           }
-          if(m.ok) alert("Đã lưu " + m.ok + " nháp trên Outlook Web.\n" + (m.subject || "")
-            + "\nKhông gửi — mở Drafts trên trình duyệt rồi bấm Send khi muốn.");
-          else alert("Không soạn được nháp.\nXem log ATC + EZFW.");
+          const links = (m.links || []).filter(Boolean);
+          const mb = "omc%40vietjetair.com";
+          const fallback = "https://outlook.cloud.microsoft/mail/" + mb + "/drafts";
+          if(m.ok){
+            const first = links[0] || fallback;
+            if(aeTab && !aeTab.closed) aeTab.location.href = first;
+            else window.open(first, "_blank");
+            for(const u of links.slice(1)) window.open(u, "_blank");
+          }else{
+            try{ if(aeTab && !aeTab.closed) aeTab.close(); }catch(_){}
+            alert("Không soạn được nháp.\nXem log ATC + EZFW.");
+          }
         }
       }catch(e){}
     };
   }catch(err){
+    try{ if(aeTab && !aeTab.closed) aeTab.close(); }catch(_){}
     if(btn) btn.disabled = false;
     if(go) go.disabled = false;
     if(msg){ msg.textContent = String(err.message || err); msg.className = "status bad"; }
