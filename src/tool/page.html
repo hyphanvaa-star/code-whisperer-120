@@ -13153,10 +13153,12 @@ function nmPlotHits(hits, bounds){
     });
     const title = (hit.area ? hit.area + "  " : "") + (hit.ident || "")
       + (hit.kind === "FIR" ? "  FIR " + (hit.icao || "") : "");
-    layer.bindPopup("<b>" + title + "</b><br>"
-      + (hit.reasons || []).join(" · ")
-      + (hit.summary ? "<br>" + hit.summary : ""));
-    layer.on("click", () => { nmJumpNotam(hit.icao, hit.ident); });
+    layer.on("click", () => {
+      nmShowSidePop("<b>" + title + "</b><br>"
+        + (hit.reasons || []).join(" · ")
+        + (hit.summary ? "<br>" + hit.summary : ""));
+      nmJumpNotam(hit.icao, hit.ident);
+    });
     layer.addTo(nmDrawGroup);
     if(bounds) bounds.push(L.latLng(ll[0], ll[1]).toBounds(50000));
     if(hit.ident){
