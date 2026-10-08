@@ -307,9 +307,7 @@ export function supKeys(blob: string): string[] {
   const out: string[] = [];
   const re = /\b(?:AIP\s+)?SUP(?:PLEMENT)?\s*(?:NR\.?|NO\.?)?\s*([A-Z]?)\s*(\d{1,3})\s*\/\s*(\d{2})\b/gi;
   for (const m of String(blob || "").matchAll(re)) {
-    const key = `${(m[1] || "").toUpperCase()}${parseInt(m[2]!, 10).toString().padStart(3, "0").replace(/^0+(?=\d{2,})/, "")}/${m[3]}`;
     const norm = `${(m[1] || "").toUpperCase()}${m[2]}/${m[3]}`;
-    void key;
     if (!out.includes(norm)) out.push(norm);
   }
   return out;
