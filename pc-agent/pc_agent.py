@@ -26,7 +26,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.7"
+VERSION = "1.8"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -651,7 +651,14 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
         import config  # noqa: E402
         dirs = [Path(st.get("dest_excel") or "data/excel"), Path(st.get("dest") or "."), Path(getattr(config, "EXCEL_DIR", "") or "data/excel"), Path("data/excel"), _fpl_dir()]
         ups = []
-        for name in {ver.get("old") or "", ver.get("new") or ""}:
+        names = {ver.get("old") or "", ver.get("new") or ""}
+        # Watcher khởi động lại thì ver trống — vẫn gửi mọi FPL hôm nay trong thư mục FPL.
+        today = time.strftime("%Y-%m-%d")
+        for f in _fpl_dir().glob("*.xls*"):
+            if re.search(r"FLIGHT\s*PLAN|\bFPL\b", f.name, re.I) and \
+                    time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today:
+                names.add(f.name)
+        for name in names:
             if not name or name in _SENT_VER:
                 continue
             for d in dirs:
