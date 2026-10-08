@@ -68,6 +68,9 @@
 - [x] So sánh VJC834: Tracking thiếu apply24h nên lấy ALL; sửa trước đếm/vẽ. Kiểm tra thực tế còn 1154 NOTAM so với ảnh cũ 1152 (nguồn thay đổi + VVHM thêm); bộ lọc và parser có regression tests.
 
 ## Giao diện đăng nhập / nền trang
-- [ ] Đổi nền trang đăng nhập cho đẹp hơn (đang làm)
-- [ ] Bỏ nút/biểu tượng người dùng gửi (image-60) — xác định đúng phần tử rồi xoá
-- [ ] Tài khoản: chỉ đăng nhập bằng ID + mật khẩu (không cần Gmail), tạo hyphan + roise
+- [x] Nền đăng nhập mới: wash đỏ + chấm lưới + mạng đường bay/vòng radar (kiểm desktop + mobile)
+- [x] Bỏ ô nhập email (Chrome hay gợi ý tài khoản trong ô đó) — đã thay bằng ô 'ID tài khoản'
+- [x] Đăng nhập chỉ cần ID + mật khẩu: ID 'hyphan'/'roise' tự map thành <id>@app.local
+- [x] Đăng nhập chỉ cần ID + mật khẩu (bỏ ô email/Gmail)
+- [x] Tài khoản: hyphan (admin+dispatcher) — đã đăng nhập được bằng ID
+- [x] roise / 221098 đã tạo (dispatcher); tắt kiểm tra mật khẩu yếu + tắt tự đăng ký theo yêu cầu
