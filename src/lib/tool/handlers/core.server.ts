@@ -9,6 +9,7 @@ import { adviceForFlight, type TafRec, type TafSnapshot } from "../port/taf";
 import { getJson, setJson } from "../store.server";
 import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
 import * as omni from "../port/omni";
+import { saveBrowserToken } from "../omni_session.server";
 import { getSnapshot, hasOooi, matchTrack, overlayOf, type Track } from "../opscore.server";
 import * as jetplan from "../jetplan.server";
 import * as pcr from "../port/pcr_limits";
@@ -437,6 +438,18 @@ export const routes: Routes = {
   "POST /api/gate/unlock": () => ({ ok: true, unlocked: true }),
   "POST /api/gate/enter": () => ({ ok: true, unlocked: true }),
   "GET /api/heartbeat": () => ({ ok: true }),
+  // Omni chặn tạo token từ máy chủ cloud → trình duyệt dispatcher đăng nhập rồi gửi token lên.
+  "GET /api/omni/login-user": () => ({ username: credEnv("OMNI_USERNAME") || "" }),
+  "POST /api/omni/token": async (ctx) => {
+    const body = await ctx.json();
+    const username = credEnv("OMNI_USERNAME") || String(body["username"] || "").trim();
+    if (!username) return { error: "chưa có tài khoản Omni" };
+    try {
+      return await saveBrowserToken(username, String(body["token"] || ""));
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  },
   "GET /api/tab-close": () => ({ ok: true }),
   "POST /api/tab-close": () => ({ ok: true }),
   "POST /api/quit": () => ({ ok: true }),
