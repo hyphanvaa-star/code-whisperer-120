@@ -8,7 +8,7 @@ import { DefectPdfError, processUpload } from "../port/defect_pdf";
 
 const TAU_LIST = [
   "VNA522", "VNA631", "VNA637", "VNA651", "VNA643", "VNA642", "VNA639",
-  "VNA635", "VNA632", "VNA641", "VNA649", "VNA657", "VNA634", "VNA687",
+  "VNA635", "VNA632", "VNA641", "VNA649", "VNA657", "VNA634", "VNA687", "VNA698",
 ].sort();
 const LOW_EGT_LABEL = "LOW EGT";
 
