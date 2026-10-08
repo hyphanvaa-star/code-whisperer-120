@@ -17,6 +17,7 @@ import base64
 import json
 import os
 import re
+import shutil
 import sys
 import time
 import traceback
