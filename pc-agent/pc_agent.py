@@ -25,13 +25,13 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.5"
+VERSION = "1.6"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
 
 # Cấu hình mặc định — ghi sẵn để người dùng chỉ cần double-click, không gõ lệnh.
-DEFAULT_URL = "https://code-whisperer-834.lovable.app"
+DEFAULT_URL = "https://sohee-dispatch-tool-v3.lovable.app"
 DEFAULT_TOKEN = "Hydeptrai@123"
 
 
@@ -45,7 +45,7 @@ def _load_config() -> dict:
     except Exception:
         pass
     return {
-        "url": (os.environ.get("PC_AGENT_URL") or cfg.get("url") or DEFAULT_URL).rstrip("/"),
+        "url": (os.environ.get("PC_AGENT_URL") or (cfg.get("url") if "code-whisperer" not in str(cfg.get("url") or "") else "") or DEFAULT_URL).rstrip("/"),
         "token": os.environ.get("PC_AGENT_TOKEN") or cfg.get("token") or DEFAULT_TOKEN,
         "tool_dir": os.environ.get("PC_TOOL_DIR") or cfg.get("tool_dir") or "",
         "_cfg_path": cfg_path,
