@@ -11006,6 +11006,12 @@ async function aeStartDraft(){
     return;
   }
   aeCloseModal();
+  // Mở sẵn tab mới ngay lúc bấm (tránh chặn popup); soạn xong sẽ chuyển tab này tới nháp.
+  let aeTab = null;
+  try{
+    aeTab = window.open("about:blank", "_blank");
+    if(aeTab) aeTab.document.write('<title>Đang soạn nháp…</title><p style="font:16px sans-serif;padding:24px">Đang soạn nháp ATC + EZFW trên Outlook Web…</p>');
+  }catch(_){}
   if(btn) btn.disabled = true;
   if(go) go.disabled = true;
   if(msg){ msg.textContent = "đang cắt ATC/EZFW " + flight + "…"; msg.className = "status"; }
