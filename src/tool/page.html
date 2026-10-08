@@ -5829,7 +5829,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V19</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V20</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -20619,6 +20619,8 @@ async function vLoadFiles({preferNewest = false} = {}){
         if(ka[0] !== kb[0]) return kb[0] - ka[0];
         if(ka[1] !== kb[1]) return kb[1] - ka[1];
       }
+      // File FPL có VER luôn đứng trước file lẻ (vd "8 8.xlsx") — so sánh chỉ giữa các ver FPL.
+      if((ka[1] >= 0) !== (kb[1] >= 0)) return ka[1] >= 0 ? -1 : 1;
       return (b.modified || 0) - (a.modified || 0);
     });
     // Có ver mới hơn cặp đang chọn → ver mới vào BẢN MỚI, ver liền trước xuống BẢN ĐANG DÙNG.
