@@ -276,7 +276,19 @@ function fbClient(): vf.FbClient {
     },
     async post(path, body) {
       const { fbRequest } = await import("@/lib/flitebrief.server");
-      const r = await fbRequest("POST", path, body === undefined ? {} : { body: body as URLSearchParams | string | object });
+      // Giống requests.post(data=...) của code cũ: null → body rỗng (không gửi
+      // "null" JSON, FliteBrief trả 400); object → form-urlencoded, không JSON.
+      let sendBody: URLSearchParams | string | undefined;
+      if (body == null) sendBody = undefined;
+      else if (body instanceof URLSearchParams || typeof body === "string") sendBody = body;
+      else {
+        const f = new URLSearchParams();
+        for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
+          f.append(k, typeof v === "string" ? v : JSON.stringify(v));
+        }
+        sendBody = f;
+      }
+      const r = await fbRequest("POST", path, sendBody === undefined ? {} : { body: sendBody });
       return { status: r.status, json: () => r.json(), text: () => r.text() };
     },
     async del(path) {
