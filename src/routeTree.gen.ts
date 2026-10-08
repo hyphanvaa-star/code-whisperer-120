@@ -27,6 +27,7 @@ import { Route as AuthenticatedToolRouteImport } from './routes/_authenticated/t
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedVerRouteImport } from './routes/_authenticated/ver'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as ApiTmpProvisionRouteImport } from './routes/api/tmp-provision'
 import { Route as ApiFbFileRouteImport } from './routes/api/fb.file'
 import { Route as ApiPublicPcAgentPollRouteImport } from './routes/api/public/pc-agent/poll'
 import { Route as ApiPublicPcAgentReportRouteImport } from './routes/api/public/pc-agent/report'
@@ -120,6 +121,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTmpProvisionRoute = ApiTmpProvisionRouteImport.update({
+  id: '/api/tmp-provision',
+  path: '/api/tmp-provision',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFbFileRoute = ApiFbFileRouteImport.update({
   id: '/api/fb/file',
   path: '/api/fb/file',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/tools': typeof AuthenticatedToolsRoute
   '/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
+  '/api/tmp-provision': typeof ApiTmpProvisionRoute
   '/api/fb/file': typeof ApiFbFileRoute
   '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
   '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/tools': typeof AuthenticatedToolsRoute
   '/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
+  '/api/tmp-provision': typeof ApiTmpProvisionRoute
   '/api/fb/file': typeof ApiFbFileRoute
   '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
   '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
+  '/api/tmp-provision': typeof ApiTmpProvisionRoute
   '/api/fb/file': typeof ApiFbFileRoute
   '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
   '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/tools'
     | '/ver'
     | '/api/$'
+    | '/api/tmp-provision'
     | '/api/fb/file'
     | '/api/public/pc-agent/poll'
     | '/api/public/pc-agent/report'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/tools'
     | '/ver'
     | '/api/$'
+    | '/api/tmp-provision'
     | '/api/fb/file'
     | '/api/public/pc-agent/poll'
     | '/api/public/pc-agent/report'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tools'
     | '/_authenticated/ver'
     | '/api/$'
+    | '/api/tmp-provision'
     | '/api/fb/file'
     | '/api/public/pc-agent/poll'
     | '/api/public/pc-agent/report'
@@ -280,6 +292,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ToolPageRoute: typeof ToolPageRoute
   ApiSplatRoute: typeof ApiSplatRoute
+  ApiTmpProvisionRoute: typeof ApiTmpProvisionRoute
   ApiFbFileRoute: typeof ApiFbFileRoute
   ApiPublicPcAgentPollRoute: typeof ApiPublicPcAgentPollRoute
   ApiPublicPcAgentReportRoute: typeof ApiPublicPcAgentReportRoute
@@ -413,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/tmp-provision': {
+      id: '/api/tmp-provision'
+      path: '/api/tmp-provision'
+      fullPath: '/api/tmp-provision'
+      preLoaderRoute: typeof ApiTmpProvisionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fb/file': {
       id: '/api/fb/file'
       path: '/api/fb/file'
@@ -478,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ToolPageRoute: ToolPageRoute,
   ApiSplatRoute: ApiSplatRoute,
+  ApiTmpProvisionRoute: ApiTmpProvisionRoute,
   ApiFbFileRoute: ApiFbFileRoute,
   ApiPublicPcAgentPollRoute: ApiPublicPcAgentPollRoute,
   ApiPublicPcAgentReportRoute: ApiPublicPcAgentReportRoute,
