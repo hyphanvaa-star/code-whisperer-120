@@ -2575,6 +2575,10 @@ main.nm-track #wrapXls,main.nm-track #xlsbar{display:none !important}
 .nm-area-lab.lo{color:#8a7010;background:transparent !important;border:0 !important}
 .nm-stack-pop{max-width:440px}
 .nm-stack-pop hr{border:0;border-top:1px solid #e5e7eb;margin:6px 0}
+#nmTrackMap{position:relative}
+.nm-side-pop{position:absolute;top:12px;right:12px;z-index:1000;width:340px;max-width:46%;max-height:calc(100% - 24px);overflow:auto;background:#fff;border:1px solid #d1d5db;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:12px 14px;font-size:12.5px;line-height:1.45;color:#111}
+.nm-side-pop-x{position:absolute;top:4px;right:8px;border:0;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:#666}
+.nm-side-pop-x:hover{color:#000}
 .nm-stack-item{display:block;width:100%;text-align:left;border:0;background:transparent;
   padding:4px 2px;cursor:pointer;font:13px/1.45 inherit;color:#111}
 .nm-stack-item b{color:#c62828}
@@ -12985,6 +12989,35 @@ function nmStackPopup(stack){
     box.appendChild(n);
   }
   return box;
+}
+function nmShowSidePop(content){
+  const el = $("#nmTrackMap");
+  if(!el) return;
+  let box = el.querySelector(".nm-side-pop");
+  if(!box){
+    box = document.createElement("div");
+    box.className = "nm-side-pop";
+    el.appendChild(box);
+  }
+  box.innerHTML = "";
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "nm-side-pop-x";
+  close.textContent = "×";
+  close.title = "Đóng";
+  close.onclick = function(){ box.remove(); };
+  box.appendChild(close);
+  if(typeof content === "string"){
+    const body = document.createElement("div");
+    body.innerHTML = content;
+    box.appendChild(body);
+  }else if(content){
+    box.appendChild(content);
+  }
+  if(window.L && L.DomEvent){
+    L.DomEvent.disableClickPropagation(box);
+    L.DomEvent.disableScrollPropagation(box);
+  }
 }
 function nmPlotHits(hits, bounds){
   if(!nmDrawGroup) return;
