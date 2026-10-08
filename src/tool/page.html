@@ -22965,7 +22965,10 @@ async function estRefresh(){
       paintEstBang();
     }
   }catch(e){ console.warn("EST err:", e.message); }
-  finally{ estBusy = false; btn.disabled = false; btn.textContent = "🔄 EST"; }
+  finally{
+    estBusy = false; btn.disabled = false; btn.textContent = "🔄 EST";
+    if(retry) setTimeout(estRefresh, 50);
+  }
 }
 
 async function cmpRefreshOfpEst(){
