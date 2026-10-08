@@ -25272,11 +25272,14 @@ $("#ftCostSave").onclick = async function(){
   $("#ftCostMsg").textContent = d.error || "Đã lưu.";
 };
 $("#ftTaxiSave").onclick = async function(){
+  const months = [];
+  for(const inp of document.querySelectorAll("#ftTaxiBox input.mon")) months.push(inp.value.trim().toUpperCase());
   const d = await (await fetch("/api/fpltext/taxi", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({rows: ftReadTaxi()})
+    body: JSON.stringify({rows: ftReadTaxi(), months: months})
   })).json();
-  $("#ftTaxiMsg").textContent = d.error || "Đã lưu. FPL dùng cột tháng 10.";
+  $("#ftTaxiMsg").textContent = d.error || ("Đã lưu. FPL đang dùng cột " + (d.month || "") + ".");
+  if(!d.error) ftOpenTaxi().catch(function(){});
 };
 $("#ftRouteAdd").onclick = function(){
   const tb = $("#ftRouteBox").querySelector("tbody");
