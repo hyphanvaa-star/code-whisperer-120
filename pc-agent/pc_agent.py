@@ -1093,7 +1093,7 @@ def do_defect_pdf(payload: dict, say) -> dict:
     return {
         "name": name, "b64": base64.b64encode(data).decode(),
         "subject": _meta(res, "subject", "Subject"),
-        "sent": _meta(res, "sent", "sent_at", "SentDateTime", "when"),
+        "sent": _meta(res, "mail_sent_text", "sent", "sent_at", "mail_sent", "received_at", "SentDateTime", "when"),
         "slot": _meta(res, "slot"),
     }
 
