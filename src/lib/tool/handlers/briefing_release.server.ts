@@ -111,6 +111,10 @@ export const routes: Routes = {
     const flight = String(body["flight"] ?? body["callsign"] ?? "").trim();
     if (!flight) return { error: "Thiếu số hiệu chuyến." };
     try {
+      // Clear first: a transient OFP failure must not leave a supposedly cleared edit behind.
+      const existing = await findFlight(flight);
+      if (!existing) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
+      await setJson(ctx, editSettingKey(existing.callsign), null);
       const sheet = await draft(ctx, flight, false);
       await setJson(ctx, editSettingKey(sheet.callsign), null);
       return toDict(sheet, { edit: true, edited: false });

@@ -1,6 +1,6 @@
 import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { LIBERATION_SANS_REGULAR_BASE64, LIBERATION_SANS_BOLD_BASE64 } from "../data/fonts/liberationSansBase64";
+import { NOTO_SANS_REGULAR_BASE64, NOTO_SANS_BOLD_BASE64 } from "../data/fonts/notoSansBase64";
 import { VJ_LOGO_PNG_BASE64 } from "./vj_logo_base64";
 import { WEATHER_SIDE, NOTAM_SIDE, OPS_SIDE, PERMIT_SIDE, NOTES_SIDE, PIC_ACK_LINES, defectBullets, sigWxText, padNotams, slash, type ReleaseSheet } from "./briefingRelease";
 import { isNotamPlaceholder } from "./notam_pin";
@@ -38,8 +38,8 @@ function wrap(text: string, width: number, size: number, font: PDFFont): string[
 export async function renderBriefingPdf(sheet: ReleaseSheet): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  const regular = await doc.embedFont(bytes(LIBERATION_SANS_REGULAR_BASE64));
-  const bold = await doc.embedFont(bytes(LIBERATION_SANS_BOLD_BASE64));
+  const regular = await doc.embedFont(bytes(NOTO_SANS_REGULAR_BASE64));
+  const bold = await doc.embedFont(bytes(NOTO_SANS_BOLD_BASE64));
   const logo = await doc.embedPng(bytes(VJ_LOGO_PNG_BASE64));
   const apt = (title: string, codes: string[]) => codes.length ? `${title}\n(${slash(codes)})` : title;
   const labels = [`Dept. APT (${sheet.dep || "—"})`, `Dest. APT (${sheet.dest || "—"})`, apt("Dest. Alternate(s)", sheet.dest_alts), apt("Enr. Alternate(s)", sheet.enroute_alts)];
