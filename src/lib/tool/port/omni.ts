@@ -88,7 +88,14 @@ export interface OmniCredentials {
   password: string;
 }
 
-function headers(session?: OmniSession): Record<string, string> {
+/**
+ * Omni lưu IP người gọi vào một cột ngắn khi tạo token; IPv6 của máy chủ cloud
+ * (vd. "2a06:98c0:3600::103") quá dài → HTTP 400 "error occurred while saving
+ * the entity changes". Gửi sẵn X-Forwarded-For IPv4 ngắn để Omni ghi giá trị đó.
+ */
+export const OMNI_FWD_IP = "127.0.0.1";
+
+export function headers(session?: OmniSession): Record<string, string> {
   const h: Record<string, string> = {
     "User-Agent": UA,
     Accept: "*/*",
@@ -96,6 +103,8 @@ function headers(session?: OmniSession): Record<string, string> {
     language: "vi",
     Origin: WEB,
     Referer: `${WEB}/support/cargo/dashboard`,
+    "X-Forwarded-For": OMNI_FWD_IP,
+    "X-Real-IP": OMNI_FWD_IP,
   };
   if (session?.token) h["Authorization"] = `Bearer ${session.token}`;
   return h;
