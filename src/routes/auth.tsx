@@ -153,22 +153,24 @@ function AuthPage() {
         <div className="rounded-2xl border border-border/60 bg-card/80 p-8 shadow-2xl backdrop-blur-md">
           <h2 className="text-xl font-semibold text-card-foreground">Đăng nhập</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Dùng tài khoản dispatcher đã được cấp.
+            Dùng ID và mật khẩu do quản lý cấp.
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="id">ID tài khoản</Label>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="dispatcher@example.com"
+                  id="id"
+                  type="text"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  placeholder="hyphan"
                   className="pl-9"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={id}
+                  onChange={(e) => setId(e.target.value)}
                 />
               </div>
             </div>
@@ -195,8 +197,8 @@ function AuthPage() {
           <div className="mt-6 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <span>
-              Hệ thống chỉ dành cho tài khoản được cấp quyền. Chức năng tạo tài khoản
-              và đăng nhập Google hiện đang tắt.
+              Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý
+              để được cấp tài khoản.
             </span>
           </div>
         </div>
