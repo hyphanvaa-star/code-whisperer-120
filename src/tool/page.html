@@ -25306,7 +25306,7 @@ function ftReadTaxi(){
 }
 function ftRouteRow(rec){
   const tr = document.createElement("tr");
-  for(const key of ["route", "kapli", "envar", "opt"]){
+  for(const key of ["route", "kapli", "envar", "opt", "note"]){
     const td = document.createElement("td");
     const inp = document.createElement("input");
     inp.dataset.k = key;
@@ -25321,7 +25321,7 @@ function ftPaintRoute(rows){
   const table = document.createElement("table");
   table.className = "fttx";
   const head = document.createElement("tr");
-  for(const label of ["ROUTE", "KAPLI", "ENVAR", "OPT"]){
+  for(const label of ["ROUTE", "KAPLI", "ENVAR", "OPT", "NOTE"]){
     const th = document.createElement("th");
     th.textContent = label;
     head.appendChild(th);
@@ -25377,7 +25377,7 @@ $("#ftTaxiSave").onclick = async function(){
 $("#ftRouteAdd").onclick = function(){
   const tb = $("#ftRouteBox").querySelector("tbody");
   if(!tb) return;
-  tb.appendChild(ftRouteRow({route: "", kapli: "", envar: "", opt: ""}));
+  tb.appendChild(ftRouteRow({route: "", kapli: "", envar: "", opt: "", note: ""}));
 };
 $("#ftRouteSave").onclick = async function(){
   const d = await (await fetch("/api/fpltext/route", {
