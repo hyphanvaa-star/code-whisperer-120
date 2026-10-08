@@ -390,6 +390,47 @@ def do_save_file(payload: dict, say) -> dict:
     return {"path": str(path)}
 
 
+def do_notice_sync(payload: dict, say) -> dict:
+    """Đồng bộ folder notice (ổ mạng công ty) lên web: liệt kê mọi PDF, gửi
+    kèm nội dung các file web chưa có / đã đổi kích thước (giới hạn mỗi lượt)."""
+    folder = _fix_drive(str(payload.get("dir") or ""))
+    if not str(folder) or not folder.is_dir():
+        raise RuntimeError(f"Không mở được folder notice: {folder}")
+    have = payload.get("have") or {}
+    budget = int(payload.get("max_bytes") or 6_000_000)
+    files: list[dict] = []
+    uploads: list[dict] = []
+    seen: set[str] = set()
+    used = 0
+    pending = 0
+    for fp in sorted(folder.rglob("*")):
+        try:
+            if not fp.is_file() or fp.suffix.lower() != ".pdf" or fp.name.startswith("~$"):
+                continue
+            key = fp.name.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            size = fp.stat().st_size
+        except OSError:
+            continue
+        files.append({"name": fp.name, "size": size})
+        if int(have.get(fp.name) or -1) == size:
+            continue
+        if used and used + size > budget:
+            pending += 1
+            continue
+        try:
+            uploads.append({"name": fp.name, "b64": base64.b64encode(fp.read_bytes()).decode("ascii")})
+            used += size
+        except OSError:
+            pending += 1
+        if len(files) > 5000:
+            break
+    say(f"· folder notice {folder}: {len(files)} PDF · gửi {len(uploads)} · còn {pending}")
+    return {"dir": str(folder), "files": files, "uploads": uploads, "pending": pending}
+
+
 def do_pick_folder(payload: dict, say) -> dict:
     import tkinter as tk
     from tkinter import filedialog

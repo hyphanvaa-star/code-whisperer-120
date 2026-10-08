@@ -1,5 +1,6 @@
 import type { Jobs, Routes } from "../types";
 import { getJson, setJson } from "../store.server";
+import { jobId } from "../jobs";
 import {
   defaultRuleData, cleanRuleData, preview as noticesPreview,
   pickNoticeFlights, selectNoticeSectors, noticeDuplicateGroups, type RuleRow,
@@ -37,17 +38,11 @@ export const routes: Routes = {
     const { loadFlights } = await import("../core/gantts.server");
     const days = Number(ctx.params.get("days") || "1") || 1;
     const cs = (ctx.params.get("callsigns") || "").split(",").filter(Boolean);
+    const sync = await syncNoticeFolder(ctx);
     const flights = pickNoticeFlights(await loadFlights(days), cs);
     const rules = await loadRules(ctx);
-    // "found" = file PDF của notice đã có trong kho "notices/" (Rule Studio upload).
-    const { listFiles } = await import("../store.server");
-    const norm = (f: { name: string }) => f.name.replace(/\.pdf$/i, "").trim().toLowerCase();
-    const stored = new Set([
-      ...(await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>)).map(norm),
-      // File tạm của riêng người này (người không phải quản trị tự thêm).
-      ...(await listFiles(ctx, `notices-tmp/${ctx.userId}`).catch(() => [] as Array<{ name: string }>)).map(norm),
-    ]);
-    const plan = noticesPreview(flights, rules, (title) => stored.has(title.trim().toLowerCase()));
+    const lib = await noticeLibrary(ctx);
+    const plan = noticesPreview(flights, rules, (title) => lib.has(normTitle(title)));
     let tot = 0, miss = 0;
     const byRule = new Map<string, number>();
     const missingFiles = new Map<string, number>();
@@ -71,26 +66,158 @@ export const routes: Routes = {
       total_files: tot,
       found: tot - miss,
       missing: miss,
+      library: lib.size,
+      sync,
       by_rule: [...byRule.entries()].sort((a, b) => b[1] - a[1]).map(([rule, count]) => ({ rule, count })),
       missing_files: [...missingFiles.entries()].sort((a, b) => b[1] - a[1]).map(([title, count]) => ({ title, count })),
       rows,
       duplicate_groups: noticeDuplicateGroups(flights),
     };
   },
+
+  "POST /api/notices/attach": async (ctx) => {
+    const body = await ctx.json();
+    const callsigns = ((body["callsigns"] as unknown[]) ?? []).map(String).filter(Boolean);
+    if (!callsigns.length) return { error: "Bảng đang trống." };
+    return {
+      id: jobId("notice_attach", {
+        days: Number(body["days"] ?? 1) || 1,
+        callsigns,
+        sector_ids: (body["sector_ids"] as unknown[]) ?? [],
+        force_existing: !!body["force_existing"],
+      }),
+    };
+  },
 };
 
-export const jobs: Jobs = {};
+type Ctx = Parameters<Routes[string]>[0];
+const normTitle = (t: string) => String(t || "").replace(/\.pdf$/i, "").replace(/\s+/g, " ").trim().toLowerCase();
 
-// POST /api/notices/attach and POST /api/attach/auto write attachments to FliteBrief
-// (web.py api/upload.py: get_session + up.upload_attachment). Porting that faithfully
-// needs api/upload.py ported first (multi-step FliteBrief write flow, privilege checks,
-// retry/backoff) which is out of scope for this narrow notices+limits task — stubbed
-// with the same JSON error shape web.py uses for a disabled/erroring action so the UI
-// shows a clear Vietnamese message instead of a silent fake success.
+/** Tên chuẩn hoá → đường dẫn file trong kho (kho chung + file tạm của riêng người này). */
+async function noticeLibrary(ctx: Ctx): Promise<Map<string, string>> {
+  const { listFiles } = await import("../store.server");
+  const out = new Map<string, string>();
+  for (const dir of [`notices-tmp/${ctx.userId}`, "notices"]) {
+    const files = await listFiles(ctx, dir).catch(() => [] as Array<{ name: string }>);
+    for (const f of files) if (/\.pdf$/i.test(f.name)) out.set(normTitle(f.name), `${dir}/${f.name}`);
+  }
+  return out;
+}
+
+/** Kéo các PDF trong folder notice của máy công ty (ổ mạng) lên kho "notices/"
+ *  qua trợ lý PC — web không tự đọc được ổ mạng nội bộ. */
+async function syncNoticeFolder(ctx: Ctx): Promise<Record<string, unknown>> {
+  const pc = await import("../pcagent.server");
+  const agent = await pc.agentInfo(ctx);
+  if (!pc.agentOnline(agent)) return { ok: false, error: "Trợ lý PC chưa bật — chỉ dùng file đã có trên máy chủ." };
+  const { listFiles, putFile } = await import("../store.server");
+  const { noticeDir } = await import("./pc.server");
+  const dir = await noticeDir(ctx);
+  const have: Record<string, number> = {};
+  for (const f of await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string; metadata?: unknown }>)) {
+    have[f.name] = Number((f.metadata as Record<string, unknown> | null)?.["size"] ?? 0) || 0;
+  }
+  let saved = 0, total = 0, pending = 0;
+  try {
+    for (let round = 0; round < 8; round++) {
+      const id = await pc.enqueue("notice_sync", { dir, have, max_bytes: 6_000_000 });
+      const r = (await pc.waitResult(id, 60_000)) as Record<string, unknown>;
+      total = Array.isArray(r["files"]) ? (r["files"] as unknown[]).length : 0;
+      const ups = Array.isArray(r["uploads"]) ? (r["uploads"] as Array<{ name?: string; b64?: string }>) : [];
+      for (const u of ups) {
+        const name = String(u.name || "").replace(/[\\/:*?"<>|]/g, "_");
+        if (!name || typeof u.b64 !== "string") continue;
+        const buf = Buffer.from(u.b64, "base64");
+        await putFile(ctx, `notices/${name}`, buf, "application/pdf");
+        have[name] = buf.byteLength;
+        saved++;
+      }
+      pending = Number(r["pending"] ?? 0) || 0;
+      if (!pending || !ups.length) break;
+    }
+    return { ok: true, dir, files: total, saved, pending };
+  } catch (e) {
+    return { ok: false, dir, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export const jobs: Jobs = {
+  // Port of web.py notice attach: mỗi chuyến, mỗi file notice theo luật có sẵn
+  // trong kho → upload lên FliteBrief rồi gắn vào sector (bỏ qua file đã gắn).
+  notice_attach: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const end = (code: number, extra: Record<string, unknown>) =>
+      emit({ type: "end", code, elapsed: (Date.now() - t0) / 1000, ...extra });
+    const { fbRequest } = await import("@/lib/flitebrief.server");
+    try {
+      const r = await fbRequest("GET", "/webapi/sector/attachments/privileges");
+      const d = r.ok ? ((await r.json()) as Record<string, unknown>) : {};
+      if (!d["create"]) {
+        emit({ type: "line", text: "✗ tài khoản FliteBrief không có quyền đính kèm", cls: "bad" });
+        return end(1, { ok: 0, skipped: 0, failed: 0 });
+      }
+    } catch {
+      emit({ type: "line", text: "✗ không đọc được quyền đính kèm FliteBrief", cls: "bad" });
+      return end(1, { ok: 0, skipped: 0, failed: 0 });
+    }
+    const { loadFlights } = await import("../core/gantts.server");
+    const { getFile } = await import("../store.server");
+    const { uploadAndAttach } = await import("./briefing.server");
+    let flights;
+    try {
+      flights = selectNoticeSectors(
+        pickNoticeFlights(await loadFlights(Number(params["days"] ?? 1) || 1), (params["callsigns"] as string[]) ?? []),
+        params["sector_ids"] as unknown[],
+      );
+    } catch (e) {
+      emit({ type: "line", text: `✗ ${e instanceof Error ? e.message : String(e)}`, cls: "bad" });
+      return end(1, { ok: 0, skipped: 0, failed: 0 });
+    }
+    const rules = await loadRules(ctx);
+    const lib = await noticeLibrary(ctx);
+    const plan = noticesPreview(flights, rules, (title) => lib.has(normTitle(title)));
+    const work: Array<{ f: (typeof flights)[number]; title: string; path: string }> = [];
+    let skipped = 0;
+    for (const fn of plan) {
+      const have = new Set(fn.flight.attachments.flatMap((a) => [normTitle(a.title), normTitle(a.original_filename)]));
+      for (const n of fn.needs) {
+        const cand = [n.title, ...n.alt].find((t) => lib.has(normTitle(t)));
+        if (!cand) continue;
+        if (have.has(normTitle(cand))) { skipped++; continue; }
+        work.push({ f: fn.flight, title: cand, path: lib.get(normTitle(cand))! });
+      }
+    }
+    emit({ type: "line", text: `▶ ${flights.length} chuyến · ${work.length} file cần add · ${skipped} đã có sẵn` });
+    let ok = 0, failed = 0;
+    const cache = new Map<string, Uint8Array>();
+    for (let i = 0; i < work.length; i++) {
+      const w = work[i]!;
+      const progress = (i + 1) / work.length;
+      const label = `${w.f.callsign} ${w.f.route}`;
+      try {
+        let bytes = cache.get(w.path);
+        if (!bytes) {
+          const buf = await getFile(ctx, w.path);
+          if (!buf?.byteLength) throw new Error("file rỗng trong kho");
+          bytes = new Uint8Array(buf);
+          cache.set(w.path, bytes);
+        }
+        const fname = w.path.split("/").pop()!;
+        const res = await uploadAndAttach(w.f.id, bytes, fname, fname.replace(/\.pdf$/i, ""));
+        if (!res.ok) throw new Error(res.error || "lỗi");
+        ok++;
+        emit({ type: "line", text: `✓ ${label} ← ${fname}`, progress });
+      } catch (e) {
+        failed++;
+        emit({ type: "line", text: `✗ ${label} · ${w.title}: ${e instanceof Error ? e.message : String(e)}`, cls: "bad", progress });
+      }
+    }
+    end(failed ? 2 : 0, { ok, skipped, failed });
+  },
+};
+
+// POST /api/attach/auto (tự đính kèm theo luật cho mọi chuyến) chưa chuyển xong.
 Object.assign(routes, {
-  "POST /api/notices/attach": () => ({
-    error: "Chức năng đính kèm notice (ghi vào FliteBrief) đang được chuyển sang bản mới — chưa dùng được ở đây.",
-  }),
   "POST /api/attach/auto": () => ({
     error: "Chức năng tự động đính kèm (ghi vào FliteBrief) đang được chuyển sang bản mới — chưa dùng được ở đây.",
   }),

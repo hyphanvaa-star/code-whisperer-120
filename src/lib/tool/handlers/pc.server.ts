@@ -76,6 +76,13 @@ async function pathsStatus(ctx: Ctx) {
   return { paths: out, file: "paths.json" };
 }
 
+/** Folder notice hiện hành trên máy công ty (đường dẫn đã lưu hoặc mặc định). */
+export async function noticeDir(ctx: Ctx): Promise<string> {
+  const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
+  const agent = await pc.agentInfo(ctx);
+  return driveFix((saved["notice"] || "").trim() || PATH_KEYS["notice"]![1], agent);
+}
+
 /** Port of gd_print.resolve_printer() against the agent's printer list. */
 function resolvePrinter(saved: string, printers: pc.AgentPrinter[]): string {
   const names = printers.map((p) => p.name);

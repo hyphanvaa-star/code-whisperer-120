@@ -5829,7 +5829,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V21</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V22</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -17027,6 +17027,11 @@ async function ntDoPreview(){
     // nút Add phải preview lại thay vì gửi sector_id cũ cho callsign mới.
     ntLast.input_callsigns = cs.map(x => x.trim().toUpperCase()).sort();
 
+    if(d.sync){
+      if(d.sync.ok) write("📁 folder notice: " + d.sync.files + " PDF · vừa kéo lên máy chủ " + d.sync.saved
+        + (d.sync.pending ? " · còn " + d.sync.pending + " file (bấm lại để kéo tiếp)" : ""), "sys");
+      else write("⚠ chưa đọc được folder notice: " + (d.sync.error || "") , "fail");
+    }
     write("📋 gõ " + cs.length + " số hiệu · khớp được " + d.flights
       + " chuyến · cần " + d.total_files
       + " file (" + d.found + " có sẵn trên đĩa, " + d.missing + " thiếu)", "sys");
