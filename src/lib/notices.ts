@@ -28,7 +28,7 @@ export const COND_LABEL: Record<RuleCond, string> = {
   touches_or_alt: "Đi/đến hoặc sân bay dự bị",
 };
 
-const TAU = ["VNA522","VNA631","VNA637","VNA651","VNA643","VNA642","VNA639","VNA635","VNA632","VNA641","VNA649","VNA657","VNA634","VNA687"].sort();
+const TAU = ["VNA522","VNA631","VNA637","VNA651","VNA643","VNA642","VNA639","VNA635","VNA632","VNA641","VNA649","VNA657","VNA634","VNA687","VNA698"].sort();
 const CHINA = ["ZB","ZG","ZH","ZL","ZP","ZS","ZU","ZY"];
 
 export const DEFAULT_RULES: NoticeRule[] = [
