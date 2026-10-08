@@ -498,7 +498,8 @@ def do_aviweb_check(payload: dict, say) -> dict:
     headless = bool(payload.get("headless", True))
     say(f"· dùng tool gốc tại {tool_dir}")
 
-    def on_progress(d: dict) -> None:
+    def on_progress(*a) -> None:
+        d = a[0] if a else None
         if d.get("type") == "line" and d.get("text"):
             say(str(d["text"]), str(d.get("cls") or ""))
 
