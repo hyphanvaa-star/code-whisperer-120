@@ -180,7 +180,7 @@ export const jobs: Jobs = {
           const did = r && typeof r === "object" ? String(r.draft_id || "") : "";
           if (did) {
             const mb = encodeURIComponent(String(r?.mailbox || mail.mailbox));
-            links.push(`https://outlook.cloud.microsoft/mail/${mb}/deeplink/compose/${encodeURIComponent(did)}`);
+            links.push(`https://outlook.cloud.microsoft/mail/${mb}/inbox/id/${encodeURIComponent(did)}`);
           }
         } catch (exc) {
           const msg = exc instanceof Error ? exc.message : String(exc);
