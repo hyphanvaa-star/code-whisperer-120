@@ -71,3 +71,6 @@
 - [ ] Đổi nền trang đăng nhập cho đẹp hơn (đang làm)
 - [ ] Bỏ nút/biểu tượng người dùng gửi (image-60) — xác định đúng phần tử rồi xoá
 - [ ] Tài khoản: chỉ đăng nhập bằng ID + mật khẩu (không cần Gmail), tạo hyphan + roise
+- [x] Đăng nhập chỉ cần ID + mật khẩu (bỏ ô email/Gmail)
+- [x] Tài khoản: hyphan (admin+dispatcher) — đã đăng nhập được bằng ID
+- [ ] Tài khoản: roise / 221098 — cần tắt kiểm tra mật khẩu yếu rồi tạo
