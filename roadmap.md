@@ -74,3 +74,4 @@
 - [x] Đăng nhập chỉ cần ID + mật khẩu (bỏ ô email/Gmail)
 - [x] Tài khoản: hyphan (admin+dispatcher) — đã đăng nhập được bằng ID
 - [x] roise / 221098 đã tạo (dispatcher); tắt kiểm tra mật khẩu yếu + tắt tự đăng ký theo yêu cầu
+- [x] Publish V11 (nền đăng nhập mới + đăng nhập ID/PASS + 2 tài khoản) — live xác nhận V11
