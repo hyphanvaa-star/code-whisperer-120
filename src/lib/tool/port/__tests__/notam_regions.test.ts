@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { iterLatLon, notamGeoms, parseAreas, supKeys } from '../notam_track';
 import { idsInText, parseEnr53Text } from '../aip_jp';
+import { parseKrEnrHtml } from '../aip_enr';
 
 describe('uploaded NOTAM region regressions', () => {
+  it('resolves KOCA RK R100 named restriction instead of an orange pin', () => {
+    const table = parseKrEnrHtml('<table><tr><td><strong>RK R100 NAMHYONGJEDO</strong>344104N 1284327E - 344606N 1285031E - 344000N 1285100E</td></tr></table>');
+    expect(table['RKR100']).toHaveLength(3);
+    const geoms = notamGeoms({ text: 'RESTRICTED AREA RK R100 ACT', sup_geoms: [{ name: 'RKR-100', shape: 'polygon', ring: table['RKR100'], source: 'aip' }] });
+    expect(geoms[0]?.shape).toBe('polygon');
+    expect(geoms[0]?.name).toBe('RKR-100');
+  });
   it('reads ZPKM hemisphere-first coordinates and 30KM balloon drift', () => {
     const text = 'ASCENT OF FREE BALLOON N290028E1013002 N290100E1013100 FLOATING DISTANCE:30KM';
     const geoms = notamGeoms({ text });
