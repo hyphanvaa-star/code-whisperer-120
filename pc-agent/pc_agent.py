@@ -596,7 +596,7 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
     """Trạng thái watcher OMC / FLIGHT PLAN — đúng owa_fpl_watch.status() gốc."""
     _load_owa_modules()
     import owa_fpl_watch  # noqa: E402  (module của tool gốc)
-        _patch_fpl_watch(owa_fpl_watch)
+    _patch_fpl_watch(owa_fpl_watch)
     after = int(payload.get("after") or 0)
     st = owa_fpl_watch.status(after=after)
     # Web không đọc được ổ máy công ty: gửi kèm file Excel FPL VER (old/new)
@@ -725,7 +725,7 @@ def do_owa_pib(payload: dict, say) -> dict:
         emit({"type": "owa_state", "text": "Outlook Web sẵn sàng", "state": "healthy"})
         try:
             import owa_fpl_watch  # noqa: E402  (module của tool gốc)
-        _patch_fpl_watch(owa_fpl_watch)
+            _patch_fpl_watch(owa_fpl_watch)
             owa_fpl_watch.ensure_running()
         except Exception as exc:
             say(f"· không bật được tự tải FPL sau PIB: {exc}")
