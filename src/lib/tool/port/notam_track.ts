@@ -90,7 +90,7 @@ const _CLOSED_WORDS = ["CLSD", "CLOSED", "PROHIBITED", "NOT AVBL FOR ACFT", "ENT
 
 const _COORD = /(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])(\d{3})?/i;
 const _LL =
-  /(\d{2})(\d{2})(\d{2}(?:\.\d+)?)?\s*([NS])\s*(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)?\s*([EW])/i;
+  /(?<!\d)(\d{2})(\d{2})(\d{2}(?:\.\d+)?)?\s*([NS])\s*(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)?\s*([EW])/i;
 const _LL_COMPACT = /(?<!\d)(\d{4,6}\.\d+)([NS])\s+(?<!\d)(\d{5,7}\.\d+)([EW])/i;
 const _LL_HYP = /(\d{2})-(\d{2}(?:\.\d+)?)([NS])\s+(\d{3})-(\d{2}(?:\.\d+)?)([EW])/i;
 const _RADIUS_NM = /(?:RADIUS(?:\s+OF)?|\bRAD\b|WI)\s*(\d+(?:\.\d+)?)\s*(NM|KM|METERS?|METRES?|FEET|FT|M)\b(?:\s+RAD(?:IUS)?)?/i;
@@ -158,11 +158,23 @@ export function iterLatLon(text: string): Pt[] {
   }
   for (const m of raw.matchAll(new RegExp(_LL, "gi"))) {
     const [latd, latm, lats, ns, lond, lonm, lons, ew] = [m[1], m[2], m[3] ?? "0", m[4], m[5], m[6], m[7] ?? "0", m[8]];
+    if (+latm >= 60 || +lats >= 60 || +lonm >= 60 || +lons >= 60) continue;
     add(...toLL(+latd, +latm, +lats, ns, +lond, +lonm, +lons, ew));
   }
   for (const m of raw.matchAll(new RegExp(_LL_HYP, "gi"))) {
     const [latd, latm, ns, lond, lonm, ew] = [m[1], m[2], m[3], m[4], m[5], m[6]];
+    if (+latm >= 60 || +lonm >= 60) continue;
     add(...toLL(+latd, +latm, 0, ns, +lond, +lonm, 0, ew));
+  }
+  for (const m of raw.matchAll(/(?<!\d)(\d{2})\s+(\d{2})\s+(\d{2}(?:\.\d+)?)?\s*([NS])\s+(\d{2,3})\s+(\d{2})\s+(\d{2}(?:\.\d+)?)?\s*([EW])/gi)) {
+    if (+m[2] >= 60 || +(m[3] || 0) >= 60 || +m[6] >= 60 || +(m[7] || 0) >= 60) continue;
+    add(...toLL(+m[1], +m[2], +(m[3] || 0), m[4], +m[5], +m[6], +(m[7] || 0), m[8]));
+  }
+  for (const m of raw.matchAll(/([NS])(\d{4}(?:\d{2}(?:\.\d+)?)?)\s*([EW])(\d{5}(?:\d{2}(?:\.\d+)?)?)/gi)) {
+    try {
+      const [a, b, c] = splitCompact(m[2], true), [d, e, f] = splitCompact(m[4], false);
+      add(...toLL(a, b, c, m[1], d, e, f, m[3]));
+    } catch { /* invalid position */ }
   }
   return out;
 }
@@ -180,9 +192,15 @@ function splitCompact(num: string, isLat: boolean): [number, number, number] {
   } else {
     if (whole.length === 7) [d, m, s] = [whole.slice(0, 3), whole.slice(3, 5), whole.slice(5, 7)];
     else if (whole.length === 5) [d, m, s] = [whole.slice(0, 3), whole.slice(3, 5), "0"];
+    else if (whole.length === 6) {
+      const deg3 = +whole.slice(0, 3), minDD = +whole.slice(2, 4);
+      if (deg3 > 180 || (deg3 < 100 && minDD < 60)) [d, m, s] = [whole.slice(0, 2), whole.slice(2, 4), whole.slice(4, 6)];
+      else [d, m, s] = [whole.slice(0, 3), whole.slice(3, 4), whole.slice(4, 6)];
+    }
     else throw new Error(num);
   }
   if (fracS) s = `${parseInt(s, 10)}.${fracS}`;
+  if (+m >= 60 || +s >= 60) throw new Error(num);
   return [+d, +m, +s];
 }
 
@@ -309,7 +327,7 @@ export function supKeys(blob: string): string[] {
   const out: string[] = [];
   const re = /\b(?:AIP\s+)?SUP(?:PLEMENT)?\s*(?:NR\.?|NO\.?)?\s*([A-Z]?)\s*(\d{1,3})\s*\/\s*(\d{2})\b/gi;
   for (const m of String(blob || "").matchAll(re)) {
-    const norm = `${(m[1] || "").toUpperCase()}${m[2]}/${m[3]}`;
+    const norm = `${(m[1] || "").toUpperCase()}${Number(m[2])}/${m[3]}`;
     if (!out.includes(norm)) out.push(norm);
   }
   return out;
@@ -346,11 +364,11 @@ export function catalogGeoms(blob: string): Geom[] {
 export function notamGeoms(notam: Notam): Geom[] {
   const catBlob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
   const cat = catalogGeoms(catBlob);
-  if (cat.length) return cat;
   const own = notamGeomsText(notam);
-  const sup = (notam.sup_geoms as Geom[] | undefined) ?? [];
+  const sup = [...cat, ...((notam.sup_geoms as Geom[] | undefined) ?? [])];
   const blob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
   const ids = namedAreaIds(blob).concat([...blob.toUpperCase().matchAll(/\b((?:ITRA|LION|MOOSE|TIGER|EAGLE|EDIX)(?:-[A-Z0-9]+)+)\b/g)].map((m) => m[1]!));
+  if (cat.length) return sup.filter((g, i) => sup.findIndex((x) => x.name === g.name) === i);
   if (sup.length && ids.length) {
     // NOTAM gọi tên vùng (LION-…, ITRA-…) có trong AIP SUP → ưu tiên vòng SUP, bỏ vòng tự dựng.
     const norm = (x: string) => x.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -396,7 +414,7 @@ function arcPoints(spec: ArcSpec, from: Pt, to: Pt): Pt[] {
   const out: Pt[] = [];
   for (let i = 1; i < steps; i++) {
     const t = i / steps;
-    out.push(destPoint(spec.c[0], spec.c[1], b0 + sweep * t, r0 + (r1 - r0) * t));
+    out.push(destPoint(spec.c[0], spec.c[1], b0 + sweep * t, spec.rad > 0 ? spec.rad : r0 + (r1 - r0) * t));
   }
   return out;
 }
@@ -422,16 +440,55 @@ function applyArcs(ring: Pt[], arcs: ArcSpec[]): Pt[] {
   return out;
 }
 
+/** The original parse_areas order: radius sites, deployment points, separate boundaries. */
+export function parseAreas(text: string): Geom[] {
+  const raw = text.replace(/^\s*Q\).*$/gim, '');
+  const pts = iterLatLon(raw);
+  const boundary = /BOUNDED|JOINING|STRAIGHT\s+LINES|\bWI\s+AREA\b|\bALONG\b|\bPOLYGON\b/i.test(raw);
+  const rad = /\bARC\b/i.test(raw) ? null : eRadiusNm(raw);
+  if (!boundary && /\bRAD(?:IUS)?\b/i.test(raw) && rad !== null && rad > 0 && rad < E_CIRCLE_MAX_NM && pts.length >= 2) {
+    return pts.map(([lat, lon]) => ({ name: '', shape: 'circle', lat, lon, radius_nm: rad, ring: [], source: 'e-field' }));
+  }
+  if (!boundary && !/\d{4,7}\s*[NS]\s*\d{5,8}\s*[EW]\s*-\s*\d{4,7}\s*[NS]/i.test(raw)) {
+    const dots: Geom[] = [];
+    for (const m of raw.matchAll(/\(\s*(\d+)\s*\)\s*([A-Z][A-Z0-9][A-Z0-9 \-/.']{0,48}?)\s*:\s*(\d{4,7}\s*[NS]\s*\d{5,8}\s*[EW])/gi)) {
+      if (/^PLACE\b/i.test(m[2])) break;
+      const p = iterLatLon(m[3])[0];
+      if (p) dots.push({ name: m[2].trim(), shape: 'dot', lat: p[0], lon: p[1], radius_nm: 0, ring: [], source: 'e-field' });
+    }
+    if (dots.length >= 2) return dots;
+  }
+  const chunks = raw.split(new RegExp(`(?=(?:AREA|DANGER AREA|RESTRICTED AREA|PROHIBITED AREA)\\s+[A-Z]{2,4}[-\\s]?\\d{1,4}|(?:AREA\\s+)?(?:${_AREA_PREFIX})[-\\s]?\\d{1,4})`, 'i'));
+  const pieces = chunks.length > 1 ? chunks : raw.split(/(?=\(\s*\d+\s*\)\s*PLACE\s*:)/i);
+  const out: Geom[] = [];
+  for (const piece of pieces) {
+    const { text: clean, arcs } = extractArcs(piece);
+    // Strip only explicit arc centers, never every coordinate following FM/FROM.
+    const hubs: Pt[] = [];
+    for (const m of piece.matchAll(/(?:ARC|RADIUS)[\s\S]{0,100}?(?:FM|FROM|CENT(?:ERED|RED|RE)\s+ON)\s*(\d{4,6}(?:\.\d+)?\s*[NS]\s*\d{5,7}(?:\.\d+)?\s*[EW])/gi)) {
+      const p = iterLatLon(m[1])[0]; if (p) hubs.push(p);
+    }
+    const ring = applyArcs(iterLatLon(clean).filter(p => !hubs.some(h => samePt(p, h))), arcs);
+    const line = /\bALONG\b|\bEITHER\s+SIDE\s+OF\s+A\s+LINE\b/i.test(piece);
+    if (ring.length < (line ? 2 : 3)) continue;
+    const place = /\(\s*(\d+)\s*\)\s*PLACE\s*:/i.exec(piece);
+    const name = namedAreaIds(piece)[0] || (place ? `PLACE ${Number(place[1])}` : '');
+    out.push({ name, shape: line ? 'line' : 'polygon', ring, source: 'e-field' });
+  }
+  return out;
+}
+
 function notamGeomsText(notam: Notam): Geom[] {
   const tx = String(notam.text ?? "");
   const ef = String(notam.e_field ?? "");
   const blob = `${tx}\n${ef}`;
-  const areas: Geom[] = [];
+  const areas: Geom[] = parseAreas(ef) || [];
+  if (!areas.length) areas.push(...parseAreas(tx));
   const { text: raw, arcs } = extractArcs(blob.replace(/^Q\).*$/gm, ""));
   const along = /\bALONG\b/i.test(raw);
   const ring = applyArcs(iterLatLon(raw), arcs);
-  if (ring.length >= 3 && !along) areas.push({ name: "", shape: "polygon", ring });
-  else if (ring.length >= 2 && along) areas.push({ name: "", shape: "line", ring });
+  if (!areas.length && ring.length >= 3 && !along) areas.push({ name: "", shape: "polygon", ring, source: 'e-field' });
+  else if (!areas.length && ring.length >= 2 && along) areas.push({ name: "", shape: "line", ring, source: 'e-field' });
   const ids = namedAreaIds(blob);
   const origin = qCoordsOf(notam);
   const point = brgGeom(blob, origin);
@@ -450,6 +507,12 @@ function notamGeomsText(notam: Notam): Geom[] {
   if (extra !== null) {
     const pts = iterLatLon(blob);
     if (pts.length) return [{ name: "", shape: "circle", lat: pts[0]![0], lon: pts[0]![1], radius_nm: extra, ring: [] }];
+  }
+  const sites = iterLatLon(ef || tx);
+  if (sites.length > 0 && sites.length <= 2) {
+    const drift = /FLOATING\s+DISTANCE\s*:?\s*(\d+(?:\.\d+)?)\s*(KM|NM|M)\b/i.exec(blob);
+    const radius = drift ? toNm(+drift[1], drift[2]) : 0;
+    return sites.map(([lat, lon]) => ({ name: '', shape: radius > 0 ? 'circle' : 'dot', lat, lon, radius_nm: radius, ring: [], source: 'e-field' }));
   }
   if (origin) {
     const rad = extra ?? origin[2] ?? 0;
