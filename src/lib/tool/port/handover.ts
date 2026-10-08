@@ -15,6 +15,7 @@ export interface HandoverFlight {
   atc: string;
   ezfw: string;
   atfm: string;
+  edto: string;
   note: string;
 }
 
@@ -38,14 +39,15 @@ export const HEADERS = [
   "ATC FILING",
   "EZFW",
   "ATFM FILLING",
+  "EDTO",
   "NOTE",
 ] as const;
 
-export const COL_WIDTHS = [14, 10, 10, 10, 12, 12, 12, 14, 14, 12, 16, 40] as const;
+export const COL_WIDTHS = [14, 10, 10, 10, 12, 12, 12, 14, 14, 12, 16, 10, 40] as const;
 
 export const FLIGHT_KEYS = [
   "key", "callsign", "dep", "arr", "ac", "std", "sta",
-  "payload", "extra", "atc", "ezfw", "atfm", "note",
+  "payload", "extra", "atc", "ezfw", "atfm", "edto", "note",
 ] as const;
 
 export function empty(): HandoverData {
@@ -188,6 +190,7 @@ export async function xlsxBytes(payload: unknown): Promise<Uint8Array> {
       row.atc || "",
       row.ezfw || "",
       row.atfm || "",
+      row.edto || "",
       row.note || "",
     ];
     values.forEach((value, idx) => {
