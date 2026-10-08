@@ -1288,6 +1288,39 @@
       "oct": "",
       "nov": "",
       "dec": ""
+    },
+    {
+      "airport": "VVTS",
+      "type": "A333",
+      "oct": "500",
+      "nov": "500",
+      "dec": "500"
+    },
+    {
+      "airport": "VVTS",
+      "type": "A21N",
+      "oct": "500",
+      "nov": "500",
+      "dec": "500"
+    },
+    {
+      "airport": "VVTS",
+      "type": "A320",
+      "oct": "500",
+      "nov": "500",
+      "dec": "500"
+    },
+    {
+      "airport": "VVTS",
+      "type": "A321",
+      "oct": "500",
+      "nov": "500",
+      "dec": "500"
     }
+  ],
+  "months": [
+    "OCT",
+    "NOV",
+    "DEC"
   ]
 }
