@@ -66,7 +66,7 @@ describe("Python Briefing parity", () => {
     const pdf = await toPdf(s);
     expect((await PDFDocument.load(pdf)).getPageCount()).toBe(1);
     const { extractText } = await import("unpdf");
-    expect((await extractText(pdf, { mergePages: true })).text).toContain("Nội dung NOTAM đầy đủ");
+    expect((await extractText(pdf.slice(), { mergePages: true })).text).toContain("Nội dung NOTAM đầy đủ");
     mkdirSync("/tmp/browser/briefing", { recursive: true });
     writeFileSync("/tmp/browser/briefing/sample.pdf", pdf);
   });

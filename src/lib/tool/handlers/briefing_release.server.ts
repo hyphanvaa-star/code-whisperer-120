@@ -114,9 +114,9 @@ export const routes: Routes = {
       // Clear first: a transient OFP failure must not leave a supposedly cleared edit behind.
       const existing = await findFlight(flight);
       if (!existing) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
-      await setJson(ctx, editSettingKey(existing.callsign), null);
+      const { error } = await ctx.supabase.from("app_settings").delete().eq("key", editSettingKey(existing.callsign));
+      if (error) throw new Error(error.message);
       const sheet = await draft(ctx, flight, false);
-      await setJson(ctx, editSettingKey(sheet.callsign), null);
       return toDict(sheet, { edit: true, edited: false });
     } catch (exc) {
       return { error: errorMessage(exc) };
