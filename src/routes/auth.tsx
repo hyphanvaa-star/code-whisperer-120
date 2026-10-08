@@ -174,18 +174,18 @@ function AuthPage() {
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
             <Plane className="h-7 w-7" />
           </div>
-          <h1 className="font-mono text-lg font-bold tracking-[0.3em] text-foreground">
+          <h1 className="font-mono text-lg font-bold tracking-[0.3em] text-emerald-300">
             DISPATCH BOARD
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-emerald-100/60">
             Hệ thống điều phối chuyến bay nội bộ
           </p>
         </div>
 
         {/* card */}
-        <div className="rounded-2xl border border-border/60 bg-card/80 p-8 shadow-2xl backdrop-blur-md">
-          <h2 className="text-xl font-semibold text-card-foreground">Đăng nhập</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-emerald-400/20 bg-[#071c11]/85 p-8 shadow-2xl shadow-black/50 backdrop-blur-md">
+          <h2 className="text-xl font-semibold text-emerald-50">Đăng nhập</h2>
+          <p className="mt-1 text-sm text-emerald-100/60">
             Dùng ID và mật khẩu do quản lý cấp.
           </p>
 
