@@ -131,7 +131,8 @@ export const routes: Routes = {
     const months = Array.isArray(body?.months) ? body.months.map((m: any) => String(m)) : undefined;
     const doc = ft.save_taxi(old, readRows(body), months);
     await setJson(ctx, "fpl.taxi_fuel", doc);
-    return { ok: true, rows: doc.rows || [] };
+    const labels = ft.taxiMonthLabels(doc);
+    return { ok: true, rows: doc.rows || [], months: labels, month: labels[ft.taxiActiveIndex(doc)] };
   },
 
   "GET /api/fpltext/route": async (ctx) => {
