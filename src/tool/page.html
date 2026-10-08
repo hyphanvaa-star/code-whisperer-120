@@ -2555,14 +2555,14 @@ main.nm-track #wrapXls,main.nm-track #xlsbar{display:none !important}
 .nm-vn-ndb{display:block;width:8px;height:8px;margin:2px auto 0;border-radius:50%;
   background:#1d4ed8;box-shadow:0 0 0 2px #fff;
   transform:scale(var(--nm-sym, 1));transform-origin:center}
-.nm-awy-lab{background:#fff !important;border:1px solid #1e3a8a !important;color:#1e3a8a;cursor:pointer;
-  font:800 var(--nm-awy, 15px)/1.1 "JetBrains Mono",ui-monospace,Consolas,monospace;
-  font-size:var(--nm-awy, 15px) !important;
-  text-shadow:none;white-space:nowrap;margin:0;
-  padding:calc(var(--nm-awy, 15px) * .12) calc(var(--nm-awy, 15px) * .45);
-  border-radius:3px;width:auto !important;height:auto !important;
-  translate:-50% -50%;rotate:var(--nm-rot, 0deg)}
-.nm-awy-lab.on{border-color:#c62a72 !important;color:#c62a72;box-shadow:0 0 0 2px #c62a72}
+.nm-awy-lab{background:transparent !important;border:0 !important;box-shadow:none !important;
+  width:0 !important;height:0 !important;overflow:visible !important;cursor:pointer}
+.nm-awy-lab>span{position:absolute;left:0;top:0;display:block;white-space:nowrap;
+  transform:translate(-50%,-50%) rotate(var(--nm-rot, 0deg));
+  font:800 var(--nm-awy, 13px)/1 "JetBrains Mono",ui-monospace,Consolas,monospace;
+  color:#0b1a8c;padding:1px 4px;background:rgba(255,255,255,.85);border-radius:2px;
+  text-shadow:0 0 2px #fff,0 0 2px #fff}
+.nm-awy-lab.on>span{color:#c62a72;box-shadow:0 0 0 2px #c62a72}
 .leaflet-interactive.nm-route-leg{cursor:pointer}
 .nm-area-lab{background:transparent !important;border:0 !important;box-shadow:none !important;
   color:#c62828;
@@ -3795,7 +3795,7 @@ html.night .nm-wpt-lab {background:#fff;border-color:#111;color:#111}
 html.night .nm-vn-ad,html.night .nm-vn-fix,html.night .nm-vn-nav,html.night .nm-vn-alt{
   background:transparent;color:#111}
 html.night .nm-vn-awy{background:transparent !important;color:#1e3a8a;border:none !important}
-html.night .nm-awy-lab {color:#1e3a8a;background:#fff !important;border-color:#1e3a8a !important;text-shadow:none}
+
 html.night .nm-area-lab {background:transparent !important;border:0 !important;color:#ff8a8a;text-shadow:-1px 0 #1c1c20,1px 0 #1c1c20,0 -1px #1c1c20,0 1px #1c1c20}
 html.night .nm-area-lab.ref {color:#e0c56a;background:transparent !important;border:0 !important}
 html.night .nm-area-lab.lo {color:#e0c56a;background:transparent !important;border:0 !important}
@@ -13333,7 +13333,7 @@ function nmDrawFleetRoutes(){
     const f = d.flight || {};
     const legs = nmAddRouteLegs(d.track, d.line, {
       weight: 5, opacity: 1, flightId: (d.flight || {}).id,
-      color: "#ffd000", halo: "#ffffff"
+      color: "#1626a8", halo: "#ffffff"
     });
     if(!legs.length) continue;
     nLine++;
@@ -15393,7 +15393,7 @@ function nmScaleMapLabs(){
   };
   const el = nmMap.getContainer();
   el.style.setProperty("--nm-wpt", px(8, 7, 18));
-  el.style.setProperty("--nm-awy", px(15, 11, 44));
+  el.style.setProperty("--nm-awy", px(12, 10, 30));
   el.style.setProperty("--nm-area", px(8, 7, 14));
   const chart = Math.pow(1.16, Math.max(0, z - 6));
   const cpx = function(base, hi){
@@ -16177,7 +16177,7 @@ function nmDrawAirways(d){
       const on = nmAwyPick === awy && nmAwyPickId === fid;
       const mk = L.marker(mid, {
         pane: nmLabPane(), keyboard: false,
-        icon: L.divIcon({className: "nm-awy-lab" + (on ? " on" : ""), html: awy,
+        icon: L.divIcon({className: "nm-awy-lab" + (on ? " on" : ""), html: "<span>" + esc(awy) + "</span>",
           iconSize: [0, 0], iconAnchor: [0, 0]})
       });
       mk._nmAwySeg = [[Number(a.lat), Number(a.lon)], [Number(p.lat), Number(p.lon)], off];
@@ -16282,7 +16282,7 @@ function nmDrawTrack(d, keepView){
     nmAwyPickId = "";
   }
   const legs = nmAddRouteLegs(d.track, d.line, {
-    weight: 5, opacity: 1, flightId: f.id, color: "#ffd000", halo: "#ffffff"
+    weight: 5, opacity: 1, flightId: f.id, color: "#1626a8", halo: "#ffffff"
   });
   const bounds = [];
   let latlngs = [];
