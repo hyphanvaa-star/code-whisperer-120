@@ -60,4 +60,4 @@
 - [x] Tóm tắt NOTAM: mỗi mục chỉ liệt kê 1 NOTAM một lần.
 - [x] Omni: máy chủ cloud bị Omni từ chối tạo phiên (IP quá dài) → dùng phiên 30 ngày lưu chung + đăng nhập từ trình duyệt.
 - [x] NOTAM vùng có cạnh là cung tròn (P4899 LION-WEST): vẽ cung thay vì coi tâm là đỉnh; SUP chỉ thay hình khi đúng tên vùng.
-- [ ] Publish V3 với slug `sohee-dispatch-tool-v3` (user muốn tên URL có version)
+- [x] Publish V3 với slug `sohee-dispatch-tool-v3` (user muốn tên URL có version)
