@@ -6,11 +6,12 @@ import type { Ctx } from "./types";
 import { getJson, setJson } from "./store.server";
 import * as p from "./port/aip_sup";
 import type { RingTable, Pt } from "./port/aip_sup";
+import { parseEnr53Text, idsInText } from './port/aip_jp';
 
 const UA = "DispatchBoard-AIP/1.0";
 const OK_TTL_S = 30 * 24 * 3600;
 const FAIL_TTL_S = 6 * 3600;
-const CACHE_VER = 3;
+const CACHE_VER = 4;
 const DAH_VER = 2;
 const FETCH_TO_MS = 15_000;
 const AUTH_URL = "https://top.swim.mlit.go.jp/swim/webapi/login";
@@ -420,12 +421,14 @@ export async function dah_named(ident: string, fir = ""): Promise<Pt[]> {
   return [...((await dahRings(_boundCtx))[key] || [])];
 }
 
-export async function rings_of(sup: string, fir = ""): Promise<RingTable> {
+export async function rings_of(sup: string, fir = "", requestCtx?: Ctx): Promise<RingTable> {
   const key = String(sup || "").trim().toUpperCase();
   if (!/^[A-Z]?\d{1,3}\/\d{2}$/.test(key)) return {};
-  if (!_boundCtx) return {};
-  const ctx = _boundCtx;
-  const cached = await readCache(ctx, key);
+  const ctx = requestCtx ?? _boundCtx;
+  if (!ctx) return {};
+  // SUP numbers are not globally unique: never share Japan's 52/26 with Australia.
+  const scoped = `${adapterFor(fir)}:${key}`;
+  const cached = await readCache(ctx, scoped);
   if (cached !== null) return cached;
   const kind = adapterFor(fir);
   const fetchFn = ({ jp_swim: fetchJapan, au_airservices: fetchAustralia, tw_eaip: fetchTaiwan } as Record<string, (s: string) => Promise<RingTable>>)[kind];
@@ -433,19 +436,47 @@ export async function rings_of(sup: string, fir = ""): Promise<RingTable> {
   if (netPaused()) return {};
   try {
     const table = await fetchFn(key);
-    await writeCache(ctx, key, table);
+    await writeCache(ctx, scoped, table);
     return table;
   } catch (exc) {
-    await writeCache(ctx, key, {}, String((exc as Error)?.message || exc));
+    await writeCache(ctx, scoped, {}, String((exc as Error)?.message || exc));
     return {};
   }
 }
 
-export async function hours_of(sup: string, fir = ""): Promise<string> {
+export async function hours_of(sup: string, fir = "", requestCtx?: Ctx): Promise<string> {
   const key = String(sup || "").trim().toUpperCase();
   if (!key) return "";
-  if (!_hoursMem.has(key)) await rings_of(key, fir);
+  if (!_hoursMem.has(key)) await rings_of(key, fir, requestCtx);
   return _hoursMem.get(key) || "";
 }
 
 export { adapterFor as adapter_for, netPaused as net_paused };
+
+/** Read the published Japan ENR training catalog before falling back to a Q-line pin. */
+export async function japanTrainingRings(ctx: Ctx): Promise<Record<string, Pt[]>> {
+  const key = 'aip_enr:jp:5.3:v1';
+  const cached = await getJson<{ ts: number; rings: Record<string, Pt[]> } | null>(ctx, key, null);
+  if (cached && Date.now() - cached.ts < 7 * 24 * 3600_000 && Object.keys(cached.rings).length) return cached.rings;
+  try {
+    const headers = await swimHeaders();
+    const history = await httpFetch(`${AIP_BASE}/f2eapr/AIP/html/history-en-JP.html`, { headers });
+    const html = new TextDecoder().decode(history.body);
+    const urls: string[] = [];
+    for (const m of html.matchAll(/href="(\d{8})\/eAIP\/(\d{8})\/index\.html"/g)) {
+      urls.push(`${AIP_BASE}/f2eapr/AIP/html/${m[1]}/eAIP/${m[2]}/pdf/JP-ENR-5.3-en-JP.pdf`);
+    }
+    for (const cycle of await japanCycles(headers)) urls.push(`${AIP_BASE}/f2eapr/AIP/html/${cycle}/eAIP/${cycle}/pdf/JP-ENR-5.3-en-JP.pdf`);
+    for (const url of [...new Set(urls)].slice(0, 8)) {
+      const resp = await httpFetch(url, { headers });
+      if (resp.status >= 400 || new Uint8Array(resp.body)[0] !== 0x25) continue;
+      const rings = parseEnr53Text(await pdfText(resp.body));
+      if (!Object.keys(rings).length) continue;
+      await setJson(ctx, key, { ts: Date.now(), rings });
+      return rings;
+    }
+  } catch { /* keep unresolved references as pins, never invent a boundary */ }
+  return {};
+}
+
+export { idsInText as japanIdsInText };

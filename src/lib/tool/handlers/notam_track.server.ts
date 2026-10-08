@@ -23,7 +23,9 @@ import { setNotamProgress } from "./notam.server";
 // `dist_nm: null` ("không tính được") in that case, same as upstream without its KML.
 import { trackFor } from "../port/jetplan_kml";
 import { supKeys, type Geom } from "../port/notam_track";
-import { bindCtx, rings_of, hours_of, dah_ring, dah_named } from "../aip_sup.server";
+import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText } from "../aip_sup.server";
+import { expand_au_area_ids } from '../port/aip_sup';
+import AIP_CATALOG from '../port/aip_catalog.json';
 import type { Ctx } from "../types";
 
 const AU_DAH_ID = /\bY[A-Z]{3}\/([MRDP]\d{3,4}[A-Z]?)(?![0-9])/gi;
@@ -34,6 +36,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   bindCtx(ctx);
   const deadline = Date.now() + 20000;
   const tasks: (() => Promise<void>)[] = [];
+  let japanCatalog: ReturnType<typeof japanTrainingRings> | undefined;
   for (const place of places) {
     const notams = ((place as Record<string, unknown>).notams as Record<string, unknown>[]) || [];
     for (const n of notams) {
@@ -41,24 +44,40 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const fir = String(n.qfir ?? (place as Record<string, unknown>).fir ?? place.code ?? "");
       const keys = supKeys(blob);
       const au = fir.toUpperCase().startsWith("Y");
-      if (!keys.length && !au) continue;
+      const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob);
+      if (!keys.length && !au && !jp) continue;
       tasks.push(async () => {
         const geoms: Geom[] = [];
+        if (jp && /ENR\s*5\.3|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob)) {
+          japanCatalog ??= japanTrainingRings(ctx);
+          const table = await japanCatalog;
+          for (const name of japanIdsInText(table, blob)) {
+            const ring = table[name];
+            if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+          }
+        }
         for (const key of keys) {
           if (Date.now() > deadline) return;
-          const table = await rings_of(key, fir);
+          const saved = /^(RJ|RO)/i.test(fir) ? (AIP_CATALOG.sup as unknown as Record<string, Record<string, [string, [number, number][]]>>)[key] : undefined;
+          const table = saved ? Object.fromEntries(Object.entries(saved).map(([nr, [name, ring]]) => [nr, { name, ring }])) : await rings_of(key, fir, ctx);
+          const wanted = new Set([...blob.matchAll(/\bNR\.?\s*(\d+)\b|\bAREA\s*:?\s*\(\s*(\d+)\s*\)/gi)].map(m => `NR.${Number(m[1] || m[2])}`));
           for (const [nr, item] of Object.entries(table)) {
-            if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: `AIP SUP ${key}` });
+            if (wanted.size && !wanted.has(nr)) continue;
+            if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: 'aip' });
           }
           if (!String(n.d_field ?? "").trim()) {
-            const hours = await hours_of(key, fir);
+            const hours = await hours_of(key, fir, ctx);
             if (hours) { n.d_field = hours; n.d_src = "AIP SUP"; }
           }
         }
         if (au && !geoms.length && Date.now() < deadline) {
+          for (const ident of expand_au_area_ids(blob)) {
+            const ring = await dah_ring(ident, fir);
+            if (ring.length >= 3) geoms.push({ name: ident, shape: 'polygon', ring, source: 'aip' });
+          }
           for (const m of blob.matchAll(AU_DAH_ID)) {
             const ring = await dah_ring(m[1]!, fir);
-            if (ring.length >= 3) geoms.push({ name: m[1]!.toUpperCase(), shape: "polygon", ring, source: "DAH" });
+            if (ring.length >= 3 && !geoms.some(g => g.name === m[1]?.toUpperCase())) geoms.push({ name: m[1].toUpperCase(), shape: "polygon", ring, source: 'aip' });
           }
           for (const m of blob.matchAll(AU_CTA_ID)) {
             const ring = await dah_named(m[1]!, fir);
