@@ -11394,10 +11394,18 @@ async function applyFplVer(ver){
     return;
   }
   await vLoadFiles({preferNewest: false});
-  if(old && vFileList.some(f => f.name === old)) vSetValue("old", old);
-  if(neu && vFileList.some(f => f.name === neu)) vSetValue("new", neu);
+  const hasNew = !!(neu && vFileList.some(f => f.name === neu));
+  if(hasNew) vSetValue("new", neu);
   else if(!neu && fplVerApplied.new && $("#vNew").value === fplVerApplied.new)
     vSetValue("new", "");
+  if(old && vFileList.some(f => f.name === old)) vSetValue("old", old);
+  else if(hasNew){
+    // VER trước chưa có trên hệ thống → lấy file ngay sau VER mới (list mới→cũ)
+    // để vẫn tự so sánh, không giữ file cũ của ngày khác.
+    const i = vFileList.findIndex(f => f.name === neu);
+    const prev = vFileList.slice(i + 1).find(f => f.name !== neu);
+    if(prev) vSetValue("old", prev.name);
+  }
   vPaintMenus();
   fplVerApplied = {old: $("#vOld").value, new: $("#vNew").value};
   paintVerBang(ver);
