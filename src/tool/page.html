@@ -19402,6 +19402,7 @@ function nrAddRow(r={}){
       if(d.error){alert(d.error);return;}
       if(!tr._nrFiles.includes(d.title))tr._nrFiles.push(d.title);
       nrFileChips(tr);
+      if(d.temp&&d.note)alert(d.note);
     }finally{btn.disabled=false;btn.textContent="Chọn PDF";}
   };
   tr.querySelector(".nr-file-dynamic").onclick=()=>{
