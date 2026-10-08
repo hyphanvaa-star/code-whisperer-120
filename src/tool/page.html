@@ -15785,7 +15785,7 @@ function nmEnsureMap(){
   vnPane.style.zIndex = 410;
   nmAdGroup = L.layerGroup().addTo(nmMap);
   nmFixGroup = L.layerGroup();
-  nmNavGroup = L.layerGroup().addTo(nmMap);
+  nmNavGroup = L.layerGroup();
   nmRteLab = L.layerGroup().addTo(nmMap);
   nmLayerCtl = L.control.layers(
     {"SkyVector IFR Low": svLo, "SkyVector VFR": svVfr,
