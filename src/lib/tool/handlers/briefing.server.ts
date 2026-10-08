@@ -18,7 +18,7 @@ const regDir = (ctx: { userId: string }) => `regnotice/${ctx.userId}`;
 
 async function briefFiles(ctx: Parameters<Routes[string]>[0]): Promise<BriefFile[]> {
   const entries = await store.listFiles(ctx, BRIEF_DIR);
-  return listBriefFiles(entries.map((e) => e.name));
+  return listBriefFiles(entries.filter((e) => e.metadata?.["size"] !== 0).map((e) => e.name));
 }
 
 async function briefingPreview(ctx: Parameters<Routes[string]>[0], days: number) {
@@ -236,7 +236,7 @@ export const jobs: Jobs = {
       }
       try {
         const blob = await store.getFile(ctx, `${BRIEF_DIR}/${pl.file.name}`);
-        if (!blob) throw new Error("không đọc được file trong kho");
+        if (!blob?.byteLength) throw new Error("file Briefing rỗng hoặc không đọc được trong kho");
         const form = new FormData();
         form.append("file-upload", new Blob([blob], { type: "application/pdf" }), pl.file.name);
         const up = await fbRequest("POST", "/webapi/notices/upload", { body: form, accept: "application/json" });
@@ -253,7 +253,7 @@ export const jobs: Jobs = {
             org_file_name: orgFile,
             file_type: "application/pdf",
             attachment_type: "GENERAL",
-            title: pl.file.callsign + "_Briefing",
+            title: pl.file.name.replace(/\.pdf$/i, ""),
             needs_acknowledging: false,
           },
         });

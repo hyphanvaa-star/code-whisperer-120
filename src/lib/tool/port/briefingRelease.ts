@@ -2,6 +2,7 @@
 // (text/HTML/PDF rendering + edit-field round trip). No DB/Flask/FliteBrief
 // here; handlers/briefing_release.server.ts wires this into the web app.
 import { IATA_ICAO } from "./limits_check";
+import { applyToSheet, isNotamPlaceholder, type PinStore, type SheetPinContext } from "./notam_pin";
 
 export class BriefReleaseError extends Error {}
 
@@ -48,7 +49,7 @@ export const PIC_ACK_LINES = [
 
 export const PIC_ACK = PIC_ACK_LINES.join("\n");
 
-export const LOGO_SRC = "/static/vjc-brief-logo.png";
+export const LOGO_SRC = "/static/vj-logo.png";
 
 const _NOT_ICAO = new Set([
   "ALTN", "THEN", "PAGE", "TIME", "WIND", "FUEL", "DIST", "PLAN", "TRIP",
@@ -80,6 +81,8 @@ export function notamCell(text: unknown): string {
   if (!s || s.toUpperCase() === "NO SIG") return "";
   return s;
 }
+
+export const sigWxText = notamCell;
 
 export function padNotams(raw: unknown, single: unknown = null): string[] {
   if (Array.isArray(raw)) {
@@ -256,7 +259,7 @@ export function newSheet(partial: Partial<ReleaseSheet> & Pick<ReleaseSheet, "ca
     notes: NOTES_RED,
     permit_addr: PERMIT_ADDR,
     permit_kind: PERMIT_KIND,
-    sig_wx: "NO SIG",
+    sig_wx: "",
     notams: ["", "", "", "", ""],
     ...partial,
   };
@@ -300,7 +303,7 @@ function tafHtml(texts: string[]): string {
 function notamHtml(text: string): string {
   const blob = notamCell(text);
   let cls = "br-c3 br-nosig";
-  if (blob) cls += " br-notam-full";
+  if (!isNotamPlaceholder(blob)) cls += " br-notam-full";
   return `<td class='${cls}'>${htmlLines(blob)}</td>`;
 }
 
@@ -334,7 +337,7 @@ export function toHtml(sheet: ReleaseSheet): string {
   const tech = "Check Tech log<br>for updates<br>" + escapeHtml(`REG: ${sheet.reg || "—"}`);
   const nt = padNotams(sheet.notams);
   const nosig = nt.map((t) => notamHtml(t));
-  const sigCell = `<td class='br-c3 br-nosig'>${escapeHtml(sheet.sig_wx || "NO SIG")}</td>`;
+  const sigCell = `<td class='br-c3 br-nosig'>${escapeHtml(sigWxText(sheet.sig_wx))}</td>`;
 
   return `
 <div class="br-sheet-doc">
@@ -436,7 +439,7 @@ export function toEditHtml(sheet: ReleaseSheet): string {
     "Enr. Alternate(s)<br>(" + editInp("enroute_alts", slash(sheet.enroute_alts), "bf-icao bf-wide") + ")";
   const tech = "Check Tech log<br>for updates<br>REG: " + editInp("reg", sheet.reg || "", "bf-icao");
   const defectTxt = defectBullets(sheet.defects).join("\n");
-  const sig = editArea("sig_wx", sheet.sig_wx || "NO SIG", "bf-center");
+  const sig = editArea("sig_wx", sigWxText(sheet.sig_wx), "bf-center");
   const nt = padNotams(sheet.notams);
   const n0 = editArea("notam0", nt[0], "bf-notam");
   const n1 = editArea("notam1", nt[1], "bf-notam");
@@ -532,7 +535,7 @@ function uniqIcao(codes: string[], skip?: Set<string>): string[] {
   const seen = new Set<string>();
   for (const c of codes) {
     const code = c.toUpperCase();
-    if (!code || seen.has(code) || (skip && skip.has(code))) continue;
+    if (!toIcao(code) || ["TALT", "RALT", "TAKE"].includes(code) || seen.has(code) || (skip && skip.has(code))) continue;
     seen.add(code);
     out.push(code);
   }
@@ -540,7 +543,7 @@ function uniqIcao(codes: string[], skip?: Set<string>): string[] {
 }
 
 const RALT_START_RE = /\bRALT\s*\/\s*/i;
-const RALT_STOP_RE = /\b(?:TALT|RMK)\s*\//i;
+const RALT_STOP_RE = /\b(?:TALT|RMK|EET|SEL|CODE|OPR|PER|DOF|NAV|DAT|PBN|STS|REG)\s*\//i;
 
 export function parseRalt(text: string): string[] {
   const src = text || "";
@@ -548,11 +551,11 @@ export function parseRalt(text: string): string[] {
   if (!start) return [];
   const rest = src.slice(start.index + start[0].length);
   const stop = RALT_STOP_RE.exec(rest);
-  const blob = stop ? rest.slice(0, stop.index) : (rest.split("\n")[0] ?? "");
+  const blob = stop ? rest.slice(0, stop.index) : rest;
   return uniqIcao(blob.toUpperCase().match(ICAO4_RE) ?? []);
 }
 
-const ENROUTE_ALT_EQ_RE = /ENROUTE\s*ALT\s*=\s*([^\n]*)/i;
+const ENROUTE_ALT_EQ_RE = /^[ \t]*ENROUTE[ \t]+ALT(?:ERNATE)?[ \t]*=[ \t]*([^\n]*)/im;
 function parseEnrouteAltLine(text: string): string[] {
   const m = ENROUTE_ALT_EQ_RE.exec(text || "");
   if (!m) return [];
@@ -665,7 +668,7 @@ export function toText(sheet: ReleaseSheet): string {
   const enrAlt = aptLabel("Enr. Alternate(s)", sheet.enroute_alts);
   const nt = padNotams(sheet.notams);
   lines.push(
-    `En-route SIG Wx                          ${sheet.sig_wx || "NO SIG"}`,
+    `En-route SIG Wx                          ${sigWxText(sheet.sig_wx)}`,
     `Dept. APT (${sheet.dep || "—"})                         ${nt[0]}`,
     `Dest. APT (${sheet.dest || "—"})                         ${nt[1]}`,
     `${destAlt}                         ${nt[2]}`,
@@ -817,7 +820,7 @@ export function sheetFromFields(data: Record<string, unknown>): ReleaseSheet {
     notes,
     permit_addr: String(data["permit_addr"] ?? PERMIT_ADDR),
     permit_kind: String(data["permit_kind"] ?? PERMIT_KIND),
-    sig_wx: String(data["sig_wx"] ?? "NO SIG").trim() || "NO SIG",
+    sig_wx: sigWxText(data["sig_wx"]),
     notams: notamsFromPayload(data),
   });
 }
@@ -856,6 +859,18 @@ export interface DraftFromFlightOpts extends BuildSheetOpts {
   pdfText: PdfTextExtractor;
   applyEdits?: boolean;
   loadEdits?: (callsign: string) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
+  pins?: PinStore;
+  pinContext?: (sheet: ReleaseSheet, ofpText: string) => Promise<SheetPinContext> | SheetPinContext;
+}
+
+/** Merge partial saved edits without throwing away fresh OFP/WX/defect fields. */
+export function applyFields(sheet: ReleaseSheet, data: Record<string, unknown>): ReleaseSheet {
+  const base = toFields(sheet);
+  if ([0, 1, 2, 3, 4].some((i) => data[`notam${i}`] !== undefined)) {
+    sheet.notams.forEach((cell, i) => { base[`notam${i}`] = cell; });
+  }
+  const changes = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== null && value !== undefined));
+  return sheetFromFields({ ...base, ...changes, callsign: sheet.callsign });
 }
 
 export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightOpts): Promise<ReleaseSheet> {
@@ -866,11 +881,12 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
     );
   }
   const text = await opts.pdfText(blob);
-  const sheet = buildSheet(flight, text, opts);
+  let sheet = buildSheet(flight, text, opts);
   if (opts.applyEdits !== false && opts.loadEdits) {
     const saved = await opts.loadEdits(sheet.callsign);
-    if (saved) return sheetFromFields({ ...saved, callsign: sheet.callsign });
+    if (saved) sheet = applyFields(sheet, saved);
   }
+  if (opts.pins) applyToSheet(sheet, opts.pins, await opts.pinContext?.(sheet, text) ?? {});
   return sheet;
 }
 
@@ -881,70 +897,8 @@ function b64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
-/** Simplified PDF renderer (pdf-lib + fontkit, LiberationSans). Not a pixel
- *  copy of the fitz/Calibri table the Windows tool draws — that needs a real
- *  desktop font + PyMuPDF layout this runtime doesn't have — but it carries
- *  the same content (title, wx/notam/defect/permit/notes/PIC-ack) on US
- *  Letter pages, wrapped to width. */
+/** Three-column Letter sheet; embedded Unicode font and full NOTAM content. */
 export async function toPdf(sheet: ReleaseSheet): Promise<Uint8Array> {
-  const { PDFDocument, rgb } = await import("pdf-lib");
-  const fontkit = (await import("@pdf-lib/fontkit")).default;
-  const { LIBERATION_SANS_REGULAR_BASE64, LIBERATION_SANS_BOLD_BASE64 } = await import(
-    "../data/fonts/liberationSansBase64"
-  );
-
-  const doc = await PDFDocument.create();
-  doc.registerFontkit(fontkit);
-  const regular = await doc.embedFont(b64ToBytes(LIBERATION_SANS_REGULAR_BASE64), { subset: true });
-  const bold = await doc.embedFont(b64ToBytes(LIBERATION_SANS_BOLD_BASE64), { subset: true });
-
-  const pageW = 612;
-  const pageH = 792;
-  const margin = 40;
-  const fontSize = 9;
-  const lineHeight = 12;
-  let page = doc.addPage([pageW, pageH]);
-  let y = pageH - margin;
-
-  const ensureSpace = () => {
-    if (y < margin + lineHeight) {
-      page = doc.addPage([pageW, pageH]);
-      y = pageH - margin;
-    }
-  };
-
-  const drawWrapped = (text: string, font = regular, size = fontSize) => {
-    const maxWidth = pageW - margin * 2;
-    for (const para of text.split("\n")) {
-      if (para === "") {
-        ensureSpace();
-        y -= lineHeight;
-        continue;
-      }
-      let line = "";
-      const words = para.split(" ");
-      for (const word of words) {
-        const trial = line ? `${line} ${word}` : word;
-        if (font.widthOfTextAtSize(trial, size) <= maxWidth || !line) {
-          line = trial;
-        } else {
-          ensureSpace();
-          page.drawText(line, { x: margin, y, size, font, color: rgb(0, 0, 0) });
-          y -= lineHeight;
-          line = word;
-        }
-      }
-      ensureSpace();
-      page.drawText(line, { x: margin, y, size, font, color: rgb(0, 0, 0) });
-      y -= lineHeight;
-    }
-  };
-
-  drawWrapped(`Official Briefing for Flight Release: ${sheet.callsign}`, bold, 13);
-  y -= 4;
-  drawWrapped(`Published at: ${sheet.published_at}`);
-  y -= 6;
-  drawWrapped(toText(sheet).split("\n").slice(2).join("\n"));
-
-  return doc.save();
+  const { renderBriefingPdf } = await import("./briefingPdf");
+  return renderBriefingPdf(sheet);
 }

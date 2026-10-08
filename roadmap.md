@@ -56,3 +56,4 @@
 - [x] Version badge (bottom-right of tool) — bump V number in src/tool/page.html #appVersion on every publish
 - [x] Popup NOTAM khi click vùng: dời khung trắng sang mép phải bản đồ
 - [x] Mặc định TẮT các đài VN trên bản đồ Check NOTAM (tick "Đài" để bật)
+- [x] Briefing: đối chiếu nguồn Python, nối TAF/limits/NOTAM ghim cho draft–export–đổi tàu; PDF ba cột Letter giữ đầy đủ tiếng Việt; 8 tests đạt, kiểm tra chuyến thật soạn–lưu–đọc lại–xuất–bỏ hiệu chỉnh. Chưa publish; không tự ghi NIL NOTAM khi chưa có dữ liệu portal.
