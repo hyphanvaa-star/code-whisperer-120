@@ -190,7 +190,7 @@ export const jobs: Jobs = {
     } catch (exc) {
       emit({ type: "line", text: `✗ ${exc instanceof Error ? exc.message : String(exc)}`, cls: "bad" });
     }
-    emit({ type: "end", code: ok ? 0 : 1, elapsed: (Date.now() - t0) / 1000, ok, failed: wants.length - ok, subject: subjects.join(" · "), files });
+    emit({ type: "end", code: ok ? 0 : 1, elapsed: (Date.now() - t0) / 1000, ok, failed: wants.length - ok, subject: subjects.join(" · "), files, links });
   },
 
   // Port of web.py start_owa_login(): đăng nhập Outlook luôn đi qua trợ lý PC

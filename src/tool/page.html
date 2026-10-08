@@ -20604,8 +20604,9 @@ function vPaintMenus(){
 
 function vVerKey(name){
   const s = String(name || "").toUpperCase();
-  const m = s.match(/VER\s*[-_ ]?\s*(\d+)/);
-  const dm = s.match(/ON\s+(\d{1,2})\s*([A-Z]{3})/);
+  const m = s.match(/VER\s*[-_.: ]?\s*(\d+)/);
+  // Ngày có thể là "ON 08 OCT" hoặc "FPL 08 OCT" — bắt bất kỳ "dd MMM" nào.
+  const dm = s.match(/(?:^|[^0-9])(\d{1,2})\s*[-_ ]?\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?![A-Z])/);
   const MON = "JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC";
   const day = dm ? (MON.indexOf(dm[2]) / 3 + 1) * 100 + Number(dm[1]) : 0;
   return [day, m ? Number(m[1]) : -1];
