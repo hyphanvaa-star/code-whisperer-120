@@ -165,7 +165,12 @@ export const jobs: Jobs = {
           ];
           // Nháp phải nằm trong hộp thư chung omc@vietjetair.com trên Outlook
           // Web (owa_draft) — không mở Outlook desktop (outlook_draft).
-          const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, attachments });
+          const mail = {
+            user: (await credEnv("OUTLOOK_MAIL_USER")) || "",
+            pass: (await credEnv("OUTLOOK_MAIL_PASS")) || "",
+            mailbox: (await credEnv("OUTLOOK_MAILBOX")) || "omc@vietjetair.com",
+          };
+          const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, attachments, ...mail });
           const r = await pc.waitResult(id, 120_000);
           emit({ type: "line", text: `✓ ${subject}` });
           ok += 1;
