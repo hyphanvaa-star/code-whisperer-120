@@ -518,6 +518,18 @@ def _fpl_dir() -> Path:
     return Path(r"C:\FPL")
 
 
+def _patch_fpl_watch(mod):
+    """owa_fpl_watch gốc cứng đích D:\FPL — máy không có ổ D thì trỏ sang C:\FPL."""
+    fpl = str(_fpl_dir())
+    for attr in ("DEST", "DEST_DIR", "FPL_DIR", "EXCEL_DIR", "DEST_EXCEL"):
+        cur = str(getattr(mod, attr, "") or "")
+        if cur.startswith(("D:", "D:/", "D:\\")):
+            try:
+                setattr(mod, attr, fpl)
+            except Exception:
+                pass
+
+
 def _load_owa_modules():
     """Nạp outlook_web_pib / config từ PC_TOOL_DIR — code gốc y hệt tool Windows."""
     tool_dir = _find_tool_dir()
@@ -570,6 +582,7 @@ def do_owa_login(payload: dict, say) -> dict:
     say("✓ Đã xác nhận Outlook Web đọc được mailbox.")
     try:
         import owa_fpl_watch  # noqa: E402  (module của tool gốc)
+        _patch_fpl_watch(owa_fpl_watch)
         if owa_fpl_watch.ensure_running():
             say("▶ Theo dõi OMC / FLIGHT PLAN mỗi 15 giây.")
         else:
@@ -583,6 +596,7 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
     """Trạng thái watcher OMC / FLIGHT PLAN — đúng owa_fpl_watch.status() gốc."""
     _load_owa_modules()
     import owa_fpl_watch  # noqa: E402  (module của tool gốc)
+        _patch_fpl_watch(owa_fpl_watch)
     after = int(payload.get("after") or 0)
     st = owa_fpl_watch.status(after=after)
     # Web không đọc được ổ máy công ty: gửi kèm file Excel FPL VER (old/new)
@@ -711,6 +725,7 @@ def do_owa_pib(payload: dict, say) -> dict:
         emit({"type": "owa_state", "text": "Outlook Web sẵn sàng", "state": "healthy"})
         try:
             import owa_fpl_watch  # noqa: E402  (module của tool gốc)
+        _patch_fpl_watch(owa_fpl_watch)
             owa_fpl_watch.ensure_running()
         except Exception as exc:
             say(f"· không bật được tự tải FPL sau PIB: {exc}")
