@@ -15724,7 +15724,19 @@ function nmEnsureMap(){
   const sat = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {maxZoom: 19, attribution: "Tiles &copy; Esri"});
-  streets.addTo(nmMap);
+  // SkyVector aeronautical charts: scale s = 23 - 2*zoom (zoom 1..11), standard XYZ grid.
+  const SvTile = L.TileLayer.extend({
+    getTileUrl: function(coords){
+      const s = 23 - 2 * coords.z;
+      return "https://t.skyvector.com/ABPNMzP6pI9L/" + this.options.svLayer +
+        "/2610/" + s + "/" + coords.x + "/" + coords.y + ".jpg";
+    }
+  });
+  const svOpts = {minZoom: 1, maxZoom: 19, maxNativeZoom: 11,
+    attribution: "Charts &copy; SkyVector"};
+  const svLo = new SvTile("", Object.assign({svLayer: "302"}, svOpts));
+  const svVfr = new SvTile("", Object.assign({svLayer: "301"}, svOpts));
+  svLo.addTo(nmMap);
   const vnPane = nmMap.createPane("nmVn");
   vnPane.style.zIndex = 410;
   nmAdGroup = L.layerGroup().addTo(nmMap);
@@ -15732,7 +15744,8 @@ function nmEnsureMap(){
   nmNavGroup = L.layerGroup().addTo(nmMap);
   nmRteLab = L.layerGroup().addTo(nmMap);
   nmLayerCtl = L.control.layers(
-    {"Bản đồ": streets, "Esri Light Gray": gray, "Vệ tinh": sat},
+    {"SkyVector IFR Low": svLo, "SkyVector VFR": svVfr,
+      "Bản đồ": streets, "Esri Light Gray": gray, "Vệ tinh": sat},
     {"Sân bay": nmAdGroup, "Đài": nmNavGroup},
     {position: "topright"}).addTo(nmMap);
   const nmLayerUpdate = nmLayerCtl._update;
