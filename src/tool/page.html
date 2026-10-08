@@ -5829,7 +5829,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V22</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V23</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -7395,6 +7395,11 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
 </div>
 
 <script>
+(function(){ if(window.__esWrapped) return; window.__esWrapped = true; window.__allEs = new Set();
+  const O = window.EventSource;
+  function W(u, c){ const es = new O(u, c); window.__allEs.add(es); return es; }
+  W.prototype = O.prototype; W.CONNECTING = 0; W.OPEN = 1; W.CLOSED = 2;
+  window.EventSource = W; })();
 const $ = s => document.querySelector(s);
 
 /* ---------- cổng bảo mật ---------- */
