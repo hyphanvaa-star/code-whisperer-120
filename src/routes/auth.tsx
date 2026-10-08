@@ -68,59 +68,93 @@ function AuthPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4">
-      {/* nền: wash màu + chấm lưới + mạng đường bay kiểu biểu đồ hàng không */}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#04140d] px-4">
+      <style>{`
+        @keyframes atc-sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes atc-blink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: 0.15; } }
+        @keyframes atc-blink-slow { 0%, 45% { opacity: 1; } 46%, 100% { opacity: 0.2; } }
+        .atc-sweep { transform-origin: 600px 400px; animation: atc-sweep 9s linear infinite; }
+        .atc-blink { animation: atc-blink 2.4s steps(1) infinite; }
+        .atc-blink-2 { animation: atc-blink 3.1s steps(1) infinite; animation-delay: 0.9s; }
+        .atc-blink-3 { animation: atc-blink-slow 4s steps(1) infinite; animation-delay: 1.6s; }
+      `}</style>
+      {/* nền màn hình radar ATC: tối, vòng tròn + tia quét, chấm máy bay xanh/đỏ nhấp nháy */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(55rem 32rem at 12% -8%, color-mix(in oklab, var(--primary) 15%, transparent), transparent 62%)," +
-            "radial-gradient(46rem 30rem at 108% 112%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 60%)," +
-            "radial-gradient(40rem 26rem at 94% -14%, color-mix(in oklab, var(--info) 7%, transparent), transparent 65%)",
+            "radial-gradient(60rem 40rem at 50% 50%, rgba(16,60,38,0.55), transparent 70%)," +
+            "radial-gradient(30rem 22rem at 50% 50%, rgba(34,120,70,0.18), transparent 65%)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.5]"
+        className="pointer-events-none absolute inset-0 opacity-40"
         style={{
           backgroundImage:
-            "radial-gradient(color-mix(in oklab, var(--foreground) 9%, transparent) 1px, transparent 1px)",
-          backgroundSize: "26px 26px",
+            "linear-gradient(rgba(74,222,128,0.06) 1px, transparent 1px)," +
+            "linear-gradient(90deg, rgba(74,222,128,0.06) 1px, transparent 1px)",
+          backgroundSize: "52px 52px",
         }}
       />
       <svg
         aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full text-primary opacity-[0.18]"
+        className="pointer-events-none absolute inset-0 h-full w-full"
         viewBox="0 0 1200 800"
         preserveAspectRatio="xMidYMid slice"
         fill="none"
-        stroke="currentColor"
-        strokeWidth="1.25"
       >
-        {/* vòng radar ở góc dưới phải */}
-        <g strokeDasharray="4 9" opacity="0.75">
-          <circle cx="1080" cy="720" r="150" />
-          <circle cx="1080" cy="720" r="265" />
-          <circle cx="1080" cy="720" r="385" />
+        {/* vòng radar trung tâm */}
+        <g stroke="#4ade80" strokeOpacity="0.35" strokeWidth="1">
+          <circle cx="600" cy="400" r="120" />
+          <circle cx="600" cy="400" r="230" strokeDasharray="3 7" />
+          <circle cx="600" cy="400" r="340" />
+          <circle cx="600" cy="400" r="450" strokeDasharray="3 7" />
+          <circle cx="600" cy="400" r="560" strokeOpacity="0.2" />
+          <path d="M600 -160V960M-160 400H1360" strokeOpacity="0.25" />
         </g>
-        {/* các đường bay */}
-        <path d="M-60 640C240 430 560 360 1260 150" strokeDasharray="11 13" strokeWidth="1.7" />
-        <path d="M-60 300C300 300 520 520 1260 470" strokeDasharray="6 15" opacity="0.8" />
-        <path d="M120 860C300 620 520 560 900 240" strokeDasharray="3 11" opacity="0.6" />
-        {/* điểm waypoint */}
-        <g>
-          <circle cx="174" cy="504" r="4.5" fill="currentColor" stroke="none" />
-          <circle cx="174" cy="504" r="11" strokeDasharray="3 4" />
-          <circle cx="450" cy="395" r="4.5" fill="currentColor" stroke="none" />
-          <circle cx="450" cy="395" r="11" strokeDasharray="3 4" />
-          <circle cx="801" cy="286" r="4.5" fill="currentColor" stroke="none" />
-          <circle cx="801" cy="286" r="11" strokeDasharray="3 4" />
-          <circle cx="244" cy="346" r="3.5" fill="currentColor" stroke="none" />
-          <circle cx="435" cy="580" r="3.5" fill="currentColor" stroke="none" />
+        {/* tia quét radar */}
+        <g className="atc-sweep">
+          <path d="M600 400 L600 -160 A560 560 0 0 1 742 -135 Z" fill="rgba(74,222,128,0.14)" stroke="none" />
+          <line x1="600" y1="400" x2="600" y2="-160" stroke="#4ade80" strokeOpacity="0.7" strokeWidth="1.5" />
+        </g>
+        {/* các đường bay nét đứt */}
+        <g stroke="#4ade80" strokeOpacity="0.4" strokeWidth="1.2">
+          <path d="M-60 640C240 430 560 360 1260 150" strokeDasharray="10 12" />
+          <path d="M-60 300C300 300 520 520 1260 470" strokeDasharray="5 14" strokeOpacity="0.3" />
+          <path d="M120 860C300 620 520 560 900 240" strokeDasharray="3 10" strokeOpacity="0.25" />
+        </g>
+        {/* máy bay trên radar */}
+        <g fill="#86efac">
+          <path d="M330 470 l16 -5 -6 -14 4 -2 8 11 13 -4 -4 -8 4 -2 6 7 14 -5 c3 -1 6 1 6 4 s-3 5 -6 6 l-14 5 1 10 -4 2 -5 -9 -12 4 4 8 -4 2 -6 -11 -16 5 c-2 1 -4 0 -4 -2 s1 -4 3 -5 z" transform="rotate(-18 360 460)" />
+          <path d="M330 470 l16 -5 -6 -14 4 -2 8 11 13 -4 -4 -8 4 -2 6 7 14 -5 c3 -1 6 1 6 4 s-3 5 -6 6 l-14 5 1 10 -4 2 -5 -9 -12 4 4 8 -4 2 -6 -11 -16 5 c-2 1 -4 0 -4 -2 s1 -4 3 -5 z" transform="rotate(38 845 300) translate(515 -170)" />
+          <path d="M330 470 l16 -5 -6 -14 4 -2 8 11 13 -4 -4 -8 4 -2 6 7 14 -5 c3 -1 6 1 6 4 s-3 5 -6 6 l-14 5 1 10 -4 2 -5 -9 -12 4 4 8 -4 2 -6 -11 -16 5 c-2 1 -4 0 -4 -2 s1 -4 3 -5 z" transform="rotate(-52 690 610) translate(360 140)" />
+        </g>
+        {/* chấm xanh lá: máy bay đang theo dõi */}
+        <g fill="#4ade80">
+          <circle className="atc-blink" cx="240" cy="250" r="5" />
+          <circle className="atc-blink-2" cx="880" cy="560" r="5" />
+          <circle className="atc-blink-3" cx="1020" cy="220" r="4" />
+          <circle className="atc-blink-2" cx="150" cy="600" r="4" />
+          <circle className="atc-blink" cx="520" cy="180" r="3.5" />
+        </g>
+        {/* chấm đỏ/hổ phách: cảnh báo */}
+        <g fill="#f87171">
+          <circle className="atc-blink-2" cx="720" cy="160" r="4.5" />
+          <circle className="atc-blink" cx="1080" cy="640" r="4.5" />
+        </g>
+        <g fill="#fbbf24">
+          <circle className="atc-blink-3" cx="420" cy="640" r="4" />
+        </g>
+        {/* nhãn data block kiểu ATC */}
+        <g fontFamily="monospace" fontSize="11" fill="#4ade80" fillOpacity="0.55">
+          <text x="252" y="244">VJC822 · FL350</text>
+          <text x="892" y="554">VNA698 · FL390</text>
+          <text x="1030" y="214">VJC84 · FL370</text>
         </g>
         {/* dấu thập toạ độ */}
-        <g opacity="0.8">
+        <g stroke="#4ade80" strokeOpacity="0.4">
           <path d="M660 620h22M671 609v22" />
           <path d="M950 430h22M961 419v22" />
           <path d="M300 180h22M311 169v22" />
@@ -130,8 +164,7 @@ function AuthPage() {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-40"
         style={{
-          background:
-            "linear-gradient(to top, color-mix(in oklab, var(--foreground) 5%, transparent), transparent)",
+          background: "linear-gradient(to top, rgba(2,10,6,0.7), transparent)",
         }}
       />
 
@@ -141,26 +174,26 @@ function AuthPage() {
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
             <Plane className="h-7 w-7" />
           </div>
-          <h1 className="font-mono text-lg font-bold tracking-[0.3em] text-foreground">
+          <h1 className="font-mono text-lg font-bold tracking-[0.3em] text-emerald-300">
             DISPATCH BOARD
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-emerald-100/60">
             Hệ thống điều phối chuyến bay nội bộ
           </p>
         </div>
 
         {/* card */}
-        <div className="rounded-2xl border border-border/60 bg-card/80 p-8 shadow-2xl backdrop-blur-md">
-          <h2 className="text-xl font-semibold text-card-foreground">Đăng nhập</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-emerald-400/20 bg-[#071c11]/85 p-8 shadow-2xl shadow-black/50 backdrop-blur-md">
+          <h2 className="text-xl font-semibold text-emerald-50">Đăng nhập</h2>
+          <p className="mt-1 text-sm text-emerald-100/60">
             Dùng ID và mật khẩu do quản lý cấp.
           </p>
 
           <form onSubmit={submit} className="mt-6 space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="id">ID tài khoản</Label>
+              <Label htmlFor="id" className="text-emerald-100/80">ID tài khoản</Label>
               <div className="relative">
-                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/40" />
                 <Input
                   id="id"
                   type="text"
@@ -168,22 +201,22 @@ function AuthPage() {
                   autoCapitalize="none"
                   spellCheck={false}
                   placeholder="hyphan"
-                  className="pl-9"
+                  className="border-emerald-400/25 bg-black/30 pl-9 text-emerald-50 placeholder:text-emerald-100/30 focus-visible:ring-emerald-400/40"
                   value={id}
                   onChange={(e) => setId(e.target.value)}
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="pw">Mật khẩu</Label>
+              <Label htmlFor="pw" className="text-emerald-100/80">Mật khẩu</Label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/40" />
                 <Input
                   id="pw"
                   type="password"
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="border-emerald-400/25 bg-black/30 pl-9 text-emerald-50 placeholder:text-emerald-100/30 focus-visible:ring-emerald-400/40"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -194,8 +227,8 @@ function AuthPage() {
             </Button>
           </form>
 
-          <div className="mt-6 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="mt-6 flex items-start gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/5 px-3 py-2.5 text-xs text-emerald-100/60">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
             <span>
               Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý
               để được cấp tài khoản.
@@ -203,7 +236,7 @@ function AuthPage() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p className="mt-6 text-center text-xs text-emerald-100/40">
           Sohee — A product by Rosie
         </p>
       </div>
