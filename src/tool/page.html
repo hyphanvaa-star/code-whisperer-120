@@ -24635,7 +24635,7 @@ async function hoExport(){
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(payload),
     });
-    if(!r.ok){
+    if(!r.ok || (r.headers.get("Content-Type")||"").indexOf("json") >= 0){
       const d = await r.json().catch(function(){ return {}; });
       alert("Xuất Excel lỗi:\n\n" + (d.error || r.status));
       return;
