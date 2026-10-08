@@ -24406,6 +24406,7 @@ function hoCollect(){
       atc: tick("atc"),
       ezfw: tick("ezfw"),
       atfm: tick("atfm"),
+      edto: tick("edto"),
       note: get('input[data-ho="note"]'),
     };
     if(!row.key) row.key = (callsign.replace(/\s+/g,"").toUpperCase() + "|" + row.std);
@@ -24457,6 +24458,10 @@ function hoAddRow(row){
     tr.appendChild(hoCell(inp, item[1]));
   });
   HO_TICKS.forEach(function(kind){
+    if((kind === "ezfw" || kind === "atfm") && !hoNeedsEzfwAtfm(row)){
+      tr.appendChild(hoCell(document.createTextNode("—"), "ho-mark ho-na"));
+      return;
+    }
     tr.appendChild(hoCell(hoTickBox(kind, hoIsOn(row && row[kind])), "ho-mark"));
   });
   const note = hoInp(row && row.note, "ho-note");
@@ -24493,6 +24498,7 @@ function hoFromFlight(f, saved){
     atc: hit.atc || "",
     ezfw: hit.ezfw || "",
     atfm: hit.atfm || "",
+    edto: hit.edto || "",
     note: hit.note || "",
   };
 }
@@ -24658,7 +24664,7 @@ document.querySelectorAll("#hoShiftPills [data-ho-shift]").forEach(function(btn)
   el.addEventListener("input", function(){ hoPaintMeta(); hoMarkDirty(); });
   el.addEventListener("change", function(){ hoPaintMeta(); hoMarkDirty(); });
 });
-[["hoAllAtc","atc"],["hoAllEzfw","ezfw"],["hoAllAtfm","atfm"]].forEach(function(item){
+[["hoAllAtc","atc"],["hoAllEzfw","ezfw"],["hoAllAtfm","atfm"],["hoAllEdto","edto"]].forEach(function(item){
   const el = $("#" + item[0]);
   if(!el) return;
   el.addEventListener("click", function(){ hoTickCol(item[1], el.checked); });
