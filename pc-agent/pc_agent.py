@@ -530,7 +530,8 @@ def do_aviweb_submit(payload: dict, say) -> dict:
     fpath.write_text(str(payload.get("text") or ""), encoding="utf-8")
     say(f"· file ATC: {fpath}")
 
-    def on_progress(d) -> None:
+    def on_progress(*a) -> None:
+        d = a[0] if a else None
         if isinstance(d, dict):
             if d.get("text"):
                 say(str(d["text"]), str(d.get("cls") or ""))
