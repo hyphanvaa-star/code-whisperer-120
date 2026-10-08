@@ -26467,7 +26467,7 @@ function boot(){
     }catch(err){ /* bỏ qua — người dùng vẫn bấm nút TAF được */ }
   })();
   loadRegNoticeList();
-  // Lần gọi lúc parse trang diễn ra trước khi gate mở nên API có thể trả 401.
+  // Lần gọi lúc parse trang có thể xảy ra trước khi đăng nhập xong nên API trả 401.
   // Nạp lại sau đăng nhập để dữ liệu limits.json thực sự đi vào các bảng.
   limBoot();
   fplWatchStartUi();
@@ -26680,7 +26680,7 @@ function boot(){
   }
 })();
 
-/* boot() chỉ gọi sau khi gate mở (unlockUI / gateBoot) */
+/* boot() chỉ gọi một lần, từ unlockUI() khi trang sẵn sàng. */
 </script>
 <div class="nm-tune-pop" id="nmTunePop" hidden>
   <h4>Logic và nguyên lý lược bỏ NOTAM</h4>
