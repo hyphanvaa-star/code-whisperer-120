@@ -34,3 +34,4 @@
 - Briefing PDFs use `src/lib/tool/port/briefingPdf.ts` for the original three-column Letter layout with embedded fonts; overflow continues rather than truncating operational text.
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can be supplied by the dispatcher's browser login, because Omni rejects token creation from the cloud runtime's IPv6 X-Forwarded-For.
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from the bundled snapshot `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`, because live national AIP downloads are slow/unreliable inside a request.
+- Foreign ATS routes for the Tracking map come from the bundled snapshot `src/lib/tool/data/ats_routes.json` (old tool aip_ats/routes.json) merged into `/api/notam/vnchart`, because live national AIP fetches are unreliable in a request.

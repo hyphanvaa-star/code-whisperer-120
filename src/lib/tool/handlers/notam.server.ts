@@ -4,6 +4,15 @@ import { fbJson } from "../../flitebrief.server";
 import * as pin from "../port/notam_pin";
 import { normIcao, apply24h, placeFromPayload, parseLookupCodes } from "../port/notam_check";
 import * as vn from "../port/aip_vn_chart";
+import atsRoutes from "../data/ats_routes.json";
+
+// ATS route các nước (snapshot aip_ats/routes.json của tool cũ) gộp vào nền bản đồ.
+function withForeignAts(c: vn.Chart): vn.Chart {
+  const extra: vn.ChartRoute[] = [];
+  for (const [cc, list] of Object.entries(atsRoutes as unknown as Record<string, { name: string; pts: vn.ChartPt[] }[]>))
+    for (const r of list) extra.push({ name: r.name, pts: r.pts, cc });
+  return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...extra] };
+}
 
 // Port of the web.py "/api/notam/pins*" and "/api/notam/lookup" endpoints
 // (notam_pin.py / notam_check.lookup_places). Pin store persisted under "notam.pins"
@@ -239,12 +248,12 @@ export const routes: Routes = {
   },
   "GET /api/notam/vnchart": async (ctx) => {
     const data = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
-    if (data && (data.airports.length || data.routes.length)) return data;
+    if (data && (data.airports.length || data.routes.length)) return withForeignAts(data);
     // web.py: tải nền trong luồng riêng rồi trả "pending" ngay — worker này
     // không có luồng nền nên tải luôn (không chờ lâu lần sau vì đã cache).
     try {
       const built = await vnChartEnsure(ctx);
-      if (built.airports.length || built.routes.length) return built;
+      if (built.airports.length || built.routes.length) return withForeignAts(built);
     } catch {
       // bỏ qua, trả pending như dưới
     }
