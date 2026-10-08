@@ -1,48 +1,5 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1791034019735,
-      "tag": "0000_roles_profiles_sessions",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1791035408623,
-      "tag": "0001_handovers",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1791036702180,
-      "tag": "0002_app_settings",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1791077316776,
-      "tag": "0003_tool_files_policies",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1791081413658,
-      "tag": "0004_create_pc_jobs",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1791348927293,
-      "tag": "0005_user_credentials",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }
