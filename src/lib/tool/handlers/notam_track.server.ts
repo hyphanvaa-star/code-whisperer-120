@@ -56,7 +56,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
           koreaCatalog ??= koreaRestrictedRings(ctx);
           const table = await koreaCatalog;
           for (const name of krIds) {
-            const ring = table[name];
+            const ring = table[name.replace(/-/g, '')];
             if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
           }
         }
