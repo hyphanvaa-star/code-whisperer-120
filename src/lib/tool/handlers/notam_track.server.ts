@@ -3,7 +3,7 @@ import { q } from "../types";
 import type { Flight } from "../core/models";
 import { loadFlights, applyFilters } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
-import { normIcao, placeFromPayload } from "../port/notam_check";
+import { normIcao, apply24h, placeFromPayload } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
 import { flightAirfields as tuneAirfields, locationsOf } from "../port/notam_check_tune";
 import { setNotamProgress } from "./notam.server";
@@ -22,8 +22,10 @@ import { setNotamProgress } from "./notam.server";
 // of a fabricated line; distance-to-track math in notam_track.ts already degrades to
 // `dist_nm: null` ("không tính được") in that case, same as upstream without its KML.
 import { trackFor } from "../port/jetplan_kml";
-import { supKeys, type Geom } from "../port/notam_track";
-import { bindCtx, rings_of, hours_of, dah_ring, dah_named } from "../aip_sup.server";
+import { supKeys, namedAreaIds, notamGeoms, type Geom } from "../port/notam_track";
+import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText, koreaRestrictedRings } from "../aip_sup.server";
+import { expand_au_area_ids } from '../port/aip_sup';
+import AIP_CATALOG from '../port/aip_catalog.json';
 import type { Ctx } from "../types";
 
 const AU_DAH_ID = /\bY[A-Z]{3}\/([MRDP]\d{3,4}[A-Z]?)(?![0-9])/gi;
@@ -33,7 +35,11 @@ const AU_CTA_ID = /\bY[A-Z]{3}(?:-Y[A-Z]{3})?\/([A-Z][A-Z0-9'./\-]*(?:\s+[A-Z][A
 async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   bindCtx(ctx);
   const deadline = Date.now() + 20000;
-  const tasks: (() => Promise<void>)[] = [];
+  const tasks: { priority: number; run: () => Promise<void> }[] = [];
+  let japanCatalog: ReturnType<typeof japanTrainingRings> | undefined;
+  let japanWarnings: ReturnType<typeof japanTrainingRings> | undefined;
+  let koreaCatalog: ReturnType<typeof koreaRestrictedRings> | undefined;
+  const supRequests = new Map<string, ReturnType<typeof rings_of>>();
   for (const place of places) {
     const notams = ((place as Record<string, unknown>).notams as Record<string, unknown>[]) || [];
     for (const n of notams) {
@@ -41,24 +47,61 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const fir = String(n.qfir ?? (place as Record<string, unknown>).fir ?? place.code ?? "");
       const keys = supKeys(blob);
       const au = fir.toUpperCase().startsWith("Y");
-      if (!keys.length && !au) continue;
-      tasks.push(async () => {
+      const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob);
+      const krIds = /^RK/i.test(fir) ? namedAreaIds(blob).filter(id => /^RK[DRP]/.test(id)) : [];
+      if (!keys.length && !au && !jp && !krIds.length) continue;
+      const task = async () => {
         const geoms: Geom[] = [];
+        if (krIds.length) {
+          koreaCatalog ??= koreaRestrictedRings(ctx);
+          const table = await koreaCatalog;
+          for (const name of krIds) {
+            const ring = table[name.replace(/-/g, '')];
+            if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+          }
+        }
+        if (jp && /ENR\s*5\.3|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob)) {
+          japanCatalog ??= japanTrainingRings(ctx);
+          const table = await japanCatalog;
+          for (const name of japanIdsInText(table, blob)) {
+            const ring = table[name];
+            if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+          }
+        }
+        if (jp && /ENR\s*5\.1|WARNING AREA/i.test(blob)) {
+          japanWarnings ??= japanTrainingRings(ctx, '5.1');
+          const table = await japanWarnings;
+          for (const name of japanIdsInText(table, blob)) {
+            const ring = table[name];
+            if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
+          }
+        }
         for (const key of keys) {
           if (Date.now() > deadline) return;
-          const table = await rings_of(key, fir);
+          const saved = /^(RJ|RO)/i.test(fir) ? (AIP_CATALOG.sup as unknown as Record<string, Record<string, [string, [number, number][]]>>)[key] : undefined;
+          const cacheKey = `${fir}:${key}`;
+          if (!saved && !supRequests.has(cacheKey)) supRequests.set(cacheKey, rings_of(key, fir, ctx));
+          const pending = supRequests.get(cacheKey);
+          const table = saved ? Object.fromEntries(Object.entries(saved).map(([nr, [name, ring]]) => [nr, { name, ring }])) : pending ? await pending : {};
+          const wanted = new Set([...blob.matchAll(/\bNR\.?\s*(\d+)\b|\bAREA\s*:?\s*\(\s*(\d+)\s*\)/gi)].map(m => `NR.${Number(m[1] || m[2])}`));
           for (const [nr, item] of Object.entries(table)) {
-            if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: `AIP SUP ${key}` });
+            if (wanted.size && !wanted.has(nr)) continue;
+            if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: 'aip' });
           }
-          if (!String(n.d_field ?? "").trim()) {
-            const hours = await hours_of(key, fir);
+          if (geoms.length) n.sup_geoms = geoms;
+          if (!saved && !String(n.d_field ?? "").trim() && Date.now() < deadline) {
+            const hours = await hours_of(key, fir, ctx);
             if (hours) { n.d_field = hours; n.d_src = "AIP SUP"; }
           }
         }
         if (au && !geoms.length && Date.now() < deadline) {
+          for (const ident of expand_au_area_ids(blob)) {
+            const ring = await dah_ring(ident, fir);
+            if (ring.length >= 3) geoms.push({ name: ident, shape: 'polygon', ring, source: 'aip' });
+          }
           for (const m of blob.matchAll(AU_DAH_ID)) {
             const ring = await dah_ring(m[1]!, fir);
-            if (ring.length >= 3) geoms.push({ name: m[1]!.toUpperCase(), shape: "polygon", ring, source: "DAH" });
+            if (ring.length >= 3 && !geoms.some(g => g.name === m[1]?.toUpperCase())) geoms.push({ name: m[1].toUpperCase(), shape: "polygon", ring, source: 'aip' });
           }
           for (const m of blob.matchAll(AU_CTA_ID)) {
             const ring = await dah_named(m[1]!, fir);
@@ -66,11 +109,15 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
           }
         }
         if (geoms.length) n.sup_geoms = geoms;
-      });
+      };
+      // ENR catalog work must not be starved by dozens of unrelated SUP downloads.
+      const hasBoundary = notamGeoms(n).some(g => g.shape === 'polygon' || g.shape === 'line' || (g.shape === 'circle' && g.source !== 'pin'));
+      tasks.push({ priority: jp && /ENR\s*5\.[13]/i.test(blob) ? 0 : hasBoundary ? 2 : 1, run: task });
     }
   }
+  tasks.sort((a, b) => a.priority - b.priority);
   let i = 0;
-  const worker = async () => { while (i < tasks.length && Date.now() < deadline) { const t = tasks[i++]!; try { await t(); } catch { /* degrade */ } } };
+  const worker = async () => { while (i < tasks.length && Date.now() < deadline) { const t = tasks[i++]; if (!t) return; try { await t.run(); } catch { /* degrade */ } } };
   await Promise.race([
     Promise.all(Array.from({ length: 4 }, worker)),
     new Promise((r) => setTimeout(r, Math.max(0, deadline - Date.now()))),
@@ -87,7 +134,8 @@ async function fetchPlace(code: string, want: string): Promise<Place> {
   }
   try {
     const payload = await fbJson<Record<string, unknown>>(`/webapi/icaos/${icao}`);
-    return placeFromPayload(icao, payload, want) as Place;
+    // Filter the portal's ALL payload before enrichment, summaries and map hits.
+    return apply24h(placeFromPayload(icao, payload, want)) as Place;
   } catch (exc) {
     return {
       code: icao, kind: "", name: "", iata: "", fir: "", notam_count: 0, notams: [],

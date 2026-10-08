@@ -6,11 +6,13 @@ import type { Ctx } from "./types";
 import { getJson, setJson } from "./store.server";
 import * as p from "./port/aip_sup";
 import type { RingTable, Pt } from "./port/aip_sup";
+import { parseEnr53Text, parseEnr51Text, idsInText } from './port/aip_jp';
+import { parseKrEnrHtml } from './port/aip_enr';
 
 const UA = "DispatchBoard-AIP/1.0";
 const OK_TTL_S = 30 * 24 * 3600;
 const FAIL_TTL_S = 6 * 3600;
-const CACHE_VER = 3;
+const CACHE_VER = 5;
 const DAH_VER = 2;
 const FETCH_TO_MS = 15_000;
 const AUTH_URL = "https://top.swim.mlit.go.jp/swim/webapi/login";
@@ -233,7 +235,7 @@ async function japanCycles(headers: Record<string, string>): Promise<string[]> {
     if (status >= 400) return fallback;
     const html = new TextDecoder().decode(body);
     const out: string[] = [];
-    for (const m of html.matchAll(/\/(\d{8})\/(?:eSUP|eAIP)\//g)) if (!out.includes(m[1]!)) out.push(m[1]!);
+    for (const m of html.matchAll(/(?:href=["']|\/)(\d{8})\/(?:eSUP|eAIP)\//g)) if (!out.includes(m[1])) out.push(m[1]);
     for (const d of fallback) if (!out.includes(d)) out.push(d);
     return out.slice(0, 8);
   } catch {
@@ -248,6 +250,13 @@ async function japanPdfUrl(sup: string, headers: Record<string, string>): Promis
   const pad = String(num).padStart(3, "0");
   const fname = `JP-eSUP-${year}-${pad}-en-JP.pdf`;
   for (const cycle of await japanCycles(headers)) {
+    // The latest SUP PDF is public within the authenticated session; avoid a
+    // slow index scrape and duplicate probe download for every NOTAM reference.
+    const direct = `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/pdf/${fname}`;
+    try {
+      const probe = await httpFetch(direct, { headers });
+      if (probe.status < 400 && new Uint8Array(probe.body)[0] === 0x25) return direct;
+    } catch { /* try index */ }
     const index = `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/JP-eSUPs-en-JP.html`;
     const idx = await httpFetch(index, { headers });
     if (idx.status >= 400) continue;
@@ -255,11 +264,6 @@ async function japanPdfUrl(sup: string, headers: Record<string, string>): Promis
     let hit = new RegExp(`href="(pdf/JP-eSUP-${year}-${pad}-en-JP\\.pdf)"[^>]*>\\s*${num}/${yy}`, "i").exec(html);
     if (!hit) hit = new RegExp(`href="(pdf/${fname.replace(/[.]/g, "\\.")})"`, "i").exec(html);
     if (hit) return `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/${hit[1]}`;
-    const direct = `${AIP_BASE}/f2eapr/AIP/html/${cycle}/eSUP/pdf/${fname}`;
-    try {
-      const probe = await httpFetch(direct, { headers });
-      if (probe.status < 400) return direct;
-    } catch { /* try next cycle */ }
   }
   throw new Error(`không thấy PDF SUP ${sup}`);
 }
@@ -420,12 +424,14 @@ export async function dah_named(ident: string, fir = ""): Promise<Pt[]> {
   return [...((await dahRings(_boundCtx))[key] || [])];
 }
 
-export async function rings_of(sup: string, fir = ""): Promise<RingTable> {
+export async function rings_of(sup: string, fir = "", requestCtx?: Ctx): Promise<RingTable> {
   const key = String(sup || "").trim().toUpperCase();
   if (!/^[A-Z]?\d{1,3}\/\d{2}$/.test(key)) return {};
-  if (!_boundCtx) return {};
-  const ctx = _boundCtx;
-  const cached = await readCache(ctx, key);
+  const ctx = requestCtx ?? _boundCtx;
+  if (!ctx) return {};
+  // SUP numbers are not globally unique: never share Japan's 52/26 with Australia.
+  const scoped = `${adapterFor(fir)}:${key}`;
+  const cached = await readCache(ctx, scoped);
   if (cached !== null) return cached;
   const kind = adapterFor(fir);
   const fetchFn = ({ jp_swim: fetchJapan, au_airservices: fetchAustralia, tw_eaip: fetchTaiwan } as Record<string, (s: string) => Promise<RingTable>>)[kind];
@@ -433,19 +439,66 @@ export async function rings_of(sup: string, fir = ""): Promise<RingTable> {
   if (netPaused()) return {};
   try {
     const table = await fetchFn(key);
-    await writeCache(ctx, key, table);
+    await writeCache(ctx, scoped, table);
     return table;
   } catch (exc) {
-    await writeCache(ctx, key, {}, String((exc as Error)?.message || exc));
+    await writeCache(ctx, scoped, {}, String((exc as Error)?.message || exc));
     return {};
   }
 }
 
-export async function hours_of(sup: string, fir = ""): Promise<string> {
+export async function hours_of(sup: string, fir = "", requestCtx?: Ctx): Promise<string> {
   const key = String(sup || "").trim().toUpperCase();
   if (!key) return "";
-  if (!_hoursMem.has(key)) await rings_of(key, fir);
+  if (!_hoursMem.has(key)) await rings_of(key, fir, requestCtx);
   return _hoursMem.get(key) || "";
 }
 
 export { adapterFor as adapter_for, netPaused as net_paused };
+
+/** Read the published Japan ENR training catalog before falling back to a Q-line pin. */
+export async function japanTrainingRings(ctx: Ctx, section: '5.3' | '5.1' = '5.3'): Promise<Record<string, Pt[]>> {
+  const key = `aip_enr:jp:${section}:v1`;
+  const cached = await getJson<{ ts: number; rings: Record<string, Pt[]> } | null>(ctx, key, null);
+  if (cached && Date.now() - cached.ts < 7 * 24 * 3600_000 && Object.keys(cached.rings).length) return cached.rings;
+  try {
+    const headers = await swimHeaders();
+    const history = await httpFetch(`${AIP_BASE}/f2eapr/AIP/html/history-en-JP.html`, { headers });
+    const html = new TextDecoder().decode(history.body);
+    const urls: string[] = [];
+    for (const m of html.matchAll(/href="(\d{8})\/eAIP\/(\d{8})\/index\.html"/g)) {
+      urls.push(`${AIP_BASE}/f2eapr/AIP/html/${m[1]}/eAIP/${m[2]}/pdf/JP-ENR-${section}-en-JP.pdf`);
+    }
+    for (const cycle of await japanCycles(headers)) urls.push(`${AIP_BASE}/f2eapr/AIP/html/${cycle}/eAIP/${cycle}/pdf/JP-ENR-${section}-en-JP.pdf`);
+    for (const url of [...new Set(urls)].slice(0, 8)) {
+      const resp = await httpFetch(url, { headers });
+      if (resp.status >= 400 || new Uint8Array(resp.body)[0] !== 0x25) continue;
+      const text = await pdfText(resp.body);
+      const rings = section === '5.3' ? parseEnr53Text(text) : parseEnr51Text(text);
+      if (!Object.keys(rings).length) continue;
+      await setJson(ctx, key, { ts: Date.now(), rings });
+      return rings;
+    }
+  } catch { /* keep unresolved references as pins, never invent a boundary */ }
+  return {};
+}
+
+export { idsInText as japanIdsInText };
+
+/** KOCA's published ENR 5.1 boundaries; never substitute Q-line circles. */
+export async function koreaRestrictedRings(ctx: Ctx): Promise<Record<string, Pt[]>> {
+  const key = 'aip_enr:kr:5.1:v1';
+  const cached = await getJson<{ ts: number; rings: Record<string, Pt[]> } | null>(ctx, key, null);
+  if (cached && Date.now() - cached.ts < 7 * 24 * 3600_000 && Object.keys(cached.rings).length) return cached.rings;
+  for (const cycle of ['2026-10-01', '2026-06-25', '2026-05-14']) {
+    try {
+      const response = await httpFetch(`https://aim.koca.go.kr/eaipPub/Package/${cycle}/html/eAIP/KR-ENR-5.1-en-GB.html`);
+      if (response.status >= 400) continue;
+      const rings = parseKrEnrHtml(new TextDecoder().decode(response.body));
+      if (!Object.keys(rings).length) continue;
+      await setJson(ctx, key, { ts: Date.now(), rings, cycle });
+      return rings;
+    } catch { /* unresolved remains a clearly marked pin */ }
+  }
+  return {};
+}

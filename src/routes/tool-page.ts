@@ -3,6 +3,7 @@ import icaoCountries from "@/lib/tool/data/icao-countries.json";
 import dispatchSkyHeader from "@/assets/dispatch-sky-header.jpg";
 import dispatchAirportClean from "@/assets/vietjet-starlink-header-web.jpg?inline";
 import vietjetLogo from "@/assets/vj-logo.png";
+import notamGeometryFixes from '@/tool/notam-geometry.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that (1) skips the local passcode gate because the web app has real login,
@@ -1102,6 +1103,7 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace("(async function gateBoot(){", GATE_SKIP)
