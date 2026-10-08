@@ -326,7 +326,10 @@ export function notamGeoms(notam: Notam): Geom[] {
     const norm = (x: string) => x.toUpperCase().replace(/[^A-Z0-9]/g, "");
     const want = new Set(ids.map(norm));
     const named = sup.filter((g) => [...want].some((w) => norm(g.name).includes(w)));
-    return named.length ? named : sup;
+    if (named.length) return named;
+    // SUP không có đúng tên vùng mà NOTAM đã tự cho đủ toạ độ → dùng hình của NOTAM.
+    if (own.some((g) => g.shape === "polygon" || g.shape === "line")) return own;
+    return sup;
   }
   if (sup.length && !own.some((g) => g.shape === "polygon" || g.shape === "line")) {
     return [...sup, ...own.filter((g) => g.shape !== "dot")];
@@ -334,21 +337,76 @@ export function notamGeoms(notam: Notam): Geom[] {
   return own;
 }
 
+// "THE LINE CONNECTING A TO B IS THE MINOR ARC WITH A RADIUS OF 50NM FM C" — cạnh A→B
+// của polygon là cung tròn tâm C, không phải đỉnh C. Câu này bị tách khỏi danh sách đỉnh.
+const _LLS = String.raw`\d{4,6}(?:\.\d+)?\s*[NS]\s*\d{5,7}(?:\.\d+)?\s*[EW]`;
+const _ARC_STMT = new RegExp(
+  String.raw`(?:THE\s+)?(?:LINE|BOUNDARY|SIDE)\s+(?:CONNECTING|BTN|BETWEEN)\s+(${_LLS})\s+(?:TO|AND)\s+(${_LLS})\s*,?\s*IS\s+(?:THE\s+|AN?\s+)?(MINOR|MAJOR|CLOCKWISE|COUNTER[-\s]?CLOCKWISE|ANTI[-\s]?CLOCKWISE)?\s*ARC\s+(?:WITH\s+)?(?:A\s+)?(?:RADIUS\s+(?:OF\s+)?)?(\d+(?:\.\d+)?)\s*(NM|KM)\s*(?:RADIUS\s+)?(?:FM|FROM|CENT(?:ERED|RED)\s+(?:ON|AT)|AROUND)\s+(${_LLS})\.?`,
+  "gi",
+);
+interface ArcSpec { a: Pt; b: Pt; c: Pt; kind: string; rad: number }
+function brgOf(c: Pt, p: Pt): number {
+  const [p1, l1, p2, l2] = [c[0], c[1], p[0], p[1]].map((d) => (d * Math.PI) / 180);
+  const y = Math.sin(l2 - l1) * Math.cos(p2);
+  const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(l2 - l1);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+function arcPoints(spec: ArcSpec, from: Pt, to: Pt): Pt[] {
+  const b0 = brgOf(spec.c, from), b1 = brgOf(spec.c, to);
+  const cw = (b1 - b0 + 360) % 360; // độ quét theo chiều kim đồng hồ
+  const k = spec.kind.toUpperCase().replace(/[-\s]/g, "");
+  let sweep: number; // dương = CW, âm = CCW
+  if (k === "CLOCKWISE") sweep = cw;
+  else if (k === "COUNTERCLOCKWISE" || k === "ANTICLOCKWISE") sweep = cw - 360;
+  else if (k === "MAJOR") sweep = cw >= 180 ? cw : cw - 360;
+  else sweep = cw <= 180 ? cw : cw - 360; // MINOR / mặc định
+  const r0 = nmDist(spec.c[0], spec.c[1], from[0], from[1]);
+  const r1 = nmDist(spec.c[0], spec.c[1], to[0], to[1]);
+  const steps = Math.max(4, Math.ceil(Math.abs(sweep) / 4));
+  const out: Pt[] = [];
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    out.push(destPoint(spec.c[0], spec.c[1], b0 + sweep * t, r0 + (r1 - r0) * t));
+  }
+  return out;
+}
+function extractArcs(raw: string): { text: string; arcs: ArcSpec[] } {
+  const arcs: ArcSpec[] = [];
+  const text = raw.replace(_ARC_STMT, (_m, a: string, b: string, kind: string | undefined, rad: string, unit: string, c: string) => {
+    const pa = iterLatLon(a)[0], pb = iterLatLon(b)[0], pc = iterLatLon(c)[0];
+    if (pa && pb && pc) arcs.push({ a: pa, b: pb, c: pc, kind: kind || "MINOR", rad: toNm(+rad, unit) });
+    return " ";
+  });
+  return { text, arcs };
+}
+const samePt = (p: Pt, q: Pt) => Math.abs(p[0] - q[0]) < 1e-4 && Math.abs(p[1] - q[1]) < 1e-4;
+function applyArcs(ring: Pt[], arcs: ArcSpec[]): Pt[] {
+  if (!arcs.length || ring.length < 2) return ring;
+  const out: Pt[] = [];
+  for (let i = 0; i < ring.length; i++) {
+    const p = ring[i]!, q = ring[(i + 1) % ring.length]!;
+    out.push(p);
+    const spec = arcs.find((s) => (samePt(s.a, p) && samePt(s.b, q)) || (samePt(s.b, p) && samePt(s.a, q)));
+    if (spec) out.push(...arcPoints(spec, p, q));
+  }
+  return out;
+}
+
 function notamGeomsText(notam: Notam): Geom[] {
   const tx = String(notam.text ?? "");
   const ef = String(notam.e_field ?? "");
   const blob = `${tx}\n${ef}`;
   const areas: Geom[] = [];
-  const raw = blob.replace(/^Q\).*$/gm, "");
+  const { text: raw, arcs } = extractArcs(blob.replace(/^Q\).*$/gm, ""));
   const along = /\bALONG\b/i.test(raw);
-  const ring = iterLatLon(raw);
+  const ring = applyArcs(iterLatLon(raw), arcs);
   if (ring.length >= 3 && !along) areas.push({ name: "", shape: "polygon", ring });
   else if (ring.length >= 2 && along) areas.push({ name: "", shape: "line", ring });
   const ids = namedAreaIds(blob);
   const origin = qCoordsOf(notam);
   const point = brgGeom(blob, origin);
   if (point) areas.push(point);
-  const eCirc = eCircleGeom(blob, ids);
+  const eCirc = arcs.length ? null : eCircleGeom(blob, ids);
   if (eCirc !== null) return [eCirc];
   if (areas.length) return areas;
   const extra = eRadiusNm(blob);

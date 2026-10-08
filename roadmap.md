@@ -57,3 +57,6 @@
 - [x] Popup NOTAM khi click vùng: dời khung trắng sang mép phải bản đồ
 - [x] Mặc định TẮT các đài VN trên bản đồ Check NOTAM (tick "Đài" để bật)
 - [x] Briefing: đối chiếu nguồn Python, nối TAF/limits/NOTAM ghim cho draft–export–đổi tàu; PDF ba cột Letter giữ đầy đủ tiếng Việt; 8 tests đạt, kiểm tra chuyến thật soạn–lưu–đọc lại–xuất–bỏ hiệu chỉnh. Chưa publish; không tự ghi NIL NOTAM khi chưa có dữ liệu portal.
+- [x] Tóm tắt NOTAM: mỗi mục chỉ liệt kê 1 NOTAM một lần.
+- [x] Omni: máy chủ cloud bị Omni từ chối tạo phiên (IP quá dài) → dùng phiên 30 ngày lưu chung + đăng nhập từ trình duyệt.
+- [x] NOTAM vùng có cạnh là cung tròn (P4899 LION-WEST): vẽ cung thay vì coi tâm là đỉnh; SUP chỉ thay hình khi đúng tên vùng.

@@ -10,6 +10,7 @@ import { getJson, setJson, getFile } from "../store.server";
 import * as pc from "../pcagent.server";
 import * as gd from "../port/gd_print";
 import * as omni from "../port/omni";
+import "../omni_session.server";
 import { readTable, sheetDicts } from "../port/excelcmp_reader";
 import { detectMapping } from "../port/excelcmp_compare";
 

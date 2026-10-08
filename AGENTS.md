@@ -30,3 +30,4 @@
 - Every publish bumps the version badge #appVersion in src/tool/page.html (V1, V2, …) so users can tell builds apart.
 - All briefing generation paths use `src/lib/tool/briefing-data.server.ts` for cached TAF, aircraft defects and pinned NOTAMs, so draft/export/aircraft replacement cannot silently omit a source.
 - Briefing PDFs use `src/lib/tool/port/briefingPdf.ts` for the original three-column Letter layout with embedded fonts; overflow continues rather than truncating operational text.
+- Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can be supplied by the dispatcher's browser login, because Omni rejects token creation from the cloud runtime's IPv6 X-Forwarded-For.
