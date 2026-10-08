@@ -104,7 +104,8 @@ export const routes: Routes = {
     try {
       const { extractText, getDocumentProxy } = await import("unpdf");
       const { PDFDocument } = await import("pdf-lib");
-      const pdf = await getDocumentProxy(buf);
+      // pdf.js chiếm (detach) buffer được truyền vào → đưa bản sao, giữ buf cho pdf-lib.
+      const pdf = await getDocumentProxy(buf.slice());
       const { text } = await extractText(pdf, { mergePages: false });
       const pageTexts = Array.isArray(text) ? text : [text];
       const pattern = /Status of (VN-A\d{3})/;
