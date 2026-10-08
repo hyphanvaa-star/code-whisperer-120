@@ -326,7 +326,10 @@ export function notamGeoms(notam: Notam): Geom[] {
     const norm = (x: string) => x.toUpperCase().replace(/[^A-Z0-9]/g, "");
     const want = new Set(ids.map(norm));
     const named = sup.filter((g) => [...want].some((w) => norm(g.name).includes(w)));
-    return named.length ? named : sup;
+    if (named.length) return named;
+    // SUP không có đúng tên vùng mà NOTAM đã tự cho đủ toạ độ → dùng hình của NOTAM.
+    if (own.some((g) => g.shape === "polygon" || g.shape === "line")) return own;
+    return sup;
   }
   if (sup.length && !own.some((g) => g.shape === "polygon" || g.shape === "line")) {
     return [...sup, ...own.filter((g) => g.shape !== "dot")];
@@ -403,7 +406,7 @@ function notamGeomsText(notam: Notam): Geom[] {
   const origin = qCoordsOf(notam);
   const point = brgGeom(blob, origin);
   if (point) areas.push(point);
-  const eCirc = eCircleGeom(blob, ids);
+  const eCirc = arcs.length ? null : eCircleGeom(blob, ids);
   if (eCirc !== null) return [eCirc];
   if (areas.length) return areas;
   const extra = eRadiusNm(blob);
