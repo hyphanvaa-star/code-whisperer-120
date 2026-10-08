@@ -137,11 +137,12 @@ function toNm(val: number, unit: string | undefined): number {
   return val;
 }
 
-export function iterLatLon(text: string): Pt[] {
+export function iterLatLon(text: string, keepRepeats = false): Pt[] {
   const out: Pt[] = [];
   const seen = new Set<string>();
+  let at = 0;
   const add = (lat: number, lon: number) => {
-    const key = `${lat.toFixed(5)},${lon.toFixed(5)}`;
+    const key = keepRepeats ? String(at) : `${lat.toFixed(5)},${lon.toFixed(5)}`;
     if (seen.has(key)) return;
     if (!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return;
     seen.add(key);
@@ -149,6 +150,7 @@ export function iterLatLon(text: string): Pt[] {
   };
   const raw = String(text || "").replace(/^Q\).*$/gm, "");
   for (const m of raw.matchAll(new RegExp(_LL_COMPACT, "gi"))) {
+    at = m.index ?? 0;
     const [latNum, ns, lonNum, ew] = [m[1], m[2], m[3], m[4]];
     try {
       const [latd, latm, lats] = splitCompact(latNum, true);
@@ -157,16 +159,19 @@ export function iterLatLon(text: string): Pt[] {
     } catch { /* skip */ }
   }
   for (const m of raw.matchAll(new RegExp(_LL, "gi"))) {
+    at = m.index ?? 0;
     const [latd, latm, lats, ns, lond, lonm, lons, ew] = [m[1], m[2], m[3] ?? "0", m[4], m[5], m[6], m[7] ?? "0", m[8]];
     if (+latm >= 60 || +lats >= 60 || +lonm >= 60 || +lons >= 60) continue;
     add(...toLL(+latd, +latm, +lats, ns, +lond, +lonm, +lons, ew));
   }
   for (const m of raw.matchAll(new RegExp(_LL_HYP, "gi"))) {
+    at = m.index ?? 0;
     const [latd, latm, ns, lond, lonm, ew] = [m[1], m[2], m[3], m[4], m[5], m[6]];
     if (+latm >= 60 || +lonm >= 60) continue;
     add(...toLL(+latd, +latm, 0, ns, +lond, +lonm, 0, ew));
   }
   for (const m of raw.matchAll(/(?<!\d)(\d{2})\s+(\d{2})\s+(\d{2}(?:\.\d+)?)?\s*([NS])\s+(\d{2,3})\s+(\d{2})\s+(\d{2}(?:\.\d+)?)?\s*([EW])/gi)) {
+    at = m.index ?? 0;
     if (+m[2] >= 60 || +(m[3] || 0) >= 60 || +m[6] >= 60 || +(m[7] || 0) >= 60) continue;
     add(...toLL(+m[1], +m[2], +(m[3] || 0), m[4], +m[5], +m[6], +(m[7] || 0), m[8]));
   }
@@ -392,6 +397,11 @@ const _ARC_STMT = new RegExp(
   String.raw`(?:THE\s+)?(?:LINE|BOUNDARY|SIDE)\s+(?:CONNECTING|BTN|BETWEEN)\s+(${_LLS})\s+(?:TO|AND)\s+(${_LLS})\s*,?\s*IS\s+(?:THE\s+|AN?\s+)?(MINOR|MAJOR|CLOCKWISE|COUNTER[-\s]?CLOCKWISE|ANTI[-\s]?CLOCKWISE)?\s*ARC\s+(?:WITH\s+)?(?:A\s+)?(?:RADIUS\s+(?:OF\s+)?)?(\d+(?:\.\d+)?)\s*(NM|KM)\s*(?:RADIUS\s+)?(?:FM|FROM|CENT(?:ERED|RED)\s+(?:ON|AT)|AROUND)\s+(${_LLS})\.?`,
   "gi",
 );
+// "B THEN ALONG CLOCKWISE ARC OF CIRCLE OF RADIUS 40.5NM CENTERED AT C TO [POINT X] D"
+const _ARC_ALONG = new RegExp(
+  String.raw`(${_LLS})\s*,?\s*(?:THEN\s+)?(?:ALONG\s+)?(?:THE\s+|AN?\s+)?(MINOR|MAJOR|CLOCKWISE|COUNTER[-\s]?CLOCKWISE|ANTI[-\s]?CLOCKWISE)?\s*ARC\s+(?:OF\s+(?:A\s+)?CIRCLE\s+)?(?:WITH\s+)?(?:OF\s+)?(?:A\s+)?RADIUS\s+(?:OF\s+)?(\d+(?:\.\d+)?)\s*(NM|KM)\s*,?\s*(?:CENT(?:ERED|RED|RE)\s+(?:ON|AT)|FM|FROM)\s+(${_LLS})\s*,?\s*TO\s+(?:POINT\s+[A-Z0-9]+\s+)?(${_LLS})`,
+  "gi",
+);
 interface ArcSpec { a: Pt; b: Pt; c: Pt; kind: string; rad: number }
 function brgOf(c: Pt, p: Pt): number {
   const [p1, l1, p2, l2] = [c[0], c[1], p[0], p[1]].map((d) => (d * Math.PI) / 180);
@@ -424,6 +434,10 @@ function extractArcs(raw: string): { text: string; arcs: ArcSpec[] } {
     const pa = iterLatLon(a)[0], pb = iterLatLon(b)[0], pc = iterLatLon(c)[0];
     if (pa && pb && pc) arcs.push({ a: pa, b: pb, c: pc, kind: kind || "MINOR", rad: toNm(+rad, unit) });
     return " ";
+  }).replace(_ARC_ALONG, (_m, a: string, kind: string | undefined, rad: string, unit: string, c: string, b: string) => {
+    const pa = iterLatLon(a)[0], pb = iterLatLon(b)[0], pc = iterLatLon(c)[0];
+    if (pa && pb && pc) arcs.push({ a: pa, b: pb, c: pc, kind: kind || "MINOR", rad: toNm(+rad, unit) });
+    return ` ${a} ${b} `;
   });
   return { text, arcs };
 }
@@ -434,8 +448,10 @@ function applyArcs(ring: Pt[], arcs: ArcSpec[]): Pt[] {
   for (let i = 0; i < ring.length; i++) {
     const p = ring[i]!, q = ring[(i + 1) % ring.length]!;
     out.push(p);
-    const spec = arcs.find((s) => (samePt(s.a, p) && samePt(s.b, q)) || (samePt(s.b, p) && samePt(s.a, q)));
-    if (spec) out.push(...arcPoints(spec, p, q));
+    const fwd = arcs.find((s) => samePt(s.a, p) && samePt(s.b, q));
+    const rev = fwd ? undefined : arcs.find((s) => samePt(s.b, p) && samePt(s.a, q));
+    if (fwd) out.push(...arcPoints(fwd, p, q));
+    else if (rev) out.push(...arcPoints(rev, q, p).reverse());
   }
   return out;
 }
@@ -468,12 +484,23 @@ export function parseAreas(text: string): Geom[] {
     for (const m of piece.matchAll(/(?:ARC|RADIUS)[\s\S]{0,100}?(?:FM|FROM|CENT(?:ERED|RED|RE)\s+ON)\s*(\d{4,6}(?:\.\d+)?\s*[NS]\s*\d{5,7}(?:\.\d+)?\s*[EW])/gi)) {
       const p = iterLatLon(m[1])[0]; if (p) hubs.push(p);
     }
-    const ring = applyArcs(iterLatLon(clean).filter(p => !hubs.some(h => samePt(p, h))), arcs);
-    const line = /\bALONG\b|\bEITHER\s+SIDE\s+OF\s+A\s+LINE\b/i.test(piece);
-    if (ring.length < (line ? 2 : 3)) continue;
+    const flat = iterLatLon(clean, true).filter((p, i, a) => i === 0 || !samePt(p, a[i - 1]!)).filter(p => !hubs.some(h => samePt(p, h)));
+    const line = /\bALONG\b|\bEITHER\s+SIDE\s+OF\s+A\s+LINE\b/i.test(clean);
+    // Nhiều vùng liệt kê liền nhau: mỗi vùng đóng lại khi quay về điểm đầu của nó.
+    const rings: Pt[][] = [];
+    let cur: Pt[] = [];
+    for (const p of flat) {
+      if (!line && cur.length >= 3 && samePt(p, cur[0]!)) { rings.push(cur); cur = []; continue; }
+      cur.push(p);
+    }
+    if (cur.length) rings.push(cur);
     const place = /\(\s*(\d+)\s*\)\s*PLACE\s*:/i.exec(piece);
     const name = namedAreaIds(piece)[0] || (place ? `PLACE ${Number(place[1])}` : '');
-    out.push({ name, shape: line ? 'line' : 'polygon', ring, source: 'e-field' });
+    for (const r0 of rings) {
+      const ring = applyArcs(r0, arcs);
+      if (ring.length < (line ? 2 : 3)) continue;
+      out.push({ name, shape: line ? 'line' : 'polygon', ring, source: 'e-field' });
+    }
   }
   return out;
 }
