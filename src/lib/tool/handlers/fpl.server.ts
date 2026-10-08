@@ -353,6 +353,8 @@ export const routes: Routes = {
     const items = Array.isArray(body.items) ? (body.items as Raw[]) : [];
     const dsp = String(body.dsp || "").trim();
     if (!dsp) return { error: "Chưa điền tên DSP." };
+    const efb = String(body.efb || "").trim().replace(/^TLK\//i, "");
+    if (efb) (db as { tlk: string }).tlk = efb;
     const routeDoc = await loadRouteDoc(ctx);
     const text = ft.build_req(db, items, dsp, routeDoc.rows || []);
     if (!String(text || "").trim()) return { error: "Chưa chọn chuyến nào." };
@@ -365,6 +367,8 @@ export const routes: Routes = {
     const items = Array.isArray(body.items) ? (body.items as Raw[]) : [];
     const dsp = String(body.dsp || "").trim();
     if (!dsp) return { error: "Chưa điền tên DSP." };
+    const efb = String(body.efb || "").trim().replace(/^TLK\//i, "");
+    if (efb) (db as { tlk: string }).tlk = efb;
     const routeDoc = await loadRouteDoc(ctx);
     const text = ft.build_req(db, items, dsp, routeDoc.rows || []);
     if (!String(text || "").trim()) return { error: "Chưa chọn chuyến nào." };
