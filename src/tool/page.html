@@ -22898,9 +22898,9 @@ function paintCmpMarks(sid){
 
 // Omni không cho máy chủ cloud tạo phiên (IP quá dài) → đăng nhập ngay trên trình duyệt
 // này (Omni cho phép), gửi phiên 30 ngày lên server để cả team dùng chung.
-let omniLoginOpen = false;
+let omniLoginOpen = false, omniLoginSkipUntil = 0;
 function omniBrowserLogin(){
-  if(omniLoginOpen) return Promise.resolve(false);
+  if(omniLoginOpen || Date.now() < omniLoginSkipUntil) return Promise.resolve(false);
   omniLoginOpen = true;
   return new Promise(async resolve => {
     let user = "";
@@ -22920,7 +22920,7 @@ function omniBrowserLogin(){
     form.u.value = user;
     (user ? form.p : form.u).focus();
     const done = ok => { ov.remove(); omniLoginOpen = false; resolve(ok); };
-    ov.querySelector(".om-x").onclick = () => done(false);
+    ov.querySelector(".om-x").onclick = () => { omniLoginSkipUntil = Date.now() + 10 * 60000; done(false); };
     form.onsubmit = async ev => {
       ev.preventDefault();
       err.textContent = "Đang đăng nhập…";
