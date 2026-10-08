@@ -36,7 +36,7 @@
 - [~] wx (TAF status/refresh thật xong; còn metwx/pib/briefing): taf, metwx, extra_wx, wx_overlay, graph_pib, briefing, briefing_release (/api/taf/*, /api/wx/*, /api/briefing/*, /api/pib/download)
 - [~] excel (upload/rows/compare + handover xong; còn crew/bind, xlsdiff version): excelcmp, xlsdiff, handover (/api/excel/*, /api/version/*, /api/handover*)
 - [~] limits (/api/limits* xong; còn defect_pdf/defect_summary): /api/limits*, /api/defect/* (defect_summary, defect_pdf)
-- [~] notices+swap (rules/preview/notice attach xong, folder notice đồng bộ qua trợ lý PC; còn attach/auto, swaps): notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
+- [~] notices+swap (rules/preview/notice attach xong, file notice lấy từ kho máy chủ; còn attach/auto, swaps): notices, attach/auto, regswap, briefswap, crewswap, verify, crew plan/add, split-regnotice, pdf/merge
 - [ ] atc+autoload+misc: atc_check, atc files/submit, atcezfw, omni, owa, gd, credentials, paths, chat, dsp-layout, disk/clean, download
 - [x] Tài khoản dịch vụ đã có trong kho bảo mật (04/10): VJC, OMNI, OWA/Outlook (hộp chung omc@), AviWeb, JetPlan, Opscore, gate
 - [x] OMNI nối xong (04/10): đăng nhập thật OK, /api/est/status|refresh|match chạy thật, cache "omni.cache"; khung Cargo·Load + EST dùng dữ liệu này; còn upload XLSX tay + tự tải về ổ D: (trợ lý PC)

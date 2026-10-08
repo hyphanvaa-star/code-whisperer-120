@@ -38,7 +38,6 @@ export const routes: Routes = {
     const { loadFlights } = await import("../core/gantts.server");
     const days = Number(ctx.params.get("days") || "1") || 1;
     const cs = (ctx.params.get("callsigns") || "").split(",").filter(Boolean);
-    const sync = await syncNoticeFolder(ctx);
     const flights = pickNoticeFlights(await loadFlights(days), cs);
     const rules = await loadRules(ctx);
     const lib = await noticeLibrary(ctx);
@@ -67,7 +66,6 @@ export const routes: Routes = {
       found: tot - miss,
       missing: miss,
       library: lib.size,
-      sync,
       by_rule: [...byRule.entries()].sort((a, b) => b[1] - a[1]).map(([rule, count]) => ({ rule, count })),
       missing_files: [...missingFiles.entries()].sort((a, b) => b[1] - a[1]).map(([title, count]) => ({ title, count })),
       rows,
@@ -102,43 +100,6 @@ async function noticeLibrary(ctx: Ctx): Promise<Map<string, string>> {
     for (const f of files) if (/\.pdf$/i.test(f.name)) out.set(normTitle(f.name), `${dir}/${f.name}`);
   }
   return out;
-}
-
-/** Kéo các PDF trong folder notice của máy công ty (ổ mạng) lên kho "notices/"
- *  qua trợ lý PC — web không tự đọc được ổ mạng nội bộ. */
-async function syncNoticeFolder(ctx: Ctx): Promise<Record<string, unknown>> {
-  const pc = await import("../pcagent.server");
-  const agent = await pc.agentInfo(ctx);
-  if (!pc.agentOnline(agent)) return { ok: false, error: "Trợ lý PC chưa bật — chỉ dùng file đã có trên máy chủ." };
-  const { listFiles, putFile } = await import("../store.server");
-  const { noticeDir } = await import("./pc.server");
-  const dir = await noticeDir(ctx);
-  const have: Record<string, number> = {};
-  for (const f of await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string; metadata?: unknown }>)) {
-    have[f.name] = Number((f.metadata as Record<string, unknown> | null)?.["size"] ?? 0) || 0;
-  }
-  let saved = 0, total = 0, pending = 0;
-  try {
-    for (let round = 0; round < 8; round++) {
-      const id = await pc.enqueue("notice_sync", { dir, have, max_bytes: 6_000_000 });
-      const r = (await pc.waitResult(id, 60_000)) as Record<string, unknown>;
-      total = Array.isArray(r["files"]) ? (r["files"] as unknown[]).length : 0;
-      const ups = Array.isArray(r["uploads"]) ? (r["uploads"] as Array<{ name?: string; b64?: string }>) : [];
-      for (const u of ups) {
-        const name = String(u.name || "").replace(/[\\/:*?"<>|]/g, "_");
-        if (!name || typeof u.b64 !== "string") continue;
-        const buf = Buffer.from(u.b64, "base64");
-        await putFile(ctx, `notices/${name}`, buf, "application/pdf");
-        have[name] = buf.byteLength;
-        saved++;
-      }
-      pending = Number(r["pending"] ?? 0) || 0;
-      if (!pending || !ups.length) break;
-    }
-    return { ok: true, dir, files: total, saved, pending };
-  } catch (e) {
-    return { ok: false, dir, error: e instanceof Error ? e.message : String(e) };
-  }
 }
 
 export const jobs: Jobs = {
