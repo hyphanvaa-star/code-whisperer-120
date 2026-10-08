@@ -13638,12 +13638,22 @@ function nmPaintVerdictSection(sec, items){
   ans.textContent = sec.answer || "";
   head.appendChild(ans);
   wrap.appendChild(head);
+  // Mỗi mục chỉ liệt kê một NOTAM một lần (cùng nhãn + cùng số NOTAM).
+  const uniqRows = list => {
+    const seen = new Set();
+    return (list || []).filter(r => {
+      const k = String((r && r.label) || "").trim() + "|" + String((r && r.ident) || "").trim() + "|" + String((r && r.value) || "").trim();
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
   const groups = sec.groups || [];
-  const rows = sec.rows || [];
+  const rows = uniqRows(sec.rows);
   if(groups.length || rows.length){
     const inner = document.createElement("ul");
     for(const g of groups){
-      const grows = g.rows || [];
+      const grows = uniqRows(g.rows);
       if(!grows.length) continue;
       const gli = document.createElement("li");
       gli.className = "nm-vd-g" + ((sec.key || "") === "ats" || (sec.key || "") === "gps" ? " nm-vd-flt" : "");
