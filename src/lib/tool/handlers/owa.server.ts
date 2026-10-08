@@ -71,14 +71,25 @@ export const routes: Routes = {
       if (ups.length) {
         const { putFile } = await import("../store.server");
         const { safeFilename } = await import("../core/models");
+        const saved: Record<string, string> = {};
         for (const u of ups) {
-          const name = safeFilename(String(u?.name || ""));
+          const raw = String(u?.name || "");
+          const name = safeFilename(raw);
           if (!name || !/\.(xlsx|xlsm)$/i.test(name) || typeof u?.b64 !== "string") continue;
           try {
             await putFile(ctx, `excel/${name}`, Buffer.from(u.b64, "base64"), "application/octet-stream");
+            saved[raw] = name;
           } catch (e) { console.warn("FPL VER save:", e); }
         }
         delete r.uploads;
+        // Point the compare pair at the files just saved: stored names may differ from the PC names.
+        const ver = (r.ver && typeof r.ver === "object") ? r.ver : {};
+        for (const k of ["old", "new"]) if (ver[k] && saved[ver[k]]) ver[k] = saved[ver[k]];
+        if (!ver.new) {
+          const pair = fplVerPair(Object.values(saved));
+          if (pair.new) { ver.new = pair.new; ver.old = ver.old || pair.old; }
+        }
+        r.ver = ver;
       }
       return r;
     } catch (e) {
@@ -318,3 +329,14 @@ export const jobs: Jobs = {
     }
   },
 };
+
+/** Newest two FLIGHT PLAN files by (date, VER number): {new, old}. */
+export function fplVerPair(names: string[]): { new: string; old: string } {
+  const key = (n: string) => {
+    const v = /VER\D{0,3}(\d+)/i.exec(n); const d = /ON\s*(\d{1,2})\s*([A-Z]{3})/i.exec(n);
+    const mon = d ? "JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC".indexOf(d[2].toUpperCase()) / 3 : -1;
+    return (mon * 100 + (d ? Number(d[1]) : 0)) * 1000 + (v ? Number(v[1]) : -1);
+  };
+  const s = names.filter(n => /FLIGHT\s*PLAN|\bFPL\b/i.test(n)).sort((a, b) => key(b) - key(a));
+  return { new: s[0] || "", old: s[1] || "" };
+}
