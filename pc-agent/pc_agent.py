@@ -32,7 +32,7 @@ REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
 
 # Cấu hình mặc định — ghi sẵn để người dùng chỉ cần double-click, không gõ lệnh.
-DEFAULT_URL = "https://sohee-dispatcher-tool.lovable.app"
+DEFAULT_URL = "https://omc-dispatch.lovable.app"
 DEFAULT_TOKEN = "Hydeptrai@123"
 
 
