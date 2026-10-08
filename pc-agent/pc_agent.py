@@ -590,7 +590,7 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
     try:
         ver = st.get("ver") or {}
         import config  # noqa: E402
-        dirs = [Path(st.get("dest_excel") or "data/excel"), Path(st.get("dest") or "."), Path(getattr(config, "EXCEL_DIR", "") or "data/excel"), Path("data/excel"), Path(r"D:\FPL")]
+        dirs = [Path(st.get("dest_excel") or "data/excel"), Path(st.get("dest") or "."), Path(getattr(config, "EXCEL_DIR", "") or "data/excel"), Path("data/excel"), _fpl_dir()]
         ups = []
         for name in {ver.get("old") or "", ver.get("new") or ""}:
             if not name or name in _SENT_VER:
