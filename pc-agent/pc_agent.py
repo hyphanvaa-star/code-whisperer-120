@@ -26,7 +26,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.9"
+VERSION = "2.0"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -656,10 +656,23 @@ def do_owa_fpl_watch(payload: dict, say) -> dict:
         today = time.strftime("%Y-%m-%d")
         for f in _fpl_dir().glob("*.xls*"):
             if re.search(r"FLIGHT\s*PLAN|\bFPL\b", f.name, re.I) and \
-                    time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today:
+                    time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime)) == today or \
+                    re.search(r"FLIGHT\s*PLAN|\bFPL\b", f.name, re.I) and \
+                    re.search(r"ON\s*0?%d\s*%s" % (int(time.strftime("%d")), time.strftime("%b").upper()), f.name.upper()):
                 names.add(f.name)
+        have = payload.get("have")
+        def _safe(n):
+            c = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", n).strip(" .")
+            return re.sub(r"\s+", " ", c)
+        have_set = {str(x) for x in have} if isinstance(have, list) else None
         for name in names:
-            if not name or name in _SENT_VER:
+            if not name:
+                continue
+            # Web gửi danh sách file đã có: chỉ bỏ qua khi web thật sự có file.
+            if have_set is not None:
+                if _safe(name) in have_set:
+                    continue
+            elif name in _SENT_VER:
                 continue
             for d in dirs:
                 f = d / name

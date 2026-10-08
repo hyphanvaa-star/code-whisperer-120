@@ -63,34 +63,37 @@ export const routes: Routes = {
       return { running: false, last_at: 0, count: 0, items: [], lines: [], until: after, error: offline().error };
     }
     try {
-      // Gộp các lượt thăm dò trùng nhau (nhiều tab mở cùng lúc) thành một job
-      // trên máy công ty thay vì đẩy một đống job giống hệt nhau.
-      const id = await pc.enqueueDeduped("owa_fpl_watch", { after }, 8_000);
-      const r = (await pc.waitResult(id, 20_000)) as Record<string, any>;
+      const { putFile, listFiles } = await import("../store.server");
+      const { safeFilename } = await import("../core/models");
+      // Tell the helper which Excel files the web already has, so it re-sends
+      // anything missing (a lost/timeout upload is no longer dropped forever).
+      let have: string[] = [];
+      try { have = (await listFiles(ctx, "excel")).map((f) => f.name); } catch { /* ignore */ }
+      const id = await pc.enqueueDeduped("owa_fpl_watch", { after, have }, 8_000);
+      const r = (await pc.waitResult(id, 45_000)) as Record<string, any>;
       const ups = Array.isArray(r?.uploads) ? r.uploads : [];
-      if (ups.length) {
-        const { putFile } = await import("../store.server");
-        const { safeFilename } = await import("../core/models");
-        const saved: Record<string, string> = {};
-        for (const u of ups) {
-          const raw = String(u?.name || "");
-          const name = safeFilename(raw);
-          if (!name || !/\.(xlsx|xlsm)$/i.test(name) || typeof u?.b64 !== "string") continue;
-          try {
-            await putFile(ctx, `excel/${name}`, Buffer.from(u.b64, "base64"), "application/octet-stream");
-            saved[raw] = name;
-          } catch (e) { console.warn("FPL VER save:", e); }
-        }
-        delete r.uploads;
-        // Point the compare pair at the files just saved: stored names may differ from the PC names.
-        const ver = (r.ver && typeof r.ver === "object") ? r.ver : {};
-        for (const k of ["old", "new"]) if (ver[k] && saved[ver[k]]) ver[k] = saved[ver[k]];
-        if (!ver.new) {
-          const pair = fplVerPair(Object.values(saved));
-          if (pair.new) { ver.new = pair.new; ver.old = ver.old || pair.old; }
-        }
-        r.ver = ver;
+      const saved: Record<string, string> = {};
+      for (const u of ups) {
+        const raw = String(u?.name || "");
+        const name = safeFilename(raw);
+        if (!name || !/\.(xlsx|xlsm)$/i.test(name) || typeof u?.b64 !== "string") continue;
+        try {
+          await putFile(ctx, `excel/${name}`, Buffer.from(u.b64, "base64"), "application/octet-stream");
+          saved[raw] = name;
+        } catch (e) { console.warn("FPL VER save:", e); }
       }
+      delete r.uploads;
+      const stored = new Set([...have, ...Object.values(saved)]);
+      const ver = (r.ver && typeof r.ver === "object") ? r.ver : {};
+      for (const k of ["old", "new"]) {
+        if (!ver[k]) continue;
+        const s = saved[ver[k]] || safeFilename(String(ver[k]));
+        ver[k] = stored.has(s) ? s : "";
+      }
+      // Always prefer the newest FLIGHT PLAN VER pair actually stored.
+      const pair = fplVerPair([...stored]);
+      if (pair.new) { ver.new = pair.new; ver.old = pair.old || ver.old || ""; }
+      r.ver = ver;
       return r;
     } catch (e) {
       return { running: false, last_at: 0, count: 0, items: [], lines: [], until: after, error: e instanceof Error ? e.message : String(e) };
