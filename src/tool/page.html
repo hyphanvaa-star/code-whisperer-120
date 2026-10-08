@@ -20593,10 +20593,32 @@ function vPaintMenus(){
   }
 }
 
+function vVerKey(name){
+  const s = String(name || "").toUpperCase();
+  const m = s.match(/VER\s*[-_ ]?\s*(\d+)/);
+  const dm = s.match(/ON\s+(\d{1,2})\s*([A-Z]{3})/);
+  const MON = "JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC";
+  const day = dm ? (MON.indexOf(dm[2]) / 3 + 1) * 100 + Number(dm[1]) : 0;
+  return [day, m ? Number(m[1]) : -1];
+}
 async function vLoadFiles({preferNewest = false} = {}){
   try{
     const d = await (await fetch("/api/version/files")).json();
-    vFileList = d.files || [];
+    vFileList = (d.files || []).slice().sort((a, b) => {
+      const ka = vVerKey(a.name), kb = vVerKey(b.name);
+      if(ka[1] >= 0 && kb[1] >= 0){
+        if(ka[0] !== kb[0]) return kb[0] - ka[0];
+        if(ka[1] !== kb[1]) return kb[1] - ka[1];
+      }
+      return (b.modified || 0) - (a.modified || 0);
+    });
+    // Có ver mới hơn cặp đang chọn → ver mới vào BẢN MỚI, ver liền trước xuống BẢN ĐANG DÙNG.
+    const top = vFileList[0] && vFileList[0].name;
+    if(top && top !== $("#vNew").value && top !== $("#vOld").value && window.__vLastTop !== top){
+      preferNewest = true;
+      try{ fplVerApplied.old = ""; fplVerApplied.new = ""; }catch(_){}
+    }
+    window.__vLastTop = top;
     for(const [which, def] of [["old", 1], ["new", 0]]){
       const keep = $(which === "old" ? "#vOld" : "#vNew").value;
       let next = "";
