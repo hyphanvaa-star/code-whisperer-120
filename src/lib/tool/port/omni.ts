@@ -110,15 +110,53 @@ export function headers(session?: OmniSession): Record<string, string> {
   return h;
 }
 
+/**
+ * Kho token dùng chung (server gắn vào bảng service-role). Token Omni sống 30 ngày;
+ * Omni lưu X-Forwarded-For vào cột ~15 ký tự nên máy chủ cloud (IPv6) không tạo được
+ * token mới → dùng lại token đã có, hoặc token do trình duyệt dispatcher đăng nhập gửi lên.
+ */
+export interface OmniTokenStore {
+  get(username: string): Promise<OmniSession | null>;
+  set(username: string, s: OmniSession): Promise<void>;
+  clear(username: string): Promise<void>;
+}
+let tokenStore: OmniTokenStore | null = null;
+export function setTokenStore(s: OmniTokenStore | null): void {
+  tokenStore = s;
+}
+/** Hạn token (epoch giây) từ JWT; 0 nếu không đọc được. */
+export function tokenExp(token: string): number {
+  try {
+    const p = token.split(".")[1] ?? "";
+    const json = JSON.parse(atob(p.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(p.length / 4) * 4, "=")));
+    return Number(json.exp) || 0;
+  } catch {
+    return 0;
+  }
+}
+/** Lỗi đặc trưng khi Omni không ghi được IP người gọi (IP máy chủ cloud quá dài). */
+export const OMNI_IP_REJECT = /saving the entity changes/i;
+
 /** Đăng nhập Omni. Trả session mang Bearer token + tên người dùng. */
-export async function login(creds: OmniCredentials): Promise<{ session: OmniSession; name: string }> {
+export async function login(creds: OmniCredentials, fresh = false): Promise<{ session: OmniSession; name: string }> {
+  if (!fresh && tokenStore) {
+    const cached = await tokenStore.get(creds.username).catch(() => null);
+    if (cached?.token) return { session: cached, name: "" };
+  }
   // Omni intermittently returns 400 "error occurred while saving the entity changes"
   // when several logins race on its side — retry with backoff.
   for (let attempt = 0; ; attempt++) {
     try {
-      return await loginOnce(creds);
+      const r = await loginOnce(creds);
+      if (tokenStore) await tokenStore.set(creds.username, r.session).catch(() => undefined);
+      return r;
     } catch (e) {
       const m = (e as Error).message;
+      if (OMNI_IP_REJECT.test(m)) {
+        throw new OmniError(
+          "Omni từ chối đăng nhập từ máy chủ web (OMNI_BROWSER_LOGIN) — bấm đăng nhập Omni trên trình duyệt để cấp phiên 30 ngày.",
+        );
+      }
       if (attempt >= 3 || !/HTTP (400|5\d\d)|không kết nối/.test(m) || /password|mật khẩu|invalid/i.test(m)) throw e;
       await new Promise((res) => setTimeout(res, 600 * (attempt + 1) + Math.random() * 400));
     }
