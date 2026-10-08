@@ -6415,7 +6415,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
               <input type="file" id="splitPdfFile" accept=".pdf" style="display:none">
               <button class="btn small t-soft" id="mergePdfPick"
                       title="Chọn nhiều file Word, TXT hoặc PDF cùng lúc, gộp thành một PDF và lưu ra ổ D:">
-                Gộp PDF → D:</button>
+                Gộp PDF</button>
               <input type="file" id="mergePdfFiles" accept=".pdf,.txt,.doc,.docx" multiple style="display:none">
             </div>
           </div>
@@ -25687,7 +25687,7 @@ $("#mergePdfFiles").onchange = async e => {
     a.href = url; a.download = d.file;
     document.body.appendChild(a); a.click(); a.remove();
     write("⬇ đang tải về: " + d.file + " — nếu chưa thấy thì bấm ", "ok");
-    const last = log.lastElementChild;
+    const last = $("#console").lastElementChild;
     if(last){
       const lnk = document.createElement("a");
       lnk.href = url; lnk.download = d.file; lnk.textContent = "đây để tải lại";
@@ -25697,7 +25697,7 @@ $("#mergePdfFiles").onchange = async e => {
   }catch(err){
     write("✗ Lỗi: " + err.message, "fail");
   }finally{
-    btn.disabled = false; btn.textContent = "Gộp PDF → D:";
+    btn.disabled = false; btn.textContent = "Gộp PDF";
   }
 };
 $("#acClear").onclick = () => {
