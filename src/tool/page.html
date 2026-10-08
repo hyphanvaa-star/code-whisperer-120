@@ -16251,14 +16251,10 @@ function nmPaintTrackHead(d){
   const hits = nmHitsOf(d);
   const cs = f.callsign || "—";
   const route = (f.dep || "—") + " → " + (f.dest || "—");
-  const line1 = (jp.plan ? ("JetPlan " + jp.plan + " · ") : "")
-    + hits.length + " vùng cấm/đóng";
-  const line2 = (jp.error ? (jp.error + " · ") : "")
-    + "không phận · FIR chuyến · 24H";
+  const line1 = jp.plan ? ("JetPlan " + jp.plan) : "";
   head.innerHTML = '<span class="nm-th-plane" aria-hidden="true"></span>'
     + '<span class="nm-th-id"><b>' + esc(cs) + "</b><small>" + esc(route) + "</small></span>"
-    + '<span class="nm-th-meta"><span>' + esc(line1) + "</span><span>" + esc(line2)
-    + "</span></span>";
+    + (line1 ? '<span class="nm-th-meta"><span>' + esc(line1) + "</span></span>" : "");
 }
 function nmDrawTrack(d, keepView){
   nmDrawFleetRoutes._sig = "";
