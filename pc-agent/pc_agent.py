@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.7"
+VERSION = "2.8"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -527,7 +527,11 @@ def do_aviweb_submit(payload: dict, say) -> dict:
     dest = tool_dir / "data" / "atc"
     dest.mkdir(parents=True, exist_ok=True)
     fpath = dest / name
-    fpath.write_text(str(payload.get("text") or ""), encoding="utf-8")
+    # Web gửi xuống dòng kiểu \r\n; ghi thẳng trên Windows thành \r\r\n → mỗi dòng
+    # bị tách thành 1 block riêng, AviWeb chỉ nhận dòng đầu. Chuẩn hoá về \n.
+    _txt = str(payload.get("text") or "").replace("\r\n", "\n").replace("\r", "\n")
+    with open(fpath, "w", encoding="utf-8", newline="\n") as _f:
+        _f.write(_txt)
     say(f"· file ATC: {fpath}")
 
     total = len(atcfpl.read_fpl_blocks(fpath))
