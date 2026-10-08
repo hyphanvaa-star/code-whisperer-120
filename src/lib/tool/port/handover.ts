@@ -198,7 +198,7 @@ export async function xlsxBytes(payload: unknown): Promise<Uint8Array> {
       const cell = ws.getCell(r, col);
       cell.value = value;
       cell.font = { name: "Calibri", size: 11 };
-      cell.alignment = { horizontal: col < 12 ? "center" : "left", vertical: "middle", wrapText: true };
+      cell.alignment = { horizontal: col < 13 ? "center" : "left", vertical: "middle", wrapText: true };
       cell.border = border;
     });
     ws.getRow(r).height = 20;
