@@ -179,11 +179,13 @@ export const jobs: Jobs = {
           files.push(attachments[0]!.name, attachments[1]!.name);
           const did = r && typeof r === "object" ? String(r.draft_id || "") : "";
           if (did) {
-            const mb = encodeURIComponent(String(r?.mailbox || mail.mailbox));
-            // REST trả Id dạng URL-safe (- _); Outlook Web cần base64 chuẩn (/ +),
-            // nếu không thì mở Inbox mà khung soạn thư bên phải trống.
-            const owaId = did.replace(/-/g, "/").replace(/_/g, "+");
-            links.push(`https://outlook.cloud.microsoft/mail/${mb}/inbox/id/${encodeURIComponent(owaId)}`);
+            // Y hệt atc_ezfw.create_outlook_draft() của tool gốc:
+            //   base = https://outlook.cloud.microsoft/mail/{quote(box, safe="@")}
+            //   url  = f"{base}/compose/{quote(draft_id, safe='')}"
+            // /compose/{id} giữ shell Outlook (folder bên trái, thư đang soạn bên phải).
+            // Id giữ nguyên như REST trả về — không đổi ký tự.
+            const mb = encodeURIComponent(String(r?.mailbox || mail.mailbox)).replace(/%40/g, "@");
+            links.push(`https://outlook.cloud.microsoft/mail/${mb}/compose/${encodeURIComponent(did)}`);
           }
         } catch (exc) {
           const msg = exc instanceof Error ? exc.message : String(exc);
