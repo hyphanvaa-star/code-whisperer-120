@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Plane, Lock, UserRound, ShieldCheck } from "lucide-react";
-import planeIcon from "@/assets/plane-icon.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,9 +127,6 @@ function AuthPage() {
         </g>
         {/* máy bay trên radar */}
         <g opacity="0.95">
-          <image href={planeIcon} x="344" y="439" width="36" height="36" transform="rotate(-18 362 457)" />
-          <image href={planeIcon} x="827" y="280" width="32" height="32" transform="rotate(38 843 296)" />
-          <image href={planeIcon} x="675" y="593" width="34" height="34" transform="rotate(-52 692 610)" />
         </g>
         {/* chấm xanh lá: máy bay đang theo dõi */}
         <g fill="#4ade80">
