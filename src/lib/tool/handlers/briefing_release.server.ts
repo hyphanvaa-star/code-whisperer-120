@@ -222,7 +222,10 @@ export const jobs: Jobs = {
           const want = cs.toUpperCase();
           f = flights.find((x) => {
             const c = (x.callsign || "").toUpperCase();
-            return c === want || c.replace(/[^A-Z0-9]/g, "") === want.replace(/[^A-Z0-9]/g, "");
+            if (c === want || c.replace(/[^A-Z0-9]/g, "") === want.replace(/[^A-Z0-9]/g, "")) return true;
+            // FLT NO chỉ ghi số (888) → khớp VJC888 / VJ888.
+            const wd = want.replace(/[^0-9]/g, "");
+            return /^\d+$/.test(want) && !!wd && c.replace(/^[A-Z]+/, "").replace(/^0+/, "") === wd.replace(/^0+/, "");
           });
         }
         if (!f) {
