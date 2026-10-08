@@ -51,6 +51,7 @@ export function AuthScreen() {
         password: parsed.data.password,
       });
       if (error) toast.error("Sai ID hoặc mật khẩu");
+      else sessionStorage.setItem("fb-login-done", "1");
     } finally {
       setBusy(false);
     }
