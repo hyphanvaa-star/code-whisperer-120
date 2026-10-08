@@ -25,13 +25,13 @@ from pathlib import Path
 
 import requests
 
-VERSION = "1.5"
+VERSION = "1.6"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
 
 # Cấu hình mặc định — ghi sẵn để người dùng chỉ cần double-click, không gõ lệnh.
-DEFAULT_URL = "https://code-whisperer-834.lovable.app"
+DEFAULT_URL = "https://sohee-dispatch-tool-v3.lovable.app"
 DEFAULT_TOKEN = "Hydeptrai@123"
 
 
