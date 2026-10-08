@@ -165,11 +165,13 @@ export function iterLatLon(text: string, keepRepeats = false): Pt[] {
     add(...toLL(+latd, +latm, +lats, ns, +lond, +lonm, +lons, ew));
   }
   for (const m of raw.matchAll(new RegExp(_LL_HYP, "gi"))) {
+    at = m.index ?? 0;
     const [latd, latm, ns, lond, lonm, ew] = [m[1], m[2], m[3], m[4], m[5], m[6]];
     if (+latm >= 60 || +lonm >= 60) continue;
     add(...toLL(+latd, +latm, 0, ns, +lond, +lonm, 0, ew));
   }
   for (const m of raw.matchAll(/(?<!\d)(\d{2})\s+(\d{2})\s+(\d{2}(?:\.\d+)?)?\s*([NS])\s+(\d{2,3})\s+(\d{2})\s+(\d{2}(?:\.\d+)?)?\s*([EW])/gi)) {
+    at = m.index ?? 0;
     if (+m[2] >= 60 || +(m[3] || 0) >= 60 || +m[6] >= 60 || +(m[7] || 0) >= 60) continue;
     add(...toLL(+m[1], +m[2], +(m[3] || 0), m[4], +m[5], +m[6], +(m[7] || 0), m[8]));
   }
