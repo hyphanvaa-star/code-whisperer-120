@@ -26702,6 +26702,17 @@ function boot(){
   loadFlights(false);
   // Không tự đăng nhập Outlook Web khi mở trang — chỉ chạy khi bấm nút Đăng nhập OWA.
   refreshTafAge();
+  // Tự tải TAF khi mở web (lặng lẽ, không alert) — nút TAF vẫn dùng để tải lại thủ công.
+  (async function(){
+    try{
+      const d = await (await fetch("/api/taf/refresh")).json();
+      if(d && !d.error){
+        paintTafAge(d.fetched_at);
+        await loadFlights(false);
+        ftBindTaf(false).catch(function(){});
+      }
+    }catch(err){ /* bỏ qua — người dùng vẫn bấm nút TAF được */ }
+  })();
   loadRegNoticeList();
   // Lần gọi lúc parse trang diễn ra trước khi gate mở nên API có thể trả 401.
   // Nạp lại sau đăng nhập để dữ liệu limits.json thực sự đi vào các bảng.
