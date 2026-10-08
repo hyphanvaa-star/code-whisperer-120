@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.5"
+VERSION = "2.6"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -560,6 +560,12 @@ def _cancel_watcher() -> None:
             st = post(POLL_URL, {"status_of": jid}).get("status")
             if st in ("failed", "done", "missing"):
                 _CANCEL.set()
+                for fn in list(_ABORTS):
+                    try:
+                        fn()
+                    except Exception:
+                        pass
+                _ABORTS.clear()
                 log("⏹ lệnh đã bị huỷ trên web — đang dừng…")
         except Exception:
             pass
