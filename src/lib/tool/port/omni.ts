@@ -114,8 +114,16 @@ export async function login(creds: OmniCredentials): Promise<{ session: OmniSess
     throw new OmniError(`không kết nối được Omni: ${(exc as Error).message}`);
   }
   if (r.status !== 200) {
-    // Đừng in body thô: có thể chứa thông tin tài khoản
-    throw new OmniError(`đăng nhập Omni thất bại (HTTP ${r.status})`);
+    // Đừng in body thô: chỉ lấy trường message ngắn để chẩn đoán
+    let msg = "";
+    try {
+      const t = await r.text();
+      const j = JSON.parse(t) as Record<string, unknown>;
+      msg = String(j["message"] ?? j["error"] ?? j["title"] ?? "").slice(0, 120);
+      if (!msg) msg = t.replace(/\s+/g, " ").slice(0, 80);
+    } catch { /* ignore */ }
+    console.error("[omni] login failed", r.status, msg);
+    throw new OmniError(`đăng nhập Omni thất bại (HTTP ${r.status}${msg ? ": " + msg : ""})`);
   }
   let j: Record<string, unknown>;
   try {
