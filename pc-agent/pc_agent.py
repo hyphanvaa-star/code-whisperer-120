@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.4"
+VERSION = "2.5"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -498,7 +498,8 @@ def do_aviweb_check(payload: dict, say) -> dict:
     headless = bool(payload.get("headless", True))
     say(f"· dùng tool gốc tại {tool_dir}")
 
-    def on_progress(d: dict) -> None:
+    def on_progress(*a) -> None:
+        d = a[0] if a else None
         if d.get("type") == "line" and d.get("text"):
             say(str(d["text"]), str(d.get("cls") or ""))
 
@@ -530,7 +531,8 @@ def do_aviweb_submit(payload: dict, say) -> dict:
     fpath.write_text(str(payload.get("text") or ""), encoding="utf-8")
     say(f"· file ATC: {fpath}")
 
-    def on_progress(d) -> None:
+    def on_progress(*a) -> None:
+        d = a[0] if a else None
         if isinstance(d, dict):
             if d.get("text"):
                 say(str(d["text"]), str(d.get("cls") or ""))
