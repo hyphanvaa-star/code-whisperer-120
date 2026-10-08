@@ -25,11 +25,12 @@ export function AuthScreen() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    // Mỗi lần mở web đều bắt đăng nhập lại: xoá phiên đăng nhập đang lưu sẵn.
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/tool", replace: true });
+      if (data.session) supabase.auth.signOut();
     });
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
-      if (s) navigate({ to: "/tool", replace: true });
+    const { data } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === "SIGNED_IN" && s) navigate({ to: "/tool", replace: true });
     });
     return () => data.subscription.unsubscribe();
   }, [navigate]);
@@ -50,6 +51,7 @@ export function AuthScreen() {
         password: parsed.data.password,
       });
       if (error) toast.error("Sai ID hoặc mật khẩu");
+      else sessionStorage.setItem("fb-login-done", "1");
     } finally {
       setBusy(false);
     }
