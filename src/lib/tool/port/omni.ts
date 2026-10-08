@@ -103,6 +103,20 @@ function headers(session?: OmniSession): Record<string, string> {
 
 /** Đăng nhập Omni. Trả session mang Bearer token + tên người dùng. */
 export async function login(creds: OmniCredentials): Promise<{ session: OmniSession; name: string }> {
+  // Omni intermittently returns 400 "error occurred while saving the entity changes"
+  // when several logins race on its side — retry with backoff.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await loginOnce(creds);
+    } catch (e) {
+      const m = (e as Error).message;
+      if (attempt >= 3 || !/HTTP (400|5\d\d)|không kết nối/.test(m) || /password|mật khẩu|invalid/i.test(m)) throw e;
+      await new Promise((res) => setTimeout(res, 600 * (attempt + 1) + Math.random() * 400));
+    }
+  }
+}
+
+async function loginOnce(creds: OmniCredentials): Promise<{ session: OmniSession; name: string }> {
   let r: Response;
   try {
     r = await fetch(API + TOKENS, {
