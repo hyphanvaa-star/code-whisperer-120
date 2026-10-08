@@ -1,3 +1,4 @@
+import { parseEetFirTimes, flightAirfields as tuneAirfields } from "./notam_check_tune";
 import AIP_CATALOG from "./aip_catalog.json";
 // Port of notam_track.py — đối chiếu NOTAM 24H với track KML: toạ độ, FL, FIR, giờ.
 // Scope note (see final report): the AIP/SUA/ENR/DAH polygon gazetteer (aip_sua.py,
@@ -831,10 +832,11 @@ function hitsFor(
   return out;
 }
 
-export function compare(flight: Flight, places: Place[], track: Track): Hit[] {
+export function compare(flight: Flight, places: Place[], track: Track, ofpText = ""): Hit[] {
   const points = track.points || [];
-  const eet: [string, number][] = [];
-  const used = new Set(flightAirfields(flight).map(([c]) => c));
+  // Như notam_track.py: EET/FIR + sân ALT/TALT/RALT lấy từ OFP, không chỉ DEP/ARR.
+  const eet: [string, number][] = ofpText ? (parseEetFirTimes(ofpText) as [string, number][]) : [];
+  const used = new Set((ofpText ? tuneAirfields(flight, ofpText) : flightAirfields(flight)).map(([c]) => c));
   let depFir = "";
   for (const place of places) {
     if (place.kind === "A" && place.code === (flight.dep_icao || "").toUpperCase()) {
@@ -872,18 +874,22 @@ export function fleetVerdict(items: { cs: string; dep: string; dest: string; hit
 // JetPlan KML) is injected by the handler so this module stays free of server-only
 // imports; see handlers/notam_track.server.ts for the FliteBrief wiring.
 export interface RunDeps {
-  fetchPlaces: (flight: Flight) => Promise<Place[]>;
+  fetchPlaces: (flight: Flight, ofpText?: string) => Promise<Place[]>;
+  fetchOfpText?: (flight: Flight) => Promise<string>;
   fetchTrack: (flight: Flight) => Promise<{ track: Track; error: string }>;
   onProgress?: (text: string) => void;
 }
 
 export async function run(flight: Flight, deps: RunDeps) {
-  deps.onProgress?.("Đang bắt đầu tracking");
-  const [places, trackRes] = await Promise.all([deps.fetchPlaces(flight), deps.fetchTrack(flight)]);
+  deps.onProgress?.("Đang lấy OFP");
+  const trackP = deps.fetchTrack(flight);
+  const ofpText = deps.fetchOfpText ? await deps.fetchOfpText(flight).catch(() => "") : "";
+  deps.onProgress?.("Đang lấy NOTAM sân và FIR theo OFP");
+  const [places, trackRes] = await Promise.all([deps.fetchPlaces(flight, ofpText), trackP]);
   deps.onProgress?.("Đang đối chiếu vùng");
   let track = trackRes.track;
   if (track.points?.length) track = { ...track, points: stampEta(track.points, flight) };
-  const hits = compare(flight, places, track);
+  const hits = compare(flight, places, track, ofpText);
   return {
     ok: true,
     flight: {

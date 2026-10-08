@@ -5,6 +5,7 @@ import { loadFlights, applyFilters } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
 import { normIcao, placeFromPayload } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
+import { flightAirfields as tuneAirfields, locationsOf } from "../port/notam_check_tune";
 import { setNotamProgress } from "./notam.server";
 
 // Port of web.py's "/api/notam/track" and "/api/notam/check" (_api_notam_track /
@@ -96,13 +97,25 @@ async function fetchPlace(code: string, want: string): Promise<Place> {
 }
 
 /** Dedup fetch of every airport + its parent FIR a flight (or fleet of flights) touches. */
-async function fetchPlacesFor(flights: Flight[]): Promise<Place[]> {
+async function fetchOfpText(flight: Flight): Promise<string> {
+  try {
+    const { fetchOfpPdf, ofpPdfText } = await import("./briefing_release.server");
+    const blob = await fetchOfpPdf(flight.id);
+    return blob ? await ofpPdfText(blob) : "";
+  } catch { return ""; }
+}
+
+async function fetchPlacesFor(flights: Flight[], ofpText = ""): Promise<Place[]> {
   const wantByCode = new Map<string, string>();
+  const firCodes = new Set<string>();
   for (const flight of flights) {
-    for (const [code] of flightAirfields(flight)) wantByCode.set(code, "A");
+    const fields = ofpText ? tuneAirfields(flight, ofpText) : flightAirfields(flight);
+    for (const [code] of fields) wantByCode.set(code, "A");
+    if (ofpText) {
+      for (const f of locationsOf(flight, ofpText).firs || []) { const c = normIcao(f); if (c) firCodes.add(c); }
+    }
   }
   const places = await Promise.all([...wantByCode.entries()].map(([code, want]) => fetchPlace(code, want)));
-  const firCodes = new Set<string>();
   for (const place of places) {
     const fir = String((place as Record<string, unknown>).fir ?? "");
     if (fir) firCodes.add(fir);
@@ -139,7 +152,8 @@ export const routes: Routes = {
     if (!flight) return { error: `Không tìm thấy chuyến fid=${fid}.` };
     try {
       const result = await run(flight, {
-        fetchPlaces: async (f) => { const p = await fetchPlacesFor([f]); await enrichWithSup(ctx, p); return p; },
+        fetchPlaces: async (f, ofp) => { const p = await fetchPlacesFor([f], ofp || ""); await enrichWithSup(ctx, p); return p; },
+        fetchOfpText,
         fetchTrack,
         onProgress: (text) => void (tid && setNotamProgress(ctx, tid, text)),
       });

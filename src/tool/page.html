@@ -14614,7 +14614,9 @@ function nmSplitCompactDms(num, isLat){
 function nmParseLatLons(text){
   const out = [];
   const seen = new Set();
-  const raw = String(text || "").replace(/^Q\).*$/gm, "");
+  /* Tâm cung ("…ARC … FM <toạ độ>") chỉ để dựng cung, không phải đỉnh vùng. */
+  const raw = String(text || "").replace(/^Q\).*$/gm, "")
+    .replace(/\b(?:FM|FROM|CENT(?:RE|ER|ERED|RED)(?:\s+(?:ON|AT))?)\s+\d{4,6}(?:\.\d+)?\s*[NS]\s*\d{5,7}(?:\.\d+)?\s*[EW]/gi, " ");
   const add = (lat, lon) => {
     if(!(lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180)) return;
     const k = lat.toFixed(5) + "," + lon.toFixed(5);
@@ -14718,6 +14720,10 @@ function nmRefreshHitGeom(hit){
   if(hit.shape === "circle" || hit.shape === "circles" || hit.shape === "dot")
     return hit;
   const blob = [hit.e_field, hit.text].filter(Boolean).join("\n");
+  /* Server đã dựng cung / lấy vùng AIP (LION-…) → giữ nguyên, không tự dựng lại. */
+  if((hit.shape === "polygon" || hit.shape === "line") && (hit.ring || []).length >= 3
+    && (hit.source === "aip" || /\bARC\b|\b(?:LION|EAGLE|EDIX|ITRA|MOOSE|TIGER)-/i.test(blob)))
+    return hit;
   if(!blob || !/\d{4,7}\.\d+\s*[NS]|\d{4,6}\s*[NS]/.test(blob)) return hit;
   const live = nmNotamToHit({
     ident: hit.ident, qsubj: hit.qsubj || "WU",
