@@ -229,7 +229,8 @@ Object.assign(routes, {
       return new Response("Chưa có file defect Excel đã lưu.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
     }
     const { legacyExcelRows } = await import("../port/defect_pdf");
-    const ExcelJS = (await import("exceljs")).default;
+    const { loadExcelJS } = await import("@/lib/exceljs-load");
+    const ExcelJS = await loadExcelJS();
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Sheet1");
     ws.addRow(["TÀU GIỚI HẠN", "DEFECT ẢNH HƯỞNG"]);

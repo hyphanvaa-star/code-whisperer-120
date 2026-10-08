@@ -19270,7 +19270,7 @@ async function defRefreshStatus(){
         || (d.mail_sent ? new Date(d.mail_sent).toLocaleString("vi-VN") : "");
       st.textContent = (d.source || d.file) + " · " + (d.rows || 0) + " dòng / "
         + (d.aircraft_count || 0) + " tàu" + (when ? " · " + when : "")
-        + (sent ? " · mail gửi " + sent : "");
+        + " · mail gửi " + (sent || "không rõ giờ");
       st.title = (d.subject ? d.subject + "\n" : "")
         + (sent ? "Ngày mail gửi: " + sent + "\n" : "")
         + "Đã lưu trên server: " + (d.path || "");

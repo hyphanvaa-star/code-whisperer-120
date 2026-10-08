@@ -47,13 +47,14 @@ async function pullDefect(ctx: Parameters<Routes[string]>[0]) {
       exists: true, file: res["source"] as string, source: res["source"] as string,
       rows: res.rows, aircraft_count: res.aircraft_count, raw_rows: res.raw_rows,
       saved_at: res.saved_at, aircraft: res.aircraft,
+      subject: String(r["subject"] || name), mail_sent_text: String(r["sent"] || ""), slot: String(r["slot"] || ""),
     };
     await setJson(ctx, "defect.summary", summary);
     // Đồng bộ bảng Tàu/Defect vào limits như tool gốc.
     const { getJson } = await import("../store.server");
     const lim = await getJson<Record<string, unknown>>(ctx, "limits", {});
     await setJson(ctx, "limits", { ...lim, aircraft: res.aircraft });
-    return { ...summary, ok: true, subject: r["subject"] || name, mail_sent_text: r["sent"] || "", slot: r["slot"] || "" };
+    return { ...summary, ok: true };
   } catch (exc) {
     return { error: exc instanceof Error ? exc.message : String(exc) };
   }
