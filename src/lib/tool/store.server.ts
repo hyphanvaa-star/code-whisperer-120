@@ -21,25 +21,35 @@ export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<vo
 
 const BUCKET = "tool-files";
 
+// Storage keys reject non-ASCII (e.g. "ĐÃ FIX"): encode each segment reversibly, "!XX" = byte XX.
+export function encodeKeySegment(seg: string): string {
+  return encodeURIComponent(seg).replace(/!/g, "%21").replace(/%20/g, " ").replace(/%/g, "!");
+}
+export function decodeKeySegment(seg: string): string {
+  if (!seg.includes("!")) return seg;
+  try { return decodeURIComponent(seg.replace(/!/g, "%")); } catch { return seg; }
+}
+const enc = (path: string) => path.split("/").map(encodeKeySegment).join("/");
+
 export async function putFile(ctx: Ctx, path: string, body: Blob | ArrayBuffer | Uint8Array, contentType = "application/octet-stream") {
-  const { error } = await ctx.supabase.storage.from(BUCKET).upload(path, body, { upsert: true, contentType });
+  const { error } = await ctx.supabase.storage.from(BUCKET).upload(enc(path), body, { upsert: true, contentType });
   if (error) throw new Error(error.message);
 }
 
 export async function getFile(ctx: Ctx, path: string): Promise<ArrayBuffer | null> {
-  const { data, error } = await ctx.supabase.storage.from(BUCKET).download(path);
+  const { data, error } = await ctx.supabase.storage.from(BUCKET).download(enc(path));
   if (error || !data) return null;
   return data.arrayBuffer();
 }
 
 export async function listFiles(ctx: Ctx, dir: string) {
-  const { data, error } = await ctx.supabase.storage.from(BUCKET).list(dir, { limit: 1000, sortBy: { column: "updated_at", order: "desc" } });
+  const { data, error } = await ctx.supabase.storage.from(BUCKET).list(enc(dir), { limit: 1000, sortBy: { column: "updated_at", order: "desc" } });
   if (error) throw new Error(error.message);
-  return (data ?? []).filter((f) => f.id);
+  return (data ?? []).filter((f) => f.id).map((f) => ({ ...f, name: decodeKeySegment(f.name) }));
 }
 
 export async function removeFiles(ctx: Ctx, paths: string[]) {
   if (!paths.length) return;
-  const { error } = await ctx.supabase.storage.from(BUCKET).remove(paths);
+  const { error } = await ctx.supabase.storage.from(BUCKET).remove(paths.map(enc));
   if (error) throw new Error(error.message);
 }
