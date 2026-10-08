@@ -3,6 +3,7 @@ import { jobId } from "../jobs";
 import type { Flight } from "../core/models";
 import { formatReg, defectsFor, draftFromFlight, toPdf, pdfFilename } from "../port/briefingRelease";
 import { uploadAndAttach } from "./briefing.server";
+import { loadBriefingData } from "../briefing-data.server";
 
 // Port of web.py "/api/briefswap/*" (api/briefswap.py + web.py briefswap_preview /
 // start_briefswap). Đổi tờ Official Briefing khi đổi tàu: soạn mới → xoá cũ → gắn mới.
@@ -48,7 +49,7 @@ async function opsWindowCheck(f: Flight): Promise<string> {
 async function loadAircraft(ctx: Parameters<Routes[string]>[0]): Promise<unknown[]> {
   const { getJson } = await import("../store.server");
   const data = await getJson<{ aircraft?: unknown[] } | null>(ctx, "limits", null);
-  return Array.isArray(data?.aircraft) ? data!.aircraft! : [];
+  return Array.isArray(data?.aircraft) ? data.aircraft : [];
 }
 
 async function upPrivileges(): Promise<Record<string, unknown>> {
@@ -187,6 +188,7 @@ export const jobs: Jobs = {
     let sheet;
     try {
       sheet = await draftFromFlight(f, {
+        ...await loadBriefingData(ctx),
         fetchPdf: fetchOfpPdfLocal,
         pdfText: ofpPdfTextLocal,
         applyEdits: false,

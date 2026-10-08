@@ -11,6 +11,14 @@ export type PinItem = {
 };
 export type PinStore = { cloud: PinItem[]; flights: Record<string, PinItem[]> };
 
+export const NOTAM_NIL = "NIL NOTAM";
+export const NOTAM_NO_OPS = "NO OPERATIONALLY SIGNIFICANT NOTAMs";
+
+export function isNotamPlaceholder(text: unknown): boolean {
+  const blob = String(text ?? "").trim().replace(/\s+/g, " ").toUpperCase().replace(/NOTAMS/g, "NOTAM");
+  return ["", "NO SIG", "NIL", "NIL NOTAM", "NO OPERATIONALLY SIGNIFICANT NOTAM"].includes(blob);
+}
+
 export const emptyStore = (): PinStore => ({ cloud: [], flights: {} });
 
 export function callsignKey(raw: unknown): string {
@@ -184,4 +192,60 @@ export function cellIndex(
   if (alts.includes(code)) return 2;
   if (ralts.includes(code)) return 3;
   return opts.force ? 4 : null;
+}
+
+/** Preserve complete NOTAM blocks, replacing only an older copy of the same ident. */
+export function joinNotam(cell: string, item: Partial<PinItem>): string {
+  const add = briefText(item);
+  if (!add) return isNotamPlaceholder(cell) ? "" : cell.trim();
+  const ident = String(item.ident ?? "").trim().toUpperCase();
+  const blocks = isNotamPlaceholder(cell) ? [] : cell.trim().split(/\n\s*\n/).flatMap((part) => {
+    const lines = part.split("\n").map((line) => line.trim()).filter(Boolean);
+    return lines.length > 1 && lines.every((line) => IDENT_RE.test(line) && line.length < 200)
+      ? lines : [part.trim()];
+  });
+  const kept = ident ? blocks.filter((block) => !block.toUpperCase().includes(ident)) : blocks;
+  if (!ident && kept.includes(add)) return kept.join("\n\n");
+  return [...kept, add].join("\n\n");
+}
+
+export interface PinSheet {
+  callsign: string;
+  dep: string;
+  dest: string;
+  dest_alts: string[];
+  enroute_alts: string[];
+  notams: string[];
+}
+
+export interface SheetPinContext {
+  firs?: string[];
+  /** Missing/null means the portal has not been read successfully; never invent NIL. */
+  counts?: Record<string, number | null>;
+}
+
+export function applyToSheet(sheet: PinSheet, store: PinStore, context: SheetPinContext = {}): string[] {
+  const cells = Array.from({ length: 5 }, (_, i) => {
+    const text = sheet.notams[i] ?? "";
+    return text.toUpperCase().trim() === "NO SIG" ? "" : text;
+  });
+  const jobs: Array<[PinItem, boolean]> = [
+    ...(store.cloud ?? []).map((item): [PinItem, boolean] => [item, false]),
+    ...(store.flights?.[callsignKey(sheet.callsign)] ?? []).map((item): [PinItem, boolean] => [item, true]),
+  ];
+  for (const [item, force] of jobs) {
+    const idx = cellIndex(item, { ...sheet, firs: context.firs ?? [], force });
+    if (idx !== null) cells[idx] = joinNotam(cells[idx] ?? "", item);
+  }
+  const locations = [[sheet.dep], [sheet.dest], sheet.dest_alts, sheet.enroute_alts, context.firs ?? []];
+  locations.forEach((codes, i) => {
+    if (!isNotamPlaceholder(cells[i])) return;
+    const present = codes.filter(Boolean);
+    if (!present.length) return;
+    const counts = present.map((code) => context.counts?.[`${i === 4 ? "FIR" : "A"}:${code}`] ?? null);
+    if (counts.some((n) => n !== null && n > 0)) cells[i] = NOTAM_NO_OPS;
+    else if (counts.every((n) => n !== null)) cells[i] = NOTAM_NIL;
+  });
+  sheet.notams = cells;
+  return cells;
 }

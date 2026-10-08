@@ -2,9 +2,13 @@ import type { Jobs, Routes } from "../types";
 import * as store from "../store.server";
 import { getJson, setJson } from "../store.server";
 import { loadFlights } from "../core/gantts.server";
+import { loadBriefingData } from "../briefing-data.server";
+import { callsignKey, parseCallsigns } from "../port/notam_pin";
 import {
   BriefReleaseError,
   buildSheet,
+  applyFields,
+  toFields,
   sheetFromFields,
   toDict,
   toPdf,
@@ -51,12 +55,13 @@ async function loadEdits(ctx: Parameters<Routes[string]>[0], callsign: string) {
 }
 
 async function findFlight(flight: string) {
+  if (parseCallsigns(flight).length > 1) throw new BriefReleaseError("Tờ briefing xem từng chuyến — nhập một số hiệu.");
   const days = 2;
   const flights = await loadFlights(days);
-  const want = flight.trim().toUpperCase();
+  const want = callsignKey(flight);
   return flights.find((f) => {
     const cs = (f.callsign || "").toUpperCase();
-    return cs === want || cs.replace(/[^A-Z0-9]/g, "") === want.replace(/[^A-Z0-9]/g, "") || String(f.id) === want;
+    return callsignKey(cs) === want || String(f.id) === flight.trim();
   });
 }
 
@@ -64,6 +69,7 @@ async function draft(ctx: Parameters<Routes[string]>[0], flight: string, applyEd
   const f = await findFlight(flight);
   if (!f) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
   return draftFromFlight(f, {
+    ...await loadBriefingData(ctx),
     fetchPdf: fetchOfpPdf,
     pdfText: ofpPdfText,
     applyEdits,
@@ -90,8 +96,8 @@ export const routes: Routes = {
     const cs = String(body["callsign"] ?? "").trim();
     if (!cs) return { error: "Thiếu số hiệu chuyến." };
     try {
-      const sheet = sheetFromFields({ ...body, callsign: cs });
-      await setJson(ctx, editSettingKey(sheet.callsign), { ...body, callsign: sheet.callsign });
+      const sheet = applyFields(await draft(ctx, cs, true), body);
+      await setJson(ctx, editSettingKey(sheet.callsign), toFields(sheet));
       const out = toDict(sheet, { edit: true, edited: true });
       out["saved"] = true;
       return out;
@@ -135,7 +141,7 @@ export const routes: Routes = {
     try {
       let sheet: ReleaseSheet;
       if (body["fields"] && typeof body["fields"] === "object") {
-        sheet = sheetFromFields({ ...(body["fields"] as Record<string, unknown>), callsign: flight });
+        sheet = applyFields(await draft(ctx, flight, true), body["fields"] as Record<string, unknown>);
       } else {
         sheet = await draft(ctx, flight, true);
       }
@@ -199,9 +205,11 @@ export const jobs: Jobs = {
     const flights = await loadFlights(days);
     const byId = new Map(flights.map((f) => [String(f.id), f]));
     const files: Record<string, Uint8Array> = {};
+    const sources = await loadBriefingData(ctx);
     let ok = 0, failed = 0, skipped = 0;
     for (let i = 0; i < callsigns.length; i++) {
-      const cs = callsigns[i]!;
+      const cs = callsigns[i];
+      if (!cs) continue;
       emit({ type: "line", text: `· soạn briefing ${cs}…`, progress: i / callsigns.length });
       try {
         // Ưu tiên đúng sector người dùng đã chọn ở bảng chọn route.
@@ -213,13 +221,13 @@ export const jobs: Jobs = {
             return c === want || c.replace(/[^A-Z0-9]/g, "") === want.replace(/[^A-Z0-9]/g, "");
           });
         }
-        if (!f && sectorIds.size) f = byId.get([...sectorIds][0] ?? "");
         if (!f) {
           emit({ type: "line", text: `✗ ${cs}: không tìm thấy chuyến`, cls: "bad" });
           failed++;
           continue;
         }
         const sheet = await draftFromFlight(f, {
+          ...sources,
           fetchPdf: fetchOfpPdf,
           pdfText: ofpPdfText,
           applyEdits: true,

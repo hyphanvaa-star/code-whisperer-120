@@ -56,3 +56,4 @@
 - [x] Version badge (bottom-right of tool) — bump V number in src/tool/page.html #appVersion on every publish
 - [x] Popup NOTAM khi click vùng: dời khung trắng sang mép phải bản đồ
 - [x] Mặc định TẮT các đài VN trên bản đồ Check NOTAM (tick "Đài" để bật)
+- [ ] Briefing: đối chiếu 9 file Python mới, bổ sung dữ liệu OFP/TAF/NOTAM/limits và kiểm thử soạn–sửa–xuất PDF theo nguồn gốc.
