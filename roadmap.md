@@ -54,3 +54,5 @@
 - [x] Phác thảo thêm và áp mẫu phím vuông buồng lái, giữ Dispatch Board ở giữa
 - [x] Dựng header VietJet bằng thành phần thật: 6 bộ lọc, 8 nút, thời tiết TP.HCM và đồng hồ trực tiếp
 - [x] Version badge (bottom-right of tool) — bump V number in src/tool/page.html #appVersion on every publish
+- [ ] Popup NOTAM khi click vùng: dời khung trắng sang mép phải bản đồ, không đè giữa vùng (đang làm)
+- [ ] Mặc định TẮT các đài VN trên bản đồ Check NOTAM (bật tay khi cần)
