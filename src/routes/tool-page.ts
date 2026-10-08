@@ -6,8 +6,8 @@ import vietjetLogo from "@/assets/vj-logo.png";
 import notamGeometryFixes from '@/tool/notam-geometry.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
-// shim that (1) skips the local passcode gate because the web app has real login,
-// and (2) attaches the signed-in user's token to every /api/ call.
+// shim that attaches the signed-in user's token to every /api/ call. The old
+// local passcode popup was removed — the web app's own login is the only gate.
 const SHIM = `<script>
 (function(){
   window.__WEB_AUTH = true;
