@@ -70,3 +70,4 @@
 ## Giao diện đăng nhập / nền trang
 - [ ] Đổi nền trang đăng nhập cho đẹp hơn (đang làm)
 - [ ] Bỏ nút/biểu tượng người dùng gửi (image-60) — xác định đúng phần tử rồi xoá
+- [ ] Tài khoản: chỉ đăng nhập bằng ID + mật khẩu (không cần Gmail), tạo hyphan + roise
