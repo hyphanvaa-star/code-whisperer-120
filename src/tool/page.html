@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,800&family=Outfit:wght@400;500;600;700&family=Nunito:wght@800;900&family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&family=Noto+Serif+JP:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" crossorigin>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" crossorigin></script>
-<link href="/hanyi/hanyi-gate.css" rel="stylesheet">
 <style>
 :root{
   --stone:#EEEBE5; --stone-2:#E0DDD6;
@@ -155,105 +154,6 @@ td.extra-cell.extra-low .dim{
 td.extra-cell.extra-low .xt-min{border-color:#9b1c1c}
 td.extra-cell.extra-low .xt-kg{padding:0 4px;border-radius:5px}
 
-/* ---------- cổng bảo mật (Shanghai) ---------- */
-.gate{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;
-  overflow:hidden;isolation:isolate;
-  background:#070a12 url('/static/shanghai-bund-clock-night-true-hd.jpg') center 48%/cover no-repeat;
-  transition:opacity .45s ease, transform .45s ease}
-.gate::after{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;
-  background:linear-gradient(90deg,rgba(3,5,13,.18),rgba(3,5,13,.04) 38%,rgba(3,5,13,.16)),
-    linear-gradient(180deg,rgba(2,4,12,.08),transparent 58%,rgba(2,4,12,.22))}
-.gate.out{opacity:0;transform:scale(1.02);pointer-events:none}
-.gate-bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.gate-grid{display:none}
-.gate-orbit{display:none;position:absolute;left:50%;top:50%;width:min(92vw,720px);height:min(92vw,720px);
-  margin:-min(46vw,360px);border-radius:50%;
-  border:1px dashed rgba(59,79,228,.18);animation:gate-spin 48s linear infinite}
-.gate-orbit.o2{width:min(70vw,520px);height:min(70vw,520px);margin:-min(35vw,260px);
-  border-style:solid;border-color:rgba(24,24,21,.06);animation-duration:72s;animation-direction:reverse}
-.gate-orbit.o3{width:min(48vw,340px);height:min(48vw,340px);margin:-min(24vw,170px);
-  border-color:rgba(59,79,228,.1);animation-duration:36s}
-.gate-box{position:relative;z-index:2;pointer-events:auto;text-align:center;width:min(420px,92vw);
-  padding:40px 34px 34px;border-radius:24px;
-  background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.82);
-  box-shadow:
-    0 28px 70px rgba(0,0,0,.36),
-    0 0 0 1px rgba(255,255,255,.2),
-    inset 0 1px 0 rgba(255,255,255,.95);
-  backdrop-filter:none;
-  animation:gate-box-in .7s cubic-bezier(.22,1.15,.36,1) both}
-.gate-mark{display:inline-flex;align-items:center;justify-content:center;
-  width:52px;height:52px;margin:0 auto 16px;border-radius:16px;
-  background:linear-gradient(145deg,#4A5CEC,#2A39B8);color:#fff;
-  font-size:22px;line-height:1;
-  box-shadow:0 10px 24px rgba(59,79,228,.28);
-  animation:gate-mark-float 3.6s ease-in-out infinite}
-.gate-box h2{margin:0 0 6px;font-size:26px;font-weight:800;letter-spacing:-.03em;
-  color:var(--ink);-webkit-text-fill-color:var(--ink);background:none}
-.gate-box .gate-sig{margin:0 0 18px;font-size:11px;font-weight:600;letter-spacing:.16em;
-  text-transform:uppercase;color:#c62a72}
-.gate-box .gate-sig::after{content:" 🌹"}
-.gate-box .q{margin:0 0 18px;color:var(--ink-soft);font-size:14.5px;font-weight:500}
-.gate-box input{width:100%;text-align:center;font-size:17px;font-weight:550;padding:14px 16px;
-  border:1px solid rgba(24,24,21,.12);border-radius:14px;background:rgba(255,255,255,.88);
-  transition:border-color .2s,box-shadow .2s,transform .2s}
-#gateAns{-webkit-text-security:disc;text-security:disc;pointer-events:auto;cursor:text}
-#gateAns[readonly]{cursor:text}
-.gate-box input:focus{outline:none;border-color:var(--klein);
-  box-shadow:0 0 0 4px rgba(59,79,228,.14);background:#fff;transform:translateY(-1px)}
-.gate-box .gbtn{margin-top:14px;width:100%;padding:13px;font-size:14.5px;border-radius:14px;
-  letter-spacing:.01em;transition:transform .15s,box-shadow .2s}
-.gate-box .gbtn:hover:not(:disabled){transform:translateY(-1px);
-  box-shadow:0 8px 20px rgba(59,79,228,.32)}
-.gate-box .gbtn:active:not(:disabled){transform:translateY(0)}
-.gate-box .gerr{color:var(--red);font-size:13px;font-weight:600;margin-top:14px;min-height:28px;
-  line-height:1.35;display:flex;align-items:center;justify-content:center;gap:8px}
-.gate-box .gerr .gico{font-size:22px;line-height:1;display:inline-block;
-  animation:gate-ico-pop .55s cubic-bezier(.34,1.56,.64,1) both}
-.gate-box .gerr.shake{animation:gate-err-shake .45s ease-in-out}
-.gate-box.punch{animation:gate-box-punch .42s ease-in-out}
-.gate-box .gerr.boom .gico{animation:gate-ico-boom .7s ease-out both}
-@keyframes gate-box-in{
-  0%{opacity:0;transform:translateY(28px) scale(.94)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
-}
-@keyframes gate-mark-float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-5px)}
-}
-@keyframes gate-spin{to{transform:rotate(360deg)}}
-@keyframes gate-grid-drift{
-  0%{background-position:0 0,0 0}
-  100%{background-position:56px 56px,56px 56px}
-}
-@keyframes gate-err-shake{
-  0%,100%{transform:translateX(0)}
-  20%{transform:translateX(-8px) rotate(-1deg)}
-  40%{transform:translateX(8px) rotate(1deg)}
-  60%{transform:translateX(-6px)}
-  80%{transform:translateX(6px)}
-}
-@keyframes gate-box-punch{
-  0%,100%{transform:scale(1)}
-  30%{transform:scale(1.03) rotate(-.6deg)}
-  55%{transform:scale(.98) rotate(.5deg)}
-}
-@keyframes gate-ico-pop{
-  0%{transform:scale(0) rotate(-25deg);opacity:0}
-  60%{transform:scale(1.25) rotate(8deg);opacity:1}
-  100%{transform:scale(1) rotate(0)}
-}
-@keyframes gate-ico-boom{
-  0%{transform:scale(.4) rotate(0);opacity:0}
-  40%{transform:scale(1.4) rotate(-12deg);opacity:1}
-  70%{transform:scale(1.05) rotate(6deg)}
-  100%{transform:scale(1) rotate(0)}
-}
-@media (prefers-reduced-motion:reduce){
-  .gate-grid,.gate-orbit,.gate-mark,.gate-box{animation:none !important}
-  .gate-box{opacity:1;transform:none}
-  .gate-box .gerr .gico,.gate-box .gerr.shake,.gate-box.punch,.gate-box .gerr.boom .gico{animation:none}
-}
 
 #matchaShop{display:none}
 #matchaShop.open{display:block}
@@ -5813,28 +5713,6 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
 </style>
 </head>
 <body>
-<div class="gate" id="gate">
-  <div class="gate-bg" aria-hidden="true">
-    <div class="gate-grid"></div>
-    <div class="gate-orbit"></div>
-    <div class="gate-orbit o2"></div>
-    <div class="gate-orbit o3"></div>
-  </div>
-  <div class="gate-box">
-    <div class="gate-mark" aria-hidden="true">✈</div>
-    <h2>Dispatch Board</h2>
-    <p class="gate-sig">Sohee — A product by Rosie</p>
-    <p class="q">Mời xác nhận danh tính</p>
-    <div id="gateForm" autocomplete="off">
-      <input type="password" id="gateAns" name="dispatch-gate" inputmode="text"
-             autocomplete="off" spellcheck="false"
-             placeholder="…" data-lpignore="true" data-1p-ignore="true"
-             data-form-type="other" data-bwignore="true">
-      <button type="button" class="btn primary gbtn" id="gateGo">Xác nhận</button>
-    </div>
-    <div class="gerr" id="gateErr"></div>
-  </div>
-</div>
 <div id="matchaShop" aria-hidden="true">
   <button type="button" class="hy-close" id="matchaClose" aria-label="Đóng">×</button>
   <div class="case">
@@ -7651,21 +7529,12 @@ function startBrandAnimLoop(){
   kittyPeekTimer = setInterval(playKittyPeek, 5000);
 }
 function unlockUI(){
-  const g = $("#gate");
-  const go = () => {
-    g.style.display = "none";
-    g.classList.remove("out");
-    $(".app").style.display = "";
-    applyHeaderMode(true);
-    _tintPick = "default";
-    applyTint("default");
-    boot();
-  };
-  if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches){
-    go(); return;
-  }
-  g.classList.add("out");
-  setTimeout(go, 420);
+  const app = $(".app");
+  if(app) app.style.display = "";
+  applyHeaderMode(true);
+  _tintPick = "default";
+  applyTint("default");
+  boot();
 }
 function openMatchaShop(){
   const el = document.getElementById("matchaShop");
@@ -8330,164 +8199,14 @@ function toggleThemeMenu(){
   applyTint("default");
 })();
 </script>
-<script src="/hanyi/hanyi-gate.js"></script>
 <script>
-let gateTyped = false;
-let gateReady = false;
-let gateGuardTimers = [];
-function gateStopGuard(){
-  gateGuardTimers.forEach(t => clearTimeout(t));
-  gateGuardTimers = [];
-}
-function gateWipeAns(){
-  const el = $("#gateAns");
-  if(!el || el.disabled) return;
-  el.value = "";
-}
-function gateClearAns(){
-  const el = $("#gateAns");
-  if(!el || el.disabled || gateTyped || gateReady) return;
-  el.value = "";
-}
-function gateEnableAns(){
-  const el = $("#gateAns");
-  if(!el || el.disabled) return;
-  el.removeAttribute("readonly");
-  gateReady = true;
-  gateStopGuard();
-  try { el.focus(); } catch(e) {}
-}
-function gateShowErr(msg, icon, fails){
-  const el = $("#gateErr");
-  const box = document.querySelector(".gate-box");
-  if(!el) return;
-  const ico = icon || ({1:"🤨",2:"🖐️",3:"💥"}[fails] || "⛔");
-  const n = fails || 0;
-  el.className = "gerr shake" + (n >= 3 ? " boom" : "");
-  el.replaceChildren();
-  const gico = document.createElement("span");
-  gico.className = "gico";
-  gico.setAttribute("aria-hidden", "true");
-  gico.textContent = ico;
-  const txt = document.createElement("span");
-  txt.textContent = msg || "Sai mật khẩu";
-  el.appendChild(gico);
-  el.appendChild(txt);
-  void el.offsetWidth;
-  el.classList.remove("shake");
-  void el.offsetWidth;
-  el.classList.add("shake");
-  if(box){
-    box.classList.remove("punch");
-    void box.offsetWidth;
-    box.classList.add("punch");
-  }
-}
-function gateHardLockUI(msg, icon){
-  const ans = $("#gateAns");
-  const btn = $("#gateGo");
-  if(ans){
-    ans.value = "";
-    ans.disabled = true;
-    ans.setAttribute("readonly", "readonly");
-    ans.placeholder = "đã khoá";
-  }
-  if(btn){ btn.disabled = true; btn.textContent = "Đã khoá"; }
-  gateShowErr(msg || "hết cơ hội rồi nhé — F5 để thử lại", icon || "💥", 3);
-}
-async function gateCheck(){
-  if($("#gateAns") && $("#gateAns").disabled) return;
-  const v = $("#gateAns") ? $("#gateAns").value : "";
-  if(v) gateTyped = true;
-  if($("#gateErr")){ $("#gateErr").textContent = ""; $("#gateErr").className = "gerr"; }
-  if(!v){
-    gateShowErr("Hãy tự nhập mật khẩu", "⌨️", 0);
-    gateWipeAns();
-    gateTyped = false;
-    gateEnableAns();
-    if($("#gateAns")) $("#gateAns").focus();
-    return;
-  }
-  try{
-    const r = await fetch("/api/gate/unlock", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      credentials: "same-origin",
-      body: JSON.stringify({password: v}),
-    });
-    const d = await r.json().catch(() => ({}));
-    if(d.locked || (d.fails || 0) >= (d.max_tries || 3)){
-      gateHardLockUI(d.error, d.icon);
-      return;
-    }
-    if(!r.ok || !d.ok){
-      gateShowErr(d.error || "Sai mật khẩu", d.icon, d.fails || 1);
-      gateWipeAns();
-      gateTyped = false;
-      gateEnableAns();
-      if($("#gateAns")) $("#gateAns").focus();
-      return;
-    }
-    const ans = $("#gateAns");
-    if(ans){ ans.value = ""; ans.removeAttribute("name"); ans.remove(); }
-    gateTyped = false;
-    unlockUI();
-  }catch(err){
-    gateShowErr("Không liên lạc được server", "📡", 0);
-  }
-}
-if($("#gateGo")) $("#gateGo").onclick = gateCheck;
-if($("#gateAns")){
-  const armGate = () => { gateEnableAns(); };
-  $("#gateAns").addEventListener("pointerdown", armGate, true);
-  $("#gateAns").addEventListener("touchstart", armGate, {passive:true, capture:true});
-  $("#gateAns").onkeydown = e => {
-    if($("#gateAns") && $("#gateAns").disabled) return;
-    if(e.key === "Enter"){ gateCheck(); return; }
-    if(e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") gateTyped = true;
-  };
-  $("#gateAns").addEventListener("beforeinput", e => { if(e.isTrusted) gateTyped = true; });
-  $("#gateAns").onpaste = () => { gateTyped = true; };
-  $("#gateAns").onfocus = () => gateEnableAns();
-}
 document.addEventListener("keydown", e => {
   if(e.key === "Escape") closeMatchaShop();
 });
-(async function gateBoot(){
-  let locked = false;
-  try{
-    const lockR = await fetch("/api/gate/lock", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      credentials: "same-origin",
-      body: "{}",
-    });
-    const lockD = await lockR.json().catch(() => ({}));
-    locked = !!lockD.locked;
-  }catch(e){}
-  try{
-    const st = await (await fetch("/api/gate/status", {credentials:"same-origin"})).json();
-    if(st.locked) locked = true;
-  }catch(e){}
-  $("#gate").style.display = "";
-  $(".app").style.display = "none";
-  if(locked){
-    gateHardLockUI("hết cơ hội rồi nhé", "💥");
-    return;
-  }
-  if(gateTyped || gateReady){
-    gateEnableAns();
-    return;
-  }
-  if($("#gateErr")) $("#gateErr").textContent = "";
-  gateClearAns();
-  [0, 50, 150].forEach(ms => {
-    gateGuardTimers.push(setTimeout(() => {
-      if(!gateTyped && !gateReady && $("#gateAns") && !$("#gateAns").disabled) gateClearAns();
-    }, ms));
-  });
-  gateGuardTimers.push(setTimeout(() => { if(!gateTyped) gateEnableAns(); }, 250));
-})();
+/* Không còn popup mật khẩu riêng — đăng nhập do web app lo, mở trang là vào luôn. */
+document.addEventListener("DOMContentLoaded", () => {
+  try { unlockUI(); } catch(e) { console.error(e); }
+});
 </script>
 <script>
 let flights = [], current = null, fltBooted = false;
@@ -26748,7 +26467,7 @@ function boot(){
     }catch(err){ /* bỏ qua — người dùng vẫn bấm nút TAF được */ }
   })();
   loadRegNoticeList();
-  // Lần gọi lúc parse trang diễn ra trước khi gate mở nên API có thể trả 401.
+  // Lần gọi lúc parse trang có thể xảy ra trước khi đăng nhập xong nên API trả 401.
   // Nạp lại sau đăng nhập để dữ liệu limits.json thực sự đi vào các bảng.
   limBoot();
   fplWatchStartUi();
@@ -26961,7 +26680,7 @@ function boot(){
   }
 })();
 
-/* boot() chỉ gọi sau khi gate mở (unlockUI / gateBoot) */
+/* boot() chỉ gọi một lần, từ unlockUI() khi trang sẵn sàng. */
 </script>
 <div class="nm-tune-pop" id="nmTunePop" hidden>
   <h4>Logic và nguyên lý lược bỏ NOTAM</h4>
