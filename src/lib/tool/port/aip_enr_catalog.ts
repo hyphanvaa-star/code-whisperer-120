@@ -4,7 +4,7 @@
 import DATA from "../data/aip_enr_rings.json";
 
 type Pt = [number, number];
-const RINGS = (DATA as { rings: Record<string, Pt[]> }).rings;
+const RINGS = (DATA as unknown as { rings: Record<string, Pt[]> }).rings;
 
 const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA)\s*\(?\s*([DRP])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![0-9])/g;
 
