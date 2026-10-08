@@ -537,7 +537,7 @@ def do_aviweb_submit(payload: dict, say) -> dict:
             say(str(d))
 
     fn = None
-    for cand in ("submit_file", "submit_atc_file", "run_file", "submit_fpl_file",
+    for cand in ("submit_fpl", "submit_file", "submit_atc_file", "run_file", "submit_fpl_file",
                  "submit_all", "run_submit", "submit", "run", "main"):
         f = getattr(atcfpl, cand, None)
         if callable(f):
@@ -563,6 +563,8 @@ def do_aviweb_submit(payload: dict, say) -> dict:
                 kwargs[pname] = values[pname]
         elif prm.default is prm.empty and prm.kind in (prm.POSITIONAL_ONLY, prm.POSITIONAL_OR_KEYWORD):
             args.append(str(fpath))
+    if fn.__name__ == "main":
+        args, kwargs = [[str(fpath)]], {}
     say(f"· chạy atcfpl.{fn.__name__}()")
     res = fn(*args, **kwargs)
 
