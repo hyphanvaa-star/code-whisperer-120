@@ -38,6 +38,7 @@ interface OmniAutoState {
   last_path: string;
   last_count: number;
   last_error: string;
+  last_try?: number;
 }
 
 const OMNI_AUTO_DEFAULT: OmniAutoState = {
@@ -148,7 +149,9 @@ async function omniAutoStatus(ctx: Ctx) {
     ...state,
     dest,
     busy: false,
-    next_at: state.enabled ? state.last_at + 60 * 60 : 0,
+    next_at: state.enabled
+      ? Math.max(state.last_at + 60 * 60, state.last_error ? (state.last_try || 0) + 10 * 60 : 0)
+      : 0,
   };
 }
 
@@ -273,7 +276,7 @@ export const routes: Routes = {
         return await omniAutoRun(ctx);
       } catch (e) {
         const state = await getJson<OmniAutoState>(ctx, OMNI_AUTO_KEY, OMNI_AUTO_DEFAULT);
-        await setJson(ctx, OMNI_AUTO_KEY, { ...state, last_error: (e as Error).message });
+        await setJson(ctx, OMNI_AUTO_KEY, { ...state, last_error: (e as Error).message, last_try: Date.now() / 1000 });
         return { error: (e as Error).message };
       }
     }
