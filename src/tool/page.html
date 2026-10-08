@@ -6415,7 +6415,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
               <input type="file" id="splitPdfFile" accept=".pdf" style="display:none">
               <button class="btn small t-soft" id="mergePdfPick"
                       title="Chọn nhiều file Word, TXT hoặc PDF cùng lúc, gộp thành một PDF và lưu ra ổ D:">
-                Gộp PDF → D:</button>
+                Gộp PDF</button>
               <input type="file" id="mergePdfFiles" accept=".pdf,.txt,.doc,.docx" multiple style="display:none">
             </div>
           </div>
@@ -25679,12 +25679,25 @@ $("#mergePdfFiles").onchange = async e => {
     const r = await fetch("/api/pdf/merge", {method: "POST", body});
     const d = await r.json();
     if(d.error){ write("✗ " + d.error, "fail"); return; }
-    write("✓ " + d.pages + " trang → " + d.path, "ok");
+    write("✓ " + d.pages + " trang → " + d.path + " (lưu trên máy chủ)", "ok");
     for(const x of (d.parts || [])) write("  · " + x.name + ": " + x.pages + " trang");
+    // Tự tải file gộp về máy + ghi link tải vào nhật ký.
+    const url = "/api/pdf/merged-file/" + encodeURIComponent(d.file);
+    const a = document.createElement("a");
+    a.href = url; a.download = d.file;
+    document.body.appendChild(a); a.click(); a.remove();
+    write("⬇ đang tải về: " + d.file + " — nếu chưa thấy thì bấm ", "ok");
+    const last = $("#console").lastElementChild;
+    if(last){
+      const lnk = document.createElement("a");
+      lnk.href = url; lnk.download = d.file; lnk.textContent = "đây để tải lại";
+      lnk.style.color = "#7dd3fc"; lnk.style.textDecoration = "underline";
+      last.appendChild(lnk);
+    }
   }catch(err){
     write("✗ Lỗi: " + err.message, "fail");
   }finally{
-    btn.disabled = false; btn.textContent = "Gộp PDF → D:";
+    btn.disabled = false; btn.textContent = "Gộp PDF";
   }
 };
 $("#acClear").onclick = () => {

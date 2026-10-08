@@ -80,6 +80,21 @@ export const routes: Routes = {
     }
   },
 
+  // Tải lại file PDF đã gộp (lưu trên máy chủ ở merged/).
+  "GET /api/pdf/merged-file/*": async (ctx) => {
+    const name = (ctx.route.split("/").pop() || "").replace(/[^A-Za-z0-9._-]/g, "");
+    if (!name.toLowerCase().endsWith(".pdf")) return new Response("Tên file không hợp lệ", { status: 400 });
+    const buf = await store.getFile(ctx, `merged/${name}`);
+    if (!buf) return new Response("Không có file", { status: 404 });
+    return new Response(buf, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${name}"`,
+        "Cache-Control": "private, no-store",
+      },
+    });
+  },
+
   "GET /api/regnotice/list": async (ctx) => {
     const entries = await store.listFiles(ctx, regDir(ctx));
     const files = entries
