@@ -26,7 +26,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.1"
+VERSION = "2.3"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -537,7 +537,7 @@ def do_aviweb_submit(payload: dict, say) -> dict:
             say(str(d))
 
     fn = None
-    for cand in ("submit_file", "submit_atc_file", "run_file", "submit_fpl_file",
+    for cand in ("submit_fpl", "submit_file", "submit_atc_file", "run_file", "submit_fpl_file",
                  "submit_all", "run_submit", "submit", "run", "main"):
         f = getattr(atcfpl, cand, None)
         if callable(f):
@@ -563,6 +563,8 @@ def do_aviweb_submit(payload: dict, say) -> dict:
                 kwargs[pname] = values[pname]
         elif prm.default is prm.empty and prm.kind in (prm.POSITIONAL_ONLY, prm.POSITIONAL_OR_KEYWORD):
             args.append(str(fpath))
+    if fn.__name__ == "main":
+        args, kwargs = [[str(fpath)]], {}
     say(f"· chạy atcfpl.{fn.__name__}()")
     res = fn(*args, **kwargs)
 
@@ -571,7 +573,9 @@ def do_aviweb_submit(payload: dict, say) -> dict:
             return res.get(k, default)
         return getattr(res, k, default)
 
-    bad = g("bad") or g("failed_items") or []
+    bad = g("bad") or g("failed_items") or [
+        {"flight": getattr(x, "label", ""), "reason": getattr(x, "reason", "") or "chưa gửi"}
+        for x in (g("items") or []) if not getattr(x, "ok", False)]
     bad = [b if isinstance(b, dict) else {"flight": str(getattr(b, "flight", b))} for b in bad]
     ok = g("ok", 0)
     failed = g("failed", len(bad))
