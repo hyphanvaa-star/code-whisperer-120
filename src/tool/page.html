@@ -15724,22 +15724,18 @@ function nmEnsureMap(){
   const sat = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     {maxZoom: 19, attribution: "Tiles &copy; Esri"});
-  // SkyVector aeronautical charts. Layer 301 (VFR): grid 2^z, scale s = z - 4.
-  // Layer 302 (IFR Low): grid 1.5 * 2^z, scale s = z - 3, tile coords x/y * 1.5.
+  // SkyVector charts: scale s grows when zooming OUT. Odd scales use a
+  // 1.5 * 2^k grid: Leaflet zoom z -> s = 21 - 2z, tile x/y * 1.5 (z=10 -> s=1, finest).
   const SvTile = L.TileLayer.extend({
     getTileUrl: function(c){
-      if(this.options.svLayer === "302"){
-        return "https://t.skyvector.com/ABPNMzP6pI9L/302/2610/" + (c.z - 3) +
-          "/" + Math.floor(c.x * 1.5) + "/" + Math.floor(c.y * 1.5) + ".jpg";
-      }
-      return "https://t.skyvector.com/ABPNMzP6pI9L/301/2610/" + (c.z - 4) +
-        "/" + c.x + "/" + c.y + ".jpg";
+      return "https://t.skyvector.com/ABPNMzP6pI9L/" + this.options.svLayer + "/2610/" +
+        (21 - 2 * c.z) + "/" + Math.floor(c.x * 1.5) + "/" + Math.floor(c.y * 1.5) + ".jpg";
     }
   });
-  const svLo = new SvTile("", {svLayer: "302", minZoom: 4, maxZoom: 19,
-    maxNativeZoom: 14, attribution: "Charts &copy; SkyVector"});
-  const svVfr = new SvTile("", {svLayer: "301", minZoom: 5, maxZoom: 19,
-    maxNativeZoom: 15, attribution: "Charts &copy; SkyVector"});
+  const svOpts = {minZoom: 3, maxZoom: 19, maxNativeZoom: 10, keepBuffer: 4,
+    updateWhenZooming: false, attribution: "Charts &copy; SkyVector"};
+  const svLo = new SvTile("", Object.assign({svLayer: "302"}, svOpts));
+  const svVfr = new SvTile("", Object.assign({svLayer: "301"}, svOpts));
   svLo.addTo(nmMap);
   const vnPane = nmMap.createPane("nmVn");
   vnPane.style.zIndex = 410;
