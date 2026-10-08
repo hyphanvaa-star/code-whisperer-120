@@ -241,7 +241,13 @@ export function save_taxi(oldDoc: Raw, rows: Raw[], months?: string[]): Raw {
       oct: String(rec.oct || "").trim(), nov: String(rec.nov || "").trim(), dec: String(rec.dec || "").trim(),
     });
   }
-  return { month: "OCT", source: oldDoc.source || "", standard: TAXI_STANDARD, rows: out };
+  const labels = TAXI_MONTH_KEYS.map((_, i) => {
+    const v = String((months || [])[i] || "").trim().toUpperCase();
+    return v || taxiMonthLabels(oldDoc)[i];
+  });
+  const doc: Raw = { month: "OCT", months: labels, source: oldDoc.source || "", standard: TAXI_STANDARD, rows: out };
+  doc.month = labels[taxiActiveIndex(doc)];
+  return doc;
 }
 
 export function save_route_table(rows: Raw[]): Raw {
