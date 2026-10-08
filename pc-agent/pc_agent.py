@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.6"
+VERSION = "2.7"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
