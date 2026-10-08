@@ -4,7 +4,7 @@ import type { Flight } from "../core/models";
 
 export const TAU_LIST = new Set([
   "VNA522", "VNA631", "VNA637", "VNA651", "VNA643", "VNA642", "VNA639",
-  "VNA635", "VNA632", "VNA641", "VNA649", "VNA657", "VNA634", "VNA687",
+  "VNA635", "VNA632", "VNA641", "VNA649", "VNA657", "VNA634", "VNA687", "VNA698",
 ]);
 export const ICAO_SPECIAL = new Set(["VVDB"]);
 export const ICAO_DPS = new Set(["WADD"]);
