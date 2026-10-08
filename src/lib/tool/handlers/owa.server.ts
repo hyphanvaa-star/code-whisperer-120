@@ -171,12 +171,16 @@ export const jobs: Jobs = {
             mailbox: credEnv("OUTLOOK_MAILBOX") || "omc@vietjetair.com",
           };
           const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, attachments, ...mail });
-          const r = await pc.waitResult(id, 120_000);
+          const r = (await pc.waitResult(id, 120_000)) as { draft_id?: string; mailbox?: string } | null;
           emit({ type: "line", text: `✓ ${subject}` });
           ok += 1;
           subjects.push(subject);
           files.push(attachments[0]!.name, attachments[1]!.name);
-          void r;
+          const did = r && typeof r === "object" ? String(r.draft_id || "") : "";
+          if (did) {
+            const mb = encodeURIComponent(String(r?.mailbox || mail.mailbox));
+            links.push(`https://outlook.cloud.microsoft/mail/${mb}/deeplink/compose/${encodeURIComponent(did)}`);
+          }
         } catch (exc) {
           const msg = exc instanceof Error ? exc.message : String(exc);
           emit({ type: "line", text: `✗ ${want}: ${msg}`, cls: "bad" });
