@@ -519,7 +519,7 @@ def _fpl_dir() -> Path:
 
 
 def _patch_fpl_watch(mod):
-    """owa_fpl_watch gốc cứng đích D:\FPL — máy không có ổ D thì trỏ sang C:\FPL."""
+    r"""owa_fpl_watch gốc cứng đích D:\FPL — máy không có ổ D thì trỏ sang C:\FPL."""
     fpl = str(_fpl_dir())
     for attr in ("DEST", "DEST_DIR", "FPL_DIR", "EXCEL_DIR", "DEST_EXCEL"):
         cur = str(getattr(mod, attr, "") or "")
