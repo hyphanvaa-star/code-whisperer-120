@@ -145,7 +145,7 @@ export function needsFor(
       const [t, alt] = splitAlt(title);
       if (!t || seen.has(t.toLowerCase())) continue;
       seen.add(t.toLowerCase());
-      needs.push({ title: t, rule: row.name, found: exists(t, r), alt, cond: row.condition });
+      needs.push({ title: t, rule: row.name, found: exists(t, r) || alt.some((a) => exists(a, r)), alt, cond: row.condition });
     }
   }
   return { flight, needs };
