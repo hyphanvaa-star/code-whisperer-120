@@ -1,3 +1,4 @@
+import AIP_CATALOG from "./aip_catalog.json";
 // Port of notam_track.py — đối chiếu NOTAM 24H với track KML: toạ độ, FL, FIR, giờ.
 // Scope note (see final report): the AIP/SUA/ENR/DAH polygon gazetteer (aip_sua.py,
 // aip_jp.py, aip_sup.py, aip_lookup.ring) and the JetPlan KML fetch (jetplan_kml.py)
@@ -316,7 +317,35 @@ export function supKeys(blob: string): string[] {
 // Public entry: geometry list for a NOTAM. Shapes from the text come first; when the
 // text has no polygon, rings resolved beforehand from AIP SUP / DAH (handler attaches
 // them as `sup_geoms`, see aip_sup.server.ts) are used — never fabricated.
+function catalogId(raw: string): string {
+  const s = raw.toUpperCase().replace(/[\s_]+/g, "");
+  const m = s.replace(/[^A-Z0-9]+/g, "").match(/^([A-Z]{3,4})(\d{1,4}[A-Z]?)$/);
+  return m ? `${m[1]}-${m[2]}` : s;
+}
+
+/** Vùng đã công bố trong AIP/AIP SUP (danh mục gốc notam_track.py) — NOTAM gọi tên thì vẽ đúng hình. */
+export function catalogGeoms(blob: string): Geom[] {
+  const u = blob.toUpperCase();
+  const out: Geom[] = [];
+  const seen = new Set<string>();
+  const rings = AIP_CATALOG.rings as unknown as Record<string, [number, number][]>;
+  const circles = AIP_CATALOG.circles as unknown as Record<string, [number, number, number]>;
+  for (const key of [...Object.keys(rings), ...Object.keys(circles)].sort((a, b) => b.length - a.length)) {
+    const esc = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/-/g, "\\s*-?\\s*");
+    const re = new RegExp(`(?<![A-Z0-9-])${esc}(?![A-Z0-9]|-[A-Z])`);
+    if (!re.test(u) || seen.has(catalogId(key))) continue;
+    if ([...seen].some((k) => k.startsWith(key + "-"))) continue;
+    seen.add(catalogId(key));
+    if (rings[key]) out.push({ name: key, shape: "polygon", ring: rings[key], source: "aip" } as Geom);
+    else { const [lat, lon, r] = circles[key]!; out.push({ name: key, shape: "circle", lat, lon, radius_nm: r, ring: [], source: "aip" } as unknown as Geom); }
+  }
+  return out;
+}
+
 export function notamGeoms(notam: Notam): Geom[] {
+  const catBlob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
+  const cat = catalogGeoms(catBlob);
+  if (cat.length) return cat;
   const own = notamGeomsText(notam);
   const sup = (notam.sup_geoms as Geom[] | undefined) ?? [];
   const blob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
