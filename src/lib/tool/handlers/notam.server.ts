@@ -9,7 +9,7 @@ import atsRoutes from "../data/ats_routes.json";
 // ATS route các nước (snapshot aip_ats/routes.json của tool cũ) gộp vào nền bản đồ.
 function withForeignAts(c: vn.Chart): vn.Chart {
   const extra: vn.ChartRoute[] = [];
-  for (const [cc, list] of Object.entries(atsRoutes as Record<string, { name: string; pts: vn.ChartPt[] }[]>))
+  for (const [cc, list] of Object.entries(atsRoutes as unknown as Record<string, { name: string; pts: vn.ChartPt[] }[]>))
     for (const r of list) extra.push({ name: r.name, pts: r.pts, cc });
   return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...extra] };
 }
