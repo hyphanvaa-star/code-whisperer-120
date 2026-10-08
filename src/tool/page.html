@@ -5829,7 +5829,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V16</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V17</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -11115,17 +11115,10 @@ async function applyFplVer(ver){
     return;
   }
   await vLoadFiles({preferNewest: false});
-  const hasNew = !!(neu && vFileList.some(f => f.name === neu));
-  if(hasNew) vSetValue("new", neu);
-  else if(!neu && fplVerApplied.new && $("#vNew").value === fplVerApplied.new)
-    vSetValue("new", "");
-  if(old && vFileList.some(f => f.name === old)) vSetValue("old", old);
-  else if(hasNew){
-    // VER trước chưa có trên hệ thống → lấy file ngay sau VER mới (list mới→cũ)
-    // để vẫn tự so sánh, không giữ file cũ của ngày khác.
-    const i = vFileList.findIndex(f => f.name === neu);
-    const prev = vFileList.slice(i + 1).find(f => f.name !== neu);
-    if(prev) vSetValue("old", prev.name);
+  // Luôn so 2 ver mới nhất: ver mới nhất → BẢN MỚI, ver liền trước → BẢN ĐANG DÙNG.
+  if(vFileList.length){
+    vSetValue("new", vFileList[0].name);
+    if(vFileList.length > 1) vSetValue("old", vFileList[1].name);
   }
   vPaintMenus();
   fplVerApplied = {old: $("#vOld").value, new: $("#vNew").value};
@@ -20593,10 +20586,32 @@ function vPaintMenus(){
   }
 }
 
+function vVerKey(name){
+  const s = String(name || "").toUpperCase();
+  const m = s.match(/VER\s*[-_ ]?\s*(\d+)/);
+  const dm = s.match(/ON\s+(\d{1,2})\s*([A-Z]{3})/);
+  const MON = "JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC";
+  const day = dm ? (MON.indexOf(dm[2]) / 3 + 1) * 100 + Number(dm[1]) : 0;
+  return [day, m ? Number(m[1]) : -1];
+}
 async function vLoadFiles({preferNewest = false} = {}){
   try{
     const d = await (await fetch("/api/version/files")).json();
-    vFileList = d.files || [];
+    vFileList = (d.files || []).slice().sort((a, b) => {
+      const ka = vVerKey(a.name), kb = vVerKey(b.name);
+      if(ka[1] >= 0 && kb[1] >= 0){
+        if(ka[0] !== kb[0]) return kb[0] - ka[0];
+        if(ka[1] !== kb[1]) return kb[1] - ka[1];
+      }
+      return (b.modified || 0) - (a.modified || 0);
+    });
+    // Có ver mới hơn cặp đang chọn → ver mới vào BẢN MỚI, ver liền trước xuống BẢN ĐANG DÙNG.
+    const top = vFileList[0] && vFileList[0].name;
+    if(top && top !== $("#vNew").value && top !== $("#vOld").value && window.__vLastTop !== top){
+      preferNewest = true;
+      try{ fplVerApplied.old = ""; fplVerApplied.new = ""; }catch(_){}
+    }
+    window.__vLastTop = top;
     for(const [which, def] of [["old", 1], ["new", 0]]){
       const keep = $(which === "old" ? "#vOld" : "#vNew").value;
       let next = "";
