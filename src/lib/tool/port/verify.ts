@@ -100,10 +100,11 @@ export function verifiedLabel(v: Verified): string {
 export async function verify(fb: FbClient, flight: Flight, opts: { skipIfDone?: boolean; fresh?: boolean } = {}): Promise<Verified> {
   let skipIfDone = opts.skipIfDone ?? true;
   const fresh = opts.fresh ?? true;
-  let pendingAck = ofpAckNeeded(flight);
+  const isPen = (f: Flight) => String(f.ofp_status || "").trim().toUpperCase() === "PEN";
+  let pendingAck = ofpAckNeeded(flight) || isPen(flight);
   if (fresh) {
     flight = await refresh(fb, flight);
-    pendingAck = pendingAck || ofpAckNeeded(flight);
+    pendingAck = pendingAck || ofpAckNeeded(flight) || isPen(flight);
   }
   const res = newVerified(flight);
 
@@ -137,6 +138,14 @@ export async function verify(fb: FbClient, flight: Flight, opts: { skipIfDone?: 
   let r: FbResp;
   try {
     r = await fb.post(`/webapi/sectors/${flight.id}/verify/${flight.plan_id ?? ""}`, null);
+    if (r.status === 400 && !res.acked_ofp) {
+      // OFP chưa release (PEN) → release plan rồi verify lại
+      await ackNewOfp(fb, flight);
+      flight = await refresh(fb, flight);
+      res.flight = flight;
+      res.acked_ofp = true;
+      r = await fb.post(`/webapi/sectors/${flight.id}/verify/${flight.plan_id ?? ""}`, null);
+    }
   } catch (exc) {
     res.error = `${(exc as Error).name || "Error"}: ${(exc as Error).message || exc}`;
     return res;
