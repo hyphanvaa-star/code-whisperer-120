@@ -498,100 +498,42 @@ def do_aviweb_check(payload: dict, say) -> dict:
     headless = bool(payload.get("headless", True))
     say(f"· dùng tool gốc tại {tool_dir}")
 
-    def on_progress(*a) -> None:
-        d = a[0] if a else None
-        if d.get("type") == "line" and d.get("text"):
-            say(str(d["text"]), str(d.get("cls") or ""))
+    total = len(atcfpl.read_fpl_blocks(fpath))
+    state = {"n": 0}
 
-    res = atc_check.check_flights(callsigns, headless=headless, on_progress=on_progress)
+    def on_progress(text, flight: str = "") -> None:
+        # giống web.py cũ: progress(text, flight)
+        if isinstance(text, dict):
+            text = text.get("text") or ""
+        text = str(text or "")
+        if flight and text.startswith(("\u2713", "\u2717")):
+            state["n"] += 1
+            text = f"[{state['n']}/{total}] {text}"
+        if text:
+            say(text, "bad" if text.startswith("\u2717") else "")
+
+    say("\u00b7 chạy atcfpl.submit_fpl()")
+    res = atcfpl.submit_fpl(
+        fpath, headless=bool(payload.get("headless", True)), on_progress=on_progress,
+        cancel=_NoCancel(),
+        limit=int(payload["limit"]) if payload.get("limit") else None,
+        only_labels=[str(x) for x in (payload.get("only_labels") or [])] or None,
+    )
+    items = list(getattr(res, "items", []) or [])
     return {
-        "ok": res.ok,
-        "failed": res.failed,
-        "results": [
-            {"callsign": r.callsign, "status": r.status, "flight_time": r.flight_time,
-             "reg": r.reg, "dof": r.dof, "error": r.error, "ok": r.ok}
-            for r in res.results
-        ],
-    }
-
-
-def do_aviweb_submit(payload: dict, say) -> dict:
-    """Gửi FPL lên AviWeb bằng Chrome thật — chạy atcfpl.py của tool gốc."""
-    import inspect
-    tool_dir = _find_tool_dir()
-    if str(tool_dir) not in sys.path:
-        sys.path.insert(0, str(tool_dir))
-    os.chdir(tool_dir)
-    import atcfpl  # noqa: E402  (module của tool gốc)
-
-    name = str(payload.get("name") or "ATC.txt")
-    dest = tool_dir / "data" / "atc"
-    dest.mkdir(parents=True, exist_ok=True)
-    fpath = dest / name
-    fpath.write_text(str(payload.get("text") or ""), encoding="utf-8")
-    say(f"· file ATC: {fpath}")
-
-    def on_progress(*a) -> None:
-        d = a[0] if a else None
-        if isinstance(d, dict):
-            if d.get("text"):
-                say(str(d["text"]), str(d.get("cls") or ""))
-        elif d:
-            say(str(d))
-
-    fn = None
-    for cand in ("submit_fpl", "submit_file", "submit_atc_file", "run_file", "submit_fpl_file",
-                 "submit_all", "run_submit", "submit", "run", "main"):
-        f = getattr(atcfpl, cand, None)
-        if callable(f):
-            fn = f
-            break
-    if fn is None:
-        raise RuntimeError("atcfpl.py không có hàm gửi FPL quen thuộc — gửi file atcfpl.py cho Lovable để nối đúng")
-
-    values = {
-        "path": str(fpath), "file": str(fpath), "file_path": str(fpath), "filepath": str(fpath),
-        "atc_file": str(fpath), "headless": bool(payload.get("headless", True)),
-        "limit": payload.get("limit"), "only_labels": payload.get("only_labels") or None,
-        "on_progress": on_progress, "progress": on_progress, "cancel": _NoCancel(),
-        "cancel_event": _NoCancel(),
-    }
-    sig = inspect.signature(fn)
-    args, kwargs = [], {}
-    for pname, prm in sig.parameters.items():
-        if pname in values:
-            if prm.kind == prm.POSITIONAL_ONLY:
-                args.append(values[pname])
-            else:
-                kwargs[pname] = values[pname]
-        elif prm.default is prm.empty and prm.kind in (prm.POSITIONAL_ONLY, prm.POSITIONAL_OR_KEYWORD):
-            args.append(str(fpath))
-    if fn.__name__ == "main":
-        args, kwargs = [[str(fpath)]], {}
-    say(f"· chạy atcfpl.{fn.__name__}()")
-    res = fn(*args, **kwargs)
-
-    def g(k, default=None):
-        if isinstance(res, dict):
-            return res.get(k, default)
-        return getattr(res, k, default)
-
-    bad = g("bad") or g("failed_items") or [
-        {"flight": getattr(x, "label", ""), "reason": getattr(x, "reason", "") or "chưa gửi"}
-        for x in (g("items") or []) if not getattr(x, "ok", False)]
-    bad = [b if isinstance(b, dict) else {"flight": str(getattr(b, "flight", b))} for b in bad]
-    ok = g("ok", 0)
-    failed = g("failed", len(bad))
-    return {
-        "ok": len(ok) if isinstance(ok, (list, tuple)) else int(ok or 0),
-        "failed": len(failed) if isinstance(failed, (list, tuple)) else int(failed or 0),
-        "bad": bad,
-        "pending": list(g("pending") or []),
+        "ok": len([x for x in items if x.ok]),
+        "failed": len([x for x in items if x.attempted and not x.ok]),
+        "sent": [x.label for x in items if x.ok],
+        "bad": [{"flight": x.label, "why": x.reason, "reason": x.reason}
+                for x in items if x.attempted and not x.ok],
+        "pending": [x.label for x in items if not x.attempted],
+        "missing": list(getattr(res, "failed", []) or []),
     }
 
 
 _CANCEL = threading.Event()
 _CURRENT_JOB: list = [None]
+_ABORTS: list = []
 
 
 class _NoCancel:
@@ -602,6 +544,10 @@ class _NoCancel:
 
     def wait(self, timeout=None) -> bool:
         return _CANCEL.wait(timeout)
+
+    def add_abort(self, fn) -> None:
+        # atcfpl gọi cancel.add_abort(driver.quit) — đóng Chrome khi bấm Stop
+        _ABORTS.append(fn)
 
 
 def _cancel_watcher() -> None:
