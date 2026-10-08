@@ -191,9 +191,9 @@ function AuthPage() {
 
           <form onSubmit={submit} className="mt-6 space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="id">ID tài khoản</Label>
+              <Label htmlFor="id" className="text-emerald-100/80">ID tài khoản</Label>
               <div className="relative">
-                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/40" />
                 <Input
                   id="id"
                   type="text"
@@ -201,22 +201,22 @@ function AuthPage() {
                   autoCapitalize="none"
                   spellCheck={false}
                   placeholder="hyphan"
-                  className="pl-9"
+                  className="border-emerald-400/25 bg-black/30 pl-9 text-emerald-50 placeholder:text-emerald-100/30 focus-visible:ring-emerald-400/40"
                   value={id}
                   onChange={(e) => setId(e.target.value)}
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="pw">Mật khẩu</Label>
+              <Label htmlFor="pw" className="text-emerald-100/80">Mật khẩu</Label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-100/40" />
                 <Input
                   id="pw"
                   type="password"
                   autoComplete="current-password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="border-emerald-400/25 bg-black/30 pl-9 text-emerald-50 placeholder:text-emerald-100/30 focus-visible:ring-emerald-400/40"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -227,8 +227,8 @@ function AuthPage() {
             </Button>
           </form>
 
-          <div className="mt-6 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 px-3 py-2.5 text-xs text-muted-foreground">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="mt-6 flex items-start gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/5 px-3 py-2.5 text-xs text-emerald-100/60">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
             <span>
               Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý
               để được cấp tài khoản.
@@ -236,7 +236,7 @@ function AuthPage() {
           </div>
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p className="mt-6 text-center text-xs text-emerald-100/40">
           Sohee — A product by Rosie
         </p>
       </div>
