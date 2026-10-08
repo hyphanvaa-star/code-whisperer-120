@@ -22896,14 +22896,67 @@ function paintCmpMarks(sid){
   paintOfpChg(sid, pend);
 }
 
+// Omni không cho máy chủ cloud tạo phiên (IP quá dài) → đăng nhập ngay trên trình duyệt
+// này (Omni cho phép), gửi phiên 30 ngày lên server để cả team dùng chung.
+let omniLoginOpen = false;
+function omniBrowserLogin(){
+  if(omniLoginOpen) return Promise.resolve(false);
+  omniLoginOpen = true;
+  return new Promise(async resolve => {
+    let user = "";
+    try{ user = ((await (await fetch("/api/omni/login-user")).json()) || {}).username || ""; }catch(e){}
+    const ov = document.createElement("div");
+    ov.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:99999;display:flex;align-items:center;justify-content:center";
+    ov.innerHTML = '<form style="background:#fff;border-radius:12px;padding:18px 20px;width:340px;box-shadow:0 20px 50px rgba(0,0,0,.25);font:14px system-ui">'
+      + '<div style="font-weight:700;font-size:15px;margin-bottom:6px">Đăng nhập InFlight Omni</div>'
+      + '<div style="color:#64748b;font-size:12px;margin-bottom:12px">Omni chặn đăng nhập từ máy chủ web. Đăng nhập 1 lần ở đây, phiên dùng được ~30 ngày cho cả team.</div>'
+      + '<input name="u" placeholder="Tài khoản Omni" autocomplete="username" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:8px">'
+      + '<input name="p" type="password" placeholder="Mật khẩu" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:8px">'
+      + '<div class="om-err" style="color:#E31937;font-size:12px;min-height:16px;margin-bottom:8px"></div>'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="om-x" style="padding:7px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;cursor:pointer">Huỷ</button>'
+      + '<button type="submit" style="padding:7px 14px;border-radius:8px;border:0;background:#E31937;color:#fff;font-weight:700;cursor:pointer">Đăng nhập</button></div></form>';
+    document.body.appendChild(ov);
+    const form = ov.querySelector("form"), err = ov.querySelector(".om-err");
+    form.u.value = user;
+    (user ? form.p : form.u).focus();
+    const done = ok => { ov.remove(); omniLoginOpen = false; resolve(ok); };
+    ov.querySelector(".om-x").onclick = () => done(false);
+    form.onsubmit = async ev => {
+      ev.preventDefault();
+      err.textContent = "Đang đăng nhập…";
+      try{
+        const r = await fetch("https://ifs-api.vietjetair.com/bo-api/api/v1/auth/tokens", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({username: form.u.value.trim(), password: form.p.value}),
+        });
+        const j = await r.json().catch(() => ({}));
+        if(r.status !== 200 || !j.accessToken){ err.textContent = "Omni: " + (j.message || ("HTTP " + r.status)); return; }
+        const s = await (await fetch("/api/omni/token", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({token: j.accessToken, username: form.u.value.trim()}),
+        })).json();
+        if(s.error){ err.textContent = s.error; return; }
+        done(true);
+      }catch(e){ err.textContent = "Không kết nối được Omni: " + e.message; }
+    };
+  });
+}
+function omniNeedsBrowser(msg){ return /OMNI_BROWSER_LOGIN|saving the entity/i.test(String(msg || "")); }
+
 async function estRefresh(){
   if(estBusy) return;
   estBusy = true;
   const btn = $("#estRefresh");
   btn.disabled = true; btn.textContent = "⏳ EST…";
+  let retry = false;
   try{
     const r = await fetch("/api/est/refresh");
     const d = await r.json();
+    if(d.error && omniNeedsBrowser(d.error)){
+      paintEstStat(d);
+      retry = await omniBrowserLogin();
+      return;
+    }
     if(d.error){ console.warn("EST:", d.error); paintEstStat(d); return; }
     paintEstStat(d);
     if(lastCmp && $("#cmpPld").checked){
