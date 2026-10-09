@@ -5835,7 +5835,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V28</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V29</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -19286,8 +19286,9 @@ function nrAddRow(r={}){
     const f=e.target.files[0];e.target.value="";if(!f)return;
     const btn=tr.querySelector(".nr-file-pick");btn.disabled=true;btn.textContent="Đang tải…";
     try{
-      const d=await (await fetch("/api/notices/rule-file",{method:"POST",
-        headers:{"Content-Type":"application/pdf","X-Filename":encodeURIComponent(f.name)},body:f})).json();
+      const rr=await fetch("/api/notices/rule-file",{method:"POST",
+        headers:{"Content-Type":"application/pdf","X-Filename":encodeURIComponent(f.name)},body:f});
+      const tx=await rr.text();let d;try{d=JSON.parse(tx);}catch{d={error:"Tải file lỗi (HTTP "+rr.status+"). Thử đăng nhập lại rồi tải lại."};}
       if(d.error){alert(d.error);return;}
       if(!tr._nrFiles.includes(d.title))tr._nrFiles.push(d.title);
       nrFileChips(tr);
@@ -19401,7 +19402,14 @@ function nrStats(){
 }
 async function nrLoad(){
   if(nrLoaded) return;
-  const d=await (await fetch("/api/notices/rules")).json();
+  let d=null,err="";
+  for(let i=0;i<3&&!d;i++){
+    try{const r=await fetch("/api/notices/rules",{cache:"no-store"});const t=await r.text();
+      try{d=JSON.parse(t);}catch{err="HTTP "+r.status;}}
+    catch(e){err=String(e&&e.message||e);}
+    if(!d)await new Promise(z=>setTimeout(z,800*(i+1)));
+  }
+  if(!d){$("#nrPath").textContent="Không tải được thiết lập ("+err+") — bấm lại tab để thử lại";return;}
   if(d.error){alert(d.error);return;}
   $("#nrBody").innerHTML="";
   for(const r of (d.rules||[])) nrAddRow(r);
