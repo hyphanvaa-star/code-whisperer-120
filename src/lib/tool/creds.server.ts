@@ -35,7 +35,7 @@ function dec(s: string) {
   }
 }
 
-export type Stored = Record<string, { username?: string; password?: string; mailbox?: string }>;
+export type Stored = Record<string, { username?: string; password?: string; mailbox?: string; saved_at?: number }>;
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -55,11 +55,15 @@ export async function saveStored(userId: string, data: Stored, resetFb = false) 
   if (error) throw new Error(error.message);
 }
 
+export const OUTLOOK_TTL = 12 * 3600_000;
+
 function toVars(st: Stored): Record<string, string> {
   const vars: Record<string, string> = {};
   for (const [kind, v] of Object.entries(st)) {
     const k = KINDS[kind];
     if (!k || !v?.username || !v.password) continue;
+    // Outlook (mail nháp): chỉ dùng trong 12 giờ sau khi người dùng tự nhập, không giữ lâu.
+    if (kind === "outlook" && !(v.saved_at && Date.now() - v.saved_at < OUTLOOK_TTL)) continue;
     const pw = dec(v.password);
     if (!pw) continue;
     for (const n of k.user) vars[n] = v.username;

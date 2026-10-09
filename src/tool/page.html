@@ -7104,9 +7104,9 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           Không dùng Outlook desktop, không dùng cho PIB/GENDEC.</p>
         <div class="acgrid">
           <div class="field"><label for="acOutlookUser">Username</label>
-            <input type="text" id="acOutlookUser" autocomplete="off" spellcheck="false"></div>
+            <input type="text" id="acOutlookUser" autocomplete="off" spellcheck="false" placeholder="email Outlook của bạn"></div>
           <div class="field"><label for="acOutlookPass">Password</label>
-            <input type="password" id="acOutlookPass" placeholder="(giữ nguyên nếu để trống)"></div>
+            <input type="password" id="acOutlookPass" placeholder="nhập mật khẩu" autocomplete="new-password"></div>
         </div>
         <div class="acgrid">
           <div class="field"><label for="acOutlookBox">Hộp thư lưu nháp</label>
@@ -25899,7 +25899,7 @@ function acRefresh(){
       if(info.source === "env")
         src.textContent = "đang dùng từ " + AC_SRC.env + " (" + (info.env_names||[]).join(", ") + ")";
       else if(info.source === "file")
-        src.textContent = info.has_password ? "đã lưu" : "chưa có mật khẩu";
+        src.textContent = kind === "outlook" ? "đang dùng (tự hết sau 12 giờ)" : (info.has_password ? "đã lưu" : "chưa có mật khẩu");
       else if(info.source === "default")
         src.textContent = "đang dùng " + AC_SRC.default + " (chưa lưu file)";
       else

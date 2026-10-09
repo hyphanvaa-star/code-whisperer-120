@@ -59,6 +59,14 @@ export const routes: Routes = {
       const envUser = k.user.map((n) => process.env[n]).find(Boolean) ?? "";
       const envPass = k.pass.map((n) => process.env[n]).find(Boolean) ?? "";
       const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb";
+      if (kind === "outlook") {
+        // Không bao giờ điền sẵn tài khoản Outlook — người dùng tự nhập mỗi lần.
+        const { OUTLOOK_TTL } = await import("../creds.server");
+        const live = Boolean(mine?.username && mine.password && mine.saved_at && Date.now() - mine.saved_at < OUTLOOK_TTL);
+        accounts[kind] = { label: k.label, username: "", mailbox: mine?.mailbox || process.env["OUTLOOK_MAILBOX"] || "omc@vietjetair.com",
+          has_password: live, source: live ? "file" : "none", env_names: [] };
+        continue;
+      }
       if (mine?.username && mine.password) {
         accounts[kind] = { label: k.label, username: mine.username, mailbox: mine.mailbox ?? "", has_password: true, source: "file", env_names: [k.user[0], k.pass[0]] };
       } else {
@@ -91,6 +99,7 @@ export const routes: Routes = {
       await saveStored(ctx.userId, stored, kind === "flitebrief");
       return { ok: true, name: "đã quay về tài khoản mặc định" };
     }
+    if (kind === "outlook" && !password) return { error: "nhập mật khẩu Outlook" };
     const prev = stored[kind];
     const encPw = password ? enc(password) : prev?.username === username ? prev.password : "";
     if (!encPw) {
@@ -103,7 +112,7 @@ export const routes: Routes = {
       }
       return { error: "nhập mật khẩu để lưu tài khoản này" };
     }
-    stored[kind] = { username, password: encPw, ...(kind === "outlook" ? { mailbox: String(b["mailbox"] || "").trim().slice(0, 200) } : {}) };
+    stored[kind] = { username, password: encPw, ...(kind === "outlook" ? { mailbox: String(b["mailbox"] || "").trim().slice(0, 200), saved_at: Date.now() } : {}) };
     await saveStored(ctx.userId, stored, kind === "flitebrief");
     if (kind === "flitebrief" && password) {
       try {
