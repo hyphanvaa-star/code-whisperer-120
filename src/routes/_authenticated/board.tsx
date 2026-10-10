@@ -28,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/board")({
       { name: "description", content: "Danh sách chuyến bay theo dispatcher, fuel, crew và tài liệu." },
       { property: "og:title", content: "Bảng chuyến bay — Dispatch Board" },
       { property: "og:description", content: "Danh sách chuyến bay theo dispatcher." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => (

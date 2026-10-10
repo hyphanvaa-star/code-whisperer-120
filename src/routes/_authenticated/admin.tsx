@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
       { name: "description", content: "Cấp quyền dispatcher và xem nhật ký hoạt động." },
       { property: "og:title", content: "Quản trị — Dispatch Board" },
       { property: "og:description", content: "Cấp quyền dispatcher và xem nhật ký hoạt động." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => (
