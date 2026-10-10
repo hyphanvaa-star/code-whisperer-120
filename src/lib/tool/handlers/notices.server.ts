@@ -91,11 +91,16 @@ export const routes: Routes = {
 type Ctx = Parameters<Routes[string]>[0];
 const normTitle = (t: string) => String(t || "").replace(/\.pdf$/i, "").replace(/\s+/g, " ").trim().toLowerCase();
 
-/** Tên chuẩn hoá → đường dẫn file trong kho (kho chung + file tạm của riêng người này). */
+/** Thư mục file tạm của phiên đăng nhập hiện tại. */
+function tmpDir(ctx: Ctx): string {
+  return `notices-tmp/${ctx.userId}/${(ctx.sessionId || "nosession").replace(/[^a-zA-Z0-9-]/g, "")}`;
+}
+
+/** Tên chuẩn hoá → đường dẫn file trong kho (kho chung + file tạm của phiên này). */
 async function noticeLibrary(ctx: Ctx): Promise<Map<string, string>> {
   const { listFiles } = await import("../store.server");
   const out = new Map<string, string>();
-  for (const dir of [`notices-tmp/${ctx.userId}`, "notices"]) {
+  for (const dir of [tmpDir(ctx), "notices"]) {
     const files = await listFiles(ctx, dir).catch(() => [] as Array<{ name: string }>);
     for (const f of files) if (/\.pdf$/i.test(f.name)) out.set(normTitle(f.name), `${dir}/${f.name}`);
   }
@@ -200,21 +205,27 @@ Object.assign(routes, {
     const name = safe.toLowerCase().endsWith(".pdf") ? safe : `${safe}.pdf`;
     const title = name.replace(/\.pdf$/i, "");
     // Chỉ quản trị mới lưu vào kho chung của máy chủ (dùng cho cả đội).
-    // Người khác: file tạm, chỉ dùng cho tài khoản của họ trong ngày, tự xoá sau 24 giờ.
+    // Người khác: file tạm, chỉ dùng trong phiên đăng nhập hiện tại; đăng nhập lại là mất.
     const { data: isAdmin } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" });
     if (isAdmin) {
       await putFile(ctx, `notices/${name}`, buf, "application/pdf");
       return { ok: true, title, name, size: buf.byteLength, shared: true };
     }
-    const dir = `notices-tmp/${ctx.userId}`;
+    const dir = tmpDir(ctx);
+    // Xoá file của các phiên đăng nhập cũ.
     try {
-      const old = (await listFiles(ctx, dir)).filter(
-        (f) => Date.now() - new Date((f as { updated_at?: string }).updated_at ?? 0).getTime() > 24 * 3600_000,
-      );
-      await removeFiles(ctx, old.map((f) => `${dir}/${f.name}`));
+      const all = await listFiles(ctx, `notices-tmp/${ctx.userId}`);
+      const stale: string[] = [];
+      for (const e of all) {
+        if (`notices-tmp/${ctx.userId}/${e.name}` === dir) continue;
+        if (/\.pdf$/i.test(e.name)) { stale.push(`notices-tmp/${ctx.userId}/${e.name}`); continue; }
+        const sub = await listFiles(ctx, `notices-tmp/${ctx.userId}/${e.name}`).catch(() => []);
+        for (const f of sub) stale.push(`notices-tmp/${ctx.userId}/${e.name}/${f.name}`);
+      }
+      if (stale.length) await removeFiles(ctx, stale);
     } catch { /* ignore */ }
     await putFile(ctx, `${dir}/${name}`, buf, "application/pdf");
     return { ok: true, title, name, size: buf.byteLength, shared: false, temp: true,
-      note: "File tạm — chỉ dùng cho tài khoản của bạn trong 24 giờ, không lưu vào máy chủ (chỉ quản trị lưu được)." };
+      note: "File tạm — chỉ dùng trong phiên đăng nhập này, đăng xuất/đăng nhập lại sẽ mất (chỉ quản trị lưu lâu dài được)." };
   },
 });

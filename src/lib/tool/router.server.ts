@@ -72,7 +72,12 @@ async function authorize(request: Request) {
   } catch {
     return { forbidden: true as const };
   }
-  return { userId: data.user.id, supabase };
+  let sessionId = "";
+  try {
+    const p = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    sessionId = String(p.session_id || "");
+  } catch { /* ignore */ }
+  return { userId: data.user.id, supabase, sessionId };
 }
 
 function find(method: string, route: string): Handler | undefined {
@@ -145,7 +150,7 @@ export async function handleToolApi(request: Request): Promise<Response> {
     const a = await authorize(request);
     if (!a) return json({ error: "Phiên đăng nhập hết hạn, đăng nhập lại." }, 401);
     if ("forbidden" in a) return json({ error: "Tài khoản chưa được quản trị viên cấp quyền dispatcher." }, 403);
-    ctx = mkCtx(a.userId, a.supabase);
+    ctx = { ...mkCtx(a.userId, a.supabase), sessionId: a.sessionId };
   } else {
     ctx = mkCtx("", null as unknown as Ctx["supabase"]);
   }
