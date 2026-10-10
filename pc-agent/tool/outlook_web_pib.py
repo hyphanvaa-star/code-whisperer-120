@@ -231,6 +231,8 @@ def _make_driver(*, headless: bool = False, profile_dir: Path | None = None):
     root = Path(profile_dir) if profile_dir is not None else PROFILE_DIR
     root.mkdir(parents=True, exist_ok=True)
     opt = webdriver.ChromeOptions()
+    # Login/token checks need the DOM, not every image/script in the mailbox.
+    opt.page_load_strategy = "eager"
     if headless:
         opt.add_argument("--headless=new")
     opt.add_argument(f"--user-data-dir={root}")
@@ -597,14 +599,14 @@ def _set_input(driver, el, value: str) -> None:
         except Exception:
             pass
     # chờ nút Sign in / Next enable
-    time.sleep(0.35)
+    time.sleep(0.1)
 
 
 def _try_auto_login(
     driver,
     username: str,
     password: str,
-    done: dict[str, bool],
+    done: dict[str, Any],
     say: Callable[[str], None],
 ) -> None:
     """Điền form Microsoft và tự xử lý các xác nhận phiên an toàn."""
@@ -636,7 +638,7 @@ def _try_auto_login(
                     if _robust_click(driver, el):
                         done["pick"] = True
                         say("Đã chọn tài khoản Outlook…")
-                        time.sleep(0.8)
+                        time.sleep(0.15)
                         return
         except Exception:
             pass
@@ -655,7 +657,7 @@ def _try_auto_login(
                 if _submit_login(driver, email):
                     done["email"] = True
                     say("Đã bấm Next (email)…")
-                    time.sleep(1.2)
+                    time.sleep(0.15)
                     return
                 say("⚠ Chưa bấm được Next — thử lại…")
             except Exception as exc:
@@ -663,9 +665,12 @@ def _try_auto_login(
 
     # Password
     if password and not done.get("password"):
+        if time.monotonic() - float(done.get("password_submitted_at") or 0) < 2.0:
+            return
         # Một số màn hình hiện "Use your password" trước
         try:
-            for a in driver.find_elements(By.CSS_SELECTOR, "a, span, button, div"):
+            # Avoid reading thousands of unrelated divs on each login tick.
+            for a in driver.find_elements(By.CSS_SELECTOR, "#idA_PWD_SwitchToPassword, a, button"):
                 t = (a.text or "").strip().lower()
                 if t in (
                     "use your password",
@@ -674,7 +679,7 @@ def _try_auto_login(
                     "password",
                 ) and _visible(a):
                     _robust_click(driver, a)
-                    time.sleep(0.5)
+                    time.sleep(0.15)
                     break
         except Exception:
             pass
@@ -690,7 +695,10 @@ def _try_auto_login(
                     say("Đã điền mật khẩu…")
                 # thử submit nhiều kiểu — không đánh dấu done nếu vẫn còn ô password
                 if _submit_login(driver, pw):
-                    time.sleep(1.0)
+                    # Keep a submit cooldown: a slow Microsoft response must not
+                    # cause rapid duplicate password submissions.
+                    done["password_submitted_at"] = time.monotonic()
+                    time.sleep(0.25)
                     still = _find_first(
                         driver,
                         'input[name="passwd"], #i0118, input[type="password"]',
@@ -716,12 +724,12 @@ def _try_auto_login(
             if kind == "trust" and not done.get("trust"):
                 done["trust"] = True
                 say("Đã tự bấm Continue cho Do you trust Vietjetair…")
-                time.sleep(0.8)
+                time.sleep(0.15)
                 return
             if kind == "kmsi" and not done.get("kmsi"):
                 done["kmsi"] = True
                 say("Đã tự chọn Stay signed in…")
-                time.sleep(0.8)
+                time.sleep(0.15)
                 return
 
     # Báo lỗi đăng nhập nếu có
@@ -759,7 +767,7 @@ def ensure_session(
         driver = _make_driver(headless=False, profile_dir=profile_dir)
         if cancel is not None and hasattr(cancel, "add_abort"):
             cancel.add_abort(driver.quit)
-        done: dict[str, bool] = {}
+        done: dict[str, Any] = {}
         try:
             say("Đang mở Outlook Web để làm mới phiên…")
             if user:
@@ -770,7 +778,8 @@ def ensure_session(
             deadline = time.time() + timeout_s
             token = ""
             rejected: set[str] = set()
-            last_hint = 0.0
+            # Do not immediately reload OWA while it is still acquiring tokens.
+            last_hint = time.time()
             last_auto = 0.0
             while time.time() < deadline:
                 if cancel is not None and cancel.is_set():
@@ -786,7 +795,7 @@ def ensure_session(
                     )
                 )
                 if login_page:
-                    if time.time() - last_auto > 1.2:
+                    if time.time() - last_auto > 0.25:
                         _try_auto_login(driver, user, password, done, say)
                         last_auto = time.time()
                     if time.time() - last_hint > 15:
@@ -800,7 +809,7 @@ def ensure_session(
                     has_prompt = any(
                         x in page for x in _TRUST_MARKERS + _KMSI_MARKERS
                     )
-                    if has_prompt and time.time() - last_auto > 1.5:
+                    if has_prompt and time.time() - last_auto > 0.25:
                         _try_auto_login(driver, user, password, done, say)
                         last_auto = time.time()
                     tokens = _extract_tokens_from_driver(driver)
@@ -823,7 +832,10 @@ def ensure_session(
                         except Exception:
                             pass
                         last_hint = time.time()
-                time.sleep(1.2)
+                if cancel is not None and hasattr(cancel, "wait"):
+                    cancel.wait(0.2)
+                else:
+                    time.sleep(0.2)
 
             if not token:
                 raise OwaAuthError(
