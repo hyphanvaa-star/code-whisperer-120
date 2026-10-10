@@ -24,11 +24,17 @@ export function AuthScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Cờ báo việc xoá phiên cũ lúc mở trang đã xong — tránh đăng nhập bị xoá nhầm.
+  const ready = useRef<Promise<void> | null>(null);
+
   useEffect(() => {
     // Mỗi lần mở web đều bắt đăng nhập lại: xoá phiên đăng nhập đang lưu sẵn.
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) supabase.auth.signOut();
-    });
+    // Phải CHỜ xoá xong mới cho đăng nhập, nếu không lần bấm đầu bị signOut()
+    // xoá mất phiên vừa tạo và người dùng phải bấm lần thứ 2.
+    ready.current = (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) await supabase.auth.signOut();
+    })();
     const { data } = supabase.auth.onAuthStateChange((event, s) => {
       if (event === "SIGNED_IN" && s) navigate({ to: "/tool", replace: true });
     });
@@ -46,12 +52,17 @@ export function AuthScreen() {
     const account = raw.includes("@") ? raw : `${raw.toLowerCase()}@app.local`;
     setBusy(true);
     try {
+      await ready.current; // đảm bảo phiên cũ đã được dọn sạch
       const { error } = await supabase.auth.signInWithPassword({
         email: account,
         password: parsed.data.password,
       });
-      if (error) toast.error("Sai ID hoặc mật khẩu");
-      else sessionStorage.setItem("fb-login-done", "1");
+      if (error) {
+        toast.error("Sai ID hoặc mật khẩu");
+      } else {
+        sessionStorage.setItem("fb-login-done", "1");
+        navigate({ to: "/tool", replace: true });
+      }
     } finally {
       setBusy(false);
     }
