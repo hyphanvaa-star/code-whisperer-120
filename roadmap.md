@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Auto Rounding PLD: sửa nhận diện chuyến KHB khi crewlist đổi; kiểm tra làm tròn đúng chuyến.
+
 - [x] Đối chiếu gói tóm tắt NOTAM gốc: phục hồi đánh giá từng chuyến và gộp cả ca; kiểm tra vùng/giờ/ATS/RWY, bỏ tóm tắt suy diễn từ hit_count; 28 tests đạt.
 - [ ] Thử tóm tắt NOTAM với ca bay thật — chờ người dùng đăng nhập preview; không tạo được phiên kiểm tra cho tài khoản Lovable hiện tại.
 
