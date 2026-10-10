@@ -1053,10 +1053,54 @@ def submit_fpl(
                     addr.send_keys(EXTRA_ADDR)
                 time.sleep(1)
 
-                try:
-                    _click_window_button(driver, "Submit")
-                except Exception:
-                    _click(driver, driver.find_element(By.XPATH, XP["submit"]))
+                # Bước cuối: chờ nút Submit sẵn sàng, bấm, rồi XÁC NHẬN dialog địa chỉ
+                # đã đóng. Chưa đóng = Submit chưa ăn -> bấm lại; vẫn không -> báo lỗi,
+                # KHÔNG báo đã gửi.
+                def _addr_open() -> bool:
+                    try:
+                        return any(e.is_displayed() for e in
+                                   driver.find_elements(By.XPATH, XP["address"]))
+                    except Exception:
+                        return False
+
+                def _final_submit() -> None:
+                    end = time.monotonic() + 10
+                    btn = None
+                    while time.monotonic() < end:
+                        try:
+                            btn = _visible_window_control(driver, "Submit")
+                            if btn.is_enabled() and "v-disabled" not in (btn.get_attribute("class") or ""):
+                                break
+                        except Exception:
+                            btn = None
+                        time.sleep(0.3)
+                    if btn is not None:
+                        _js_mouse_click(driver, btn)
+                    else:
+                        _click(driver, driver.find_element(By.XPATH, XP["submit"]))
+
+                sent = False
+                for _try in range(3):
+                    if cancel is not None and cancel.is_set():
+                        break
+                    _final_submit()
+                    end = time.monotonic() + 12
+                    while time.monotonic() < end and _addr_open():
+                        time.sleep(0.4)
+                    try:
+                        err = driver.find_elements(By.XPATH, XP["error"])
+                        err = [e for e in err if e.is_displayed()]
+                    except Exception:
+                        err = []
+                    if err:
+                        why = " ".join((err[0].text or "").split())[:300]
+                        raise AtcError(why or "AviWeb báo lỗi sau khi Submit")
+                    if not _addr_open():
+                        sent = True
+                        break
+                    say(f"· Submit cuối chưa ăn — bấm lại ({_try + 2}/3)", name)
+                if not sent:
+                    raise AtcError("chưa bấm được Submit ở bước cuối — chuyến CHƯA gửi")
                 _close_fpl_dialogs(driver)
                 _wait_fpl_ready(driver, 20)
 
