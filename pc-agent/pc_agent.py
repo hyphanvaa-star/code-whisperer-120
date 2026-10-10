@@ -27,13 +27,13 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.8"
+VERSION = "2.9"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
 
 # Cấu hình mặc định — ghi sẵn để người dùng chỉ cần double-click, không gõ lệnh.
-DEFAULT_URL = "https://omc-dispatch.lovable.app"
+DEFAULT_URL = "https://soheedispatch.cloud"
 DEFAULT_TOKEN = "Hydeptrai@123"
 
 
@@ -622,7 +622,7 @@ def _patch_fpl_watch(mod):
         cur = str(getattr(mod, attr, "") or "")
         if cur.startswith(("D:", "D:/", "D:\\")):
             try:
-                setattr(mod, attr, fpl)
+                setattr(mod, attr, Path(fpl))
             except Exception:
                 pass
 
@@ -647,7 +647,7 @@ def _load_owa_modules():
             cur = str(getattr(mod, attr, "") or "")
             if cur.startswith(("D:", "D:/", "D:\\")):
                 try:
-                    setattr(mod, attr, str(fpl))
+                    setattr(mod, attr, Path(fpl))
                 except Exception:
                     pass
     return config, outlook_web_pib
@@ -1329,15 +1329,37 @@ HANDLERS = {
 # Vòng lặp chính
 # --------------------------------------------------------------------------- #
 
+_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
+_SESSION = None
+
+
+def _session():
+    global _SESSION
+    if _SESSION is None:
+        _SESSION = requests.Session()
+        _SESSION.headers.update({"User-Agent": _UA, "x-pc-agent-token": TOKEN})
+    return _SESSION
+
+
 def post(path: str, body: dict) -> dict:
-    r = requests.post(
-        BASE_URL + path,
-        json=body,
-        headers={"x-pc-agent-token": TOKEN},
-        timeout=30,
-    )
-    r.raise_for_status()
-    return r.json()
+    """Dùng chung 1 kết nối (keep-alive); bị tường lửa cắt thì mở lại kết nối mới."""
+    global _SESSION
+    last = None
+    for attempt in range(3):
+        try:
+            r = _session().post(BASE_URL + path, json=body, timeout=30)
+            r.raise_for_status()
+            return r.json()
+        except (requests.ConnectionError, requests.Timeout) as e:
+            last = e
+            try:
+                _SESSION.close()
+            except Exception:
+                pass
+            _SESSION = None
+            time.sleep(2 * (attempt + 1))
+    raise last
 
 
 def main() -> int:
