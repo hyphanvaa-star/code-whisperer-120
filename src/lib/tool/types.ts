@@ -10,6 +10,8 @@ export type Ctx = {
   /** Path such as "/api/flights". */
   route: string;
   userId: string;
+  /** Login session id (JWT session_id) — scopes per-login temp files. */
+  sessionId?: string;
   /** Supabase client acting as the signed-in user (RLS applies). */
   supabase: SupabaseClient<Database>;
   /** Parsed JSON body (POST); {} when empty or not JSON. */
