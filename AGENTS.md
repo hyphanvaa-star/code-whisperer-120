@@ -36,4 +36,4 @@
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can be supplied by the dispatcher's browser login, because Omni rejects token creation from the cloud runtime's IPv6 X-Forwarded-For.
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from the bundled snapshot `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`, because live national AIP downloads are slow/unreliable inside a request.
 - Tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart`; live AIP fetches are unreliable.
-- KHB PLD/TAF resolves row ID plus flight/date/route/ETD, because new crewlists can reuse or renumber rows.
+- KHB uses flight/date/route/ETD identity and invalidates its catalogue and rows on Crewlist changes, because workbook rows can be reused.
