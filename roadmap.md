@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] KHB: nạp/chọn Crewlist làm mới danh sách và bỏ chuyến ngày cũ; thử giao diện ngày 9 → 10 đạt, chưa thử file thật của người dùng.
+
 - [x] Auto Rounding PLD: nhận diện theo số chuyến/ngày/chặng/ETD thay vì chỉ số dòng Crewlist; 17 tests đạt, kiểm tra nút PLD trong trình duyệt đạt.
 - [ ] Auto Rounding PLD: thử chuyến thật trên preview — chờ người dùng đăng nhập, không tạo được phiên cho tài khoản yêu cầu.
 

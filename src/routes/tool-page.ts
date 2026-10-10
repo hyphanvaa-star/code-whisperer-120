@@ -34,8 +34,14 @@ const SHIM = `<script>
       var t = tok(); if (t) h.set('Authorization', 'Bearer ' + t);
       init.headers = h;
     }
-    return of(input, init).then(function(r){
+    return of(input, init).then(async function(r){
       if (r.status === 401 && isApi(url)) { try { window.parent.location.href = '/auth'; } catch(e){} }
+      if(r.ok && (url.endsWith('/api/excel/upload') || url.endsWith('/api/excel/select')) && String((init && init.method) || '').toUpperCase() === 'POST'){
+        try {
+          var changed = await r.clone().json();
+          if(!changed.error && typeof ftCrewChanged === 'function') ftCrewChanged();
+        } catch(e){}
+      }
       return r;
     });
   };
@@ -1142,6 +1148,37 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // A new workbook invalidates both the lookup catalogue and selected KHB rows.
+    .replace('if(fplText && !ftCatalog.length) ftLoad();', 'if(fplText) ftLoad();')
+    .replace('async function ftLoad(){', `let ftCrewRevision = 0;
+function ftCrewChanged(){
+  ftCrewRevision++;
+  ftCatalog = [];
+  ftRows = [];
+  for(const k of Object.keys(ftBlank)) delete ftBlank[k];
+  for(const k of Object.keys(ftEdit)) delete ftEdit[k];
+  ftPldOn = false;
+  const round = $("#ftPldRound");
+  if(round){ round.classList.remove("on"); round.setAttribute("aria-pressed", "false"); round.textContent = "Auto Rounding PLD"; }
+  const preview = $("#ftPreview");
+  if(preview) preview.textContent = "";
+  ftRender();
+  $("#ftStat").textContent = "Crewlist đã thay đổi — đang nạp dữ liệu mới…";
+  ftLoad();
+}
+async function ftLoad(){
+  const revision = ftCrewRevision;`)
+    .replace('    ftCatalog = d.flights || [];', `    if(revision !== ftCrewRevision) return;
+    const next = d.flights || [];
+    const signature = rows => JSON.stringify(rows.map(f => [f.id, f.flt, f.date, f.dep, f.arr, f.etd, f.reg]));
+    if(ftCatalog.length && signature(ftCatalog) !== signature(next)){
+      ftRows = [];
+      for(const k of Object.keys(ftBlank)) delete ftBlank[k];
+      for(const k of Object.keys(ftEdit)) delete ftEdit[k];
+      const preview = $("#ftPreview");
+      if(preview) preview.textContent = "";
+    }
+    ftCatalog = next;`)
     // Crewlist uploads can renumber rows: send flight identity, not just the row ID.
     .replace('body: JSON.stringify({ids: ids})', 'body: JSON.stringify({ids: ids, rows: ftRows.filter(Boolean).map(f => ({id:f.id, flt:f.flt, date:f.date, dep:f.dep, arr:f.arr, etd:f.etd}))})')
     .replace('specs.push({id: f.id, talt:', 'specs.push({id: f.id, flt: f.flt, date: f.date, dep: f.dep, arr: f.arr, etd: f.etd, talt:')
