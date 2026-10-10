@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Đối chiếu gói tóm tắt NOTAM gốc: phục hồi đánh giá từng chuyến và gộp cả ca; kiểm tra vùng/giờ/ATS/RWY, bỏ tóm tắt suy diễn từ hit_count.
+
 - [x] Phase 1: Đăng nhập + phân quyền (admin/dispatcher), bảng chuyến bay FliteBrief, chi tiết fuel/crew/tài liệu/lịch sử, tải PDF hàng loạt (zip), nhật ký hoạt động
 - [x] Giao diện mới: theme đỏ Vietjet, hàng tab, pill Ca sáng/Ca đêm, Quản trị tách trang riêng
 - [x] Tab Giao ca: Nạp theo DSP, tick ATC/EZFW/ATFM, lưu, xuất Excel
