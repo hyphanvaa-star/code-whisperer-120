@@ -25,9 +25,25 @@ import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import socket
+
 import requests
 
-VERSION = "3.2"
+# Tên miền có bản ghi DNS thừa trỏ tới trang đỗ tên miền (Hostinger) — bỏ qua
+# các IP đó để không bị ngắt kết nối (10054) khi máy chọn trúng IP sai.
+_BAD_IPS = {"2.57.91.91"}
+_orig_getaddrinfo = socket.getaddrinfo
+
+
+def _getaddrinfo_skip_bad(host, *a, **kw):
+    res = _orig_getaddrinfo(host, *a, **kw)
+    good = [r for r in res if r[4][0] not in _BAD_IPS]
+    return good or res
+
+
+socket.getaddrinfo = _getaddrinfo_skip_bad
+
+VERSION = "3.3"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
