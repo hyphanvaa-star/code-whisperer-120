@@ -1207,6 +1207,8 @@ async function ftLoad(){
     .replace('async function ftBindTaf(fill){', 'async function ftBindTaf(fill, hoverOnly){')
     .replace('    if(fill){ $("#ftStat").textContent = d.error; alert(d.error); }\n    return;', '    if(fill){ $("#ftStat").textContent = d.error; alert(d.error); }\n    if(hoverOnly) throw new Error(d.error);\n    return;')
     .replace('  if(!ftApplying) ftRender();\n  if(fill){', '  if(!ftApplying && !hoverOnly) ftRender();\n  if(fill){')
+    // Name each flight that could not be matched to TAF and why.
+    .replace('      + " · TAF " + (d.taf_count || 0) + " sân";', '      + " · TAF " + (d.taf_count || 0) + " sân"\n      + ((d.missed_list || []).length ? " — " + d.missed_list.join(" · ") : "");\n    $("#ftStat").title = (d.missed_list || []).join("\\n");')
     // Summary comes from the original per-flight verdict pipeline, never raw map hits.
     .replace(/\/\/ Tóm tắt cả ca quốc nội:[\s\S]*?(?=function nmPaintVerdict\(\))/, '')
     .replace(/    let fleet = \(nmData && nmData\.fleet_verdict\) \|\| null;\s*if\(fleet && !\(fleet\.sections \|\| \[\]\)\.length\)\{[\s\S]*?\n    \}/, '    const fleet = (nmData && nmData.fleet_verdict) || null;')
