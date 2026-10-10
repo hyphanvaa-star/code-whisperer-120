@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "3.5"
+VERSION = "3.6"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -434,9 +434,10 @@ def download_gd_owa(flight: str, dest: Path, say) -> Path:
                     if not m.get("HasAttachments"):
                         continue
                     mid = str(m.get("Id") or "")
-                    ar = s.get(f"{root}/messages/{mid}/attachments?$top=50"
-                               f"&$select=Name,ContentBytes,ContentType", timeout=30)
+                    say(f"· mail khớp: {subj[:90]}")
+                    ar = s.get(f"{root}/messages/{mid}/attachments?$top=50", timeout=30)
                     if ar.status_code != 200:
+                        say(f"· không đọc được file đính kèm: HTTP {ar.status_code} {ar.text[:160]}")
                         continue
                     for att in ar.json().get("value", []):
                         name = str(att.get("Name") or "")
@@ -445,14 +446,20 @@ def download_gd_owa(flight: str, dest: Path, say) -> Path:
                         if not contains_flight(name, want) and not contains_flight(subj, want):
                             continue
                         raw = att.get("ContentBytes")
+                        if not raw and att.get("Id"):
+                            one = s.get(f"{root}/messages/{mid}/attachments/{att.get('Id')}", timeout=60)
+                            if one.status_code == 200:
+                                raw = one.json().get("ContentBytes")
                         if not raw:
+                            say(f"· {name}: không tải được nội dung")
                             continue
                         say(f"· thấy {name}")
                         dest.mkdir(parents=True, exist_ok=True)
                         path = dest / name
                         path.write_bytes(base64.b64decode(raw))
                         return path
-                except Exception:
+                except Exception as e:
+                    say(f"· lỗi đọc 1 mail: {e}")
                     continue
     raise RuntimeError(f"không thấy GD {want} trong {FOLDER_NAME} ({LOOKBACK_H // 24} ngày qua)")
 
