@@ -13323,7 +13323,11 @@ function nmPaintVerdict(){
   const v = fleetTab ? null : nmBuildVerdict();
   box.innerHTML = "";
   if(!v){
-    const fleet = (nmData && nmData.fleet_verdict) || null;
+    let fleet = (nmData && nmData.fleet_verdict) || null;
+    if(fleet && !(fleet.sections || []).length){
+      const built = nmBuildFleetVerdict();
+      if(built) fleet = built;
+    }
     const hasPack = !!(nmData || nmTrackData);
     if(!hasPack){ box.hidden = true; return; }
     if(!onTrack && fleet && (fleet.sections || []).length){
