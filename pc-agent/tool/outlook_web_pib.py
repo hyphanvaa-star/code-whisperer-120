@@ -606,7 +606,7 @@ def _try_auto_login(
     driver,
     username: str,
     password: str,
-    done: dict[str, bool],
+    done: dict[str, Any],
     say: Callable[[str], None],
 ) -> None:
     """Điền form Microsoft và tự xử lý các xác nhận phiên an toàn."""
@@ -665,6 +665,8 @@ def _try_auto_login(
 
     # Password
     if password and not done.get("password"):
+        if time.monotonic() - float(done.get("password_submitted_at") or 0) < 2.0:
+            return
         # Một số màn hình hiện "Use your password" trước
         try:
             # Avoid reading thousands of unrelated divs on each login tick.
@@ -765,7 +767,7 @@ def ensure_session(
         driver = _make_driver(headless=False, profile_dir=profile_dir)
         if cancel is not None and hasattr(cancel, "add_abort"):
             cancel.add_abort(driver.quit)
-        done: dict[str, bool] = {}
+        done: dict[str, Any] = {}
         try:
             say("Đang mở Outlook Web để làm mới phiên…")
             if user:
