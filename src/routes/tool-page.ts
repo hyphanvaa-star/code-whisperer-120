@@ -941,6 +941,10 @@ table thead th,table > tr:first-child > th,.tooltbl th{
   border-bottom:2px solid var(--x-yel) !important;
 }
 table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+/* Ô nhập/select trong ô đầu bảng: nền trắng chữ đen, không kế thừa fill trắng */
+table thead th input,table thead th select,table thead th textarea{
+  color:#1a1a1a !important;-webkit-text-fill-color:#1a1a1a !important;background:#fff !important;
+}
 table tbody tr:nth-child(even) > td{background:#fff}
 
 table tbody td{border-bottom:1px solid var(--x-line2) !important}
