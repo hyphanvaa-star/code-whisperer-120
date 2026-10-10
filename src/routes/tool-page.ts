@@ -36,7 +36,7 @@ const SHIM = `<script>
     }
     return of(input, init).then(async function(r){
       if (r.status === 401 && isApi(url)) { try { window.parent.location.href = '/auth'; } catch(e){} }
-      if(r.ok && /\/api\/excel\/(upload|select)$/.test(url) && String((init && init.method) || '').toUpperCase() === 'POST'){
+      if(r.ok && (url.endsWith('/api/excel/upload') || url.endsWith('/api/excel/select')) && String((init && init.method) || '').toUpperCase() === 'POST'){
         try {
           var changed = await r.clone().json();
           if(!changed.error && typeof ftCrewChanged === 'function') ftCrewChanged();
