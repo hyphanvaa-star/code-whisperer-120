@@ -831,6 +831,12 @@ table thead th,table > tr:first-child > th,.tooltbl th{
 table thead th:first-child{border-top-left-radius:6px}
 table thead th:last-child{border-top-right-radius:6px}
 table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+/* Ô nhập/select trong ô đầu bảng (vd. tên tháng Taxi fuel): nền trắng chữ đen,
+   không kế thừa -webkit-text-fill-color trắng từ rule "th *" ở trên (thuộc tính
+   này có tính kế thừa và đè lên color trong Chromium). */
+table thead th input,table thead th select,table thead th textarea{
+  color:#1a1a1a !important;-webkit-text-fill-color:#1a1a1a !important;background:#fff !important;
+}
 table tbody td{
   font-size:12px !important;color:var(--x-ink) !important;
   border:0 !important;border-bottom:1px solid var(--x-line2) !important;background:#fff;padding-top:3px !important;padding-bottom:3px !important;
@@ -935,6 +941,10 @@ table thead th,table > tr:first-child > th,.tooltbl th{
   border-bottom:2px solid var(--x-yel) !important;
 }
 table thead th *{color:#fff !important;-webkit-text-fill-color:#fff !important}
+/* Ô nhập/select trong ô đầu bảng: nền trắng chữ đen, không kế thừa fill trắng */
+table thead th input,table thead th select,table thead th textarea{
+  color:#1a1a1a !important;-webkit-text-fill-color:#1a1a1a !important;background:#fff !important;
+}
 table tbody tr:nth-child(even) > td{background:#fff}
 
 table tbody td{border-bottom:1px solid var(--x-line2) !important}

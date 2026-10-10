@@ -35,11 +35,10 @@ export function AuthScreen() {
       const { data } = await supabase.auth.getSession();
       if (data.session) await supabase.auth.signOut();
     })();
-    const { data } = supabase.auth.onAuthStateChange((event, s) => {
-      if (event === "SIGNED_IN" && s) navigate({ to: "/tool", replace: true });
-    });
-    return () => data.subscription.unsubscribe();
-  }, [navigate]);
+    // Không đăng ký onAuthStateChange: submit() tự điều hướng sau khi đã set
+    // cờ fb-login-done. Listener trước đây điều hướng sớm hơn cờ khiến guard
+    // ở /_authenticated signOut() rồi đá về lại trang đăng nhập.
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
