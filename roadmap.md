@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] Auto Rounding PLD: nhận diện theo số chuyến/ngày/chặng/ETD thay vì chỉ số dòng Crewlist; 17 tests đạt, kiểm tra nút PLD trong trình duyệt đạt.
+- [ ] Auto Rounding PLD: thử chuyến thật trên preview — chờ người dùng đăng nhập, không tạo được phiên cho tài khoản yêu cầu.
+
 - [x] Đối chiếu gói tóm tắt NOTAM gốc: phục hồi đánh giá từng chuyến và gộp cả ca; kiểm tra vùng/giờ/ATS/RWY, bỏ tóm tắt suy diễn từ hit_count; 28 tests đạt.
 - [ ] Thử tóm tắt NOTAM với ca bay thật — chờ người dùng đăng nhập preview; không tạo được phiên kiểm tra cho tài khoản Lovable hiện tại.
 
