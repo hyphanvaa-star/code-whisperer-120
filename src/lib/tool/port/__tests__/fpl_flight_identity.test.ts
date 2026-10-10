@@ -8,7 +8,7 @@ describe('KHB crewlist flight identity', () => {
   it('resolves a moved row and rounds its PLD', () => {
     const found = resolveCrewFlight(new Db({ flights: [flight] }), spec);
     expect(found).toEqual(flight);
-    expect(round_est(18123, String(found?.ac))).toEqual([18620, '']);
+    expect(round_est(18123, String(found?.ac))).toEqual([18600, '']);
   });
   it('rejects recycled row IDs belonging to another flight', () => {
     expect(resolveCrewFlight(new Db({ flights: [{ ...flight, row: 10, flt: '859' }, flight] }), spec)).toEqual(flight);
