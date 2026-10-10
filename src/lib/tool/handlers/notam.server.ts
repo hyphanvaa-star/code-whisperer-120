@@ -5,15 +5,29 @@ import * as pin from "../port/notam_pin";
 import { normIcao, apply24h, placeFromPayload, parseLookupCodes } from "../port/notam_check";
 import * as vn from "../port/aip_vn_chart";
 import atsRoutes from "../data/ats_routes.json";
+import foreignWps from "../data/foreign_waypoints.json";
 
 // ATS route các nước (snapshot aip_ats/routes.json của tool cũ) gộp vào nền bản đồ.
+// Waypoint nước ngoài (snapshot opennav theo quốc gia) gộp vào để ô tìm kiếm
+// tìm được cả fix ngoài FIR VN (KAPLI, IGARI…) và gắn tên fix cho route nước ngoài.
 function withForeignAts(c: vn.Chart): vn.Chart {
   const extra: vn.ChartRoute[] = [];
   for (const [cc, list] of Object.entries(atsRoutes as unknown as Record<string, { name: string; pts: vn.ChartPt[] }[]>))
     for (const r of list) extra.push({ name: r.name, pts: r.pts, cc });
-  // Gắn tên fix cho điểm nước ngoài trùng tọa độ waypoint VN (khu vực biên giới).
-  const withNames = vn.withFixes(extra, c.waypoints || []);
-  return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...withNames] };
+  const wps: vn.ChartWaypoint[] = [...(c.waypoints || [])];
+  const seen = new Set(wps.map((w) => w.id));
+  for (const list of Object.values(foreignWps as unknown as Record<string, vn.ChartWaypoint[]>))
+    for (const w of list) {
+      if (seen.has(w.id)) continue;
+      seen.add(w.id);
+      wps.push(w);
+    }
+  const withNames = vn.withFixes(extra, wps);
+  return {
+    ...c,
+    waypoints: wps,
+    routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...withNames],
+  };
 }
 
 // Port of the web.py "/api/notam/pins*" and "/api/notam/lookup" endpoints
