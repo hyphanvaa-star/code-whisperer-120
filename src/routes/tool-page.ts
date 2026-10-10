@@ -11,6 +11,17 @@ import notamGeometryFixes from '@/tool/notam-geometry.js?raw';
 const SHIM = `<script>
 (function(){
   window.__WEB_AUTH = true;
+  // Tự co giao diện theo độ rộng màn hình (màn hình nhỏ / Windows scale 125–150%).
+  (function(){
+    var BASE = 1800;
+    function fit(){
+      var w = window.innerWidth || BASE;
+      var z = Math.max(0.67, Math.min(1, w / BASE));
+      document.documentElement.style.zoom = z < 0.99 ? String(z) : "";
+    }
+    fit();
+    window.addEventListener("resize", fit);
+  })();
   if (window.parent === window) { location.replace('/tool'); return; }
   function tok(){ try { return window.parent.__fbToken ? window.parent.__fbToken() : null; } catch(e){ return null; } }
   function isApi(u){ return typeof u === 'string' && (u.indexOf('/api/') === 0 || u.indexOf(location.origin + '/api/') === 0); }
