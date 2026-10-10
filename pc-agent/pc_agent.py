@@ -432,14 +432,15 @@ def _owa_silent_refresh(say, timeout_s: float = 90.0) -> str:
         return ""
     try:
         _, ow = _load_owa_modules()
-        orig = ow._make_driver
-        ow._make_driver = lambda *a, **k: orig(*a, **{**k, "headless": True})
-        try:
-            tok = ow.ensure_session(
-                timeout_s=timeout_s, on_status=lambda m: None, creds=_OWA_CREDS,
-            )
-        finally:
-            ow._make_driver = orig
+        with ow._SESSION_LOCK:  # không đè lúc PIB/Đăng nhập OWA đang mở Chrome
+            orig = ow._make_driver
+            ow._make_driver = lambda *a, **k: orig(*a, **{**k, "headless": True})
+            try:
+                tok = ow.ensure_session(
+                    timeout_s=timeout_s, on_status=lambda m: None, creds=_OWA_CREDS,
+                )
+            finally:
+                ow._make_driver = orig
         try:
             import owa_fpl_watch  # noqa: E402
             _patch_fpl_watch(owa_fpl_watch)
