@@ -366,7 +366,7 @@ export const jobs: Jobs = {
       const ver = String(agent?.version || "");
       const [maj, min] = ver.split(".").map((n) => Number(n) || 0);
       if (maj < 3 || (maj === 3 && min < 8)) {
-        emit({ type: "line", text: `⚠ máy công ty đang chạy trợ lý v${ver || "?"} — cần cài bản v3.8 trở lên để tìm GD đúng như tool gốc.`, cls: "bad" });
+        emit({ type: "line", text: `⚠ máy công ty đang chạy trợ lý v${ver || "?"} — cần cài bản v3.9 trở lên (tìm GD đúng tool gốc + tự gia hạn phiên Outlook Web).`, cls: "bad" });
       }
       emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, failed: 1, match: false });
     }
