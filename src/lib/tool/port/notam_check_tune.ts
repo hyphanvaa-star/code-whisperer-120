@@ -15,6 +15,7 @@ import type { Flight } from "../core/models";
 import {
   normIcao,
   airportParentFir,
+  parseNotamWhen,
 } from "./notam_check";
 import {
   notamGeoms,
@@ -1089,7 +1090,7 @@ function isAtsRouteNotam(notam: N): boolean {
   return false;
 }
 
-function ofpNamedHits(notam: N, tokens: Set<string>): string[] {
+export function ofpNamedHits(notam: N, tokens: Set<string>): string[] {
   if (isTaxiwayNotam(notam)) return [];
   const known = new Set([...tokens].filter(Boolean).map((t) => String(t).toUpperCase()));
   if (!known.size) return [];
@@ -1138,12 +1139,12 @@ function airportDropWhy(notam: N, ctx: TuneCtx): string {
   return atsRouteDropWhy(notam, ctx);
 }
 
-function isFireArea(notam: N): boolean {
+export function isFireArea(notam: N): boolean {
   const subj = subjOf(notam);
   if (FIRE_SUBJ.has(subj)) return true;
   return FIRE_RE.test(notamBlob(notam));
 }
-function isProhibitedArea(notam: N): boolean {
+export function isProhibitedArea(notam: N): boolean {
   const subj = subjOf(notam);
   if (NOFLY_SUBJ.has(subj)) return true;
   return NOFLY_RE.test(notamBlob(notam));
@@ -1164,7 +1165,7 @@ function isKiteArea(notam: N): boolean {
   if (KITE_SUBJ.has(subj)) return true;
   return KITE_RE.test(notamBlob(notam));
 }
-function isExerciseArea(notam: N): boolean {
+export function isExerciseArea(notam: N): boolean {
   const subj = subjOf(notam);
   if (EXER_SUBJ.has(subj)) return true;
   return EXER_RE.test(notamBlob(notam));
@@ -1257,7 +1258,7 @@ function fmtHhmm(d: Date): string {
 const TUNE_WHEN_LO_H = 1.0;
 const TUNE_WHEN_HI_H = 2.0;
 
-function bcOk(notam: N, lo: Date | null, hi: Date | null): boolean {
+export function bcOk(notam: N, lo: Date | null, hi: Date | null): boolean {
   if (!lo || !hi) return true;
   const start = parseNotamWhenLocal(notam.start);
   const end = parseNotamWhenLocal(notam.end, true);
@@ -1268,8 +1269,6 @@ function bcOk(notam: N, lo: Date | null, hi: Date | null): boolean {
 
 // local re-export to avoid a circular import on parseNotamWhen name collisions
 function parseNotamWhenLocal(raw: unknown, endOfDay = false): Date | null {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { parseNotamWhen } = require("./notam_check") as typeof import("./notam_check");
   return parseNotamWhen(raw, endOfDay);
 }
 
@@ -1357,7 +1356,7 @@ function dScheduleOk(notam: N, when: Date, padH = 2.0, until?: Date | null): boo
   return false;
 }
 
-function rwyRoleOf(role: string, place: N, ctx: TuneCtx | null): string {
+export function rwyRoleOf(role: string, place: N, ctx: TuneCtx | null): string {
   const raw = String(role ?? "").trim().toUpperCase();
   if (raw === "DEP" || raw === "ARR") return raw;
   const code = normIcao(String(place.code ?? "")) || String(place.code ?? "").toUpperCase();
@@ -1395,7 +1394,7 @@ void rwyRoleOf; // kept for parity / future RWY-summary port
 const TUNE_PAD_H = 1.0;
 void TUNE_PAD_H;
 
-function placeWindow(place: N, ctx: TuneCtx): [Date | null, Date | null] {
+export function placeWindow(place: N, ctx: TuneCtx): [Date | null, Date | null] {
   const code = normIcao(String(place.code ?? "")) || String(place.code ?? "").toUpperCase();
   const std = ctx.std as Date | null, sta = ctx.sta as Date | null;
   const padMs = 3600_000;
@@ -1493,7 +1492,7 @@ function ofpHeadNote(hits: string[]): string {
   return "có dính tới " + hits.join("/") + "-OFP cần xem lại";
 }
 
-function applyOfpHead(notam: N, tokens: Set<string>, icao = ""): string {
+export function applyOfpHead(notam: N, tokens: Set<string>, icao = ""): string {
   if (isTaxiwayNotam(notam)) {
     notam.ofp_hits = [];
     return String(notam.head_vi ?? "").trim() || headVi(notam, icao);
@@ -1514,7 +1513,7 @@ function applyOfpHead(notam: N, tokens: Set<string>, icao = ""): string {
   return base;
 }
 
-function stampOfpHeads(places: N[], tokens: Set<string>, points?: Array<Record<string, unknown>> | null): Set<string> {
+export function stampOfpHeads(places: N[], tokens: Set<string>, points?: Array<Record<string, unknown>> | null): Set<string> {
   const known = new Set([...tokens, ...extraOfpTokens(points)]);
   for (const place of places || []) {
     const code = String(place.code ?? "");
@@ -1525,7 +1524,7 @@ function stampOfpHeads(places: N[], tokens: Set<string>, points?: Array<Record<s
   return known;
 }
 
-function stampSidStarHits(places: N[], flights: Flight[], texts?: Record<number, string>): void {
+export function stampSidStarHits(places: N[], flights: Flight[], texts?: Record<number, string>): void {
   const t = texts || {};
   for (const place of places || []) {
     const code = String(place.code ?? "");
