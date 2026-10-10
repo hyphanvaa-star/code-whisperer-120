@@ -137,6 +137,11 @@ async function vnChartEnsure(ctx: Parameters<Routes[string]>[0], force = false):
     await setJson(ctx, VNCHART_KEY, built);
     return built;
   }
+  // Build trắng (VATM lỗi/chặn): đánh dấu đã thử để 6h nữa mới thử lại.
+  if (have) {
+    have.built_at = new Date().toISOString();
+    await setJson(ctx, VNCHART_KEY, have);
+  }
   return have ?? vn.empty();
 }
 
