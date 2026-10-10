@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "3.8"
+VERSION = "3.9"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -412,6 +412,68 @@ def _live_owa_tokens(ow, say) -> list:
     return out
 
 
+_OWA_CREDS: tuple[str, str] | None = None   # tài khoản từ lần Đăng nhập OWA gần nhất
+_OWA_REFRESH_LOCK = threading.Lock()
+
+
+def _token_left_s(ow, tok: str) -> float:
+    try:
+        exp = ow._jwt_claims(tok).get("exp")
+        return float(exp) - time.time() if isinstance(exp, (int, float)) else -1.0
+    except Exception:
+        return -1.0
+
+
+def _owa_silent_refresh(say, timeout_s: float = 90.0) -> str:
+    """Lấy phiên Outlook Web mới bằng Chrome ẨN với profile đã đăng nhập sẵn —
+    không hiện cửa sổ. Profile còn đăng nhập thì vài giây là xong; Microsoft
+    đòi MFA thì trả "" (người dùng phải bấm Đăng nhập OWA)."""
+    if not _OWA_REFRESH_LOCK.acquire(timeout=timeout_s + 30):
+        return ""
+    try:
+        _, ow = _load_owa_modules()
+        orig = ow._make_driver
+        ow._make_driver = lambda *a, **k: orig(*a, **{**k, "headless": True})
+        try:
+            tok = ow.ensure_session(
+                timeout_s=timeout_s, on_status=lambda m: None, creds=_OWA_CREDS,
+            )
+        finally:
+            ow._make_driver = orig
+        try:
+            import owa_fpl_watch  # noqa: E402
+            _patch_fpl_watch(owa_fpl_watch)
+            owa_fpl_watch.ensure_running()
+        except Exception:
+            pass
+        return tok or ""
+    except Exception as exc:
+        say(f"· tự gia hạn phiên Outlook Web không được ({str(exc)[:120]})")
+        return ""
+    finally:
+        _OWA_REFRESH_LOCK.release()
+
+
+def _owa_keeper() -> None:
+    """Token Outlook Web chỉ sống ~1 giờ. Cứ 2 phút kiểm tra; còn dưới 10 phút
+    thì gia hạn ngầm, để nút Outlook Web giữ OK và PIB/FPL/GD luôn có phiên."""
+    time.sleep(20)
+    while True:
+        try:
+            _, ow = _load_owa_modules()
+            tok = ow._load_cached_token()
+            had_session = bool(tok) or _OWA_CREDS is not None
+            if had_session and (not tok or _token_left_s(ow, tok) < 600):
+                if _owa_silent_refresh(lambda m: log(m)):
+                    log("✓ đã tự gia hạn phiên Outlook Web (ngầm)")
+                else:
+                    log("⚠ chưa tự gia hạn được phiên Outlook Web — cần bấm Đăng nhập OWA")
+                    time.sleep(600)  # tránh mở Chrome liên tục khi cần MFA
+        except Exception as exc:
+            log(f"⚠ owa keeper: {exc}")
+        time.sleep(120)
+
+
 def download_gd_owa(flight: str, dest: Path, say) -> Path:
     """Tải GD đúng code gốc gd_print.download_gd, dùng lại phiên Outlook Web
     đang có (PIB/FPL/nháp) — KHÔNG tự mở Chrome đăng nhập, KHÔNG mở Outlook PC."""
@@ -420,6 +482,12 @@ def download_gd_owa(flight: str, dest: Path, say) -> Path:
     want = gp.digits_of(flight)
     say("· dùng phiên Outlook Web đang có…")
     tokens = _live_owa_tokens(ow, say)
+    if not tokens:
+        say("· phiên Outlook Web vừa hết hạn — đang tự gia hạn ngầm (không mở cửa sổ)…")
+        tok = _owa_silent_refresh(say)
+        if tok:
+            say("✓ đã gia hạn phiên Outlook Web")
+            tokens = [tok]
     if not tokens:
         raise RuntimeError(
             "chưa có phiên Outlook Web còn hạn — bấm Đăng nhập OWA (hoặc tải PIB/FPL) trên web trước rồi in lại"
@@ -752,6 +820,8 @@ def do_owa_login(payload: dict, say) -> dict:
     p = str(payload.get("pass") or "")
     if u and p:
         creds = (u, p)
+        global _OWA_CREDS
+        _OWA_CREDS = creds
 
     say("▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password "
         "(MFA thì xác nhận tay).")
@@ -1479,6 +1549,7 @@ def main() -> int:
     log(f"Trợ lý PC v{VERSION} — kết nối {BASE_URL}")
     check_paths: list[str] = []
     threading.Thread(target=_cancel_watcher, daemon=True).start()
+    threading.Thread(target=_owa_keeper, name="owa-keeper", daemon=True).start()
     while True:
         try:
             paths_exist = {"D:\\": _has_d()}
