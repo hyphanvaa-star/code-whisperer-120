@@ -202,18 +202,26 @@ export const routes: Routes = {
     const rows: ft.Raw[] = [];
     let filled = 0;
     let missed = 0;
+    const missedList: string[] = [];
+    const label = (f: ft.Raw) => {
+      const flt = String(f.flt ?? "").trim().replace(/^VJC?/i, "");
+      return `VJ${flt}${f.dep || f.arr ? ` ${f.dep || "?"}-${f.arr || "?"}` : ""}`;
+    };
     for (const spec of specs) {
       const rawId = (spec as ft.Raw).id;
       const flight = resolveCrewFlight(db, spec);
       if (!flight) {
         missed += 1;
+        missedList.push(`${label(spec)}: không khớp Crewlist hiện tại`);
         rows.push({ id: rawId, extra: "", why: "không có chuyến", places: [] });
         continue;
       }
       const alts = [spec.talt, spec.alt1, spec.alt2];
       const [minutes, why, places] = ft.extra_from_taf(db, flight, tafs as any, alts as any);
-      if (minutes === "") missed += 1;
-      else if (parseInt(minutes || "0", 10) > 0) filled += 1;
+      if (minutes === "") {
+        missed += 1;
+        missedList.push(`${label(flight)}: ${why || "không có TAF"}`);
+      } else if (parseInt(minutes || "0", 10) > 0) filled += 1;
       rows.push({ id: rawId, extra: fill ? minutes : "", why, places });
     }
     return {
@@ -221,6 +229,7 @@ export const routes: Routes = {
       rows,
       filled,
       missed,
+      missed_list: missedList,
       taf_count: tafCache.count || Object.keys(tafs).length,
     };
   },
