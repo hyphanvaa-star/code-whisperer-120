@@ -368,14 +368,103 @@ def _patch_config_drive(config) -> None:
     config._drive_patched = True
 
 
+def _owa_gendec_folders(s, root: str, say) -> list:
+    """Liệt kê thư mục GENDEC qua Outlook Web REST (ưu tiên '9. GENDEC')."""
+    found = []
+    stack = [f"{root}/mailfolders?$top=100"]
+    while stack:
+        url = stack.pop()
+        try:
+            r = s.get(url, timeout=30)
+            if r.status_code != 200:
+                continue
+            for f in r.json().get("value", []):
+                name = str(f.get("DisplayName") or "")
+                fid = str(f.get("Id") or "")
+                if FOLDER_NAME.casefold() in name.casefold():
+                    found.append((name, fid))
+                if int(f.get("ChildFolderCount") or 0) > 0:
+                    stack.append(f"{root}/mailfolders/{fid}/childfolders?$top=100")
+        except Exception:
+            continue
+    found.sort(key=lambda x: 0 if re.match(r"\d", x[0]) else 1)
+    return found
+
+
+def download_gd_owa(flight: str, dest: Path, say) -> Path:
+    """Tải GD từ thư mục GENDEC qua phiên Outlook Web đã đăng nhập (không mở Outlook PC)."""
+    config, ow = _load_owa_modules()
+    token = ow._load_cached_token() or ow._load_cached_token(ow.MAIL_TOKEN_CACHE)
+    if not token:
+        raise RuntimeError("chưa có phiên Outlook Web — bấm Đăng nhập OWA trên web trước")
+    s = ow._rest_session(token)
+    want = digits_of(flight)
+    since = datetime.now() - timedelta(hours=LOOKBACK_H)
+    boxes = [getattr(config, "OMC_SHARED_MAILBOX", "") or "", ""]
+    for box in boxes:
+        root = ow.rest_root(box)
+        folders = _owa_gendec_folders(s, root, say)
+        if not folders:
+            say(f"· {'hộp chung' if box else 'hộp cá nhân'}: không thấy thư mục {FOLDER_NAME}")
+            continue
+        for fname, fid in folders:
+            say(f"· thư mục Outlook Web: {fname}")
+            url = (f"{root}/mailfolders/{fid}/messages"
+                   f"?$orderby=ReceivedDateTime desc&$top=100"
+                   f"&$select=Id,Subject,BodyPreview,ReceivedDateTime,HasAttachments")
+            try:
+                r = s.get(url, timeout=30)
+            except Exception as e:
+                say(f"· lỗi đọc mail: {e}")
+                continue
+            if r.status_code != 200:
+                say(f"· Outlook Web: HTTP {r.status_code} {r.text[:160]}")
+                continue
+            for m in r.json().get("value", []):
+                try:
+                    when = str(m.get("ReceivedDateTime") or "")
+                    if when:
+                        dt = datetime.fromisoformat(when.replace("Z", "+00:00")).replace(tzinfo=None)
+                        if dt < since:
+                            break
+                    subj = str(m.get("Subject") or "")
+                    body = str(m.get("BodyPreview") or "")
+                    if not (contains_flight(subj, want) or contains_flight(body, want)):
+                        continue
+                    if not m.get("HasAttachments"):
+                        continue
+                    mid = str(m.get("Id") or "")
+                    ar = s.get(f"{root}/messages/{mid}/attachments?$top=50"
+                               f"&$select=Name,ContentBytes,ContentType", timeout=30)
+                    if ar.status_code != 200:
+                        continue
+                    for att in ar.json().get("value", []):
+                        name = str(att.get("Name") or "")
+                        if not name.lower().endswith((".xlsx", ".xlsm", ".xls")):
+                            continue
+                        if not contains_flight(name, want) and not contains_flight(subj, want):
+                            continue
+                        raw = att.get("ContentBytes")
+                        if not raw:
+                            continue
+                        say(f"· thấy {name}")
+                        dest.mkdir(parents=True, exist_ok=True)
+                        path = dest / name
+                        path.write_bytes(base64.b64decode(raw))
+                        return path
+                except Exception:
+                    continue
+    raise RuntimeError(f"không thấy GD {want} trong {FOLDER_NAME} ({LOOKBACK_H // 24} ngày qua)")
+
+
 def do_gd_print(payload: dict, say) -> dict:
     flight = str(payload.get("flight") or "")
     crew_regs = [str(r) for r in payload.get("crew_regs") or []]
     printer = str(payload.get("printer") or "")
     dest = _fix_drive(str(payload.get("dest") or "D:/GD"))
 
-    say(f"▶ tìm GD {flight} trong {FOLDER_NAME}")
-    path = download_gd(flight, dest, say)
+    say(f"▶ tìm GD {flight} trong {FOLDER_NAME} (Outlook Web)")
+    path = download_gd_owa(flight, dest, say)
     gd_reg = extract_gd_reg(path)
     say(f"· file: {path.name}")
     say(f"· tàu GD: {gd_reg or '—'}")
