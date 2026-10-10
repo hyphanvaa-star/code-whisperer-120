@@ -923,8 +923,10 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
   background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:700 !important;
   box-shadow:inset 3px 0 0 var(--x-red) !important;
 }
-.mode.on svg,.mode.on svg *{stroke:var(--x-red) !important}
-.mode-bang,.mode .mode-bang{top:50% !important;transform:translateY(-50%);right:10px !important;left:auto !important;border-color:#fff !important}
+ .mode.on svg,.mode.on svg *{stroke:var(--x-red) !important}
+ /* Giữ icon màu đỏ trên dòng đang chọn — không tô trắng phủ mất icon */
+ .mode.on::before{background:var(--x-red) !important}
+ .mode-bang,.mode .mode-bang{top:50% !important;transform:translateY(-50%);right:10px !important;left:auto !important;border-color:#fff !important}
 
 /* Bảng: không khối đỏ — đầu bảng trắng chữ đỏ, gạch đỏ; dòng thoáng phẳng */
 aside,main.split2{border-radius:12px !important;overflow:hidden}
