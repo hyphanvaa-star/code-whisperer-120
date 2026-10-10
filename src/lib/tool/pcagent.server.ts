@@ -111,7 +111,9 @@ export async function waitResult(
     if (row && (row.status === "done" || row.status === "failed")) {
       const r = row.result ?? {};
       if (row.status === "failed") {
-        throw new Error(String(r["error"] || "trợ lý PC báo lỗi không rõ"));
+        const err = new Error(String(r["error"] || "trợ lý PC báo lỗi không rõ")) as Error & { lines?: unknown };
+        err.lines = r["lines"];
+        throw err;
       }
       return r;
     }

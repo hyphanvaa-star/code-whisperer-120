@@ -357,7 +357,17 @@ export const jobs: Jobs = {
         file: checks.map((c) => c.file_name).filter(Boolean).join(", "),
       });
     } catch (e) {
+      const agentLines = ((e as { lines?: unknown }).lines as Array<{ text?: string; cls?: string } | string> | undefined) ?? [];
+      for (const ln of agentLines) {
+        if (typeof ln === "string") emit({ type: "line", text: ln });
+        else emit({ type: "line", text: String(ln.text ?? ""), cls: ln.cls || "" });
+      }
       emit({ type: "line", text: `✗ ${(e as Error).message}`, cls: "bad" });
+      const ver = String(agent?.version || "");
+      const [maj, min] = ver.split(".").map((n) => Number(n) || 0);
+      if (maj < 3 || (maj === 3 && min < 7)) {
+        emit({ type: "line", text: `⚠ máy công ty đang chạy trợ lý v${ver || "?"} — cần cài bản v3.7 trở lên để tìm GD đúng như tool gốc.`, cls: "bad" });
+      }
       emit({ type: "end", code: 1, elapsed: (Date.now() - t0) / 1000, ok: 0, failed: 1, match: false });
     }
   },
