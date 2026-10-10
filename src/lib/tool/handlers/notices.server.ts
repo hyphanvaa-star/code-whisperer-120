@@ -180,6 +180,107 @@ export const jobs: Jobs = {
     }
     end(failed ? 2 : 0, { ok, skipped, failed });
   },
+
+  // Port of web.py attach_auto: ghép file PIB/WX trong kho pibwx/ vào đúng
+  // chuyến (theo callsign trong tên file) rồi upload + gắn lên FliteBrief.
+  attach_auto: async (params, emit, ctx) => {
+    const t0 = Date.now();
+    const end = (code: number, extra: Record<string, unknown>) =>
+      emit({ type: "end", code, elapsed: (Date.now() - t0) / 1000, ...extra });
+    const digits = (s: string) => String(s || "").replace(/\D/g, "");
+    const csOf = (name: string) => {
+      const m = /VJC\s?(\d{2,4})/i.exec(name);
+      if (m) return m[1]!;
+      const d = /(\d{3,4})/.exec(name);
+      return d ? d[1]! : "";
+    };
+    const { fbRequest } = await import("@/lib/flitebrief.server");
+    try {
+      const r = await fbRequest("GET", "/webapi/sector/attachments/privileges");
+      const d = r.ok ? ((await r.json()) as Record<string, unknown>) : {};
+      if (!d["create"]) {
+        emit({ type: "line", text: "✗ tài khoản FliteBrief không có quyền đính kèm", cls: "bad" });
+        return end(1, { ok: 0, skipped: 0, failed: 0 });
+      }
+    } catch {
+      emit({ type: "line", text: "✗ không đọc được quyền đính kèm FliteBrief", cls: "bad" });
+      return end(1, { ok: 0, skipped: 0, failed: 0 });
+    }
+    const { loadFlights } = await import("../core/gantts.server");
+    const { getFile, listFiles } = await import("../store.server");
+    const { uploadAndAttach } = await import("./briefing.server");
+    const callsigns = (params["callsigns"] as string[]) ?? [];
+    const wantDigits = new Set(callsigns.map(digits).filter(Boolean));
+    const sectorIds = new Set(((params["sector_ids"] as unknown[]) ?? []).map(Number));
+    let flights;
+    try {
+      flights = (await loadFlights(Number(params["days"] ?? 1) || 1))
+        .filter((f) => (sectorIds.size ? sectorIds.has(f.id) : wantDigits.has(digits(f.callsign))));
+    } catch (e) {
+      emit({ type: "line", text: `✗ ${e instanceof Error ? e.message : String(e)}`, cls: "bad" });
+      return end(1, { ok: 0, skipped: 0, failed: 0 });
+    }
+    const byCs = new Map<string, typeof flights>();
+    for (const f of flights) {
+      const k = digits(f.callsign);
+      if (k) byCs.set(k, [...(byCs.get(k) ?? []), f]);
+    }
+    let names = ((params["filenames"] as string[]) ?? []).filter(Boolean);
+    if (!names.length) {
+      // Quét lại toàn bộ kho pibwx/ cho các chuyến đang có trong bảng.
+      names = (await listFiles(ctx, "pibwx").catch(() => [] as Array<{ name: string }>))
+        .map((f) => f.name)
+        .filter((n) => /\.pdf$/i.test(n));
+    }
+    const needRoute: Array<{ callsign: string; filename: string; kind: string }> = [];
+    type Work = { f: (typeof flights)[number]; name: string; kind: string };
+    const work: Work[] = [];
+    let skipped = 0;
+    for (const name of names) {
+      if (!/\.pdf$/i.test(name)) continue;
+      const kind = /^pib/i.test(name) ? "pib" : "wx";
+      const cands = byCs.get(csOf(name)) ?? [];
+      if (!cands.length) continue;
+      if (cands.length > 1 && !sectorIds.size) {
+        needRoute.push({ callsign: cands[0]!.callsign, filename: name, kind });
+        emit({
+          type: "line", text: `⊘ ${name}: trùng callsign nhiều sector — chờ chọn route`,
+          cls: "bad", need_route: true, filename: name, found: cands[0]!.callsign, doc_kind: kind,
+        });
+        continue;
+      }
+      const f = cands[0]!;
+      const have = new Set(f.attachments.flatMap((a) => [normTitle(a.title), normTitle(a.original_filename)]));
+      if (have.has(normTitle(name))) {
+        skipped++;
+        emit({ type: "line", text: `· đã có trên FliteBrief: ${name}`, found: f.callsign, doc_kind: kind, attached: true, new: false });
+        continue;
+      }
+      work.push({ f, name, kind });
+    }
+    emit({ type: "line", text: `▶ ${work.length} file cần add · ${skipped} đã có sẵn · ${needRoute.length} chờ chọn route` });
+    let ok = 0, failed = 0;
+    for (let i = 0; i < work.length; i++) {
+      const w = work[i]!;
+      const progress = (i + 1) / work.length;
+      const label = `${w.f.callsign} ${w.f.route}`;
+      try {
+        const buf = await getFile(ctx, `pibwx/${w.name}`);
+        if (!buf?.byteLength) throw new Error("file chưa có trên server (mới chỉ tải về máy PC)");
+        const res = await uploadAndAttach(w.f.id, new Uint8Array(buf), w.name, w.name.replace(/\.pdf$/i, ""));
+        if (!res.ok) throw new Error(res.error || "lỗi");
+        ok++;
+        emit({ type: "line", text: `✓ ${label} ← ${w.name}`, progress, found: w.f.callsign, doc_kind: w.kind, attached: true, new: true });
+      } catch (e) {
+        failed++;
+        emit({
+          type: "line", text: `✗ ${label} · ${w.name}: ${e instanceof Error ? e.message : String(e)}`,
+          cls: "bad", progress, found: w.f.callsign, doc_kind: w.kind, attached: false,
+        });
+      }
+    }
+    end(failed ? 2 : 0, { ok, skipped, failed, need_route: needRoute, refresh: ok > 0 });
+  },
 };
 
 // POST /api/attach/auto (web.py _api_attach_auto): tự đính kèm PIB/WX vừa tải
