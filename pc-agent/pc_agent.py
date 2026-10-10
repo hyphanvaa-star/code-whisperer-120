@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "2.9"
+VERSION = "3.0"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -938,10 +938,26 @@ def do_owa_pib(payload: dict, say) -> dict:
         if f.path.is_file() and f.path.stat().st_size > 0
     ]
     manifest = list({x["filename"].casefold(): x for x in manifest}.values())
+    # Gửi kèm nội dung PDF lên server (kho pibwx/) để web tự đính kèm lên
+    # FliteBrief — giới hạn tổng dung lượng mỗi lượt để không nghẽn report.
+    uploads: list[dict] = []
+    budget = 16_000_000
+    used = 0
+    pib_dir = config.get_path("pibwx")
+    for item in manifest:
+        fp = pib_dir / item["filename"]
+        try:
+            size = fp.stat().st_size
+            if used and used + size > budget:
+                continue
+            uploads.append({"name": fp.name, "b64": base64.b64encode(fp.read_bytes()).decode("ascii")})
+            used += size
+        except OSError:
+            continue
     return {
         "ok": saved, "skipped": skipped, "failed": len(missing), "missing": missing,
         "files": manifest, "source": source, "auth_failed": auth_failed,
-        "folder": str(config.get_path("pibwx")), "events": events,
+        "folder": str(pib_dir), "events": events, "uploads": uploads,
     }
 
 
