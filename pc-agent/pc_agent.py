@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "3.7"
+VERSION = "3.8"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -391,25 +391,51 @@ def _owa_gendec_folders(s, root: str, say) -> list:
     return found
 
 
+def _live_owa_tokens(ow, say) -> list:
+    """Phiên Outlook Web đang dùng (PIB / FPL / soạn nháp) — không mở Chrome."""
+    caches = [None, getattr(ow, "MAIL_TOKEN_CACHE", None)]
+    out = []
+    for cache in caches:
+        try:
+            tok = ow._load_cached_token(cache) if cache else ow._load_cached_token()
+        except Exception:
+            tok = ""
+        if not tok or tok in out:
+            continue
+        try:
+            if hasattr(ow, "_token_ok_for_mail") and not ow._token_ok_for_mail(tok):
+                continue
+            ow._probe_mailbox(tok)
+            out.append(tok)
+        except Exception:
+            continue
+    return out
+
+
 def download_gd_owa(flight: str, dest: Path, say) -> Path:
-    """Tải GD đúng code gốc gd_print.download_gd (Outlook Web REST, không mở Outlook PC)."""
+    """Tải GD đúng code gốc gd_print.download_gd, dùng lại phiên Outlook Web
+    đang có (PIB/FPL/nháp) — KHÔNG tự mở Chrome đăng nhập, KHÔNG mở Outlook PC."""
     config, ow = _load_owa_modules()
     import gd_print as gp  # module gốc trong PC_TOOL_DIR
     want = gp.digits_of(flight)
-    token = ow._load_cached_token() or ""
-    try:
-        token = gp._fresh_owa_token(token, say=say)
+    say("· dùng phiên Outlook Web đang có…")
+    tokens = _live_owa_tokens(ow, say)
+    if not tokens:
+        raise RuntimeError(
+            "chưa có phiên Outlook Web còn hạn — bấm Đăng nhập OWA (hoặc tải PIB/FPL) trên web trước rồi in lại"
+        )
+    last: Exception | None = None
+    for token in tokens:
         try:
             return gp.download_gd(want, token=token, dest=dest, on_progress=say)
-        except ow.OwaAuthError:
-            say("Phiên Outlook Web hết hiệu lực — đang lấy phiên mới…")
-            ow.invalidate_session()
-            token = gp._fresh_owa_token("", say=say, force=True)
-            return gp.download_gd(want, token=token, dest=dest, on_progress=say)
-    except ow.OwaAuthError as exc:
-        raise RuntimeError("Outlook Web từ chối phiên. Bấm Đăng nhập OWA trên web rồi in lại.") from exc
-    except ow.OwaError as exc:
-        raise RuntimeError(str(exc)) from exc
+        except ow.OwaAuthError as exc:
+            last = exc
+            say("· phiên này bị Outlook từ chối — thử phiên khác…")
+        except ow.OwaError as exc:
+            raise RuntimeError(str(exc)) from exc
+    raise RuntimeError(
+        "Outlook Web từ chối phiên hiện có — bấm Đăng nhập OWA trên web rồi in lại"
+    ) from last
 
 
 def do_gd_print(payload: dict, say) -> dict:
