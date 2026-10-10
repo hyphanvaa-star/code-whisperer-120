@@ -11,7 +11,9 @@ function withForeignAts(c: vn.Chart): vn.Chart {
   const extra: vn.ChartRoute[] = [];
   for (const [cc, list] of Object.entries(atsRoutes as unknown as Record<string, { name: string; pts: vn.ChartPt[] }[]>))
     for (const r of list) extra.push({ name: r.name, pts: r.pts, cc });
-  return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...extra] };
+  // Gắn tên fix cho điểm nước ngoài trùng tọa độ waypoint VN (khu vực biên giới).
+  const withNames = vn.withFixes(extra, c.waypoints || []);
+  return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...withNames] };
 }
 
 // Port of the web.py "/api/notam/pins*" and "/api/notam/lookup" endpoints
