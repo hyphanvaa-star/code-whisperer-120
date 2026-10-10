@@ -21,6 +21,7 @@
 - Background jobs encode kind+params in the job id and run while `/api/stream` streams (`src/lib/tool/jobs.ts`), because workers share no memory.
 - Persistent tool state uses `app_settings` keys and files use the private `tool-files` bucket via `src/lib/tool/store.server.ts`, replacing web.py's local `data/` folder.
 - Pure ports of Python modules live in `src/lib/tool/port/<module>.ts` with original tests ported to `src/lib/tool/port/__tests__/`.
+- NOTAM summaries use per-flight `verdictOf` and `fleetVerdict` in `port/notam_verdict.ts`, not raw map hit counts, because map hits include distant, unresolved and above-ceiling reference areas.
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py` on the company PC: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with the `PC_AGENT_TOKEN` secret, because a Worker cannot reach LAN devices.
 - Server-side Excel reading uses SheetJS (`xlsx` from the SheetJS CDN tarball) because ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, loaded via `src/lib/exceljs-load.ts`.
 - Airport country flags are bundled locally and resolved through the generated global ICAO-to-country dataset so flight cards work without third-party image requests.

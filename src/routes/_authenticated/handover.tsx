@@ -22,6 +22,8 @@ export const Route = createFileRoute("/_authenticated/handover")({
       { name: "description", content: "Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM và ghi chú." },
       { property: "og:title", content: "Giao ca — Dispatch Board" },
       { property: "og:description", content: "Bảng giao ca ca sáng / ca đêm cho dispatcher." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: () => (

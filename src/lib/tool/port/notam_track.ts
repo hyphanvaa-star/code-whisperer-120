@@ -11,6 +11,10 @@ import AIP_CATALOG from "./aip_catalog.json";
 // handler supplies; with no KML port the handler reports an explicit error and this
 // module degrades distance to `null` ("không tính được") instead of faking 0/huge NM.
 import type { Flight } from "../core/models";
+import { applyOfpHead, buildTuneCtx, extraOfpTokens, stampOfpHeads, stampSidStarHits } from './notam_check_tune';
+import { fleetVerdict, verdictOf, type FleetItem } from './notam_verdict';
+import type { Chart } from './aip_vn_chart';
+export { fleetVerdict } from './notam_verdict';
 
 export const EARTH_NM = 3440.065;
 export const CORRIDOR_NM = 10.0;
@@ -952,14 +956,6 @@ export function compare(flight: Flight, places: Place[], track: Track, ofpText =
   return hits;
 }
 
-export function fleetVerdict(items: { cs: string; dep: string; dest: string; hit_count: number }[]) {
-  const n = items.length;
-  const riskN = items.filter((it) => it.hit_count > 0).length;
-  const bits = [`${n} chuyến quốc nội`];
-  if (riskN) bits.push(`${riskN} chuyến dính`);
-  return { status: riskN ? "risk" : "clear", headline: bits.join(" · "), sections: [], flights: n, risk: riskN };
-}
-
 // run()/run_domestic_fleet(): orchestration kept thin — network (NOTAM fetch, OFP,
 // JetPlan KML) is injected by the handler so this module stays free of server-only
 // imports; see handlers/notam_track.server.ts for the FliteBrief wiring.
@@ -967,6 +963,7 @@ export interface RunDeps {
   fetchPlaces: (flight: Flight, ofpText?: string) => Promise<Place[]>;
   fetchOfpText?: (flight: Flight) => Promise<string>;
   fetchTrack: (flight: Flight) => Promise<{ track: Track; error: string }>;
+  chart?: Chart | null;
   onProgress?: (text: string) => void;
 }
 
@@ -980,6 +977,12 @@ export async function run(flight: Flight, deps: RunDeps) {
   let track = trackRes.track;
   if (track.points?.length) track = { ...track, points: stampEta(track.points, flight) };
   const hits = compare(flight, places, track, ofpText);
+  const points = track.points as unknown as Record<string, unknown>[];
+  const tokens = new Set([...(buildTuneCtx(flight, ofpText).tokens as Set<string>), ...extraOfpTokens(points)]);
+  for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''));
+  stampSidStarHits(places, [flight], { [flight.id]: ofpText });
+  const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart);
+  stampOfpHeads(places, tokens, points);
   return {
     ok: true,
     flight: {
@@ -990,26 +993,39 @@ export async function run(flight: Flight, deps: RunDeps) {
     jetplan: { plan: track.plan || "", via: track.via || "", error: trackRes.error },
     track: track.points || [],
     line: track.line || [],
-    hits, hit_count: hits.length, places,
+    hits, hit_count: hits.length, places, verdict, ofp_tokens: [...tokens].sort(),
     notams: places.reduce((a, p) => a + ((p.notams as unknown[] | undefined)?.length ?? 0), 0),
     window: "24h",
   };
 }
 
-export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetchAllPlaces: (flights: Flight[]) => Promise<Place[]> }) {
+export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetchAllPlaces: (flights: Flight[], ofpTexts?: Record<number, string>) => Promise<Place[]> }) {
   const wanted = flights.filter(isDomesticFlight);
   if (!wanted.length) return { ok: false, error: "không có chuyến quốc nội", places: [] };
   deps.onProgress?.("Đang lấy NOTAM sân và FIR");
-  const places = await deps.fetchAllPlaces(wanted);
+  const texts: Record<number, string> = {};
+  let ofpIdx = 0;
+  await Promise.all(Array.from({ length: Math.min(4, wanted.length) }, async () => {
+    while (ofpIdx < wanted.length) {
+      const f = wanted[ofpIdx++];
+      if (!f) continue;
+      texts[f.id] = deps.fetchOfpText ? await deps.fetchOfpText(f).catch(() => '') : '';
+    }
+  }));
+  const places = await deps.fetchAllPlaces(wanted, texts);
+  stampSidStarHits(places, wanted, texts);
   deps.onProgress?.("NOTAM đã xong");
   const tracks: Record<string, unknown> = {};
-  const pack: { id: number; cs: string; dep: string; dest: string; tracked: boolean; hit_count: number; kml_error: string }[] = [];
+  const pack: (FleetItem & { tracked: boolean; kml_error: string })[] = [];
+  const fleetTokens = new Set<string>();
+  const fleetPoints: Record<string, unknown>[] = [];
   // Tải track song song (pool 8) — tuần tự từng chuyến quá chậm với cả đội bay.
   const trackResults = new Map<number, { track: Track; error: string }>();
   let nextIdx = 0, doneCount = 0;
   const worker = async () => {
     while (nextIdx < wanted.length) {
       const f = wanted[nextIdx++];
+      if (!f) continue;
       trackResults.set(f.id, await deps.fetchTrack(f));
       doneCount++;
       deps.onProgress?.(`Đang đối chiếu ${doneCount}/${wanted.length} · ${f.callsign || f.id}`);
@@ -1017,13 +1033,21 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
   };
   await Promise.all(Array.from({ length: Math.min(8, wanted.length) }, worker));
   for (const flight of wanted) {
-    const trackRes = trackResults.get(flight.id)!;
+    const trackRes = trackResults.get(flight.id);
+    if (!trackRes) continue;
     let track = trackRes.track;
     if (track.points?.length) track = { ...track, points: stampEta(track.points, flight) };
-    const hits = compare(flight, places, track);
+    const ofpText = texts[flight.id] || '';
+    const hits = compare(flight, places, track, ofpText);
+    const points = track.points as unknown as Record<string, unknown>[];
+    const tokens = new Set([...(buildTuneCtx(flight, ofpText).tokens as Set<string>), ...extraOfpTokens(points)]);
+    for (const token of tokens) fleetTokens.add(token);
+    fleetPoints.push(...points);
+    for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''));
+    const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart);
     const row = {
       id: flight.id, cs: flight.callsign || "", dep: flight.dep_icao || "", dest: flight.dest_icao || "",
-      tracked: !!(track.points?.length || track.line?.length), hit_count: hits.length, kml_error: trackRes.error,
+      tracked: !!(track.points?.length || track.line?.length), hit_count: hits.length, kml_error: trackRes.error, verdict,
     };
     pack.push(row);
     tracks[String(flight.id)] = {
@@ -1034,9 +1058,10 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
         reg: flight.reg, plan_no: flight.plan_no || "",
       },
       jetplan: { plan: track.plan || "", via: track.via || "", error: trackRes.error },
-      track: track.points || [], line: track.line || [], hits, hit_count: hits.length,
+      track: track.points || [], line: track.line || [], hits, hit_count: hits.length, verdict,
     };
   }
+  stampOfpHeads(places, fleetTokens, fleetPoints);
   return {
     ok: true, fleet: true, scope: "domestic-track", places, tracks, fleet_rows: pack,
     fleet_verdict: fleetVerdict(pack),

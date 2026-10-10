@@ -1142,6 +1142,10 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // Summary comes from the original per-flight verdict pipeline, never raw map hits.
+    .replace(/\/\/ Tóm tắt cả ca quốc nội:[\s\S]*?(?=function nmPaintVerdict\(\))/, '')
+    .replace(/    let fleet = \(nmData && nmData\.fleet_verdict\) \|\| null;\s*if\(fleet && !\(fleet\.sections \|\| \[\]\)\.length\)\{[\s\S]*?\n    \}/, '    const fleet = (nmData && nmData.fleet_verdict) || null;')
+    .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
     .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
