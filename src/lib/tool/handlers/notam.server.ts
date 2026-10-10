@@ -124,9 +124,12 @@ async function vnChartEnsure(ctx: Parameters<Routes[string]>[0], force = false):
   const have = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
   const hist = await vnChartHttp(VNCHART_HISTORY_URL);
   const [cycle, effective] = hist ? vn.currentIssue(hist) : ["", ""];
-  // Cache thiếu sân bay (lần build trước không tải được trang AD) thì build lại.
+  // Cache thiếu sân bay hoặc route chưa có tên fix (lần build trước lỗi / bản cũ)
+  // thì build lại — nhưng tối đa 6h/lần để VATM chết không làm treo mọi request.
   const stale = have && (!have.airports?.length || have.routes?.some((r) => r.fixes == null));
-  if (have && !force && !stale && (!cycle || have.cycle === cycle)) return have;
+  const retriedRecently = have?.built_at
+    && (Date.now() - Date.parse(have.built_at)) < 6 * 3600 * 1000;
+  if (have && !force && (!stale || retriedRecently) && (!cycle || have.cycle === cycle)) return have;
   if (!cycle) return have ?? vn.empty();
   const built = await vnChartBuild(cycle, effective);
   if (built.routes.length || built.airports.length) {

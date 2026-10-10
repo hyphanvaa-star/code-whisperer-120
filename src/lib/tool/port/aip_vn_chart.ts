@@ -21,6 +21,7 @@ export type Chart = {
   navaids: ChartNavaid[];
   pending?: boolean;
   lookup?: ChartWaypoint[];
+  built_at?: string;
 };
 
 export function empty(cycle = "", effective = ""): Chart {
