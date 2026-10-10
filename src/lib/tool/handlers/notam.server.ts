@@ -102,8 +102,10 @@ async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart>
     vnChartHttp(vnChartPage(cycle, "VV-ENR-4.4-en-GB.html")),
     vnChartHttp(vnChartPage(cycle, "VV-AD-1.3-en-GB.html")),
   ]);
-  chart.routes = [...vn.parseRoutes(enr31), ...vn.parseRoutes(enr33)];
   chart.waypoints = vn.parseWaypoints(enr44);
+  // Gắn tên fix vào từng điểm của airway (theo tọa độ waypoint ENR 4.4) để
+  // ô tìm kiếm bản đồ tìm được cả waypoint nằm trên route.
+  chart.routes = vn.withFixes([...vn.parseRoutes(enr31), ...vn.parseRoutes(enr33)], chart.waypoints);
   chart.navaids = vn.parseNavaids(enr41);
   const index = vn.parseAirports(ad13);
   const airports: vn.ChartAirport[] = [];
@@ -118,11 +120,13 @@ async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart>
   return chart;
 }
 
-async function vnChartEnsure(ctx: Parameters<Routes[string]>[0]): Promise<vn.Chart> {
+async function vnChartEnsure(ctx: Parameters<Routes[string]>[0], force = false): Promise<vn.Chart> {
   const have = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
   const hist = await vnChartHttp(VNCHART_HISTORY_URL);
   const [cycle, effective] = hist ? vn.currentIssue(hist) : ["", ""];
-  if (have && (!cycle || have.cycle === cycle)) return have;
+  // Cache thiếu sân bay (lần build trước không tải được trang AD) thì build lại.
+  const stale = have && (!have.airports?.length || have.routes?.some((r) => r.fixes == null));
+  if (have && !force && !stale && (!cycle || have.cycle === cycle)) return have;
   if (!cycle) return have ?? vn.empty();
   const built = await vnChartBuild(cycle, effective);
   if (built.routes.length || built.airports.length) {
