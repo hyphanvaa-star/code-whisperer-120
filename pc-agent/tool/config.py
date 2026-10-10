@@ -452,7 +452,7 @@ def ensure_d_folder(kind: str) -> Path:
 def ensure_dirs() -> None:
     for d in (DATA_DIR, DOWNLOAD_DIR, CACHE_DIR, LOG_DIR, EXCEL_DIR,
               OFP_CACHE_DIR, DEFECT_DIR):
-        d.mkdir(parents=True, exist_ok=True)
+        Path(d).mkdir(parents=True, exist_ok=True)
     for key in PATH_KEYS:
         if key in _DRIVE_FOLDERS:
             continue
