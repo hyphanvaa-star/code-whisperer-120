@@ -19,6 +19,8 @@ export const Route = createFileRoute("/_authenticated/tool")({
 declare global {
   interface Window {
     __fbToken?: () => string | null;
+    __fbRefresh?: () => Promise<string | null>;
+    __fbExpired?: () => void;
   }
 }
 
@@ -98,6 +100,9 @@ function ToolPage() {
     return () => {
       sub.subscription.unsubscribe();
       window.removeEventListener("message", onMessage);
+      document.removeEventListener("visibilitychange", wake);
+      window.removeEventListener("focus", wake);
+      clearInterval(tick);
     };
   }, [navigate, sendAccount, signOut]);
 
