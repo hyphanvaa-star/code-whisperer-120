@@ -436,9 +436,14 @@ async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any
       const f = pickFlight(it);
       if (!f) { missed.push(`${label}: không thấy trên FliteBrief`); return; }
       try {
-        const res = await fbGet(`/webapi/sectors/${f.id}/ofp`, "application/pdf");
-        if (!res.ok || res.status === 204) { missed.push(`${label}: chưa có OFP`); return; }
-        const buf = new Uint8Array(await res.arrayBuffer());
+        // Same endpoint as the working OFP download (/api/fb/file): /ofp/0, then legacy /ofp.
+        let buf = new Uint8Array();
+        for (const p of [`/webapi/sectors/${f.id}/ofp/0`, `/webapi/sectors/${f.id}/ofp`]) {
+          const res = await fbGet(p, "application/pdf");
+          if (!res.ok || res.status === 204) continue;
+          const b = new Uint8Array(await res.arrayBuffer());
+          if (b.byteLength > 4 && String.fromCharCode(...b.slice(0, 4)) === "%PDF") { buf = b; break; }
+        }
         if (!buf.byteLength) { missed.push(`${label}: chưa có OFP`); return; }
         got.push({ ix, f, block: ae.extractAtc(await pdfText(buf)) });
       } catch (e) {
