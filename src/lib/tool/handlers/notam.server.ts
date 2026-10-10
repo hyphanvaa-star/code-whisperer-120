@@ -11,7 +11,9 @@ function withForeignAts(c: vn.Chart): vn.Chart {
   const extra: vn.ChartRoute[] = [];
   for (const [cc, list] of Object.entries(atsRoutes as unknown as Record<string, { name: string; pts: vn.ChartPt[] }[]>))
     for (const r of list) extra.push({ name: r.name, pts: r.pts, cc });
-  return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...extra] };
+  // Gắn tên fix cho điểm nước ngoài trùng tọa độ waypoint VN (khu vực biên giới).
+  const withNames = vn.withFixes(extra, c.waypoints || []);
+  return { ...c, routes: [...(c.routes || []).filter((r) => !r.cc || r.cc === "VN"), ...withNames] };
 }
 
 // Port of the web.py "/api/notam/pins*" and "/api/notam/lookup" endpoints
@@ -95,6 +97,7 @@ async function vnChartHttp(url: string, timeoutMs = 60000): Promise<string> {
 
 async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart> {
   const chart = vn.empty(cycle, effective);
+  chart.built_at = new Date().toISOString();
   const [enr31, enr33, enr41, enr44, ad13] = await Promise.all([
     vnChartHttp(vnChartPage(cycle, "VV-ENR-3.1-en-GB.html")),
     vnChartHttp(vnChartPage(cycle, "VV-ENR-3.3-en-GB.html")),
@@ -102,8 +105,10 @@ async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart>
     vnChartHttp(vnChartPage(cycle, "VV-ENR-4.4-en-GB.html")),
     vnChartHttp(vnChartPage(cycle, "VV-AD-1.3-en-GB.html")),
   ]);
-  chart.routes = [...vn.parseRoutes(enr31), ...vn.parseRoutes(enr33)];
   chart.waypoints = vn.parseWaypoints(enr44);
+  // Gắn tên fix vào từng điểm của airway (theo tọa độ waypoint ENR 4.4) để
+  // ô tìm kiếm bản đồ tìm được cả waypoint nằm trên route.
+  chart.routes = vn.withFixes([...vn.parseRoutes(enr31), ...vn.parseRoutes(enr33)], chart.waypoints);
   chart.navaids = vn.parseNavaids(enr41);
   const index = vn.parseAirports(ad13);
   const airports: vn.ChartAirport[] = [];
@@ -118,16 +123,26 @@ async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart>
   return chart;
 }
 
-async function vnChartEnsure(ctx: Parameters<Routes[string]>[0]): Promise<vn.Chart> {
+async function vnChartEnsure(ctx: Parameters<Routes[string]>[0], force = false): Promise<vn.Chart> {
   const have = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
   const hist = await vnChartHttp(VNCHART_HISTORY_URL);
   const [cycle, effective] = hist ? vn.currentIssue(hist) : ["", ""];
-  if (have && (!cycle || have.cycle === cycle)) return have;
+  // Cache thiếu sân bay hoặc route chưa có tên fix (lần build trước lỗi / bản cũ)
+  // thì build lại — nhưng tối đa 6h/lần để VATM chết không làm treo mọi request.
+  const stale = have && (!have.airports?.length || have.routes?.some((r) => r.fixes == null));
+  const retriedRecently = have?.built_at
+    && (Date.now() - Date.parse(have.built_at)) < 6 * 3600 * 1000;
+  if (have && !force && (!stale || retriedRecently) && (!cycle || have.cycle === cycle)) return have;
   if (!cycle) return have ?? vn.empty();
   const built = await vnChartBuild(cycle, effective);
   if (built.routes.length || built.airports.length) {
     await setJson(ctx, VNCHART_KEY, built);
     return built;
+  }
+  // Build trắng (VATM lỗi/chặn): đánh dấu đã thử để 6h nữa mới thử lại.
+  if (have) {
+    have.built_at = new Date().toISOString();
+    await setJson(ctx, VNCHART_KEY, have);
   }
   return have ?? vn.empty();
 }
@@ -247,16 +262,19 @@ export const routes: Routes = {
     }
   },
   "GET /api/notam/vnchart": async (ctx) => {
-    const data = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
-    if (data && (data.airports.length || data.routes.length)) return withForeignAts(data);
+    const force = ctx.params.get("refresh") === "1";
+    const data = force ? null : await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
+    if (data && (data.airports.length || data.routes.length)
+      && data.airports.length && !data.routes.some((r) => r.fixes == null)) return withForeignAts(data);
     // web.py: tải nền trong luồng riêng rồi trả "pending" ngay — worker này
     // không có luồng nền nên tải luôn (không chờ lâu lần sau vì đã cache).
     try {
-      const built = await vnChartEnsure(ctx);
+      const built = await vnChartEnsure(ctx, force);
       if (built.airports.length || built.routes.length) return withForeignAts(built);
     } catch {
       // bỏ qua, trả pending như dưới
     }
+    if (data && (data.airports.length || data.routes.length)) return withForeignAts(data);
     return { ...vn.empty(), pending: true };
   },
 
