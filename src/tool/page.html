@@ -13258,6 +13258,59 @@ function nmSyncActiveMap(){
   nmSyncActiveMap._id = "";
   nmApplyFleetTrack();
 }
+// Tóm tắt cả ca quốc nội: gom hit của mọi chuyến đã tracking trong nmData.tracks,
+// nhóm theo loại (sân đóng, RWY, vùng hạn chế, ATS, SID/STAR…) kèm tên chuyến dính.
+function nmBuildFleetVerdict(){
+  if(!(nmData && nmData.fleet)) return null;
+  const tracks = nmData.tracks || {};
+  const rows = (nmData.fleet_rows || []);
+  const csOf = {};
+  for(const r of rows) csOf[String(r.id)] = String(r.cs || "");
+  const buckets = {ad:{}, rwy:{}, area:{}, ats:{}, gps:{}, rffs:{}, note:{}};
+  const put = (bucket, hit, cs) => {
+    const ident = String(hit.ident || "");
+    if(!ident) return;
+    const cur = bucket[ident] || (bucket[ident] = {ident, icao: String(hit.icao || "").toUpperCase(), cs: {}});
+    if(cs) cur.cs[cs] = true;
+  };
+  for(const id of Object.keys(tracks)){
+    const t = tracks[id] || {};
+    const cs = csOf[id] || String((t.flight || {}).callsign || "");
+    for(const hit of nmHitsOf(t)){
+      if(hit.impact === "ref") continue;
+      const tags = nmClassifyEffect(hit, {kind: hit.kind || "", code: hit.icao || ""});
+      if(tags.indexOf("ad_closed") >= 0) put(buckets.ad, hit, cs);
+      if(tags.indexOf("rwy_closed") >= 0) put(buckets.rwy, hit, cs);
+      if(tags.indexOf("restrict") >= 0 || tags.indexOf("fire") >= 0) put(buckets.area, hit, cs);
+      if(tags.indexOf("route") >= 0 || tags.indexOf("flow") >= 0) put(buckets.ats, hit, cs);
+      if(tags.indexOf("gps") >= 0) put(buckets.gps, hit, cs);
+      if(tags.indexOf("rffs") >= 0) put(buckets.rffs, hit, cs);
+      if(tags.indexOf("note") >= 0) put(buckets.note, hit, cs);
+    }
+  }
+  const rowsOf = bucket => Object.values(bucket).map(r =>
+    nmSecRow(r.icao, Object.keys(r.cs).sort().join(", "), r.ident, r.icao, true));
+  const pack = nmData.places || [];
+  const sidRows = nmSidStarRows(pack, "");
+  const sections = [
+    {key:"ad", title:"Sân bay", answer: Object.keys(buckets.ad).length ? "có đóng cửa sân bay" : "không có đóng cửa sân bay", hit: !!Object.keys(buckets.ad).length, rows: rowsOf(buckets.ad)},
+    {key:"rwy", title:"Đường băng (RWY)", answer: Object.keys(buckets.rwy).length ? "có đóng cửa rwy" : "không có đóng cửa rwy", hit: !!Object.keys(buckets.rwy).length, rows: rowsOf(buckets.rwy)},
+    {key:"area", title:"Vùng hạn chế", answer: Object.keys(buckets.area).length ? "có ảnh hưởng" : "không ảnh hưởng", hit: !!Object.keys(buckets.area).length, rows: rowsOf(buckets.area)},
+    {key:"ats", title:"ATS Route", answer: Object.keys(buckets.ats).length ? "có ảnh hưởng" : "không ảnh hưởng", hit: !!Object.keys(buckets.ats).length, rows: rowsOf(buckets.ats)},
+    {key:"sidstar", title:"SID / STAR", answer: sidRows.length ? "có ảnh hưởng" : "không ảnh hưởng", hit: !!sidRows.length, rows: sidRows},
+    {key:"gps", title:"GPS / GNSS", answer: Object.keys(buckets.gps).length ? "có ảnh hưởng" : "không ảnh hưởng", hit: !!Object.keys(buckets.gps).length, rows: rowsOf(buckets.gps)},
+    {key:"rffs", title:"RFFS", answer: Object.keys(buckets.rffs).length ? "có ảnh hưởng" : "không ảnh hưởng", hit: !!Object.keys(buckets.rffs).length, rows: rowsOf(buckets.rffs)},
+    {key:"note", title:"Ghi chú", answer: Object.keys(buckets.note).length ? "có ảnh hưởng" : "không ảnh hưởng", hit: !!Object.keys(buckets.note).length, rows: rowsOf(buckets.note)}
+  ];
+  const anyHit = sections.some(s => s.hit);
+  const riskN = rows.filter(r => (r.hit_count || 0) > 0).length;
+  return {
+    status: anyHit ? "risk" : "clear",
+    headline: (nmData.fleet_verdict && nmData.fleet_verdict.headline)
+      || (`${rows.length} chuyến quốc nội` + (riskN ? ` · ${riskN} chuyến dính` : "")),
+    sections,
+  };
+}
 function nmPaintVerdict(){
   const box = $("#nmVerdict");
   if(!box) return;
