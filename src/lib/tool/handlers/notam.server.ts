@@ -95,6 +95,7 @@ async function vnChartHttp(url: string, timeoutMs = 60000): Promise<string> {
 
 async function vnChartBuild(cycle: string, effective: string): Promise<vn.Chart> {
   const chart = vn.empty(cycle, effective);
+  chart.built_at = new Date().toISOString();
   const [enr31, enr33, enr41, enr44, ad13] = await Promise.all([
     vnChartHttp(vnChartPage(cycle, "VV-ENR-3.1-en-GB.html")),
     vnChartHttp(vnChartPage(cycle, "VV-ENR-3.3-en-GB.html")),
@@ -254,16 +255,19 @@ export const routes: Routes = {
     }
   },
   "GET /api/notam/vnchart": async (ctx) => {
-    const data = await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
-    if (data && (data.airports.length || data.routes.length)) return withForeignAts(data);
+    const force = ctx.params.get("refresh") === "1";
+    const data = force ? null : await getJson<vn.Chart | null>(ctx, VNCHART_KEY, null);
+    if (data && (data.airports.length || data.routes.length)
+      && data.airports.length && !data.routes.some((r) => r.fixes == null)) return withForeignAts(data);
     // web.py: tải nền trong luồng riêng rồi trả "pending" ngay — worker này
     // không có luồng nền nên tải luôn (không chờ lâu lần sau vì đã cache).
     try {
-      const built = await vnChartEnsure(ctx);
+      const built = await vnChartEnsure(ctx, force);
       if (built.airports.length || built.routes.length) return withForeignAts(built);
     } catch {
       // bỏ qua, trả pending như dưới
     }
+    if (data && (data.airports.length || data.routes.length)) return withForeignAts(data);
     return { ...vn.empty(), pending: true };
   },
 
