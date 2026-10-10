@@ -1217,6 +1217,10 @@ async function ftLoad(){
     .replace('  if(!ftApplying) ftRender();\n  if(fill){', '  if(!ftApplying && !hoverOnly) ftRender();\n  if(fill){')
     // Name each flight that could not be matched to TAF and why.
     .replace('      + " · TAF " + (d.taf_count || 0) + " sân";', '      + " · TAF " + (d.taf_count || 0) + " sân"\n      + ((d.missed_list || []).length ? " — " + d.missed_list.join(" · ") : "");\n    $("#ftStat").title = (d.missed_list || []).join("\\n");')
+    // FPL watcher polls every 10s: only re-diff when the watcher reports a new
+    // ver pair, or when the newest pair differs from the table already shown.
+    .replace('  if(old === fplVerApplied.old && neu === fplVerApplied.new){\n    paintVerBang(ver);\n    return;\n  }', '  const verSig = old + "\\0" + neu;\n  if(verSig === window.__fplVerSig || (old === fplVerApplied.old && neu === fplVerApplied.new)){\n    paintVerBang(ver);\n    return;\n  }\n  window.__fplVerSig = verSig;')
+    .replace('  if(mode === "version" && $("#vOld").value && $("#vNew").value\n     && $("#vOld").value !== $("#vNew").value) vRun();', '  if(mode === "version" && $("#vOld").value && $("#vNew").value\n     && $("#vOld").value !== $("#vNew").value\n     && !(vLast && vLast._pair === $("#vOld").value + "\\0" + $("#vNew").value && $("#vBody").querySelector("tr"))) vRun();')
     // Summary comes from the original per-flight verdict pipeline, never raw map hits.
     .replace(/\/\/ Tóm tắt cả ca quốc nội:[\s\S]*?(?=function nmPaintVerdict\(\))/, '')
     .replace(/    let fleet = \(nmData && nmData\.fleet_verdict\) \|\| null;\s*if\(fleet && !\(fleet\.sections \|\| \[\]\)\.length\)\{[\s\S]*?\n    \}/, '    const fleet = (nmData && nmData.fleet_verdict) || null;')
