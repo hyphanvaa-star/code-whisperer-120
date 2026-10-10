@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "3.6"
+VERSION = "3.7"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -392,76 +392,24 @@ def _owa_gendec_folders(s, root: str, say) -> list:
 
 
 def download_gd_owa(flight: str, dest: Path, say) -> Path:
-    """Tải GD từ thư mục GENDEC qua phiên Outlook Web đã đăng nhập (không mở Outlook PC)."""
+    """Tải GD đúng code gốc gd_print.download_gd (Outlook Web REST, không mở Outlook PC)."""
     config, ow = _load_owa_modules()
-    token = ow._load_cached_token() or ow._load_cached_token(ow.MAIL_TOKEN_CACHE)
-    if not token:
-        raise RuntimeError("chưa có phiên Outlook Web — bấm Đăng nhập OWA trên web trước")
-    s = ow._rest_session(token)
-    want = digits_of(flight)
-    since = datetime.now() - timedelta(hours=LOOKBACK_H)
-    boxes = [getattr(config, "OMC_SHARED_MAILBOX", "") or "", ""]
-    for box in boxes:
-        root = ow.rest_root(box)
-        folders = _owa_gendec_folders(s, root, say)
-        if not folders:
-            say(f"· {'hộp chung' if box else 'hộp cá nhân'}: không thấy thư mục {FOLDER_NAME}")
-            continue
-        for fname, fid in folders:
-            say(f"· thư mục Outlook Web: {fname}")
-            url = (f"{root}/mailfolders/{fid}/messages"
-                   f"?$orderby=ReceivedDateTime desc&$top=100"
-                   f"&$select=Id,Subject,BodyPreview,ReceivedDateTime,HasAttachments")
-            try:
-                r = s.get(url, timeout=30)
-            except Exception as e:
-                say(f"· lỗi đọc mail: {e}")
-                continue
-            if r.status_code != 200:
-                say(f"· Outlook Web: HTTP {r.status_code} {r.text[:160]}")
-                continue
-            for m in r.json().get("value", []):
-                try:
-                    when = str(m.get("ReceivedDateTime") or "")
-                    if when:
-                        dt = datetime.fromisoformat(when.replace("Z", "+00:00")).replace(tzinfo=None)
-                        if dt < since:
-                            break
-                    subj = str(m.get("Subject") or "")
-                    body = str(m.get("BodyPreview") or "")
-                    if not (contains_flight(subj, want) or contains_flight(body, want)):
-                        continue
-                    if not m.get("HasAttachments"):
-                        continue
-                    mid = str(m.get("Id") or "")
-                    say(f"· mail khớp: {subj[:90]}")
-                    ar = s.get(f"{root}/messages/{mid}/attachments?$top=50", timeout=30)
-                    if ar.status_code != 200:
-                        say(f"· không đọc được file đính kèm: HTTP {ar.status_code} {ar.text[:160]}")
-                        continue
-                    for att in ar.json().get("value", []):
-                        name = str(att.get("Name") or "")
-                        if not name.lower().endswith((".xlsx", ".xlsm", ".xls")):
-                            continue
-                        if not contains_flight(name, want) and not contains_flight(subj, want):
-                            continue
-                        raw = att.get("ContentBytes")
-                        if not raw and att.get("Id"):
-                            one = s.get(f"{root}/messages/{mid}/attachments/{att.get('Id')}", timeout=60)
-                            if one.status_code == 200:
-                                raw = one.json().get("ContentBytes")
-                        if not raw:
-                            say(f"· {name}: không tải được nội dung")
-                            continue
-                        say(f"· thấy {name}")
-                        dest.mkdir(parents=True, exist_ok=True)
-                        path = dest / name
-                        path.write_bytes(base64.b64decode(raw))
-                        return path
-                except Exception as e:
-                    say(f"· lỗi đọc 1 mail: {e}")
-                    continue
-    raise RuntimeError(f"không thấy GD {want} trong {FOLDER_NAME} ({LOOKBACK_H // 24} ngày qua)")
+    import gd_print as gp  # module gốc trong PC_TOOL_DIR
+    want = gp.digits_of(flight)
+    token = ow._load_cached_token() or ""
+    try:
+        token = gp._fresh_owa_token(token, say=say)
+        try:
+            return gp.download_gd(want, token=token, dest=dest, on_progress=say)
+        except ow.OwaAuthError:
+            say("Phiên Outlook Web hết hiệu lực — đang lấy phiên mới…")
+            ow.invalidate_session()
+            token = gp._fresh_owa_token("", say=say, force=True)
+            return gp.download_gd(want, token=token, dest=dest, on_progress=say)
+    except ow.OwaAuthError as exc:
+        raise RuntimeError("Outlook Web từ chối phiên. Bấm Đăng nhập OWA trên web rồi in lại.") from exc
+    except ow.OwaError as exc:
+        raise RuntimeError(str(exc)) from exc
 
 
 def do_gd_print(payload: dict, say) -> dict:
