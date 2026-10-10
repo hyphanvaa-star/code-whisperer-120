@@ -182,11 +182,24 @@ export const jobs: Jobs = {
   },
 };
 
-// POST /api/attach/auto (tự đính kèm theo luật cho mọi chuyến) chưa chuyển xong.
+// POST /api/attach/auto (web.py _api_attach_auto): tự đính kèm PIB/WX vừa tải
+// lên FliteBrief. File PDF nằm trong kho pibwx/ (server tải trực tiếp hoặc
+// trợ lý PC gửi kèm sau khi tải về máy).
 Object.assign(routes, {
-  "POST /api/attach/auto": () => ({
-    error: "Chức năng tự động đính kèm (ghi vào FliteBrief) đang được chuyển sang bản mới — chưa dùng được ở đây.",
-  }),
+  "POST /api/attach/auto": async (ctx) => {
+    const body = await ctx.json();
+    const callsigns = ((body["callsigns"] as unknown[]) ?? []).map(String).filter(Boolean);
+    const filenames = ((body["filenames"] as unknown[]) ?? []).map(String).filter(Boolean);
+    if (!callsigns.length && !filenames.length) return { error: "Bảng đang trống." };
+    return {
+      id: jobId("attach_auto", {
+        days: Number(body["days"] ?? 1) || 1,
+        callsigns,
+        filenames,
+        sector_ids: (body["sector_ids"] as unknown[]) ?? [],
+      }),
+    };
+  },
 });
 
 // Port of web.py _api_notice_rule_file(): upload một PDF notice từ Rule Studio
