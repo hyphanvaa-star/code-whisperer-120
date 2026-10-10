@@ -40,10 +40,15 @@ async function ofpPdfText(blob: Uint8Array): Promise<string> {
 
 async function fetchOfpPdf(sectorId: number): Promise<Uint8Array | null> {
   const { fbGet } = await import("@/lib/flitebrief.server");
-  const res = await fbGet(`/webapi/sectors/${sectorId}/ofp`, "application/pdf");
-  if (!res.ok || res.status === 204) return null;
-  const buf = new Uint8Array(await res.arrayBuffer());
-  return buf.byteLength ? buf : null;
+  // Same endpoint order as the working OFP download (/api/fb/file): /ofp/0 first,
+  // then legacy /ofp — FliteBrief trả rỗng ở /ofp với nhiều chuyến.
+  for (const path of [`/webapi/sectors/${sectorId}/ofp/0`, `/webapi/sectors/${sectorId}/ofp`]) {
+    const res = await fbGet(path, "application/pdf");
+    if (!res.ok || res.status === 204) continue;
+    const buf = new Uint8Array(await res.arrayBuffer());
+    if (buf.byteLength) return buf;
+  }
+  return null;
 }
 
 function editSettingKey(callsign: string): string {
