@@ -28,6 +28,8 @@ import { expand_au_area_ids } from '../port/aip_sup';
 import AIP_CATALOG from '../port/aip_catalog.json';
 import { enrIdsInText, enrRing } from '../port/aip_enr_catalog';
 import type { Ctx } from "../types";
+import { getJson } from '../store.server';
+import type { Chart } from '../port/aip_vn_chart';
 
 const AU_DAH_ID = /\bY[A-Z]{3}\/([MRDP]\d{3,4}[A-Z]?)(?![0-9])/gi;
 const AU_CTA_ID = /\bY[A-Z]{3}(?:-Y[A-Z]{3})?\/([A-Z][A-Z0-9'./\-]*(?:\s+[A-Z][A-Z0-9'./\-]*){0,6}\s+CTA\s+[A-Z]\d{1,2})\b/gi;
@@ -159,23 +161,36 @@ async function fetchOfpText(flight: Flight): Promise<string> {
   } catch { return ""; }
 }
 
-async function fetchPlacesFor(flights: Flight[], ofpText = ""): Promise<Place[]> {
+async function fetchPlacesFor(flights: Flight[], ofpText = "", ofpTexts: Record<number, string> = {}): Promise<Place[]> {
   const wantByCode = new Map<string, string>();
   const firCodes = new Set<string>();
+  const usesByCode = new Map<string, { cs: string; role: string; id: number }[]>();
+  const use = (code: string, flight: Flight, role: string) => {
+    const held = usesByCode.get(code) || [];
+    if (!held.some(u => u.id === flight.id && u.role === role)) held.push({ cs: flight.callsign, role, id: flight.id });
+    usesByCode.set(code, held);
+  };
   for (const flight of flights) {
-    const fields = ofpText ? tuneAirfields(flight, ofpText) : flightAirfields(flight);
-    for (const [code] of fields) wantByCode.set(code, "A");
-    if (ofpText) {
-      for (const f of locationsOf(flight, ofpText).firs || []) { const c = normIcao(f); if (c) firCodes.add(c); }
+    const text = ofpTexts[flight.id] || ofpText;
+    const fields = text ? tuneAirfields(flight, text) : flightAirfields(flight);
+    for (const [code, role] of fields) { wantByCode.set(code, "A"); use(code, flight, role); }
+    if (text) {
+      for (const f of locationsOf(flight, text).firs || []) { const c = normIcao(f); if (c) { firCodes.add(c); use(c, flight, 'FIR'); } }
     }
   }
   const places = await Promise.all([...wantByCode.entries()].map(([code, want]) => fetchPlace(code, want)));
   for (const place of places) {
     const fir = String((place as Record<string, unknown>).fir ?? "");
-    if (fir) firCodes.add(fir);
+    if (fir) {
+      firCodes.add(fir);
+      for (const u of usesByCode.get(String(place.code)) || []) {
+        const flight = flights.find(f => f.id === u.id);
+        if (flight) use(fir, flight, 'FIR');
+      }
+    }
   }
   const firPlaces = await Promise.all([...firCodes].map((code) => fetchPlace(code, "FIR")));
-  return [...places, ...firPlaces];
+  return [...places, ...firPlaces].map(p => ({ ...p, uses: usesByCode.get(String(p.code)) || [] }));
 }
 
 async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string }> {
@@ -206,6 +221,7 @@ export const routes: Routes = {
     if (!flight) return { error: `Không tìm thấy chuyến fid=${fid}.` };
     try {
       const result = await run(flight, {
+        chart: await getJson<Chart | null>(ctx, 'notam.vnchart', null),
         fetchPlaces: async (f, ofp) => { const p = await fetchPlacesFor([f], ofp || ""); await enrichWithSup(ctx, p); return p; },
         fetchOfpText,
         fetchTrack,
@@ -239,9 +255,11 @@ export const routes: Routes = {
     }
     try {
       const result = await runDomesticFleet(flights, {
+        chart: await getJson<Chart | null>(ctx, 'notam.vnchart', null),
+        fetchOfpText,
         fetchPlaces: async (f) => { const p = await fetchPlacesFor([f]); await enrichWithSup(ctx, p); return p; },
         fetchTrack,
-        fetchAllPlaces: async (fs) => { const p = await fetchPlacesFor(fs); await enrichWithSup(ctx, p); return p; },
+        fetchAllPlaces: async (fs, texts) => { const p = await fetchPlacesFor(fs, '', texts); await enrichWithSup(ctx, p); return p; },
         onProgress: (text) => void (tid && setNotamProgress(ctx, tid, text)),
       });
       if (tid) await setNotamProgress(ctx, tid, "Xong");
