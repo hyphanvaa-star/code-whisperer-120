@@ -113,7 +113,7 @@ export function fleetVerdict(items: FleetItem[]) {
     for(const sec of it.verdict?.sections || []) {
       const key=sec.key; if(!(key in rows)||!sec.hit) continue; flags[key]=true;
       if(key==='ats') { const title=prefix||'—', held=ats.get(title)||{id:String(it.id||''),rows:[]}; held.rows=uniq([...held.rows,...(sec.rows||[]),...(sec.groups||[]).flatMap(g=>g.rows)]); ats.set(title,held); continue; }
-      if(key==='gps') { for(const r of sec.rows||[]) {const place=str(r.icao||r.label).trim().toUpperCase()||'—'; gps.set(place,uniq([...(gps.get(place)||[]),{...r,label:'',icao:place==='—'?r.icao:place}]));} continue; }
+      if(key==='gps') { for(const r of sec.rows||[]) {const place=str(r.icao||r.label).trim().toUpperCase()||'—'; gps.set(place,uniq([...(gps.get(place)||[]),{...r,label:'',icao:place==='—'?str(r.icao):place}]));} continue; }
       for(const g of [{title:'',rows:sec.rows||[]},...(sec.groups||[])]) {
         const pre=[prefix,g.title].filter(Boolean).join('  ');
         const add=['ad','rwy'].includes(key)?g.rows:g.rows.map(r=>({...r,label:[pre,r.label||r.value].filter(Boolean).join('  ').trim()}));
