@@ -1142,6 +1142,9 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // Crewlist uploads can renumber rows: send flight identity, not just the row ID.
+    .replace('body: JSON.stringify({ids: ids})', 'body: JSON.stringify({ids: ids, rows: ftRows.filter(Boolean).map(f => ({id:f.id, flt:f.flt, date:f.date, dep:f.dep, arr:f.arr, etd:f.etd}))})')
+    .replace('specs.push({id: f.id, talt:', 'specs.push({id: f.id, flt: f.flt, date: f.date, dep: f.dep, arr: f.arr, etd: f.etd, talt:')
     // Airport hover stays bound even before TAF arrives and reads current cell values.
     .replace('function ftWatchTaf(el, pack){', 'function ftWatchTaf(el, source){\n  const pack = typeof source === "function" ? source() : source;')
     .replace('  if(!el || !pack) return;\n  const segs = pack.segments || [];', '  if(!el) return;\n  const segs = (pack && pack.segments) || [];')

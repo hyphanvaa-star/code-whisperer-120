@@ -10,6 +10,7 @@ import taxiSeed from "../data/fpl/taxi_fuel.json";
 import routeSeed from "../data/fpl/route_suffix.json";
 import pcrSeed from "../data/pcr_limits.json";
 import * as excelMod from "./excel.server";
+import { resolveCrewFlight } from '../port/fpl_flight_identity';
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
 // data/fpl_tool.json + data/fpl/*.json files web.py reads/writes with app_settings
@@ -203,7 +204,7 @@ export const routes: Routes = {
     let missed = 0;
     for (const spec of specs) {
       const rawId = (spec as ft.Raw).id;
-      const flight = db.flight(parseInt(String(rawId || 0), 10));
+      const flight = resolveCrewFlight(db, spec);
       if (!flight) {
         missed += 1;
         rows.push({ id: rawId, extra: "", why: "không có chuyến", places: [] });
@@ -229,10 +230,14 @@ export const routes: Routes = {
     const db = await loadDb(ctx);
     if (!db) return { error: NO_CREWLIST };
     const rows: ft.Raw[] = [];
-    for (const rawId of (Array.isArray(body.ids) ? body.ids : [])) {
-      const flight = db.flight(parseInt(String(rawId || 0), 10));
+    const specs: Raw[] = Array.isArray(body.rows) && body.rows.length
+      ? body.rows as Raw[]
+      : (Array.isArray(body.ids) ? body.ids.map(id => ({ id })) : []);
+    for (const spec of specs) {
+      const rawId = spec.id;
+      const flight = resolveCrewFlight(db, spec);
       if (!flight) {
-        rows.push({ id: rawId, pay: "", alert: "không có chuyến" });
+        rows.push({ id: rawId, pay: "", alert: `VJ${spec.flt || ""}: không khớp Crewlist hiện tại; nạp lại Crew và chọn đúng ngày/chặng.` });
         continue;
       }
       const flt = String(flight.flt || "");
