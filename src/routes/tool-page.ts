@@ -1211,6 +1211,8 @@ async function ftLoad(){
     .replace('  const active = document.activeElement;', '  window.__ftTafSig = tafSig;\n  const active = document.activeElement;')
     // Blur chỉ chạy lại khi giá trị ô thật sự thay đổi, không phải cứ rời ô là chạy.
     .replace('    inp.addEventListener("blur", function(){ ftBindTaf(false).catch(function(){}); });', '    let v0 = inp.value;\n    inp.addEventListener("focus", function(){ v0 = inp.value; });\n    inp.addEventListener("blur", function(){ if(inp.value !== v0) ftBindTaf(false).catch(function(){}); });')
+    // Bấm nút TAF tải bản mới: xoá chữ ký cache để lần đối chiếu kế chạy lại thật.
+    .replace('    ftBindTaf(false).catch(function(){});\n    const n = tafLastIds.length;', '    window.__ftTafSig = null;\n    ftBindTaf(false).catch(function(){});\n    const n = tafLastIds.length;')
     .replace('    if(fill){ $("#ftStat").textContent = d.error; alert(d.error); }\n    return;', '    if(fill){ $("#ftStat").textContent = d.error; alert(d.error); }\n    if(hoverOnly) throw new Error(d.error);\n    return;')
     .replace('  if(!ftApplying) ftRender();\n  if(fill){', '  if(!ftApplying && !hoverOnly) ftRender();\n  if(fill){')
     // Name each flight that could not be matched to TAF and why.
