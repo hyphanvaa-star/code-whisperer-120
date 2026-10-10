@@ -319,6 +319,22 @@ export const jobs: Jobs = {
           emit({ type: "line", text: `· đang chờ trợ lý PC tải PIB… (${Math.round(elapsed)}s)`, cls: "sys" });
         }
       });
+      // Trợ lý PC gửi kèm nội dung PDF — cất vào kho pibwx/ để attach/auto dùng.
+      const ups = Array.isArray(r["uploads"]) ? (r["uploads"] as Array<Record<string, unknown>>) : [];
+      if (ups.length) {
+        try {
+          const { putFile } = await import("../store.server");
+          const { safeFilename } = await import("../core/models");
+          for (const u of ups) {
+            const name = safeFilename(String(u?.name || ""));
+            if (!name || typeof u?.b64 !== "string") continue;
+            try {
+              await putFile(ctx, `pibwx/${name}`, Buffer.from(String(u.b64), "base64"), "application/pdf");
+            } catch (e) { console.warn("PIB save:", e); }
+          }
+        } catch { /* kho lỗi — vẫn trả kết quả tải */ }
+        delete r["uploads"];
+      }
       const events = (r["events"] as Array<Record<string, unknown>> | undefined) ?? [];
       for (const ev of events) emit(ev);
       if (r["cancelled"]) {
