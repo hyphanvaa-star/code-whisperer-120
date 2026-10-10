@@ -26,16 +26,43 @@ const SHIM = `<script>
   function tok(){ try { return window.parent.__fbToken ? window.parent.__fbToken() : null; } catch(e){ return null; } }
   function isApi(u){ return typeof u === 'string' && (u.indexOf('/api/') === 0 || u.indexOf(location.origin + '/api/') === 0); }
   var of = window.fetch.bind(window);
+  // Token hết hạn (tab để lâu, máy ngủ) -> xin parent làm mới phiên rồi gửi lại,
+  // chỉ khi làm mới thất bại mới về trang đăng nhập (không reload cứng trang).
+  var refreshing = null;
+  function refreshTok(){
+    if (!refreshing) {
+      refreshing = Promise.resolve().then(function(){
+        try { return window.parent.__fbRefresh ? window.parent.__fbRefresh() : null; } catch(e){ return null; }
+      }).catch(function(){ return null; }).finally(function(){ setTimeout(function(){ refreshing = null; }, 3000); });
+    }
+    return refreshing;
+  }
+  function withTok(input, init, t){
+    init = Object.assign({}, init || {});
+    var h = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
+    if (t) h.set('Authorization', 'Bearer ' + t);
+    init.headers = h;
+    return init;
+  }
   window.fetch = function(input, init){
     var url = typeof input === 'string' ? input : (input && input.url) || '';
-    if (isApi(url)) {
-      init = Object.assign({}, init || {});
-      var h = new Headers(init.headers || (typeof input !== 'string' && input.headers) || {});
-      var t = tok(); if (t) h.set('Authorization', 'Bearer ' + t);
-      init.headers = h;
-    }
-    return of(input, init).then(async function(r){
-      if (r.status === 401 && isApi(url)) { try { window.parent.location.href = '/auth'; } catch(e){} }
+    var api = isApi(url);
+    var canRetry = api && (!init || !init.body || typeof init.body === 'string' || init.body instanceof FormData || init.body instanceof Blob || init.body instanceof URLSearchParams);
+    var first = api ? withTok(input, init, tok()) : init;
+    return of(input, first).then(async function(r){
+      if (r.status === 401 && api) {
+        var nt = await refreshTok();
+        if (nt) {
+          setCookie();
+          if (canRetry) {
+            var r2 = await of(input, withTok(input, init, nt));
+            if (r2.status !== 401) { r = r2; }
+            else { try { window.parent.__fbExpired && window.parent.__fbExpired(); } catch(e){} return r2; }
+          }
+        } else {
+          try { window.parent.__fbExpired && window.parent.__fbExpired(); } catch(e){}
+        }
+      }
       if(r.ok && (url.endsWith('/api/excel/upload') || url.endsWith('/api/excel/select')) && String((init && init.method) || '').toUpperCase() === 'POST'){
         try {
           var changed = await r.clone().json();

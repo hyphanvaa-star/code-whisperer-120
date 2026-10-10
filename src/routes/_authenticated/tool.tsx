@@ -19,6 +19,8 @@ export const Route = createFileRoute("/_authenticated/tool")({
 declare global {
   interface Window {
     __fbToken?: () => string | null;
+    __fbRefresh?: () => Promise<string | null>;
+    __fbExpired?: () => void;
   }
 }
 
@@ -46,15 +48,45 @@ function ToolPage() {
 
   useEffect(() => {
     let token: string | null = null;
+    let expiresAt = 0;
+    const keep = (s: { access_token: string; expires_at?: number } | null) => {
+      token = s?.access_token ?? null;
+      expiresAt = (s?.expires_at ?? 0) * 1000;
+    };
     window.__fbToken = () => token;
+    // Làm mới phiên khi token hết hạn (tab để lâu/máy ngủ làm trễ việc tự làm mới).
+    window.__fbRefresh = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session && data.session.expires_at && data.session.expires_at * 1000 - Date.now() > 60_000 && data.session.access_token !== token) {
+        keep(data.session);
+        return token;
+      }
+      const r = await supabase.auth.refreshSession();
+      if (r.data.session) keep(r.data.session);
+      return r.data.session?.access_token ?? null;
+    };
+    let expiredOnce = false;
+    window.__fbExpired = () => {
+      if (expiredOnce) return;
+      expiredOnce = true;
+      void navigate({ to: "/auth", replace: true });
+    };
+    // Quay lại tab / máy thức dậy: làm mới sớm nếu token sắp hết hạn.
+    const wake = () => {
+      if (document.visibilityState !== "visible") return;
+      if (expiresAt && expiresAt - Date.now() < 5 * 60_000) void window.__fbRefresh?.();
+    };
+    document.addEventListener("visibilitychange", wake);
+    window.addEventListener("focus", wake);
+    const tick = setInterval(wake, 60_000);
     supabase.auth.getSession().then(({ data }) => {
-      token = data.session?.access_token ?? null;
+      keep(data.session);
       emailRef.current = data.session?.user.email ?? "";
       setToolVersion(`${Date.now()}`);
       setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      token = s?.access_token ?? null;
+      keep(s);
       emailRef.current = s?.user.email ?? "";
       if (!s) void navigate({ to: "/auth", replace: true });
     });
@@ -68,6 +100,9 @@ function ToolPage() {
     return () => {
       sub.subscription.unsubscribe();
       window.removeEventListener("message", onMessage);
+      document.removeEventListener("visibilitychange", wake);
+      window.removeEventListener("focus", wake);
+      clearInterval(tick);
     };
   }, [navigate, sendAccount, signOut]);
 
