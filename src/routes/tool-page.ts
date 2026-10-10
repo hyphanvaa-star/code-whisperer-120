@@ -1142,6 +1142,31 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // Airport hover stays bound even before TAF arrives and reads current cell values.
+    .replace('function ftWatchTaf(el, pack){', 'function ftWatchTaf(el, source){\n  const pack = typeof source === "function" ? source() : source;')
+    .replace('  if(!el || !pack) return;\n  const segs = pack.segments || [];', '  if(!el) return;\n  const segs = (pack && pack.segments) || [];')
+    .replace('  const raw = pack.raw || pack.why || "";\n  if(!segs.length && !raw) return;\n  const meta = [pack.code, pack.role, pack.when].filter(Boolean).join(" ");\n  el.addEventListener("mouseenter", ev => showTafTip(ev, meta, segs, raw));', `  let hovering = false;
+  el.addEventListener("mouseleave", () => { hovering = false; });
+  el.addEventListener("mouseenter", async ev => {
+    hovering = true;
+    const paint = p => showTafTip(ev, p ? [p.code, p.role, p.when].filter(Boolean).join(" ") : "TAF", (p && p.segments) || [], (p && (p.raw || p.why)) || "Chưa có TAF cho sân này; bấm TAF để cập nhật.");
+    const current = () => typeof source === "function" ? source() : source;
+    if(current()){ paint(current()); return; }
+    showTafTip(ev, "TAF", [], "Đang lấy TAF…");
+    try {
+      if(!window.__ftTafPending) window.__ftTafPending = ftBindTaf(false, true).finally(() => { window.__ftTafPending = null; });
+      await window.__ftTafPending;
+      if(hovering && el.isConnected) paint(current());
+    } catch(err) {
+      if(hovering && el.isConnected) showTafTip(ev, "TAF", [], err.message || "Không tải được TAF; bấm TAF để thử lại.");
+    }
+  });`)
+    .replace('ftWatchTaf(td, ftTafPlace(st, st[key], "ETA"));', 'ftWatchTaf(td, () => ftTafPlace(st, st[key], "ETA"));')
+    .replace('ftWatchTaf(depCell, ftTafPlace(st, st.dep, "ETD"));', 'ftWatchTaf(depCell, () => ftTafPlace(st, st.dep, "ETD"));')
+    .replace('ftWatchTaf(arrCell, ftTafPlace(st, st.arr, "ETA"));', 'ftWatchTaf(arrCell, () => ftTafPlace(st, st.arr, "ETA"));')
+    .replace('async function ftBindTaf(fill){', 'async function ftBindTaf(fill, hoverOnly){')
+    .replace('    if(fill){ $("#ftStat").textContent = d.error; alert(d.error); }\n    return;', '    if(fill){ $("#ftStat").textContent = d.error; alert(d.error); }\n    if(hoverOnly) throw new Error(d.error);\n    return;')
+    .replace('  if(!ftApplying) ftRender();\n  if(fill){', '  if(!ftApplying && !hoverOnly) ftRender();\n  if(fill){')
     // Summary comes from the original per-flight verdict pipeline, never raw map hits.
     .replace(/\/\/ Tóm tắt cả ca quốc nội:[\s\S]*?(?=function nmPaintVerdict\(\))/, '')
     .replace(/    let fleet = \(nmData && nmData\.fleet_verdict\) \|\| null;\s*if\(fleet && !\(fleet\.sections \|\| \[\]\)\.length\)\{[\s\S]*?\n    \}/, '    const fleet = (nmData && nmData.fleet_verdict) || null;')
