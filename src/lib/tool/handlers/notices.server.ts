@@ -240,8 +240,23 @@ export const jobs: Jobs = {
     for (const name of names) {
       if (!/\.pdf$/i.test(name)) continue;
       const kind = /^pib/i.test(name) ? "pib" : "wx";
-      const cands = byCs.get(csOf(name)) ?? [];
+      let cands = byCs.get(csOf(name)) ?? [];
       if (!cands.length) continue;
+      if (cands.length > 1 && !sectorIds.size) {
+        // Còn trùng trong khung -6/+24: chọn chuyến có STD gần hiện tại nhất.
+        const now = Date.now();
+        const sorted = [...cands].sort(
+          (a, b) => Math.abs((a.std?.getTime() ?? now) - now) - Math.abs((b.std?.getTime() ?? now) - now),
+        );
+        const best = sorted[0]!;
+        const second = sorted[1]!;
+        // Nếu 2 chuyến cách nhau dưới 3h thì vẫn coi là mơ hồ, chờ chọn route.
+        const gap = Math.abs((best.std?.getTime() ?? 0) - (second.std?.getTime() ?? 0));
+        if (gap >= 3 * 3600e3) {
+          emit({ type: "line", text: `· ${name}: trùng callsign — chọn ${best.callsign} ${best.route} (STD gần nhất)` });
+          cands = [best];
+        }
+      }
       if (cands.length > 1 && !sectorIds.size) {
         needRoute.push({ callsign: cands[0]!.callsign, filename: name, kind });
         emit({
