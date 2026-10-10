@@ -287,7 +287,7 @@ export const jobs: Jobs = {
 // lên FliteBrief. File PDF nằm trong kho pibwx/ (server tải trực tiếp hoặc
 // trợ lý PC gửi kèm sau khi tải về máy).
 Object.assign(routes, {
-  "POST /api/attach/auto": async (ctx) => {
+  "POST /api/attach/auto": async (ctx: Parameters<Routes[string]>[0]) => {
     const body = await ctx.json();
     const callsigns = ((body["callsigns"] as unknown[]) ?? []).map(String).filter(Boolean);
     const filenames = ((body["filenames"] as unknown[]) ?? []).map(String).filter(Boolean);
