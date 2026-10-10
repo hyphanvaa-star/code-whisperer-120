@@ -206,7 +206,7 @@ export const jobs: Jobs = {
       emit({ type: "line", text: "✗ không đọc được quyền đính kèm FliteBrief", cls: "bad" });
       return end(1, { ok: 0, skipped: 0, failed: 0 });
     }
-    const { loadFlights } = await import("../core/gantts.server");
+    const { loadFlights, filterByWindow } = await import("../core/gantts.server");
     const { getFile, listFiles } = await import("../store.server");
     const { uploadAndAttach } = await import("./briefing.server");
     const callsigns = (params["callsigns"] as string[]) ?? [];
@@ -214,8 +214,9 @@ export const jobs: Jobs = {
     const sectorIds = new Set(((params["sector_ids"] as unknown[]) ?? []).map(Number));
     let flights;
     try {
-      flights = (await loadFlights(Number(params["days"] ?? 1) || 1))
-        .filter((f) => (sectorIds.size ? sectorIds.has(f.id) : wantDigits.has(digits(f.callsign))));
+      // Khung chuẩn -6h/+24h quanh hiện tại: cùng callsign ở ngày khác bị loại.
+      const all = filterByWindow(await loadFlights(Number(params["days"] ?? 1) || 1), 6, 24);
+      flights = all.filter((f) => (sectorIds.size ? sectorIds.has(f.id) : wantDigits.has(digits(f.callsign))));
     } catch (e) {
       emit({ type: "line", text: `✗ ${e instanceof Error ? e.message : String(e)}`, cls: "bad" });
       return end(1, { ok: 0, skipped: 0, failed: 0 });
