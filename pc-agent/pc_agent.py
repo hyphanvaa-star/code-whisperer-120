@@ -27,7 +27,7 @@ from pathlib import Path
 
 import requests
 
-VERSION = "3.1"
+VERSION = "3.2"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1379,6 +1379,14 @@ def post(path: str, body: dict) -> dict:
 
 
 def main() -> int:
+    global TOKEN
+    if not TOKEN:
+        try:
+            TOKEN = input("Nhập mã kết nối trợ lý (PC_AGENT_TOKEN, hỏi quản trị): ").strip()
+        except Exception:
+            TOKEN = ""
+        if TOKEN:
+            _save_config(token=TOKEN)
     if not BASE_URL or not TOKEN:
         print("Thiếu PC_AGENT_URL hoặc PC_AGENT_TOKEN — xem README.md")
         return 2
