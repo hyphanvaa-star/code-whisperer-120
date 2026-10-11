@@ -927,8 +927,10 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
 #wrapFplText .fttbl td{color:var(--x-khb-ink) !important}
 /* Badge chuyến trùng nổi bên trái, không chiếm chỗ ô FLT NO */
 #wrapFplText .fttbl td.ftflt{position:relative !important;overflow:visible !important}
-#wrapFplText .fttbl td.ftflt > .ftbadge{position:absolute !important;left:-9px;top:50%;transform:translateY(-50%);z-index:3;border:0;padding:0;cursor:pointer;color:#fff !important}
-#wrapFplText .fttbl td.ftflt > input{width:100% !important;min-width:5ch !important}
+#wrapFplText .fttbl th:nth-child(2),#wrapFplText .fttbl td:nth-child(2){width:78px !important}
+#wrapFplText .fttbl td:nth-child(2) .ftflt-in{position:static !important;display:block !important;width:100% !important}
+#wrapFplText .fttbl td.ftflt > .ftbadge,#wrapFplText .fttbl td:nth-child(2) .ftflt-in > .ftbadge{position:absolute !important;left:-9px;top:50%;transform:translateY(-50%);z-index:3;border:0;padding:0;cursor:pointer;color:var(--x-card) !important}
+#wrapFplText .fttbl td.ftflt > input,#wrapFplText .fttbl td:nth-child(2) .ftflt-in > input{width:100% !important;min-width:0 !important;padding-inline:4px !important;box-sizing:border-box !important}
 #wrapFplText .fttbl input[type=text]{color:var(--x-khb-ink) !important}
 #wrapFplText .fttbl td.dimcell{color:var(--x-mute) !important}
 
