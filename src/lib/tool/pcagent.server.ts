@@ -160,7 +160,7 @@ export function agentOnline(info: AgentInfo | null): boolean {
 }
 
 /** Claim pending jobs for the agent (public poll route, service role). */
-export async function claimPending(limit = 5, ip = ""): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
+export async function claimPending(limit = 5, ip = "", printers: unknown[] = []): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
   const a = await admin();
   let q = a
     .from("pc_jobs")
@@ -172,7 +172,16 @@ export async function claimPending(limit = 5, ip = ""): Promise<Array<{ id: stri
     .order("created_at", { ascending: true })
     .limit(limit);
   if (error) throw new Error(error.message);
-  const rows = (data ?? []) as Array<{ id: string; kind: string; payload: Record<string, unknown> }>;
+  // In GD chỉ giao cho máy thật sự có máy in đích (RICOH) — máy ở nhà cùng
+  // token/cùng mạng nhưng không có RICOH sẽ không nhận lệnh in.
+  const names = printers
+    .map((p) => String((p as { name?: unknown })?.name ?? p ?? "").toUpperCase())
+    .filter(Boolean);
+  const rows = ((data ?? []) as Array<{ id: string; kind: string; payload: Record<string, unknown> }>).filter((r) => {
+    if (r.kind !== "gd_print") return true;
+    const want = String(r.payload?.["printer"] || "RICOH").toUpperCase();
+    return names.some((n) => n.includes(want) || (want.includes("RICOH") && n.includes("RICOH")));
+  });
   if (rows.length) {
     await a
       .from("pc_jobs")

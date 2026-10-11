@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
           printers: printers as never,
           paths_exist: pathsExist,
         }, ip);
-        const jobs = await pc.claimPending(5, ip);
+        const jobs = await pc.claimPending(10, ip, printers);
         // Paths the UI cares about, so the agent can report existence.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data } = await supabaseAdmin
