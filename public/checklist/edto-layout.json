@@ -1,0 +1,276 @@
+{
+  "pages": [
+    {
+      "info": [
+        {
+          "left": 84.36,
+          "top": 146.30399999999997,
+          "right": 136
+        },
+        {
+          "left": 178.91400000000002,
+          "top": 146.30399999999997,
+          "right": 244
+        },
+        {
+          "left": 280.91100000000006,
+          "top": 146.30399999999997,
+          "right": 334
+        },
+        {
+          "left": 356.511,
+          "top": 146.30399999999997,
+          "right": 432
+        },
+        {
+          "left": 466.428,
+          "top": 146.30399999999997,
+          "right": 549
+        }
+      ],
+      "ticks": [
+        {
+          "x": 410.4,
+          "y": 225.0857142857143,
+          "description": "Airlines AOC approval",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 243.11999999999998,
+          "description": "Area and Route EDTO (AOC approval)",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 261.12,
+          "description": "Crew/flight dispatcher qualification",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 279.1542857142857,
+          "description": "Aircraft status",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 315.0857142857143,
+          "description": "Departure Airport",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 333.12,
+          "description": "Destination Airport",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 351.15428571428566,
+          "description": "En-route Alternate Airport",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 405.0857142857143,
+          "description": "Departure Airport",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 423.12,
+          "description": "Destination Airport",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 441.1542857142857,
+          "description": "En-route Alternate Airport",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 477.0857142857143,
+          "description": "Cruise FL",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 495.17999999999995,
+          "description": "Diversion FL",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 513.18,
+          "description": "3.3. Icing Forecast Charts",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 531.0899999999999,
+          "description": "4. Select of EDTO Alternates",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 567.0857142857142,
+          "description": "PBN",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 585.1199999999999,
+          "description": "RVSM",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 603.12,
+          "description": "CAT II",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 621.1800000000001,
+          "description": "ADS-C/CPDLC",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 639.15,
+          "description": "6. Produce and scrutinize OFP",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 675.12,
+          "description": "EDTO Plotting Charts",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 711.0857142857143,
+          "description": "Performance Factor",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 729.12,
+          "description": "Cost Index",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 747.12,
+          "description": "EDTO Scenario",
+          "column": "YES"
+        }
+      ]
+    },
+    {
+      "info": [
+        {
+          "left": 84.36,
+          "top": 132.50400000000002,
+          "right": 136
+        },
+        {
+          "left": 178.91400000000002,
+          "top": 132.50400000000002,
+          "right": 244
+        },
+        {
+          "left": 280.91100000000006,
+          "top": 132.50400000000002,
+          "right": 334
+        },
+        {
+          "left": 356.511,
+          "top": 132.50400000000002,
+          "right": 432
+        },
+        {
+          "left": 466.428,
+          "top": 132.50400000000002,
+          "right": 549
+        }
+      ],
+      "ticks": [
+        {
+          "x": 410.4,
+          "y": 193.2666666666666,
+          "description": "EDTO Alternates",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 211.31999999999994,
+          "description": "EEP/ ETPs/ EXP/ CP",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 229.31999999999994,
+          "description": "Critical Fuel Scenario",
+          "column": "YES"
+        },
+        {
+          "x": 467.04,
+          "y": 247.37135714285708,
+          "description": "Extra Fuel for EDTO",
+          "column": "NO"
+        },
+        {
+          "x": 410.4,
+          "y": 283.2857142857142,
+          "description": "Weather",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 301.31999999999994,
+          "description": "Runway",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 319.31999999999994,
+          "description": "Navigation aids",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 337.35428571428565,
+          "description": "Send message (ACARS, SATCOM...) to the crew",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 373.32,
+          "description": "Monitoring and supporting the crew",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 409.2857142857142,
+          "description": "Flight documents and reports",
+          "column": "YES"
+        },
+        {
+          "x": 410.4,
+          "y": 427.3199999999999,
+          "description": "Record of EDTO flight log",
+          "column": "YES"
+        }
+      ]
+    }
+  ],
+  "signature": {
+    "x": 72,
+    "nameTop": 481,
+    "licenseTop": 499,
+    "maxWidth": 460
+  }
+}
