@@ -1479,6 +1479,7 @@ const ddScript = `
         }catch(e){}
       }
       (function(row,el){ el.addEventListener('click',function(){pick(row);}); })(rw,d);
+      d.__i=i;
       listEl.appendChild(d);items.push(d);
     }
     if(!nOpt){
