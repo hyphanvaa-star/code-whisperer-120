@@ -900,6 +900,19 @@ td .dim,.dim{color:var(--x-mute) !important}
 /* ---------- THẺ CHI TIẾT CHUYẾN: nền tối như bản gốc ---------- */
 #detailWrap{background:#12161d !important;border:1px solid #2a3342 !important}
 #detailWrap .pane{background:#12161d !important}
+/* High-contrast text on the shared dark hover surface, including Defect/Limit. */
+.taf-tip{
+  --hover-text:var(--vj-dark-ink);--hover-muted:#c5cddb;
+  --hover-danger:#ffb4ac;--hover-success:#9af0bf;--hover-warning:#ffe099;
+  color:var(--hover-text) !important;
+}
+.taf-tip,.taf-tip *{-webkit-text-fill-color:currentColor !important}
+.taf-tip .lim-tip-head,.taf-tip .tip-line,.taf-tip .tip-text{color:var(--hover-text) !important}
+.taf-tip .meta,.taf-tip .tip-dim{color:var(--hover-muted) !important}
+.taf-tip .lim-tip-rule,.taf-tip .tip-bad{color:var(--hover-danger) !important}
+.taf-tip .lim-tip-advise,.taf-tip .tip-ok,.taf-tip .tip-hi{color:var(--hover-success) !important}
+.taf-tip .tip-warn{color:var(--hover-warning) !important}
+.taf-tip .lim-tip-rule,.taf-tip .lim-tip-advise{font-weight:600}
 /* Check OFP shares the dark detail surface, not the light table palette. */
 #paneLimitCheck{
   --ofp-text:var(--vj-dark-ink);--ofp-muted:#c5cddb;--ofp-evidence:#a9c9ff;
