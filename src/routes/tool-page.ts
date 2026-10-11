@@ -219,6 +219,36 @@ const SHIM = `<script>
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
+      // Giao ca: chỉ cho tick xanh các dòng có dữ liệu chuyến bay —
+      // dòng trống bị khoá tick (kể cả tick cả cột hay shift-click).
+      if(!window.__hoBlankGuard){
+        window.__hoBlankGuard=true;
+        var hoGuardBlanks=function(){
+          var tb=document.getElementById('hoBody'); if(!tb)return;
+          tb.querySelectorAll('tr').forEach(function(tr){
+            var cs=tr.querySelector('input[data-ho="callsign"]');
+            var empty=!cs||!String(cs.value||'').trim();
+            tr.querySelectorAll('input[type="checkbox"][data-ho]').forEach(function(inp){
+              if(empty){ if(inp.checked)inp.checked=false; inp.disabled=true; }
+              else if(inp.disabled) inp.disabled=false;
+            });
+          });
+        };
+        document.addEventListener('click',function(e){
+          var t=e.target;
+          if(t&&t.matches&&t.matches('#hoBody input[type="checkbox"][data-ho]')){
+            var tr=t.closest('tr'); var cs=tr&&tr.querySelector('input[data-ho="callsign"]');
+            if(!cs||!String(cs.value||'').trim()){ e.preventDefault(); e.stopPropagation(); t.checked=false; }
+          }
+        },true);
+        ['hoAllAtc','hoAllEzfw','hoAllAtfm','hoAllEdto'].forEach(function(id){
+          var el=document.getElementById(id);
+          if(el)el.addEventListener('click',function(){ setTimeout(hoGuardBlanks,0); });
+        });
+        var hoTb=document.getElementById('hoBody');
+        if(hoTb)new MutationObserver(function(){ hoGuardBlanks(); }).observe(hoTb,{childList:true});
+        setInterval(hoGuardBlanks,1500);
+      }
       if(theme)theme.insertAdjacentHTML('afterbegin',iconSvg('<path d="M12 3a9 9 0 1 0 9 9c0-1.1-.2-2.1-.5-3A7 7 0 0 1 12 3Z"/>'));
     }
     if(room && !document.getElementById('opsHeaderBrand')){
