@@ -11,40 +11,54 @@ function mnlTime(date,utc){
   if(m){y=+m[1];mo=+m[2];da=+m[3];}else if((m=/(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(d))){da=+m[1];mo=+m[2];y=+m[3];}else return 0;
   return Date.UTC(y,mo-1,da,u?+u[1]:0,u?+u[2]:0);
 }
-async function mnlShot(html){
-  const fr=document.createElement('iframe');
-  fr.style.cssText='position:fixed;left:-10000px;top:0;width:720px;height:1400px;border:0;background:#fff';
-  document.body.appendChild(fr);
-  try{
-    fr.contentDocument.open();fr.contentDocument.write(html);fr.contentDocument.close();
-    await new Promise(r=>setTimeout(r,300));
-    const st=fr.contentDocument.createElement('style');st.textContent='*{letter-spacing:normal!important;word-spacing:normal!important;font-kerning:none!important;font-variant-ligatures:none!important;text-rendering:auto!important}';fr.contentDocument.head.appendChild(st);
-    // JetPlan puts width:100% inputs inside inline spans (FILED BY row) -> the
-    // page overflows to ~2000px. Give those width spans inline-block so the
-    // inputs resolve against the intended 223px columns again.
-    const body=fr.contentDocument.body;body.style.margin='0';body.style.background='#fff';
-    const form=body.querySelector('form')||body;
-    for(const sp of [...form.querySelectorAll('span')]){
-      const sy=sp.getAttribute('style')||'';
-      if(/width:\s*\d+px/.test(sy) && !/position:\s*absolute/.test(sy)) sp.style.display='inline-block';
+// The ICAO frame is drawn with pdf-lib vectors from a measured layout
+// (public/formmnl/icao-layout.json) — html2canvas mis-renders JetPlan's
+// negative-offset layout and never paints input values.
+let MNL_LAYOUT=null;
+async function mnlLayout(){
+  if(!MNL_LAYOUT){const r=await fetch('/formmnl/icao-layout.json');if(!r.ok)throw new Error('Không tải được khung FORM MNL');MNL_LAYOUT=await r.json();}
+  return MNL_LAYOUT;
+}
+function mnlValues(html){
+  const d=new DOMParser().parseFromString(html,'text/html'),m={};
+  for(const i of d.querySelectorAll('input[name]')) m[i.name]=i.value||'';
+  return m;
+}
+async function mnlDrawForm(pdf,vals){
+  const L=await mnlLayout();
+  const hel=await pdf.embedFont(PDFLib.StandardFonts.Helvetica),helb=await pdf.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  const cou=await pdf.embedFont(PDFLib.StandardFonts.Courier),coub=await pdf.embedFont(PDFLib.StandardFonts.CourierBold);
+  const pg=pdf.addPage([612,792]);
+  pg.drawText('CAAP FORM ATS No.2019 -1',{x:40,y:760,size:9,font:cou});
+  pg.drawText('FLIGHT PLAN',{x:40,y:749,size:9,font:cou});
+  const ctr=(t,f,z,y)=>pg.drawText(t,{x:306-f.widthOfTextAtSize(t,z)/2,y,size:z,font:f});
+  ctr('Republic of the Philippines',cou,10,732);ctr('CIVIL AVIATION AUTHORITY OF THE PHILIPPINES',coub,10.5,718);ctr('Old MIA Rd. Pasay City, Metro Manila 1300',hel,10,704);
+  const top=96,H=792-top-30,ink=PDFLib.rgb(0,0,0);
+  const k=Math.min(540/L.fw,H/L.fh),w=L.fw*k,h=L.fh*k,ox=(612-w)/2,oy=792-top-h;
+  const X=x=>ox+x*k,Y=y=>oy+(L.fh-y)*k;
+  for(const l of L.lines) pg.drawLine({start:{x:X(l.x1),y:Y(l.y1)},end:{x:X(l.x2),y:Y(l.y2)},thickness:Math.max(.5,l.w*k),color:ink});
+  for(const t of L.texts){
+    const f=t.b?helb:hel,z=t.fs*k;
+    pg.drawText(t.t,{x:X(t.x),y:Y(t.y+t.h)+z*0.18,size:z,font:f,color:ink});
+  }
+  for(const i of L.inputs){
+    const x1=X(i.x),x2=X(i.x+i.w),y1=Y(i.y+i.h),y2=Y(i.y),bd=i.bd||{};
+    const edge=(a,b)=>pg.drawLine({start:a,end:b,thickness:.7,color:ink});
+    if(bd.t)edge({x:x1,y:y2},{x:x2,y:y2});
+    if(bd.b)edge({x:x1,y:y1},{x:x2,y:y1});
+    if(bd.l)edge({x:x1,y:y1},{x:x1,y:y2});
+    if(bd.r)edge({x:x2,y:y1},{x:x2,y:y2});
+    const v=String(vals[i.name]||'').trim();
+    if(v){
+      let z=(i.fs||10)*k;
+      const maxW=i.w*k-4*k,tw=hel.widthOfTextAtSize(v,z);
+      if(tw>maxW) z=z*maxW/tw;
+      const tx=i.ta==='center'?x1+(i.w*k-hel.widthOfTextAtSize(v,z))/2:x1+2*k;
+      pg.drawText(v,{x:tx,y:(y1+y2)/2+z*0.35-z*0.5,size:z,font:hel,color:ink});
     }
-    // html2canvas clips input text: swap every field for a same-size span.
-    for(const inp of [...form.querySelectorAll('input')]){
-      const cs=fr.contentWindow.getComputedStyle(inp),sp=fr.contentDocument.createElement('span');
-      sp.textContent=inp.value||'';
-      const r=inp.getBoundingClientRect();
-      for(const k of ['borderTop','borderRight','borderBottom','borderLeft','paddingLeft','paddingRight','fontFamily','fontSize','fontWeight','color','backgroundColor','verticalAlign','marginLeft','marginRight','marginTop','marginBottom','textAlign'])sp.style[k]=cs[k];
-      // No overflow:hidden — an inline-block with hidden overflow takes its bottom
-      // edge as baseline and jumps up over the labels. Keep the text baseline.
-      const bt=parseFloat(cs.borderTopWidth)||0,bb=parseFloat(cs.borderBottomWidth)||0;
-      sp.style.boxSizing='border-box';sp.style.width=r.width+'px';sp.style.height=r.height+'px';
-      sp.style.display='inline-block';sp.style.lineHeight=Math.max(0,r.height-bt-bb)+'px';sp.style.whiteSpace='pre';sp.style.paddingTop='0';sp.style.paddingBottom='0';
-      inp.replaceWith(sp);
-    }
-    const fw=form.scrollWidth;form.style.width=fw+'px';form.style.display='inline-block';const W=fw+4;fr.style.width=W+'px';await new Promise(r=>setTimeout(r,50));
-    const c=await html2canvas(form,{backgroundColor:'#fff',scale:2,windowWidth:W,width:form.scrollWidth+2,height:form.scrollHeight+2});
-    return c;
-  } finally { fr.remove(); }
+  }
+  pg.drawRectangle({x:ox-3,y:oy-3,width:w+6,height:h+6,borderWidth:1,borderColor:ink});
+  return pg;
 }
 let MNL_TPL=null;
 async function mnlTemplate(){
@@ -79,47 +93,17 @@ async function mnlSig(png){
   const h=54,w=h*sig.width/sig.height;g.drawImage(sc,655-w/2,142,w,h);
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
-async function mnlBuild(html,lic){
-  const zip=await JSZip.loadAsync(await mnlTemplate());
-  const shot=await mnlShot(html);
-  zip.file('word/media/image1.png',await new Promise(r=>shot.toBlob(r,'image/png')));
-  zip.file('word/media/image2.png',await mnlCert(zip,lic));
-  let xml=await zip.file('word/document.xml').async('string');
-  let cx=7117080,cy=Math.round(cx*shot.height/shot.width);
-  if(cy>7170420){cy=7170420;cx=Math.round(cy*shot.width/shot.height);}
-  xml=xml.replace(/(<wp:extent cx=")7117080(" cy=")7170420(")/,'$1'+cx+'$2'+cy+'$3').replace(/(<a:ext cx=")7117699(" cy=")7171044(")/,'$1'+cx+'$2'+cy+'$3');
-  zip.file('word/document.xml',xml);
-  return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
-}
-function mnlSync(doc){
-  for(const i of doc.querySelectorAll('input'))i.setAttribute('value',i.value);
-  for(const t of doc.querySelectorAll('textarea'))t.textContent=t.value;
-  for(const o of doc.querySelectorAll('option'))o.selected?o.setAttribute('selected',''):o.removeAttribute('selected');
-  return '<!doctype html>'+doc.documentElement.outerHTML.replace(/contenteditable="true"/g,'');
-}
-async function mnlPdf(html,certPng,lic){
-  const shot=await mnlShot(html);
+async function mnlPdf(vals,certPng,lic){
   const cert=await createImageBitmap(await mnlCert(certPng,lic));
   const cc=document.createElement('canvas');cc.width=cert.width;cc.height=cert.height;cc.getContext('2d').drawImage(cert,0,0);
   const pdf=await PDFLib.PDFDocument.create();
-  const cou=await pdf.embedFont(PDFLib.StandardFonts.Courier),coub=await pdf.embedFont(PDFLib.StandardFonts.CourierBold),hel=await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
-  let first=true;
-  for(const c of [shot,cc]){
-    const img=await pdf.embedPng(c.toDataURL('image/png'));
-    const pg=pdf.addPage([612,792]);let top=36,H=720;
-    if(first){
-      pg.drawText('CAAP FORM ATS No.2019 -1',{x:40,y:760,size:9,font:cou});
-      pg.drawText('FLIGHT PLAN',{x:40,y:749,size:9,font:cou});
-      const ctr=(t,f,z,y)=>pg.drawText(t,{x:306-f.widthOfTextAtSize(t,z)/2,y,size:z,font:f});
-      ctr('Republic of the Philippines',cou,10,732);ctr('CIVIL AVIATION AUTHORITY OF THE PHILIPPINES',coub,10.5,718);ctr('Old MIA Rd. Pasay City, Metro Manila 1300',hel,10,704);
-      top=96;H=792-top-30;
-    }
-    const W=540;let w=W,h=w*c.height/c.width;if(h>H){h=H;w=h*c.width/c.height;}
-    const x=(612-w)/2,y=792-top-h;
-    pg.drawImage(img,{x,y,width:w,height:h});
-    pg.drawRectangle({x:x-3,y:y-3,width:w+6,height:h+6,borderWidth:1,borderColor:PDFLib.rgb(0,0,0)});
-    first=false;
-  }
+  await mnlDrawForm(pdf,vals);
+  const img=await pdf.embedPng(cc.toDataURL('image/png'));
+  const pg=pdf.addPage([612,792]),top=36,H=720;
+  const W=540;let w=W,h=w*cc.height/cc.width;if(h>H){h=H;w=h*cc.width/cc.height;}
+  const x=(612-w)/2,y=792-top-h;
+  pg.drawImage(img,{x,y,width:w,height:h});
+  pg.drawRectangle({x:x-3,y:y-3,width:w+6,height:h+6,borderWidth:1,borderColor:PDFLib.rgb(0,0,0)});
   return new Blob([await pdf.save()],{type:'application/pdf'});
 }
 function mnlEditor(files,errs,lic,certPng){
@@ -140,7 +124,8 @@ function mnlEditor(files,errs,lic,certPng){
     cw.append(im,li);
     const ex=document.createElement('button');ex.type='button';ex.className='btn';ex.textContent='Xuất PDF';ex.style.marginTop='8px';
     ex.onclick=async()=>{ex.disabled=true;ex.textContent='Đang xuất…';try{
-      const blob=await mnlPdf(mnlSync(fr.contentDocument),certPng,li.value.trim());
+      const vals={};for(const i of fr.contentDocument.querySelectorAll('input[name]')) vals[i.name]=i.value||'';
+      const blob=await mnlPdf(vals,certPng,li.value.trim());
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name.value.replace(/\.(docx|pdf)$/i,'')+'.pdf';a.click();
       setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     }catch(e){alert('Lỗi xuất PDF: '+e.message);}finally{ex.disabled=false;ex.textContent='Xuất PDF';}};
@@ -165,7 +150,7 @@ mnlBtn.onclick=async function(){
   if(mnlBtn.disabled)return; mnlBtn.disabled=true;
   const files=[],errs=[];
   try{
-    await Promise.all([mnlScript('/vendor/jszip.min.js','JSZip'),mnlScript('/vendor/html2canvas.min.js','html2canvas')]);
+    await mnlScript('/vendor/jszip.min.js','JSZip');
     for(const leg of legs){
       $('#ftStat').textContent='Đang lấy View ICAO JetPlan '+leg.flt+'…';
       try{
