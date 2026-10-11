@@ -23687,7 +23687,7 @@ function ftFltInput(value, index, flight){
     if(v === String(value || "")) return;
     if(!v){
       if(ftRows[index]) ftClearRow(index);
-      else ftBlankSt(index).flt = "";
+      else { ftBlankSt(index).flt = ""; try{ ftCountLine(); }catch(e){} }
       return;
     }
     ftApplyFlt(v, index);
@@ -24817,6 +24817,7 @@ function ftApplyFlt(raw, index, down){
     ftKeepTyped(missing, index, 0);
     if(missing.length === 1 && items.length === 1 && ftRows[index]) ftRows[index] = null;
     $("#ftStat").textContent = "Không có trong crewlist: " + missing.join(" ");
+    try{ ftCountLine(); }catch(e){}
     if(down) ftDown(index);
     return;
   }
