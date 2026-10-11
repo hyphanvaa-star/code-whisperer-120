@@ -24824,14 +24824,19 @@ $("#ftPldRound").onclick = async function(){
       if(!f) continue;
       const row = byId[String(f.id)];
       const st = ftSt(f);
-      if(!row || row.alert || !row.pay){
+      if(!row || !row.pay){
         st.pay = "";
+        st.payManual = false;
         if(row && row.alert) notes.push(row.alert);
         continue;
       }
+      // Chuyến thiếu EST / cần tự điều chỉnh vẫn nhận giá trị tạm, gạch chân cảnh báo.
       st.pay = String(row.pay);
+      st.payManual = !!row.manual;
+      if(row.alert) notes.push(row.alert);
       n++;
     }
+    ftRender();
     $("#ftStat").textContent = "Đã làm tròn " + n + " chuyến"
       + (notes.length ? (" · " + notes.length + " chuyến cần tự chỉnh") : "");
     if(notes.length) alert(notes.join("\n"));
