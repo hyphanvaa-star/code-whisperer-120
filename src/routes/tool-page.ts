@@ -1543,9 +1543,14 @@ const ddScript = `
   }
   function place(){
     if(!cur||!pop||pop.hidden)return;
+    // Trang có thể đang bị thu nhỏ vừa màn (html[zoom]); đặt zoom ngược cho
+    // khung danh sách để chữ hiện đúng cỡ, rồi mới tính chỗ đặt.
+    var z=1;
+    try{ z=parseFloat(getComputedStyle(document.documentElement).zoom)||1; }catch(e){}
+    pop.style.zoom=(z>0.05&&Math.abs(z-1)>0.001)?String(1/z):'';
     var r=cur.getBoundingClientRect(),vw=window.innerWidth,vh=window.innerHeight,m=8;
     if(r.bottom<m||r.top>vh-m){ close(); return; }
-    var w=Math.max(r.width,240);
+    var w=Math.max(r.width,260);
     w=Math.min(w,Math.max(220,vw-m*2));
     pop.style.width=w+'px';
     var x=Math.min(Math.max(m,r.left),Math.max(m,vw-w-m));
