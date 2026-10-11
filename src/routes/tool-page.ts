@@ -206,7 +206,19 @@ const SHIM = `<script>
       };
       Object.keys(buttonIcons).forEach(function(id){var el=document.getElementById(id);if(el)el.insertAdjacentHTML('afterbegin',iconSvg(buttonIcons[id]));});
       var board=room.querySelector('.hdr-switch'),theme=room.querySelector('.theme-switch');
-      if(board)board.insertAdjacentHTML('afterbegin',iconSvg('<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18M9 9h12M9 15h12"/>'));
+      if(board){
+        board.insertAdjacentHTML('afterbegin',iconSvg('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>'));
+        var blab=board.querySelector('.hdr-switch-lab.r'); if(blab)blab.textContent='AGENT';
+        var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
+        var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
+        var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
+        board.title='Tải gói trợ lý PC về máy — giải nén rồi chạy cai-tro-ly.bat';
+        board.addEventListener('click',function(e){
+          e.preventDefault(); e.stopPropagation();
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip'; a.download='tro-ly-pc.zip';
+          document.body.appendChild(a); a.click(); a.remove();
+        },true);
+      }
       if(theme)theme.insertAdjacentHTML('afterbegin',iconSvg('<path d="M12 3a9 9 0 1 0 9 9c0-1.1-.2-2.1-.5-3A7 7 0 0 1 12 3Z"/>'));
     }
     if(room && !document.getElementById('opsHeaderBrand')){
