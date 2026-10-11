@@ -265,12 +265,56 @@ def explain_driver_error(exc: BaseException) -> str:
     return head
 
 
+def is_start_crash(exc: BaseException) -> bool:
+    """Chrome vừa mở đã chết (DevToolsActivePort file doesn't exist ...)."""
+    text = str(exc).casefold()
+    return "devtoolsactiveport" in text or "chrome failed to start" in text
+
+
+def _profile_dir_of(options) -> Path | None:
+    try:
+        for arg in getattr(options, "arguments", []) or []:
+            if isinstance(arg, str) and arg.startswith("--user-data-dir="):
+                return Path(arg.split("=", 1)[1])
+    except Exception:
+        pass
+    return None
+
+
+def _cleanup_chrome_profile(profile: Path | None) -> None:
+    """Dọn Chrome treo + file khóa hồ sơ trước khi mở lại (máy công ty hay kẹt)."""
+    if os.name == "nt":
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/IM", "chrome.exe", "/T"],
+                capture_output=True, timeout=15, creationflags=_CREATE_NO_WINDOW,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    if profile is None:
+        return
+    for name in ("SingletonLock", "SingletonSocket", "SingletonCookie", "DevToolsActivePort"):
+        try:
+            (profile / name).unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
 def attach_chrome(webdriver, options):
     """Mở Chrome: Selenium Manager tự khớp bản; local chỉ khi Manager thất bại."""
     try:
         log.info("mở Chrome bằng Selenium Manager (không ghim chromedriver)")
         driver = webdriver.Chrome(options=options)
     except Exception as exc:
+        if is_start_crash(exc):
+            log.warning("Chrome crash khi khởi động — dọn hồ sơ rồi thử lại: %s", exc)
+            _cleanup_chrome_profile(_profile_dir_of(options))
+            try:
+                driver = webdriver.Chrome(options=options)
+                remember_from_driver(driver)
+                return driver
+            except Exception as exc2:
+                raise ChromeDriverError(explain_driver_error(exc2)) from exc2
         if not (is_missing_driver(exc) or is_stale_driver(exc)):
             raise
         path = find_chromedriver()
