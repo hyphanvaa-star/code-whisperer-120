@@ -119,17 +119,26 @@ async function ckExport(kind){
   if(!legs.length){alert('Tick ít nhất một chuyến.');return;}
   const lic=($('#ftLicInput').value || '').trim();
   if(!lic && !confirm('Chưa nhập DSP License. Vẫn tạo Checklist?')) return;
-  const button=$('#ftCkBtn');if(button.disabled)return;button.disabled=true;let count=0;
+  const button=$('#ftCkBtn');if(button.disabled)return;button.disabled=true;let count=0;const files=[];
   try {
     for(const leg of legs){
       $('#ftStat').textContent='Đang tạo PDF '+leg.flt+'…';
-      const blob=await (kind==='edto' ? ckBuildEdto(leg,dsp,lic) : ckBuild(leg,dsp,lic)),url=URL.createObjectURL(blob),link=document.createElement('a');
-      link.href=url;link.download='Checklist_'+(kind==='edto' ? 'EDTO_F018_' : 'F017_')+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf';
-      document.body.appendChild(link);link.click();link.remove();count++;
-      setTimeout(() => URL.revokeObjectURL(url),30000);
-      await new Promise(resolve => setTimeout(resolve,400));
+      const blob=await (kind==='edto' ? ckBuildEdto(leg,dsp,lic) : ckBuild(leg,dsp,lic));
+      files.push({url:URL.createObjectURL(blob),name:'Checklist_'+(kind==='edto' ? 'EDTO_F018_' : 'F017_')+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf'});
+      count++;
     }
+    // Trình duyệt chặn tải nhiều file tự động: hiện danh sách để bấm tải từng file.
+    const box=document.createElement('dialog');box.id='ckFiles';
+    box.style.cssText='background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:320px';
+    box.innerHTML='<div style="font-weight:700;margin-bottom:10px">Đã tạo '+count+' PDF — bấm từng file để tải</div>';
+    for(const f of files){const a=document.createElement('a');a.href=f.url;a.download=f.name;a.textContent='⬇ '+f.name;a.className='btn';a.style.cssText='display:block;margin:6px 0;text-align:left';a.onclick=()=>{a.style.opacity='.55';};box.appendChild(a);}
+    const all=document.createElement('button');all.type='button';all.className='btn';all.textContent='Tải tất cả';all.style.marginRight='8px';
+    all.onclick=async()=>{for(const a of box.querySelectorAll('a')){a.click();await new Promise(r=>setTimeout(r,800));}};
+    const close=document.createElement('button');close.type='button';close.className='btn';close.textContent='Đóng';
+    close.onclick=()=>{box.close();box.remove();files.forEach(f=>URL.revokeObjectURL(f.url));};
+    const row=document.createElement('div');row.style.marginTop='12px';row.append(all,close);box.appendChild(row);
+    document.body.appendChild(box);box.showModal();
     $('#ftStat').textContent='Đã tạo '+count+' PDF Checklist.';
-  } catch(error){alert('Lỗi tạo Checklist: '+error.message);$('#ftStat').textContent='Đã tải '+count+'/'+legs.length+' PDF.';}
+  } catch(error){alert('Lỗi tạo Checklist: '+error.message);$('#ftStat').textContent='Đã tạo '+count+'/'+legs.length+' PDF.';}
   finally{button.disabled=false;}
 }
