@@ -556,6 +556,16 @@ def _gendec_folders(sess: Any, mailbox: str) -> list[tuple[str, str]]:
     return out
 
 
+def _mail_local_date(msg: dict) -> str | None:
+    """Ngày nhận thư theo giờ VN (UTC+7), dạng YYYY-MM-DD."""
+    raw = str(msg.get("ReceivedDateTime") or msg.get("receivedDateTime") or "")
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return (dt.astimezone(timezone(timedelta(hours=7)))).strftime("%Y-%m-%d")
+
+
 def _scan_gendec_folder(
     sess: Any,
     fid: str,
@@ -563,10 +573,23 @@ def _scan_gendec_folder(
     want: str,
     dest: Path,
     say: Callable[[str], None],
+    flight_date: str | None = None,
 ) -> Path | None:
-    """Tìm Excel của số hiệu trong một folder. Không có thì trả None."""
+    """Tìm Excel của số hiệu trong một folder. Không có thì trả None.
+    flight_date (YYYY-MM-DD, giờ VN): chỉ nhận thư gửi đúng ngày chuyến
+    hoặc tối hôm trước (chuyến sáng sớm); thư ngày khác bị bỏ qua."""
     import outlook_web_pib as owa
 
+    ok_dates: set[str] | None = None
+    if flight_date:
+        try:
+            d0 = datetime.strptime(flight_date, "%Y-%m-%d")
+            ok_dates = {
+                (d0 - timedelta(days=1)).strftime("%Y-%m-%d"),
+                flight_date,
+            }
+        except ValueError:
+            ok_dates = None
     root = owa.rest_root(mailbox)
     lo = datetime.now(timezone.utc) - timedelta(hours=LOOKBACK_H)
     flt = (
