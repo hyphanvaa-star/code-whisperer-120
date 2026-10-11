@@ -1509,13 +1509,21 @@ const ddScript = `
     if(n>items.length-1)n=items.length-1;
     jump(n);
   }
+  function clean(l){
+    try{
+      var c=l.cloneNode(true);
+      var x=c.querySelectorAll('i.jp,.ops-field-icon');
+      for(var i=0;i<x.length;i++)x[i].parentNode.removeChild(x[i]);
+      return (c.textContent||'').replace(/\\s+/g,' ').trim();
+    }catch(e){ return (l.textContent||'').trim(); }
+  }
   function labelOf(sel){
     try{
-      if(sel.labels&&sel.labels.length)return sel.labels[0].textContent.trim();
+      if(sel.labels&&sel.labels.length)return clean(sel.labels[0]);
       var p=sel.previousElementSibling;
-      if(p&&p.tagName==='LABEL')return p.textContent.trim();
+      if(p&&p.tagName==='LABEL')return clean(p);
       var w=sel.closest('.field');
-      if(w){ var l=w.querySelector('label'); if(l)return l.textContent.trim(); }
+      if(w){ var l=w.querySelector('label'); if(l)return clean(l); }
     }catch(e){}
     var t=sel.getAttribute('title')||'';
     return t.length>46?t.slice(0,46)+'\\u2026':t;
