@@ -1452,6 +1452,23 @@ async function ftLoad(){
     if(!ftKeep && ftCatalog.length && signature(ftCatalog) !== signature(next) && ftRows.some(Boolean)) ftKeep = ftSnap();
     ftCatalog = next;
     if(ftKeep){ const snap = ftKeep; ftKeep = null; ftRemap(snap); }`)
+    // Flight count line above the KHB buttons.
+    .replace('function ftRender(){', `function ftCountLine(){
+  const g = $("#ftTaxiBtn") && $("#ftTaxiBtn").closest(".ft-tool-group");
+  const bar = g && g.parentElement;
+  if(!bar) return;
+  let el = document.getElementById("ftCountLine");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "ftCountLine";
+    el.style.cssText = "font:700 13px/1.4 'JetBrains Mono',monospace;color:var(--x-khb-ink,#1E3A8A);margin:0 0 4px 2px";
+    bar.parentElement.insertBefore(el, bar);
+  }
+  const n = ftRows.filter(Boolean).length;
+  el.textContent = "Tổng: " + n + " chuyến";
+}
+function ftRender(){
+  setTimeout(ftCountLine, 0);`)
     // Crewlist uploads can renumber rows: send flight identity, not just the row ID.
     .replace('body: JSON.stringify({ids: ids})', 'body: JSON.stringify({ids: ids, rows: ftRows.filter(Boolean).map(f => ({id:f.id, flt:f.flt, date:f.date, dep:f.dep, arr:f.arr, etd:f.etd}))})')
     .replace('specs.push({id: f.id, talt:', 'specs.push({id: f.id, flt: f.flt, date: f.date, dep: f.dep, arr: f.arr, etd: f.etd, talt:')
