@@ -870,6 +870,8 @@ const PRO = `<style id="pro-skin">
   --x-yel:#FFC900;--x-ink:#16181D;--x-ink2:#454B57;--x-mute:#7A808C;
   --x-line:#E4E6EA;--x-line2:#EEF0F3;--x-bg:#F4F5F7;--x-card:#FFFFFF;
   --x-ok:#15803D;--x-ok-bg:#E8F6EC;--x-warn:#B45309;--x-warn-bg:#FEF3E2;
+  --x-khb-ink:#1E3A8A; /* chữ ô dữ liệu bảng KHB: xanh dương đậm */
+
   --x-sans:"IBM Plex Sans",system-ui,sans-serif;--x-mono:"IBM Plex Mono",ui-monospace,monospace;
   --x-r:8px;--x-sh:0 1px 2px rgba(16,18,24,.05),0 1px 1px rgba(16,18,24,.03);
 }
@@ -919,6 +921,13 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
 }
 /* Ô nhập trong bảng Briefing: chữ to hơn cỡ chung để dễ đọc */
 #wrapFplText .fttbl input[type=text]{font-size:14px !important;height:32px !important;line-height:32px !important}
+/* Chữ dữ liệu trong bảng KHB: xanh dương đậm thay cho đen. Đặt TRƯỚC các rule
+   cảnh báo bên dưới (ft-lim-crit/warn, ft-extra-auto, ft-ac-a330) để ô alert
+   vẫn giữ nguyên màu đỏ/cam/xanh của nó. */
+#wrapFplText .fttbl td{color:var(--x-khb-ink) !important}
+#wrapFplText .fttbl input[type=text]{color:var(--x-khb-ink) !important}
+#wrapFplText .fttbl td.dimcell{color:var(--x-mute) !important}
+
 input:focus,select:focus,textarea:focus{outline:none !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
 /* Ô cảnh báo giới hạn trong bảng chuyến bay phải giữ màu (đè lại luật ô nhập chung) */
 #wrapFplText .fttbl input.ft-lim-crit{color:#b91c1c !important;-webkit-text-fill-color:#b91c1c !important;background:#fecaca !important;border-color:#ef4444 !important;font-weight:800 !important}
