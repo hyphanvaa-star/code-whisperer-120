@@ -23681,7 +23681,7 @@ function ftFltInput(value, index, flight){
   td.appendChild(inp);
   if(flight){
     const st2 = ftSt(flight);
-    if(st2.pay){
+    if(st2.pay && st2.payManual){
       const tag = document.createElement("span");
       tag.className = "ft-pay" + (st2.payManual ? " manual" : "");
       tag.textContent = "PLD " + st2.pay;
