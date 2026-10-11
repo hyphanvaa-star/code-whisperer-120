@@ -22318,6 +22318,48 @@ async function fillWeights(rows, force){
       }
     }
   }
+  // Chuyến chưa có trong cache (chưa verify OFP): tự gọi FliteBrief đọc PDF
+  // rồi ghi vào — không cần bấm Cmp. Chỉ chạy khi lượt này là đọc cache.
+  if(!force && seq === wSeq){
+    const missing = ids.filter(id => !(id in W_CACHE));
+    if(missing.length){
+      if($("#estStat")) $("#estStat").textContent = "Đang tự đọc OFP cho " + missing.length + " chuyến…";
+      for(let i = 0; i < missing.length; i += W_BATCH){
+        if(seq !== wSeq) return;
+        const chunk = missing.slice(i, i + W_BATCH);
+        try{
+          const r = await fetch("/api/weights?days=" + DAYS + "&ids=" + chunk.join(","));
+          const d = await r.json();
+          if(d.error){ console.warn(d.error); continue; }
+          const noOfp = new Set((d.no_ofp || []).map(Number));
+          const failed = new Set((d.ofp_failed || []).map(Number));
+          for(const id of chunk){
+            const w = d.weights[String(id)] || null;
+            const nid = Number(id);
+            const miss = !w && (noOfp.has(nid) || noOfp.has(id));
+            const bad = !w && (failed.has(nid) || failed.has(id));
+            if(w){
+              const f = flights.find(x => x.id === nid || String(x.id) === String(id));
+              if(f && !ofpFitsFlight(f, w)){
+                if(seq === wSeq) paintWeight(id, null, "cfp_mismatch");
+                continue;
+              }
+              W_CACHE[id] = w;
+              if(f && w.extra_time) f.extra_time = w.extra_time;
+            }
+            if(seq === wSeq) paintWeight(id, w, bad ? "failed" : (miss ? "no_ofp" : ""));
+          }
+          if(seq === wSeq){
+            applyOfpLimitWarns(d.limit_warns, chunk);
+            paintExtraCells();
+          }
+        }catch(err){
+          console.warn("tự đọc OFP lỗi:", err.message || String(err));
+        }
+      }
+      if($("#estStat") && seq === wSeq) $("#estStat").textContent = "";
+    }
+  }
   if(seq === wSeq){
     paintEstBang();
     if(failN) write("OFP: " + failN + " chuyến chưa đọc được PDF"

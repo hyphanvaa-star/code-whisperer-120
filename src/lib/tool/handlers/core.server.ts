@@ -266,7 +266,11 @@ async function fetchOneWeight(
   };
   try {
     const { fbGet } = await import("@/lib/flitebrief.server");
-    const res = await fbGet(`/webapi/sectors/${sectorId}/ofp`, "application/pdf");
+    // Thử /ofp trước; không được thì dò đường dẫn View OFP (/ofp/0) như code gốc.
+    let res = await fbGet(`/webapi/sectors/${sectorId}/ofp`, "application/pdf");
+    if (!res.ok || res.status === 204) {
+      res = await fbGet(`/webapi/sectors/${sectorId}/ofp/0`, "application/pdf");
+    }
     if (!res.ok || res.status === 204) return readCacheFallback();
     const buf = await res.arrayBuffer();
     if (!buf.byteLength) return readCacheFallback();
