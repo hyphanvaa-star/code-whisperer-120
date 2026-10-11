@@ -65,10 +65,12 @@ export const routes: Routes = {
     try {
       const { putFile, listFiles } = await import("../store.server");
       const { safeFilename } = await import("../core/models");
+      const { excelDir } = await import("./excel.server");
+      const dir = excelDir(ctx);
       // Tell the helper which Excel files the web already has, so it re-sends
       // anything missing (a lost/timeout upload is no longer dropped forever).
       let have: string[] = [];
-      try { have = (await listFiles(ctx, "excel")).map((f) => f.name); } catch { /* ignore */ }
+      try { have = (await listFiles(ctx, dir)).map((f) => f.name); } catch { /* ignore */ }
       const id = await pc.enqueueDeduped("owa_fpl_watch", { after, have }, 8_000);
       const r = (await pc.waitResult(id, 45_000)) as Record<string, any>;
       const ups = Array.isArray(r?.uploads) ? r.uploads : [];
