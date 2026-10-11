@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] PLD: bỏ dữ liệu mẫu cho làm tròn và xem/xuất FPL; khớp Omni đúng ngày/chặng; kiểm ba chuyến 813/970/120 ngày 12/10.
+
 - [x] GD in dọc: áp giấy/hướng trước fit, gộp vùng in tách, kiểm tra số trang trước khi in; sheet 5 dùng Zoom đo thật + kiểm PDF, 7 tests đạt, gói AGENT v48 (nhật ký ghi "In GD bản v48" + Zoom đã dùng) đã cập nhật; chưa publish.
 - [ ] Thử GD in dọc trên Excel/RICOH thật — chờ người dùng cập nhật AGENT và thử tại máy công ty.
 
