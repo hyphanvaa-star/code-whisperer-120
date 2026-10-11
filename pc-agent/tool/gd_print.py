@@ -360,6 +360,36 @@ def _printer_ok(excel: Any, windows_name: str) -> bool:
     return bool(got) and str(windows_name or "").casefold() in got.casefold()
 
 
+def _force_one_page(excel: Any, ws: Any, idx: int) -> None:
+    """Đảm bảo sheet in đúng 1 trang. Một số file đặt PrintArea/ngắt trang lạ
+    hoặc driver bỏ qua FitToPages — đếm số trang thật rồi tự giảm Zoom."""
+    try:
+        excel.PrintCommunication = True
+    except Exception:
+        pass
+    try:
+        ws.ResetAllPageBreaks()
+        ws.DisplayPageBreaks = False
+    except Exception:
+        pass
+    setup = ws.PageSetup
+    try:
+        n = int(setup.Pages.Count)
+    except Exception:
+        return
+    if n <= 1:
+        return
+    # FitToPages bị phớt lờ: tự hạ Zoom tới khi còn 1 trang.
+    for z in range(95, 9, -5):
+        try:
+            setup.Zoom = z
+            if int(setup.Pages.Count) <= 1:
+                log.info("sheet %s: ép 1 trang bằng Zoom=%s", idx, z)
+                return
+        except Exception:
+            return
+
+
 def _apply_printer(excel: Any, windows_name: str) -> str:
     """Ép Excel dùng đúng máy in, rồi **đọc lại** để chắc chắn đã đổi.
 
@@ -504,6 +534,7 @@ def print_sheets(path: Path | str, *, printer: str = "",
             setup.FitToPagesWide = 1
             setup.FitToPagesTall = 1
             setup.PaperSize = xl_a4
+            _force_one_page(excel, ws, idx)
             say(f"· in sheet {idx} × {copies} "
                 f"({'ngang' if orient == 'landscape' else 'dọc'})")
             # Một số driver RICOH/PCL 6 bỏ qua ``Copies=5`` từ Excel COM và chỉ
