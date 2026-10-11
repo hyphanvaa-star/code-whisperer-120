@@ -255,10 +255,14 @@ const SHIM = `<script>
     // operational values. Empty-state marks are CSS-only, never saved as data.
     try {
       var parentTheme=window.parent.getComputedStyle(window.parent.document.documentElement);
+      var acTokens=document.createElement('style');
+      var acDeclarations=[];
       ['paper','stripe','hover','ink','line','header','on-color','success','danger','warning','warning-ink','neutral','missing','night-paper','night-stripe','night-hover','night-ink','night-line','night-missing'].forEach(function(key){
         var name='--atc-'+key;
-        document.documentElement.style.setProperty(name,parentTheme.getPropertyValue(name));
+        acDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
       });
+      acTokens.textContent=':root{'+acDeclarations.join(';')+'}';
+      document.head.prepend(acTokens);
     } catch(e){}
     var acBody=document.getElementById('acBody');
     if(acBody){

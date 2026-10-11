@@ -16,7 +16,7 @@
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via the `handle_new_user` trigger.
 - Port of the original Python tool proceeds endpoint group by group per `roadmap.md`.
 - Business logic from the original Python tool is ported to server fns; a PC helper is only for printing/intranet-only sources, because the web runtime cannot run Python or reach company devices.
-- The UI is the original web.py PAGE served verbatim from `src/tool/page.html` via `/tool-page` inside an iframe at `/tool`; only the injected shim in `src/routes/tool-page.ts` may alter it, so the screen stays identical to the original tool.
+- Original `src/tool/page.html` runs via `/tool-page` iframe at `/tool`; only `src/routes/tool-page.ts` shim may alter it. ATC uses global CSS tokens and CSS-only empty marks to preserve operational data.
 - Every original `/api/*` endpoint is ported into `src/lib/tool/handlers/<group>.server.ts` with web.py's exact JSON shapes; `src/lib/tool/router.server.ts` owns auth (bearer or `fbt` cookie for GET) and returns `{error, not_ported}` for unported routes.
 - Background jobs encode kind+params in the job id and run while `/api/stream` streams (`src/lib/tool/jobs.ts`), because workers share no memory.
 - Persistent tool state uses `app_settings` keys and files use the private `tool-files` bucket via `src/lib/tool/store.server.ts`, replacing web.py's local `data/` folder.
