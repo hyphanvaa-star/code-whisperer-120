@@ -11,6 +11,7 @@ import routeSeed from "../data/fpl/route_suffix.json";
 import pcrSeed from "../data/pcr_limits.json";
 import * as excelMod from "./excel.server";
 import { resolveCrewFlight } from '../port/fpl_flight_identity';
+import { omniPayload, exportPayloadItems } from '../port/fpl_payload';
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
 // data/fpl_tool.json + data/fpl/*.json files web.py reads/writes with app_settings
@@ -31,28 +32,7 @@ const NO_CREWLIST = "Chưa nạp Crewlist. Bấm Crew trên thanh lọc.";
 async function omniEstFallback(ctx: Ctx, flight: Raw): Promise<number | null> {
   try {
     const cache = await getJson<{ rows?: Array<Record<string, unknown>> }>(ctx, "omni.cache", { rows: [] });
-    const digits = String(flight.flt || "").replace(/\D/g, "").replace(/^0+/, "");
-    if (!digits) return null;
-    const dep = String(flight.dep || "").toUpperCase();
-    const arr = String(flight.arr || "").toUpperCase();
-    const cands = (cache.rows || []).filter((r) => String(r.digits || "") === digits);
-    if (!cands.length) return null;
-    // Ưu tiên bản cùng NGÀY với chuyến trong Crewlist (vd chuyến ngày 12 thì lấy
-    // EST ngày 12, không lấy bản ngày 11 dù nạp Crewlist hôm 11).
-    const dm = String(flight.date || "").match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-    let pool = cands;
-    if (dm) {
-      const y = dm[3]!.length === 2 ? 2000 + +dm[3]! : +dm[3]!;
-      const want = `${y}-${String(+dm[2]!).padStart(2, "0")}-${String(+dm[1]!).padStart(2, "0")}`;
-      const sameDay = cands.filter((r) => String(r.std_local || "").slice(0, 10) === want);
-      if (sameDay.length) pool = sameDay;
-    }
-    const exact = pool.filter((r) =>
-      (!dep || String(r.dep || "").toUpperCase() === dep) &&
-      (!arr || String(r.arr || "").toUpperCase() === arr));
-    const pick = (exact.length ? exact : pool)[0];
-    const est = Number(pick && pick.est_payload);
-    return Number.isFinite(est) && est > 0 ? Math.trunc(est) : null;
+    return omniPayload(cache.rows || [], flight);
   } catch {
     return null;
   }
@@ -93,7 +73,7 @@ async function loadDb(ctx: Ctx): Promise<ft.Db | null> {
     return null;
   }
   const base = await loadRaw(ctx);
-  const raw: Raw = { ...(base || {}), flights, source: state.file };
+  const raw: Raw = { ...(base || {}), payload: [], flights, source: state.file };
   const [altRoutesDoc, eraDoc, ciDoc, taxiDoc] = await Promise.all([
     loadAltDoc(ctx), loadEraDoc(ctx), loadCiDoc(ctx), loadTaxiDoc(ctx),
   ]);
@@ -281,8 +261,7 @@ export const routes: Routes = {
         continue;
       }
       const flt = String(flight.flt || "");
-      let est = ft.est_payload(db, flt);
-      if (est === null) est = await omniEstFallback(ctx, flight);
+      const est = await omniEstFallback(ctx, flight);
       if (est === null) {
         // Không có EST: điền tạm 9999, đánh dấu manual để dispatcher tự kiểm tra.
         rows.push({ id: rawId, flt, pay: "9999", manual: true, alert: `VJ${flt} không có EST — điền tạm 9999, tự kiểm tra` });
@@ -410,7 +389,8 @@ export const routes: Routes = {
     const efb = String(body.efb || "").trim().replace(/^TLK\//i, "");
     if (efb) (db as { tlk: string }).tlk = efb;
     const routeDoc = await loadRouteDoc(ctx);
-    const text = ft.build_req(db, items, dsp, routeDoc.rows || []);
+    const cache = await getJson<{ rows?: Raw[] }>(ctx, 'omni.cache', { rows: [] });
+    const text = ft.build_req(db, exportPayloadItems(db, items, cache.rows || []), dsp, routeDoc.rows || []);
     if (!String(text || "").trim()) return { error: "Chưa chọn chuyến nào." };
     return { ok: true, text };
   },
@@ -424,7 +404,8 @@ export const routes: Routes = {
     const efb = String(body.efb || "").trim().replace(/^TLK\//i, "");
     if (efb) (db as { tlk: string }).tlk = efb;
     const routeDoc = await loadRouteDoc(ctx);
-    const text = ft.build_req(db, items, dsp, routeDoc.rows || []);
+    const cache = await getJson<{ rows?: Raw[] }>(ctx, 'omni.cache', { rows: [] });
+    const text = ft.build_req(db, exportPayloadItems(db, items, cache.rows || []), dsp, routeDoc.rows || []);
     if (!String(text || "").trim()) return { error: "Chưa chọn chuyến nào." };
     const bytes = ft.req_bytes(text);
     let binary = "";
