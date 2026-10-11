@@ -1342,6 +1342,45 @@ html.night{--atc-paper:var(--atc-night-paper);--atc-stripe:var(--atc-night-strip
 #wrapAtcCheck #acTbl tbody tr.ac-has-flight>td:is(.ac-status,.ac-reg,.ac-regchk,.ac-time,.ac-stdchk,.ac-dof):empty::before{content:"- - - -";color:var(--atc-missing);-webkit-text-fill-color:var(--atc-missing);font-weight:600;white-space:nowrap}
 </style>`;
 
+// ==== MẪU THỬ (nháp): mọi nút = nền đỏ, chữ trắng ====
+// :not(#_) là mẹo tăng độ ưu tiên: nó luôn đúng với mọi phần tử nhưng
+// được tính như một id, nên thắng được các quy định cũ có id/!important.
+const BTNRED = `<style id="btn-red-skin">
+:root{--x-red-solid:#E31937;--x-red-solid-d:#B01028}
+/* 1. Mọi nút: đỏ đặc, chữ trắng */
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_){
+  background:var(--x-red-solid) !important;background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border-color:var(--x-red-solid) !important;
+  box-shadow:0 1px 3px rgba(227,25,55,.26) !important;
+}
+/* 2. Chữ và biểu tượng bên trong nút cũng phải trắng */
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):not(#_) *,
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):not(#_) ::before,
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_)::before{
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+}
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_) svg,
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_) svg *{stroke:currentColor !important}
+/* 3. Rê chuột: đỏ đậm hơn */
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):hover:not(:disabled){
+  background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
+}
+/* 4. Nút chính / nút đang bật: đỏ đậm hơn + viền trắng mảnh để phân biệt */
+:is(.btn.primary,.btn.t-go,.btn.act,.btn[aria-pressed="true"],.btn.on,.nm-sky[aria-pressed="true"]):not(#_):not(#_){
+  background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),0 2px 6px rgba(142,12,31,.3) !important;
+}
+/* 5. Nút đang tắt: vẫn đỏ chữ trắng, chỉ mờ đi cho dễ nhận */
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):disabled,
+:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_)[disabled]{
+  background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  opacity:.45 !important;box-shadow:none !important;
+}
+</style>`;
+
+
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
@@ -1425,7 +1464,7 @@ async function ftLoad(){
     .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
     .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
