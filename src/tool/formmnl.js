@@ -29,7 +29,7 @@ async function mnlShot(html){
       sp.style.display='inline-block';sp.style.lineHeight=cs.height;sp.style.whiteSpace='pre';sp.style.overflow='hidden';sp.style.paddingTop='0';sp.style.paddingBottom='0';
       inp.replaceWith(sp);
     }
-    const W=Math.max(form.scrollWidth,body.scrollWidth)+4;fr.style.width=W+'px';await new Promise(r=>setTimeout(r,50));
+    const fw=form.scrollWidth;form.style.width=fw+'px';form.style.display='inline-block';const W=fw+4;fr.style.width=W+'px';await new Promise(r=>setTimeout(r,50));
     const c=await html2canvas(form,{backgroundColor:'#fff',scale:2,windowWidth:W,width:form.scrollWidth+2,height:form.scrollHeight+2});
     return c;
   } finally { fr.remove(); }
@@ -52,9 +52,8 @@ async function mnlSig(png){
   const sig=await createImageBitmap(await sr.blob());
   const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
   const g=c.getContext('2d');g.drawImage(img,0,0);
-  g.fillStyle='#fff';g.fillRect(575,140,170,56);
-  const h=54,w=h*sig.width/sig.height;g.drawImage(sig,655-w/2,142,w,h);
-  g.fillStyle='#000';g.fillRect(570,196,165,1);
+  g.fillStyle='#fff';g.fillRect(575,140,170,56);g.fillRect(760,140,150,52);
+  const h=54,w=h*sig.width/sig.height;g.filter='contrast(4) brightness(0.5)';for(let i=0;i<3;i++)g.drawImage(sig,655-w/2,142,w,h);g.filter='none';
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
 async function mnlBuild(html,lic){
