@@ -15,6 +15,7 @@ import os
 import re
 import shutil
 import subprocess
+import time
 import sys
 from pathlib import Path
 
@@ -309,12 +310,37 @@ def attach_chrome(webdriver, options):
         if is_start_crash(exc):
             log.warning("Chrome crash khi khởi động — dọn hồ sơ rồi thử lại: %s", exc)
             _cleanup_chrome_profile(_profile_dir_of(options))
+            for flag in ("--no-sandbox", "--disable-dev-shm-usage",
+                         "--remote-debugging-port=0", "--disable-extensions"):
+                if flag not in options.arguments:
+                    options.add_argument(flag)
             try:
                 driver = webdriver.Chrome(options=options)
                 remember_from_driver(driver)
                 return driver
             except Exception as exc2:
-                raise ChromeDriverError(explain_driver_error(exc2)) from exc2
+                if not is_start_crash(exc2):
+                    raise ChromeDriverError(explain_driver_error(exc2)) from exc2
+                # Hồ sơ hỏng (máy công ty hay gặp): đổi tên hồ sơ cũ, mở hồ sơ mới.
+                old = _profile_dir_of(options)
+                log.warning("Chrome vẫn crash — chuyển hồ sơ hỏng sang bản dự phòng")
+                _cleanup_chrome_profile(old)
+                if old is not None and old.exists():
+                    try:
+                        old.rename(old.with_name(old.name + f"_broken_{int(time.time())}"))
+                    except OSError:
+                        import tempfile
+                        new = Path(tempfile.mkdtemp(prefix="chrome_fresh_"))
+                        options._arguments = [
+                            a for a in options.arguments
+                            if not str(a).startswith("--user-data-dir=")
+                        ] + [f"--user-data-dir={new}"]
+                try:
+                    driver = webdriver.Chrome(options=options)
+                    remember_from_driver(driver)
+                    return driver
+                except Exception as exc3:
+                    raise ChromeDriverError(explain_driver_error(exc3)) from exc3
         if not (is_missing_driver(exc) or is_stale_driver(exc)):
             raise
         path = find_chromedriver()
