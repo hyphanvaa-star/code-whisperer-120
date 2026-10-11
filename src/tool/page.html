@@ -24931,7 +24931,13 @@ $("#ftAtcSend").onclick = async function(){
     atPath = d.path;
     if($("#atName")) $("#atName").textContent = d.name;
     await atLoadList(); if($("#atList")) $("#atList").value = atPath;
-    $("#ftAtcNote").textContent = "Đang gửi " + (d.blocks || ftAtcRows.length) + " chuyến lên AviWeb — xem tiến trình ở tab Công cụ hỗ trợ.";
+    /* Log gửi chạy đúng như bấm Gửi FPL thường — nhảy sang tab Công cụ hỗ trợ
+       để người dùng nhìn thấy từng dòng log trong khung console. */
+    setMode("tool");
+    ftCloseLib("#ftAtcModal");
+    writeSep();
+    write("◆ GỬI ATC (convert) — file: " + (d.name || ftAtcFileName)
+      + " · " + ftAtcRows.length + " chuyến");
     atRun(false);
   }catch(e){ alert("Lỗi GỬI ATC: " + e.message); }
   finally{ btn.disabled = false; btn.textContent = "GỬI ATC"; }
