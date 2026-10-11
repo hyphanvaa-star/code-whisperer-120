@@ -22,12 +22,12 @@ async function mnlShot(html){
     // JetPlan puts width:100% inputs inside inline spans (FILED BY row) -> the
     // page overflows to ~2000px. Give those width spans inline-block so the
     // inputs resolve against the intended 223px columns again.
+    const body=fr.contentDocument.body;body.style.margin='0';body.style.background='#fff';
+    const form=body.querySelector('form')||body;
     for(const sp of [...form.querySelectorAll('span')]){
       const sy=sp.getAttribute('style')||'';
       if(/width:\s*\d+px/.test(sy) && !/position:\s*absolute/.test(sy)) sp.style.display='inline-block';
     }
-    const body=fr.contentDocument.body;body.style.margin='0';body.style.background='#fff';
-    const form=body.querySelector('form')||body;
     // html2canvas clips input text: swap every field for a same-size span.
     for(const inp of [...form.querySelectorAll('input')]){
       const cs=fr.contentWindow.getComputedStyle(inp),sp=fr.contentDocument.createElement('span');
