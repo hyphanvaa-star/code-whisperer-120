@@ -151,14 +151,55 @@ class CookieJar {
   }
 }
 
+/** Đài chỉ có địa chỉ IP (không tên miền): máy chủ web bị chặn kết nối thẳng
+ * tới IP (HTTP 403). */
+export function isIpSite(site: MetSite): boolean {
+  try {
+    return /^\d{1,3}(\.\d{1,3}){3}$/.test(new URL(site.base).hostname);
+  } catch {
+    return false;
+  }
+}
+
+/** Cùng đài nhưng gọi bằng tên miền bí danh `<ip>.sslip.io` (trỏ đúng IP đó) —
+ * giống cách TAF đang lấy được từ đài TSN. */
+export function aliasSite(site: MetSite): MetSite {
+  if (!isIpSite(site)) return site;
+  const u = new URL(site.base);
+  u.hostname = `${u.hostname}.sslip.io`;
+  return { ...site, base: u.toString().replace(/\/$/, "") };
+}
+
+/** Dự phòng: gửi 1 request qua trợ lý PC; trợ lý tự giữ cookie theo `session`. */
+export type MetTransport = (req: {
+  session: string;
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: string | undefined;
+  timeoutMs: number;
+}) => Promise<Response>;
+
 export class MetSession {
   private jar = new CookieJar();
   private loggedIn = false;
-  constructor(public site: MetSite) {}
+  constructor(public site: MetSite, private transport?: MetTransport) {}
 
   private async req(url: string, init: RequestInit = {}, timeoutMs = 120_000): Promise<Response> {
     const headers = new Headers(init.headers);
     headers.set("User-Agent", UA);
+    if (this.transport) {
+      const h: Record<string, string> = {};
+      headers.forEach((v, k) => { h[k] = v; });
+      return this.transport({
+        session: `met:${this.site.key}`,
+        method: String(init.method || "GET"),
+        url,
+        headers: h,
+        body: typeof init.body === "string" ? init.body : undefined,
+        timeoutMs,
+      });
+    }
     const cookie = this.jar.header();
     if (cookie) headers.set("Cookie", cookie);
     const res = await fetch(url, { ...init, headers, signal: AbortSignal.timeout(timeoutMs), redirect: "follow" });
@@ -312,6 +353,7 @@ export async function download(
     maxAgeH?: number;
     onProgress?: WxProgress;
     hasFile?: (filename: string) => Promise<boolean>;
+    transport?: MetTransport;
   } = {},
 ): Promise<WxResult> {
   const now = new Date();
@@ -333,16 +375,28 @@ export async function download(
       res.errors.push(`không biết đài ${key}`);
       continue;
     }
-    try {
-      const ms = new MetSession(site);
-      for (const day of days) {
-        if (!left.size) break;
-        const docs = await ms.listDocs(day);
-        await take(ms, docs, day, left, res, opts, maxAgeH, now);
+    // Đài chỉ có IP: gọi bằng tên miền bí danh; không được thì nhờ trợ lý PC.
+    const tries: Array<{ site: MetSite; transport?: MetTransport; label: string }> = [
+      { site: aliasSite(site), label: "" },
+    ];
+    if (isIpSite(site) && opts.transport) tries.push({ site, transport: opts.transport, label: " (qua trợ lý PC)" });
+    const errs: string[] = [];
+    for (const t of tries) {
+      if (!left.size) break;
+      try {
+        const ms = new MetSession(t.site, t.transport);
+        for (const day of days) {
+          if (!left.size) break;
+          const docs = await ms.listDocs(day);
+          await take(ms, docs, day, left, res, opts, maxAgeH, now);
+        }
+        errs.length = 0;
+        break;
+      } catch (exc) {
+        errs.push(`${site.name}${t.label}: ${(exc as Error)?.message ?? exc}`);
       }
-    } catch (exc) {
-      res.errors.push(`${site.name}: ${(exc as Error)?.message ?? exc}`);
     }
+    res.errors.push(...errs);
   }
 
   res.missing = [...left.values()];

@@ -7,7 +7,32 @@ import {
   SITES,
   DEFAULT_ORDER,
   type WxResult,
+  type MetTransport,
 } from "../port/metwx";
+import * as pc from "../pcagent.server";
+import type { Ctx } from "../types";
+
+/** Dự phòng cho đài chỉ có IP: trợ lý PC trên máy công ty gửi request hộ. */
+function pcTransport(ctx: Ctx): MetTransport {
+  return async (req) => {
+    const agent = await pc.agentInfo(ctx);
+    if (!pc.agentOnline(agent)) throw new Error("trợ lý PC chưa kết nối");
+    const id = await pc.enqueue("http_fetch", { ...req, timeout_s: Math.ceil(req.timeoutMs / 1000) });
+    let r: Record<string, unknown>;
+    try {
+      r = await pc.waitResult(id, req.timeoutMs + 60_000);
+    } catch (e) {
+      const msg = (e as Error).message;
+      if (/không biết lệnh/.test(msg)) throw new Error("trợ lý PC cần cập nhật bản v4.0 trở lên");
+      throw e;
+    }
+    const body = Buffer.from(String(r["body_b64"] || ""), "base64");
+    return new Response(body.length ? body : null, {
+      status: Number(r["status"]) || 502,
+      headers: { "content-type": String(r["content_type"] || "application/octet-stream") },
+    });
+  };
+}
 import { safeFilename } from "../core/models";
 
 // Port of the web.py "/api/taf/*" endpoints (taf.py). Keep JSON shapes identical to web.py.
@@ -197,6 +222,7 @@ export const wxJobs: Jobs = {
         overwrite,
         maxAgeH,
         onProgress: (text, cs) => emit({ type: "line", text: `  ${text}`, found: cs || undefined }),
+        transport: pcTransport(ctx),
         hasFile: async (filename) => {
           const existing = await listFiles(ctx, "pibwx");
           return existing.some((f) => f.name === filename);

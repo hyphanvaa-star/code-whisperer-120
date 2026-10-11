@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "3.9"
+VERSION = "4.0"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1482,7 +1482,40 @@ def do_owa_efb(payload: dict, say) -> dict:
         pythoncom.CoUninitialize()
 
 
+# Đài khí tượng chỉ có địa chỉ IP — máy chủ web bị chặn, trợ lý gửi request hộ.
+_MET_HOSTS = {"113.161.121.25", "14.177.232.218", "118.69.213.84"}
+_HTTP_SESSIONS: dict = {}
+
+
+def do_http_fetch(payload: dict, say) -> dict:
+    import base64
+    from urllib.parse import urlparse
+    url = str(payload.get("url") or "")
+    host = (urlparse(url).hostname or "").lower()
+    if host not in _MET_HOSTS:
+        raise RuntimeError(f"không cho phép tải từ {host or '?'}")
+    key = str(payload.get("session") or host)[:40]
+    sess = _HTTP_SESSIONS.get(key)
+    if sess is None:
+        sess = requests.Session()
+        _HTTP_SESSIONS[key] = sess
+    method = str(payload.get("method") or "GET").upper()
+    headers = {k: v for k, v in (payload.get("headers") or {}).items()
+               if k.lower() not in ("cookie", "host", "content-length")}
+    body = payload.get("body")
+    timeout = float(payload.get("timeout_s") or 120)
+    r = sess.request(method, url, headers=headers,
+                     data=body.encode("utf-8") if isinstance(body, str) else None,
+                     timeout=timeout, allow_redirects=True)
+    return {
+        "status": r.status_code,
+        "content_type": r.headers.get("content-type", ""),
+        "body_b64": base64.b64encode(r.content).decode("ascii"),
+    }
+
+
 HANDLERS = {
+    "http_fetch": do_http_fetch,
     "gd_print": do_gd_print,
     "save_file": do_save_file,
     "pick_folder": do_pick_folder,
