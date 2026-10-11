@@ -556,6 +556,16 @@ def _gendec_folders(sess: Any, mailbox: str) -> list[tuple[str, str]]:
     return out
 
 
+def _mail_local_date(msg: dict) -> str | None:
+    """Ngày nhận thư theo giờ VN (UTC+7), dạng YYYY-MM-DD."""
+    raw = str(msg.get("ReceivedDateTime") or msg.get("receivedDateTime") or "")
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return (dt.astimezone(timezone(timedelta(hours=7)))).strftime("%Y-%m-%d")
+
+
 def _scan_gendec_folder(
     sess: Any,
     fid: str,
@@ -563,10 +573,23 @@ def _scan_gendec_folder(
     want: str,
     dest: Path,
     say: Callable[[str], None],
+    flight_date: str | None = None,
 ) -> Path | None:
-    """Tìm Excel của số hiệu trong một folder. Không có thì trả None."""
+    """Tìm Excel của số hiệu trong một folder. Không có thì trả None.
+    flight_date (YYYY-MM-DD, giờ VN): chỉ nhận thư gửi đúng ngày chuyến
+    hoặc tối hôm trước (chuyến sáng sớm); thư ngày khác bị bỏ qua."""
     import outlook_web_pib as owa
 
+    ok_dates: set[str] | None = None
+    if flight_date:
+        try:
+            d0 = datetime.strptime(flight_date, "%Y-%m-%d")
+            ok_dates = {
+                (d0 - timedelta(days=1)).strftime("%Y-%m-%d"),
+                flight_date,
+            }
+        except ValueError:
+            ok_dates = None
     root = owa.rest_root(mailbox)
     lo = datetime.now(timezone.utc) - timedelta(hours=LOOKBACK_H)
     flt = (
@@ -597,6 +620,11 @@ def _scan_gendec_folder(
             if not mid:
                 continue
             seen_n += 1
+            # Sai ngày chuyến → bỏ qua (tránh in GD của hôm khác).
+            if ok_dates is not None:
+                md = _mail_local_date(msg)
+                if md is not None and md not in ok_dates:
+                    continue
             # Tiêu đề có số hiệu → xử lý ngay; không thì để dành soi tên file.
             if not contains_flight(subject, want):
                 later.append((mid, subject))
@@ -688,8 +716,10 @@ def download_gd(
     dest: Path | None = None,
     on_progress: Callable[[str], None] | None = None,
     session: Any | None = None,
+    flight_date: str | None = None,
 ) -> Path:
-    """Tải Excel GENDEC có số hiệu. Trả đường dẫn file."""
+    """Tải Excel GENDEC có số hiệu. Trả đường dẫn file.
+    flight_date (YYYY-MM-DD): chỉ nhận thư đúng ngày chuyến (hoặc tối hôm trước)."""
     import outlook_web_pib as owa
 
     want = digits_of(flight)
@@ -715,7 +745,7 @@ def download_gd(
             where = f"{mailbox} / {name}" if mailbox else name
             say(f"· thư mục Outlook: {where}")
             found = _scan_gendec_folder(
-                sess, fid, mailbox, want, dest, say,
+                sess, fid, mailbox, want, dest, say, flight_date,
             )
             if found is not None:
                 return found

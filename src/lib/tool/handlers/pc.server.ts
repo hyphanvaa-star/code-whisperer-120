@@ -12,7 +12,7 @@ import * as gd from "../port/gd_print";
 import * as omni from "../port/omni";
 import "../omni_session.server";
 import { readTable, sheetDicts } from "../port/excelcmp_reader";
-import { detectMapping } from "../port/excelcmp_compare";
+import { detectMapping, normDate } from "../port/excelcmp_compare";
 
 // config.PATH_KEYS — label + default folder on the company PC.
 const PATH_KEYS: Record<string, [string, string]> = {
@@ -94,14 +94,15 @@ function resolvePrinter(saved: string, printers: pc.AgentPrinter[]): string {
   return saved || "—";
 }
 
-/** Port of gd_print.crew_regs_for_digits() on the uploaded Crewlist Excel. */
-async function crewRegsFor(ctx: Ctx, flight: string): Promise<string[]> {
+/** Port of gd_print.crew_regs_for_digits() on the uploaded Crewlist Excel.
+ *  Trả thêm ngày chuyến (YYYY-MM-DD) để trợ lý chỉ nhận thư GD đúng ngày. */
+async function crewRegsFor(ctx: Ctx, flight: string): Promise<{ regs: string[]; date: string | null }> {
   const state = await getJson<{ file: string; sheet: string } | null>(ctx, "excel.current", null);
   if (!state) throw new Error("Chưa nạp Crewlist Excel.");
   const buf = await getFile(ctx, `excel/${state.file}`);
   if (!buf) throw new Error("Không đọc được file Crewlist đã nạp.");
   const sheets = await readTable(state.file, buf);
-  if (!sheets.length) return [];
+  if (!sheets.length) return { regs: [], date: null };
   const sheet = sheets.find((s) => s.name === state.sheet) ?? sheets[0]!;
   const mapping = detectMapping(sheet.header);
   if (!mapping["callsign"] || !mapping["reg"]) {
@@ -110,16 +111,21 @@ async function crewRegsFor(ctx: Ctx, flight: string): Promise<string[]> {
   const want = gd.digitsOf(flight);
   const out: string[] = [];
   const seen = new Set<string>();
+  let date: string | null = null;
   for (const row of sheetDicts(sheet)) {
     const cs = String(row[mapping["callsign"]] ?? "");
     if (!gd.containsFlight(cs, want)) continue;
+    if (!date && mapping["date"]) {
+      const d = normDate(row[mapping["date"]!]);
+      if (d) date = d.toISOString().slice(0, 10);
+    }
     const raw = String(row[mapping["reg"]] ?? "").trim();
     const key = gd.normalizeReg(raw);
     if (!key || seen.has(key)) continue;
     seen.add(key);
     out.push(gd.prettyReg(raw));
   }
-  return out;
+  return { regs: out, date };
 }
 
 function omniCreds(): omni.OmniCredentials {
@@ -318,15 +324,16 @@ export const jobs: Jobs = {
       const checks: Array<{ gd_reg: string; file_name: string }> = [];
       for (const [i, want] of wants.entries()) {
         if (wants.length > 1) emit({ type: "line", text: `── ${want} (${i + 1}/${wants.length})` });
-        const regs = await crewRegsFor(ctx, want);
+        const { regs, date } = await crewRegsFor(ctx, want);
         if (!regs.length) throw new Error(`Crewlist không có chuyến ${want}.`);
-        emit({ type: "line", text: `· ${want} crewlist: ${regs.join(" / ")}` });
+        emit({ type: "line", text: `· ${want} crewlist: ${regs.join(" / ")}${date ? ` — ngày ${date}` : ""}` });
         const printer = await getJson<string>(ctx, PRINTER_KEY, "");
         const id = await pc.enqueue("gd_print", {
           flight: want,
           crew_regs: regs,
           printer,
           dest: "D:\\GD",
+          flight_date: date,
         });
         emit({ type: "line", text: "· đã gửi lệnh cho trợ lý PC — đang tải GD và in…" });
         let lastBeat = 0;

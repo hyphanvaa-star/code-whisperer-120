@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "4.1"
+VERSION = "4.2"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -475,7 +475,7 @@ def _owa_keeper() -> None:
         time.sleep(120)
 
 
-def download_gd_owa(flight: str, dest: Path, say) -> Path:
+def download_gd_owa(flight: str, dest: Path, say, flight_date: str | None = None) -> Path:
     """Tải GD đúng code gốc gd_print.download_gd, dùng lại phiên Outlook Web
     đang có (PIB/FPL/nháp) — KHÔNG tự mở Chrome đăng nhập, KHÔNG mở Outlook PC."""
     config, ow = _load_owa_modules()
@@ -496,7 +496,8 @@ def download_gd_owa(flight: str, dest: Path, say) -> Path:
     last: Exception | None = None
     for token in tokens:
         try:
-            return gp.download_gd(want, token=token, dest=dest, on_progress=say)
+            return gp.download_gd(want, token=token, dest=dest, on_progress=say,
+                                  flight_date=flight_date)
         except ow.OwaAuthError as exc:
             last = exc
             say("· phiên này bị Outlook từ chối — thử phiên khác…")
@@ -513,8 +514,10 @@ def do_gd_print(payload: dict, say) -> dict:
     printer = str(payload.get("printer") or "")
     dest = _fix_drive(str(payload.get("dest") or "D:/GD"))
 
-    say(f"▶ tìm GD {flight} trong {FOLDER_NAME} (Outlook Web)")
-    path = download_gd_owa(flight, dest, say)
+    flight_date = str(payload.get("flight_date") or "").strip() or None
+    say(f"▶ tìm GD {flight} trong {FOLDER_NAME} (Outlook Web)"
+        + (f" — chỉ nhận thư ngày {flight_date}" if flight_date else ""))
+    path = download_gd_owa(flight, dest, say, flight_date)
     gd_reg = extract_gd_reg(path)
     say(f"· file: {path.name}")
     say(f"· tàu GD: {gd_reg or '—'}")
