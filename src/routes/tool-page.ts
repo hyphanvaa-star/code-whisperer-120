@@ -1901,7 +1901,7 @@ function ftRender(){
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
     </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + MOBILE + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
