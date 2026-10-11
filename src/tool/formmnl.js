@@ -42,8 +42,8 @@ async function mnlCert(zip,lic){
   const img=await createImageBitmap(png);
   const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
   const g=c.getContext('2d');g.drawImage(img,0,0);
-  g.fillStyle='#fff';g.fillRect(820,106,84,30);
-  if(lic){g.fillStyle='#000';g.font='16px "Times New Roman", Times, serif';g.textAlign='center';g.textBaseline='alphabetic';g.fillText(lic,861,128);}
+  g.fillStyle='#fff';g.fillRect(790,146,80,20);
+  if(lic){g.fillStyle='#000';g.font='13px "Times New Roman", Times, serif';g.textAlign='center';g.textBaseline='alphabetic';g.fillText(lic,829,161);}
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
 async function mnlBuild(html,lic){
