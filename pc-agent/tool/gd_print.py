@@ -29,6 +29,7 @@ FOLDER_NAME = "GENDEC"
 PRINTER_HINT = "RICOH MP 5055"
 LOOKBACK_H = 7 * 24
 MAX_PAGES = 6
+GD_BUILD = "v48"  # hiện trong nhật ký để biết máy đang chạy bản sửa fit 1 trang nào
 
 # Excel 1-based sheet index, copies, orientation.
 PRINT_PLAN: tuple[tuple[int, int, str], ...] = (
@@ -480,7 +481,7 @@ def _pages_now(excel: Any, ws: Any) -> int:
     return _pdf_pages(ws) or _page_count(excel, ws)
 
 
-def _force_one_page(excel: Any, ws: Any, idx: int, orient: str = "portrait") -> None:
+def _force_one_page(excel: Any, ws: Any, idx: int, orient: str = "portrait") -> str:
     """Không gửi lệnh in nếu chưa xác nhận toàn bộ sheet nằm trên một trang.
 
     FitToPages bị nhiều driver RICOH bỏ qua (nhất là khổ dọc), và số trang
@@ -499,14 +500,14 @@ def _force_one_page(excel: Any, ws: Any, idx: int, orient: str = "portrait") -> 
     est = _fit_zoom(ws, orient == "landscape")
     if est is None:
         if _pages_now(excel, ws) <= 1:
-            return
+            return "fit sẵn 1 trang"
         est = 95
     z = est
     while z >= 10:
         setup.Zoom = z
         if _pages_now(excel, ws) == 1:
             log.info("sheet %s (%s): 1 trang ở Zoom=%s", idx, orient, z)
-            return
+            return f"Zoom {z}%, đã kiểm 1 trang"
         z -= 3
     raise GdError(f"Sheet {idx} vẫn quá một trang; chưa gửi lệnh in sheet này.")
 
@@ -630,7 +631,7 @@ def print_sheets(path: Path | str, *, printer: str = "",
                 pass
             excel = _new_excel(win32com)
             active = _apply_printer(excel, win_name)
-        say(f"· máy in: {active}")
+        say(f"· máy in: {active} (In GD bản {GD_BUILD})")
         note = printer_note(win_name)
         if note:
             say(f"⚠ {win_name}: {note} — lệnh in vẫn xếp hàng, "
@@ -669,9 +670,9 @@ def print_sheets(path: Path | str, *, printer: str = "",
                     excel.PrintCommunication = True
                 except Exception:
                     pass
-            _force_one_page(excel, ws, idx, orient)
+            fit = _force_one_page(excel, ws, idx, orient)
             say(f"· in sheet {idx} × {copies} "
-                f"({'ngang' if orient == 'landscape' else 'dọc'})")
+                f"({'ngang' if orient == 'landscape' else 'dọc'}) — {fit}")
             # Một số driver RICOH/PCL 6 bỏ qua ``Copies=5`` từ Excel COM và chỉ
             # in đúng một bản. Gửi từng job Copies=1 thì spooler không thể nuốt
             # số lượng: sheet 3 tạo 5 job, sheet 7 tạo 2 job. Tổng cộng 9 bản.
