@@ -6,6 +6,8 @@ import vietjetLogo from "@/assets/vj-logo.png";
 import notamGeometryFixes from '@/tool/notam-geometry.js?raw';
 import checklistScript from '@/tool/checklist.js?raw';
 import checklistEdtoAsset from '@/assets/checklist-edto.asset.json';
+import formMnlScript from '@/tool/formmnl.js?raw';
+import formMnlAsset from '@/assets/form-mnl.asset.json';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1471,7 +1473,7 @@ async function ftLoad(){
     .replace(/\/\/ Tóm tắt cả ca quốc nội:[\s\S]*?(?=function nmPaintVerdict\(\))/, '')
     .replace(/    let fleet = \(nmData && nmData\.fleet_verdict\) \|\| null;\s*if\(fleet && !\(fleet\.sections \|\| \[\]\)\.length\)\{[\s\S]*?\n    \}/, '    const fleet = (nmData && nmData.fleet_verdict) || null;')
     .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
-    .replace(/\/\* ===== Checklist F-017 ===== \*\/[\s\S]*?(?=\$\("#ftMsgBtn"\)\.onclick)/, () => 'const CK_EDTO_TEMPLATE_URL = '+JSON.stringify(checklistEdtoAsset.url)+';\n'+checklistScript + '\n')
+    .replace(/\/\* ===== Checklist F-017 ===== \*\/[\s\S]*?(?=\$\("#ftMsgBtn"\)\.onclick)/, () => 'const CK_EDTO_TEMPLATE_URL = '+JSON.stringify(checklistEdtoAsset.url)+';\n'+checklistScript + '\nconst FORM_MNL_TEMPLATE_URL = '+JSON.stringify(formMnlAsset.url)+';\n'+formMnlScript+'\n')
     .replace(/\s*<button type="button" class="btn small" id="ftLicBtn"[^>]*>DSP License<\/button>/, '')
     .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
