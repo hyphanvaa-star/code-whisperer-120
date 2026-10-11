@@ -67,6 +67,25 @@
 }
 
 :root {
+  --atc-paper: oklch(1 0 0);
+  --atc-stripe: oklch(0.965 0.008 250);
+  --atc-hover: oklch(0.925 0.025 250);
+  --atc-ink: oklch(0.25 0.015 250);
+  --atc-line: oklch(0.88 0.012 250);
+  --atc-header: oklch(0.53 0.2 20);
+  --atc-on-color: oklch(1 0 0);
+  --atc-success: oklch(0.46 0.115 155);
+  --atc-danger: oklch(0.51 0.19 25);
+  --atc-warning: oklch(0.82 0.15 85);
+  --atc-warning-ink: oklch(0.28 0.04 70);
+  --atc-neutral: oklch(0.48 0.02 250);
+  --atc-missing: oklch(0.5 0.015 250);
+  --atc-night-paper: oklch(0.23 0.01 250);
+  --atc-night-stripe: oklch(0.27 0.012 250);
+  --atc-night-hover: oklch(0.33 0.018 250);
+  --atc-night-ink: oklch(0.96 0.005 250);
+  --atc-night-line: oklch(0.37 0.012 250);
+  --atc-night-missing: oklch(0.74 0.015 250);
   --radius: 0.6rem;
   --background: oklch(0.97 0.012 0);
   --foreground: oklch(0.22 0.02 260);

@@ -251,6 +251,29 @@ const SHIM = `<script>
       }
       if(theme)theme.insertAdjacentHTML('afterbegin',iconSvg('<path d="M12 3a9 9 0 1 0 9 9c0-1.1-.2-2.1-.5-3A7 7 0 0 1 12 3Z"/>'));
     }
+    // Share semantic global tokens with the embedded document, without touching
+    // operational values. Empty-state marks are CSS-only, never saved as data.
+    try {
+      var parentTheme=window.parent.getComputedStyle(window.parent.document.documentElement);
+      ['paper','stripe','hover','ink','line','header','on-color','success','danger','warning','warning-ink','neutral','missing','night-paper','night-stripe','night-hover','night-ink','night-line','night-missing'].forEach(function(key){
+        var name='--atc-'+key;
+        document.documentElement.style.setProperty(name,parentTheme.getPropertyValue(name));
+      });
+    } catch(e){}
+    var acBody=document.getElementById('acBody');
+    if(acBody){
+      var acMarkRows=function(){
+        acBody.querySelectorAll('tr').forEach(function(tr){
+          var inp=tr.querySelector('input[data-col="0"]');
+          var filled=!!(inp&&String(inp.value||'').trim());
+          if(tr.classList.contains('ac-has-flight')!==filled)tr.classList.toggle('ac-has-flight',filled);
+        });
+      };
+      acMarkRows();
+      acBody.addEventListener('input',acMarkRows);
+      new MutationObserver(acMarkRows).observe(acBody,{childList:true,subtree:true});
+      setInterval(acMarkRows,750);
+    }
     if(room && !document.getElementById('opsHeaderBrand')){
       var brand=document.createElement('div');
       brand.id='opsHeaderBrand'; brand.className='ops-header-brand';
@@ -1298,6 +1321,23 @@ const FONTUP = `<style id="fontup-skin">
 
 let cached: string | null = null;
 
+const ATC_SKIN = `<style id="atc-result-skin">
+html.night{--atc-paper:var(--atc-night-paper);--atc-stripe:var(--atc-night-stripe);--atc-hover:var(--atc-night-hover);--atc-ink:var(--atc-night-ink);--atc-line:var(--atc-night-line);--atc-missing:var(--atc-night-missing)}
+#wrapAtcCheck #acTbl{border-collapse:separate;border-spacing:0;color:var(--atc-ink) !important}
+#wrapAtcCheck #acTbl thead th{background:var(--atc-header) !important;color:var(--atc-on-color) !important;-webkit-text-fill-color:var(--atc-on-color) !important;border-color:var(--atc-header) !important;font-weight:800}
+#wrapAtcCheck #acTbl tbody tr>td{background:var(--atc-paper) !important;color:var(--atc-ink) !important;-webkit-text-fill-color:var(--atc-ink) !important;border-bottom:1px solid var(--atc-line) !important;padding-top:7px;padding-bottom:7px;letter-spacing:0 !important}
+#wrapAtcCheck #acTbl tbody tr:nth-child(even)>td{background:var(--atc-stripe) !important}
+#wrapAtcCheck #acTbl tbody tr:hover>td{background:var(--atc-hover) !important}
+#wrapAtcCheck #acTbl tbody tr>td:is(.ac-filed,.ac-true){background:var(--atc-success) !important;color:var(--atc-on-color) !important;-webkit-text-fill-color:var(--atc-on-color) !important;font-weight:800;text-shadow:none !important}
+#wrapAtcCheck #acTbl tbody tr>td:is(.ac-false,.ac-cancelled){background:var(--atc-danger) !important;color:var(--atc-on-color) !important;-webkit-text-fill-color:var(--atc-on-color) !important;font-weight:800;text-shadow:none !important}
+#wrapAtcCheck #acTbl tbody tr>td:is(.ac-departed,.ac-closed-op,.ac-na){background:var(--atc-warning) !important;color:var(--atc-warning-ink) !important;-webkit-text-fill-color:var(--atc-warning-ink) !important;font-weight:800;text-shadow:none !important}
+#wrapAtcCheck #acTbl tbody tr>td.ac-closed{background:var(--atc-neutral) !important;color:var(--atc-on-color) !important;-webkit-text-fill-color:var(--atc-on-color) !important;font-weight:800}
+#wrapAtcCheck #acTbl tbody tr>td:is(.ac-status,.ac-regchk,.ac-stdchk){text-align:center}
+#wrapAtcCheck #acTbl tbody tr>td:is(.ac-reg,.ac-time,.ac-dof){font-weight:600}
+#wrapAtcCheck #acTbl input[data-col="0"]{background:var(--atc-paper) !important;color:var(--atc-ink) !important;-webkit-text-fill-color:var(--atc-ink) !important;border-color:var(--atc-line) !important;letter-spacing:0 !important;font-weight:700}
+#wrapAtcCheck #acTbl tbody tr.ac-has-flight>td:is(.ac-status,.ac-reg,.ac-regchk,.ac-time,.ac-stdchk,.ac-dof):empty::before{content:"- - - -";color:var(--atc-missing);-webkit-text-fill-color:var(--atc-missing);font-weight:600;white-space:nowrap}
+</style>`;
+
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
@@ -1381,7 +1421,7 @@ async function ftLoad(){
     .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
     .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + FONTUP + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
