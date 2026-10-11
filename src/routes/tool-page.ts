@@ -1348,6 +1348,278 @@ const FONTUP = `<style id="fontup-skin">
 :is(#wrapGeneral,#wrapCompare,#wrapVer,#wrapFpl,#wrapTool,#wrapNotam,#wrapAtcCheck,#wrapLimits,#wrapHandover,#wrapNoticeRules,#wrapNmTrack) .nm-verdict li{font-size:13.5px !important}
 </style>`;
 
+/* ===== DROPDOWN: danh sách chọn to chữ, dễ đọc =====
+   Danh sách gốc do trình duyệt vẽ nên không chỉnh được khoảng cách dòng lẫn
+   khung; phần này giữ nguyên <select> (mọi chỗ đọc .value / bắn onchange vẫn
+   chạy) nhưng khi bấm thì tự vẽ danh sách riêng: chữ 15px, dòng cao 40px,
+   khung bo góc có bóng, có ô tìm khi nhiều lựa chọn. */
+const DROPDOWN = `<style id="dropdown-skin">
+select:not([hidden]){font-size:14.5px !important;min-height:36px;padding-top:7px;padding-bottom:7px}
+:is(#wrapGeneral,#wrapCompare,#wrapVer,#wrapFpl,#wrapTool,#wrapNotam,#wrapAtcCheck,#wrapLimits,#wrapHandover,#wrapNoticeRules,#wrapNmTrack) select:not([hidden]){font-size:14.5px !important}
+.f-disp{flex:0 1 250px;min-width:170px;max-width:280px}
+.f-disp select{font-size:15px !important}
+.filt-rail .field select{font-size:14px !important}
+/* Ô chọn ở đầu trang (DISPATCHER, Khung giờ) vốn bị ép 9.5px cho gọn —
+   nay để 15px vì danh sách bật ra đã vẽ lại, không lo choáng chỗ. */
+header#mdRoom select{font-size:15px !important;padding:0 8px !important;height:34px !important;letter-spacing:0 !important}
+.tool-row select{font-size:14px !important;min-width:170px}
+#ddPop{position:fixed;z-index:9999;box-sizing:border-box;max-width:min(520px,calc(100vw - 16px));
+  background:var(--x-card,#fff);border:1px solid var(--x-line,#d7dbe4);border-radius:14px;
+  box-shadow:0 18px 44px rgba(16,18,24,.22),0 2px 6px rgba(16,18,24,.10);
+  padding:6px;color:var(--x-ink,#16181d);font-family:var(--x-sans,"IBM Plex Sans"),system-ui,sans-serif;
+  overflow:hidden}
+#ddPop[hidden]{display:none}
+#ddPop .dd-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:4px 8px 6px;border-bottom:1px solid var(--x-line2,#eef0f3);margin-bottom:4px}
+#ddPop .dd-tt{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--x-mute,#7a808c);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ddPop .dd-ct{font-size:12px;font-weight:700;color:var(--x-red,#e31937);white-space:nowrap}
+#ddPop .dd-q{display:block;box-sizing:border-box;width:100%;margin:0 0 4px;padding:9px 11px;
+  font-size:15px;font-family:inherit;color:var(--x-ink,#16181d);background:var(--x-bg,#f4f5f7);
+  border:1px solid var(--x-line,#e4e6ea);border-radius:10px;outline:none}
+#ddPop .dd-q:focus{border-color:var(--x-red,#e31937);background:var(--x-card,#fff);
+  box-shadow:0 0 0 3px rgba(227,25,55,.12)}
+#ddPop .dd-q[hidden]{display:none}
+#ddPop .dd-list{max-height:min(58vh,440px);overflow:auto;padding:2px}
+#ddPop .dd-grp{padding:9px 10px 5px;font-size:11.5px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--x-mute,#7a808c)}
+#ddPop .dd-row{display:flex;align-items:center;gap:9px;box-sizing:border-box;min-height:40px;
+  padding:8px 10px;border-radius:10px;font-size:15px;line-height:1.35;cursor:pointer;
+  color:var(--x-ink,#16181d)}
+#ddPop .dd-row .dd-tx{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+#ddPop .dd-row .dd-ck{flex:0 0 20px;width:20px;text-align:center;font-size:15px;font-weight:900;
+  color:var(--x-red,#e31937)}
+#ddPop .dd-row.on{background:var(--x-red-50,#fff1f3);font-weight:800}
+#ddPop .dd-row.on .dd-ck::before{content:"\\2713"}
+#ddPop .dd-row.hi{background:var(--x-red,#e31937);color:#fff;font-weight:800}
+#ddPop .dd-row.hi .dd-ck{color:#fff}
+#ddPop .dd-row:hover{background:var(--x-red-100,#ffe1e6)}
+#ddPop .dd-row.hi:hover{background:var(--x-red,#e31937)}
+#ddPop .dd-none{padding:14px 10px;font-size:14px;color:var(--x-mute,#7a808c);text-align:center}
+html.night #ddPop{background:#1c1c20;border-color:#5a3a48;color:#eee}
+html.night #ddPop .dd-q{background:#2a1c22;color:#eee;border-color:#5a3a48}
+html.night #ddPop .dd-row{color:#eee}
+html.night #ddPop .dd-row.on{background:#3a2a30}
+html.night #ddPop .dd-row:hover{background:#422f38}
+html.night #ddPop .dd-row.hi{background:var(--x-red,#e31937);color:#fff}
+/* Danh sách chuyến nâng cao (Check NOTAM): cùng cỡ chữ với dropdown mới */
+#wrapNotam .nm-flt-menu button{font-size:14.5px !important;padding:9px 11px !important;min-height:38px !important}
+#wrapNotam .toolbar2 #nmFltQ{font-size:14.5px !important;padding:9px 11px !important}
+#wrapNotam .toolbar2 #nmFltBtn{font-size:14px !important;padding:8px 22px 8px 10px !important}
+#wrapNotam .nm-flt-menu{border-radius:12px !important;box-shadow:0 18px 44px rgba(16,18,24,.22) !important}
+</style>`;
+
+const ddScript = `
+(function(){
+  var pop=null,qEl=null,listEl=null,ttEl=null,ctEl=null,cur=null,rows=[],items=[],act=-1;
+  function ok(sel){
+    if(!sel||sel.tagName!=='SELECT')return false;
+    if(sel.multiple||sel.size>1||sel.disabled||sel.hidden)return false;
+    var cs=getComputedStyle(sel);
+    if(cs.display==='none'||cs.visibility==='hidden')return false;
+    var r=sel.getBoundingClientRect();
+    if(r.width<3||r.height<3)return false;
+    return sel.options.length>0;
+  }
+  function build(){
+    pop=document.createElement('div');pop.id='ddPop';pop.hidden=true;
+    pop.innerHTML='<div class="dd-hd"><span class="dd-tt"></span><span class="dd-ct"></span></div>'
+      +'<input class="dd-q" type="text" autocomplete="off" spellcheck="false" placeholder="G\\u1EE9 \\u0111\\u1EC3 t\\u00ECm\\u2026">'
+      +'<div class="dd-list"></div>';
+    document.body.appendChild(pop);
+    qEl=pop.querySelector('.dd-q');listEl=pop.querySelector('.dd-list');
+    ttEl=pop.querySelector('.dd-tt');ctEl=pop.querySelector('.dd-ct');
+    qEl.addEventListener('input',function(){paint(qEl.value);});
+  }
+  function flat(sel){
+    var out=[];
+    (function walk(node){
+      var k=node.children||[];
+      for(var i=0;i<k.length;i++){
+        var n=k[i];
+        if(n.tagName==='OPTGROUP'){ if(!n.disabled){ out.push({grp:1,label:n.label}); walk(n); } }
+        else if(n.tagName==='OPTION'){ if(!n.disabled) out.push({opt:1,el:n,val:n.value,text:(n.textContent||'').replace(/\\s+/g,' ').trim()}); }
+      }
+    })(sel);
+    return out;
+  }
+  function low(s){ return String(s||'').toLowerCase().replace(/\\s+/g,''); }
+  function paint(filt){
+    var f=low(filt);
+    listEl.innerHTML='';items=[];act=-1;
+    var keep=[],i,j,m;
+    for(i=0;i<rows.length;i++){
+      var r=rows[i];
+      keep.push(r.opt ? (!f||low(r.text).indexOf(f)>=0) : false);
+    }
+    for(j=rows.length-1;j>=0;j--){
+      if(rows[j].grp){
+        var g=false;
+        for(m=j+1;m<rows.length&&rows[m].grp===undefined;m++){ if(keep[m]){ g=true; break; } }
+        keep[j]=g;
+      }
+    }
+    var nOpt=0;
+    for(i=0;i<rows.length;i++){
+      if(!keep[i])continue;
+      var rw=rows[i];
+      if(rw.grp){
+        var h=document.createElement('div');h.className='dd-grp';h.textContent=rw.label;
+        listEl.appendChild(h);continue;
+      }
+      nOpt++;
+      var d=document.createElement('div');
+      var on=rw.el.selected;
+      d.className='dd-row'+(on?' on':'');d.setAttribute('role','option');
+      var ck=document.createElement('span');ck.className='dd-ck';d.appendChild(ck);
+      var tx=document.createElement('span');tx.className='dd-tx';tx.textContent=rw.text||'—';d.appendChild(tx);
+      if(!on){
+        try{
+          var cs=getComputedStyle(rw.el),bg=cs.backgroundColor;
+          if(bg&&bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent')d.style.backgroundColor=bg;
+          if(cs.color)d.style.color=cs.color;
+          if(cs.fontWeight&&cs.fontWeight!=='400'&&cs.fontWeight!=='normal')d.style.fontWeight=cs.fontWeight;
+        }catch(e){}
+      }
+      (function(row,el){ el.addEventListener('click',function(){pick(row);}); })(rw,d);
+      d.__i=i;
+      listEl.appendChild(d);items.push(d);
+    }
+    if(!nOpt){
+      var em=document.createElement('div');em.className='dd-none';em.textContent='Không tìm thấy lựa chọn nào';
+      listEl.appendChild(em);
+    }
+    var s=-1;
+    for(i=0;i<items.length;i++){ if(items[i].classList.contains('on')){ s=i; break; } }
+    jump(s);
+  }
+  function jump(i){
+    if(i<0)i=0;
+    if(i>items.length-1)i=items.length-1;
+    if(!items.length)i=-1;
+    act=i;
+    for(var k=0;k<items.length;k++)items[k].classList.toggle('hi',k===act);
+    if(act>=0&&items[act].scrollIntoView)items[act].scrollIntoView({block:'nearest'});
+  }
+  function move(d){
+    if(!items.length)return;
+    var n=act<0?(d>0?0:items.length-1):act+d;
+    if(n<0)n=0;
+    if(n>items.length-1)n=items.length-1;
+    jump(n);
+  }
+  function clean(l){
+    try{
+      var c=l.cloneNode(true);
+      var x=c.querySelectorAll('i.jp,.ops-field-icon');
+      for(var i=0;i<x.length;i++)x[i].parentNode.removeChild(x[i]);
+      return (c.textContent||'').replace(/\\s+/g,' ').trim();
+    }catch(e){ return (l.textContent||'').trim(); }
+  }
+  function labelOf(sel){
+    try{
+      if(sel.labels&&sel.labels.length)return clean(sel.labels[0]);
+      var p=sel.previousElementSibling;
+      if(p&&p.tagName==='LABEL')return clean(p);
+      var w=sel.closest('.field');
+      if(w){ var l=w.querySelector('label'); if(l)return clean(l); }
+    }catch(e){}
+    var t=sel.getAttribute('title')||'';
+    return t.length>46?t.slice(0,46)+'\\u2026':t;
+  }
+  function open(sel){
+    if(!pop)build();
+    cur=sel;rows=flat(sel);
+    ttEl.textContent=labelOf(sel);
+    var n=0;for(var i=0;i<rows.length;i++)if(rows[i].opt)n++;
+    ctEl.textContent=n+' lựa chọn';
+    qEl.hidden=n<9;
+    qEl.value='';
+    paint('');
+    pop.hidden=false;
+    place();
+    if(!qEl.hidden)qEl.focus();
+  }
+  function place(){
+    if(!cur||!pop||pop.hidden)return;
+    // Trang có thể đang bị thu nhỏ vừa màn (html[zoom]); đặt zoom ngược cho
+    // khung danh sách để chữ hiện đúng cỡ, rồi mới tính chỗ đặt.
+    var z=1;
+    try{ z=parseFloat(getComputedStyle(document.documentElement).zoom)||1; }catch(e){}
+    pop.style.zoom=(z>0.05&&Math.abs(z-1)>0.001)?String(1/z):'';
+    var r=cur.getBoundingClientRect(),vw=window.innerWidth,vh=window.innerHeight,m=8;
+    if(r.bottom<m||r.top>vh-m){ close(); return; }
+    var w=Math.max(r.width,260);
+    w=Math.min(w,Math.max(220,vw-m*2));
+    pop.style.width=w+'px';
+    var x=Math.min(Math.max(m,r.left),Math.max(m,vw-w-m));
+    pop.style.left=x+'px';
+    var h=pop.offsetHeight;
+    var y=r.bottom+6;
+    if(y+h>vh-m&&r.top-(h+6)>m)y=r.top-h-6;
+    pop.style.top=Math.max(m,y)+'px';
+  }
+  function close(){
+    if(pop)pop.hidden=true;
+    cur=null;rows=[];items=[];act=-1;
+  }
+  function pick(row){
+    if(!cur||!row)return;
+    var sel=cur,prev=sel.value;
+    close();
+    sel.value=row.val;
+    try{ sel.focus({preventScroll:true}); }catch(e){}
+    if(prev!==sel.value){
+      try{
+        sel.dispatchEvent(new Event('input',{bubbles:true}));
+        sel.dispatchEvent(new Event('change',{bubbles:true}));
+      }catch(e){}
+    }
+  }
+  function onKey(e){
+    if(!pop||pop.hidden)return;
+    var k=e.key;
+    if(k==='Escape'){ e.preventDefault(); var s=cur; close(); try{ if(s)s.focus(); }catch(x){} return; }
+    if(k==='ArrowDown'){ e.preventDefault(); move(1); return; }
+    if(k==='ArrowUp'){ e.preventDefault(); move(-1); return; }
+    if(k==='Home'){ e.preventDefault(); jump(0); return; }
+    if(k==='End'){ e.preventDefault(); jump(items.length-1); return; }
+    if(k==='Enter'){
+      e.preventDefault();
+      if(items[act])pick(rows[items[act].__i]);
+      else if(items.length)pick(rows[items[0].__i]);
+      return;
+    }
+    if(k==='Tab'){ close(); }
+  }
+  document.addEventListener('mousedown',function(e){
+    var t=e.target;
+    if(pop&&!pop.hidden){ if(!pop.contains(t))close(); return; }
+    if(t&&t.tagName==='SELECT'&&ok(t)){
+      e.preventDefault();
+      try{ t.focus({preventScroll:true}); }catch(x){}
+      open(t);
+    }
+  },true);
+  document.addEventListener('keydown',function(e){
+    if(pop&&!pop.hidden){ onKey(e); return; }
+    var t=e.target;
+    if(t&&t.tagName==='SELECT'&&(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='Enter'||e.key===' '||e.key==='F4')){
+      if(!ok(t))return;
+      e.preventDefault();
+      open(t);
+    }
+  },true);
+  window.addEventListener('scroll',function(){ if(pop&&!pop.hidden)place(); },true);
+  window.addEventListener('resize',function(){ if(pop&&!pop.hidden)close(); });
+  document.addEventListener('click',function(e){
+    if(!pop||pop.hidden)return;
+    var t=e.target;
+    if(t&&t.tagName==='SELECT'&&pop.contains(t))close();
+  },true);
+})();
+`;
+
 let cached: string | null = null;
 
 const ATC_SKIN = `<style id="atc-result-skin">
@@ -1554,9 +1826,9 @@ function ftRender(){
       #wrapAftn label:has(#afFl){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:800;letter-spacing:.06em;color:var(--x-ink);-webkit-text-fill-color:var(--x-ink)}
       #wrapAftn #afFl{box-sizing:border-box!important;width:240px!important;min-height:68px!important;font-size:34px!important;font-weight:800!important;line-height:1;text-align:center!important;padding:8px 12px!important;border:2px solid var(--x-line)!important;border-radius:12px!important;background:var(--x-card)!important;color:#c00!important;-webkit-text-fill-color:#c00!important}
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
-    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script></body>`)
+    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + DROPDOWN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
