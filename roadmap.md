@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] Mẫu màu nút Công cụ hỗ trợ: thêm 3 mẫu khác (4–6), chỉ ảnh xem trước, chưa áp dụng lên web.
+- [x] Mẫu màu nút Công cụ hỗ trợ: thêm 3 ảnh phác thảo (4–6), đã kiểm tra ảnh; chưa áp dụng lên web.
 
 - [x] Check ATC: màu kết quả đậm, đồng đều giữa các hàng; ô thiếu dữ liệu của dòng có chuyến hiện “- - - -”; kiểm tra giao diện sáng/tối đạt, không đổi dữ liệu thật; chưa publish.
 
