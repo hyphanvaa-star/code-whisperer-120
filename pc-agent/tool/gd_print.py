@@ -38,7 +38,7 @@ PRINT_PLAN: tuple[tuple[int, int, str], ...] = (
     (7, 2, "landscape"),
 )
 
-_RE_XLSX = re.compile(r"\.(xlsx|xlsm)$", re.I)
+_RE_XLSX = re.compile(r"\.(xlsx|xlsm|xls)$", re.I)
 _RE_AC = re.compile(r"\bVN[\s\-]?A[\s\-]?\d{3}\b", re.I)
 _RE_TAU = re.compile(r"T[AÀÁẠ]U", re.I)
 _RE_DIGITS = re.compile(r"(\d{2,5})")
@@ -580,6 +580,8 @@ def _scan_gendec_folder(
         f"&$orderby=ReceivedDateTime desc&$top=50"
     )
     pages = 0
+    later: list[tuple[str, str]] = []
+    seen_n = 0
     while url and pages < MAX_PAGES:
         response = sess.get(url, timeout=60)
         if response.status_code >= 400:
@@ -594,42 +596,89 @@ def _scan_gendec_folder(
             mid = str(msg.get("Id") or msg.get("id") or "")
             if not mid:
                 continue
-            att_r = sess.get(
-                f"{root}/messages/{mid}/attachments"
-                f"?$select=Id,Name,Size,ContentType",
-                timeout=45,
-            )
-            if att_r.status_code >= 400:
+            seen_n += 1
+            # Tiêu đề có số hiệu → xử lý ngay; không thì để dành soi tên file.
+            if not contains_flight(subject, want):
+                later.append((mid, subject))
                 continue
-            try:
-                atts = list(att_r.json().get("value") or [])
-            except (ValueError, TypeError):
-                continue
-            if not contains_flight(subject, want) and not any(
-                    contains_flight(_att_name(a), want) for a in atts):
-                continue
-            att = pick_xlsx(atts, want)
-            if att is None:
-                continue
-            name = safe_filename(_att_name(att))
-            target = dest / name
-            say(f"· thấy {name}")
-            if target.is_file() and target.stat().st_size > 0:
-                return target
-            blob_r = sess.get(
-                f"{root}/messages/{mid}/attachments/{_att_id(att)}/$value",
-                timeout=120,
-            )
-            owa._status_code(blob_r, "tải Excel GD")
-            blob = blob_r.content or b""
-            if not blob:
-                raise GdError(f"{name}: tệp rỗng")
-            target.write_bytes(blob)
-            log.info("GD lưu %s", target)
-            return target
+            say(f"· thư khớp: {subject[:80]}")
+            got = _take_gd(sess, root, mid, subject, want, dest, say, strict=False)
+            if got is not None:
+                return got
         url = data.get("@odata.nextLink")
         pages += 1
+        if not url and pages == 1 and seen_n == 0 and "HasAttachments" in flt:
+            # Bộ lọc đính kèm không trả gì — xem lại chỉ theo ngày.
+            flt = f"ReceivedDateTime ge {lo.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+            url = (f"{root}/mailfolders/{fid}/messages?$filter={quote(flt)}"
+                   f"&$select=Id,Subject,ReceivedDateTime"
+                   f"&$orderby=ReceivedDateTime desc&$top=50")
+    say(f"  ({seen_n} thư trong 7 ngày)")
+    # Lượt 2: tiêu đề không ghi số hiệu — soi tên file đính kèm.
+    for mid, subject in later[:120]:
+        got = _take_gd(sess, root, mid, subject, want, dest, say, strict=True)
+        if got is not None:
+            return got
     return None
+
+
+def _list_attachments(sess: Any, root: str, mid: str, say: Callable[[str], None]) -> list:
+    """Danh sách đính kèm; Outlook từ chối $select thì gọi lại không $select."""
+    last = ""
+    for q in ("?$select=Id,Name,Size,ContentType", "?$select=Id,Name", ""):
+        try:
+            r = sess.get(f"{root}/messages/{mid}/attachments{q}", timeout=45)
+        except Exception as exc:  # mạng chập chờn
+            last = str(exc)
+            continue
+        if r.status_code >= 400:
+            last = f"HTTP {r.status_code}: {(r.text or '')[:120]}"
+            continue
+        try:
+            return list(r.json().get("value") or [])
+        except (ValueError, TypeError):
+            last = "dữ liệu không hợp lệ"
+    say(f"· không đọc được đính kèm ({last})")
+    return []
+
+
+def _take_gd(sess: Any, root: str, mid: str, subject: str, want: str,
+             dest: Path, say: Callable[[str], None], *, strict: bool) -> Path | None:
+    import outlook_web_pib as owa
+
+    atts = _list_attachments(sess, root, mid, lambda m: say(m) if not strict else None)
+    if strict and not any(contains_flight(_att_name(a), want) for a in atts):
+        return None
+    att = pick_xlsx(atts, want)
+    if att is None:
+        if not strict:
+            names = ", ".join(_att_name(a) for a in atts) or "không có"
+            say(f"· thư không có file Excel (đính kèm: {names[:120]})")
+        return None
+    name = safe_filename(_att_name(att))
+    target = dest / name
+    say(f"· thấy {name}")
+    if target.is_file() and target.stat().st_size > 0:
+        return target
+    blob_r = sess.get(
+        f"{root}/messages/{mid}/attachments/{_att_id(att)}/$value",
+        timeout=120,
+    )
+    if blob_r.status_code >= 400:
+        # Một số hộp không cho /$value — lấy ContentBytes.
+        r2 = sess.get(f"{root}/messages/{mid}/attachments/{_att_id(att)}", timeout=120)
+        owa._status_code(r2, "tải Excel GD")
+        import base64
+        blob = base64.b64decode(str(r2.json().get("ContentBytes") or ""))
+    else:
+        blob = blob_r.content or b""
+    if not blob:
+        raise GdError(f"{name}: tệp rỗng")
+    target.write_bytes(blob)
+    log.info("GD lưu %s", target)
+    return target
+
+
 
 
 def download_gd(
