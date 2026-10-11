@@ -27,6 +27,27 @@ type Raw = ft.Raw;
 
 const NO_CREWLIST = "Chưa nạp Crewlist. Bấm Crew trên thanh lọc.";
 
+/** Crewlist thiếu payload → dò EST từ cache Omni (khớp số hiệu + chặng). */
+async function omniEstFallback(ctx: Ctx, flight: Raw): Promise<number | null> {
+  try {
+    const cache = await getJson<{ rows?: Array<Record<string, unknown>> }>(ctx, "omni.cache", { rows: [] });
+    const digits = String(flight.flt || "").replace(/\D/g, "").replace(/^0+/, "");
+    if (!digits) return null;
+    const dep = String(flight.dep || "").toUpperCase();
+    const arr = String(flight.arr || "").toUpperCase();
+    const cands = (cache.rows || []).filter((r) => String(r.digits || "") === digits);
+    if (!cands.length) return null;
+    const exact = cands.filter((r) =>
+      (!dep || String(r.dep || "").toUpperCase() === dep) &&
+      (!arr || String(r.arr || "").toUpperCase() === arr));
+    const pick = (exact.length ? exact : cands)[0];
+    const est = Number(pick && pick.est_payload);
+    return Number.isFinite(est) && est > 0 ? Math.trunc(est) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadRaw(ctx: Ctx): Promise<Raw> {
   return getJson<Raw>(ctx, "fpl.raw", rawSeed as unknown as Raw);
 }
@@ -250,17 +271,20 @@ export const routes: Routes = {
         continue;
       }
       const flt = String(flight.flt || "");
-      const est = ft.est_payload(db, flt);
+      let est = ft.est_payload(db, flt);
+      if (est === null) est = await omniEstFallback(ctx, flight);
       if (est === null) {
-        rows.push({ id: rawId, flt, pay: "", alert: `VJ${flt} không có EST` });
+        // Không có EST: điền tạm 9999, đánh dấu manual để dispatcher tự kiểm tra.
+        rows.push({ id: rawId, flt, pay: "9999", manual: true, alert: `VJ${flt} không có EST — điền tạm 9999, tự kiểm tra` });
         continue;
       }
       const [rounded, why] = ft.round_est(est, String(flight.ac || ""));
       if (rounded === null) {
-        rows.push({ id: rawId, flt, est, pay: "", alert: `VJ${flt} ${why}` });
+        // Vượt ngưỡng làm tròn: điền tạm EST gốc, đánh dấu manual để tự điều chỉnh.
+        rows.push({ id: rawId, flt, est, pay: String(est), manual: true, alert: `VJ${flt} ${why} — điền tạm ${est}, tự điều chỉnh` });
         continue;
       }
-      rows.push({ id: rawId, flt, est, pay: String(rounded), alert: "" });
+      rows.push({ id: rawId, flt, est, pay: String(rounded), manual: false, alert: "" });
     }
     return { ok: true, rows };
   },
