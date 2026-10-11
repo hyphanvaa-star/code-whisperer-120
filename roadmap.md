@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Checklist: thêm lựa chọn Normal/EDTO; dùng mẫu F-018 gốc, tích YES dòng nội dung (Extra Fuel for EDTO tích NO), DSP/license dưới REMARK; kiểm tra PDF hai trang.
+
 - [x] Checklist KHB: một PDF mỗi chuyến, dấu ✓ đúng ô (II.3/4 ở dòng nội dung), DSP License thành ô nhập; thử hai chuyến mẫu tải hai PDF, xem đủ trang, sửa font tên tiếng Việt và tràn trang của mẫu; kiểm tra ô nhập trong iframe thật. Chưa publish.
 - [ ] Checklist với chuyến thật từ tài khoản người dùng — chờ đăng nhập preview; không tạo được phiên cho tài khoản Lovable yêu cầu.
 
