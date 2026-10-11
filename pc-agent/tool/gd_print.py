@@ -360,34 +360,67 @@ def _printer_ok(excel: Any, windows_name: str) -> bool:
     return bool(got) and str(windows_name or "").casefold() in got.casefold()
 
 
+def _page_count(excel: Any, ws: Any) -> int:
+    """Đếm sheet đang in, không dùng số trang cache của sheet khác."""
+    ws.Activate()
+    try:
+        ws.DisplayPageBreaks = True
+    except Exception:
+        pass
+    # GET.DOCUMENT(50) recalculates pagination for the active sheet/printer.
+    # Pages.Count is missing/stale on some Excel COM versions.
+    for read in (lambda: excel.ExecuteExcel4Macro("GET.DOCUMENT(50)"),
+                 lambda: ws.PageSetup.Pages.Count):
+        try:
+            count = int(read())
+            if count > 0:
+                return count
+        except Exception:
+            continue
+    raise GdError("Không kiểm tra được số trang GD; chưa gửi lệnh in.")
+
+
+def _single_print_area(ws: Any) -> None:
+    """Fit applies to each area separately: join areas without dropping cells."""
+    area = str(ws.PageSetup.PrintArea or "").strip()
+    if not area:
+        return
+    ranges = ws.Range(area).Areas
+    if int(ranges.Count) <= 1:
+        return
+    top, left, bottom, right = None, None, 0, 0
+    for i in range(1, int(ranges.Count) + 1):
+        part = ranges.Item(i)
+        row, col = int(part.Row), int(part.Column)
+        top = row if top is None else min(top, row)
+        left = col if left is None else min(left, col)
+        bottom = max(bottom, row + int(part.Rows.Count) - 1)
+        right = max(right, col + int(part.Columns.Count) - 1)
+    ws.PageSetup.PrintArea = ws.Range(
+        ws.Cells(top, left), ws.Cells(bottom, right)).Address
+
+
 def _force_one_page(excel: Any, ws: Any, idx: int) -> None:
-    """Đảm bảo sheet in đúng 1 trang. Một số file đặt PrintArea/ngắt trang lạ
-    hoặc driver bỏ qua FitToPages — đếm số trang thật rồi tự giảm Zoom."""
+    """Không gửi lệnh in nếu chưa xác nhận toàn bộ sheet nằm trên một trang."""
     try:
         excel.PrintCommunication = True
     except Exception:
         pass
     try:
         ws.ResetAllPageBreaks()
-        ws.DisplayPageBreaks = False
     except Exception:
         pass
     setup = ws.PageSetup
-    try:
-        n = int(setup.Pages.Count)
-    except Exception:
-        return
+    n = _page_count(excel, ws)
     if n <= 1:
         return
     # FitToPages bị phớt lờ: tự hạ Zoom tới khi còn 1 trang.
     for z in range(95, 9, -5):
-        try:
-            setup.Zoom = z
-            if int(setup.Pages.Count) <= 1:
-                log.info("sheet %s: ép 1 trang bằng Zoom=%s", idx, z)
-                return
-        except Exception:
+        setup.Zoom = z
+        if _page_count(excel, ws) == 1:
+            log.info("sheet %s: ép 1 trang bằng Zoom=%s", idx, z)
             return
+    raise GdError(f"Sheet {idx} vẫn quá một trang; chưa gửi lệnh in sheet này.")
 
 
 def _apply_printer(excel: Any, windows_name: str) -> str:
@@ -521,6 +554,7 @@ def print_sheets(path: Path | str, *, printer: str = "",
             raise GdError(f"File chỉ có {n_sheets} sheet, cần tới sheet {need}.")
         for idx, copies, orient in plan:
             ws = wb.Worksheets(idx)
+            ws.Activate()
             # Dấu ngắt trang thủ công trong file (do người làm GD chèn) ghi đè
             # FitToPages — Excel vẫn ngắt trang theo dấu đó dù đã fit 1 trang.
             # Xóa hết trước khi áp PageSetup để nội dung gom đúng một trang.
@@ -529,11 +563,24 @@ def print_sheets(path: Path | str, *, printer: str = "",
             except Exception:
                 log.debug("sheet %s: ResetAllPageBreaks lỗi", idx, exc_info=True)
             setup = ws.PageSetup
-            setup.Orientation = xl_landscape if orient == "landscape" else xl_portrait
-            setup.Zoom = False
-            setup.FitToPagesWide = 1
-            setup.FitToPagesTall = 1
-            setup.PaperSize = xl_a4
+            _single_print_area(ws)
+            # Commit paper/orientation and scaling together. Some printer drivers
+            # reset FitToPages when PaperSize is assigned after the fit settings.
+            try:
+                excel.PrintCommunication = False
+            except Exception:
+                pass
+            try:
+                setup.PaperSize = xl_a4
+                setup.Orientation = xl_landscape if orient == "landscape" else xl_portrait
+                setup.Zoom = False
+                setup.FitToPagesWide = 1
+                setup.FitToPagesTall = 1
+            finally:
+                try:
+                    excel.PrintCommunication = True
+                except Exception:
+                    pass
             _force_one_page(excel, ws, idx)
             say(f"· in sheet {idx} × {copies} "
                 f"({'ngang' if orient == 'landscape' else 'dọc'})")

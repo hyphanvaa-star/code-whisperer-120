@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] GD in dọc: áp giấy/hướng trước fit, gộp vùng in tách, kiểm tra số trang trước khi in; 6 tests đạt, gói AGENT v46 đã cập nhật; chưa publish.
+- [ ] Thử GD in dọc trên Excel/RICOH thật — chờ người dùng cập nhật AGENT và thử tại máy công ty.
+
 - [x] AFTN filling: nạp danh bạ TXT người dùng và tách CODE / địa chỉ thành hai cột sửa được, giữ cách xuất TPL hiện có; chưa publish.
 
 - [x] Checklist: thêm lựa chọn Normal/EDTO; mẫu F-018 gốc, YES ở dòng nội dung và mục độc lập, Extra Fuel for EDTO tích NO, DSP/license dưới REMARK; thử hai chuyến mẫu tải PDF hai trang, kiểm tra mọi vị trí tích và xem ảnh cả hai trang không thấy tràn/đè chữ; Normal vẫn tải đúng. Chưa publish, chưa thử chuyến thật.
