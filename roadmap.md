@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [x] GD in dọc: áp giấy/hướng trước fit, gộp vùng in tách, kiểm tra số trang trước khi in; 6 tests đạt, gói AGENT v47 đã cập nhật; chưa publish.
+- [x] GD in dọc: áp giấy/hướng trước fit, gộp vùng in tách, kiểm tra số trang trước khi in; sheet 5 dùng Zoom đo thật + kiểm PDF, 7 tests đạt, gói AGENT v47 đã cập nhật; chưa publish.
 - [ ] Thử GD in dọc trên Excel/RICOH thật — chờ người dùng cập nhật AGENT và thử tại máy công ty.
 
 - [x] AFTN filling: nạp danh bạ TXT người dùng và tách CODE / địa chỉ thành hai cột sửa được, giữ cách xuất TPL hiện có; chưa publish.
