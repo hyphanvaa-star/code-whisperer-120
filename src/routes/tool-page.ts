@@ -1468,7 +1468,9 @@ async function ftLoad(){
     el.style.cssText = "font:700 13px/1.4 'JetBrains Mono',monospace;color:var(--x-khb-ink,#1E3A8A);margin:0 0 4px 2px";
     bar.parentElement.insertBefore(el, bar);
   }
-  const n = ftRows.filter(Boolean).length;
+  let n = 0;
+  for(let i = 0; i < ftRows.length; i++) if(ftRows[i]) n++;
+  for(const k in ftBlank){ const b = ftBlank[k]; if(b && String(b.flt || "").trim() && !ftRows[+k]) n++; }
   el.textContent = "Tổng: " + n + " chuyến";
 }
 function ftRender(){

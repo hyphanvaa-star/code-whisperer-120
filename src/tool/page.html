@@ -23521,6 +23521,7 @@ let ftCheckLast = -1;
 let ftCheckPaint = null;
 function ftBlankSt(index){
   if(!ftBlank[index]) ftBlank[index] = {
+    flt: "",
     seq: "", route: "", etp_poa: "", talt: "", fl: "", rte: "1", alt1: "", alt2: "", extra: "0", rmk: "", pcrTo: "",
     rteAuto: true
   };
@@ -23684,7 +23685,11 @@ function ftFltInput(value, index, flight){
     if(ftApplying) return;
     const v = inp.value.trim();
     if(v === String(value || "")) return;
-    if(!v){ if(ftRows[index]) ftClearRow(index); return; }
+    if(!v){
+      if(ftRows[index]) ftClearRow(index);
+      else ftBlankSt(index).flt = "";
+      return;
+    }
     ftApplyFlt(v, index);
   });
   inp.addEventListener("paste", function(ev){
@@ -24074,7 +24079,7 @@ function ftRender(){
       const blank = document.createElement("tr");
       const pending = ftBlankSt(index);
       blank.appendChild(document.createElement("td"));
-      blank.appendChild(ftFltInput("", index));
+      blank.appendChild(ftFltInput(pending.flt || "", index));
       blank.appendChild(ftDash());
       for(let c = 0; c < 10; c++) blank.appendChild(ftDash());
       blank.appendChild(ftBox(pending, "route", true));
@@ -24779,29 +24784,43 @@ function ftDown(index){
   ftRender();
   ftApplying = false;
 }
+function ftKeepTyped(codes, index, used){
+  const taken = new Set();
+  for(let i = 0; i < used; i++) taken.add(index + i);
+  let at = index;
+  codes.forEach(function(code){
+    while(taken.has(at)) at++;
+    ftBlankSt(at).flt = code;
+    taken.add(at);
+    at++;
+  });
+}
 function ftApplyFlt(raw, index, down){
   if(ftApplying) return;
   const items = ftPasteItems(raw);
   if(!items.length){ if(down) ftDown(index); return; }
-  if(!ftCatalog.length){
-    $("#ftStat").textContent = "Chưa có crewlist.";
-    if(down) ftDown(index);
-    return;
-  }
   const missing = [];
   const founds = [];
-  items.forEach(function(it){
-    const matches = ftFindAll(it.flt);
-    const found = matches[0];
-    if(!found){ missing.push(it.flt); return; }
-    if(founds.some(r => String(r.flight.id) === String(found.id))) return;
-    founds.push({flight: found, seq: it.seq || "", mates: matches});
-  });
+  if(!ftCatalog.length){
+    $("#ftStat").textContent = "Chưa có crewlist.";
+    items.forEach(function(it){ missing.push(it.flt); });
+  } else {
+    items.forEach(function(it){
+      const matches = ftFindAll(it.flt);
+      const found = matches[0];
+      if(!found){ missing.push(it.flt); return; }
+      if(founds.some(r => String(r.flight.id) === String(found.id))) return;
+      founds.push({flight: found, seq: it.seq || "", mates: matches});
+    });
+  }
   if(!founds.length){
+    ftKeepTyped(missing, index, 0);
+    if(missing.length === 1 && items.length === 1 && ftRows[index]) ftRows[index] = null;
     $("#ftStat").textContent = "Không có trong crewlist: " + missing.join(" ");
     if(down) ftDown(index);
     return;
   }
+  ftKeepTyped(missing, index, founds.length);
   founds.forEach(function(hit, i){
     const at = index + i;
     for(let j = 0; j < ftRows.length; j++){
