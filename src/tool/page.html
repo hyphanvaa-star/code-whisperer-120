@@ -6073,6 +6073,8 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   title="Giới hạn khai thác theo tàu (defect) và theo sân bay">Giới hạn tàu và sân bay</button>
           <button class="mode" id="mNoticeRules" role="tab" aria-selected="false"
                   title="Thiết lập luật file notice và thời gian hiệu lực">Thiết lập file add</button>
+          <button class="mode" id="mAftn" role="tab" aria-selected="false"
+                  title="Tạo file TPL gửi AFTN: địa chỉ mặc định + mã nhập thêm + nội dung FPL theo số chuyến">AFTN filling</button>
         </div>
         <span id="count" style="display:none"></span>
         <span class="spacer"></span>
@@ -6835,6 +6837,31 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         </div>
       </div>
 
+      <div id="wrapAftn" style="display:none;flex-direction:column;min-height:0;flex:1;overflow:auto;padding:12px;gap:12px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <label>FL NO<br><input id="afFl" style="width:90px;font-size:18px;font-weight:700;color:#c00;text-align:center" placeholder="86"></label>
+          <label>File FPL (chọn thư mục hoặc nhiều file)<br>
+            <input type="file" id="afDir" webkitdirectory multiple> <input type="file" id="afFiles" multiple></label>
+          <button class="btn primary" id="afExport" type="button" style="background:#16a34a;color:#fff">EXPORT TPL ATC</button>
+          <span id="afStat" style="font-weight:600"></span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:0">
+          <div>
+            <div style="background:#fcd34d;color:#c00;font-weight:700;text-align:center;padding:4px">DEFAULT ADDRESS <span id="afDefCnt" style="color:#16a34a"></span></div>
+            <textarea id="afDef" spellcheck="false" style="width:100%;height:110px;font-family:monospace" placeholder="Mỗi dòng: CODE địa chỉ"></textarea>
+            <div style="background:#fdba74;color:#c00;font-weight:700;text-align:center;padding:4px;margin-top:8px">INPUT ADDRESS CODE <span id="afInCnt" style="color:#16a34a"></span></div>
+            <textarea id="afIn" spellcheck="false" style="width:100%;height:80px;font-family:monospace;background:#fef08a;color:#000" placeholder="YSSYZTZX YBBBZQZX WAAFZQZX ..."></textarea>
+            <table class="ftci" style="width:100%;margin-top:8px"><thead><tr><th>#</th><th>Code</th><th>Địa chỉ AFTN (gửi đi)</th></tr></thead><tbody id="afRcp"></tbody></table>
+          </div>
+          <div>
+            <div style="color:#c00;font-weight:700;text-align:center;padding:4px;background:#e5e7eb">AFTN ADDRESS (danh bạ CODE → địa chỉ) <span id="afBookCnt"></span></div>
+            <textarea id="afBook" spellcheck="false" style="width:100%;height:420px;font-family:monospace" placeholder="UACDZAZX /OU=UACDZAZX/O=AFTN/PRMD=UA/ADMD=ICAO/C=XX/"></textarea>
+            <div style="font-size:12px;opacity:.8">Dán từ Excel 2 cột (CODE + địa chỉ). Tự lưu trên máy này.</div>
+          </div>
+        </div>
+        <div><b>Nội dung FPL tìm được</b>
+          <textarea id="afContent" spellcheck="false" style="width:100%;height:160px;font-family:monospace"></textarea></div>
+      </div>
       <div id="wrapNoticeRules" style="display:none;flex-direction:column;min-height:0;flex:1">
         <div class="nr-banner">
         <div class="nr-hero">
@@ -21753,7 +21780,7 @@ function setMode(m){
                          ["#mTool", tool], ["#mNotam", notam], ["#mVer", ver], ["#mFpl", fpl],
                          ["#mAtcCheck", atcChk], ["#mLimits", lim],
                          ["#mNoticeRules", nr], ["#mFplText", fplText],
-                         ["#mHandover", hand]]){
+                         ["#mHandover", hand], ["#mAftn", m === "aftn"]]){
     $(id).classList.toggle("on", on);
     $(id).setAttribute("aria-selected", on);
   }
@@ -21769,7 +21796,8 @@ function setMode(m){
   $("#wrapNoticeRules").style.display = nr ? "flex" : "none";
   $("#wrapFplText").style.display = fplText ? "flex" : "none";
   $("#wrapHandover").style.display = hand ? "flex" : "none";
-  const fullLeft = !!(lim || nr || fpl || cmp || fplText || hand);
+  $("#wrapAftn").style.display = m === "aftn" ? "flex" : "none";
+  const fullLeft = !!(lim || nr || fpl || cmp || fplText || hand || m === "aftn");
   /* Không dùng ``.body`` trần — header Midori có ``.toro .body`` (đèn đá) đứng trước. */
   const boardBody = document.querySelector(".app > .body");
   if(boardBody) boardBody.classList.toggle("full-left", fullLeft);
@@ -27178,5 +27206,97 @@ function boot(){
     <li><b>Obstacle light</b> trên FIR: bộ lọc đã tắt sẵn, không xem nữa.</li>
   </ul>
 </div>
+<script>
+(function(){
+const $=q=>document.querySelector(q);
+const DEF_DEFAULT="VVTSVJCX /OU=VVTSVJCX/O=AFTN/PRMD=VIETNAM/ADMD=ICAO/C=XX/\nVVTSVJCX /CN=VVTSVJCX/OU=VVTS/O=VVTS/PRMD=VIETNAM/ADMD=ICAO/C=XX/\nKHOUXAAF /OU=KHOUXAAF/O=AFTN/";
+const BOOK_DEFAULT=`UACDZAZX /OU=UACDZAZX/O=AFTN/PRMD=UA/ADMD=ICAO/C=XX/
+ZSFZZAZX /CN=ZSFZZAZX/OU=ZSFZ/O=EC/PRMD=CHINA/ADMD=ICAO/C=XX/
+RJOBZPZX /OU=RJOBZPZX/O=AFTN/PRMD=RJ/ADMD=ICAO/C=XX/
+RJNKZTZX /OU=RJNKZTZX/O=AFTN/PRMD=RJ/ADMD=ICAO/C=XX/
+RJNKZPZX /OU=RJNKZPZX/O=AFTN/PRMD=RJ/ADMD=ICAO/C=XX/
+RJNKYXYX /OU=RJNKYXYX/O=AFTN/PRMD=RJ/ADMD=ICAO/C=XX/
+VOMMEADS /CN=VOMMEADS/OU=VOMM/O=VOMM/PRMD=INDIA/ADMD=ICAO/C=XX/
+VOMMYLYX /CN=VOMMYLYX/OU=VOMM/O=VOMM/PRMD=INDIA/ADMD=ICAO/C=XX/
+VOMMZQZR /CN=VOMMZQZR/OU=VOMM/O=VOMM/PRMD=INDIA/ADMD=ICAO/C=XX/
+ZYTXZPZX /CN=ZYTXZPZX/OU=ZYTX/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYTLZQZX /CN=ZYTLZQZX/OU=ZYTL/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYTLZPZX /CN=ZYTLZPZX/OU=ZYTL/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYSHZRZX /CN=ZYSHZRZX/OU=ZYSH/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYSHZQZX /CN=ZYSHZQZX/OU=ZYSH/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYHBZRZX /CN=ZYHBZRZX/OU=ZYHB/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYHBZPZX /CN=ZYHBZPZX/OU=ZYHB/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZYCCZPZX /CN=ZYCCZPZX/OU=ZYCC/O=NE/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZWUQZQZX /CN=ZWUQZQZX/OU=ZWUQ/O=XJ/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUUUZRZX /CN=ZUUUZRZX/OU=ZUUU/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUUUZQZX /CN=ZUUUZQZX/OU=ZUUU/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUUUZPZX /CN=ZUUUZPZX/OU=ZUUU/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUUUZBZX /CN=ZUUUZBZX/OU=ZUUU/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUTFZXZX /CN=ZUTFZXZX/OU=ZUTF/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUTFZPZX /CN=ZUTFZPZX/OU=ZUTF/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+ZUGYZTZX /CN=ZUGYZTZX/OU=ZUGY/O=SW/PRMD=CHINA/ADMD=ICAO/C=XX/
+YBBBZQZX /CN=YBBBZQZX/OU=YBBB/O=YBBN/PRMD=AUSTRALIA/ADMD=ICAO/C=XX/
+WAAFZQZX /CN=WAAFZQZX/OU=WAAF/O=WAAA/PRMD=INDONESIA/ADMD=ICAO/C=XX/
+WBFCZQZX /CN=WBFCZQZX/OU=WBFC/O=WB/PRMD=MALAYSIA/ADMD=ICAO/C=XX/
+WSJCZQZX /CN=WSJCZQZX/OU=WSJC/O=CAASG/PRMD=SINGAPORE/ADMD=ICAO/C=XX/
+VVHMZQZX /CN=VVHMZQZX/OU=VVHM/O=VVTS/PRMD=VIETNAM/ADMD=ICAO/C=XX/
+VVVVZPZX /CN=VVVVZPZX/OU=VVVV/O=VVTS/PRMD=VIETNAM/ADMD=ICAO/C=XX/
+VVTSZPZX /CN=VVTSZPZX/OU=VVTS/O=VVTS/PRMD=VIETNAM/ADMD=ICAO/C=XX/
+VVTSZTZX /CN=VVTSZTZX/OU=VVTS/O=VVTS/PRMD=VIETNAM/ADMD=ICAO/C=XX/
+YMMMZQZX /CN=YMMMZQZX/OU=YMMM/O=YBBN/PRMD=AUSTRALIA/ADMD=ICAO/C=XX/
+WRRRZEZX /CN=WRRRZEZX/OU=WRRR/O=WRRR/PRMD=INDONESIA/ADMD=ICAO/C=XX/`;
+const K={fl:"aftn.fl",def:"aftn.def",in:"aftn.in",book:"aftn.book"};
+function parse(t){const o=[];for(const l of t.split(/\r?\n/)){const m=l.trim().match(/^([A-Z0-9]{8})\s+(\S.*)$/i);if(m)o.push([m[1].toUpperCase(),m[2].trim()]);}return o;}
+function recips(){
+  const book=new Map(parse($("#afBook").value));const out=[],seen=new Set();
+  for(const [c,a] of parse($("#afDef").value)) if(!seen.has(a)){seen.add(a);out.push([c,a]);}
+  for(const c of $("#afIn").value.toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length===8)){
+    const a=book.get(c)||("/CN="+c+"/");if(!seen.has(a)){seen.add(a);out.push([c,a,!book.has(c)]);}}
+  return out;}
+function render(){
+  for(const k of ["fl","def","in","book"]) localStorage.setItem(K[k],$("#af"+{fl:"Fl",def:"Def",in:"In",book:"Book"}[k]).value);
+  const r=recips();
+  $("#afDefCnt").textContent=parse($("#afDef").value).length;
+  $("#afInCnt").textContent=$("#afIn").value.toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length===8).length;
+  $("#afBookCnt").textContent="("+parse($("#afBook").value).length+")";
+  $("#afRcp").innerHTML=r.map((x,i)=>`<tr><td style="color:#16a34a;font-weight:700">${i+1}</td><td>${x[0]}</td><td${x[2]?' style="color:#c00" title="Không có trong danh bạ"':''}>${x[1]}</td></tr>`).join("");}
+function init(){
+  $("#afFl").value=localStorage.getItem(K.fl)||"";
+  $("#afDef").value=localStorage.getItem(K.def)??DEF_DEFAULT;
+  $("#afIn").value=localStorage.getItem(K.in)||"";
+  $("#afBook").value=localStorage.getItem(K.book)??BOOK_DEFAULT;
+  for(const id of ["#afFl","#afDef","#afIn","#afBook"]) $(id).addEventListener("input",render);
+  $("#mAftn").onclick=()=>setMode("aftn");
+  let files=[];
+  const pick=async e=>{files=[...e.target.files];await scan(files);};
+  $("#afDir").onchange=pick;$("#afFiles").onchange=pick;
+  $("#afFl").addEventListener("change",()=>files.length&&scan(files));
+  $("#afExport").onclick=exportTpl;
+  render();}
+async function scan(files){
+  const fl=$("#afFl").value.trim();if(!fl){alert("Nhập FL NO trước");return;}
+  const sv="VJC"+fl;const out=[];
+  for(const f of files){
+    const lines=(await f.text()).split(/\r?\n/);let rec=false,w=false;
+    for(const line of lines){
+      if(line.includes(sv)) rec=true;
+      if(rec){ if(line.slice(0,1)==="(") w=true; if(w) out.push(line); }
+      if(line.trim()===""&&w) break;}}
+  $("#afContent").value=out.join("\r\n");
+  $("#afStat").textContent=out.length?`Tìm thấy ${sv} trong ${files.length} file`:`Không thấy ${sv} trong ${files.length} file`;}
+function exportTpl(){
+  const fl=$("#afFl").value.trim();if(!fl){alert("Nhập FL NO trước");return;}
+  const content=$("#afContent").value||"No content found.";
+  let x='<?xml version="1.0" encoding="Unicode" standalone="yes"?>\r\n<Message>\r\n';
+  for(const r of recips()) x+="    <Recipient>"+r[1]+"</Recipient>\r\n";
+  x+="    <Subject></Subject>\r\n    <Priority>0</Priority>\r\n    <AtsPriority>FF</AtsPriority>\r\n    <OHI></OHI>\r\n";
+  x+="    <Content>"+content.replace(/\r?\n/g,"\r\n")+"\r\n\r\n    </Content>\r\n</Message>";
+  const buf=new Uint8Array(2+x.length*2);buf[0]=0xFE;buf[1]=0xFF;
+  for(let i=0;i<x.length;i++){const c=x.charCodeAt(i);buf[2+2*i]=c>>8;buf[3+2*i]=c&255;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([buf]));a.download=fl+".tpl";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
+</script>
 </body>
 </html>
