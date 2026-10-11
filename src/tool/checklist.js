@@ -1,4 +1,4 @@
-/* Browser-only F-017 PDF overlay, injected in the original tool scope. */
+/* Browser-only F-017/F-018 PDF overlays, injected in the original tool scope. */
 const CK_VN = new Set('SGN HAN DAD CXR PQC HPH VII HUI VCA DLI UIH VCL PXU THD BMV VKG CAH TBB VDH VCS DIN VDO'.split(' '));
 function ckLicKey(){ return 'ck.license.' + ($('#ftDspBox').value || '').trim().toUpperCase(); }
 const ckLicense = document.createElement('label');
@@ -65,25 +65,66 @@ async function ckBuild(leg, dsp, lic){
   pdf.setTitle('Checklist F-017 '+leg.flt+' '+leg.date);
   return new Blob([await pdf.save()],{type:'application/pdf'});
 }
-$('#ftCkBtn').onclick = async function(){
+let ckEdtoResources;
+async function ckBuildEdto(leg,dsp,lic){
+  const [lib,fontkit,,regular,bold] = await ckGetResources();
+  if(!ckEdtoResources) ckEdtoResources=Promise.all([
+    fetch(CK_EDTO_TEMPLATE_URL).then(response => {if(!response.ok) throw new Error('Không tải được mẫu EDTO.');return response.arrayBuffer();}),
+    fetch('/checklist/edto-layout.json').then(response => {if(!response.ok) throw new Error('Không tải được vị trí điền EDTO.');return response.json();})
+  ]).catch(error => {ckEdtoResources=null;throw error;});
+  const [template,layout]=await ckEdtoResources;
+  const pdf=await lib.PDFDocument.load(template);pdf.registerFontkit(fontkit);
+  const font=await pdf.embedFont(regular,{subset:true}),strong=await pdf.embedFont(bold,{subset:true});
+  const pages=pdf.getPages();
+  const write=(page,value,cell,face=font) => {
+    const text=String(value || '');if(!text)return;
+    let size=9;const maxWidth=cell.right-cell.left;
+    while(size>4 && face.widthOfTextAtSize(text,size)>maxWidth)size-=.25;
+    page.drawText(text,{x:cell.left,y:page.getHeight()-cell.top-size,size,font:face});
+  };
+  layout.pages.forEach((positions,i) => {
+    const page=pages[i];if(!page)throw new Error('Mẫu EDTO thiếu trang.');
+    [leg.reg,leg.flt,leg.dep,leg.arr,leg.date].forEach((value,j) => write(page,value,positions.info[j]));
+    for(const cell of positions.ticks){
+      const x=cell.x,y=page.getHeight()-cell.y;
+      page.drawLine({start:{x:x-4,y},end:{x:x-1,y:y-3},thickness:1.35});
+      page.drawLine({start:{x:x-1,y:y-3},end:{x:x+5,y:y+4},thickness:1.35});
+    }
+  });
+  const page=pages[pages.length-1],sig=layout.signature;
+  write(page,dsp,{left:sig.x,right:sig.x+sig.maxWidth,top:sig.nameTop},strong);
+  write(page,'License No: '+(lic || '—'),{left:sig.x,right:sig.x+sig.maxWidth,top:sig.licenseTop});
+  pdf.setTitle('EDTO Checklist F-018 '+leg.flt+' '+leg.date);
+  return new Blob([await pdf.save()],{type:'application/pdf'});
+}
+const ckChoice=document.createElement('dialog');
+ckChoice.id='ckChoice';ckChoice.setAttribute('aria-label','Chọn Checklist');
+ckChoice.innerHTML='<button type="button" class="btn" data-kind="normal">Normal Checklist</button><button type="button" class="btn" data-kind="edto">EDTO Checklist</button>';
+const ckChoiceStyle=document.createElement('style');
+ckChoiceStyle.textContent='#ckChoice{background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:18px;max-width:calc(100% - 32px)}#ckChoice[open]{display:flex;flex-wrap:wrap;gap:12px}#ckChoice .btn{min-height:42px;font-size:14px}';
+document.head.appendChild(ckChoiceStyle);document.body.appendChild(ckChoice);
+ckChoice.addEventListener('click',event => {if(event.target===ckChoice){const r=ckChoice.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)ckChoice.close();}});
+$('#ftCkBtn').onclick=function(){ckChoice.showModal();};
+ckChoice.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click',() => {ckChoice.close();ckExport(button.dataset.kind);}));
+async function ckExport(kind){
   const dsp=($('#ftDspBox').value || '').trim();
   if(!dsp){alert('Chưa điền tên DSP.');$('#ftDspBox').focus();return;}
   const legs=[];
   for(const f of ftRows){
     if(!f) continue; const st=ftSt(f); if(!st.on) continue;
     const dep=String(st.dep || '').trim().toUpperCase(),arr=String(st.arr || '').trim().toUpperCase();
-    legs.push({reg:st.reg,flt:'VJ'+String(f.flt || '').replace(/^VJC?/i,''),sector:dep+'-'+arr,
+    legs.push({reg:st.reg,flt:'VJ'+String(f.flt || '').replace(/^VJC?/i,''),dep,arr,sector:dep+'-'+arr,
       date:st.date,etd:st.utc,eta:st.etaUtc,intl:!(CK_VN.has(dep) && CK_VN.has(arr))});
   }
   if(!legs.length){alert('Tick ít nhất một chuyến.');return;}
   const lic=($('#ftLicInput').value || '').trim();
   if(!lic && !confirm('Chưa nhập DSP License. Vẫn tạo Checklist?')) return;
-  const button=this;button.disabled=true;let count=0;
+  const button=$('#ftCkBtn');if(button.disabled)return;button.disabled=true;let count=0;
   try {
     for(const leg of legs){
       $('#ftStat').textContent='Đang tạo PDF '+leg.flt+'…';
-      const blob=await ckBuild(leg,dsp,lic),url=URL.createObjectURL(blob),link=document.createElement('a');
-      link.href=url;link.download='Checklist_F017_'+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf';
+      const blob=await (kind==='edto' ? ckBuildEdto(leg,dsp,lic) : ckBuild(leg,dsp,lic)),url=URL.createObjectURL(blob),link=document.createElement('a');
+      link.href=url;link.download='Checklist_'+(kind==='edto' ? 'EDTO_F018_' : 'F017_')+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf';
       document.body.appendChild(link);link.click();link.remove();count++;
       setTimeout(() => URL.revokeObjectURL(url),30000);
       await new Promise(resolve => setTimeout(resolve,400));
@@ -91,4 +132,4 @@ $('#ftCkBtn').onclick = async function(){
     $('#ftStat').textContent='Đã tạo '+count+' PDF Checklist.';
   } catch(error){alert('Lỗi tạo Checklist: '+error.message);$('#ftStat').textContent='Đã tải '+count+'/'+legs.length+' PDF.';}
   finally{button.disabled=false;}
-};
+}

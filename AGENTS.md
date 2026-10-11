@@ -37,4 +37,4 @@
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from the bundled snapshot `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`, because live national AIP downloads are slow/unreliable inside a request.
 - Tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart`; live AIP fetches are unreliable.
 - KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
-- Checklist uses a browser PDF overlay via the tool-page shim; row coordinates keep ticks in content cells without Word conversion.
+- Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer.
