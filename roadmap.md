@@ -106,3 +106,5 @@
 - [ ] Mẫu nút nền đỏ chữ trắng — chỉ áp dụng trong tab "Công cụ hỗ trợ" (#wrapTool); header và các tab khác giữ kiểu cũ. Đã soi preview, chưa publish.
 
 - [x] KHB: gõ số hiệu không có trong Crewlist thì giữ nguyên số trên bảng (trước đây tự xoá mất số); số này vẫn tính vào dòng "Tổng: N chuyến"; đã kiểm offline 7 ca (gõ, Enter, dán lẫn lộn, xoá, nạp lại), chưa publish.
+- [ ] Sân bay hạn chế APU: chỉ tô vàng khi tàu bị APU INOP hoặc REQ APU/ACU/ASU, còn lại nền trắng
+- [ ] Xuất full dữ liệu (CSV database + ZIP kho lưu trữ) gửi user để remix sang workspace khác
