@@ -1342,43 +1342,47 @@ html.night{--atc-paper:var(--atc-night-paper);--atc-stripe:var(--atc-night-strip
 #wrapAtcCheck #acTbl tbody tr.ac-has-flight>td:is(.ac-status,.ac-reg,.ac-regchk,.ac-time,.ac-stdchk,.ac-dof):empty::before{content:"- - - -";color:var(--atc-missing);-webkit-text-fill-color:var(--atc-missing);font-weight:600;white-space:nowrap}
 </style>`;
 
-// ==== MẪU THỬ (nháp): mọi nút = nền đỏ, chữ trắng ====
+// ==== MẪU THỬ (nháp): nút trong tab "Công cụ hỗ trợ" = nền đỏ, chữ trắng ====
 // :not(#_) là mẹo tăng độ ưu tiên: nó luôn đúng với mọi phần tử nhưng
 // được tính như một id, nên thắng được các quy định cũ có id/!important.
+// Mọi quy định đều đóng trong #wrapTool nên tab khác và header giữ nguyên.
 const BTNRED = `<style id="btn-red-skin">
-:root{--x-red-solid:#E31937;--x-red-solid-d:#B01028}
-/* 1. Mọi nút: đỏ đặc, chữ trắng */
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_){
+#wrapTool{--x-red-solid:#E31937;--x-red-solid-d:#B01028}
+/* 1. Mọi nút trong tab: đỏ đặc, chữ trắng */
+#wrapTool .btn:not(#_):not(#_){
   background:var(--x-red-solid) !important;background-image:none !important;
   color:#fff !important;-webkit-text-fill-color:#fff !important;
   border-color:var(--x-red-solid) !important;
   box-shadow:0 1px 3px rgba(227,25,55,.26) !important;
 }
 /* 2. Chữ và biểu tượng bên trong nút cũng phải trắng */
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):not(#_) *,
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):not(#_) ::before,
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_)::before{
+#wrapTool .btn:not(#_):not(#_):not(#_) *,
+#wrapTool .btn:not(#_):not(#_):not(#_) ::before,
+#wrapTool .btn:not(#_):not(#_)::before{
   color:#fff !important;-webkit-text-fill-color:#fff !important;
 }
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_) svg,
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_) svg *{stroke:currentColor !important}
+#wrapTool .btn:not(#_):not(#_) svg,
+#wrapTool .btn:not(#_):not(#_) svg *{stroke:currentColor !important}
 /* 3. Rê chuột: đỏ đậm hơn */
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):hover:not(:disabled){
+#wrapTool .btn:not(#_):not(#_):hover:not(:disabled){
   background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
 }
 /* 4. Nút đang bật / đang chọn: cùng màu đỏ, thêm viền trắng trong để phân biệt */
-:is(.btn.primary,.btn.t-go,.btn.act,.btn[aria-pressed="true"],.btn.on,.nm-sky[aria-pressed="true"]):not(#_):not(#_){
+#wrapTool .btn:is(.primary,.t-go,.act,.t-ok,.t-soft,.t-warn,.t-undo)[aria-pressed="true"]:not(#_):not(#_),
+#wrapTool .btn[aria-pressed="true"]:not(#_):not(#_),
+#wrapTool .btn.on:not(#_):not(#_){
   background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
   box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6),0 1px 3px rgba(227,25,55,.26) !important;
 }
 /* 5. Nút đang tắt: vẫn đỏ chữ trắng, chỉ mờ đi cho dễ nhận */
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):disabled,
-:is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_)[disabled]{
+#wrapTool .btn:not(#_):not(#_):disabled,
+#wrapTool .btn:not(#_):not(#_)[disabled]{
   background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
   color:#fff !important;-webkit-text-fill-color:#fff !important;
   opacity:.45 !important;box-shadow:none !important;
 }
 </style>`;
+
 
 
 async function page(): Promise<string> {
