@@ -745,7 +745,7 @@ def download_gd(
             where = f"{mailbox} / {name}" if mailbox else name
             say(f"· thư mục Outlook: {where}")
             found = _scan_gendec_folder(
-                sess, fid, mailbox, want, dest, say,
+                sess, fid, mailbox, want, dest, say, flight_date,
             )
             if found is not None:
                 return found
