@@ -1485,6 +1485,8 @@ async function ftLoad(){
   $("#afBook").value = customBook ? customBook + "\\n" + suppliedBook.split(/\\r?\\n/).filter(line => !customCodes.has(line.split(/\\s+/)[0])).join("\\n") : suppliedBook;`)
     .replace(/<textarea id="afBook"[^>]*><\/textarea>/, `<textarea id="afBook" hidden></textarea><div class="af-book-scroll"><table id="afBookTable" aria-label="Danh bạ AFTN"><colgroup><col class="af-code-col"><col></colgroup><thead><tr><th>CODE</th><th>ĐỊA CHỈ AFTN</th></tr></thead><tbody id="afBookRows"></tbody></table></div>`)
     .replace('<div style="font-size:12px;opacity:.8">Dán từ Excel 2 cột (CODE + địa chỉ). Tự lưu trên máy này.</div>', '')
+    .replace('<label>File FPL (chọn thư mục hoặc nhiều file)<br>', '<label hidden>')
+    .replace('<div><b>Nội dung FPL tìm được</b>', '<div hidden>')
     .replace('</body>', `<style>
       #afBook[hidden]{display:none!important}
       .af-book-scroll{height:420px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
