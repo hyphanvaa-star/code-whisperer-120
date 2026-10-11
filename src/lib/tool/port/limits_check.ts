@@ -176,6 +176,10 @@ const isApuInop = (text: string) => {
   const v = (text || "").toUpperCase();
   return v.includes("APU") && ["INOP", "U/S", "INOPERATIVE", "UNSERVICEABLE"].some((t) => v.includes(t));
 };
+const isReqApu = (text: string) => {
+  const v = (text || "").toUpperCase();
+  return /REQ(?:UIRE[DS]?)?[^A-Z]{0,12}(APU|ACU|ASU)/.test(v) || /(APU|ACU|ASU)[^A-Z]{0,12}REQ/.test(v);
+};
 const noApuAirport = (limit: string) => {
   const u = (limit || "").toUpperCase();
   if (u.includes("NO APU")) return true;
@@ -398,7 +402,7 @@ export function checkFlightLimits(
     const combined = `${defect}\n${limit}`;
     const baseText = `${f.reg || "?"}: ${defect || "defect"}`;
 
-    if (isApuInop(combined)) {
+    if (isApuInop(combined) || isReqApu(combined)) {
       const apuHits: [string, string, string][] = [];
       for (const [role, code, forms] of apts) {
         const row = airportRow(apBy, forms);
@@ -406,11 +410,12 @@ export function checkFlightLimits(
         if (row && noApuAirport(airportLimit)) apuHits.push([role, code, airportLimit]);
       }
       if (apuHits.length) {
+        const sev = isApuInop(combined) ? CRITICAL : WARNING;
         for (const [role, code, airportLimit] of apuHits) {
           const evidence = `${role} ${code}: ${airportLimit}`;
           warns.push(
             warning("defect", `${baseText} → ${evidence}` + (limit ? ` (${limit})` : ""), {
-              severity: CRITICAL,
+              severity: sev,
               check: "apu_airport",
               evidence,
               defect,
@@ -420,6 +425,7 @@ export function checkFlightLimits(
         }
         continue;
       }
+      if (!isApuInop(combined)) continue;
       warns.push(
         warning("defect", `${baseText} — ${limit || "APU INOP"}`, {
           check: "apu",
