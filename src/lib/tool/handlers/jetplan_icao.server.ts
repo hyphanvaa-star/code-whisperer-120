@@ -89,11 +89,9 @@ export const routes: Routes = {
     try { css = await (await jar.go(`${BASE}/atcFiling/stylesheet/icaoDisplay.css`)).text(); } catch { /* render without */ }
     html = html
       .replace(/<script[\s\S]*?<\/script>/gi, "")
-      .replace(/<link[^>]*stylesheet[^>]*>/gi, `<style>${css.replace(/<\//g, "")}</style>`)
+      .replace(/<link[^>]*stylesheet[^>]*>/gi, () => `<style>${css.replace(/<\/?style[^>]*>/gi, "")}</style>`)
       .replace(/<input[^>]*type="(?:submit|reset|button|hidden)"[^>]*>/gi, "");
-    // Drop the trailing Print/Close/PDF toolbar (everything after the last form field table).
-    const cut = html.search(/>\s*Print\s*</i);
-    if (cut > 0) { const start = html.lastIndexOf("<TABLE", cut); if (start > 0) html = html.slice(0, start) + "</FORM></BODY></HTML>"; }
+    html = html.replace(/<div[^>]*id="noprint"[\s\S]*?<\/div>/i, "");
     return { plan: row.plan, callsign, etd: row.etd, pod: row.pod, poa: row.poa, html };
   },
 };
