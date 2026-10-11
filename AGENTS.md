@@ -20,7 +20,7 @@
 - NOTAM summaries use per-flight `verdictOf`/`fleetVerdict` in `port/notam_verdict.ts`, not raw map hit counts (those include distant/unresolved/above-ceiling areas). Every FliteBrief NOTAM tracking/fleet place is filtered through `apply24h` before enrichment and counting — the upstream ICAO payload is ALL, not the portal's 24H selection.
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py`: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with the `PC_AGENT_TOKEN` secret — a Worker cannot reach LAN devices.
 - Server-side Excel reading uses SheetJS (`xlsx` CDN tarball) because ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, via `src/lib/exceljs-load.ts`.
-- Airport country flags are bundled locally via the generated global ICAO-to-country dataset so flight cards need no third-party image requests.
+- Airport country flags are bundled locally via the generated ICAO-to-country dataset so flight cards need no third-party image requests.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own account.
 - AIP SUP/DAH rings/hours are fetched in `src/lib/tool/aip_sup.server.ts` (parsers in `port/aip_sup.ts`, cache in app_settings `aip_sup:*`), attached as `notam.sup_geoms` by the Check NOTAM handler — NOTAM text often only names the SUP area. JP ENR/KR KOCA use national parsers and country caches; client fixes preserve server arcs and separate areas.
 - Every publish bumps the version badge #appVersion in src/tool/page.html (V1, V2, …) so users can tell builds apart.
@@ -28,5 +28,5 @@
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can come from the dispatcher's browser login — Omni rejects token creation from the cloud runtime's IPv6 X-Forwarded-For.
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from bundled `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`; tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart` — live AIP fetches are slow/unreliable in a request.
 - KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
-- Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer.
+- Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer. KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
 - Team chat (group + 1-1) lives in `chat_rooms`/`chat_messages` with dispatcher-scoped RLS and admin-only delete; floating UI is `src/components/chat/ChatWidget.tsx` in `__root`, polling every 4s instead of Realtime to avoid publication config.
