@@ -421,7 +421,7 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
     const ae = await import("../port/atc_ezfw");
     const { loadFlights } = await import("../core/gantts.server");
     const { fbGet } = await import("@/lib/flitebrief.server");
-    const flights = await loadFlights(3);
+    const flights = await loadFlights(3, true);
     const now = Date.now();
     const pickFlight = (it: Raw) => {
       const digits = ae.digitsOf(String(it.flt || ""));
@@ -453,15 +453,18 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
       if (!f) { missed.push(`${label}: không thấy trên FliteBrief`); return; }
       try {
         // Same endpoint as the working OFP download (/api/fb/file): /ofp/0, then legacy /ofp.
-        let buf = new Uint8Array();
+        // FliteBrief serves the OFP either as PDF or as plain-text CFP; accept both.
+        let txt = "";
         for (const p of [`/webapi/sectors/${f.id}/ofp/0`, `/webapi/sectors/${f.id}/ofp`]) {
           const res = await fbGet(p, "application/pdf");
           if (!res.ok || res.status === 204) continue;
           const b = new Uint8Array(await res.arrayBuffer());
-          if (b.byteLength > 4 && String.fromCharCode(...b.slice(0, 4)) === "%PDF") { buf = b; break; }
+          if (b.byteLength <= 4) continue;
+          if (String.fromCharCode(...b.slice(0, 4)) === "%PDF") { txt = await pdfText(b); break; }
+          const t = new TextDecoder().decode(b);
+          if (/\(FPL-|^[ \t]*CFP[ \t]+\d+/im.test(t)) { txt = t; break; }
         }
-        if (!buf.byteLength) { missed.push(`${label}: chưa có OFP`); return; }
-        const txt = await pdfText(buf);
+        if (!txt) { missed.push(`${label}: chưa có OFP`); return; }
         const cfp = /^[ \t]*CFP[ \t]+(\d+)\b/im.exec(txt)?.[1] || "";
         got.push({ ix, f, block: ae.extractAtc(txt), plan: String(f.plan_no || cfp || "") });
       } catch (e) {
