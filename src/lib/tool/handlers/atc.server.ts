@@ -35,6 +35,28 @@ export const routes: Routes = {
     return { files: out };
   },
 
+  // Tab AFTN filling: lấy đúng khối FPL của một chuyến từ các file ATC đã tải
+  // lên (ưu tiên file mới nhất), thay cho việc người dùng tự chọn file như
+  // macro Excel gốc.
+  "GET /api/atc/fpl": async (ctx) => {
+    const flt = (ctx.params.get("flt") || "").replace(/\D/g, "");
+    if (!flt) return { found: false, error: "Thiếu số chuyến." };
+    const digits = String(parseInt(flt, 10));
+    const files = await listFiles(ctx, ATC_DIR).catch(() => []);
+    for (let i = files.length - 1; i >= 0; i--) {
+      const buf = await getFile(ctx, `${ATC_DIR}/${files[i].name}`);
+      if (!buf) continue;
+      const text = new TextDecoder("utf-8").decode(buf);
+      for (const b of readFplBlocks(text)) {
+        const name = fplName(b);
+        if (name.replace(/\D/g, "") === digits) {
+          return { found: true, text: b, file: files[i].name, name };
+        }
+      }
+    }
+    return { found: false, error: `Không thấy FPL của VJC${digits} trong các file ATC đã tải lên — hãy Get ATC / tải file ATC trước.` };
+  },
+
   "POST /api/atc/upload": async (ctx) => {
     const buf = await ctx.request.arrayBuffer();
     const text = new TextDecoder("utf-8").decode(buf);
