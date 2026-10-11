@@ -176,6 +176,10 @@ const isApuInop = (text: string) => {
   const v = (text || "").toUpperCase();
   return v.includes("APU") && ["INOP", "U/S", "INOPERATIVE", "UNSERVICEABLE"].some((t) => v.includes(t));
 };
+const isReqApu = (text: string) => {
+  const v = (text || "").toUpperCase();
+  return /REQ(?:UIRE[DS]?)?[^A-Z]{0,12}(APU|ACU|ASU)/.test(v) || /(APU|ACU|ASU)[^A-Z]{0,12}REQ/.test(v);
+};
 const noApuAirport = (limit: string) => {
   const u = (limit || "").toUpperCase();
   if (u.includes("NO APU")) return true;
