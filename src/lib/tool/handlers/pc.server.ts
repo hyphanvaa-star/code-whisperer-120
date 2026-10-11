@@ -102,7 +102,7 @@ async function crewRegsFor(ctx: Ctx, flight: string): Promise<{ regs: string[]; 
   const buf = await getFile(ctx, `excel/${state.file}`);
   if (!buf) throw new Error("Không đọc được file Crewlist đã nạp.");
   const sheets = await readTable(state.file, buf);
-  if (!sheets.length) return [];
+  if (!sheets.length) return { regs: [], date: null };
   const sheet = sheets.find((s) => s.name === state.sheet) ?? sheets[0]!;
   const mapping = detectMapping(sheet.header);
   if (!mapping["callsign"] || !mapping["reg"]) {
