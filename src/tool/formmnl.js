@@ -19,6 +19,13 @@ async function mnlShot(html){
     fr.contentDocument.open();fr.contentDocument.write(html);fr.contentDocument.close();
     await new Promise(r=>setTimeout(r,300));
     const st=fr.contentDocument.createElement('style');st.textContent='*{letter-spacing:normal!important;word-spacing:normal!important;font-kerning:none!important;font-variant-ligatures:none!important;text-rendering:auto!important}';fr.contentDocument.head.appendChild(st);
+    // JetPlan puts width:100% inputs inside inline spans (FILED BY row) -> the
+    // page overflows to ~2000px. Give those width spans inline-block so the
+    // inputs resolve against the intended 223px columns again.
+    for(const sp of [...form.querySelectorAll('span')]){
+      const sy=sp.getAttribute('style')||'';
+      if(/width:\s*\d+px/.test(sy) && !/position:\s*absolute/.test(sy)) sp.style.display='inline-block';
+    }
     const body=fr.contentDocument.body;body.style.margin='0';body.style.background='#fff';
     const form=body.querySelector('form')||body;
     // html2canvas clips input text: swap every field for a same-size span.
@@ -53,7 +60,18 @@ async function mnlSig(png){
   const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
   const g=c.getContext('2d');g.drawImage(img,0,0);
   g.fillStyle='#fff';g.fillRect(575,140,170,56);g.fillRect(760,140,150,52);
-  const h=54,w=h*sig.width/sig.height;g.filter='contrast(4) brightness(0.5)';for(let i=0;i<3;i++)g.drawImage(sig,655-w/2,142,w,h);g.filter='none';
+  // Turn the scanned signature (light strokes on white) into dark ink on
+  // transparent, so no filter darkens the white background to grey.
+  const sc=document.createElement('canvas');sc.width=sig.width;sc.height=sig.height;
+  const sg=sc.getContext('2d');sg.drawImage(sig,0,0);
+  const id=sg.getImageData(0,0,sc.width,sc.height),px=id.data;
+  for(let i=0;i<px.length;i+=4){
+    const lum=px[i]*0.299+px[i+1]*0.587+px[i+2]*0.114;
+    const a=Math.min(255,Math.round((255-lum)*2.4));
+    px[i]=15;px[i+1]=25;px[i+2]=100;px[i+3]=a;
+  }
+  sg.putImageData(id,0,0);
+  const h=54,w=h*sig.width/sig.height;g.drawImage(sc,655-w/2,142,w,h);
   return new Promise(r=>c.toBlob(r,'image/png'));
 }
 async function mnlBuild(html,lic){
