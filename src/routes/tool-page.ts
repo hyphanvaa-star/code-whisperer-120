@@ -1490,7 +1490,7 @@ async function ftLoad(){
       .af-book-scroll{height:420px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
       #afBookTable{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--x-mono)}
       #afBookTable .af-code-col{width:116px}
-      #afBookTable th{position:sticky;top:0;z-index:1;background:var(--x-bg)!important;color:var(--x-ink)!important;text-align:left;padding:8px;border-bottom:1px solid var(--x-line)}
+      #afBookTable th{position:sticky;top:0;z-index:1;background:var(--x-bg)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;text-align:left;padding:8px;border-bottom:1px solid var(--x-line)}
       #afBookTable td{padding:6px 8px;border-bottom:1px solid var(--x-line2);border-right:1px solid var(--x-line);vertical-align:top;color:var(--x-ink)!important;background:var(--x-card)!important;font-size:13px!important;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
       #afBookTable td:focus{outline:2px solid var(--x-red);outline-offset:-2px}
       #wrapAftn>div:nth-child(2){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
