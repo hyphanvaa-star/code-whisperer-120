@@ -101,6 +101,10 @@ const SHIM = `<script>
       if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
     }
     var z = Math.min(1, window.innerWidth / need);
+    // Điện thoại: không thu nhỏ quá mức đọc được — giữ sàn zoom và cho
+    // vuốt ngang phần còn lại. Máy tính/bảng lớn giữ nguyên hành vi cũ.
+    var isPhone = window.innerWidth < 820;
+    if (isPhone) z = Math.max(z, 0.5);
     // Narrow-screen CSS keys off viewport width; while zoom-fit is active the
     // real layout width is innerWidth/z, so mark <html> and disable those rules.
     de.classList.toggle('fit-scaled', z < 0.999);
@@ -113,7 +117,7 @@ const SHIM = `<script>
       b.style.transform = 'scale(' + z + ')';
       b.style.width = (100 / z) + '%';
     }
-    de.style.overflowX = 'hidden';
+    de.style.overflowX = isPhone ? 'auto' : 'hidden';
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
@@ -1724,6 +1728,30 @@ const BTNRED2 = `<style id="btn-red-skin-2">
 }
 </style>`;
 
+// ==== Skin điện thoại: CHỈ áp dụng khi màn hình < 820px ====
+// Bản máy tính giữ nguyên 100%. Trên điện thoại: nút/ô nhập to hơn cho
+// dễ bấm, khung dropdown bám theo màn hình, bảng cuộn ngang mượt.
+const MOBILE = `<style id="mobile-skin">
+@media (max-width:820px){
+  html{-webkit-text-size-adjust:100%}
+  body{overscroll-behavior-x:contain}
+  /* Nút bấm & ô nhập đủ to cho ngón tay (sau khi zoom-fit 0.5, kích thước
+     thực = giá trị CSS × 0.5, nên nhân đôi để chạm ~40px thật) */
+  button,input[type="button"],input[type="submit"],select{
+    min-height:34px;font-size:15px !important;
+  }
+  input[type="text"],input[type="number"],input[type="password"],textarea{
+    font-size:15px !important;
+  }
+  /* Khung chọn (dropdown tùy biến) bám sát mép màn hình, chữ to */
+  #ddPop{max-width:calc(100vw - 12px) !important;font-size:16px !important}
+  /* Bảng KHB: cuộn ngang mượt, giữ thanh cuộn hiển thị */
+  table{-webkit-overflow-scrolling:touch}
+  /* Hộp thoại/modal không tràn màn hình */
+  .modal,.dialog,[class*="popup"]{max-width:calc(100vw - 16px) !important}
+}
+</style>`;
+
 
 
 
@@ -1873,7 +1901,7 @@ function ftRender(){
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
     </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + MOBILE + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
