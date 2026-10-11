@@ -1362,7 +1362,6 @@ select:not([hidden]){font-size:14.5px !important;min-height:36px;padding-top:7px
 /* Ô chọn ở đầu trang (DISPATCHER, Khung giờ) vốn bị ép 9.5px cho gọn —
    nay để 15px vì danh sách bật ra đã vẽ lại, không lo choáng chỗ. */
 header#mdRoom select{font-size:15px !important;padding:0 8px !important;height:34px !important;letter-spacing:0 !important}
-header#mdRoom .md-field.field.f-disp{flex:0 1 260px;min-width:180px}
 .tool-row select{font-size:14px !important;min-width:170px}
 #ddPop{position:fixed;z-index:9999;box-sizing:border-box;max-width:min(520px,calc(100vw - 16px));
   background:var(--x-card,#fff);border:1px solid var(--x-line,#d7dbe4);border-radius:14px;
