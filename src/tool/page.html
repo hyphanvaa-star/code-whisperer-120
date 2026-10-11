@@ -27284,8 +27284,18 @@ async function scan(files){
       if(line.trim()===""&&w) break;}}
   $("#afContent").value=out.join("\r\n");
   $("#afStat").textContent=out.length?`Tìm thấy ${sv} trong ${files.length} file`:`Không thấy ${sv} trong ${files.length} file`;}
-function exportTpl(){
+async function pullFpl(){
+  const fl=$("#afFl").value.trim();if(!fl)return;
+  $("#afStat").textContent="Đang lấy ATC FPL…";
+  try{
+    const d=await (await fetch("/api/atc/fpl?flt="+encodeURIComponent(fl))).json();
+    if(d.found){$("#afContent").value=d.text;$("#afStat").textContent=`Đã lấy FPL ${d.name||""} từ ${d.file}`;}
+    else $("#afStat").textContent=d.error||"Không thấy FPL.";
+  }catch(e){$("#afStat").textContent="Lỗi lấy FPL: "+(e&&e.message);}
+}
+async function exportTpl(){
   const fl=$("#afFl").value.trim();if(!fl){alert("Nhập FL NO trước");return;}
+  if(!$("#afContent").value.trim()) await pullFpl();
   const content=$("#afContent").value||"No content found.";
   let x='<?xml version="1.0" encoding="Unicode" standalone="yes"?>\r\n<Message>\r\n';
   for(const r of recips()) x+="    <Recipient>"+r[1]+"</Recipient>\r\n";
