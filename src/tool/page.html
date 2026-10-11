@@ -27270,7 +27270,7 @@ function init(){
   let files=[];
   const pick=async e=>{files=[...e.target.files];await scan(files);};
   $("#afDir").onchange=pick;$("#afFiles").onchange=pick;
-  $("#afFl").addEventListener("change",()=>files.length&&scan(files));
+  $("#afFl").addEventListener("change",()=>{if(files.length)scan(files);else pullFpl();});
   $("#afExport").onclick=exportTpl;
   render();}
 async function scan(files){
