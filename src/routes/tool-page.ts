@@ -986,6 +986,9 @@ td .dim,.dim{color:var(--x-mute) !important}
 .taf-tip .pcr-tbl th.hit,.taf-tip .pcr-tbl td.hit{color:#fff !important;background:#c3362c !important;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.45)}
 .taf-tip .pcr-tbl th.ok,.taf-tip .pcr-tbl td.ok{color:#fff !important;background:#2e7d32 !important;text-shadow:0 1px 2px rgba(0,0,0,.35)}
 .taf-tip .pcr-tbl th{color:#d7dde8 !important}
+/* Luật bảng chung "table tbody td{background:#fff}" sơn trắng ô thường của tooltip
+   PCR nên chữ sáng bị chìm — ép mọi ô PCR trong suốt, chỉ hit/ok/tow có màu riêng. */
+.taf-tip .pcr-tbl th,.taf-tip .pcr-tbl td{background-color:transparent !important}
 .taf-tip .pcr-tbl td{color:#f2f5fa !important}
 .taf-tip .pcr-tbl td.ac{color:#fff !important}
 .taf-tip .pcr-tbl .tow{color:#ffe9a8 !important;background:rgba(255,255,255,.08) !important}
