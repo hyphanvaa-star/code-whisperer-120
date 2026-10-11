@@ -2745,6 +2745,11 @@ html.night .ho-tbl input[type=text]{color:#e8edf4}
 .ftatc-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .ftatc-tabs button.chg{color:#22c55e;font-weight:700}
 .ftatc-tabs button.chg.on{color:#22c55e}
+#ftAtcTabs button{line-height:1.15;padding:3px 8px}
+#ftAtcTabs button .cfp{display:block;font-size:10px;opacity:.85;font-weight:600}
+#ftAtcTabs button.chg{color:#16a34a!important;border-color:#16a34a!important;font-weight:700}
+#ftAtcTabs button.on{background:#e8112d!important;color:#fff!important}
+#ftAtcTabs button.chg.on{background:#16a34a!important;border-color:#16a34a!important;color:#fff!important}
 .ftatc-pre{height:min(64vh,580px);overflow:auto;margin:0;padding:12px;background:#111;color:#e8e8e8;
   font:13px/1.45 Consolas,"JetBrains Mono",ui-monospace,monospace;white-space:pre-wrap;word-break:break-word;
   border:1px solid #333;border-radius:8px;user-select:text;-webkit-user-select:text}
@@ -7325,6 +7330,8 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         <button class="btn small" id="ftAtcCopy" type="button">Copy</button>
         <button class="btn small" id="ftAtcSel" type="button">Chọn hết</button>
         <button class="btn primary small" id="ftAtcExport" type="button">Xuất ATC</button>
+        <button class="btn small" id="ftAtcSave" type="button">Lưu</button>
+        <button class="btn primary small" id="ftAtcSend" type="button">GỬI ATC</button>
       </div>
     </div>
   </div>
@@ -24904,6 +24911,31 @@ $("#ftPldRound").onclick = async function(){
 $("#ftExport").onclick = function(){ ftBuild(true); };
 $("#ftAtcBtn").onclick = function(){ ftGetAtc(false); };
 $("#ftAtcConvBtn").onclick = function(){ ftGetAtc(true); };
+let ftAtcSaved = false;
+$("#ftAtcSave").onclick = function(){
+  ftAtcFlush(); ftAtcSaved = true;
+  $("#ftAtcNote").textContent = "Đã lưu " + ftAtcRows.length + " chuyến — bấm GỬI ATC để gửi lên AviWeb.";
+};
+$("#ftAtcSend").onclick = async function(){
+  if(!ftAtcRows.length) return;
+  ftAtcFlush();
+  if(!ftAtcSaved){ alert("Bấm Lưu trước rồi mới GỬI ATC."); return; }
+  const text = ftAtcJoin(ftAtcRows.map(r => r.converted)).replace(/\r?\n/g, "\r\n");
+  const btn = this; btn.disabled = true; btn.textContent = "Đang chuẩn bị…";
+  try{
+    const r = await fetch("/api/atc/upload", {method: "POST",
+      headers: {"X-Filename": encodeURIComponent(ftAtcFileName.replace(/\.txt$/i, "") + ".txt"), "Content-Type": "application/octet-stream"},
+      body: new Blob([text], {type: "text/plain"})});
+    const d = await r.json();
+    if(d.error){ alert("Không tạo được file ATC:\n\n" + d.error); return; }
+    atPath = d.path;
+    if($("#atName")) $("#atName").textContent = d.name;
+    await atLoadList(); if($("#atList")) $("#atList").value = atPath;
+    $("#ftAtcNote").textContent = "Đang gửi " + (d.blocks || ftAtcRows.length) + " chuyến lên AviWeb — xem tiến trình ở tab Công cụ hỗ trợ.";
+    atRun(false);
+  }catch(e){ alert("Lỗi GỬI ATC: " + e.message); }
+  finally{ btn.disabled = false; btn.textContent = "GỬI ATC"; }
+};
 function ftPickedItems(){
   const items = [];
   for(const f of ftRows){
@@ -25072,8 +25104,14 @@ function ftSaveB64(b64, name, mime){
   link.click();
   setTimeout(function(){ URL.revokeObjectURL(link.href); }, 1500);
 }
+const FT_VN_IATA = new Set("SGN HAN DAD CXR PQC HPH VII HUI VCA VDH UIH BMV DLI PXU TBB VCL THD VDO VCS DIN CAH VKG".split(" "));
+function ftFromVn(dep){ dep = String(dep || "").toUpperCase().trim(); return /^VV/.test(dep) || FT_VN_IATA.has(dep); }
 async function ftGetAtc(convert, kind){
-  const items = ftPickedItems();
+  let items = ftPickedItems();
+  if(convert && !kind && items.length){
+    items = items.filter(it => ftFromVn(it.dep));
+    if(!items.length){ alert("Không có chuyến nào đi từ Việt Nam trong các chuyến đã tick."); return; }
+  }
   if(!items.length){ alert("Chọn ít nhất một chuyến."); return; }
   const msg = String(kind || "");
   $("#ftStat").textContent = (msg ? ("Đang soạn " + msg + " ") : (convert ? "Đang convert ATC " : "Đang lấy ATC "))
@@ -25226,6 +25264,9 @@ function ftSaveText(text, name){
 }
 function ftOpenAtcReview(d){
   ftAtcRows = d.flights || [];
+  ftAtcSaved = false;
+  if($("#ftAtcSave")) $("#ftAtcSave").style.display = d.kind ? "none" : "";
+  if($("#ftAtcSend")) $("#ftAtcSend").style.display = d.kind ? "none" : "";
   ftAtcFileName = d.filename || "ATC-ORG ÐÃ FIX.txt";
   const kind = d.kind || "";
   ftAtcMsg = !!kind;
@@ -25241,7 +25282,10 @@ function ftOpenAtcReview(d){
     const b = document.createElement("button");
     b.type = "button";
     b.className = "btn small";
-    b.textContent = (row.callsign || "?") + " " + [row.dep, row.arr].filter(Boolean).join("-");
+    const cfp = document.createElement("span"); cfp.className = "cfp";
+    cfp.textContent = "CFP " + (row.plan || "?") + (row.reg ? " · " + row.reg : "");
+    b.appendChild(cfp);
+    b.appendChild(document.createTextNode((row.callsign || "?") + " " + [row.dep, row.arr].filter(Boolean).join("-")));
     b.onclick = function(){ ftAtcFlush(); ftAtcShow(i); };
     tabs.appendChild(b);
   });
