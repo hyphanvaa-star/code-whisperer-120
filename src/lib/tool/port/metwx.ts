@@ -151,14 +151,46 @@ class CookieJar {
   }
 }
 
+/** Đài chỉ có địa chỉ IP (không tên miền): máy chủ web bị chặn kết nối thẳng
+ * (HTTP 403), nên phải đi qua trợ lý PC trên máy công ty. */
+export function needsPcAgent(site: MetSite): boolean {
+  try {
+    return /^\d{1,3}(\.\d{1,3}){3}$/.test(new URL(site.base).hostname);
+  } catch {
+    return false;
+  }
+}
+
+/** Gửi 1 request qua trợ lý PC; trợ lý tự giữ cookie theo `session`. */
+export type MetTransport = (req: {
+  session: string;
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: string;
+  timeoutMs: number;
+}) => Promise<Response>;
+
 export class MetSession {
   private jar = new CookieJar();
   private loggedIn = false;
-  constructor(public site: MetSite) {}
+  constructor(public site: MetSite, private transport?: MetTransport) {}
 
   private async req(url: string, init: RequestInit = {}, timeoutMs = 120_000): Promise<Response> {
     const headers = new Headers(init.headers);
     headers.set("User-Agent", UA);
+    if (this.transport && needsPcAgent(this.site)) {
+      const h: Record<string, string> = {};
+      headers.forEach((v, k) => { h[k] = v; });
+      return this.transport({
+        session: `met:${this.site.key}`,
+        method: String(init.method || "GET"),
+        url,
+        headers: h,
+        body: typeof init.body === "string" ? init.body : undefined,
+        timeoutMs,
+      });
+    }
     const cookie = this.jar.header();
     if (cookie) headers.set("Cookie", cookie);
     const res = await fetch(url, { ...init, headers, signal: AbortSignal.timeout(timeoutMs), redirect: "follow" });
@@ -312,6 +344,7 @@ export async function download(
     maxAgeH?: number;
     onProgress?: WxProgress;
     hasFile?: (filename: string) => Promise<boolean>;
+    transport?: MetTransport;
   } = {},
 ): Promise<WxResult> {
   const now = new Date();
@@ -334,7 +367,7 @@ export async function download(
       continue;
     }
     try {
-      const ms = new MetSession(site);
+      const ms = new MetSession(site, opts.transport);
       for (const day of days) {
         if (!left.size) break;
         const docs = await ms.listDocs(day);
