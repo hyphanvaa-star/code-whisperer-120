@@ -80,7 +80,7 @@ export const routes: Routes = {
         const name = safeFilename(raw);
         if (!name || !/\.(xlsx|xlsm)$/i.test(name) || typeof u?.b64 !== "string") continue;
         try {
-          await putFile(ctx, `excel/${name}`, Buffer.from(u.b64, "base64"), "application/octet-stream");
+          await putFile(ctx, `${dir}/${name}`, Buffer.from(u.b64, "base64"), "application/octet-stream");
           saved[raw] = name;
         } catch (e) { console.warn("FPL VER save:", e); }
       }
