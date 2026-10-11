@@ -402,7 +402,7 @@ export function checkFlightLimits(
     const combined = `${defect}\n${limit}`;
     const baseText = `${f.reg || "?"}: ${defect || "defect"}`;
 
-    if (isApuInop(combined)) {
+    if (isApuInop(combined) || isReqApu(combined)) {
       const apuHits: [string, string, string][] = [];
       for (const [role, code, forms] of apts) {
         const row = airportRow(apBy, forms);
@@ -410,11 +410,12 @@ export function checkFlightLimits(
         if (row && noApuAirport(airportLimit)) apuHits.push([role, code, airportLimit]);
       }
       if (apuHits.length) {
+        const sev = isApuInop(combined) ? CRITICAL : WARNING;
         for (const [role, code, airportLimit] of apuHits) {
           const evidence = `${role} ${code}: ${airportLimit}`;
           warns.push(
             warning("defect", `${baseText} → ${evidence}` + (limit ? ` (${limit})` : ""), {
-              severity: CRITICAL,
+              severity: sev,
               check: "apu_airport",
               evidence,
               defect,
@@ -424,6 +425,7 @@ export function checkFlightLimits(
         }
         continue;
       }
+      if (!isApuInop(combined)) continue;
       warns.push(
         warning("defect", `${baseText} — ${limit || "APU INOP"}`, {
           check: "apu",
