@@ -12,7 +12,7 @@ import * as gd from "../port/gd_print";
 import * as omni from "../port/omni";
 import "../omni_session.server";
 import { readTable, sheetDicts } from "../port/excelcmp_reader";
-import { detectMapping } from "../port/excelcmp_compare";
+import { detectMapping, normDate } from "../port/excelcmp_compare";
 
 // config.PATH_KEYS — label + default folder on the company PC.
 const PATH_KEYS: Record<string, [string, string]> = {
@@ -324,15 +324,16 @@ export const jobs: Jobs = {
       const checks: Array<{ gd_reg: string; file_name: string }> = [];
       for (const [i, want] of wants.entries()) {
         if (wants.length > 1) emit({ type: "line", text: `── ${want} (${i + 1}/${wants.length})` });
-        const regs = await crewRegsFor(ctx, want);
+        const { regs, date } = await crewRegsFor(ctx, want);
         if (!regs.length) throw new Error(`Crewlist không có chuyến ${want}.`);
-        emit({ type: "line", text: `· ${want} crewlist: ${regs.join(" / ")}` });
+        emit({ type: "line", text: `· ${want} crewlist: ${regs.join(" / ")}${date ? ` — ngày ${date}` : ""}` });
         const printer = await getJson<string>(ctx, PRINTER_KEY, "");
         const id = await pc.enqueue("gd_print", {
           flight: want,
           crew_regs: regs,
           printer,
           dest: "D:\\GD",
+          flight_date: date,
         });
         emit({ type: "line", text: "· đã gửi lệnh cho trợ lý PC — đang tải GD và in…" });
         let lastBeat = 0;
