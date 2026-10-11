@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { updateMyAccount } from "@/lib/account.functions";
 
 export const Route = createFileRoute("/_authenticated/tool")({
   head: () => ({
@@ -27,6 +29,7 @@ declare global {
 function ToolPage() {
   const [ready, setReady] = useState(false);
   const [toolVersion, setToolVersion] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
   const ctx = Route.useRouteContext();
   const navigate = useNavigate();
   const frame = useRef<HTMLIFrameElement>(null);
@@ -95,6 +98,7 @@ function ToolPage() {
       const d = (ev.data || {}) as { type?: string };
       if (d.type === "sohee-signout") void signOut();
       if (d.type === "sohee-account-request") sendAccount();
+      if (d.type === "sohee-account-edit") setEditOpen(true);
     };
     window.addEventListener("message", onMessage);
     return () => {
@@ -108,6 +112,8 @@ function ToolPage() {
 
   if (!ready || !toolVersion) return <div className="p-6 text-sm text-muted-foreground">Đang mở Dispatch Board…</div>;
   return (
+    <>
+    {editOpen && <AccountDialog current={emailRef.current.split("@")[0]} onClose={() => setEditOpen(false)} onSaved={(u) => { emailRef.current = `${u}@app.local`; sendAccount(); }} />}
     <iframe
       ref={frame}
       key={toolVersion}
@@ -116,5 +122,53 @@ function ToolPage() {
       onLoad={sendAccount}
       className="fixed inset-0 h-screen w-screen border-0"
     />
+    </>
+  );
+}
+
+function AccountDialog({ current, onClose, onSaved }: { current: string; onClose: () => void; onSaved: (u: string) => void }) {
+  const save = useServerFn(updateMyAccount);
+  const [username, setUsername] = useState(current);
+  const [displayName, setDisplayName] = useState("");
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [cur, setCur] = useState("");
+  const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pw && pw !== pw2) return setMsg({ ok: false, t: "Hai lần nhập mật khẩu mới không khớp" });
+    setBusy(true); setMsg(null);
+    try {
+      const r = await save({ data: {
+        currentPassword: cur,
+        username: username.trim() && username.trim().toLowerCase() !== current ? username.trim() : undefined,
+        displayName: displayName.trim() || undefined,
+        newPassword: pw || undefined,
+      } });
+      onSaved(r.username);
+      setMsg({ ok: true, t: r.emailChanged ? `Đã lưu. Lần sau đăng nhập bằng: ${r.username}` : "Đã lưu thay đổi" });
+      setCur(""); setPw(""); setPw2("");
+    } catch (err) {
+      setMsg({ ok: false, t: err instanceof Error ? err.message.replace(/^.*?"message":"([^"]+)".*$/, "$1") : "Lỗi" });
+    } finally { setBusy(false); }
+  };
+  const inp = "w-full rounded-md border border-input bg-background px-3 py-2 text-[15px]";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
+      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-xl bg-card p-5 text-card-foreground shadow-xl">
+        <h2 className="text-lg font-bold">Đổi tài khoản / mật khẩu</h2>
+        <label className="block text-sm">Tên đăng nhập<input className={inp} value={username} onChange={(e) => setUsername(e.target.value)} /></label>
+        <label className="block text-sm">Tên hiển thị (để trống nếu giữ nguyên)<input className={inp} value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></label>
+        <label className="block text-sm">Mật khẩu mới (để trống nếu giữ nguyên)<input type="password" autoComplete="new-password" className={inp} value={pw} onChange={(e) => setPw(e.target.value)} /></label>
+        {pw && <label className="block text-sm">Nhập lại mật khẩu mới<input type="password" autoComplete="new-password" className={inp} value={pw2} onChange={(e) => setPw2(e.target.value)} /></label>}
+        <label className="block text-sm font-semibold">Mật khẩu hiện tại (bắt buộc)<input type="password" required autoComplete="current-password" className={inp} value={cur} onChange={(e) => setCur(e.target.value)} /></label>
+        {msg && <p className={msg.ok ? "text-sm text-primary" : "text-sm text-destructive"}>{msg.t}</p>}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-md border border-input px-4 py-2 text-sm">Đóng</button>
+          <button disabled={busy} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{busy ? "Đang lưu…" : "Lưu"}</button>
+        </div>
+      </form>
+    </div>
   );
 }
