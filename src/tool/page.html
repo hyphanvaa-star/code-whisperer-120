@@ -25180,8 +25180,17 @@ function ftAtcPaintTabs(){
   const tabs = $("#ftAtcTabs");
   if(!tabs) return;
   [...tabs.querySelectorAll("button")].forEach((b, n) => {
+    const chg = ftAtcChanged(ftAtcRows[n]);
     b.classList.toggle("on", n === ftAtcIx);
-    b.classList.toggle("chg", ftAtcChanged(ftAtcRows[n]));
+    b.classList.toggle("chg", chg);
+    // Inline !important: skin rules (color + -webkit-text-fill-color) must not override the text colour.
+    const ink = chg ? "#16a34a" : "#e8112d";
+    [b, ...b.querySelectorAll("*")].forEach((el) => {
+      el.style.setProperty("color", ink, "important");
+      el.style.setProperty("-webkit-text-fill-color", ink, "important");
+    });
+    b.style.setProperty("background", "#fff", "important");
+    b.style.setProperty("border", "1px solid #e8112d", "important");
   });
 }
 function ftAtcShow(i){
