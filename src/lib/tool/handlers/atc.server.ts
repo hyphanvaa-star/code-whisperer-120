@@ -54,7 +54,17 @@ export const routes: Routes = {
         }
       }
     }
-    return { found: false, error: `Không thấy FPL của VJC${digits} trong các file ATC đã tải lên — hãy Get ATC / tải file ATC trước.` };
+    // Không có trong file ATC → đọc thẳng OFP trên FliteBrief (đã release hay
+    // chưa đều lấy qua View OFP /ofp/0 rồi /ofp), giống nút Get ATC.
+    try {
+      const { fetchAtcBlocks } = await import("./fpl.server");
+      const { got, missed } = await fetchAtcBlocks([{ flt: digits }]);
+      const g = got.find((x) => String(x.block || "").trim());
+      if (g) return { found: true, text: g.block.trim(), file: `OFP ${g.f?.callsign || "VJC" + digits}${g.plan ? " CFP " + g.plan : ""}`, name: g.f?.callsign || `VJC${digits}` };
+      return { found: false, error: `Không lấy được FPL VJC${digits} từ OFP: ${missed.join("; ") || "OFP không có khối ATC FPL"}` };
+    } catch (e) {
+      return { found: false, error: `Không đọc được OFP VJC${digits}: ${(e as Error).message}` };
+    }
   },
 
   "POST /api/atc/upload": async (ctx) => {
