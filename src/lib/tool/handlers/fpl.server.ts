@@ -27,7 +27,7 @@ type Raw = ft.Raw;
 
 const NO_CREWLIST = "Chưa nạp Crewlist. Bấm Crew trên thanh lọc.";
 
-/** Crewlist thiếu payload → dò EST từ cache Omni (khớp số hiệu + chặng). */
+/** Crewlist thiếu payload → dò EST từ cache Omni (khớp số hiệu + chặng + NGÀY chuyến). */
 async function omniEstFallback(ctx: Ctx, flight: Raw): Promise<number | null> {
   try {
     const cache = await getJson<{ rows?: Array<Record<string, unknown>> }>(ctx, "omni.cache", { rows: [] });
@@ -37,10 +37,20 @@ async function omniEstFallback(ctx: Ctx, flight: Raw): Promise<number | null> {
     const arr = String(flight.arr || "").toUpperCase();
     const cands = (cache.rows || []).filter((r) => String(r.digits || "") === digits);
     if (!cands.length) return null;
-    const exact = cands.filter((r) =>
+    // Ưu tiên bản cùng NGÀY với chuyến trong Crewlist (vd chuyến ngày 12 thì lấy
+    // EST ngày 12, không lấy bản ngày 11 dù nạp Crewlist hôm 11).
+    const dm = String(flight.date || "").match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+    let pool = cands;
+    if (dm) {
+      const y = dm[3]!.length === 2 ? 2000 + +dm[3]! : +dm[3]!;
+      const want = `${y}-${String(+dm[2]!).padStart(2, "0")}-${String(+dm[1]!).padStart(2, "0")}`;
+      const sameDay = cands.filter((r) => String(r.std_local || "").slice(0, 10) === want);
+      if (sameDay.length) pool = sameDay;
+    }
+    const exact = pool.filter((r) =>
       (!dep || String(r.dep || "").toUpperCase() === dep) &&
       (!arr || String(r.arr || "").toUpperCase() === arr));
-    const pick = (exact.length ? exact : cands)[0];
+    const pick = (exact.length ? exact : pool)[0];
     const est = Number(pick && pick.est_payload);
     return Number.isFinite(est) && est > 0 ? Math.trunc(est) : null;
   } catch {
