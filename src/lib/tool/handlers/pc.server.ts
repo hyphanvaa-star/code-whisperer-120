@@ -94,8 +94,9 @@ function resolvePrinter(saved: string, printers: pc.AgentPrinter[]): string {
   return saved || "—";
 }
 
-/** Port of gd_print.crew_regs_for_digits() on the uploaded Crewlist Excel. */
-async function crewRegsFor(ctx: Ctx, flight: string): Promise<string[]> {
+/** Port of gd_print.crew_regs_for_digits() on the uploaded Crewlist Excel.
+ *  Trả thêm ngày chuyến (YYYY-MM-DD) để trợ lý chỉ nhận thư GD đúng ngày. */
+async function crewRegsFor(ctx: Ctx, flight: string): Promise<{ regs: string[]; date: string | null }> {
   const state = await getJson<{ file: string; sheet: string } | null>(ctx, "excel.current", null);
   if (!state) throw new Error("Chưa nạp Crewlist Excel.");
   const buf = await getFile(ctx, `excel/${state.file}`);
