@@ -2,6 +2,27 @@
   const init = () => {
     bind('#afBook', '#afBookRows', '#afBookCnt', true);
     bind('#afDef', '#afDefRows', '#afDefCnt', false);
+    const paste = document.querySelector('#afBookPaste');
+    const source = document.querySelector('#afBook');
+    const status = document.querySelector('#afBookPasteStatus');
+    if(!paste || !source || !status) return;
+    paste.addEventListener('input', () => {
+      if(!paste.value.trim()){ status.textContent = ''; return; }
+      const lines = paste.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      const rows = [];
+      for(const line of lines){
+        if(/^(CODE|CODE ADDRESS)\s+(ĐỊA CHỈ AFTN|AFTN ADDRESS)$/i.test(line)) continue;
+        const match = line.match(/^([A-Z0-9]{8})\s+(\/\S.*)$/i);
+        if(!match){ status.textContent = 'Có dòng không hợp lệ; danh bạ cũ chưa thay đổi.'; return; }
+        rows.push([match[1].toUpperCase(), match[2]]);
+      }
+      if(!rows.length){ status.textContent = 'Chưa có địa chỉ hợp lệ.'; return; }
+      source.value = rows.map(row => row.join('\t')).join('\n');
+      localStorage.setItem('aftn.book.replaced', '1');
+      source.dispatchEvent(new Event('input', {bubbles:true}));
+      status.textContent = 'Đã cập nhật ' + rows.length + ' địa chỉ.';
+      paste.value = '';
+    });
   };
   const bind = (sourceId, bodyId, countId, parenthesized) => {
     const source = document.querySelector(sourceId);
