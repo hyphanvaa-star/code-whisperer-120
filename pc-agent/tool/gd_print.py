@@ -491,6 +491,13 @@ def print_sheets(path: Path | str, *, printer: str = "",
             raise GdError(f"File chỉ có {n_sheets} sheet, cần tới sheet {need}.")
         for idx, copies, orient in plan:
             ws = wb.Worksheets(idx)
+            # Dấu ngắt trang thủ công trong file (do người làm GD chèn) ghi đè
+            # FitToPages — Excel vẫn ngắt trang theo dấu đó dù đã fit 1 trang.
+            # Xóa hết trước khi áp PageSetup để nội dung gom đúng một trang.
+            try:
+                ws.ResetAllPageBreaks()
+            except Exception:
+                log.debug("sheet %s: ResetAllPageBreaks lỗi", idx, exc_info=True)
             setup = ws.PageSetup
             setup.Orientation = xl_landscape if orient == "landscape" else xl_portrait
             setup.Zoom = False
