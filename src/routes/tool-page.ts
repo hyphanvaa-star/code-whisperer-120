@@ -900,6 +900,25 @@ td .dim,.dim{color:var(--x-mute) !important}
 /* ---------- THẺ CHI TIẾT CHUYẾN: nền tối như bản gốc ---------- */
 #detailWrap{background:#12161d !important;border:1px solid #2a3342 !important}
 #detailWrap .pane{background:#12161d !important}
+/* Check OFP shares the dark detail surface, not the light table palette. */
+#paneLimitCheck{
+  --ofp-text:var(--vj-dark-ink);--ofp-muted:#c5cddb;--ofp-evidence:#a9c9ff;
+  --ofp-success:#7dff9a;--ofp-danger:#ffaaa3;--ofp-warning:#ffd477;
+  --ofp-divider:#3a4558;
+  color:var(--ofp-text) !important;-webkit-text-fill-color:currentColor !important;
+}
+#paneLimitCheck *{-webkit-text-fill-color:currentColor !important}
+#paneLimitCheck .ofp-row,#paneLimitCheck .ofp-cs,#paneLimitCheck .ofp-sum,#paneLimitCheck .empty{
+  color:var(--ofp-text) !important;
+}
+#paneLimitCheck .ofp-row{border-color:var(--ofp-divider) !important}
+#paneLimitCheck .ofp-head,#paneLimitCheck .ofp-why{color:var(--ofp-muted) !important}
+#paneLimitCheck .ofp-ev{color:var(--ofp-evidence) !important}
+#paneLimitCheck .ofp-tag{background:transparent !important;border-color:currentColor !important}
+#paneLimitCheck .ofp-tag.ok{color:var(--ofp-success) !important}
+#paneLimitCheck .ofp-tag.crit{color:var(--ofp-danger) !important}
+#paneLimitCheck .ofp-tag.wait{color:var(--ofp-muted) !important}
+#paneLimitCheck .ofp-tag.fail,#paneLimitCheck .ofp-tag.warn{color:var(--ofp-warning) !important}
 .detail-tabs{background:#12161d !important;border-bottom:1px solid #2a3342 !important}
 .detail-tabs .hint{color:#8b93a7 !important}
 .dtab{color:#9aa6bb !important;background:transparent !important}
