@@ -1411,17 +1411,35 @@ async function page(): Promise<string> {
     // A new workbook invalidates both the lookup catalogue and selected KHB rows.
     .replace('if(fplText && !ftCatalog.length) ftLoad();', 'if(fplText) ftLoad();')
     .replace('async function ftLoad(){', `let ftCrewRevision = 0;
+let ftKeep = null;
+function ftSnap(){
+  return ftRows.map(f => f ? {f: f, edit: ftEdit[f.id] ? JSON.parse(JSON.stringify(ftEdit[f.id])) : null} : null);
+}
+function ftRemap(snap){
+  const norm = v => String(v == null ? "" : v).trim().toUpperCase();
+  const key = (f, n) => [f.flt, f.date, f.dep, f.arr, f.etd].slice(0, n).map(norm).join("|");
+  const used = new Set();
+  const out = [];
+  for(const k of Object.keys(ftEdit)) delete ftEdit[k];
+  snap.forEach((s, i) => {
+    if(!s) return;
+    let hit = null;
+    for(const n of [5, 4, 2, 1]){
+      hit = ftCatalog.find(c => !used.has(c.id) && key(c, n) === key(s.f, n));
+      if(hit) break;
+    }
+    if(!hit) return;
+    used.add(hit.id);
+    out[i] = hit;
+    if(s.edit) ftEdit[hit.id] = s.edit;
+  });
+  ftRows = out;
+}
 function ftCrewChanged(){
   ftCrewRevision++;
+  // Keep the dispatcher's rows: remember them and re-match after the new Crewlist loads.
+  if(ftRows.some(Boolean)) ftKeep = ftSnap();
   ftCatalog = [];
-  ftRows = [];
-  for(const k of Object.keys(ftBlank)) delete ftBlank[k];
-  for(const k of Object.keys(ftEdit)) delete ftEdit[k];
-  ftPldOn = false;
-  const round = $("#ftPldRound");
-  if(round){ round.classList.remove("on"); round.setAttribute("aria-pressed", "false"); round.textContent = "Auto Rounding PLD"; }
-  const preview = $("#ftPreview");
-  if(preview) preview.textContent = "";
   ftRender();
   $("#ftStat").textContent = "Crewlist đã thay đổi — đang nạp dữ liệu mới…";
   ftLoad();
@@ -1431,14 +1449,9 @@ async function ftLoad(){
     .replace('    ftCatalog = d.flights || [];', `    if(revision !== ftCrewRevision) return;
     const next = d.flights || [];
     const signature = rows => JSON.stringify(rows.map(f => [f.id, f.flt, f.date, f.dep, f.arr, f.etd, f.reg]));
-    if(ftCatalog.length && signature(ftCatalog) !== signature(next)){
-      ftRows = [];
-      for(const k of Object.keys(ftBlank)) delete ftBlank[k];
-      for(const k of Object.keys(ftEdit)) delete ftEdit[k];
-      const preview = $("#ftPreview");
-      if(preview) preview.textContent = "";
-    }
-    ftCatalog = next;`)
+    if(!ftKeep && ftCatalog.length && signature(ftCatalog) !== signature(next) && ftRows.some(Boolean)) ftKeep = ftSnap();
+    ftCatalog = next;
+    if(ftKeep){ const snap = ftKeep; ftKeep = null; ftRemap(snap); }`)
     // Crewlist uploads can renumber rows: send flight identity, not just the row ID.
     .replace('body: JSON.stringify({ids: ids})', 'body: JSON.stringify({ids: ids, rows: ftRows.filter(Boolean).map(f => ({id:f.id, flt:f.flt, date:f.date, dep:f.dep, arr:f.arr, etd:f.etd}))})')
     .replace('specs.push({id: f.id, talt:', 'specs.push({id: f.id, flt: f.flt, date: f.date, dep: f.dep, arr: f.arr, etd: f.etd, talt:')
