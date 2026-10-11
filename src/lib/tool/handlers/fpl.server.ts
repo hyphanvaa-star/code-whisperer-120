@@ -250,17 +250,20 @@ export const routes: Routes = {
         continue;
       }
       const flt = String(flight.flt || "");
-      const est = ft.est_payload(db, flt);
+      let est = ft.est_payload(db, flt);
+      if (est === null) est = await omniEstFallback(ctx, flight);
       if (est === null) {
-        rows.push({ id: rawId, flt, pay: "", alert: `VJ${flt} không có EST` });
+        // Không có EST: điền tạm 9999, đánh dấu manual để dispatcher tự kiểm tra.
+        rows.push({ id: rawId, flt, pay: "9999", manual: true, alert: `VJ${flt} không có EST — điền tạm 9999, tự kiểm tra` });
         continue;
       }
       const [rounded, why] = ft.round_est(est, String(flight.ac || ""));
       if (rounded === null) {
-        rows.push({ id: rawId, flt, est, pay: "", alert: `VJ${flt} ${why}` });
+        // Vượt ngưỡng làm tròn: điền tạm EST gốc, đánh dấu manual để tự điều chỉnh.
+        rows.push({ id: rawId, flt, est, pay: String(est), manual: true, alert: `VJ${flt} ${why} — điền tạm ${est}, tự điều chỉnh` });
         continue;
       }
-      rows.push({ id: rawId, flt, est, pay: String(rounded), alert: "" });
+      rows.push({ id: rawId, flt, est, pay: String(rounded), manual: false, alert: "" });
     }
     return { ok: true, rows };
   },
