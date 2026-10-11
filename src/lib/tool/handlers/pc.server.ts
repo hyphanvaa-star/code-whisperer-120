@@ -111,16 +111,21 @@ async function crewRegsFor(ctx: Ctx, flight: string): Promise<{ regs: string[]; 
   const want = gd.digitsOf(flight);
   const out: string[] = [];
   const seen = new Set<string>();
+  let date: string | null = null;
   for (const row of sheetDicts(sheet)) {
     const cs = String(row[mapping["callsign"]] ?? "");
     if (!gd.containsFlight(cs, want)) continue;
+    if (!date && mapping["date"]) {
+      const d = normDate(row[mapping["date"]!]);
+      if (d) date = d.toISOString().slice(0, 10);
+    }
     const raw = String(row[mapping["reg"]] ?? "").trim();
     const key = gd.normalizeReg(raw);
     if (!key || seen.has(key)) continue;
     seen.add(key);
     out.push(gd.prettyReg(raw));
   }
-  return out;
+  return { regs: out, date };
 }
 
 function omniCreds(): omni.OmniCredentials {
