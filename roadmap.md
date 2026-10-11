@@ -1,7 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [x] PLD: bỏ dữ liệu mẫu cho làm tròn và xem/xuất FPL; khớp Omni đúng ngày/chặng; 13 kiểm thử đạt, gồm PAY xuất của 813/970/120 ngày 12/10; bản dựng OK; chưa publish.
-- [ ] PLD: xuất lại FPL từ phiên người dùng thật — chờ đăng nhập preview (không tạo được phiên cho tài khoản yêu cầu).
+- [x] PLD: bỏ dữ liệu mẫu cho làm tròn và xem/xuất FPL; khớp Omni đúng ngày/chặng; 13 kiểm thử đạt, gồm PAY xuất của 813/970/120 ngày 12/10; đã publish V46.
+- [ ] PLD: xuất lại FPL từ phiên người dùng thật — chờ người dùng kiểm tra trên live (không tạo được phiên cho tài khoản yêu cầu).
 
 - [x] GD in dọc: áp giấy/hướng trước fit, gộp vùng in tách, kiểm tra số trang trước khi in; sheet 5 dùng Zoom đo thật + kiểm PDF, 7 tests đạt, gói AGENT v48 (nhật ký ghi "In GD bản v48" + Zoom đã dùng) đã cập nhật; chưa publish.
 - [ ] Thử GD in dọc trên Excel/RICOH thật — chờ người dùng cập nhật AGENT và thử tại máy công ty.
