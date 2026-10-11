@@ -23843,7 +23843,7 @@ function ftLimHits(st){
       if(closed) ftLimAdd(hits[p[0]], "critical", p[2] + " " + ftAptNorm(p[1]) + ": " + limit);
       else if(noApu && apuInop) ftLimAdd(hits[p[0]], "critical", p[2] + " " + ftAptNorm(p[1]) + " NO APU + tàu APU INOP — " + limit);
       else if(noApu && reqApu) ftLimAdd(hits[p[0]], "warning", p[2] + " " + ftAptNorm(p[1]) + " NO APU + tàu REQ APU/ACU/ASU — " + limit);
-      else if(noApu) continue;
+      else if(noApu) return;
       else ftLimAdd(hits[p[0]], "warning", p[2] + " " + ftAptNorm(p[1]) + ": " + limit);
     });
   });
