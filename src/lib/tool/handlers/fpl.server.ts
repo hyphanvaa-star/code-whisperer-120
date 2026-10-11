@@ -426,7 +426,7 @@ export const routes: Routes = {
 
 export const jobs: Jobs = {};
 
-async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any; block: string; plan?: string }[]; missed: string[] }> {
+export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any; block: string; plan?: string }[]; missed: string[] }> {
     const ae = await import("../port/atc_ezfw");
     const { loadFlights } = await import("../core/gantts.server");
     const { fbGet } = await import("@/lib/flitebrief.server");
