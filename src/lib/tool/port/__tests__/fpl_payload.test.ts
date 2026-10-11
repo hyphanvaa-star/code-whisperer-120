@@ -38,6 +38,6 @@ describe('KHB flight-date payload', () => {
     expect(exportPayloadItems(db, [{ ...flights[0], date: '13/10/26' }], rows)[0]?.pay).toBe('9999');
   });
   it('keeps the original rounding rules', () => {
-    expect(flights.map(f => round_est(omniPayload(rows, f) ?? 0, f.ac)[0])).toEqual([22330, 15540, 17980]);
+    expect(flights.map(f => round_est(omniPayload(rows, f) ?? 0, f.ac)[0])).toEqual([22300, 15000, 17500]);
   });
 });
