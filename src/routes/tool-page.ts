@@ -1810,7 +1810,7 @@ function ftRender(){
       #wrapAftn label:has(#afFl){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:800;letter-spacing:.06em;color:var(--x-ink);-webkit-text-fill-color:var(--x-ink)}
       #wrapAftn #afFl{box-sizing:border-box!important;width:240px!important;min-height:68px!important;font-size:34px!important;font-weight:800!important;line-height:1;text-align:center!important;padding:8px 12px!important;border:2px solid var(--x-line)!important;border-radius:12px!important;background:var(--x-card)!important;color:#c00!important;-webkit-text-fill-color:#c00!important}
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
-    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script></body>`)
+    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
