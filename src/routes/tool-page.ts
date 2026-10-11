@@ -1478,6 +1478,9 @@ async function ftLoad(){
     .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
     .replace(/\/\* ===== Checklist F-017 ===== \*\/[\s\S]*?(?=\$\("#ftMsgBtn"\)\.onclick)/, () => 'const CK_EDTO_TEMPLATE_URL = '+JSON.stringify(checklistEdtoAsset.url)+';\n'+checklistScript + '\nconst FORM_MNL_TEMPLATE_URL = '+JSON.stringify(formMnlAsset.url)+';\nconst FORM_MNL_SIG_URL = '+JSON.stringify(mnlSigAsset.url)+';\n'+formMnlScript+'\n')
     .replace(/\s*<button type="button" class="btn small" id="ftLicBtn"[^>]*>DSP License<\/button>/, '')
+    .replace('KHOUXAAF /OU=KHOUXAAF/O=AFTN/";', 'KHOUXAAF /OU=KHOUXAAF/O=AFTN/PRMD=K/ADMD=ICAO/C=XX/";')
+    .replace('  $("#afDef").value=localStorage.getItem(K.def)??DEF_DEFAULT;', `  $("#afDef").value=(localStorage.getItem(K.def)??DEF_DEFAULT).split(/\\r?\\n/).map(line => /^KHOUXAAF\\s+\\/OU=KHOUXAAF\\/O=AFTN\\/\\s*$/i.test(line.trim()) ? "KHOUXAAF /OU=KHOUXAAF/O=AFTN/PRMD=K/ADMD=ICAO/C=XX/" : line).join("\\n");`)
+    .replace(/<textarea id="afDef"[^>]*><\/textarea>/, `<textarea id="afDef" hidden></textarea><div class="af-default-scroll"><table id="afDefTable" aria-label="Địa chỉ AFTN mặc định"><colgroup><col class="af-code-col"><col></colgroup><thead><tr><th>CODE</th><th>ĐỊA CHỈ AFTN</th></tr></thead><tbody id="afDefRows"></tbody></table></div>`)
     .replace('  $("#afBook").value=localStorage.getItem(K.book)??BOOK_DEFAULT;', `  const suppliedBook = ${JSON.stringify(aftnAddresses)};
   const savedBook = localStorage.getItem(K.book);
   const customBook = savedBook && savedBook !== BOOK_DEFAULT ? savedBook : "";
@@ -1488,13 +1491,14 @@ async function ftLoad(){
     .replace('<label>File FPL (chọn thư mục hoặc nhiều file)<br>', '<label hidden>')
     .replace('<div><b>Nội dung FPL tìm được</b>', '<div hidden>')
     .replace('</body>', `<style>
-      #afBook[hidden]{display:none!important}
+      #afBook[hidden],#afDef[hidden]{display:none!important}
+      .af-default-scroll{max-height:260px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
       .af-book-scroll{height:420px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
-      #afBookTable{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--x-mono)}
-      #afBookTable .af-code-col{width:116px}
-      #afBookTable th{position:sticky;top:0;z-index:1;background:var(--x-bg)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;text-align:left;padding:8px;border-bottom:1px solid var(--x-line)}
-      #afBookTable td{padding:6px 8px;border-bottom:1px solid var(--x-line2);border-right:1px solid var(--x-line);vertical-align:top;color:var(--x-ink)!important;background:var(--x-card)!important;font-size:13px!important;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
-      #afBookTable td:focus{outline:2px solid var(--x-red);outline-offset:-2px}
+      #afBookTable,#afDefTable{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--x-mono)}
+      #afBookTable .af-code-col,#afDefTable .af-code-col{width:116px}
+      #afBookTable th,#afDefTable th{position:sticky;top:0;z-index:1;background:var(--x-bg)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;text-align:left;padding:8px;border-bottom:1px solid var(--x-line)}
+      #afBookTable td,#afDefTable td{padding:6px 8px;border-bottom:1px solid var(--x-line2);border-right:1px solid var(--x-line);vertical-align:top;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;background:var(--x-card)!important;font-size:13px!important;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+      #afBookTable td:focus,#afDefTable td:focus{outline:2px solid var(--x-red);outline-offset:-2px}
       #wrapAftn>div:nth-child(2){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
     </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)

@@ -38,4 +38,4 @@
 - Tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart`; live AIP fetches are unreliable.
 - KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
 - Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer.
-- AFTN book edits use the tool-page shim and bundled TXT; two-column cells retain local text storage and lookup for TPL compatibility.
+- AFTN book and default-address edits use the tool-page shim and shared two-column editor; cells retain local text storage and lookup for TPL compatibility.

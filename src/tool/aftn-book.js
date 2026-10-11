@@ -1,13 +1,18 @@
 (function(){
   const init = () => {
-    const source = document.querySelector('#afBook');
-    const body = document.querySelector('#afBookRows');
+    bind('#afBook', '#afBookRows', '#afBookCnt', true);
+    bind('#afDef', '#afDefRows', '#afDefCnt', false);
+  };
+  const bind = (sourceId, bodyId, countId, parenthesized) => {
+    const source = document.querySelector(sourceId);
+    const body = document.querySelector(bodyId);
     if(!source || !body) return;
     const rowsOf = text => text.split(/\r?\n/).map(line => line.trim().match(/^([A-Z0-9]+)\s+(\/.*)$/i)).filter(Boolean).map(m => [m[1], m[2]]);
+    const count = length => { document.querySelector(countId).textContent = parenthesized ? '(' + length + ')' : String(length); };
     const commit = () => {
       source.value = Array.from(body.rows).map(row => Array.from(row.cells).map(cell => cell.textContent.trim()).join('\t')).filter(line => line.trim()).join('\n');
       source.dispatchEvent(new Event('input', {bubbles:true}));
-      document.querySelector('#afBookCnt').textContent = '(' + body.rows.length + ')';
+      count(rowsOf(source.value).length);
     };
     const paint = rows => {
       const fragment = document.createDocumentFragment();
@@ -24,9 +29,13 @@
         fragment.append(row);
       }
       body.replaceChildren(fragment);
-      document.querySelector('#afBookCnt').textContent = '(' + rows.length + ')';
+      count(rows.length);
     };
     paint(rowsOf(source.value));
+    source.addEventListener('input', () => {
+      const current = Array.from(body.rows).map(row => Array.from(row.cells).map(cell => cell.textContent.trim()).join('\t')).join('\n');
+      if(JSON.stringify(rowsOf(current)) !== JSON.stringify(rowsOf(source.value))) paint(rowsOf(source.value));
+    });
     body.addEventListener('input', commit);
     body.addEventListener('paste', event => {
       const text = event.clipboardData?.getData('text/plain') || '';
