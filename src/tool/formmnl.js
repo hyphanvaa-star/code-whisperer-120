@@ -32,8 +32,13 @@ async function mnlShot(html){
     for(const inp of [...form.querySelectorAll('input')]){
       const cs=fr.contentWindow.getComputedStyle(inp),sp=fr.contentDocument.createElement('span');
       sp.textContent=inp.value||'';
-      for(const k of ['width','height','borderTop','borderRight','borderBottom','borderLeft','paddingLeft','paddingRight','fontFamily','fontSize','fontWeight','color','backgroundColor','verticalAlign','boxSizing','marginLeft','marginRight'])sp.style[k]=cs[k];
-      sp.style.display='inline-block';sp.style.lineHeight=cs.height;sp.style.whiteSpace='pre';sp.style.overflow='hidden';sp.style.paddingTop='0';sp.style.paddingBottom='0';
+      const r=inp.getBoundingClientRect();
+      for(const k of ['borderTop','borderRight','borderBottom','borderLeft','paddingLeft','paddingRight','fontFamily','fontSize','fontWeight','color','backgroundColor','verticalAlign','marginLeft','marginRight','marginTop','marginBottom','textAlign'])sp.style[k]=cs[k];
+      // No overflow:hidden — an inline-block with hidden overflow takes its bottom
+      // edge as baseline and jumps up over the labels. Keep the text baseline.
+      const bt=parseFloat(cs.borderTopWidth)||0,bb=parseFloat(cs.borderBottomWidth)||0;
+      sp.style.boxSizing='border-box';sp.style.width=r.width+'px';sp.style.height=r.height+'px';
+      sp.style.display='inline-block';sp.style.lineHeight=Math.max(0,r.height-bt-bb)+'px';sp.style.whiteSpace='pre';sp.style.paddingTop='0';sp.style.paddingBottom='0';
       inp.replaceWith(sp);
     }
     const fw=form.scrollWidth;form.style.width=fw+'px';form.style.display='inline-block';const W=fw+4;fr.style.width=W+'px';await new Promise(r=>setTimeout(r,50));
