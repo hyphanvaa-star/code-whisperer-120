@@ -925,6 +925,10 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
    cảnh báo bên dưới (ft-lim-crit/warn, ft-extra-auto, ft-ac-a330) để ô alert
    vẫn giữ nguyên màu đỏ/cam/xanh của nó. */
 #wrapFplText .fttbl td{color:var(--x-khb-ink) !important}
+/* Badge chuyến trùng nổi bên trái, không chiếm chỗ ô FLT NO */
+#wrapFplText .fttbl td.ftflt{position:relative !important;overflow:visible !important}
+#wrapFplText .fttbl td.ftflt > .ftbadge{position:absolute !important;left:-9px;top:50%;transform:translateY(-50%);z-index:3;border:0;padding:0;cursor:pointer;color:#fff !important}
+#wrapFplText .fttbl td.ftflt > input{width:100% !important;min-width:5ch !important}
 #wrapFplText .fttbl input[type=text]{color:var(--x-khb-ink) !important}
 #wrapFplText .fttbl td.dimcell{color:var(--x-mute) !important}
 
