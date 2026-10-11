@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] AFTN filling: nạp danh bạ TXT người dùng và tách CODE / địa chỉ thành hai cột sửa được, giữ cách xuất TPL hiện có; chưa publish.
+
 - [x] Checklist: thêm lựa chọn Normal/EDTO; mẫu F-018 gốc, YES ở dòng nội dung và mục độc lập, Extra Fuel for EDTO tích NO, DSP/license dưới REMARK; thử hai chuyến mẫu tải PDF hai trang, kiểm tra mọi vị trí tích và xem ảnh cả hai trang không thấy tràn/đè chữ; Normal vẫn tải đúng. Chưa publish, chưa thử chuyến thật.
 
 - [x] Checklist KHB: một PDF mỗi chuyến, dấu ✓ đúng ô (II.3/4 ở dòng nội dung), DSP License thành ô nhập; thử hai chuyến mẫu tải hai PDF, xem đủ trang, sửa font tên tiếng Việt và tràn trang của mẫu; kiểm tra ô nhập trong iframe thật. Chưa publish.

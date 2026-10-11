@@ -9,6 +9,8 @@ import checklistEdtoAsset from '@/assets/checklist-edto.asset.json';
 import formMnlScript from '@/tool/formmnl.js?raw';
 import formMnlAsset from '@/assets/form-mnl.asset.json';
 import mnlSigAsset from '@/assets/mnl-signature.asset.json';
+import aftnAddresses from '@/tool/aftn-addresses.txt?raw';
+import aftnBookScript from '@/tool/aftn-book.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1476,7 +1478,23 @@ async function ftLoad(){
     .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
     .replace(/\/\* ===== Checklist F-017 ===== \*\/[\s\S]*?(?=\$\("#ftMsgBtn"\)\.onclick)/, () => 'const CK_EDTO_TEMPLATE_URL = '+JSON.stringify(checklistEdtoAsset.url)+';\n'+checklistScript + '\nconst FORM_MNL_TEMPLATE_URL = '+JSON.stringify(formMnlAsset.url)+';\nconst FORM_MNL_SIG_URL = '+JSON.stringify(mnlSigAsset.url)+';\n'+formMnlScript+'\n')
     .replace(/\s*<button type="button" class="btn small" id="ftLicBtn"[^>]*>DSP License<\/button>/, '')
-    .replace('</body>', `<script>${notamGeometryFixes}</script></body>`)
+    .replace('  $("#afBook").value=localStorage.getItem(K.book)??BOOK_DEFAULT;', `  const suppliedBook = ${JSON.stringify(aftnAddresses)};
+  const savedBook = localStorage.getItem(K.book);
+  const customBook = savedBook && savedBook !== BOOK_DEFAULT ? savedBook : "";
+  const customCodes = new Set(parse(customBook).map(row => row[0]));
+  $("#afBook").value = customBook ? customBook + "\\n" + suppliedBook.split(/\\r?\\n/).filter(line => !customCodes.has(line.split(/\\s+/)[0])).join("\\n") : suppliedBook;`)
+    .replace(/<textarea id="afBook"[^>]*><\/textarea>/, `<textarea id="afBook" hidden></textarea><div class="af-book-scroll"><table id="afBookTable" aria-label="Danh bạ AFTN"><colgroup><col class="af-code-col"><col></colgroup><thead><tr><th>CODE</th><th>ĐỊA CHỈ AFTN</th></tr></thead><tbody id="afBookRows"></tbody></table></div>`)
+    .replace('<div style="font-size:12px;opacity:.8">Dán từ Excel 2 cột (CODE + địa chỉ). Tự lưu trên máy này.</div>', '')
+    .replace('</body>', `<style>
+      #afBook[hidden]{display:none!important}
+      .af-book-scroll{height:420px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
+      #afBookTable{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--x-mono)}
+      #afBookTable .af-code-col{width:116px}
+      #afBookTable th{position:sticky;top:0;z-index:1;background:var(--x-bg)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;text-align:left;padding:8px;border-bottom:1px solid var(--x-line)}
+      #afBookTable td{padding:6px 8px;border-bottom:1px solid var(--x-line2);border-right:1px solid var(--x-line);vertical-align:top;color:var(--x-ink)!important;background:var(--x-card)!important;font-size:13px!important;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+      #afBookTable td:focus{outline:2px solid var(--x-red);outline-offset:-2px}
+      #wrapAftn>div:nth-child(2){grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
