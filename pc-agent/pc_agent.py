@@ -529,7 +529,11 @@ def do_gd_print(payload: dict, say) -> dict:
             raise RuntimeError(
                 f"tàu lệch — GD {gd_reg} nhưng crewlist {' / '.join(crew_regs)}. Không in."
             )
-    print_sheets(path, printer, say)
+    # Dùng bộ in gd_print.py (ép vừa 1 trang, kiểm bằng PDF) — hàm print_sheets
+    # cũ trong file này không fit trang nên GD dọc tràn sang tờ 2.
+    import gd_print as gp  # module trong PC_TOOL_DIR
+    say(f"· dùng bộ in GD {getattr(gp, 'GD_BUILD', '?')} ({Path(gp.__file__).name})")
+    gp.print_sheets(path, printer=printer, on_progress=say)
     say("✓ đã gửi máy in")
     return {"gd_reg": gd_reg, "file": path.name}
 
