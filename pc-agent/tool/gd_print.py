@@ -581,6 +581,7 @@ def _scan_gendec_folder(
     )
     pages = 0
     later: list[tuple[str, str]] = []
+    seen_n = 0
     while url and pages < MAX_PAGES:
         response = sess.get(url, timeout=60)
         if response.status_code >= 400:
@@ -595,6 +596,7 @@ def _scan_gendec_folder(
             mid = str(msg.get("Id") or msg.get("id") or "")
             if not mid:
                 continue
+            seen_n += 1
             # Tiêu đề có số hiệu → xử lý ngay; không thì để dành soi tên file.
             if not contains_flight(subject, want):
                 later.append((mid, subject))
@@ -605,6 +607,13 @@ def _scan_gendec_folder(
                 return got
         url = data.get("@odata.nextLink")
         pages += 1
+        if not url and pages == 1 and seen_n == 0 and "HasAttachments" in flt:
+            # Bộ lọc đính kèm không trả gì — xem lại chỉ theo ngày.
+            flt = f"ReceivedDateTime ge {lo.strftime('%Y-%m-%dT%H:%M:%SZ')}"
+            url = (f"{root}/mailfolders/{fid}/messages?$filter={quote(flt)}"
+                   f"&$select=Id,Subject,ReceivedDateTime"
+                   f"&$orderby=ReceivedDateTime desc&$top=50")
+    say(f"  ({seen_n} thư trong 7 ngày)")
     # Lượt 2: tiêu đề không ghi số hiệu — soi tên file đính kèm.
     for mid, subject in later[:120]:
         got = _take_gd(sess, root, mid, subject, want, dest, say, strict=True)
