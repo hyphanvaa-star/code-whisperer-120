@@ -421,7 +421,7 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
     const ae = await import("../port/atc_ezfw");
     const { loadFlights } = await import("../core/gantts.server");
     const { fbGet } = await import("@/lib/flitebrief.server");
-    const flights = await loadFlights(3);
+    const flights = await loadFlights(3, true);
     const now = Date.now();
     const pickFlight = (it: Raw) => {
       const digits = ae.digitsOf(String(it.flt || ""));
