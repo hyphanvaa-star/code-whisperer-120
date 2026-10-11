@@ -114,6 +114,7 @@ function mnlEditor(files,errs,lic,certPng){
   const certUrl=URL.createObjectURL(certPng);
   for(const f of files){
     const sec=document.createElement('div');sec.style.cssText='margin:10px 0 18px;border-top:1px solid var(--line);padding-top:10px';
+    const hd=document.createElement('div');hd.style.cssText='font-size:18px;font-weight:700;margin-bottom:6px;color:var(--vj-dark-ink)';hd.textContent=f.flt+'  |  CFP No: '+f.plan+'  |  Tàu: '+f.reg;
     const name=document.createElement('input');name.value=f.name;name.style.cssText='width:100%;margin-bottom:6px';
     const fr=document.createElement('iframe');fr.style.cssText='width:100%;height:560px;border:0;background:#fff';
     const cw=document.createElement('div');cw.style.cssText='position:relative;margin-top:8px;background:#fff';
@@ -129,7 +130,7 @@ function mnlEditor(files,errs,lic,certPng){
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name.value.replace(/\.(docx|pdf)$/i,'')+'.pdf';a.click();
       setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     }catch(e){alert('Lỗi xuất PDF: '+e.message);}finally{ex.disabled=false;ex.textContent='Xuất PDF';}};
-    sec.append(name,fr,cw,ex);box.appendChild(sec);
+    sec.append(hd,name,fr,cw,ex);box.appendChild(sec);
     fr.onload=null;
     setTimeout(()=>{const d=fr.contentDocument;d.open();d.write(f.html);d.close();d.body.contentEditable='true';d.body.style.background='#fff';},0);
   }
@@ -157,7 +158,7 @@ mnlBtn.onclick=async function(){
         const r=await fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t);
         const j=await r.json();
         if(!j || j.error) throw new Error(j&&j.error||('HTTP '+r.status));
-        files.push({html:j.html,name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.pdf'});
+        files.push({plan:j.plan,reg:((/REG\/([A-Z0-9]+)/.exec(j.html)||[])[1]||'?'),flt:leg.flt,html:j.html,name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.pdf'});
       }catch(e){errs.push(leg.flt+': '+e.message);}
     }
     if(!files.length){alert('FORM MNL lỗi:\n'+errs.join('\n'));return;}
