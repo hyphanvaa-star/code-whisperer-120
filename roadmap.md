@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Check ATC: màu kết quả rõ, đồng đều giữa các hàng; dữ liệu thiếu hiện “- - - -”.
+
 - [x] KHB: nạp/chọn Crewlist làm mới danh sách và bỏ chuyến ngày cũ; thử giao diện ngày 9 → 10 đạt, chưa thử file thật của người dùng.
 
 - [x] Auto Rounding PLD: nhận diện theo số chuyến/ngày/chặng/ETD thay vì chỉ số dòng Crewlist; 17 tests đạt, kiểm tra nút PLD trong trình duyệt đạt.
