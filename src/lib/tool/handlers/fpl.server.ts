@@ -27,6 +27,27 @@ type Raw = ft.Raw;
 
 const NO_CREWLIST = "Chưa nạp Crewlist. Bấm Crew trên thanh lọc.";
 
+/** Crewlist thiếu payload → dò EST từ cache Omni (khớp số hiệu + chặng). */
+async function omniEstFallback(ctx: Ctx, flight: Raw): Promise<number | null> {
+  try {
+    const cache = await getJson<{ rows?: Array<Record<string, unknown>> }>(ctx, "omni.cache", { rows: [] });
+    const digits = String(flight.flt || "").replace(/\D/g, "").replace(/^0+/, "");
+    if (!digits) return null;
+    const dep = String(flight.dep || "").toUpperCase();
+    const arr = String(flight.arr || "").toUpperCase();
+    const cands = (cache.rows || []).filter((r) => String(r.digits || "") === digits);
+    if (!cands.length) return null;
+    const exact = cands.filter((r) =>
+      (!dep || String(r.dep || "").toUpperCase() === dep) &&
+      (!arr || String(r.arr || "").toUpperCase() === arr));
+    const pick = (exact.length ? exact : cands)[0];
+    const est = Number(pick && pick.est_payload);
+    return Number.isFinite(est) && est > 0 ? Math.trunc(est) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadRaw(ctx: Ctx): Promise<Raw> {
   return getJson<Raw>(ctx, "fpl.raw", rawSeed as unknown as Raw);
 }
