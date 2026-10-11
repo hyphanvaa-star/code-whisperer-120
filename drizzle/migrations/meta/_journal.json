@@ -1,27 +1,5 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1791467470465,
-      "tag": "0000_signup_trigger",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1791720013610,
-      "tag": "0001_create_team_chat",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1791732130572,
-      "tag": "0002_profiles_original_username",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }
