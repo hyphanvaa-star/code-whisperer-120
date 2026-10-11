@@ -96,7 +96,7 @@ export async function runWithUserCreds<T>(userId: string, fn: () => Promise<T>, 
 /** Run with explicit overrides (used to test-login before saving). */
 export function runWithVars<T>(extra: Record<string, string>, fn: () => Promise<T>): Promise<T> {
   const cur = als.getStore();
-  return als.run({ userId: cur?.userId ?? "", vars: { ...(cur?.vars ?? {}), ...extra }, ip: cur?.ip }, fn);
+  return als.run({ userId: cur?.userId ?? "", vars: { ...(cur?.vars ?? {}), ...extra }, ip: cur?.ip ?? "" }, fn);
 }
 
 /** Like process.env[name], but the signed-in user's saved account wins. */
