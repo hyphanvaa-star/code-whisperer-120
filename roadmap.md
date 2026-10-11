@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Mẫu màu nút Công cụ hỗ trợ: thêm 3 mẫu khác (4–6), chỉ ảnh xem trước, chưa áp dụng lên web.
+
 - [x] Check ATC: màu kết quả đậm, đồng đều giữa các hàng; ô thiếu dữ liệu của dòng có chuyến hiện “- - - -”; kiểm tra giao diện sáng/tối đạt, không đổi dữ liệu thật; chưa publish.
 
 - [x] KHB: nạp/chọn Crewlist làm mới danh sách và bỏ chuyến ngày cũ; thử giao diện ngày 9 → 10 đạt, chưa thử file thật của người dùng.
