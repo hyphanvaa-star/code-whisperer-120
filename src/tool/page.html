@@ -23826,10 +23826,12 @@ function ftLimHits(st){
     ["alt1", st.alt1, "ALT1"],
     ["alt2", st.alt2, "ALT2"]
   ];
-  const apuInop = (lim.aircraft || []).some(function(row){
-    if(ftRegKey(row.reg) !== ftRegKey(st.reg)) return false;
+  let apuInop = false, reqApu = false;
+  (lim.aircraft || []).forEach(function(row){
+    if(ftRegKey(row.reg) !== ftRegKey(st.reg)) return;
     const t = (String(row.defect || "") + " " + String(row.limit || "")).toUpperCase();
-    return /APU/.test(t) && /INOP|U\/S|INOPERATIVE|UNSERVICEABLE/.test(t);
+    if(/APU/.test(t) && /INOP|U\/S|INOPERATIVE|UNSERVICEABLE/.test(t)) apuInop = true;
+    if(/REQ(?:UIRE[DS]?)?[^A-Z]{0,12}(APU|ACU|ASU)|(APU|ACU|ASU)[^A-Z]{0,12}REQ/.test(t)) reqApu = true;
   });
   (lim.airports || []).forEach(function(row){
     const code = row.code, limit = String(row.limit || "").trim();
