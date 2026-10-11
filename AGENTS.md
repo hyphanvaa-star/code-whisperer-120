@@ -39,3 +39,4 @@
 - KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
 - Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer.
 - AFTN book and default-address edits use the tool-page shim and shared two-column editor; cells retain local text storage and lookup for TPL compatibility.
+- Team chat (group + 1-1) lives in `chat_rooms`/`chat_messages` with dispatcher-scoped RLS and admin-only message delete; the floating UI is `src/components/chat/ChatWidget.tsx` mounted in `__root`, polling every 4s instead of Realtime to avoid publication config.
