@@ -54,10 +54,17 @@ export async function checkAgentToken(token: string): Promise<boolean> {
   });
 }
 
+async function myIp(): Promise<string> {
+  const { currentIp } = await import("./creds.server");
+  return currentIp();
+}
+
+/** Each helper only receives jobs from browsers on the same public IP (same office / same home). */
 export async function enqueue(kind: PcJobKind, payload: Record<string, unknown>): Promise<string> {
+  const ip = await myIp();
   const { data, error } = await (await admin())
     .from("pc_jobs")
-    .insert({ kind, payload: payload as never })
+    .insert({ kind, payload: (ip ? { ...payload, _ip: ip } : payload) as never })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
@@ -86,7 +93,8 @@ export async function enqueueDeduped(
     .order("created_at", { ascending: false })
     .limit(20);
   if (error) throw new Error(error.message);
-  const want = JSON.stringify(payload);
+  const ip = await myIp();
+  const want = JSON.stringify(ip ? { ...payload, _ip: ip } : payload);
   const rows = (data ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>;
   const hit = rows.find((r) => JSON.stringify(r.payload ?? {}) === want);
   if (hit) return hit.id;
@@ -132,9 +140,9 @@ export async function waitResult(
 }
 
 /** Agent heartbeat, written by the public poll route (no user session). */
-export async function recordHeartbeat(info: Omit<AgentInfo, "at">): Promise<void> {
+export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = ""): Promise<void> {
   const { error } = await (await admin()).from("app_settings").upsert({
-    key: "pc.agent",
+    key: ip ? `pc.agent:${ip}` : "pc.agent",
     value: { ...info, at: Date.now() } as never,
     updated_at: new Date().toISOString(),
   });
@@ -142,7 +150,8 @@ export async function recordHeartbeat(info: Omit<AgentInfo, "at">): Promise<void
 }
 
 export async function agentInfo(ctx: Ctx): Promise<AgentInfo | null> {
-  return getJson<AgentInfo | null>(ctx, "pc.agent", null);
+  const ip = await myIp();
+  return getJson<AgentInfo | null>(ctx, ip ? `pc.agent:${ip}` : "pc.agent", null);
 }
 
 /** Agent is considered online if it polled within the last 90 seconds. */
@@ -151,12 +160,15 @@ export function agentOnline(info: AgentInfo | null): boolean {
 }
 
 /** Claim pending jobs for the agent (public poll route, service role). */
-export async function claimPending(limit = 5): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
+export async function claimPending(limit = 5, ip = ""): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
   const a = await admin();
-  const { data, error } = await a
+  let q = a
     .from("pc_jobs")
     .select("id, kind, payload")
-    .eq("status", "pending")
+    .eq("status", "pending");
+  // Only jobs created from the helper's own network; untagged legacy jobs stay claimable.
+  q = ip ? q.or(`payload->>_ip.eq.${ip},payload->>_ip.is.null`) : q.is("payload->>_ip", null);
+  const { data, error } = await q
     .order("created_at", { ascending: true })
     .limit(limit);
   if (error) throw new Error(error.message);
@@ -186,10 +198,13 @@ export async function finishJob(id: string, ok: boolean, result: Record<string, 
 
 /** Huỷ mọi lệnh PC đang chờ/đang chạy (nút Stop). Trả số lệnh bị huỷ. */
 export async function cancelAll(): Promise<number> {
-  const { data, error } = await (await admin())
+  const ip = await myIp();
+  let q = (await admin())
     .from("pc_jobs")
     .update({ status: "failed", result: { error: "đã huỷ bởi người dùng", cancelled: true } as never, done_at: new Date().toISOString() })
-    .in("status", ["pending", "running"])
+    .in("status", ["pending", "running"]);
+  if (ip) q = q.eq("payload->>_ip", ip);
+  const { data, error } = await q
     .select("id");
   if (error) throw new Error(error.message);
   return (data ?? []).length;

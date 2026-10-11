@@ -161,9 +161,9 @@ export async function handleToolApi(request: Request): Promise<Response> {
       const job = parseJobId(url.searchParams.get("id") ?? "");
       const run = job && JOBS[job.k];
       if (!job || !run) return json({ error: "job không tồn tại" }, 404);
-      const { runWithUserCreds } = await import("./creds.server");
+      const { runWithUserCreds, requestIp } = await import("./creds.server");
       const c = ctx;
-      return runWithUserCreds(c.userId, async () => stream(run, job.p, c));
+      return runWithUserCreds(c.userId, async () => stream(run, job.p, c), requestIp(c.request));
     }
     const h = find(method, route);
     if (!h) {
@@ -173,9 +173,9 @@ export async function handleToolApi(request: Request): Promise<Response> {
         not_ported: true,
       });
     }
-    const { runWithUserCreds } = await import("./creds.server");
+    const { runWithUserCreds, requestIp } = await import("./creds.server");
     const c = ctx;
-    const out = await runWithUserCreds(c.userId, () => Promise.resolve(h(c)));
+    const out = await runWithUserCreds(c.userId, () => Promise.resolve(h(c)), requestIp(c.request));
     if (out instanceof Response) return out;
     return json(out);
   } catch (e) {
