@@ -101,6 +101,10 @@ const SHIM = `<script>
       if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
     }
     var z = Math.min(1, window.innerWidth / need);
+    // Điện thoại: không thu nhỏ quá mức đọc được — giữ sàn zoom và cho
+    // vuốt ngang phần còn lại. Máy tính/bảng lớn giữ nguyên hành vi cũ.
+    var isPhone = window.innerWidth < 820;
+    if (isPhone) z = Math.max(z, 0.5);
     // Narrow-screen CSS keys off viewport width; while zoom-fit is active the
     // real layout width is innerWidth/z, so mark <html> and disable those rules.
     de.classList.toggle('fit-scaled', z < 0.999);
@@ -113,7 +117,7 @@ const SHIM = `<script>
       b.style.transform = 'scale(' + z + ')';
       b.style.width = (100 / z) + '%';
     }
-    de.style.overflowX = 'hidden';
+    de.style.overflowX = isPhone ? 'auto' : 'hidden';
   }
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
