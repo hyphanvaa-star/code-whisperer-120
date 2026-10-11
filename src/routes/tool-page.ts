@@ -296,7 +296,7 @@ const SHIM = `<script>
       room.appendChild(brand); room.appendChild(live);
       var acctMenu=document.createElement('div');
       acctMenu.id='opsAcctMenu'; acctMenu.className='ops-acct-menu'; acctMenu.hidden=true;
-      acctMenu.innerHTML='<div class="ops-acct-who"><small>Đang đăng nhập</small><strong id="opsAcctMail">…</strong></div><button type="button" class="ops-acct-out" id="opsSignOut">Đăng xuất</button>';
+      acctMenu.innerHTML='<div class="ops-acct-who"><small>Đang đăng nhập</small><strong id="opsAcctMail">…</strong></div><button type="button" class="ops-acct-out" id="opsAcctEdit" style="margin-bottom:6px;background:#fff;color:#E31937;border:1px solid #E31937">Đổi tài khoản / mật khẩu</button><button type="button" class="ops-acct-out" id="opsSignOut">Đăng xuất</button>';
       room.appendChild(acctMenu);
       var acctBtn=document.getElementById('opsAccountBtn'),acctMail=document.getElementById('opsAcctMail'),acctAvatar=document.getElementById('opsAvatar'),acctOut=document.getElementById('opsSignOut');
       var setAcctMail=function(mail){ if(!acctMail||!mail)return; acctMail.textContent=mail; if(acctAvatar){var nm=String(mail).split('@')[0].replace(/[^a-z0-9]/gi,''); acctAvatar.textContent=nm.slice(0,2).toUpperCase()||'••';} };
@@ -304,6 +304,7 @@ const SHIM = `<script>
       if(acctBtn)acctBtn.addEventListener('click',function(e){ e.stopPropagation(); setAcctOpen(acctMenu.hidden); });
       if(acctMenu)acctMenu.addEventListener('click',function(e){ e.stopPropagation(); });
       document.addEventListener('click',function(){ setAcctOpen(false); });
+      var acctEd=document.getElementById('opsAcctEdit'); if(acctEd)acctEd.addEventListener('click',function(){ setAcctOpen(false); try{ window.parent.postMessage({type:'sohee-account-edit'},window.location.origin); }catch(e){} });
       if(acctOut)acctOut.addEventListener('click',function(){ try{ window.parent.postMessage({type:'sohee-signout'},window.location.origin); }catch(e){} });
       window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin)return; var d=ev.data||{}; if(d.type==='sohee-account')setAcctMail(d.email); });
       try{ window.parent.postMessage({type:'sohee-account-request'},window.location.origin); }catch(e){}
