@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageCircle, X, Trash2, ArrowLeft, Send } from "lucide-react";
+import { MessageCircle, X, Trash2, ArrowLeft, Send, Users } from "lucide-react";
 
 type Room = { id: string; kind: string; name: string; dm_key: string | null };
 type Msg = { id: string; room_id: string; user_id: string; body: string; created_at: string };
@@ -10,6 +10,26 @@ const GROUP_NAME = "Phòng chung";
 
 function nameOf(p: Profile | undefined, fallback: string) {
   return (p?.display_name || p?.email || fallback).toString();
+}
+
+/** Avatar vuông bo góc kiểu WeChat, màu theo tên */
+function Avatar({ label, seed, size = 38 }: { label: string; seed: string; size?: number }) {
+  const hues = [150, 20, 210, 260, 330, 45, 190, 100];
+  let h = 0;
+  for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const hue = hues[h % hues.length];
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center rounded-[6px] text-sm font-bold text-white"
+      style={{
+        width: size,
+        height: size,
+        background: `linear-gradient(135deg, oklch(0.62 0.14 ${hue}), oklch(0.5 0.15 ${hue + 25}))`,
+      }}
+    >
+      {label.slice(0, 1).toUpperCase()}
+    </span>
+  );
 }
 
 export function ChatWidget() {
@@ -155,34 +175,42 @@ export function ChatWidget() {
       <button
         aria-label="Chat nội bộ"
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
+        className="fixed bottom-5 right-5 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--chat-accent)] p-3.5 text-[var(--chat-accent-ink)] shadow-[0_6px_20px_-4px_oklch(0.66_0.19_150/0.6)] transition-transform hover:scale-105 active:scale-95"
       >
-        {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </button>
 
       {open && (
-        <div className="fixed bottom-20 right-5 z-50 flex h-[480px] w-[360px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-xl border border-border bg-background shadow-2xl">
+        <div className="fixed bottom-20 right-5 z-50 flex h-[520px] w-[380px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-[var(--chat-line)] bg-[var(--chat-panel)] shadow-2xl">
           {!active ? (
             <>
-              <div className="border-b border-border px-4 py-3 text-sm font-semibold text-foreground">
-                Chat nội bộ
+              <div className="flex items-center gap-2 bg-[var(--chat-header)] px-4 py-3.5">
+                <MessageCircle className="h-4 w-4 text-[var(--chat-accent)]" />
+                <span className="text-sm font-semibold tracking-wide text-[var(--chat-header-ink)]">
+                  Chat nội bộ
+                </span>
               </div>
-              <div className="flex-1 overflow-y-auto p-2">
+              <div className="flex-1 overflow-y-auto bg-[var(--chat-panel)]">
                 {rooms
                   .filter((r) => r.kind === "group")
                   .map((r) => (
                     <button
                       key={r.id}
                       onClick={() => setActive(r)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-foreground hover:bg-accent"
+                      className="flex w-full items-center gap-3 border-b border-[var(--chat-line)] px-4 py-3 text-left transition-colors hover:bg-[var(--chat-hover)]"
                     >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                        #
+                      <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[6px] bg-[var(--chat-accent)] text-[var(--chat-accent-ink)]">
+                        <Users className="h-5 w-5" />
                       </span>
-                      {roomLabel(r)}
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-[var(--chat-ink)]">
+                          {roomLabel(r)}
+                        </span>
+                        <span className="block text-xs text-[var(--chat-sub)]">Tất cả dispatcher</span>
+                      </span>
                     </button>
                   ))}
-                <div className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <div className="bg-[var(--chat-bg)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--chat-sub)]">
                   Chat riêng
                 </div>
                 {profiles
@@ -191,73 +219,92 @@ export function ChatWidget() {
                     <button
                       key={p.id}
                       onClick={() => openDm(p.id)}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-foreground hover:bg-accent"
+                      className="flex w-full items-center gap-3 border-b border-[var(--chat-line)] px-4 py-3 text-left transition-colors hover:bg-[var(--chat-hover)]"
                     >
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
-                        {nameOf(p, "?").slice(0, 1).toUpperCase()}
+                      <Avatar label={nameOf(p, "?")} seed={p.id} />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium text-[var(--chat-ink)]">
+                          {nameOf(p, p.id)}
+                        </span>
+                        <span className="block text-xs text-[var(--chat-sub)]">Nhắn riêng</span>
                       </span>
-                      {nameOf(p, p.id)}
                     </button>
                   ))}
               </div>
             </>
           ) : (
             <>
-              <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
+              <div className="flex items-center gap-2 bg-[var(--chat-header)] px-3 py-2.5">
                 <button
                   aria-label="Quay lại"
                   onClick={() => setActive(null)}
-                  className="rounded-md p-1 text-muted-foreground hover:bg-accent"
+                  className="rounded-md p-1.5 text-[var(--chat-header-ink)]/80 transition-colors hover:bg-white/10"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
-                <div className="truncate text-sm font-semibold text-foreground">{roomLabel(active)}</div>
+                {active.kind === "group" ? (
+                  <span className="flex h-7 w-7 items-center justify-center rounded-[5px] bg-[var(--chat-accent)] text-[var(--chat-accent-ink)]">
+                    <Users className="h-4 w-4" />
+                  </span>
+                ) : (
+                  <Avatar label={roomLabel(active)} seed={active.id} size={28} />
+                )}
+                <div className="truncate text-sm font-semibold text-[var(--chat-header-ink)]">
+                  {roomLabel(active)}
+                </div>
               </div>
-              <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto bg-muted/30 p-3">
+              <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-[var(--chat-bg)] p-3">
                 {messages.length === 0 && (
-                  <div className="pt-10 text-center text-xs text-muted-foreground">
+                  <div className="pt-12 text-center text-xs text-[var(--chat-sub)]">
                     Chưa có tin nhắn. Gửi tin đầu tiên nhé.
                   </div>
                 )}
                 {messages.map((m) => {
                   const mine = m.user_id === me;
+                  const sender = profileOf(m.user_id);
                   return (
-                    <div key={m.id} className={`group flex ${mine ? "justify-end" : "justify-start"}`}>
-                      <div
-                        className={`max-w-[78%] rounded-2xl px-3 py-1.5 text-sm ${
-                          mine
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-background text-foreground border border-border"
-                        }`}
-                      >
+                    <div
+                      key={m.id}
+                      className={`group flex items-start gap-2 ${mine ? "flex-row-reverse" : ""}`}
+                    >
+                      <Avatar label={nameOf(sender, "?")} seed={m.user_id} size={34} />
+                      <div className={`flex max-w-[72%] flex-col ${mine ? "items-end" : "items-start"}`}>
                         {!mine && active.kind === "group" && (
-                          <div className="text-[10px] font-semibold text-muted-foreground">
-                            {nameOf(profileOf(m.user_id), "—")}
+                          <div className="mb-0.5 px-0.5 text-[11px] text-[var(--chat-sub)]">
+                            {nameOf(sender, "—")}
                           </div>
                         )}
-                        <div className="whitespace-pre-wrap break-words">{m.body}</div>
                         <div
-                          className={`mt-0.5 flex items-center gap-1 text-[10px] ${
-                            mine ? "justify-end text-primary-foreground/70" : "text-muted-foreground"
+                          className={`relative rounded-lg px-3 py-2 text-sm shadow-sm ${
+                            mine
+                              ? "rounded-tr-sm bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]"
+                              : "rounded-tl-sm border border-[var(--chat-line)] bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"
                           }`}
                         >
-                          {fmt(m.created_at)}
-                          {isAdmin && (
-                            <button
-                              aria-label="Xóa tin nhắn"
-                              onClick={() => remove(m.id)}
-                              className="hidden text-destructive group-hover:inline"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </button>
-                          )}
+                          <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                          <div
+                            className={`mt-1 flex items-center gap-1.5 text-[10px] ${
+                              mine ? "justify-end text-[var(--chat-bubble-me-ink)]/55" : "text-[var(--chat-sub)]"
+                            }`}
+                          >
+                            {fmt(m.created_at)}
+                            {isAdmin && (
+                              <button
+                                aria-label="Xóa tin nhắn"
+                                onClick={() => remove(m.id)}
+                                className="hidden text-[var(--chat-danger)] group-hover:inline"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="flex items-center gap-2 border-t border-border p-2">
+              <div className="flex items-center gap-2 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] p-2.5">
                 <input
                   ref={inputRef}
                   value={draft}
@@ -266,13 +313,13 @@ export function ChatWidget() {
                     if (e.key === "Enter") send();
                   }}
                   placeholder="Nhập tin nhắn…"
-                  className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
+                  className="h-9 flex-1 rounded-lg border border-[var(--chat-line)] bg-[var(--chat-bg)] px-3 text-sm text-[var(--chat-ink)] outline-none transition-shadow focus:border-[var(--chat-accent)] focus:ring-2 focus:ring-[var(--chat-accent)]/25"
                 />
                 <button
                   aria-label="Gửi"
                   onClick={send}
                   disabled={sending || !draft.trim()}
-                  className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--chat-accent)] text-[var(--chat-accent-ink)] transition-colors hover:brightness-95 disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />
                 </button>
