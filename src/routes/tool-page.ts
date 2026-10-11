@@ -1680,6 +1680,50 @@ const BTNRED = `<style id="btn-red-skin">
 }
 </style>`;
 
+// ==== Nút hành động chính trong tab FPL: nền đỏ chữ trắng (yêu cầu của người dùng) ====
+// Extra autofill, Auto Rounding PLD, Get ATC convert, Checklist, FORM MNL,
+// OFP check data, Tạo điện văn — cùng màu với các nút trong tab Công cụ hỗ trợ.
+const BTNRED2 = `<style id="btn-red-skin-2">
+#ftExtraFill:not(#_):not(#_),#ftPldRound:not(#_):not(#_),#ftAtcConvBtn:not(#_):not(#_),
+#ftCkBtn:not(#_):not(#_),#ftMnlBtn:not(#_):not(#_),#ftOfpRulesBtn:not(#_):not(#_),
+#ftMsgBtn:not(#_):not(#_){
+  --x-red-solid:#E31937;--x-red-solid-d:#B01028;
+  background:var(--x-red-solid) !important;background-image:none !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border-color:var(--x-red-solid) !important;
+  box-shadow:0 1px 3px rgba(227,25,55,.26) !important;
+}
+#ftExtraFill:not(#_):not(#_):not(#_) *,#ftPldRound:not(#_):not(#_):not(#_) *,
+#ftAtcConvBtn:not(#_):not(#_):not(#_) *,#ftCkBtn:not(#_):not(#_):not(#_) *,
+#ftMnlBtn:not(#_):not(#_):not(#_) *,#ftOfpRulesBtn:not(#_):not(#_):not(#_) *,
+#ftMsgBtn:not(#_):not(#_):not(#_) *,
+#ftExtraFill::before,#ftPldRound::before,#ftAtcConvBtn::before,#ftCkBtn::before,
+#ftMnlBtn::before,#ftOfpRulesBtn::before,#ftMsgBtn::before{
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+}
+#ftExtraFill:not(#_):not(#_):hover:not(:disabled),#ftPldRound:not(#_):not(#_):hover:not(:disabled),
+#ftAtcConvBtn:not(#_):not(#_):hover:not(:disabled),#ftCkBtn:not(#_):not(#_):hover:not(:disabled),
+#ftMnlBtn:not(#_):not(#_):hover:not(:disabled),#ftOfpRulesBtn:not(#_):not(#_):hover:not(:disabled),
+#ftMsgBtn:not(#_):not(#_):hover:not(:disabled){
+  background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
+}
+/* Auto Rounding PLD đang bật: cùng đỏ, viền trắng trong để phân biệt */
+#ftPldRound[aria-pressed="true"]:not(#_):not(#_){
+  background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6),0 1px 3px rgba(227,25,55,.26) !important;
+}
+/* Đang bận / tắt: vẫn đỏ chữ trắng, chỉ mờ đi */
+#ftExtraFill:not(#_):not(#_):disabled,#ftPldRound:not(#_):not(#_):disabled,
+#ftAtcConvBtn:not(#_):not(#_):disabled,#ftCkBtn:not(#_):not(#_):disabled,
+#ftMnlBtn:not(#_):not(#_):disabled,#ftOfpRulesBtn:not(#_):not(#_):disabled,
+#ftMsgBtn:not(#_):not(#_):disabled{
+  background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  opacity:.45 !important;box-shadow:none !important;
+}
+</style>`;
+
+
 
 
 async function page(): Promise<string> {
@@ -1828,7 +1872,7 @@ function ftRender(){
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
     </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
-    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + DROPDOWN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
+    .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
       "const AP_EXACT = {",
       `const ICAO_COUNTRIES = ${JSON.stringify(icaoCountries)};\nconst AP_EXACT = {`,
