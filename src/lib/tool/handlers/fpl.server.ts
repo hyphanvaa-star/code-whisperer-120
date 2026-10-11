@@ -313,12 +313,13 @@ export const routes: Routes = {
     }
     const atcFix = await import("../port/atc_fix");
     const rules = atcFix.load_rules(await getJson<Raw | null>(ctx, "fpl.atc_fix", null));
-    const rows = got.map(({ f, block }) => {
+    const rows = got.map(({ f, block, plan }) => {
       const parsed = atcFix.parse_block(block) || {};
       const [converted, notes, html] = atcFix.fix_block(block, rules);
       return {
         id: f.id,
         callsign: parsed.callsign || f.callsign || "",
+        plan: plan || "", reg: f.reg || "",
         dep: parsed.dep || f.dep_icao || "",
         arr: parsed.arr || f.dest_icao || "",
         original: block.trim(),
@@ -425,7 +426,7 @@ export const routes: Routes = {
 
 export const jobs: Jobs = {};
 
-async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any; block: string }[]; missed: string[] }> {
+async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any; block: string; plan?: string }[]; missed: string[] }> {
     const ae = await import("../port/atc_ezfw");
     const { loadFlights } = await import("../core/gantts.server");
     const { fbGet } = await import("@/lib/flitebrief.server");
@@ -454,7 +455,7 @@ async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any
       return Array.isArray(text) ? text.join("\n") : String(text ?? "");
     };
     const missed: string[] = [];
-    const got: { ix: number; f: any; block: string }[] = [];
+    const got: { ix: number; f: any; block: string; plan?: string }[] = [];
     await Promise.all(items.map(async (it: Raw, ix: number) => {
       const label = `VJ${it.flt} ${it.dep || ""}-${it.arr || ""}`.trim();
       const f = pickFlight(it);
@@ -469,7 +470,9 @@ async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any
           if (b.byteLength > 4 && String.fromCharCode(...b.slice(0, 4)) === "%PDF") { buf = b; break; }
         }
         if (!buf.byteLength) { missed.push(`${label}: chưa có OFP`); return; }
-        got.push({ ix, f, block: ae.extractAtc(await pdfText(buf)) });
+        const txt = await pdfText(buf);
+        const cfp = /^[ \t]*CFP[ \t]+(\d+)\b/im.exec(txt)?.[1] || "";
+        got.push({ ix, f, block: ae.extractAtc(txt), plan: String(f.plan_no || cfp || "") });
       } catch (e) {
         missed.push(`${label}: ${(e as Error).message}`);
       }
