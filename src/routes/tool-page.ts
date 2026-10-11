@@ -955,6 +955,13 @@ td .dim,.dim{color:var(--x-mute) !important}
 .taf-tip .lim-tip-advise,.taf-tip .tip-ok,.taf-tip .tip-hi{color:var(--hover-success) !important}
 .taf-tip .tip-warn{color:var(--hover-warning) !important}
 .taf-tip .lim-tip-rule,.taf-tip .lim-tip-advise{font-weight:600}
+/* Tooltip PCR: ô giới hạn (hit) chữ trắng đậm trên nền đỏ đặc — bản cũ chữ đỏ nhạt trên nền đỏ mờ nên bị nhoè. */
+.taf-tip .pcr-tbl th.hit,.taf-tip .pcr-tbl td.hit{color:#fff !important;background:#c3362c !important;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+.taf-tip .pcr-tbl th.ok,.taf-tip .pcr-tbl td.ok{color:#fff !important;background:#2e7d32 !important;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.taf-tip .pcr-tbl th{color:#d7dde8 !important}
+.taf-tip .pcr-tbl td{color:#f2f5fa !important}
+.taf-tip .pcr-tbl td.ac{color:#fff !important}
+.taf-tip .pcr-tbl .tow{color:#ffe9a8 !important;background:rgba(255,255,255,.08) !important}
 /* Check OFP shares the dark detail surface, not the light table palette. */
 #paneLimitCheck{
   --ofp-text:var(--vj-dark-ink);--ofp-muted:#c5cddb;--ofp-evidence:#a9c9ff;
