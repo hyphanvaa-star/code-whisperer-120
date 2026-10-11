@@ -176,7 +176,7 @@ export type MetTransport = (req: {
   method: string;
   url: string;
   headers: Record<string, string>;
-  body?: string;
+  body?: string | undefined;
   timeoutMs: number;
 }) => Promise<Response>;
 
