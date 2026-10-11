@@ -24801,7 +24801,8 @@ $("#ftPldRound").onclick = async function(){
   this.setAttribute("aria-pressed", ftPldOn ? "true" : "false");
   this.textContent = (ftPldOn ? "✓ " : "") + "Auto Rounding PLD";
   if(!ftPldOn){
-    for(const f of ftRows) if(f) ftSt(f).pay = "";
+    for(const f of ftRows) if(f){ const st = ftSt(f); st.pay = ""; st.payManual = false; }
+    ftRender();
     $("#ftStat").textContent = "Đã tắt làm tròn payload.";
     return;
   }
