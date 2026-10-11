@@ -37,8 +37,7 @@ async function mnlTemplate(){
   if(!MNL_TPL){const r=await fetch(FORM_MNL_TEMPLATE_URL);if(!r.ok)throw new Error('Không tải được mẫu FORM MNL');MNL_TPL=await r.arrayBuffer();}
   return MNL_TPL;
 }
-async function mnlCert(zip,lic){
-  const png=await zip.file('word/media/image2.png').async('blob');
+async function mnlCert(png,lic){
   const img=await createImageBitmap(png);
   const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
   const g=c.getContext('2d');g.drawImage(img,0,0);
@@ -57,6 +56,55 @@ async function mnlBuild(html,lic){
   xml=xml.replace(/(<wp:extent cx=")7117080(" cy=")7170420(")/,'$1'+cx+'$2'+cy+'$3').replace(/(<a:ext cx=")7117699(" cy=")7171044(")/,'$1'+cx+'$2'+cy+'$3');
   zip.file('word/document.xml',xml);
   return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+function mnlSync(doc){
+  for(const i of doc.querySelectorAll('input'))i.setAttribute('value',i.value);
+  for(const t of doc.querySelectorAll('textarea'))t.textContent=t.value;
+  for(const o of doc.querySelectorAll('option'))o.selected?o.setAttribute('selected',''):o.removeAttribute('selected');
+  return '<!doctype html>'+doc.documentElement.outerHTML.replace(/contenteditable="true"/g,'');
+}
+async function mnlPdf(html,certPng,lic){
+  const shot=await mnlShot(html);
+  const cert=await createImageBitmap(await mnlCert(certPng,lic));
+  const cc=document.createElement('canvas');cc.width=cert.width;cc.height=cert.height;cc.getContext('2d').drawImage(cert,0,0);
+  const pdf=await PDFLib.PDFDocument.create();
+  for(const c of [shot,cc]){
+    const img=await pdf.embedPng(c.toDataURL('image/png'));
+    const pg=pdf.addPage([612,792]);const W=540,H=720;
+    let w=W,h=w*c.height/c.width;if(h>H){h=H;w=h*c.width/c.height;}
+    pg.drawImage(img,{x:(612-w)/2,y:792-36-h,width:w,height:h});
+  }
+  return new Blob([await pdf.save()],{type:'application/pdf'});
+}
+function mnlEditor(files,errs,lic,certPng){
+  const box=document.createElement('dialog');
+  box.style.cssText='background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:14px;width:min(820px,96vw);max-height:94vh;overflow:auto';
+  box.innerHTML='<div style="font-weight:700;margin-bottom:8px">FORM MNL — bấm vào bất kỳ chữ/ô nào để sửa, xong bấm Xuất PDF</div>';
+  for(const e of errs){const d=document.createElement('div');d.style.cssText='color:#ffb4ac;margin:4px 0';d.textContent='✗ '+e;box.appendChild(d);}
+  const certUrl=URL.createObjectURL(certPng);
+  for(const f of files){
+    const sec=document.createElement('div');sec.style.cssText='margin:10px 0 18px;border-top:1px solid var(--line);padding-top:10px';
+    const name=document.createElement('input');name.value=f.name;name.style.cssText='width:100%;margin-bottom:6px';
+    const fr=document.createElement('iframe');fr.style.cssText='width:100%;height:560px;border:0;background:#fff';
+    const cw=document.createElement('div');cw.style.cssText='position:relative;margin-top:8px;background:#fff';
+    const im=document.createElement('img');im.src=certUrl;im.style.cssText='width:100%;display:block';
+    const li=document.createElement('input');li.value=lic;li.title='Số license';
+    li.style.cssText='position:absolute;left:'+(790/921*100)+'%;top:0;width:'+(80/921*100)+'%;font:13px Times New Roman,serif;text-align:center;border:1px dashed #d10000;background:#fff;color:#000;padding:0';
+    im.onload=()=>{li.style.top=(146/im.naturalHeight*im.clientHeight)+'px';li.style.height=(20/im.naturalHeight*im.clientHeight)+'px';};
+    cw.append(im,li);
+    const ex=document.createElement('button');ex.type='button';ex.className='btn';ex.textContent='Xuất PDF';ex.style.marginTop='8px';
+    ex.onclick=async()=>{ex.disabled=true;ex.textContent='Đang xuất…';try{
+      const blob=await mnlPdf(mnlSync(fr.contentDocument),certPng,li.value.trim());
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name.value.replace(/\.(docx|pdf)$/i,'')+'.pdf';a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    }catch(e){alert('Lỗi xuất PDF: '+e.message);}finally{ex.disabled=false;ex.textContent='Xuất PDF';}};
+    sec.append(name,fr,cw,ex);box.appendChild(sec);
+    fr.onload=null;
+    setTimeout(()=>{const d=fr.contentDocument;d.open();d.write(f.html);d.close();d.body.contentEditable='true';d.body.style.background='#fff';},0);
+  }
+  const close=document.createElement('button');close.type='button';close.className='btn';close.textContent='Đóng';
+  close.onclick=()=>{box.close();box.remove();URL.revokeObjectURL(certUrl);};
+  box.appendChild(close);document.body.appendChild(box);box.showModal();
 }
 mnlBtn.onclick=async function(){
   const legs=[];
@@ -78,22 +126,15 @@ mnlBtn.onclick=async function(){
         const r=await fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t);
         const j=await r.json();
         if(!j || j.error) throw new Error(j&&j.error||('HTTP '+r.status));
-        const blob=await mnlBuild(j.html,lic);
-        files.push({url:URL.createObjectURL(blob),name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.docx'});
+        files.push({html:j.html,name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.pdf'});
       }catch(e){errs.push(leg.flt+': '+e.message);}
     }
-    const box=document.createElement('dialog');
-    box.style.cssText='background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:320px';
-    box.innerHTML='<div style="font-weight:700;margin-bottom:10px">FORM MNL: '+files.length+'/'+legs.length+' file</div>';
-    for(const f of files){const a=document.createElement('a');a.href=f.url;a.download=f.name;a.textContent='⬇ '+f.name;a.className='btn';a.style.cssText='display:block;margin:6px 0;text-align:left';box.appendChild(a);}
-    for(const e of errs){const d=document.createElement('div');d.style.cssText='color:#ffb4ac;margin:4px 0';d.textContent='✗ '+e;box.appendChild(d);}
-    const all=document.createElement('button');all.type='button';all.className='btn';all.textContent='Tải tất cả';all.style.marginRight='8px';
-    all.onclick=async()=>{for(const a of box.querySelectorAll('a')){a.click();await new Promise(r=>setTimeout(r,800));}};
-    const close=document.createElement('button');close.type='button';close.className='btn';close.textContent='Đóng';
-    close.onclick=()=>{box.close();box.remove();files.forEach(f=>URL.revokeObjectURL(f.url));};
-    const row=document.createElement('div');row.style.marginTop='12px';if(files.length)row.append(all);row.append(close);box.appendChild(row);
-    document.body.appendChild(box);box.showModal();
-    $('#ftStat').textContent='FORM MNL: '+files.length+'/'+legs.length+' file.';
+    if(!files.length){alert('FORM MNL lỗi:\n'+errs.join('\n'));return;}
+    await mnlScript('/vendor/pdf-lib.min.js','PDFLib');
+    const zip=await JSZip.loadAsync(await mnlTemplate());
+    const certPng=await zip.file('word/media/image2.png').async('blob');
+    mnlEditor(files,errs,lic,certPng);
+    $('#ftStat').textContent='FORM MNL: chỉnh sửa rồi bấm Xuất PDF.';
   }catch(e){alert('Lỗi FORM MNL: '+e.message);}
   finally{mnlBtn.disabled=false;}
 };
