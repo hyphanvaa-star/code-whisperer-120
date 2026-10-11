@@ -34,8 +34,9 @@ async function attachCrews(flights: Flight[]): Promise<void> {
 // data/excel/<name> -> bucket path "excel/<name>"; web.py's config.EXCEL_STATE (current
 // file+sheet) -> app_settings key "excel.current".
 
-const EXCEL_DIR = "excel";
-const STATE_KEY = "excel.current";
+// Crewlist riêng từng người dùng: mỗi dispatcher chỉ thấy file mình nạp.
+export const excelDir = (ctx: Ctx) => `excel/u/${ctx.userId}`;
+export const excelStateKey = (ctx: Ctx) => `excel.current:${ctx.userId}`;
 const MAX_BYTES = 30 * 1024 * 1024; // web.py config.EXCEL_MAX_BYTES (30 MB)
 
 interface ExcelState {
@@ -54,9 +55,9 @@ export function safeName(name: string): string {
 }
 
 export async function currentExcel(ctx: Ctx): Promise<CurrentExcel | null> {
-  const state = await getJson<ExcelState | null>(ctx, STATE_KEY, null);
+  const state = await getJson<ExcelState | null>(ctx, excelStateKey(ctx), null);
   if (!state || !state.file) return null;
-  const files = await listFiles(ctx, EXCEL_DIR);
+  const files = await listFiles(ctx, excelDir(ctx));
   const f = files.find((x) => x.name === state.file);
   if (!f) return null;
   const modified = f.updated_at ? new Date(f.updated_at).getTime() / 1000 : (f.created_at ? new Date(f.created_at).getTime() / 1000 : 0);
@@ -64,7 +65,7 @@ export async function currentExcel(ctx: Ctx): Promise<CurrentExcel | null> {
 }
 
 async function listExcel(ctx: Ctx) {
-  const files = await listFiles(ctx, EXCEL_DIR);
+  const files = await listFiles(ctx, excelDir(ctx));
   return files
     .filter((f) => /\.(xlsx|xlsm|csv)$/i.test(f.name))
     .map((f) => ({
@@ -77,7 +78,7 @@ async function listExcel(ctx: Ctx) {
 
 export async function readSheet(ctx: Ctx, filename: string): Promise<{ path: string; buf: ArrayBuffer; sheets: Sheet[] }> {
   const name = safeName(filename);
-  const path = `${EXCEL_DIR}/${name}`;
+  const path = `${excelDir(ctx)}/${name}`;
   const buf = await getFile(ctx, path);
   if (!buf) throw new Error(`Chưa có file '${filename}' trong data/excel/`);
   const sheets = await readTable(name, buf);
@@ -315,9 +316,9 @@ export const routes: Routes = {
     const newName = safeName(rawNew);
     if (oldName === newName) return { error: "Hai bản đang là cùng một file." };
 
-    const oldBuf = await getFile(ctx, `${EXCEL_DIR}/${oldName}`);
+    const oldBuf = await getFile(ctx, `${excelDir(ctx)}/${oldName}`);
     if (!oldBuf) return { error: `Không thấy file '${oldName}' trong data/excel/` };
-    const newBuf = await getFile(ctx, `${EXCEL_DIR}/${newName}`);
+    const newBuf = await getFile(ctx, `${excelDir(ctx)}/${newName}`);
     if (!newBuf) return { error: `Không thấy file '${newName}' trong data/excel/` };
 
     let res: xlsdiff.DiffResult;
@@ -459,8 +460,8 @@ export const routes: Routes = {
     }
     try {
       const sheets = await readTable(name, buf);
-      await putFile(ctx, `${EXCEL_DIR}/${name}`, buf, "application/octet-stream");
-      await setJson(ctx, STATE_KEY, { file: name, sheet: sheets[0]!.name } satisfies ExcelState);
+      await putFile(ctx, `${excelDir(ctx)}/${name}`, buf, "application/octet-stream");
+      await setJson(ctx, excelStateKey(ctx), { file: name, sheet: sheets[0]!.name } satisfies ExcelState);
       return {
         file: name,
         path: name,
@@ -485,7 +486,7 @@ export const routes: Routes = {
     const name = safeName(String(body["file"] || ""));
     const files = await listExcel(ctx);
     if (!files.some((f) => f.file === name)) return { error: `Không có file '${name}'` };
-    await setJson(ctx, STATE_KEY, { file: name, sheet: String(body["sheet"] || "") } satisfies ExcelState);
+    await setJson(ctx, excelStateKey(ctx), { file: name, sheet: String(body["sheet"] || "") } satisfies ExcelState);
     return { current: await currentExcel(ctx) };
   },
 
@@ -503,9 +504,9 @@ export const routes: Routes = {
     if (!files.some((f) => f.file === name)) {
       return new Response(JSON.stringify({ error: `Không thấy file '${name}' trong data/excel/` }), { status: 404, headers: { "Content-Type": "application/json" } });
     }
-    await removeFiles(ctx, [`${EXCEL_DIR}/${name}`]);
+    await removeFiles(ctx, [`${excelDir(ctx)}/${name}`]);
     const cur = await currentExcel(ctx);
-    if (cur && cur.file === name) await setJson(ctx, STATE_KEY, null);
+    if (cur && cur.file === name) await setJson(ctx, excelStateKey(ctx), null);
     return { ok: true, deleted: name, files: await listExcel(ctx) };
   },
 
