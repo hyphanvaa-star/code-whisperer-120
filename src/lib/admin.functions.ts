@@ -15,13 +15,14 @@ export const listUsers = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
     const [{ data: profiles }, { data: roles }] = await Promise.all([
-      context.supabase.from("profiles").select("id, email, display_name, created_at").order("created_at"),
+      context.supabase.from("profiles").select("id, email, display_name, original_username, created_at").order("created_at"),
       context.supabase.from("user_roles").select("user_id, role"),
     ]);
     return (profiles ?? []).map((p) => ({
       id: p.id,
       email: p.email ?? "",
       name: p.display_name ?? "",
+      original: p.original_username ?? "",
       createdAt: p.created_at,
       roles: (roles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role),
       isSelf: p.id === context.userId,
