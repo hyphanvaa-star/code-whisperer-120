@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] Checklist KHB: một PDF mỗi chuyến, dấu ✓ đúng ô (II.3/4 ở dòng nội dung), DSP License thành ô nhập; thử hai chuyến mẫu tải hai PDF, xem đủ trang, sửa font tên tiếng Việt và tràn trang của mẫu; kiểm tra ô nhập trong iframe thật. Chưa publish.
+- [ ] Checklist với chuyến thật từ tài khoản người dùng — chờ đăng nhập preview; không tạo được phiên cho tài khoản Lovable yêu cầu.
+
 - [x] Mẫu màu nút Công cụ hỗ trợ: thêm 3 ảnh phác thảo (4–6), đã kiểm tra ảnh; chưa áp dụng lên web.
 
 - [x] Check ATC: màu kết quả đậm, đồng đều giữa các hàng; ô thiếu dữ liệu của dòng có chuyến hiện “- - - -”; kiểm tra giao diện sáng/tối đạt, không đổi dữ liệu thật; chưa publish.
