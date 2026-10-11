@@ -20,6 +20,14 @@ async function mnlShot(html){
     await new Promise(r=>setTimeout(r,300));
     const body=fr.contentDocument.body;body.style.margin='0';body.style.background='#fff';
     const form=body.querySelector('form')||body;
+    // html2canvas clips input text: swap every field for a same-size span.
+    for(const inp of [...form.querySelectorAll('input')]){
+      const cs=fr.contentWindow.getComputedStyle(inp),sp=fr.contentDocument.createElement('span');
+      sp.textContent=inp.value||'';
+      for(const k of ['width','height','borderTop','borderRight','borderBottom','borderLeft','paddingLeft','paddingRight','fontFamily','fontSize','fontWeight','color','backgroundColor','verticalAlign','boxSizing','marginLeft','marginRight'])sp.style[k]=cs[k];
+      sp.style.display='inline-block';sp.style.lineHeight=cs.height;sp.style.whiteSpace='pre';sp.style.overflow='hidden';sp.style.paddingTop='0';sp.style.paddingBottom='0';
+      inp.replaceWith(sp);
+    }
     const c=await html2canvas(form,{backgroundColor:'#fff',scale:2,windowWidth:720});
     return c;
   } finally { fr.remove(); }
@@ -44,7 +52,8 @@ async function mnlBuild(html,lic){
   zip.file('word/media/image1.png',await new Promise(r=>shot.toBlob(r,'image/png')));
   zip.file('word/media/image2.png',await mnlCert(zip,lic));
   let xml=await zip.file('word/document.xml').async('string');
-  const cx=7117080,cy=Math.round(cx*shot.height/shot.width);
+  let cx=7117080,cy=Math.round(cx*shot.height/shot.width);
+  if(cy>7170420){cy=7170420;cx=Math.round(cy*shot.width/shot.height);}
   xml=xml.replace(/(<wp:extent cx=")7117080(" cy=")7170420(")/,'$1'+cx+'$2'+cy+'$3').replace(/(<a:ext cx=")7117699(" cy=")7171044(")/,'$1'+cx+'$2'+cy+'$3');
   zip.file('word/document.xml',xml);
   return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
