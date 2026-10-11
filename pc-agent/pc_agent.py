@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "4.1"
+VERSION = "4.2"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -475,7 +475,7 @@ def _owa_keeper() -> None:
         time.sleep(120)
 
 
-def download_gd_owa(flight: str, dest: Path, say) -> Path:
+def download_gd_owa(flight: str, dest: Path, say, flight_date: str | None = None) -> Path:
     """Tải GD đúng code gốc gd_print.download_gd, dùng lại phiên Outlook Web
     đang có (PIB/FPL/nháp) — KHÔNG tự mở Chrome đăng nhập, KHÔNG mở Outlook PC."""
     config, ow = _load_owa_modules()
