@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
-- FliteBrief access lives only in `src/lib/flitebrief.server.ts`; session cookies persist in service-role-only `fb_session` so all workers share one login. PDF downloads go through `/api/fb/file` with a bearer token so external credentials never reach the browser.
+- FliteBrief access lives only in `src/lib/flitebrief.server.ts`; cookies persist in service-role-only `fb_session` so workers share one login. PDFs download via `/api/fb/file` with a bearer token so external credentials never reach the browser.
 - Every server fn / route touching flight data must call `assertDispatcher` — route guards are UX only.
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via the `handle_new_user` trigger.
 - Python-tool port proceeds endpoint group by group per `roadmap.md`: every original `/api/*` endpoint goes into `src/lib/tool/handlers/<group>.server.ts` with web.py's exact JSON shapes; `src/lib/tool/router.server.ts` owns auth (bearer or `fbt` cookie for GET) and returns `{error, not_ported}` for unported routes. Pure module ports live in `src/lib/tool/port/<module>.ts` with tests in `__tests__/`.
@@ -21,8 +21,8 @@
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py`: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with the `PC_AGENT_TOKEN` secret — a Worker cannot reach LAN devices.
 - Server-side Excel reading uses SheetJS (`xlsx` from the SheetJS CDN tarball) because ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, loaded via `src/lib/exceljs-load.ts`.
 - Airport country flags are bundled locally via the generated global ICAO-to-country dataset so flight cards need no third-party image requests.
-- Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets), because each dispatcher may use their own account.
-- AIP SUP/DAH rings and hours are fetched in `src/lib/tool/aip_sup.server.ts` (parsers in `port/aip_sup.ts`, cache in app_settings `aip_sup:*`), attached as `notam.sup_geoms` by the Check NOTAM handler, because NOTAM text often only names the SUP area. JP ENR/KR KOCA use national parsers and country caches; client fixes preserve server arcs and separate areas.
+- Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own account.
+- AIP SUP/DAH rings/hours are fetched in `src/lib/tool/aip_sup.server.ts` (parsers in `port/aip_sup.ts`, cache in app_settings `aip_sup:*`), attached as `notam.sup_geoms` by the Check NOTAM handler — NOTAM text often only names the SUP area. JP ENR/KR KOCA use national parsers and country caches; client fixes preserve server arcs and separate areas.
 - Every publish bumps the version badge #appVersion in src/tool/page.html (V1, V2, …) so users can tell builds apart.
 - All briefing generation paths use `src/lib/tool/briefing-data.server.ts` for cached TAF, defects and pinned NOTAMs, so draft/export/aircraft replacement cannot silently omit a source. Briefing PDFs use `src/lib/tool/port/briefingPdf.ts` (original three-column Letter layout, embedded fonts); overflow continues rather than truncating operational text.
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can be supplied by the dispatcher's browser login, because Omni rejects token creation from the cloud runtime's IPv6 X-Forwarded-For.
