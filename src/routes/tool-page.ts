@@ -1485,15 +1485,19 @@ async function ftLoad(){
   const savedBook = localStorage.getItem(K.book);
   const customBook = savedBook && savedBook !== BOOK_DEFAULT ? savedBook : "";
   const customCodes = new Set(parse(customBook).map(row => row[0]));
-  $("#afBook").value = customBook ? customBook + "\\n" + suppliedBook.split(/\\r?\\n/).filter(line => !customCodes.has(line.split(/\\s+/)[0])).join("\\n") : suppliedBook;`)
+  $("#afBook").value = localStorage.getItem("aftn.book.replaced") === "1" && savedBook !== null ? savedBook : customBook ? customBook + "\\n" + suppliedBook.split(/\\r?\\n/).filter(line => !customCodes.has(line.split(/\\s+/)[0])).join("\\n") : suppliedBook;`)
     .replace(/<textarea id="afBook"[^>]*><\/textarea>/, `<textarea id="afBook" hidden></textarea><div class="af-book-scroll"><table id="afBookTable" aria-label="Danh bạ AFTN"><colgroup><col class="af-code-col"><col></colgroup><thead><tr><th>CODE</th><th>ĐỊA CHỈ AFTN</th></tr></thead><tbody id="afBookRows"></tbody></table></div>`)
-    .replace('<div style="font-size:12px;opacity:.8">Dán từ Excel 2 cột (CODE + địa chỉ). Tự lưu trên máy này.</div>', '')
+    .replace('<div style="font-size:12px;opacity:.8">Dán từ Excel 2 cột (CODE + địa chỉ). Tự lưu trên máy này.</div>', `<div class="af-paste-area"><label for="afBookPaste">DÁN DANH BẠ MỚI</label><textarea id="afBookPaste" spellcheck="false" aria-label="Dán danh bạ AFTN mới" placeholder="CODE&#9;ĐỊA CHỈ AFTN"></textarea><div id="afBookPasteStatus" role="status"></div></div>`)
     .replace('<label>File FPL (chọn thư mục hoặc nhiều file)<br>', '<label hidden>')
     .replace('<div><b>Nội dung FPL tìm được</b>', '<div hidden>')
     .replace('</body>', `<style>
       #afBook[hidden],#afDef[hidden]{display:none!important}
       .af-default-scroll{max-height:260px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
       .af-book-scroll{height:420px;overflow:auto;border:1px solid var(--x-line);background:var(--x-card)}
+      .af-paste-area{margin-top:10px;color:var(--x-ink)}
+      .af-paste-area label{display:block;font-weight:700;margin-bottom:6px}
+      #afBookPaste{width:100%;height:100px;resize:vertical;font-family:var(--x-mono);border:1px solid var(--x-line);background:var(--x-card)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important}
+      #afBookPasteStatus{min-height:22px;font-size:13px;color:var(--x-ink)}
       #afBookTable,#afDefTable{width:100%;table-layout:fixed;border-collapse:collapse;font-family:var(--x-mono)}
       #afBookTable .af-code-col,#afDefTable .af-code-col{width:116px}
       #afBookTable th,#afDefTable th{position:sticky;top:0;z-index:1;background:var(--x-bg)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;text-align:left;padding:8px;border-bottom:1px solid var(--x-line)}
