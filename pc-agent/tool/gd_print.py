@@ -400,8 +400,93 @@ def _single_print_area(ws: Any) -> None:
         ws.Cells(top, left), ws.Cells(bottom, right)).Address
 
 
-def _force_one_page(excel: Any, ws: Any, idx: int) -> None:
-    """Không gửi lệnh in nếu chưa xác nhận toàn bộ sheet nằm trên một trang."""
+A4_PT = (595.28, 841.89)
+MIN_MARGIN_PT = 18.0  # RICOH/PCL không in sát mép: lề file 0.1" bị đẩy sang trang 2.
+
+
+def _content_range(ws: Any) -> Any:
+    """Vùng in thật: PrintArea, hoặc UsedRange mở rộng theo hình/chữ ký."""
+    area = str(ws.PageSetup.PrintArea or "").strip()
+    if area:
+        return ws.Range(area)
+    used = ws.UsedRange
+    top, left = int(used.Row), int(used.Column)
+    bottom = top + int(used.Rows.Count) - 1
+    right = left + int(used.Columns.Count) - 1
+    try:
+        shapes = ws.Shapes
+        for i in range(1, int(shapes.Count) + 1):
+            sh = shapes.Item(i)
+            tl, br = sh.TopLeftCell, sh.BottomRightCell
+            top, left = min(top, int(tl.Row)), min(left, int(tl.Column))
+            bottom, right = max(bottom, int(br.Row)), max(right, int(br.Column))
+    except Exception:
+        pass
+    rng = ws.Range(ws.Cells(top, left), ws.Cells(bottom, right))
+    # Ghi cố định để Excel in đúng vùng đã đo (file mở ReadOnly, không lưu).
+    try:
+        ws.PageSetup.PrintArea = rng.Address
+    except Exception:
+        pass
+    return rng
+
+
+def _fit_zoom(ws: Any, landscape: bool) -> int | None:
+    """Zoom tính từ kích thước thật của vùng in so với khổ A4 trừ lề."""
+    try:
+        setup = ws.PageSetup
+        for side in ("LeftMargin", "RightMargin", "TopMargin", "BottomMargin"):
+            if float(getattr(setup, side) or 0) < MIN_MARGIN_PT:
+                setattr(setup, side, MIN_MARGIN_PT)
+        rng = _content_range(ws)
+        w, h = float(rng.Width), float(rng.Height)
+        pw, ph = (A4_PT[1], A4_PT[0]) if landscape else A4_PT
+        aw = pw - float(setup.LeftMargin) - float(setup.RightMargin)
+        ah = ph - float(setup.TopMargin) - float(setup.BottomMargin)
+    except Exception:
+        return None
+    if w <= 0 or h <= 0 or aw <= 0 or ah <= 0:
+        return None
+    # 4% dự phòng: font Windows/driver đo khác Excel vài phần trăm.
+    z = int(min(100.0, 100.0 * aw / w, 100.0 * ah / h) * 0.96)
+    return max(10, min(100, z))
+
+
+def _pdf_pages(ws: Any) -> int | None:
+    """Số trang Excel thật sự xuất ra (cùng bộ ngắt trang với lệnh in)."""
+    import os
+    import tempfile
+
+    fd, tmp = tempfile.mkstemp(suffix=".pdf", prefix="gd_check_")
+    os.close(fd)
+    try:
+        ws.ExportAsFixedFormat(0, tmp, 0, False, False)
+        data = Path(tmp).read_bytes()
+    except Exception:
+        return None
+    finally:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+    n = len(re.findall(rb"/Type\s*/Page(?![s\w])", data))
+    if n:
+        return n
+    counts = [int(c) for c in re.findall(rb"/Count\s+(\d+)", data)]
+    return max(counts) if counts else None
+
+
+def _pages_now(excel: Any, ws: Any) -> int:
+    return _pdf_pages(ws) or _page_count(excel, ws)
+
+
+def _force_one_page(excel: Any, ws: Any, idx: int, orient: str = "portrait") -> None:
+    """Không gửi lệnh in nếu chưa xác nhận toàn bộ sheet nằm trên một trang.
+
+    FitToPages bị nhiều driver RICOH bỏ qua (nhất là khổ dọc), và số trang
+    Excel báo có thể cũ. Nên: đặt Zoom cố định tính từ kích thước vùng in,
+    rồi kiểm bằng file PDF Excel xuất thật; còn 2 trang thì hạ tiếp.
+    """
     try:
         excel.PrintCommunication = True
     except Exception:
@@ -411,15 +496,18 @@ def _force_one_page(excel: Any, ws: Any, idx: int) -> None:
     except Exception:
         pass
     setup = ws.PageSetup
-    n = _page_count(excel, ws)
-    if n <= 1:
-        return
-    # FitToPages bị phớt lờ: tự hạ Zoom tới khi còn 1 trang.
-    for z in range(95, 9, -5):
-        setup.Zoom = z
-        if _page_count(excel, ws) == 1:
-            log.info("sheet %s: ép 1 trang bằng Zoom=%s", idx, z)
+    est = _fit_zoom(ws, orient == "landscape")
+    if est is None:
+        if _pages_now(excel, ws) <= 1:
             return
+        est = 95
+    z = est
+    while z >= 10:
+        setup.Zoom = z
+        if _pages_now(excel, ws) == 1:
+            log.info("sheet %s (%s): 1 trang ở Zoom=%s", idx, orient, z)
+            return
+        z -= 3
     raise GdError(f"Sheet {idx} vẫn quá một trang; chưa gửi lệnh in sheet này.")
 
 
@@ -581,7 +669,7 @@ def print_sheets(path: Path | str, *, printer: str = "",
                     excel.PrintCommunication = True
                 except Exception:
                     pass
-            _force_one_page(excel, ws, idx)
+            _force_one_page(excel, ws, idx, orient)
             say(f"· in sheet {idx} × {copies} "
                 f"({'ngang' if orient == 'landscape' else 'dọc'})")
             # Một số driver RICOH/PCL 6 bỏ qua ``Copies=5`` từ Excel COM và chỉ
