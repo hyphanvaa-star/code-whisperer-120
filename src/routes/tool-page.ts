@@ -1728,6 +1728,30 @@ const BTNRED2 = `<style id="btn-red-skin-2">
 }
 </style>`;
 
+// ==== Skin điện thoại: CHỈ áp dụng khi màn hình < 820px ====
+// Bản máy tính giữ nguyên 100%. Trên điện thoại: nút/ô nhập to hơn cho
+// dễ bấm, khung dropdown bám theo màn hình, bảng cuộn ngang mượt.
+const MOBILE = `<style id="mobile-skin">
+@media (max-width:820px){
+  html{-webkit-text-size-adjust:100%}
+  body{overscroll-behavior-x:contain}
+  /* Nút bấm & ô nhập đủ to cho ngón tay (sau khi zoom-fit 0.5, kích thước
+     thực = giá trị CSS × 0.5, nên nhân đôi để chạm ~40px thật) */
+  button,input[type="button"],input[type="submit"],select{
+    min-height:34px;font-size:15px !important;
+  }
+  input[type="text"],input[type="number"],input[type="password"],textarea{
+    font-size:15px !important;
+  }
+  /* Khung chọn (dropdown tùy biến) bám sát mép màn hình, chữ to */
+  #ddPop{max-width:calc(100vw - 12px) !important;font-size:16px !important}
+  /* Bảng KHB: cuộn ngang mượt, giữ thanh cuộn hiển thị */
+  table{-webkit-overflow-scrolling:touch}
+  /* Hộp thoại/modal không tràn màn hình */
+  .modal,.dialog,[class*="popup"]{max-width:calc(100vw - 16px) !important}
+}
+</style>`;
+
 
 
 
