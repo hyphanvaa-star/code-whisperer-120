@@ -1366,10 +1366,10 @@ const BTNRED = `<style id="btn-red-skin">
 :is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):hover:not(:disabled){
   background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
 }
-/* 4. Nút chính / nút đang bật: đỏ đậm hơn + viền trắng mảnh để phân biệt */
+/* 4. Nút đang bật / đang chọn: cùng màu đỏ, thêm viền trắng trong để phân biệt */
 :is(.btn.primary,.btn.t-go,.btn.act,.btn[aria-pressed="true"],.btn.on,.nm-sky[aria-pressed="true"]):not(#_):not(#_){
-  background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),0 2px 6px rgba(142,12,31,.3) !important;
+  background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6),0 1px 3px rgba(227,25,55,.26) !important;
 }
 /* 5. Nút đang tắt: vẫn đỏ chữ trắng, chỉ mờ đi cho dễ nhận */
 :is(.btn,.ai-fab,.hdr-switch,.theme-switch,.vfile-btn,.nm-map-max-btn,.nm-sky,.ai-send,.om-x):not(#_):not(#_):disabled,
