@@ -28,12 +28,14 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
           body["paths_exist"] && typeof body["paths_exist"] === "object"
             ? (body["paths_exist"] as Record<string, boolean>)
             : {};
+        const { requestIp } = await import("@/lib/tool/creds.server");
+        const ip = requestIp(request);
         await pc.recordHeartbeat({
           version: String(body["version"] || ""),
           printers: printers as never,
           paths_exist: pathsExist,
-        });
-        const jobs = await pc.claimPending(5);
+        }, ip);
+        const jobs = await pc.claimPending(5, ip);
         // Paths the UI cares about, so the agent can report existence.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data } = await supabaseAdmin

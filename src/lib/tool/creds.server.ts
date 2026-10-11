@@ -4,7 +4,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 
-type Scope = { userId: string; vars: Record<string, string> };
+type Scope = { userId: string; vars: Record<string, string>; ip?: string };
 const als = new AsyncLocalStorage<Scope>();
 
 export const KINDS: Record<string, { user: string[]; pass: string[]; label: string }> = {
@@ -73,20 +73,30 @@ function toVars(st: Stored): Record<string, string> {
   return vars;
 }
 
-export async function runWithUserCreds<T>(userId: string, fn: () => Promise<T>): Promise<T> {
+/** Public IP of the browser making this request — pins PC-helper jobs to the helper on the same network. */
+export function currentIp(): string {
+  return als.getStore()?.ip ?? "";
+}
+
+export function requestIp(req: Request): string {
+  const h = req.headers;
+  return (h.get("cf-connecting-ip") || (h.get("x-forwarded-for") || "").split(",")[0] || h.get("x-real-ip") || "").trim();
+}
+
+export async function runWithUserCreds<T>(userId: string, fn: () => Promise<T>, ip = ""): Promise<T> {
   let vars: Record<string, string> = {};
   try {
     vars = toVars(await loadStored(userId));
   } catch {
     /* fall back to defaults */
   }
-  return als.run({ userId, vars }, fn);
+  return als.run({ userId, vars, ip }, fn);
 }
 
 /** Run with explicit overrides (used to test-login before saving). */
 export function runWithVars<T>(extra: Record<string, string>, fn: () => Promise<T>): Promise<T> {
   const cur = als.getStore();
-  return als.run({ userId: cur?.userId ?? "", vars: { ...(cur?.vars ?? {}), ...extra } }, fn);
+  return als.run({ userId: cur?.userId ?? "", vars: { ...(cur?.vars ?? {}), ...extra }, ip: cur?.ip }, fn);
 }
 
 /** Like process.env[name], but the signed-in user's saved account wins. */
