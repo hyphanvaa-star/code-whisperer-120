@@ -13231,9 +13231,32 @@ function nmDrawAltRoutes(id, bounds){
       .bindTooltip(label + (r.icao ? " " + r.icao : ""));
     pl.addTo(nmDrawGroup);
     bounds.push(pl.getBounds());
-    for(const p of r.points || []){
-      L.circleMarker([p.lat, p.lon], {radius: 3, color: color, fillColor: "#fff", fillOpacity: 1, weight: 2})
-        .bindTooltip(esc(p.name || "")).addTo(nmDrawGroup);
+    // Airway labels + permanent waypoint labels, like the main route.
+    // Shown whenever this ALT box is ticked — independent of "Waypoint OFP".
+    const pts = (r.points || []).filter(p => Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lon)));
+    try{ nmDrawAirways({track: pts, flight: {id: id + ":" + k}}); }catch(e){}
+    for(let i = 0; i < pts.length; i++){
+      const p = pts[i];
+      const name = String(p.name || "").trim().toUpperCase();
+      const mk = L.circleMarker([Number(p.lat), Number(p.lon)], {radius: 4, color: color, fillColor: "#fff", fillOpacity: 1, weight: 2});
+      if(!name || nmWptSkip(name)){ mk.addTo(nmDrawGroup); continue; }
+      const fl = Number(p.fl_ft) > 0 ? "FL" + Math.round(Number(p.fl_ft) / 100) : "";
+      const lab = [name, fl].filter(Boolean).join(" ");
+      let dir = "right", offs = [6, 0];
+      if(nmMap){
+        const pa = pts[Math.max(0, i - 1)], pb = pts[Math.min(pts.length - 1, i + 1)];
+        const A = nmMap.latLngToContainerPoint([Number(pa.lat), Number(pa.lon)]);
+        const B = nmMap.latLngToContainerPoint([Number(pb.lat), Number(pb.lon)]);
+        let nx = -(B.y - A.y), ny = B.x - A.x;
+        const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+        if(ny > 0 || (Math.abs(ny) < 1e-6 && nx < 0)){ nx = -nx; ny = -ny; }
+        dir = Math.abs(nx) > Math.abs(ny) ? (nx > 0 ? "right" : "left") : "top";
+        offs = [Math.round(nx * 26), Math.round(ny * 26)];
+      }
+      mk.bindTooltip(esc(lab), {permanent: true, direction: dir, offset: offs, className: "nm-wpt-lab nm-alt-lab", opacity: 0.95})
+        .bindPopup(esc(label + " · " + lab + (p.airway ? "  " + p.airway : ""))).addTo(nmDrawGroup);
+      const el = mk.getTooltip && mk.getTooltip() && mk.getTooltip().getElement();
+      if(el) el.style.borderColor = color;
     }
   }
 }
