@@ -370,13 +370,37 @@ export const routes: Routes = {
       const fields = atcChg.fields_from_fpl(block);
       if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
       const code = String(it.kind || atcChg.KIND_CHG);
-      const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || "") });
+      const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
+      const orig = std && !isNaN(std.getTime())
+        ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "";
+      const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || ""), orig_eobt: orig });
       const region = atcChg.aro_of(fields.dep || f.dep_icao);
       (code === atcChg.KIND_DLA ? dla : chg).push([region, msg]);
     }
     const text = atcChg.join_export(chg, dla).replace(/\r?\n/g, "\r\n");
     return { ok: true, ok_n: chg.length + dla.length, missed, filename: "CHG-DLA.txt",
       file: Buffer.from(text, "utf8").toString("base64") };
+  },
+
+  // Tàu FliteBrief hiện tại của từng chuyến CHG — để tô xanh khi đã lên tàu mới.
+  "POST /api/version/fbreg": async (ctx) => {
+    const body = await ctx.json();
+    const items = Array.isArray(body.items) ? (body.items as Raw[]) : [];
+    const { loadFlights } = await import("../core/gantts.server");
+    const flights = (await loadFlights(3, false)) as any[];
+    const out = items.map((it) => {
+      const d = String(parseInt(String(it.flt || "").replace(/\D/g, ""), 10) || "");
+      const dep = String(it.dep || "").toUpperCase(), arr = String(it.arr || "").toUpperCase();
+      const hit = flights.find((f) => {
+        const n = String(parseInt(String(f.fltno || f.commercial_fltno || f.callsign || "").replace(/\D/g, ""), 10) || "");
+        if (!d || n !== d) return false;
+        const okD = !dep || [f.dep_iata, f.dep_icao].some((x: string) => String(x || "").toUpperCase() === dep);
+        const okA = !arr || [f.dest_iata, f.dest_icao].some((x: string) => String(x || "").toUpperCase() === arr);
+        return okD && okA;
+      });
+      return { flt: it.flt, reg: hit ? String(hit.reg || "") : "" };
+    });
+    return { ok: true, items: out };
   },
 
   "POST /api/fpltext/build": async (ctx) => {

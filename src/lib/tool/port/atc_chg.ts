@@ -133,12 +133,14 @@ function wake_(ac: string, fallback = "M"): string {
 export function render(
   code: string,
   fields: FplFields,
-  opts: { delay_min?: number; new_type?: string } = {},
+  opts: { delay_min?: number; new_type?: string; orig_eobt?: string } = {},
 ): string {
   const delayMin = opts.delay_min ?? 0;
   const newType = opts.new_type ?? "";
   const cs = fields.callsign || "";
-  const item13 = fields.item13 || "";
+  // Header luôn mang EOBT gốc (STD UTC từ FliteBrief nếu có) — OFP có thể đã
+  // được làm lại theo ETD, cộng delay lên đó sẽ bị cộng hai lần.
+  const item13 = opts.orig_eobt ? set_eobt(fields.item13 || "", opts.orig_eobt) : (fields.item13 || "");
   const dest = fields.arr || "";
   const dof = fields.dof || "";
   const oldType = fields.type || "A320";
@@ -151,10 +153,10 @@ export function render(
   if (code === KIND_DLA) {
     return `(DLA-${cs}-${fresh}-${dest}${tail})`;
   }
-  const lines = [`(CHG-${cs}-${code === KIND_BOTH ? fresh : item13}-${dest}${tail}`];
+  const lines = [`(CHG-${cs}-${item13}-${dest}${tail}`];
   if (ac) lines.push("-9/" + ac + "/" + wake);
   if (equip) lines.push("-10/" + equip);
-  if (code === KIND_BOTH) lines.push("-13/" + item13);
+  if (code === KIND_BOTH) lines.push("-13/" + fresh);
   const pbn = String(fields.pbn || "").trim();
   if (pbn) lines.push(pbn);
   let text = lines.join("\n").replace(/\s+$/, "");

@@ -43,11 +43,15 @@ describe("render", () => {
     expect(got).toContain("-18/PBN/");
   });
 
-  it("CHG DLA puts new time in header and old in 13", () => {
+  it("CHG DLA keeps original EOBT in header and new time in 13", () => {
     const fields = atcChg.fields_from_fpl(FPL)!;
     const got = atcChg.render("CHG DLA", fields, { delay_min: 60, new_type: "A21N" });
-    expect(got).toContain("(CHG-VJC136-VVTS0600-VVNB-DOF/261003");
-    expect(got).toContain("-13/VVTS0500");
+    expect(got).toContain("(CHG-VJC136-VVTS0500-VVNB-DOF/261003");
+    expect(got).toContain("-13/VVTS0600");
+    // OFP đã làm lại theo ETD: header lấy STD gốc, không cộng delay hai lần
+    const g2 = atcChg.render("CHG DLA", { ...fields, item13: "VVTS0600" }, { delay_min: 60, orig_eobt: "0500" });
+    expect(g2).toContain("(CHG-VJC136-VVTS0500-");
+    expect(g2).toContain("-13/VVTS0600");
     expect(got).toContain("-9/A21N/M");
   });
 });
