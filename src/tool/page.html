@@ -2317,6 +2317,7 @@ main.nm-track #wrapXls,main.nm-track #xlsbar{display:none !important}
 .nm-th-meta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nm-th-meta span:last-child{font-size:11.5px;font-weight:500;color:#8b93a7}
 .nm-th-tools{display:flex;align-items:center;gap:6px;flex:none;margin-left:auto}
+#nmAltBar{display:contents}#nmAltBar[hidden]{display:none}.nm-alt-chip{cursor:pointer;padding:5px 10px}.nm-alt-chip input{margin:0}.nm-alt-chip small{color:#ffb86b}
 .nm-th-split{width:1px;height:28px;background:#3a4454;flex:none;margin:0 4px}
 .nm-tune-pop{position:fixed;z-index:900;width:min(560px,calc(100vw - 24px));
   max-height:min(70vh,520px);overflow:auto;padding:14px 16px 16px;
@@ -6940,7 +6941,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <button type="button" class="nm-sky" id="nmTuneHelp"
                   title="Logic lược bỏ NOTAM khi bấm Lọc notam tracking chuyến">
             Chú thích bộ lọc</button>
-          <span id="nmAltBar" style="display:contents" hidden></span>
+          <span id="nmAltBar" hidden></span>
           <a class="nm-sky" id="nmSky" href="https://skyvector.com/" target="_blank" rel="noopener"
              title="Mở đúng route trên SkyVector (hải đồ IFR)">SkyVector</a>
           <button type="button" class="nm-sky" id="nmWpt" aria-pressed="false"
@@ -13320,6 +13321,7 @@ function nmDrawFleetRoutes(){
     return;
   }
   nmDrawFleetRoutes._sig = sig;
+  nmPaintAltBar("");
   nmDrawGroup.clearLayers();
   if(nmNotamFlash && nmMap){
     nmMap.removeLayer(nmNotamFlash);
