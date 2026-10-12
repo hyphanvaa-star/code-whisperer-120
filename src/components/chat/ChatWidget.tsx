@@ -133,7 +133,61 @@ export function ChatWidget() {
     if (active) inputRef.current?.focus();
   }, [active]);
 
+  // ---- Tin chưa đọc (badge kiểu Messenger) ----
+  const [unread, setUnread] = useState<Record<string, number>>({});
+  const readKey = (roomId: string) => `chat.read.${me}.${roomId}`;
+  const markRead = useCallback((roomId: string) => {
+    if (!me) return;
+    localStorage.setItem(`chat.read.${me}.${roomId}`, new Date().toISOString());
+    setUnread((u) => (u[roomId] ? { ...u, [roomId]: 0 } : u));
+  }, [me]);
+
+  useEffect(() => {
+    if (!me) return;
+    let alive = true;
+    const tick = async () => {
+      const list = await loadRooms();
+      if (!alive) return;
+      const next: Record<string, number> = {};
+      await Promise.all(
+        list.map(async (r) => {
+          const key = `chat.read.${me}.${r.id}`;
+          let since = localStorage.getItem(key);
+          if (!since) {
+            since = new Date().toISOString();
+            localStorage.setItem(key, since);
+          }
+          const { count } = await supabase
+            .from("chat_messages")
+            .select("id", { count: "exact", head: true })
+            .eq("room_id", r.id)
+            .neq("user_id", me)
+            .gt("created_at", since);
+          next[r.id] = count ?? 0;
+        }),
+      );
+      if (alive) setUnread(next);
+    };
+    void tick();
+    void loadProfiles();
+    const t = setInterval(tick, 6000);
+    return () => { alive = false; clearInterval(t); };
+  }, [me, loadRooms, loadProfiles]);
+
+  useEffect(() => {
+    if (active && open) markRead(active.id);
+  }, [active, open, messages.length, markRead]);
+
   if (!me) return null;
+  void readKey;
+
+  const totalUnread = Object.entries(unread).reduce((s, [id, n]) => (active && open && id === active.id ? s : s + n), 0);
+  const badge = (n: number, cls = "") =>
+    n > 0 ? (
+      <span className={`flex min-w-5 h-5 items-center justify-center rounded-full border-2 border-[var(--chat-panel)] bg-[var(--chat-danger)] px-1 text-[11px] font-bold leading-none text-white ${cls}`}>
+        {n > 9 ? "9+" : n}
+      </span>
+    ) : null;
 
   const profileOf = (id: string) => profiles.find((p) => p.id === id);
   const dmPartner = (r: Room) => {
@@ -193,6 +247,7 @@ export function ChatWidget() {
         className="fixed bottom-5 right-5 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--chat-accent)] p-3.5 text-[var(--chat-accent-ink)] shadow-[0_6px_20px_-4px_oklch(0.66_0.19_150/0.6)] transition-transform hover:scale-105 active:scale-95"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {badge(totalUnread, "absolute -right-1 -top-1 animate-[bounce_1s_ease-in-out_2]")}
       </button>
 
       {open && (
@@ -223,6 +278,7 @@ export function ChatWidget() {
                         </span>
                         <span className="block text-xs text-[var(--chat-sub)]">Tất cả dispatcher</span>
                       </span>
+                      {badge(unread[r.id] ?? 0, "ml-auto")}
                     </button>
                   ))}
                 <div className="bg-[var(--chat-bg)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--chat-sub)]">
@@ -243,6 +299,7 @@ export function ChatWidget() {
                         </span>
                         <span className="block text-xs text-[var(--chat-sub)]">Nhắn riêng</span>
                       </span>
+                      {badge(unread[rooms.find((r) => r.dm_key === [me, p.id].sort().join("|"))?.id ?? ""] ?? 0, "ml-auto")}
                     </button>
                   ))}
               </div>
