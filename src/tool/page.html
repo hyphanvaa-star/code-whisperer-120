@@ -18010,7 +18010,7 @@ async function bgDoPreview(){
     for(const r of d.rows){
       if(!r.flight)      write("✗ " + r.file + " — " + r.note, "fail");
       else if(r.already) write("· " + r.file + " → " + r.flight + " (đã có)");
-      else               write("→ " + r.file + " → " + r.flight, "ok");
+      else               write("→ " + r.file + " → " + r.flight + (r.overwrite ? " (ghi đè bản cũ)" : ""), "ok");
     }
     write("■ " + d.total + " file · " + d.ready + " sẽ add · "
       + d.already + " đã có · " + d.unmatched + " không khớp chuyến",
@@ -18058,7 +18058,8 @@ async function bgSubmit(d0, sectorIds, opts){
       + "Folder: " + d0.folder + "\n"
       + "Chuyến nào có file trong folder thì add chuyến đó.\n\n"
       + "Đây là thao tác GHI LÊN hệ thống thật.\n"
-      + "File đã có trên chuyến sẽ bị bỏ qua, không tạo bản trùng.\n\n"
+      + "Chuyến trong −6h…+24h đã có briefing: XOÁ bản cũ rồi gắn bản mới.\n"
+      + "Chuyến ngoài khung đã có briefing sẽ bị bỏ qua.\n\n"
       + "Bấm Esc lúc đang chạy để dừng.")) return {ok:0, cancelled:true};
 
   const btn = $("#bgRun");

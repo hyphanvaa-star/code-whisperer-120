@@ -253,6 +253,16 @@ export const jobs: Jobs = {
       try {
         const blob = await store.getFile(ctx, `${BRIEF_DIR}/${pl.file.name}`);
         if (!blob?.byteLength) throw new Error("file Briefing rỗng hoặc không đọc được trong kho");
+        if (pl.overwrite) {
+          const { briefCallsign } = await import("../port/briefing");
+          const old = flight.attachments.filter((a) => !a.is_deleted
+            && [a.original_filename, a.title].some((n) => briefCallsign(String(n || "")) === pl.file.callsign));
+          for (const a of old) {
+            const del = await fbRequest("DELETE", `/webapi/sectors/${flight.id}/attachments/${a.id}`);
+            if (![200, 201, 204].includes(del.status)) throw new Error(`không xoá được briefing cũ ${a.original_filename || a.title}: HTTP ${del.status}`);
+            emit({ type: "line", text: `   − xoá briefing cũ ${a.original_filename || a.title}` });
+          }
+        }
         const form = new FormData();
         form.append("file-upload", new Blob([blob], { type: "application/pdf" }), pl.file.name);
         const up = await fbRequest("POST", "/webapi/notices/upload", { body: form, accept: "application/json" });
@@ -275,7 +285,7 @@ export const jobs: Jobs = {
         });
         if (![200, 201, 204].includes(att.status)) throw new Error(`gắn sector ${flight.id}: HTTP ${att.status}`);
         ok++;
-        emit({ type: "line", text: `✓ ${briefLabel(pl)} ← ${pl.file.name}`, progress });
+        emit({ type: "line", text: `✓ ${briefLabel(pl)} ← ${pl.file.name}${pl.overwrite ? " (ghi đè)" : ""}`, progress });
       } catch (e) {
         failed++;
         const msg = e instanceof Error ? e.message : String(e);
