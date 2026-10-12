@@ -25,7 +25,7 @@
 - Airport flags use bundled ICAO-country data; no external requests.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
 - AIP SUP/DAH rings/hours are fetched in `src/lib/tool/aip_sup.server.ts` (parsers in `port/aip_sup.ts`, cache in app_settings `aip_sup:*`), attached as `notam.sup_geoms` by the Check NOTAM handler — NOTAM text often only names the SUP area. JP ENR/KR KOCA use national parsers and country caches; client fixes preserve server arcs and separate areas.
-- Every publish bumps #appVersion in src/tool/page.html so users can tell builds apart.
+- Every publish bumps src/tool/page.html #appVersion to distinguish builds.
 - All briefing generation paths use `src/lib/tool/briefing-data.server.ts` for cached TAF, defects and pinned NOTAMs, so draft/export/aircraft replacement cannot omit a source. Briefing PDFs use `src/lib/tool/port/briefingPdf.ts` (original three-column Letter layout, embedded fonts); overflow continues rather than truncating operational text.
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can come from the dispatcher's browser login — Omni rejects token creation from the runtime's IPv6 X-Forwarded-For.
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from bundled `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`; tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart` — live AIP fetches are unreliable in a request.
