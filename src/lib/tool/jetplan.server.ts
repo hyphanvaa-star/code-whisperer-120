@@ -81,8 +81,9 @@ class Jar {
 }
 
 async function login(): Promise<Jar> {
-  const user = process.env["JETPLAN_USER"] || process.env["JETPLAN_USERNAME"] || "";
-  const pass = process.env["JETPLAN_PASS"] || process.env["JETPLAN_PASSWORD"] || "";
+  const { env } = await import("./creds.server");
+  const user = env("JETPLAN_USER") || env("JETPLAN_USERNAME") || "";
+  const pass = env("JETPLAN_PASS") || env("JETPLAN_PASSWORD") || "";
   if (!user || !pass) throw new Error("Thiếu tài khoản JetPlan");
   const jar = new Jar();
   await (await jar.go(HOME)).text();
