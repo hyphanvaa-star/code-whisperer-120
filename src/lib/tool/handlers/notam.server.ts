@@ -33,10 +33,11 @@ function withForeignAts(c: vn.Chart): vn.Chart {
 // Port of the web.py "/api/notam/pins*" and "/api/notam/lookup" endpoints
 // (notam_pin.py / notam_check.lookup_places). Pin store persisted under "notam.pins"
 // via getJson/setJson, replacing the original per-process JSON file.
-const PIN_KEY = "notam.pins";
+// Each dispatcher keeps a private NOTAM library so pins never overwrite each other.
+export const pinKey = (ctx: { userId: string }) => `notam.pins:${ctx.userId}`;
 
 async function loadPins(ctx: Parameters<Routes[string]>[0]) {
-  return getJson<pin.PinStore>(ctx, PIN_KEY, pin.emptyStore());
+  return getJson<pin.PinStore>(ctx, pinKey(ctx), pin.emptyStore());
 }
 
 async function fetchPlace(code: string, want: string): Promise<Record<string, unknown>> {
@@ -203,7 +204,7 @@ export const routes: Routes = {
     const store = await loadPins(ctx);
     try {
       const { store: next, ...rest } = pin.addCloud(store, body ?? {});
-      await setJson(ctx, PIN_KEY, next);
+      await setJson(ctx, pinKey(ctx), next);
       return rest;
     } catch (exc) {
       return { error: String((exc as Error).message ?? exc) };
@@ -222,7 +223,7 @@ export const routes: Routes = {
     const store = await loadPins(ctx);
     try {
       const { store: next, ...rest } = pin.addFlights(store, body, flights);
-      await setJson(ctx, PIN_KEY, next);
+      await setJson(ctx, pinKey(ctx), next);
       return rest;
     } catch (exc) {
       return { error: String((exc as Error).message ?? exc) };
@@ -231,7 +232,7 @@ export const routes: Routes = {
 
   "POST /api/notam/pins/clear": async (ctx) => {
     const { store } = pin.clear();
-    await setJson(ctx, PIN_KEY, store);
+    await setJson(ctx, pinKey(ctx), store);
     return { ok: true };
   },
 
@@ -252,7 +253,7 @@ export const routes: Routes = {
         kind: String(body.kind ?? ""),
         flight: String(body.flight ?? ""),
       });
-      await setJson(ctx, PIN_KEY, next);
+      await setJson(ctx, pinKey(ctx), next);
       return pin.snapshot(next);
     } catch (exc) {
       return { error: String((exc as Error).message ?? exc) };

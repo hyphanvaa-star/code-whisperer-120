@@ -26,7 +26,7 @@ export async function loadBriefingData(ctx: Ctx): Promise<Pick<DraftFromFlightOp
   const [wx, limits, pins] = await Promise.all([
     getJson<{ tafs?: NonNullable<DraftFromFlightOpts["tafs"]> }>(ctx, "wx.taf", {}),
     getJson<{ aircraft?: unknown[] }>(ctx, "limits", {}),
-    getJson<PinStore>(ctx, "notam.pins", emptyStore()),
+    getJson<PinStore>(ctx, `notam.pins:${ctx.userId}`, emptyStore()),
   ]);
   return {
     tafs: wx?.tafs ?? {},
