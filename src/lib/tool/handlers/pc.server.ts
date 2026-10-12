@@ -23,6 +23,7 @@ const PATH_KEYS: Record<string, [string, string]> = {
   fpl: ["Folder Flight Plan (Outlook)", "D:\\FPL"],
   omni: ["Folder Omni (EST)", "D:\\Omni"],
   atcezfw: ["Folder ATC + EZFW", "D:\\ATC-EZFW"],
+  checklist: ["Folder Checklist (F-017)", "D:\\checklist"],
 };
 
 const PATHS_KEY = "tool.paths";
