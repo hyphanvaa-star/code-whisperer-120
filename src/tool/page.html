@@ -21055,9 +21055,12 @@ async function vLoadFiles({preferNewest = false} = {}){
       if(!preferNewest && keep && vFileList.some(f => f.name === keep)) next = keep;
       else if(vFileList.length > def) next = vFileList[def].name;
       else if(vFileList.length) next = vFileList[0].name;
-      vSetValue(which, next);
-    }
+       vSetValue(which, next);
+     }
     vPaintMenus();
+    // Ver mới có thể tới từ mọi đường (Outlook Web, PC helper, tải tay) —
+    // luôn cập nhật nhãn Ver theo BẢN MỚI hiện tại để nháy đỏ khi chưa xem.
+    paintVerBang();
   }catch(err){ /* im lặng */ }
 }
 
