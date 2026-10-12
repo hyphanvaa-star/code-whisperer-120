@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getMyAccount, saveMyAvatar, updateMyAccount } from "@/lib/account.functions";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Camera, Trash2 } from "lucide-react";
+import { Camera, KeyRound, ShieldCheck, Trash2, User } from "lucide-react";
 import { passwordChecks } from "@/lib/password-rules";
 
 export const Route = createFileRoute("/_authenticated/tool")({
@@ -207,44 +207,68 @@ export function AccountDialog({ current, onClose, onSaved }: { current: string; 
       setMsg({ ok: false, t: err instanceof Error ? err.message.replace(/^.*?"message":"([^"]+)".*$/, "$1") : "Lỗi" });
     } finally { setBusy(false); }
   };
-  const inp = "w-full rounded-md border border-input bg-background px-3 py-2 text-[15px]";
+  const inp = "w-full rounded-lg border border-input bg-background px-3 py-2 text-[15px] shadow-sm transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
+  const lbl = "mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground";
   const checks = passwordChecks(pw, username);
+  const okCount = checks.filter((c) => c.ok).length;
   return (
     <Dialog open onOpenChange={(open) => { if (!open && !busy && !avatarBusy) onClose(); }}>
-      <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-sm overflow-y-auto rounded-lg">
-        <DialogTitle>Tài khoản & ảnh đại diện</DialogTitle>
-        <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-xl font-bold text-primary-foreground">
+      <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-md gap-0 overflow-y-auto rounded-2xl p-0">
+        <div className="bg-header px-5 pb-10 pt-5 text-primary-foreground">
+          <DialogTitle className="text-lg font-bold tracking-tight">Tài khoản & ảnh đại diện</DialogTitle>
+          <p className="mt-0.5 text-xs opacity-85">Cập nhật thông tin đăng nhập và hình ảnh của bạn</p>
+        </div>
+        <div className="-mt-8 flex items-end gap-4 px-5">
+          <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-card text-2xl font-bold text-primary shadow-lg ring-4 ring-card">
             {avatarUrl ? <img src={avatarUrl} alt="Ảnh đại diện" className="h-full w-full object-cover" /> : username.slice(0, 2).toUpperCase()}
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2 pb-1">
             <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void changeAvatar(f); }} />
-            <Button type="button" variant="outline" disabled={avatarBusy || busy} onClick={() => avatarInput.current?.click()}><Camera />{avatarBusy ? "Đang lưu…" : "Chọn ảnh"}</Button>
-            {avatarUrl && <Button type="button" variant="ghost" disabled={avatarBusy || busy} onClick={() => void changeAvatar(null)}><Trash2 />Xóa ảnh</Button>}
+            <Button type="button" size="sm" variant="outline" className="shadow-sm" disabled={avatarBusy || busy} onClick={() => avatarInput.current?.click()}><Camera />{avatarBusy ? "Đang lưu…" : "Chọn ảnh"}</Button>
+            {avatarUrl && <Button type="button" size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={avatarBusy || busy} onClick={() => void changeAvatar(null)}><Trash2 />Xóa ảnh</Button>}
           </div>
         </div>
-        <form onSubmit={submit} className="space-y-3">
-        <label className="block text-sm">Tên đăng nhập<input className={inp} value={username} onChange={(e) => setUsername(e.target.value)} /></label>
-        <label className="block text-sm">Tên hiển thị (để trống nếu giữ nguyên)<input className={inp} value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></label>
-        <label className="block text-sm">Mật khẩu mới (để trống nếu giữ nguyên)<input type="password" autoComplete="new-password" className={inp} value={pw} onChange={(e) => setPw(e.target.value)} /></label>
-        <div className="rounded-md border border-border bg-muted/40 p-2 text-[11px] leading-snug">
-          <p className="mb-1 font-semibold">Mật khẩu mới phải đủ:</p>
-          <ul className="grid gap-0.5">
-            {checks.map((c) => (
-              <li key={c.label} className={c.ok ? "text-primary" : "text-muted-foreground"}>{c.ok ? "✓" : "○"} {c.label}</li>
-            ))}
-          </ul>
-          <p className="mt-1 text-muted-foreground">
-            Hệ thống còn tự chặn mật khẩu đã bị lộ trên mạng hoặc quá dễ đoán (12345678, password, Abc@1234, abcd, aaaa1111).
-            Mẹo: ghép 3 từ không liên quan + ký tự đặc biệt + số, ví dụ Hanoi!Office99.
-          </p>
+        <form onSubmit={submit} className="space-y-4 px-5 pb-5 pt-4">
+        <div className="rounded-xl border border-border bg-muted/30 p-3.5">
+          <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary"><User className="h-3.5 w-3.5" />Thông tin</p>
+          <div className="space-y-3">
+            <label className="block"><span className={lbl}>Tên đăng nhập</span><input className={inp} value={username} onChange={(e) => setUsername(e.target.value)} /></label>
+            <label className="block"><span className={lbl}>Tên hiển thị <span className="font-normal normal-case">(để trống nếu giữ nguyên)</span></span><input className={inp} value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></label>
+          </div>
         </div>
-        {pw && <label className="block text-sm">Nhập lại mật khẩu mới<input type="password" autoComplete="new-password" className={inp} value={pw2} onChange={(e) => setPw2(e.target.value)} /></label>}
-        <label className="block text-sm font-semibold">Mật khẩu hiện tại (bắt buộc)<input type="password" required autoComplete="current-password" className={inp} value={cur} onChange={(e) => setCur(e.target.value)} /></label>
-        {msg && <p className={msg.ok ? "text-sm text-primary" : "text-sm text-destructive"}>{msg.t}</p>}
-        <div className="flex justify-end gap-2">
+        <div className="rounded-xl border border-border bg-muted/30 p-3.5">
+          <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary"><KeyRound className="h-3.5 w-3.5" />Đổi mật khẩu</p>
+          <div className="space-y-3">
+            <label className="block"><span className={lbl}>Mật khẩu mới <span className="font-normal normal-case">(để trống nếu giữ nguyên)</span></span><input type="password" autoComplete="new-password" className={inp} value={pw} onChange={(e) => setPw(e.target.value)} /></label>
+            <div className="rounded-lg border border-border bg-card p-3 text-xs leading-snug">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="font-semibold">Mật khẩu mới phải đủ:</p>
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${okCount === checks.length ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>{okCount}/{checks.length}</span>
+              </div>
+              <ul className="grid grid-cols-2 gap-x-3 gap-y-1">
+                {checks.map((c) => (
+                  <li key={c.label} className={`flex items-center gap-1.5 transition-colors ${c.ok ? "font-medium text-primary" : "text-muted-foreground"}`}>
+                    <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] ${c.ok ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{c.ok ? "✓" : "○"}</span>
+                    {c.label}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                Hệ thống còn tự chặn mật khẩu đã bị lộ trên mạng hoặc quá dễ đoán (12345678, password, Abc@1234).
+                Mẹo: ghép 3 từ không liên quan + ký tự đặc biệt + số, ví dụ <span className="font-mono font-semibold text-foreground">Hanoi!Office99</span>.
+              </p>
+            </div>
+            {pw && <label className="block"><span className={lbl}>Nhập lại mật khẩu mới</span><input type="password" autoComplete="new-password" className={inp} value={pw2} onChange={(e) => setPw2(e.target.value)} /></label>}
+          </div>
+        </div>
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-3.5">
+          <label className="block"><span className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-primary"><ShieldCheck className="h-3.5 w-3.5" />Mật khẩu hiện tại (bắt buộc)</span><input type="password" required autoComplete="current-password" className={inp} value={cur} onChange={(e) => setCur(e.target.value)} /></label>
+          <p className="mt-1.5 text-[11px] text-muted-foreground">Nhập mật khẩu hiện tại để xác nhận mọi thay đổi.</p>
+        </div>
+        {msg && <p className={`rounded-lg px-3 py-2 text-sm font-medium ${msg.ok ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>{msg.t}</p>}
+        <div className="flex justify-end gap-2 pt-1">
           <Button type="button" variant="outline" disabled={busy || avatarBusy} onClick={onClose}>Đóng</Button>
-          <Button disabled={busy || avatarBusy}>{busy ? "Đang lưu…" : "Lưu"}</Button>
+          <Button className="min-w-24 shadow-sm" disabled={busy || avatarBusy}>{busy ? "Đang lưu…" : "Lưu thay đổi"}</Button>
         </div>
       </form>
       </DialogContent>
