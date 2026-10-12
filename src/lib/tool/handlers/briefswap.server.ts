@@ -20,7 +20,10 @@ function attachmentsOn(flight: Flight) {
   return flight.attachments.filter((a) => {
     if (a.is_deleted) return false;
     for (const raw of [a.original_filename, a.title]) {
-      if (briefCallsignOf(raw) === cs) return true;
+      const s = String(raw ?? "");
+      // Chỉ tờ briefing (tên có "brief"); PIB/WX/notice cùng số hiệu chuyến không được xoá.
+      if (!/brief/i.test(s) || /\bPIB|NOTAM|WX|MET/i.test(s)) continue;
+      if (briefCallsignOf(s) === cs) return true;
     }
     return false;
   });
