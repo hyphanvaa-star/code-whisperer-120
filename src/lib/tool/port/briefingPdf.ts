@@ -46,16 +46,22 @@ export async function renderBriefingPdf(sheet: ReleaseSheet): Promise<Uint8Array
   const labels = [`Dept. APT (${sheet.dep || "—"})`, `Dest. APT (${sheet.dest || "—"})`, apt("Dest. Alternate(s)", sheet.dest_alts), apt("Enr. Alternate(s)", sheet.enroute_alts)];
   const wx = labels.map((label, i) => ({ label, body: sheet.wx[i]?.texts.join("\n\n") || "NIL", size: 8, bold: false, notes: false }));
   wx.push({ label: "En-route SIG Wx", body: sigWxText(sheet.sig_wx), size: 8, bold: false, notes: false });
-  const nt = padNotams(sheet.notams).map((body, i) => ({ label: labels[i] ?? "FIR(s)", body, size: 8, bold: false, notes: false }));
+  const cells = padNotams(sheet.notams);
+  const split = splitDestAlts(sheet);
+  const ntLabels = [labels[0], labels[1], split ? apt("Dest. Alternate 1", split[0]) : labels[2], labels[3], "FIR(s)"];
+  const order = [0, 1, 2, 3, 4];
+  if (split) { ntLabels.splice(3, 0, apt("Dest. Alternate 2", split[1])); order.splice(3, 0, 5); }
+  const nt = order.map((ci, i) => ({ label: ntLabels[i]!, body: cells[ci] ?? "", size: 8, bold: false, notes: false }));
+  const x = split ? 1 : 0;
   const rows = [...wx, ...nt,
     { label: `Check Tech log\nfor updates\nREG: ${sheet.reg || "—"}`, body: defectBullets(sheet.defects).join("\n"), size: 10.7, bold: false, notes: false },
     { label: sheet.permit_addr, body: sheet.permit_kind, size: 9.4, bold: false, notes: false },
     { label: "", body: sheet.notes, size: 11.5, bold: true, notes: true },
     ...PIC_ACK_LINES.map((body) => ({ label: "", body, size: 9.4, bold: false, notes: true })),
   ];
-  const side = [{ start: 0, end: 4, text: WEATHER_SIDE }, { start: 5, end: 9, text: NOTAM_SIDE },
-    { start: 10, end: 10, text: OPS_SIDE }, { start: 11, end: 11, text: PERMIT_SIDE },
-    { start: 12, end: 12, text: NOTES_SIDE }, { start: 13, end: 15, text: "PIC Ack" }];
+  const side = [{ start: 0, end: 4, text: WEATHER_SIDE }, { start: 5, end: 9 + x, text: NOTAM_SIDE },
+    { start: 10 + x, end: 10 + x, text: OPS_SIDE }, { start: 11 + x, end: 11 + x, text: PERMIT_SIDE },
+    { start: 12 + x, end: 12 + x, text: NOTES_SIDE }, { start: 13 + x, end: 15 + x, text: "PIC Ack" }];
   let factor = 1;
   const heightsAt = (scale: number) => {
     const heights = rows.map((row) => {

@@ -86,16 +86,16 @@ export const sigWxText = notamCell;
 
 export function padNotams(raw: unknown, single: unknown = null): string[] {
   if (Array.isArray(raw)) {
-    const cells = raw.slice(0, 5).map(notamCell);
-    while (cells.length < 5) cells.push("");
+    const cells = raw.slice(0, 6).map(notamCell);
+    while (cells.length < 6) cells.push("");
     return cells;
   }
   const one = notamCell(single !== null && single !== undefined ? single : raw);
-  return [one, one, one, one, one];
+  return [one, one, one, one, one, one];
 }
 
 function notamsFromPayload(data: Record<string, unknown>): string[] {
-  const keys = ["notam0", "notam1", "notam2", "notam3", "notam4"];
+  const keys = ["notam0", "notam1", "notam2", "notam3", "notam4", "notam5"];
   if (keys.some((k) => k in data && data[k] !== null && data[k] !== undefined)) {
     return keys.map((k) => notamCell(data[k]));
   }
@@ -260,7 +260,7 @@ export function newSheet(partial: Partial<ReleaseSheet> & Pick<ReleaseSheet, "ca
     permit_addr: PERMIT_ADDR,
     permit_kind: PERMIT_KIND,
     sig_wx: "",
-    notams: ["", "", "", "", ""],
+    notams: ["", "", "", "", "", ""],
     ...partial,
   };
 }
@@ -293,6 +293,12 @@ function slashHtml(codes: string[]): string {
 function aptHtml(title: string, icaos: string[]): string {
   if (!icaos.length) return escapeHtml(title);
   return `${escapeHtml(title)}<br>(${slashHtml(icaos)})`;
+}
+
+/** Two+ destination alternates → separate NOTAM rows (alt 1, then the rest). */
+export function splitDestAlts(sheet: ReleaseSheet): string[][] | null {
+  const da = sheet.dest_alts.filter(Boolean);
+  return da.length >= 2 ? [[da[0]], da.slice(1)] : null;
 }
 
 function tafHtml(texts: string[]): string {
@@ -337,6 +343,7 @@ export function toHtml(sheet: ReleaseSheet): string {
   const tech = "Check Tech log<br>for updates<br>" + escapeHtml(`REG: ${sheet.reg || "—"}`);
   const nt = padNotams(sheet.notams);
   const nosig = nt.map((t) => notamHtml(t));
+  const split = splitDestAlts(sheet);
   const sigCell = `<td class='br-c3 br-nosig'>${escapeHtml(sigWxText(sheet.sig_wx))}</td>`;
 
   return `
@@ -374,7 +381,7 @@ export function toHtml(sheet: ReleaseSheet): string {
       ${sigCell}
     </tr>
     <tr>
-      <td class="br-c1" rowspan="5">${htmlLines(NOTAM_SIDE)}</td>
+      <td class="br-c1" rowspan="${split ? 6 : 5}">${htmlLines(NOTAM_SIDE)}</td>
       <td class="br-c2">${depL}</td>
       ${nosig[0]}
     </tr>
@@ -383,9 +390,13 @@ export function toHtml(sheet: ReleaseSheet): string {
       ${nosig[1]}
     </tr>
     <tr>
-      <td class="br-c2">${destAltL}</td>
+      <td class="br-c2">${split ? aptHtml("Dest. Alternate 1", split[0]) : destAltL}</td>
       ${nosig[2]}
-    </tr>
+    </tr>${split ? `
+    <tr>
+      <td class="br-c2">${aptHtml("Dest. Alternate 2", split[1])}</td>
+      ${nosig[5]}
+    </tr>` : ""}
     <tr>
       <td class="br-c2">${enrAltL}</td>
       ${nosig[3]}
@@ -446,6 +457,8 @@ export function toEditHtml(sheet: ReleaseSheet): string {
   const n2 = editArea("notam2", nt[2], "bf-notam");
   const n3 = editArea("notam3", nt[3], "bf-notam");
   const n4 = editArea("notam4", nt[4], "bf-notam");
+  const n5 = editArea("notam5", nt[5], "bf-notam");
+  const split = splitDestAlts(sheet);
   const hiddenCs = `<input type='hidden' data-bf='callsign' value='${escapeHtml(sheet.callsign)}'>`;
   const depStatic = `Dept. APT (${escapeHtml(sheet.dep || "—")})`;
   const destStatic = `Dest. APT (${escapeHtml(sheet.dest || "—")})`;
@@ -488,7 +501,7 @@ export function toEditHtml(sheet: ReleaseSheet): string {
       <td class="br-c3 br-nosig">${sig}</td>
     </tr>
     <tr>
-      <td class="br-c1" rowspan="5">${htmlLines(NOTAM_SIDE)}</td>
+      <td class="br-c1" rowspan="${split ? 6 : 5}">${htmlLines(NOTAM_SIDE)}</td>
       <td class="br-c2">${depStatic}</td>
       <td class="br-c3 br-nosig">${n0}</td>
     </tr>
@@ -497,9 +510,13 @@ export function toEditHtml(sheet: ReleaseSheet): string {
       <td class="br-c3 br-nosig">${n1}</td>
     </tr>
     <tr>
-      <td class="br-c2">${destAltStatic}</td>
+      <td class="br-c2">${split ? aptHtml("Dest. Alternate 1", split[0]) : destAltStatic}</td>
       <td class="br-c3 br-nosig">${n2}</td>
-    </tr>
+    </tr>${split ? `
+    <tr>
+      <td class="br-c2">${aptHtml("Dest. Alternate 2", split[1])}</td>
+      <td class="br-c3 br-nosig">${n5}</td>
+    </tr>` : `<input type='hidden' data-bf='notam5' value=''>`}
     <tr>
       <td class="br-c2">${enrAltStatic}</td>
       <td class="br-c3 br-nosig">${n3}</td>
@@ -671,7 +688,10 @@ export function toText(sheet: ReleaseSheet): string {
     `En-route SIG Wx                          ${sigWxText(sheet.sig_wx)}`,
     `Dept. APT (${sheet.dep || "—"})                         ${nt[0]}`,
     `Dest. APT (${sheet.dest || "—"})                         ${nt[1]}`,
-    `${destAlt}                         ${nt[2]}`,
+    ...(splitDestAlts(sheet)
+      ? [`${aptLabel("Dest. Alternate 1", splitDestAlts(sheet)![0])}                         ${nt[2]}`,
+         `${aptLabel("Dest. Alternate 2", splitDestAlts(sheet)![1])}                         ${nt[5]}`]
+      : [`${destAlt}                         ${nt[2]}`]),
     `${enrAlt}                         ${nt[3]}`,
     `FIR(s)                                   ${nt[4]}`,
     "",
@@ -866,7 +886,7 @@ export interface DraftFromFlightOpts extends BuildSheetOpts {
 /** Merge partial saved edits without throwing away fresh OFP/WX/defect fields. */
 export function applyFields(sheet: ReleaseSheet, data: Record<string, unknown>): ReleaseSheet {
   const base = toFields(sheet);
-  if ([0, 1, 2, 3, 4].some((i) => data[`notam${i}`] !== undefined)) {
+  if ([0, 1, 2, 3, 4, 5].some((i) => data[`notam${i}`] !== undefined)) {
     sheet.notams.forEach((cell, i) => { base[`notam${i}`] = cell; });
   }
   const changes = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== null && value !== undefined));
