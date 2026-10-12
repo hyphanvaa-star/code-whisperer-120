@@ -24610,8 +24610,7 @@ function ftApplyCrewDiff(src){
     const f = ftRows[i];
     if(!f) continue;
     const st = ftSt(f);
-    if(!st.src){ st.src = src; continue; }
-    if(st.src === src) continue;
+    const prevSrc = st.src || "bảng";
     const same = ftCatalog.filter(c => String(c.flt) === String(f.flt) && (c.date || "") === (st.date || f.date || ""));
     const nf = same.find(c => c.dep === f.dep) || same[0];
     const chg = {};
