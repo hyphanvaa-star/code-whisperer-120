@@ -371,9 +371,11 @@ export const routes: Routes = {
       if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
       const code = String(it.kind || atcChg.KIND_CHG);
       const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
-      const orig = std && !isNaN(std.getTime())
-        ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "";
-      const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || ""), orig_eobt: orig });
+      // Ưu tiên giờ trên bảng (STD gốc / ETD mới, giờ VN) — FliteBrief có thể đã đổi STD theo ETD.
+      const orig = vnToUtc(it.std) || (std && !isNaN(std.getTime())
+        ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "");
+      const fresh = vnToUtc(it.etd);
+      const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || ""), orig_eobt: orig, new_eobt: fresh });
       const region = atcChg.aro_of(fields.dep || f.dep_icao);
       (code === atcChg.KIND_DLA ? dla : chg).push([region, msg]);
     }
@@ -387,18 +389,19 @@ export const routes: Routes = {
     const body = await ctx.json();
     const items = Array.isArray(body.items) ? (body.items as Raw[]) : [];
     const { loadFlights } = await import("../core/gantts.server");
-    const flights = (await loadFlights(3, false)) as any[];
+    const flights = (await loadFlights(3, true)) as any[];
     const out = items.map((it) => {
       const d = String(parseInt(String(it.flt || "").replace(/\D/g, ""), 10) || "");
       const dep = String(it.dep || "").toUpperCase(), arr = String(it.arr || "").toUpperCase();
-      const hit = flights.find((f) => {
+      const cands = flights.filter((f) => {
         const n = String(parseInt(String(f.fltno || f.commercial_fltno || f.callsign || "").replace(/\D/g, ""), 10) || "");
         if (!d || n !== d) return false;
         const okD = !dep || [f.dep_iata, f.dep_icao].some((x: string) => String(x || "").toUpperCase() === dep);
         const okA = !arr || [f.dest_iata, f.dest_icao].some((x: string) => String(x || "").toUpperCase() === arr);
         return okD && okA;
       });
-      return { flt: it.flt, reg: hit ? String(hit.reg || "") : "" };
+      const hit = cands.find((f) => sameOpsDay(f.std, it.date)) ?? (it.date ? null : cands[0]);
+      return { flt: it.flt, reg: hit ? String(hit.reg || hit.ofp_reg || "") : "" };
     });
     return { ok: true, items: out };
   },
@@ -441,6 +444,24 @@ export const routes: Routes = {
 
 export const jobs: Jobs = {};
 
+/** True when STD (as local VN time, UTC+7) falls on the table's "d/m/yyyy" date. */
+export function sameOpsDay(std: unknown, date: unknown): boolean {
+  const m = String(date || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m || !std) return false;
+  const t = std instanceof Date ? std : new Date(String(std));
+  if (isNaN(t.getTime())) return false;
+  const l = new Date(t.getTime() + 7 * 3600e3);
+  return l.getUTCFullYear() === +m[3] && l.getUTCMonth() + 1 === +m[2] && l.getUTCDate() === +m[1];
+}
+
+/** Local VN "HH:MM" → UTC "HHMM". */
+function vnToUtc(hm: unknown): string {
+  const m = String(hm || "").match(/(\d{1,2})\D?(\d{2})/);
+  if (!m) return "";
+  const t = (((+m[1] * 60 + +m[2] - 420) % 1440) + 1440) % 1440;
+  return String(Math.trunc(t / 60)).padStart(2, "0") + String(t % 60).padStart(2, "0");
+}
+
 export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number; f: any; block: string; plan?: string }[]; missed: string[] }> {
     const ae = await import("../port/atc_ezfw");
     const { loadFlights } = await import("../core/gantts.server");
@@ -458,6 +479,8 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
         (!dep || f.dep_iata?.toUpperCase() === dep || f.dep_icao?.toUpperCase() === dep) &&
         (!arr || f.dest_iata?.toUpperCase() === arr || f.dest_icao?.toUpperCase() === arr));
       if (byApt.length) hits = byApt;
+      const byDay = hits.filter((f: any) => sameOpsDay(f.std, it.date));
+      if (byDay.length) hits = byDay;
       const win = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
       if (win.length) hits = win;
       hits.sort((a: any, b: any) => Math.abs((a.std?.getTime() ?? 0) - now) - Math.abs((b.std?.getTime() ?? 0) - now));
