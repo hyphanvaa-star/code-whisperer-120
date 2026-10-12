@@ -2,6 +2,7 @@
 // Worker gets its file list from the private bucket instead of a local
 // folder, see handlers/briefing.server.ts).
 import type { Flight } from "../core/models";
+import { inOpsWindow } from "./notices";
 
 // Accepts VJC1112_Briefing.pdf, VJC1112-briefing.pdf, VJC1112.pdf
 const RE_BRIEF = /^(?<cs>[A-Z]{2,3}\d{1,5})(?:[\s._-]*brief(?:ing)?)?$/i;
@@ -34,6 +35,8 @@ export interface BriefPlan {
   flight: Flight | null;
   note: string;
   already: boolean;
+  /** Chuyến trong −6h…+24h đã có briefing → xoá bản cũ rồi gắn bản mới. */
+  overwrite?: boolean;
 }
 
 export function briefLabel(plan: BriefPlan): string {
@@ -77,8 +80,12 @@ export function previewBriefing(flights: Flight[], files: BriefFile[], now = new
         continue;
       }
     }
-    const have = f.attachments.some((a) => a.filename().toLowerCase() === bf.name.toLowerCase());
-    plans.push({ file: bf, flight: f, note: have ? "đã có trên chuyến" : "", already: have });
+    const have = f.attachments.some((a) => !a.is_deleted && briefCallsign(a.filename()) === bf.callsign);
+    if (have && inOpsWindow(f, now)) {
+      plans.push({ file: bf, flight: f, note: "ghi đè briefing cũ", already: false, overwrite: true });
+    } else {
+      plans.push({ file: bf, flight: f, note: have ? "đã có trên chuyến" : "", already: have });
+    }
   }
   return plans;
 }
