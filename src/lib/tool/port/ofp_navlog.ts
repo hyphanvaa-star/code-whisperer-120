@@ -19,7 +19,7 @@ export function parseNavlog(text: string): { points: NavPoint[]; line: [number, 
     if (!hits.length) {
       // a pure name line can precede its coordinate line
       const names = [...ln.matchAll(NAME)].map((m) => m[1]!).filter((n) => !SKIP.has(n) && !/^\d/.test(n));
-      if (names.length) lastName = names[0]!;
+      if (names.length) lastName = (names.length >= 2 ? names[1] : names[0])!;
       continue;
     }
     for (const h of hits) {
