@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { MIN_LEN, passwordChecks } from "./password-rules";
 
 const schema = z.object({
   currentPassword: z.string().min(1).max(200),
@@ -12,7 +13,7 @@ const schema = z.object({
     .toLowerCase()
     .regex(/^[a-z0-9._-]{3,32}$/, "Tên đăng nhập 3–32 ký tự: chữ, số, . _ -")
     .optional(),
-  newPassword: z.string().min(6, "Mật khẩu mới tối thiểu 6 ký tự").max(200).optional(),
+  newPassword: z.string().min(MIN_LEN, `Mật khẩu mới tối thiểu ${MIN_LEN} ký tự`).max(200).optional(),
 });
 
 export const updateMyAccount = createServerFn({ method: "POST" })
@@ -43,6 +44,12 @@ export const updateMyAccount = createServerFn({ method: "POST" })
     const { error: pwErr } = await check.auth.signInWithPassword({ email, password: data.currentPassword });
     if (pwErr) throw new Error("Mật khẩu hiện tại không đúng");
 
+    // Same rules the dialog shows, so a password that passes here also passes the backend check.
+    if (data.newPassword) {
+      const bad = passwordChecks(data.newPassword, email.split("@")[0]).filter((c) => !c.ok);
+      if (bad.length) throw new Error("Mật khẩu mới chưa đạt: " + bad.map((b) => b.label.toLowerCase()).join(", "));
+    }
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const patch: { email?: string; password?: string; email_confirm?: boolean } = {};
     let newEmail = email;
@@ -62,7 +69,7 @@ export const updateMyAccount = createServerFn({ method: "POST" })
         console.error("updateUserById", error.status, error.code, error.message);
         const m = String(error.message || "");
         if (/weak|pwned|leaked|known/i.test(m) || error.code === "weak_password")
-          throw new Error("Mật khẩu mới quá yếu hoặc đã bị lộ trên mạng — chọn mật khẩu khác (dài hơn, có chữ + số + ký tự)");
+          throw new Error("Mật khẩu mới quá dễ đoán hoặc đã bị lộ trên mạng — ghép 3 từ không liên quan + ký tự đặc biệt + số (ví dụ Hanoi!Office99)");
         if (/at least|characters|length/i.test(m))
           throw new Error("Mật khẩu mới quá ngắn: " + m);
         if (/same|different/i.test(m)) throw new Error("Mật khẩu mới phải khác mật khẩu cũ");
