@@ -936,7 +936,7 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
 #wrapFplText .fttbl td:nth-child(2) .ftflt-in{position:static !important;display:block !important;width:100% !important}
 #wrapFplText .fttbl td.ftflt > .ftbadge,#wrapFplText .fttbl td:nth-child(2) .ftflt-in > .ftbadge{position:absolute !important;left:-9px;top:50%;transform:translateY(-50%);z-index:3;border:0;padding:0;cursor:pointer;color:var(--x-card) !important}
 #wrapFplText .fttbl td.ftflt > input,#wrapFplText .fttbl td:nth-child(2) .ftflt-in > input{width:100% !important;min-width:0 !important;padding-inline:4px !important;box-sizing:border-box !important}
-#wrapFplText .fttbl input[type=text]{color:var(--x-khb-ink) !important}
+#wrapFplText .fttbl input[type=text]{color:#1E3A8A !important;-webkit-text-fill-color:#1E3A8A;font-weight:600 !important}
 #wrapFplText .fttbl td.dimcell{color:var(--x-mute) !important}
 
 input:focus,select:focus,textarea:focus{outline:none !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
