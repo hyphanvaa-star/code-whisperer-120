@@ -6888,6 +6888,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
             <span class="nr-slogan">Fly Further Together</span>
           <div class="nr-actions">
             <span class="nr-save-msg" id="nrSaveMsg" role="status" aria-live="polite"></span>
+              <button class="btn small nr-new" id="nrLibUp" title="Tải PDF vào kho Notice (không thêm vào rule nào). Tên file phải khớp tên động, vd TN-LOW EGTM A673.pdf">Tải file vào kho</button><input id="nrLibFile" type="file" multiple accept=".pdf,application/pdf" style="display:none">
               <button class="btn small nr-new" id="nrAdd">Rule mới</button>
             <button class="btn primary small nr-save" id="nrSave">Lưu thay đổi</button>
             </div>
@@ -19551,6 +19552,14 @@ function nrAddRow(r={}){
   nrPaintKind(tr);nrValueEditor(tr);nrFileChips(tr);
   nrSyncRow(tr); nrStats();
 }
+(function(){const go=()=>{const btn=document.getElementById("nrLibUp"),inp=document.getElementById("nrLibFile");if(!btn||!inp)return setTimeout(go,500);
+btn.onclick=()=>inp.click();
+inp.onchange=async e=>{const fs=[...e.target.files];e.target.value="";if(!fs.length)return;btn.disabled=true;const ok=[],bad=[];let note="";
+for(let i=0;i<fs.length;i++){const f=fs[i];btn.textContent="Đang tải "+(i+1)+"/"+fs.length+"…";
+try{const rr=await fetch("/api/notices/rule-file",{method:"POST",headers:{"Content-Type":"application/pdf","X-Filename":encodeURIComponent(f.name)},body:f});
+const d=await rr.json().catch(()=>({error:"HTTP "+rr.status}));if(d.error)bad.push(f.name+": "+d.error);else{ok.push(d.name+(d.shared?"":" (tạm)"));if(d.temp)note=d.note;}}catch(x){bad.push(f.name+": "+x);}}
+btn.disabled=false;btn.textContent="Tải file vào kho";
+alert("Đã tải vào kho Notice: "+ok.length+" file\n"+ok.join("\n")+(bad.length?"\n\nLỗi:\n"+bad.join("\n"):"")+(note?"\n\n"+note:""));};};go();})();
 function nrKindOf(cond){
   return ({always:"doc",has_reg:"plane",dest:"bldg",dep:"bldg",route:"route",
     ac_type:"gear",reg_in:"list",touches:"plane",prefix_or_touches:"list",
