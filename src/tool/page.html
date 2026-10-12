@@ -7437,6 +7437,8 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                 title="Lưu tờ đang mở — Xuất briefing sẽ dùng bản này">Lưu</button>
         <button class="btn small" id="bfEditReset"
                 title="Xoá bản đã lưu, lấy lại OFP + TAF + defect gốc">Bỏ hiệu chỉnh</button>
+        <button class="btn small" id="bfEditPdf" style="background:#C8102E;color:#fff;border-color:#C8102E"
+                title="Tạo PDF tờ đang mở (kể cả phần đang sửa) và tải thẳng về máy">⬇ Xuất PDF</button>
         <span class="acmsg" id="bfEditMsg"></span>
       </div>
       <div class="br-preview" id="bfEditPreview"><span class="br-empty">Chọn chuyến trong cột FLT NO.</span></div>
@@ -18438,13 +18440,21 @@ async function tlEditBrief(){
   bfEditCurrent = "";
   bfEditDirty = false;
   if(prev) prev.innerHTML = "<span class=\"br-empty\">Đang soạn draft…</span>";
-  bfMsg("đang lấy OFP / TAF / defect…");
+  bfMsg("đang lấy OFP / TAF / NOTAM…");
   if(btn) btn.disabled = true;
+  window.bfLoading = true;
   try{
-    for(let i = 0; i < cs.length; i++){
-      bfMsg("đang soạn " + cs[i] + " (" + (i + 1) + "/" + cs.length + ")…");
-      await bfLoadOne(cs[i]);
-    }
+    // Soạn song song tối đa 3 chuyến — mỗi chuyến chờ FliteBrief tải OFP.
+    let next = 0, done = 0;
+    const worker = async () => {
+      while(next < cs.length){
+        const one = cs[next++];
+        await bfLoadOne(one).catch(err => { bfEditCache[one] = {error: String(err.message || err), edit_html: "", edited: false}; });
+        done++;
+        bfMsg("đang soạn draft… " + done + "/" + cs.length + " chuyến (tải OFP + NOTAM từ FliteBrief)");
+      }
+    };
+    await Promise.all([worker(), worker(), worker()].slice(0, Math.min(3, cs.length)));
     bfPaintPick();
     const first = $("#bfEditPick").value || Object.keys(bfEditCache)[0] || "";
     if(first) bfShowFlight(first);
@@ -18453,7 +18463,37 @@ async function tlEditBrief(){
     bfMsg(String(err.message || err), "bad");
     if(prev) prev.innerHTML = "<span class=\"br-empty\">" + String(err.message || err) + "</span>";
   }finally{
+    window.bfLoading = false;
     if(btn) btn.disabled = false;
+  }
+}
+
+async function bfExportPdf(){
+  const root = $("#bfEditPreview");
+  if(!root || !root.querySelector("[data-bf]")){ bfMsg("Chưa có tờ để xuất.", "bad"); return; }
+  const payload = bfCollect();
+  if(!payload.callsign){ bfMsg("Thiếu số hiệu chuyến.", "bad"); return; }
+  const b = $("#bfEditPdf");
+  b.disabled = true;
+  bfMsg("đang tạo PDF " + payload.callsign + "…");
+  try{
+    const r = await fetch("/api/briefing/release.pdf", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload),
+    });
+    if(!r.ok || !(r.headers.get("content-type") || "").includes("pdf")) throw new Error((await r.text()) || "Không tạo được PDF");
+    const blob = await r.blob();
+    const m = /filename="([^"]+)"/.exec(r.headers.get("content-disposition") || "");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = m ? m[1] : (payload.callsign + "_Briefing.pdf");
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    bfMsg("✓ đã tải " + a.download + " về máy", "ok");
+  }catch(err){
+    bfMsg(String(err.message || err), "bad");
+  }finally{
+    b.disabled = false;
   }
 }
 
@@ -26204,9 +26244,10 @@ $("#aipQuery").addEventListener("keydown", ev => {
   if(ev.key === "Enter"){ ev.preventDefault(); aipLookup(); }
 });
 $("#bfEditClose").onclick = bfCloseEditor;
-$("#bfEditModal").onclick = e => { if(e.target === $("#bfEditModal")) bfCloseEditor(); };
+$("#bfEditModal").onclick = e => { if(e.target === $("#bfEditModal") && !window.bfLoading) bfCloseEditor(); };
 $("#bfEditSave").onclick = () => { bfSaveCurrent(); };
 $("#bfEditReset").onclick = () => { bfResetCurrent(); };
+$("#bfEditPdf").onclick = () => { bfExportPdf(); };
 $("#bfEditPick").onchange = () => { bfSwitchFlight($("#bfEditPick").value); };
 $("#mAtcCheck").onclick = () => setMode("atccheck");
 $("#mLimits").onclick = () => setMode("limits");
