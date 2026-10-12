@@ -278,6 +278,7 @@ export function ChatWidget() {
                         </span>
                         <span className="block text-xs text-[var(--chat-sub)]">Tất cả dispatcher</span>
                       </span>
+                      {badge(unread[r.id] ?? 0, "ml-auto")}
                     </button>
                   ))}
                 <div className="bg-[var(--chat-bg)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--chat-sub)]">
@@ -298,6 +299,7 @@ export function ChatWidget() {
                         </span>
                         <span className="block text-xs text-[var(--chat-sub)]">Nhắn riêng</span>
                       </span>
+                      {badge(unread[rooms.find((r) => r.dm_key === [me, p.id].sort().join("|"))?.id ?? ""] ?? 0, "ml-auto")}
                     </button>
                   ))}
               </div>
