@@ -19,8 +19,12 @@ export const updateMyAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => schema.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: me } = await context.supabase.auth.getUser();
-    const email = me.user?.email;
+    // Middleware validates claims without persisting an Auth session.
+    // Profile email stays current even when the JWT predates a rename.
+    const { data: profile, error: readError } = await context.supabase
+      .from("profiles").select("email").eq("id", context.userId).single();
+    if (readError) throw new Error("Không đọc được tài khoản");
+    const email = profile?.email || (typeof context.claims.email === "string" ? context.claims.email : "");
     if (!email) throw new Error("Không đọc được tài khoản");
 
     // Xác minh mật khẩu hiện tại bằng client riêng, không lưu phiên.
@@ -58,7 +62,8 @@ export const updateMyAccount = createServerFn({ method: "POST" })
     }
     const prof: { email: string; display_name?: string } = { email: newEmail };
     if (data.displayName) prof.display_name = data.displayName;
-    await supabaseAdmin.from("profiles").update(prof).eq("id", context.userId);
+    const { error: profileError } = await supabaseAdmin.from("profiles").update(prof).eq("id", context.userId);
+    if (profileError) throw new Error("Không lưu được tên hiển thị");
 
     const { logActivity } = await import("./flights.server");
     const parts = [
@@ -68,4 +73,69 @@ export const updateMyAccount = createServerFn({ method: "POST" })
     ].filter(Boolean);
     await logActivity(context.userId, "update_account", parts.join("; "));
     return { ok: true, emailChanged: !!patch.email, username: newEmail.split("@")[0] };
+  });
+
+export const getMyAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase.from("profiles")
+      .select("email, display_name, avatar_path").eq("id", context.userId).single();
+    if (error) throw new Error("Không đọc được tài khoản");
+    let avatarUrl = "";
+    if (data.avatar_path?.startsWith(`${context.userId}/`)) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const signed = await supabaseAdmin.storage.from("account-avatars").createSignedUrl(data.avatar_path, 3600);
+      if (signed.data) {
+        const signedUrl = new URL(signed.data.signedUrl);
+        const publicBase = import.meta.env.VITE_SUPABASE_URL;
+        avatarUrl = publicBase ? `${publicBase.replace(/\/$/, "")}${signedUrl.pathname}${signedUrl.search}` : "";
+      }
+    }
+    return { email: data.email || "", displayName: data.display_name || "", avatarUrl };
+  });
+
+export const saveMyAvatar = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ image: z.string().max(2_800_000).nullable() }).parse(d))
+  .handler(async ({ context, data }) => {
+    const { data: profile, error } = await context.supabase.from("profiles")
+      .select("avatar_path").eq("id", context.userId).single();
+    if (error) throw new Error("Không đọc được tài khoản");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let path: string | null = null;
+    if (data.image !== null) {
+      const match = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(data.image);
+      if (!match) throw new Error("Ảnh không hợp lệ");
+      const bytes = Uint8Array.from(atob(match[1]), (c) => c.charCodeAt(0));
+      if (bytes.length > 2 * 1024 * 1024 || bytes.length < 4 || bytes[0] !== 255 || bytes[1] !== 216 || bytes[2] !== 255) throw new Error("Ảnh JPEG tối đa 2 MB");
+      path = `${context.userId}/${crypto.randomUUID()}.jpg`;
+      const uploaded = await supabaseAdmin.storage.from("account-avatars").upload(path, bytes, { contentType: "image/jpeg" });
+      if (uploaded.error) throw new Error("Không tải được ảnh đại diện");
+    }
+    const saved = await supabaseAdmin.from("profiles").update({ avatar_path: path }).eq("id", context.userId);
+    if (saved.error) {
+      if (path) await supabaseAdmin.storage.from("account-avatars").remove([path]);
+      throw new Error("Không lưu được ảnh đại diện");
+    }
+    if (profile.avatar_path?.startsWith(`${context.userId}/`)) await supabaseAdmin.storage.from("account-avatars").remove([profile.avatar_path]);
+    return { ok: true };
+  });
+
+export const getChatAvatars = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { assertDispatcher } = await import("./flights.server");
+    await assertDispatcher(context.supabase, context.userId);
+    const { data, error } = await context.supabase.from("profiles").select("id, avatar_path");
+    if (error) throw new Error("Không đọc được ảnh đại diện");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const entries = await Promise.all((data || []).map(async (p) => {
+      if (!p.avatar_path?.startsWith(`${p.id}/`)) return [p.id, ""] as const;
+      const signed = await supabaseAdmin.storage.from("account-avatars").createSignedUrl(p.avatar_path, 3600);
+      if (!signed.data) return [p.id, ""] as const;
+      const signedUrl = new URL(signed.data.signedUrl);
+      const publicBase = import.meta.env.VITE_SUPABASE_URL;
+      return [p.id, publicBase ? `${publicBase.replace(/\/$/, "")}${signedUrl.pathname}${signedUrl.search}` : ""] as const;
+    }));
+    return Object.fromEntries(entries);
   });

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { getChatAvatars } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageCircle, X, Trash2, ArrowLeft, Send, Users } from "lucide-react";
 
@@ -13,7 +15,9 @@ function nameOf(p: Profile | undefined, fallback: string) {
 }
 
 /** Avatar vuông bo góc kiểu WeChat, màu theo tên */
-function Avatar({ label, seed, size = 38 }: { label: string; seed: string; size?: number }) {
+function Avatar({ label, seed, size = 38, src }: { label: string; seed: string; size?: number; src?: string }) {
+  const [failedSrc, setFailedSrc] = useState("");
+  if (src && src !== failedSrc) return <img src={src} alt={label} width={size} height={size} className="shrink-0 rounded-md object-cover" onError={() => setFailedSrc(src)} />;
   const hues = [150, 20, 210, 260, 330, 45, 190, 100];
   let h = 0;
   for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
@@ -38,6 +42,8 @@ export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [avatars, setAvatars] = useState<Record<string, string>>({});
+  const readAvatars = useServerFn(getChatAvatars);
   const [active, setActive] = useState<Room | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
@@ -85,13 +91,22 @@ export function ChatWidget() {
   const loadProfiles = useCallback(async () => {
     const { data } = await supabase.from("profiles").select("id,email,display_name");
     setProfiles((data as Profile[] | null) ?? []);
-  }, []);
+    try { setAvatars(await readAvatars()); } catch { /* Keep initials when unavailable. */ }
+  }, [readAvatars]);
 
   useEffect(() => {
     if (!me || !open) return;
     loadRooms();
     loadProfiles();
   }, [me, open, loadRooms, loadProfiles]);
+
+  useEffect(() => {
+    if (!me || !open) return;
+    const refresh = () => { void loadProfiles(); };
+    window.addEventListener("sohee-profile-updated", refresh);
+    const timer = setInterval(refresh, 60_000);
+    return () => { clearInterval(timer); window.removeEventListener("sohee-profile-updated", refresh); };
+  }, [me, open, loadProfiles]);
 
   const loadMessages = useCallback(async (roomId: string) => {
     const { data } = await supabase
@@ -221,7 +236,7 @@ export function ChatWidget() {
                       onClick={() => openDm(p.id)}
                       className="flex w-full items-center gap-3 border-b border-[var(--chat-line)] px-4 py-3 text-left transition-colors hover:bg-[var(--chat-hover)]"
                     >
-                      <Avatar label={nameOf(p, "?")} seed={p.id} />
+                      <Avatar label={nameOf(p, "?")} seed={p.id} src={avatars[p.id]} />
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium text-[var(--chat-ink)]">
                           {nameOf(p, p.id)}
@@ -247,7 +262,7 @@ export function ChatWidget() {
                     <Users className="h-4 w-4" />
                   </span>
                 ) : (
-                  <Avatar label={roomLabel(active)} seed={active.id} size={28} />
+                  <Avatar label={roomLabel(active)} seed={active.id} size={28} src={avatars[dmPartner(active)?.id || ""]} />
                 )}
                 <div className="truncate text-sm font-semibold text-[var(--chat-header-ink)]">
                   {roomLabel(active)}
@@ -267,7 +282,7 @@ export function ChatWidget() {
                       key={m.id}
                       className={`group flex items-start gap-2 ${mine ? "flex-row-reverse" : ""}`}
                     >
-                      <Avatar label={nameOf(sender, "?")} seed={m.user_id} size={34} />
+                      <Avatar label={nameOf(sender, "?")} seed={m.user_id} size={34} src={avatars[m.user_id]} />
                       <div className={`flex max-w-[72%] flex-col ${mine ? "items-end" : "items-start"}`}>
                         {!mine && active.kind === "group" && (
                           <div className="mb-0.5 px-0.5 text-[11px] text-[var(--chat-sub)]">
