@@ -21828,21 +21828,109 @@ function vAtcCell(r){
     td.title = "Không đổi tàu và không delay — không soạn CHG/DLA";
     return td;
   }
-  const sp = document.createElement("span");
-  sp.className = "vatc";
-  if(r.reg && r.reg.changed && r.reg.new){
-    sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
-    sp.dataset.route = String(r.route || "");
-    sp.dataset.date = vAtcIsoDate(r);
-    sp.style.color = "#d10000"; sp.style.fontWeight = "700";
-    setTimeout(vAtcRegSync, 300);
+  const hasChg = /CHG/.test(kind), hasDla = /DLA/.test(kind);
+  if(hasChg){
+    const sp = document.createElement("span");
+    sp.className = "vatc";
+    sp.textContent = "CHG";
+    if(r.reg && r.reg.changed && r.reg.new){
+      sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
+      sp.dataset.route = String(r.route || "");
+      sp.dataset.date = vAtcIsoDate(r);
+      sp.style.color = "#d10000"; sp.style.fontWeight = "700";
+      sp.title = "Chờ FliteBrief lên tàu mới " + r.reg.new;
+      setTimeout(vAtcRegSync, 300);
+    }
+    td.appendChild(sp);
   }
-  sp.textContent = (r.atc && r.atc.label) || kind;
-  sp.title = kind === "CHG DLA"
-    ? "Đổi tàu và đổi giờ (STD cũ → ETD mới)"
-    : (kind === "CHG" ? "Đổi tàu, giờ không đổi" : "Đổi giờ STD → ETD, không đổi tàu");
-  td.appendChild(sp);
+  if(hasDla){
+    if(hasChg) td.appendChild(document.createTextNode(" "));
+    const sp = document.createElement("span");
+    sp.className = "vatc vdla";
+    sp.textContent = "DLA";
+    sp.dataset.cs = vAviCs(r.flt);
+    sp.dataset.date = vAtcIsoDate(r);
+    vPaintDla(sp);
+    td.appendChild(sp);
+    setTimeout(vAviAutoCheck, 500);
+  }
   return td;
+}
+
+/* EOBT gốc trên AviWeb cho chuyến DLA: key "VJC167|12/10/2026" → "1545". */
+const vAviEobt = {};
+let vAviBusy = false, vAviT = 0;
+function vAviCs(flt){
+  const n = String(flt || "").toUpperCase().replace(/\s+/g, "");
+  return n.startsWith("VJC") ? n : "VJC" + n.replace(/^VJ/, "");
+}
+function vAviKey(cs, date){ return cs + "|" + date; }
+function vAviDofMatches(dof, date){
+  // AviWeb DOF dạng YYMMDD; bảng dạng d/m/yyyy.
+  const m = String(date || "").match(/^(\d+)\/(\d+)\/(\d{4})$/);
+  const d = String(dof || "").replace(/\D/g, "");
+  if(!m || !d) return true;
+  const want = m[3].slice(2) + String(m[2]).padStart(2, "0") + String(m[1]).padStart(2, "0");
+  return d.slice(-6) === want;
+}
+function vPaintDla(sp){
+  const t = vAviEobt[vAviKey(sp.dataset.cs, sp.dataset.date)];
+  sp.style.fontWeight = "700";
+  sp.style.color = t ? "#0a8a2a" : "#d10000";
+  sp.title = t ? "✓ EOBT gốc từ AviWeb: " + t + " UTC — dùng làm giờ đầu điện"
+               : "Chưa có EOBT gốc trên AviWeb — đang/sẽ tự check ở tab Check ATC avi";
+}
+function vPaintAllDla(){
+  document.querySelectorAll("#vBody span.vdla").forEach(vPaintDla);
+}
+function vAviAutoCheck(){
+  clearTimeout(vAviT);
+  vAviT = setTimeout(async () => {
+    if(vAviBusy || acJob) return;
+    const sps = [...document.querySelectorAll("#vBody span.vdla")];
+    const want = [...new Set(sps.filter(sp => !vAviEobt[vAviKey(sp.dataset.cs, sp.dataset.date)])
+      .map(sp => sp.dataset.cs))];
+    if(!want.length) return;
+    vAviBusy = true;
+    // Gõ các chuyến sang tab Check ATC avi để người trực thấy kết quả.
+    try{
+      const have = new Set(acRows().map(tr => tr.querySelector("input").value.trim().toUpperCase()));
+      for(const cs of want){
+        if(have.has(cs) || have.has(cs.replace(/^VJC/, ""))) continue;
+        const empty = acRows().find(tr => !tr.querySelector("input").value.trim());
+        if(empty) empty.querySelector("input").value = cs; else acAddRow(cs);
+      }
+    }catch(e){}
+    write("ATC avi: tự check EOBT gốc cho " + want.join(", "), "sys");
+    try{
+      const d = await (await fetch("/api/atc/check", {method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({callsigns: want, headless: true})})).json();
+      if(d.error){ write("ATC avi: " + d.error, "fail"); vAviBusy = false; return; }
+      const es = new EventSource("/api/stream?id=" + d.id);
+      const take = r => {
+        if(!r || !r.flight_time) return;
+        const cs = String(r.callsign || "").toUpperCase();
+        document.querySelectorAll("#vBody span.vdla").forEach(sp => {
+          if(sp.dataset.cs === cs && vAviDofMatches(r.dof, sp.dataset.date))
+            vAviEobt[vAviKey(cs, sp.dataset.date)] = r.flight_time;
+        });
+        try{ acPaintResult(r); }catch(e){}
+        vPaintAllDla();
+      };
+      es.onmessage = ev => {
+        try{
+          const m = JSON.parse(ev.data);
+          if(m.type === "line" && m.found) take(m);
+          if(m.type === "end"){
+            (m.results || []).forEach(take);
+            es.close(); vAviBusy = false; vPaintAllDla();
+          }
+        }catch(e){}
+      };
+      es.onerror = () => { es.close(); vAviBusy = false; };
+    }catch(err){ vAviBusy = false; write("ATC avi: " + err.message, "fail"); }
+  }, 300);
 }
 
 function vRender(d){
@@ -21996,7 +22084,8 @@ async function vAtcExport(){
       delay_min: (r.delay && r.delay.min) || 0,
       std: r.std_old || r.std_new || "",
       etd: (r.delay && r.delay.changed && r.delay.to) || "",
-      new_reg: (r.reg && r.reg.new) || ""
+      new_reg: (r.reg && r.reg.new) || "",
+      avi_eobt: vAviEobt[vAviKey(vAviCs(r.flt), vAtcIsoDate(r))] || ""
     };
   });
   const btn = $("#vAtcBtn");
