@@ -2317,6 +2317,7 @@ main.nm-track #wrapXls,main.nm-track #xlsbar{display:none !important}
 .nm-th-meta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nm-th-meta span:last-child{font-size:11.5px;font-weight:500;color:#8b93a7}
 .nm-th-tools{display:flex;align-items:center;gap:6px;flex:none;margin-left:auto}
+#nmAltBar{display:contents}#nmAltBar[hidden]{display:none}.nm-alt-chip{cursor:pointer;padding:5px 10px}.nm-alt-chip input{margin:0}.nm-alt-chip small{color:#ffb86b}
 .nm-th-split{width:1px;height:28px;background:#3a4454;flex:none;margin:0 4px}
 .nm-tune-pop{position:fixed;z-index:900;width:min(560px,calc(100vw - 24px));
   max-height:min(70vh,520px);overflow:auto;padding:14px 16px 16px;
@@ -6940,6 +6941,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <button type="button" class="nm-sky" id="nmTuneHelp"
                   title="Logic lược bỏ NOTAM khi bấm Lọc notam tracking chuyến">
             Chú thích bộ lọc</button>
+          <span id="nmAltBar" hidden></span>
           <a class="nm-sky" id="nmSky" href="https://skyvector.com/" target="_blank" rel="noopener"
              title="Mở đúng route trên SkyVector (hải đồ IFR)">SkyVector</a>
           <button type="button" class="nm-sky" id="nmWpt" aria-pressed="false"
@@ -13199,26 +13201,70 @@ function nmAltBlock(id){
     const tx = document.createElement("span");
     tx.innerHTML = sw + esc(label) + (icao ? " <b>" + esc(icao) + "</b>" : "")
       + (note && on[k] ? " <small>" + esc(note) + "</small>" : "");
-    cb.onchange = async () => {
-      on[k] = !!cb.checked;
-      if(on[k] && !nmAltData[id]){
-        nmAltData[id] = {loading: true};
-        nmPaintFleetBox();
-        try{
-          const res = await (await fetch("/api/notam/alts?fid=" + encodeURIComponent(id), {cache: "no-store"})).json();
-          nmAltData[id] = res && res.ok ? res : {error: (res && res.error) || "Lỗi tải OFP"};
-        }catch(e){ nmAltData[id] = {error: "Lỗi tải OFP"}; }
-      }
-      nmDrawFleetRoutes._sig = "";
-      nmDrawFleetRoutes._skipFit = true;
-      nmDrawFleetRoutes();
-      nmPaintFleetBox();
-    };
+    cb.onchange = () => nmAltToggle(id, k, !!cb.checked);
     row.appendChild(cb);
     row.appendChild(tx);
     box.appendChild(row);
   }
   return box;
+}
+async function nmAltToggle(id, k, val){
+  const on = nmAltOn[id] || (nmAltOn[id] = {});
+  on[k] = !!val;
+  const redraw = () => {
+    const tid = String(((nmTrackData || {}).flight || {}).id || "");
+    const bar = $("#nmAltBar");
+    if(bar && !bar.hidden && tid === String(id) && nmTrackData){
+      nmDrawTrack._skipFit = true;
+      nmDrawTrack(nmTrackData, true);
+    }else{
+      nmDrawFleetRoutes._sig = "";
+      nmDrawFleetRoutes._skipFit = true;
+      nmDrawFleetRoutes();
+      nmPaintFleetBox();
+    }
+  };
+  if(on[k] && !nmAltData[id]){
+    nmAltData[id] = {loading: true};
+    nmPaintAltBar(id);
+    nmPaintFleetBox();
+    try{
+      const res = await (await fetch("/api/notam/alts?fid=" + encodeURIComponent(id), {cache: "no-store"})).json();
+      nmAltData[id] = res && res.ok ? res : {error: (res && res.error) || "Lỗi tải OFP"};
+    }catch(e){ nmAltData[id] = {error: "Lỗi tải OFP"}; }
+  }
+  redraw();
+}
+function nmPaintAltBar(id){
+  const bar = $("#nmAltBar");
+  if(!bar) return;
+  if(!id){ bar.hidden = true; bar.innerHTML = ""; return; }
+  bar.hidden = false;
+  bar.innerHTML = "";
+  const data = nmAltData[id];
+  const on = nmAltOn[id] || (nmAltOn[id] = {});
+  for(const [k, label, color] of NM_ALT_KINDS){
+    const lab = document.createElement("label");
+    lab.className = "nm-sky nm-alt-chip";
+    lab.style.borderColor = on[k] ? color : "";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = !!on[k];
+    cb.style.accentColor = color;
+    cb.onchange = () => nmAltToggle(id, k, cb.checked);
+    const icao = (data && data.icao && data.icao[k]) || "";
+    let note = "";
+    if(on[k] && data && data.loading) note = "…";
+    else if(on[k] && data && data.error) note = "lỗi";
+    else if(on[k] && data && !data[k]) note = "OFP không có";
+    const tx = document.createElement("span");
+    tx.innerHTML = '<i style="display:inline-block;width:16px;border-top:3px dashed ' + color + ';vertical-align:middle"></i> '
+      + esc(label.replace("Route ", "")) + (icao ? " " + esc(icao) : "") + (note ? " <small>" + esc(note) + "</small>" : "");
+    lab.title = data && data.error ? data.error : label;
+    lab.appendChild(cb);
+    lab.appendChild(tx);
+    bar.appendChild(lab);
+  }
 }
 function nmDrawAltRoutes(id, bounds){
   const on = nmAltOn[id], data = nmAltData[id];
@@ -13275,6 +13321,7 @@ function nmDrawFleetRoutes(){
     return;
   }
   nmDrawFleetRoutes._sig = sig;
+  nmPaintAltBar("");
   nmDrawGroup.clearLayers();
   if(nmNotamFlash && nmMap){
     nmMap.removeLayer(nmNotamFlash);
@@ -16349,6 +16396,10 @@ function nmDrawTrack(d, keepView){
   }
   nmPlotHits(hits, bounds);
   nmDrawNavlog(d);
+  if(f.id && !(d && d.fleet_src && nmFleetSum)){
+    nmPaintAltBar(String(f.id));
+    nmDrawAltRoutes(String(f.id), bounds);
+  }else nmPaintAltBar("");
   setTimeout(function(){
     map.invalidateSize();
     if(nmDrawTrack._skipFit){ nmDrawTrack._skipFit = false; nmScaleMapLabs(); return; }
