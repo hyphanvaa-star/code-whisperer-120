@@ -8897,6 +8897,7 @@ function render(){
   for(const f of flights){
     const tr = document.createElement("tr");
     tr.setAttribute("aria-selected", current === f.id);
+    tr.dataset.id = f.id;
     const warns = Array.isArray(f.limit_warns) ? f.limit_warns : [];
     tr.innerHTML = '<td class="cs"></td><td class="route"></td><td class="dim tm-cell"></td>'
       + '<td class="ops-cell"></td>'
