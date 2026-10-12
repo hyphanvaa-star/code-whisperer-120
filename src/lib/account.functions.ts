@@ -58,7 +58,16 @@ export const updateMyAccount = createServerFn({ method: "POST" })
     if (data.newPassword) patch.password = data.newPassword;
     if (Object.keys(patch).length) {
       const { error } = await supabaseAdmin.auth.admin.updateUserById(context.userId, patch);
-      if (error) throw new Error("Không cập nhật được tài khoản");
+      if (error) {
+        console.error("updateUserById", error.status, error.code, error.message);
+        const m = String(error.message || "");
+        if (/weak|pwned|leaked|known/i.test(m) || error.code === "weak_password")
+          throw new Error("Mật khẩu mới quá yếu hoặc đã bị lộ trên mạng — chọn mật khẩu khác (dài hơn, có chữ + số + ký tự)");
+        if (/at least|characters|length/i.test(m))
+          throw new Error("Mật khẩu mới quá ngắn: " + m);
+        if (/same|different/i.test(m)) throw new Error("Mật khẩu mới phải khác mật khẩu cũ");
+        throw new Error("Không cập nhật được tài khoản: " + m);
+      }
     }
     const prof: { email: string; display_name?: string } = { email: newEmail };
     if (data.displayName) prof.display_name = data.displayName;
