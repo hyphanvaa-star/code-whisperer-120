@@ -1599,7 +1599,16 @@ const ddScript = `
   }
   document.addEventListener('mousedown',function(e){
     var t=e.target;
-    if(pop&&!pop.hidden){ if(!pop.contains(t))close(); return; }
+    if(pop&&!pop.hidden){
+      if(pop.contains(t))return;
+      var was=cur; close();
+      // Bấm lại vào ô đang mở: chỉ đóng, không để trình duyệt bật danh sách cũ.
+      if(t&&t.tagName==='SELECT'){
+        e.preventDefault();
+        if(t!==was&&ok(t)){ try{ t.focus({preventScroll:true}); }catch(x){} open(t); }
+      }
+      return;
+    }
     if(t&&t.tagName==='SELECT'&&ok(t)){
       e.preventDefault();
       try{ t.focus({preventScroll:true}); }catch(x){}
