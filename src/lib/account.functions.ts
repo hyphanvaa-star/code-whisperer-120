@@ -85,7 +85,11 @@ export const getMyAccount = createServerFn({ method: "POST" })
     if (data.avatar_path?.startsWith(`${context.userId}/`)) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const signed = await supabaseAdmin.storage.from("account-avatars").createSignedUrl(data.avatar_path, 3600);
-      avatarUrl = signed.data?.signedUrl || "";
+      if (signed.data) {
+        const signedUrl = new URL(signed.data.signedUrl);
+        const publicBase = import.meta.env.VITE_SUPABASE_URL;
+        avatarUrl = publicBase ? `${publicBase.replace(/\/$/, "")}${signedUrl.pathname}${signedUrl.search}` : "";
+      }
     }
     return { email: data.email || "", displayName: data.display_name || "", avatarUrl };
   });
@@ -128,7 +132,10 @@ export const getChatAvatars = createServerFn({ method: "POST" })
     const entries = await Promise.all((data || []).map(async (p) => {
       if (!p.avatar_path?.startsWith(`${p.id}/`)) return [p.id, ""] as const;
       const signed = await supabaseAdmin.storage.from("account-avatars").createSignedUrl(p.avatar_path, 3600);
-      return [p.id, signed.data?.signedUrl || ""] as const;
+      if (!signed.data) return [p.id, ""] as const;
+      const signedUrl = new URL(signed.data.signedUrl);
+      const publicBase = import.meta.env.VITE_SUPABASE_URL;
+      return [p.id, publicBase ? `${publicBase.replace(/\/$/, "")}${signedUrl.pathname}${signedUrl.search}` : ""] as const;
     }));
     return Object.fromEntries(entries);
   });

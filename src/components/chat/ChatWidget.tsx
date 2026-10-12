@@ -16,7 +16,8 @@ function nameOf(p: Profile | undefined, fallback: string) {
 
 /** Avatar vuông bo góc kiểu WeChat, màu theo tên */
 function Avatar({ label, seed, size = 38, src }: { label: string; seed: string; size?: number; src?: string }) {
-  if (src) return <img src={src} alt={label} width={size} height={size} className="shrink-0 rounded-md object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />;
+  const [failedSrc, setFailedSrc] = useState("");
+  if (src && src !== failedSrc) return <img src={src} alt={label} width={size} height={size} className="shrink-0 rounded-md object-cover" onError={() => setFailedSrc(src)} />;
   const hues = [150, 20, 210, 260, 330, 45, 190, 100];
   let h = 0;
   for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;

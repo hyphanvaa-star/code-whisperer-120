@@ -39,6 +39,12 @@ function ToolPage() {
   const emailRef = useRef("");
   const profileRef = useRef({ avatarUrl: "", displayName: "" });
   const readAccount = useServerFn(getMyAccount);
+  const sendAccount = useCallback(() => {
+    frame.current?.contentWindow?.postMessage(
+      { type: "sohee-account", email: emailRef.current, ...profileRef.current },
+      window.location.origin,
+    );
+  }, []);
   useEffect(() => {
     let alive = true;
     const refresh = () => { void readAccount().then((p) => {
@@ -51,14 +57,7 @@ function ToolPage() {
     window.addEventListener("sohee-profile-updated", refresh);
     const timer = setInterval(refresh, 30 * 60_000);
     return () => { alive = false; clearInterval(timer); window.removeEventListener("sohee-profile-updated", refresh); };
-  }, [readAccount]);
-
-  const sendAccount = useCallback(() => {
-    frame.current?.contentWindow?.postMessage(
-      { type: "sohee-account", email: emailRef.current, ...profileRef.current },
-      window.location.origin,
-    );
-  }, []);
+  }, [readAccount, sendAccount]);
 
   const signOut = useCallback(async () => {
     await ctx.queryClient.cancelQueries();
@@ -144,7 +143,7 @@ function ToolPage() {
   );
 }
 
-function AccountDialog({ current, onClose, onSaved }: { current: string; onClose: () => void; onSaved: (u: string) => void }) {
+export function AccountDialog({ current, onClose, onSaved }: { current: string; onClose: () => void; onSaved: (u: string) => void }) {
   const save = useServerFn(updateMyAccount);
   const readAccount = useServerFn(getMyAccount);
   const saveAvatar = useServerFn(saveMyAvatar);
