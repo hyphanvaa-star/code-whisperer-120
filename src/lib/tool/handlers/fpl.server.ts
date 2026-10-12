@@ -372,7 +372,9 @@ export const routes: Routes = {
       const code = String(it.kind || atcChg.KIND_CHG);
       const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
       // Ưu tiên giờ trên bảng (STD gốc / ETD mới, giờ VN) — FliteBrief có thể đã đổi STD theo ETD.
-      const orig = vnToUtc(it.std) || (std && !isNaN(std.getTime())
+      // EOBT gốc từ AviWeb (UTC HHMM) thắng mọi nguồn khác — đó là điện gốc đã nộp.
+      const avi = /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
+      const orig = avi || vnToUtc(it.std) || (std && !isNaN(std.getTime())
         ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "");
       const fresh = vnToUtc(it.etd);
       const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || ""), orig_eobt: orig, new_eobt: fresh });
