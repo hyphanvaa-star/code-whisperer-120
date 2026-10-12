@@ -122,7 +122,22 @@ async function ckExport(kind){
   const button=$('#ftCkSaveBtn');if(button.disabled)return;button.disabled=true;let count=0;const files=[];
   try {
     for(const leg of legs){
-...
+      $('#ftStat').textContent='Đang tạo PDF '+leg.flt+'…';
+      const blob=await (kind==='edto' ? ckBuildEdto(leg,dsp,lic) : ckBuild(leg,dsp,lic));
+      files.push({blob,name:'Checklist_'+(kind==='edto' ? 'EDTO_F018_' : 'F017_')+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf'});
+      count++;
+    }
+    // Lưu thẳng tất cả vào folder checklist trên máy công ty qua trợ lý PC.
+    $('#ftStat').textContent='Đang lưu '+count+' Checklist về PC…';
+    try{
+      const d=await ckSaveToPc(files);
+      $('#ftStat').textContent='✓ Đã lưu '+d.ok+' Checklist vào '+d.dir;
+      alert('Đã lưu '+d.ok+' Checklist vào:\n'+(d.paths||[]).join('\n'));
+    }catch(pcError){
+      // Trợ lý PC chưa mở: giữ danh sách bấm tải để không mất file vừa tạo.
+      $('#ftStat').textContent='Không lưu về PC được: '+pcError.message;
+      ckShowDownloads(files);
+    }
   } catch(error){alert('Lỗi tạo Checklist: '+error.message);$('#ftStat').textContent='Đã tạo '+count+'/'+legs.length+' PDF.';}
   finally{button.disabled=false;}
 }
