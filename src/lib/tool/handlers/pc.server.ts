@@ -238,6 +238,32 @@ export const routes: Routes = {
     return { id: jobId("gd_print", { flight }) };
   },
 
+  /** Lưu nhiều file (ví dụ Checklist F-017) thẳng xuống ổ D:/C: qua trợ lý PC. */
+  "POST /api/pc/save-files": async (ctx) => {
+    const body = await ctx.json();
+    const kind = String(body["kind"] || "checklist").trim();
+    const rawFiles = body["files"];
+    if (!Array.isArray(rawFiles) || !rawFiles.length) return { error: "không có file nào để lưu" };
+    if (!(kind in PATH_KEYS)) return { error: `loại đường dẫn không hợp lệ: ${kind}` };
+    const agent = await pc.agentInfo(ctx);
+    if (!pc.agentOnline(agent)) {
+      return { error: "trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi bấm lại" };
+    }
+    const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
+    const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent);
+    const paths: string[] = [];
+    for (const f of rawFiles.slice(0, 50) as Array<Record<string, unknown>>) {
+      const name = String(f["name"] || "").replace(/[\\/:*?"<>|]/g, "_").trim();
+      const b64 = String(f["data_b64"] || "");
+      if (!name || !b64) continue;
+      const id = await pc.enqueue("save_file", { dir: dest, name, data_b64: b64 });
+      const r = await pc.waitResult(id, 120_000);
+      paths.push(String(r["path"] || `${dest}\\${name}`));
+    }
+    if (!paths.length) return { error: "không có file hợp lệ để lưu" };
+    return { ok: paths.length, dir: dest, paths };
+  },
+
   "GET /api/paths": async (ctx) => pathsStatus(ctx),
 
   "POST /api/paths": async (ctx) => {
