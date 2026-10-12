@@ -25050,7 +25050,71 @@ $("#ftClearBtn").onclick = function(){
   ftRender();
   ftApplying = false;
   $("#ftStat").textContent = "Đã xoá lưới.";
+  try{ const k = ftKeepKey(); if(k) localStorage.removeItem(k); }catch(e){}
 };
+/* Giữ bảng KHB qua reload: lưu theo tài khoản, hết hạn sau 12h, chỉ Clear data mới xoá. */
+const FT_KEEP_TTL = 12 * 3600 * 1000;
+function ftKeepUid(){
+  try{
+    const t = window.parent.__fbToken ? window.parent.__fbToken() : null;
+    if(!t) return "";
+    const p = JSON.parse(atob(t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return p.sub || "";
+  }catch(e){ return ""; }
+}
+function ftKeepKey(){ const u = ftKeepUid(); return u ? "khb.keep." + u : ""; }
+let ftKeepReady = false;
+function ftKeepSave(){
+  if(!ftKeepReady) return;
+  const k = ftKeepKey(); if(!k) return;
+  try{
+    const has = ftRows.some(Boolean) || Object.keys(ftBlank).length;
+    if(!has){ localStorage.removeItem(k); return; }
+    const efb = document.getElementById("fEfb");
+    localStorage.setItem(k, JSON.stringify({
+      at: Date.now(), rows: ftRows, edit: ftEdit, blank: ftBlank,
+      dsp: $("#ftDspBox").value || "", efb: efb ? efb.value : "", pld: !!ftPldOn
+    }));
+  }catch(e){}
+}
+let ftKeepT = 0;
+function ftKeepLater(){ clearTimeout(ftKeepT); ftKeepT = setTimeout(ftKeepSave, 400); }
+function ftKeepRestore(tries){
+  const k = ftKeepKey();
+  if(!k){ if(tries < 40) return setTimeout(function(){ ftKeepRestore(tries + 1); }, 250); ftKeepReady = true; return; }
+  try{
+    const d = JSON.parse(localStorage.getItem(k) || "null");
+    if(d && Date.now() - d.at < FT_KEEP_TTL && !ftRows.some(Boolean)){
+      ftRows = d.rows || [];
+      Object.assign(ftEdit, d.edit || {});
+      Object.assign(ftBlank, d.blank || {});
+      if(d.dsp && !$("#ftDspBox").value) $("#ftDspBox").value = d.dsp;
+      const efb = document.getElementById("fEfb");
+      if(efb && d.efb && !efb.value) efb.value = d.efb;
+      if(d.pld){
+        ftPldOn = true;
+        const b = $("#ftPldRound");
+        b.classList.add("on"); b.setAttribute("aria-pressed", "true"); b.textContent = "✓ Auto Rounding PLD";
+      }
+      ftApplying = true; ftRender(); ftApplying = false;
+      try{ ftCountLine(); }catch(e){}
+      $("#ftStat").textContent = "Đã khôi phục bảng KHB đã lưu.";
+    } else if(d) localStorage.removeItem(k);
+  }catch(e){}
+  ftKeepReady = true;
+}
+(function(){
+  const w = document.getElementById("wrapFplText");
+  if(w){
+    w.addEventListener("input", ftKeepLater, true);
+    w.addEventListener("change", ftKeepLater, true);
+    w.addEventListener("click", ftKeepLater, true);
+    w.addEventListener("focusout", ftKeepLater, true);
+  }
+  window.addEventListener("pagehide", ftKeepSave);
+  setInterval(ftKeepSave, 15000);
+  setTimeout(function(){ ftKeepRestore(0); }, 300);
+})();
 $("#ftPreviewBtn").onclick = function(){ ftBuild(false); };
 let ftPldOn = false;
 $("#ftPldRound").onclick = async function(){
