@@ -25322,58 +25322,6 @@ async function ckBuild(tpl, legs, intl, dsp, lic){
   zip.file("word/document.xml", new XMLSerializer().serializeToString(doc));
   return zip.generateAsync({type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
 }
-async function ckMakeAll(){
-  const dsp = ($("#ftDspBox").value || "").trim();
-  if(!dsp){ alert("Chưa điền tên DSP."); $("#ftDspBox").focus(); return null; }
-  const legs = [];
-  for(const f of ftRows){
-    if(!f) continue; const st = ftSt(f); if(!st.on) continue;
-    const dep = String(st.dep || "").toUpperCase(), arr = String(st.arr || "").toUpperCase();
-    legs.push({ reg: st.reg, flt: "VJ" + String(f.flt || "").replace(/^VJ/i, ""), sector: dep + "-" + arr,
-      date: st.date, etd: st.utc, eta: st.etaUtc, intl: !(CK_VN.has(dep) && CK_VN.has(arr)) });
-  }
-  if(!legs.length){ alert("Tick ít nhất một chuyến."); return null; }
-  const lic = localStorage.getItem(ckLicKey()) || "";
-  if(!lic && !confirm("Chưa nhập DSP License. Vẫn tạo Checklist?")) return null;
-  const tpl = await (await fetch("/checklist-f017.docx", {cache: "no-store"})).arrayBuffer();
-  const groups = [];
-  for(const kind of [false, true]){
-    const xs = legs.filter(l => l.intl === kind);
-    for(let i = 0; i < xs.length; i += 4) groups.push({intl: kind, legs: xs.slice(i, i + 4)});
-  }
-  const out = [];
-  for(const g of groups){
-    const blob = await ckBuild(tpl, g.legs, g.intl, dsp, lic);
-    out.push({ name: "Checklist_F017_" + g.legs.map(l => l.flt).join("-") + ".docx", blob });
-  }
-  return out;
-}
-function ckBlobB64(blob){
-  return new Promise((ok, bad) => {
-    const r = new FileReader();
-    r.onload = () => ok(String(r.result).split(",")[1] || "");
-    r.onerror = () => bad(new Error("Không đọc được file vừa tạo"));
-    r.readAsDataURL(blob);
-  });
-}
-$("#ftCkSaveBtn").onclick = async function(){
-  const btn = this; btn.disabled = true; $("#ftStat").textContent = "Đang tạo Checklist…";
-  try{
-    const files = await ckMakeAll();
-    if(!files){ $("#ftStat").textContent = ""; return; }
-    $("#ftStat").textContent = "Đang gửi " + files.length + " Checklist về PC…";
-    const payload = [];
-    for(const f of files) payload.push({ name: f.name, data_b64: await ckBlobB64(f.blob) });
-    const d = await (await fetch("/api/pc/save-files", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ kind: "checklist", files: payload }),
-    })).json();
-    if(d.error) throw new Error(d.error);
-    $("#ftStat").textContent = "✓ Đã lưu " + d.ok + " Checklist vào " + d.dir;
-    alert("Đã lưu " + d.ok + " Checklist vào:\n" + (d.paths || []).join("\n"));
-  }catch(e){ alert("Lỗi lưu Checklist về PC: " + e.message); $("#ftStat").textContent = ""; }
-  finally{ btn.disabled = false; }
-};
 $("#ftMsgBtn").onclick = function(ev){
   ev.stopPropagation();
   const wrap = $("#ftMsgWrap");
