@@ -228,8 +228,12 @@ export interface AttchResult {
 }
 
 function briefCallsign(filename: string): string {
-  // models: brief filename starts with callsign e.g. "VJC147_Briefing.pdf"
-  const m = /^([A-Z0-9]+)[ _-]/i.exec(String(filename || "").trim());
+  // models: brief filename starts with callsign e.g. "VJC147_Briefing.pdf".
+  // Must contain "brief" — OFP releases ("VJC1373-VVCA-VVTS-...") also start
+  // with the callsign and must not count as a briefing.
+  const s = String(filename || "").trim();
+  if (!/brief/i.test(s)) return "";
+  const m = /^([A-Z0-9]+)[ _-]/i.exec(s);
   return m ? m[1]!.toUpperCase() : "";
 }
 
@@ -280,7 +284,9 @@ export function attchCheck(f: Flight, ctx: AttchCtx = attchContext()): AttchResu
   }
 
   const cs = f.callsign.toUpperCase();
-  const onFb = f.attachments.some((a) => !a.is_deleted && briefCallsign(a.original_filename) === cs);
+  const onFb = f.attachments.some(
+    (a) => !a.is_deleted && (briefCallsign(a.original_filename) === cs || briefCallsign(a.title) === cs),
+  );
   take(`${f.callsign} Briefing`, "Briefing của chuyến", "briefing", onFb ? "ok" : "miss", ctx.brief_disk.has(cs));
 
   return {
