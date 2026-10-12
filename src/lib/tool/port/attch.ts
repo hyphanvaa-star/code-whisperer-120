@@ -284,7 +284,9 @@ export function attchCheck(f: Flight, ctx: AttchCtx = attchContext()): AttchResu
   }
 
   const cs = f.callsign.toUpperCase();
-  const onFb = f.attachments.some((a) => !a.is_deleted && briefCallsign(a.original_filename) === cs);
+  const onFb = f.attachments.some(
+    (a) => !a.is_deleted && (briefCallsign(a.original_filename) === cs || briefCallsign(a.title) === cs),
+  );
   take(`${f.callsign} Briefing`, "Briefing của chuyến", "briefing", onFb ? "ok" : "miss", ctx.brief_disk.has(cs));
 
   return {
