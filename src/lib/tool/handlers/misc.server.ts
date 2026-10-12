@@ -58,7 +58,7 @@ export const routes: Routes = {
       const mine = stored[kind];
       const envUser = k.user.map((n) => process.env[n]).find(Boolean) ?? "";
       const envPass = k.pass.map((n) => process.env[n]).find(Boolean) ?? "";
-      const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb";
+      const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb" || kind === "jetplan";
       if (kind === "outlook") {
         // Không bao giờ điền sẵn tài khoản Outlook — người dùng tự nhập mỗi lần.
         const { OUTLOOK_TTL } = await import("../creds.server");
