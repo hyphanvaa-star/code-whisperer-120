@@ -168,7 +168,7 @@ export function clear(): { store: PinStore; idents: string[] } {
 }
 
 export function snapshot(store: PinStore) {
-  const slim = (rows: PinItem[]) => rows.map((x) => ({ ident: x.ident, kind: x.kind, code: x.code, brief: x.brief || briefLine(x) }));
+  const slim = (rows: PinItem[]) => rows.map((x) => ({ ident: x.ident, kind: x.kind, code: x.code, brief: x.brief || briefLine(x), added_at: x.added_at || "" }));
   const flights: Record<string, ReturnType<typeof slim>> = {};
   for (const [k, v] of Object.entries(store.flights)) flights[k] = slim(v);
   return { cloud: slim(store.cloud), flights };

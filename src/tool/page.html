@@ -1847,6 +1847,7 @@ html.night #wrapNotam .nm-pin-msg{color:#7dcea0}
 .nm-pin-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.55)}
 .nm-pin-row .txt{flex:1;min-width:0}
 .nm-pin-row .id{font-weight:800;font-size:13px}
+.nm-pin-row .nm-pin-at{margin-left:8px;font-size:11px;font-weight:600;color:var(--ink-soft)}
 .nm-pin-row .br{font-size:12px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nm-pin-row .tag{flex:none;font-size:11px;font-weight:800;color:#9c1a5c}
 .nm-pin-empty{padding:16px 4px;color:var(--ink-soft);font-size:13px}
@@ -16717,8 +16718,15 @@ function nmPinRow(item, scope, flight){
   const ident = String((item && item.ident) || "");
   const brief = String((item && item.brief) || "");
   const tag = scope === "cloud" ? "Cloud" : flight;
+  let when = "";
+  const at = item && item.added_at ? new Date(item.added_at) : null;
+  if(at && !isNaN(at)){
+    const p = n => String(n).padStart(2, "0");
+    when = p(at.getDate()) + "/" + p(at.getMonth() + 1) + "/" + at.getFullYear() + " " + p(at.getHours()) + ":" + p(at.getMinutes());
+  }
   return '<div class="nm-pin-row">'
-    + '<div class="txt"><div class="id">' + esc(ident) + '</div>'
+    + '<div class="txt"><div class="id">' + esc(ident)
+    + (when ? ' <span class="nm-pin-at" title="Thời điểm thêm vào thư viện">Added ' + esc(when) + '</span>' : '') + '</div>'
     + '<div class="br" title="' + esc(brief) + '">' + esc(brief) + '</div></div>'
     + '<span class="tag">' + esc(tag) + '</span>'
     + '<button type="button" class="btn small t-undo nm-pin-drop"'
