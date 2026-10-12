@@ -2,7 +2,7 @@ import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { NOTO_SANS_REGULAR_BASE64, NOTO_SANS_BOLD_BASE64 } from "../data/fonts/notoSansBase64";
 import { VJ_LOGO_PNG_BASE64 } from "./vj_logo_base64";
-import { WEATHER_SIDE, NOTAM_SIDE, OPS_SIDE, PERMIT_SIDE, NOTES_SIDE, PIC_ACK_LINES, defectBullets, sigWxText, padNotams, slash, type ReleaseSheet } from "./briefingRelease";
+import { WEATHER_SIDE, NOTAM_SIDE, OPS_SIDE, PERMIT_SIDE, NOTES_SIDE, PIC_ACK_LINES, defectBullets, sigWxText, padNotams, slash, splitDestAlts, type ReleaseSheet } from "./briefingRelease";
 import { isNotamPlaceholder } from "./notam_pin";
 
 const bytes = (base64: string) => Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
