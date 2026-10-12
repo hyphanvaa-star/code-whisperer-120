@@ -24511,20 +24511,20 @@ function ftRender(){
     tr.appendChild(td0);
     tr.appendChild(ftFltInput(f.flt, index, f));
     tr.appendChild(ftPerfCell(st.reg || f.reg));
-    tr.appendChild(ftBox(st, "date", false));
-    tr.appendChild(ftBox(st, "reg", false));
-    tr.appendChild(ftBox(st, "ac", false));
+    tr.appendChild(ftMarkChg(ftBox(st, "date", false), st, "date"));
+    tr.appendChild(ftMarkChg(ftBox(st, "reg", false), st, "reg"));
+    tr.appendChild(ftMarkChg(ftBox(st, "ac", false), st, "ac"));
     const depCell = ftBox(st, "dep", false);
     ftWatchTaf(depCell, ftTafPlace(st, st.dep, "ETD"));
-    tr.appendChild(depCell);
+    tr.appendChild(ftMarkChg(depCell, st, "dep"));
     const arrCell = ftBox(st, "arr", false);
     ftWatchTaf(arrCell, ftTafPlace(st, st.arr, "ETA"));
-    tr.appendChild(arrCell);
-    tr.appendChild(ftBox(st, "etd", false));
-    tr.appendChild(ftBox(st, "utc", false));
-    tr.appendChild(ftBox(st, "etaUtc", false));
-    tr.appendChild(ftCrewCell(f, "cpt"));
-    tr.appendChild(ftCrewCell(f, "fo"));
+    tr.appendChild(ftMarkChg(arrCell, st, "arr"));
+    tr.appendChild(ftMarkChg(ftBox(st, "etd", false), st, "etd"));
+    tr.appendChild(ftMarkChg(ftBox(st, "utc", false), st, "utc"));
+    tr.appendChild(ftMarkChg(ftBox(st, "etaUtc", false), st, "etaUtc"));
+    tr.appendChild(ftMarkChg(ftCrewCell(f, "cpt"), st, "cptText"));
+    tr.appendChild(ftMarkChg(ftCrewCell(f, "fo"), st, "foText"));
     tr.appendChild(ftBox(st, "route", true));
     tr.appendChild(ftBox(st, "etp_poa", true));
     tr.appendChild(ftBox(st, "fl", false));
@@ -24589,10 +24589,57 @@ async function ftLoad(){
     }catch(e){ ftAcDefects = []; }
     await ftLoadRoutes();
     ftRefreshAutoRoute();
+    const nChg = ftApplyCrewDiff(d.source || "");
     $("#ftStat").textContent = "Crewlist " + (d.source || "") + " · " + ftCatalog.length
-      + " chuyến. Gõ số hiệu vào cột Số rồi Enter.";
+      + " chuyến. Gõ số hiệu vào cột Số rồi Enter."
+      + (nChg ? " · " + nChg + " ô thay đổi so với bản trước (chữ cam)." : "");
     ftRender();
+    if(nChg) try{ ftKeepLater(); }catch(e){}
   }catch(err){ $("#ftStat").textContent = err.message; }
+}
+/* Crewlist mới so với bản liền trước: cập nhật chuyến đang có trên KHB, ô nào
+   khác bản trước thì chữ cam. Mỗi lần nạp bản mới, cam được tính lại từ đầu nên
+   ô không đổi so với bản liền trước sẽ trở lại màu bình thường. */
+const FT_CHG_KEYS = [["date","date"],["reg","reg"],["ac","ac"],["dep","dep"],["arr","arr"],
+  ["etd","etd"],["utc","utc"],["etaUtc","eta_utc"],["cptText","cpt"],["foText","fo"]];
+function ftApplyCrewDiff(src){
+  if(!src) return 0;
+  let total = 0;
+  for(let i = 0; i < ftRows.length; i++){
+    const f = ftRows[i];
+    if(!f) continue;
+    const st = ftSt(f);
+    if(!st.src){ st.src = src; continue; }
+    if(st.src === src) continue;
+    const same = ftCatalog.filter(c => String(c.flt) === String(f.flt) && (c.date || "") === (st.date || f.date || ""));
+    const nf = same.find(c => c.dep === f.dep) || same[0];
+    const chg = {};
+    if(nf){
+      const old = {};
+      for(const [k] of FT_CHG_KEYS) old[k] = String(st[k] == null ? "" : st[k]).trim();
+      const nid = String(nf.id);
+      if(nid !== String(f.id)){ ftEdit[nid] = st; delete ftEdit[String(f.id)]; }
+      st.cptId = ""; st.foId = "";
+      ftFillIdent(st, nf);
+      ftRows[i] = nf;
+      for(const [k] of FT_CHG_KEYS){
+        const now = String(st[k] == null ? "" : st[k]).trim();
+        if(now !== old[k]){ chg[k] = {from: old[k], to: now, a: st.src, b: src}; total++; }
+      }
+    }
+    st.chg = chg;
+    st.src = src;
+  }
+  return total;
+}
+function ftMarkChg(td, st, key){
+  const c = st && st.chg && st.chg[key];
+  if(!c) return td;
+  const inp = td.querySelector("input[type=text]");
+  (inp || td).classList.add("ft-chg");
+  const tip = "Đổi từ " + (c.from || "(trống)") + " (" + c.a + ") → " + (c.to || "(trống)") + " (" + c.b + ")";
+  (inp || td).title = tip; td.title = tip;
+  return td;
 }
 function ftItems(){
   const items = [];
