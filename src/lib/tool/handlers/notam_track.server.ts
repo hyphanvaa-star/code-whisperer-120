@@ -157,52 +157,31 @@ async function fetchOfpText(flight: Flight): Promise<string> {
   try {
     const { fetchOfpPdf, ofpPdfText } = await import("./briefing_release.server");
     const blob = await fetchOfpPdf(flight.id);
-    return blob ? await ofpPdfText(blob) : "";
+    if (!blob) return "";
+    const head = String.fromCharCode(...blob.slice(0, 4));
+    // FliteBrief serves some OFPs as plain-text CFP instead of PDF.
+    return head === "%PDF" ? await ofpPdfText(blob) : new TextDecoder().decode(blob);
   } catch { return ""; }
 }
-
-async function fetchPlacesFor(flights: Flight[], ofpText = "", ofpTexts: Record<number, string> = {}): Promise<Place[]> {
-  const wantByCode = new Map<string, string>();
-  const firCodes = new Set<string>();
-  const usesByCode = new Map<string, { cs: string; role: string; id: number }[]>();
-  const use = (code: string, flight: Flight, role: string) => {
-    const held = usesByCode.get(code) || [];
-    if (!held.some(u => u.id === flight.id && u.role === role)) held.push({ cs: flight.callsign, role, id: flight.id });
-    usesByCode.set(code, held);
-  };
-  for (const flight of flights) {
-    const text = ofpTexts[flight.id] || ofpText;
-    const fields = text ? tuneAirfields(flight, text) : flightAirfields(flight);
-    for (const [code, role] of fields) { wantByCode.set(code, "A"); use(code, flight, role); }
-    if (text) {
-      for (const f of locationsOf(flight, text).firs || []) { const c = normIcao(f); if (c) { firCodes.add(c); use(c, flight, 'FIR'); } }
-    }
-  }
-  const places = await Promise.all([...wantByCode.entries()].map(([code, want]) => fetchPlace(code, want)));
-  for (const place of places) {
-    const fir = String((place as Record<string, unknown>).fir ?? "");
-    if (fir) {
-      firCodes.add(fir);
-      for (const u of usesByCode.get(String(place.code)) || []) {
-        const flight = flights.find(f => f.id === u.id);
-        if (flight) use(fir, flight, 'FIR');
-      }
-    }
-  }
-  const firPlaces = await Promise.all([...firCodes].map((code) => fetchPlace(code, "FIR")));
-  return [...places, ...firPlaces].map(p => ({ ...p, uses: usesByCode.get(String(p.code)) || [] }));
-}
-
+...
 async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string }> {
+  let jpErr = "";
   try {
     const t = await trackFor(flight);
-    return { track: t as unknown as Track, error: "" };
+    if (t.points.length || t.line.length) return { track: t as unknown as Track, error: "" };
   } catch (exc) {
-    return {
-      track: { plan: "", via: "", points: [], line: [] },
-      error: String((exc as Error)?.message ?? exc),
-    };
+    jpErr = String((exc as Error)?.message ?? exc);
   }
+  // Fallback: NAV LOG coordinates from the FliteBrief OFP.
+  try {
+    const { parseNavlog } = await import("../port/ofp_navlog");
+    const text = await fetchOfpText(flight);
+    const nav = parseNavlog(text);
+    if (nav.line.length >= 2) {
+      return { track: { plan: "", via: "ofp", points: nav.points, line: nav.line } as unknown as Track, error: "" };
+    }
+  } catch { /* fall through */ }
+  return { track: { plan: "", via: "", points: [], line: [] }, error: jpErr || "Không lấy được route (JetPlan/OFP)." };
 }
 
 async function findFlight(id: number): Promise<Flight | null> {
