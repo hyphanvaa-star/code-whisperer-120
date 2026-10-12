@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Tài khoản: sửa đổi tên/mật khẩu, thêm ảnh đại diện riêng và kiểm tra lưu/đọc lại.
+
 - [x] PLD: bỏ dữ liệu mẫu cho làm tròn và xem/xuất FPL; khớp Omni đúng ngày/chặng; 13 kiểm thử đạt, gồm PAY xuất của 813/970/120 ngày 12/10; đã publish V46.
 - [ ] PLD: xuất lại FPL từ phiên người dùng thật — chờ người dùng kiểm tra trên live (không tạo được phiên cho tài khoản yêu cầu).
 

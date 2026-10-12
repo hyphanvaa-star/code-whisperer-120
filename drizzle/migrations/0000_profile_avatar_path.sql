@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_path text;
+COMMENT ON COLUMN public.profiles.avatar_path IS 'Private account-avatars object path, managed by authenticated self-service account functions.';
