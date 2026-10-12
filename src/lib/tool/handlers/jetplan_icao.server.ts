@@ -33,7 +33,7 @@ async function login(): Promise<Jar> {
   await (await jar.go(BASE + "/")).text();
   const body = new URLSearchParams({ action: "login", login_site: "jpdc", login_page: "", secure_session: "true", loginid: user, password: pass });
   const t = await (await jar.go(BASE + "/jeppesen/welcome", { method: "POST", body, headers: { "Content-Type": "application/x-www-form-urlencoded" } })).text();
-  if (t.includes("loginForm") || (t.includes("loginid") && t.includes("Secure Login"))) throw new Error("JetPlan từ chối đăng nhập — kiểm tra account.");
+  if (t.includes("Login Failed") || t.includes("loginForm") || (t.includes("loginid") && t.includes("Secure Login"))) throw new Error("JetPlan từ chối đăng nhập — kiểm tra account.");
   return jar;
 }
 
