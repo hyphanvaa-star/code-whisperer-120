@@ -13,6 +13,7 @@ export const KINDS: Record<string, { user: string[]; pass: string[]; label: stri
   owa: { user: ["OWA_USERNAME", "OWA_USER"], pass: ["OWA_PASSWORD", "OWA_PASS"], label: "Outlook Web" },
   outlook: { user: ["OUTLOOK_MAIL_USER"], pass: ["OUTLOOK_MAIL_PASS"], label: "Outlook (mail nháp)" },
   aviweb: { user: ["AVIWEB_USERNAME", "AVIWEB_USER"], pass: ["AVIWEB_PASSWORD", "AVIWEB_PASS"], label: "AviWeb" },
+  jetplan: { user: ["JETPLAN_USERNAME", "JETPLAN_USER"], pass: ["JETPLAN_PASSWORD", "JETPLAN_PASS"], label: "JetPlan" },
 };
 
 function key() {
