@@ -8,6 +8,14 @@ const SKIP = new Set(["FL", "FIR", "AWY", "MSA", "TAS", "GS", "ETO", "ATO", "TOC
 
 const deg = (d: string, m: string, t: string | undefined) => parseInt(d, 10) + (parseInt(m, 10) + (t ? parseInt(t, 10) / 10 : 0)) / 60;
 
+// Navlog rows read "AWY FIX ..." — prefer the fix (2nd token) over the airway.
+function fixName(ln: string): string {
+  const raw = [...ln.matchAll(NAME)].map((m) => m[1]!).filter((n) => !/^\d/.test(n));
+  const isRow = /^\s*(\.\.|[A-Z][A-Z0-9]{0,5})\s+[A-Z]/.test(ln) && raw.length >= 2 && !/^\s*\.\./.test(ln);
+  const pick = isRow ? raw[1]! : raw.find((n) => !SKIP.has(n)) || "";
+  return SKIP.has(pick) && pick !== "TOC" && pick !== "TOD" ? raw.find((n) => !SKIP.has(n)) || "" : pick;
+}
+
 export function parseNavlog(text: string): { points: NavPoint[]; line: [number, number][] } {
   const lines = String(text || "").split(/\r?\n/);
   const points: NavPoint[] = [];
@@ -18,8 +26,8 @@ export function parseNavlog(text: string): { points: NavPoint[]; line: [number, 
     const hits = [...ln.matchAll(COORD)];
     if (!hits.length) {
       // a pure name line can precede its coordinate line
-      const names = [...ln.matchAll(NAME)].map((m) => m[1]!).filter((n) => !SKIP.has(n) && !/^\d/.test(n));
-      if (names.length) lastName = names[0]!;
+      const n = fixName(ln);
+      if (n) lastName = n;
       continue;
     }
     for (const h of hits) {
@@ -28,7 +36,7 @@ export function parseNavlog(text: string): { points: NavPoint[]; line: [number, 
       if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180)) continue;
       const before = ln.slice(0, h.index!);
       const names = [...before.matchAll(NAME)].map((m) => m[1]!).filter((n) => !SKIP.has(n));
-      const name = names[0] || lastName || `${h[1]}${h[2]}${h[5]}${h[6]}`;
+      const name = (names.length >= 2 ? names[1] : names[0]) || lastName || `${h[1]}${h[2]}${h[5]}${h[6]}`;
       const prev = points[points.length - 1];
       if (prev && Math.abs(prev.lat - lat) < 1e-6 && Math.abs(prev.lon - lon) < 1e-6) continue;
       points.push({ name, lat, lon, alt_m: 0, fl_ft: 0, ete_min: 0, airway: "", fir: "" });

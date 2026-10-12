@@ -13177,7 +13177,7 @@ function nmAddRouteLegs(track, fallback, opts){
   return layers;
 }
 const nmAltOn = {}, nmAltData = {};
-const NM_ALT_KINDS = [["alt1","Route ALT 1","#ff7a00"],["alt2","Route ALT 2","#c026d3"],["talt","Take-off ALTN","#0891b2"]];
+const NM_ALT_KINDS = [["alt1","Route ALT 1","#ff7a00"],["alt2","Route ALT 2","#c026d3"]];
 function nmAltBlock(id){
   const box = document.createElement("div");
   box.className = "nm-alt-block";
@@ -13242,7 +13242,8 @@ function nmDrawFleetRoutes(){
   const tracks = nmData.tracks || {};
   const ids = Object.keys(tracks);
   const sig = ids.map(id => id + ":" + (nmFleetTicked(id) ? "1" : "0")).join(",")
-    + "|w" + (nmWptOn ? "1" : "0") + "|a" + nmAwyPick + "@" + nmAwyPickId;
+    + "|w" + (nmWptOn ? "1" : "0") + "|a" + nmAwyPick + "@" + nmAwyPickId
+    + "|alt" + JSON.stringify(nmAltOn) + Object.keys(nmAltData).map(k => k + ":" + (nmAltData[k] && nmAltData[k].loading ? "l" : "d")).join(",");
   const map = nmEnsureMap();
   if(!map || !nmDrawGroup) return;
   nmPaintFleetBox();
