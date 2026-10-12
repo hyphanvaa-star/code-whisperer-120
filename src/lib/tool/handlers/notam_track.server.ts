@@ -223,6 +223,18 @@ async function findFlight(id: number): Promise<Flight | null> {
 }
 
 export const routes: Routes = {
+  // Route dự bị (ALT1/ALT2/TALT) từ NAV LOG alternate trong OFP — KML JetPlan không có.
+  "GET /api/notam/alts": async (ctx) => {
+    const fid = parseInt(q(ctx.params, "fid"), 10);
+    if (!fid) return { error: "thiếu fid." };
+    const flight = await findFlight(fid);
+    if (!flight) return { error: `Không tìm thấy chuyến fid=${fid}.` };
+    const text = await fetchOfpText(flight);
+    if (!text) return { error: "Không tải được OFP." };
+    const { parseAltRoutes } = await import("../port/ofp_alt_routes");
+    const r = parseAltRoutes(text, String((flight as unknown as Record<string, unknown>).dest_icao || ""));
+    return { ok: true, fid, ...r };
+  },
   // web.py _api_notam_track(fid): đối chiếu NOTAM 24H với track của một chuyến.
   "GET /api/notam/track": async (ctx) => {
     const fid = parseInt(q(ctx.params, "fid") || q(ctx.params, "id"), 10);
