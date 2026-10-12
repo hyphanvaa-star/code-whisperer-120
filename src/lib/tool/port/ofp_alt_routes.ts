@@ -20,7 +20,7 @@ export function parseAltRoutes(text: string, dest = ""): AltRoutes {
     const k = m[1] === "1" ? "alt1" : "alt2";
     if (!icao[k]) icao[k] = m[2]!.toUpperCase();
   }
-  const t = TALT_ICAO.exec(src);
+  const t = /\bTALT\/([A-Z]{4})\b/.exec(src) || TALT_ICAO.exec(src);
   if (t) icao.talt = (t[1] || t[2] || "").toUpperCase();
 
   // Split the text into sections: main NAV LOG first, then each alternate block.
