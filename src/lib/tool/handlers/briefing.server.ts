@@ -39,6 +39,7 @@ async function briefingPreview(ctx: Parameters<Routes[string]>[0], days: number)
       sector: p.flight ? p.flight.id : 0,
       sector_id: p.flight ? p.flight.id : 0,
       already: p.already,
+      overwrite: !!p.overwrite,
       note: p.note,
     })),
   };
