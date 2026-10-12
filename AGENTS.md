@@ -30,4 +30,5 @@
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can come from the dispatcher's browser login — Omni rejects token creation from the runtime's IPv6 X-Forwarded-For.
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from bundled `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`; tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart` — live AIP fetches are unreliable in a request.
 - Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer. KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
+- NOTAM library pins are stored per user under `notam.pins:<userId>` (handlers + briefing-data) so dispatchers never overwrite each other.
 - Team chat (group + 1-1) lives in `chat_rooms`/`chat_messages` with dispatcher-scoped RLS and admin-only delete; floating UI is `src/components/chat/ChatWidget.tsx` in `__root`, polling every 4s instead of Realtime.
