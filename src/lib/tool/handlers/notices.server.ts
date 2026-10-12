@@ -100,9 +100,17 @@ function tmpDir(ctx: Ctx): string {
 async function noticeLibrary(ctx: Ctx): Promise<Map<string, string>> {
   const { listFiles } = await import("../store.server");
   const out = new Map<string, string>();
-  for (const dir of [tmpDir(ctx), "notices"]) {
+  // MEL/RegNotice vừa tách (riêng tài khoản) trước, kho chung/tạm ghi đè sau.
+  for (const dir of [`regnotice/${ctx.userId}`, tmpDir(ctx), "notices"]) {
     const files = await listFiles(ctx, dir).catch(() => [] as Array<{ name: string }>);
-    for (const f of files) if (/\.pdf$/i.test(f.name)) out.set(normTitle(f.name), `${dir}/${f.name}`);
+    for (const f of files) {
+      if (!/\.pdf$/i.test(f.name)) continue;
+      const k = normTitle(f.name);
+      out.set(k, `${dir}/${f.name}`);
+      // VNA649 ↔ VN-A649 để luật {REG} luôn khớp.
+      const m = /^vn-?a(\d{3})$/.exec(k);
+      if (m) { out.set(`vna${m[1]}`, `${dir}/${f.name}`); out.set(`vn-a${m[1]}`, `${dir}/${f.name}`); }
+    }
   }
   return out;
 }
