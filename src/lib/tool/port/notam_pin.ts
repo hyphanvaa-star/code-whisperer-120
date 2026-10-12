@@ -189,7 +189,7 @@ export function cellIndex(
   }
   if (code && code === (opts.dep ?? "").toUpperCase()) return 0;
   if (code && code === (opts.dest ?? "").toUpperCase()) return 1;
-  if (alts.includes(code)) return 2;
+  if (alts.includes(code)) return alts.length >= 2 && alts.indexOf(code) >= 1 ? 5 : 2;
   if (ralts.includes(code)) return 3;
   return opts.force ? 4 : null;
 }
@@ -225,7 +225,7 @@ export interface SheetPinContext {
 }
 
 export function applyToSheet(sheet: PinSheet, store: PinStore, context: SheetPinContext = {}): string[] {
-  const cells = Array.from({ length: 5 }, (_, i) => {
+  const cells = Array.from({ length: 6 }, (_, i) => {
     const text = sheet.notams[i] ?? "";
     return text.toUpperCase().trim() === "NO SIG" ? "" : text;
   });
@@ -237,7 +237,9 @@ export function applyToSheet(sheet: PinSheet, store: PinStore, context: SheetPin
     const idx = cellIndex(item, { ...sheet, firs: context.firs ?? [], force });
     if (idx !== null) cells[idx] = joinNotam(cells[idx] ?? "", item);
   }
-  const locations = [[sheet.dep], [sheet.dest], sheet.dest_alts, sheet.enroute_alts, context.firs ?? []];
+  const da = sheet.dest_alts.filter(Boolean);
+  // Two destination alternates get separate cells (2 = first, 5 = the rest), same rules each.
+  const locations = [[sheet.dep], [sheet.dest], da.length >= 2 ? [da[0]] : da, sheet.enroute_alts, context.firs ?? [], da.length >= 2 ? da.slice(1) : []];
   locations.forEach((codes, i) => {
     if (!isNotamPlaceholder(cells[i])) return;
     const present = codes.filter(Boolean);

@@ -43,7 +43,7 @@ describe("Python Briefing parity", () => {
     expect(edited.dep).toBe(original.dep);
     expect(edited.reg).toBe(original.reg);
     expect(edited.wx).toEqual(original.wx);
-    expect(edited.notams).toEqual(["A1234/26 NOTAMN DEP ONLY", "", "", "", ""]);
+    expect(edited.notams).toEqual(["A1234/26 NOTAMN DEP ONLY", "", "", "", "", ""]);
   });
   it("pins full airport/FIR NOTAM text after saved edits, not unrelated cloud pins", async () => {
     const pins = emptyStore();
@@ -57,9 +57,17 @@ describe("Python Briefing parity", () => {
   it("replaces same-ident NOTAM and never invents NIL without a portal count", () => {
     const joined = joinNotam("A1234/26\nE) OLD\n\nB9999/26\nE) KEEP", { ident: "A1234/26", text: "A1234/26\nE) NEW" });
     expect(joined).not.toContain("OLD"); expect(joined).toContain("KEEP");
-    const s = sheet(); applyToSheet(s, emptyStore()); expect(s.notams).toEqual(["", "", "", "", ""]);
+    const s = sheet(); applyToSheet(s, emptyStore()); expect(s.notams).toEqual(["", "", "", "", "", ""]);
     applyToSheet(s, emptyStore(), { counts: { "A:RKPK": 0, "A:VVTS": 2 } });
     expect(s.notams.slice(0, 2)).toEqual([NOTAM_NIL, NOTAM_NO_OPS]);
+  });
+  it("splits two destination alternates into separate NOTAM cells with own rules", () => {
+    const s = sheet();
+    applyToSheet(s, emptyStore(), { counts: { "A:VVCR": 3, "A:VVCT": 0 } });
+    expect(s.notams[2]).toBe(NOTAM_NO_OPS); expect(s.notams[5]).toBe(NOTAM_NIL);
+    const html = toHtml(s);
+    expect(html).toContain("Dest. Alternate 1<br>(VVCR)"); expect(html).toContain("Dest. Alternate 2<br>(VVCT)");
+    expect(toText(s)).toContain("Dest. Alternate 2 (VVCT)");
   });
   it("exports a one-page Letter table with Unicode font", async () => {
     const s = sheet(); s.notams[0] = "A1234/26\nE) Nội dung NOTAM đầy đủ";
