@@ -8512,6 +8512,50 @@ let flightAutoTimer = null;
 function startFlightAutoRefresh(){
   if(flightAutoTimer) clearInterval(flightAutoTimer);
   flightAutoTimer = setInterval(() => { loadFlights(true, true); }, FLIGHT_AUTO_MS);
+  startNewFlightWatch();
+}
+// Smart polling: 20s khi đang xem tab, 60s khi ẩn. Chỉ nạp lại bảng khi
+// FliteBrief có chuyến mới / mất chuyến, rồi báo + chớp dòng mới.
+let nfWatchTimer = null, nfBusy = false, nfLastAt = 0;
+function startNewFlightWatch(){
+  if(nfWatchTimer) return;
+  nfWatchTimer = setInterval(nfTick, 5000);
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) nfTick(); });
+}
+async function nfTick(){
+  const gap = document.hidden ? 60000 : 20000;
+  if(nfBusy || !flights.length || Date.now() - nfLastAt < gap) return;
+  nfBusy = true; nfLastAt = Date.now();
+  try{
+    const r = await fetch("/api/flights?" + qs({refresh:"1"}));
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d || d.error || !Array.isArray(d.flights)) return;
+    const old = new Set(flights.map(f => f.id));
+    const added = d.flights.filter(f => !old.has(f.id));
+    const gone = d.flights.length !== flights.length || added.length;
+    if(!gone) return;
+    await loadFlights(false, true);
+    if(added.length){
+      const names = added.slice(0, 6).map(f => f.callsign).join(", ") + (added.length > 6 ? "…" : "");
+      nfToast("🆕 " + added.length + " chuyến mới từ FliteBrief: " + names);
+      setTimeout(() => {
+        for(const f of added){
+          const tr = document.querySelector('#tbody tr[data-id="' + f.id + '"]');
+          if(tr){ tr.style.transition = "background 1.5s"; tr.style.background = "rgba(220,38,38,.18)";
+            setTimeout(() => { tr.style.background = ""; }, 6000); }
+        }
+      }, 300);
+    }
+  }catch(_){}
+  finally{ nfBusy = false; }
+}
+function nfToast(msg){
+  const el = document.createElement("div");
+  el.textContent = msg;
+  el.style.cssText = "position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:99999;background:#dc2626;color:#fff;padding:10px 18px;border-radius:10px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:14px";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 7000);
 }
 // STATUS OpsCore: poll 30s, không đợi FliteBrief 30 phút, không gọi days=2.
 const OPS_AUTO_MS = 30 * 1000;
