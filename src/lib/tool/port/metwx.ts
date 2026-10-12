@@ -434,12 +434,18 @@ async function take(
     if (!cands.length) continue;
 
     // Bỏ file upload quá lâu — cùng số hiệu bay lặp mỗi ngày, lấy nhầm hôm trước.
-    if (maxAgeH) {
+    // Siết chặt: tối đa 8h; không xác định được giờ phát hành thì KHÔNG lấy.
+    {
+      const lim = Math.min(maxAgeH || MAX_AGE_H, MAX_AGE_H);
+      const all = cands;
       cands = cands.filter((x) => {
-        const age = ageHours(x.created, now);
-        return age === null || age <= maxAgeH;
+        const age = ageHours(x.created, now, x.name);
+        return age !== null && age >= -1 && age <= lim;
       });
-      if (!cands.length) continue;
+      if (!cands.length) {
+        opts.onProgress?.(`${orig}: chỉ có file WX cũ hơn ${lim}h hoặc không rõ giờ (${all.map((x) => x.name).slice(0, 2).join(", ")}) — bỏ qua`, orig);
+        continue;
+      }
     }
 
     // Bản phát hành lại (hậu tố -HHMM-DDMMYY) thử trước.
