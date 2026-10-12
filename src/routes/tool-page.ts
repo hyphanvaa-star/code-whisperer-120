@@ -875,7 +875,7 @@ const PRO = `<style id="pro-skin">
   --x-yel:#FFC900;--x-ink:#16181D;--x-ink2:#454B57;--x-mute:#7A808C;
   --x-line:#E4E6EA;--x-line2:#EEF0F3;--x-bg:#F4F5F7;--x-card:#FFFFFF;
   --x-ok:#15803D;--x-ok-bg:#E8F6EC;--x-warn:#B45309;--x-warn-bg:#FEF3E2;
-  --x-khb-ink:#1E40AF; /* chữ ô dữ liệu bảng KHB: xanh dương đậm */
+  --x-khb-ink:#1E3A8A; /* chữ ô dữ liệu bảng KHB: xanh dương đậm */
 
   --x-sans:"IBM Plex Sans",system-ui,sans-serif;--x-mono:"IBM Plex Mono",ui-monospace,monospace;
   --x-r:8px;--x-sh:0 1px 2px rgba(16,18,24,.05),0 1px 1px rgba(16,18,24,.03);
@@ -936,7 +936,7 @@ input[type=text],input[type=search],input[type=number],input[type=password],inpu
 #wrapFplText .fttbl td:nth-child(2) .ftflt-in{position:static !important;display:block !important;width:100% !important}
 #wrapFplText .fttbl td.ftflt > .ftbadge,#wrapFplText .fttbl td:nth-child(2) .ftflt-in > .ftbadge{position:absolute !important;left:-9px;top:50%;transform:translateY(-50%);z-index:3;border:0;padding:0;cursor:pointer;color:var(--x-card) !important}
 #wrapFplText .fttbl td.ftflt > input,#wrapFplText .fttbl td:nth-child(2) .ftflt-in > input{width:100% !important;min-width:0 !important;padding-inline:4px !important;box-sizing:border-box !important}
-#wrapFplText .fttbl input[type=text]{color:#1E40AF !important;-webkit-text-fill-color:#1E40AF;font-weight:600 !important}
+#wrapFplText .fttbl input[type=text]{color:#1E3A8A !important;-webkit-text-fill-color:#1E3A8A;font-weight:600 !important}
 #wrapFplText .fttbl td.dimcell{color:var(--x-mute) !important}
 
 input:focus,select:focus,textarea:focus{outline:none !important;border-color:var(--x-red) !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
