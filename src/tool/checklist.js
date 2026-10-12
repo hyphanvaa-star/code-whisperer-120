@@ -104,7 +104,7 @@ const ckChoiceStyle=document.createElement('style');
 ckChoiceStyle.textContent='#ckChoice{background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:18px;max-width:calc(100% - 32px)}#ckChoice[open]{display:flex;flex-wrap:wrap;gap:12px}#ckChoice .btn{min-height:42px;font-size:14px}';
 document.head.appendChild(ckChoiceStyle);document.body.appendChild(ckChoice);
 ckChoice.addEventListener('click',event => {if(event.target===ckChoice){const r=ckChoice.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)ckChoice.close();}});
-$('#ftCkBtn').onclick=function(){ckChoice.showModal();};
+$('#ftCkSaveBtn').onclick=function(){ckChoice.showModal();};
 ckChoice.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click',() => {ckChoice.close();ckExport(button.dataset.kind);}));
 async function ckExport(kind){
   const dsp=($('#ftDspBox').value || '').trim();
@@ -119,26 +119,48 @@ async function ckExport(kind){
   if(!legs.length){alert('Tick ít nhất một chuyến.');return;}
   const lic=($('#ftLicInput').value || '').trim();
   if(!lic && !confirm('Chưa nhập DSP License. Vẫn tạo Checklist?')) return;
-  const button=$('#ftCkBtn');if(button.disabled)return;button.disabled=true;let count=0;const files=[];
+  const button=$('#ftCkSaveBtn');if(button.disabled)return;button.disabled=true;let count=0;const files=[];
   try {
     for(const leg of legs){
       $('#ftStat').textContent='Đang tạo PDF '+leg.flt+'…';
       const blob=await (kind==='edto' ? ckBuildEdto(leg,dsp,lic) : ckBuild(leg,dsp,lic));
-      files.push({url:URL.createObjectURL(blob),name:'Checklist_'+(kind==='edto' ? 'EDTO_F018_' : 'F017_')+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf'});
+      files.push({blob,name:'Checklist_'+(kind==='edto' ? 'EDTO_F018_' : 'F017_')+leg.flt+'_'+String(leg.date || '').replace(/[^0-9A-Za-z-]/g,'-')+'.pdf'});
       count++;
     }
-    // Trình duyệt chặn tải nhiều file tự động: hiện danh sách để bấm tải từng file.
-    const box=document.createElement('dialog');box.id='ckFiles';
-    box.style.cssText='background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:320px';
-    box.innerHTML='<div style="font-weight:700;margin-bottom:10px">Đã tạo '+count+' PDF — bấm từng file để tải</div>';
-    for(const f of files){const a=document.createElement('a');a.href=f.url;a.download=f.name;a.textContent='⬇ '+f.name;a.className='btn';a.style.cssText='display:block;margin:6px 0;text-align:left';a.onclick=()=>{a.style.opacity='.55';};box.appendChild(a);}
-    const all=document.createElement('button');all.type='button';all.className='btn';all.textContent='Tải tất cả';all.style.marginRight='8px';
-    all.onclick=async()=>{for(const a of box.querySelectorAll('a')){a.click();await new Promise(r=>setTimeout(r,800));}};
-    const close=document.createElement('button');close.type='button';close.className='btn';close.textContent='Đóng';
-    close.onclick=()=>{box.close();box.remove();files.forEach(f=>URL.revokeObjectURL(f.url));};
-    const row=document.createElement('div');row.style.marginTop='12px';row.append(all,close);box.appendChild(row);
-    document.body.appendChild(box);box.showModal();
-    $('#ftStat').textContent='Đã tạo '+count+' PDF Checklist.';
+    // Lưu thẳng tất cả vào folder checklist trên máy công ty qua trợ lý PC.
+    $('#ftStat').textContent='Đang lưu '+count+' Checklist về PC…';
+    try{
+      const d=await ckSaveToPc(files);
+      $('#ftStat').textContent='✓ Đã lưu '+d.ok+' Checklist vào '+d.dir;
+      alert('Đã lưu '+d.ok+' Checklist vào:\n'+(d.paths||[]).join('\n'));
+    }catch(pcError){
+      // Trợ lý PC chưa mở: giữ danh sách bấm tải để không mất file vừa tạo.
+      $('#ftStat').textContent='Không lưu về PC được: '+pcError.message;
+      ckShowDownloads(files);
+    }
   } catch(error){alert('Lỗi tạo Checklist: '+error.message);$('#ftStat').textContent='Đã tạo '+count+'/'+legs.length+' PDF.';}
   finally{button.disabled=false;}
+}
+function ckB64(blob){
+  return new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]||'');r.onerror=()=>bad(new Error('Không đọc được file vừa tạo'));r.readAsDataURL(blob);});
+}
+async function ckSaveToPc(files){
+  const payload=[];
+  for(const f of files) payload.push({name:f.name,data_b64:await ckB64(f.blob)});
+  const response=await fetch('/api/pc/save-files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:'checklist',files:payload})});
+  const d=await response.json().catch(()=>null);
+  if(!d || d.error) throw new Error((d && d.error) || 'Máy chủ không trả lời');
+  return d;
+}
+function ckShowDownloads(files){
+  const box=document.createElement('dialog');box.id='ckFiles';
+  box.style.cssText='background:var(--vj-dark);color:var(--vj-dark-ink);border:1px solid var(--line);border-radius:8px;padding:18px;min-width:320px';
+  box.innerHTML='<div style="font-weight:700;margin-bottom:10px">Đã tạo '+files.length+' PDF — trợ lý PC chưa mở nên bấm từng file để tải</div>';
+  for(const f of files){const url=URL.createObjectURL(f.blob);const a=document.createElement('a');a.href=url;a.download=f.name;a.textContent='⬇ '+f.name;a.className='btn';a.style.cssText='display:block;margin:6px 0;text-align:left';a.onclick=()=>{a.style.opacity='.55';};box.appendChild(a);}
+  const all=document.createElement('button');all.type='button';all.className='btn';all.textContent='Tải tất cả';all.style.marginRight='8px';
+  all.onclick=async()=>{for(const a of box.querySelectorAll('a')){a.click();await new Promise(r=>setTimeout(r,800));}};
+  const close=document.createElement('button');close.type='button';close.className='btn';close.textContent='Đóng';
+  close.onclick=()=>{box.close();box.remove();};
+  const row=document.createElement('div');row.style.marginTop='12px';row.append(all,close);box.appendChild(row);
+  document.body.appendChild(box);box.showModal();
 }

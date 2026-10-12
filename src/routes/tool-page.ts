@@ -1695,11 +1695,11 @@ const BTNRED = `<style id="btn-red-skin">
 </style>`;
 
 // ==== Nút hành động chính trong tab FPL: nền đỏ chữ trắng (yêu cầu của người dùng) ====
-// Extra autofill, Auto Rounding PLD, Get ATC convert, Checklist, FORM MNL,
+// Extra autofill, Auto Rounding PLD, Get ATC convert, Checklist 2, FORM MNL,
 // OFP check data, Tạo điện văn — cùng màu với các nút trong tab Công cụ hỗ trợ.
 const BTNRED2 = `<style id="btn-red-skin-2">
 #ftExtraFill:not(#_):not(#_),#ftPldRound:not(#_):not(#_),#ftAtcConvBtn:not(#_):not(#_),
-#ftCkBtn:not(#_):not(#_),#ftMnlBtn:not(#_):not(#_),#ftOfpRulesBtn:not(#_):not(#_),
+#ftCkSaveBtn:not(#_):not(#_),#ftMnlBtn:not(#_):not(#_),#ftOfpRulesBtn:not(#_):not(#_),
 #ftMsgBtn:not(#_):not(#_){
   --x-red-solid:#E31937;--x-red-solid-d:#B01028;
   background:var(--x-red-solid) !important;background-image:none !important;
@@ -1708,15 +1708,15 @@ const BTNRED2 = `<style id="btn-red-skin-2">
   box-shadow:0 1px 3px rgba(227,25,55,.26) !important;
 }
 #ftExtraFill:not(#_):not(#_):not(#_) *,#ftPldRound:not(#_):not(#_):not(#_) *,
-#ftAtcConvBtn:not(#_):not(#_):not(#_) *,#ftCkBtn:not(#_):not(#_):not(#_) *,
+#ftAtcConvBtn:not(#_):not(#_):not(#_) *,#ftCkSaveBtn:not(#_):not(#_):not(#_) *,
 #ftMnlBtn:not(#_):not(#_):not(#_) *,#ftOfpRulesBtn:not(#_):not(#_):not(#_) *,
 #ftMsgBtn:not(#_):not(#_):not(#_) *,
-#ftExtraFill::before,#ftPldRound::before,#ftAtcConvBtn::before,#ftCkBtn::before,
+#ftExtraFill::before,#ftPldRound::before,#ftAtcConvBtn::before,#ftCkSaveBtn::before,
 #ftMnlBtn::before,#ftOfpRulesBtn::before,#ftMsgBtn::before{
   color:#fff !important;-webkit-text-fill-color:#fff !important;
 }
 #ftExtraFill:not(#_):not(#_):hover:not(:disabled),#ftPldRound:not(#_):not(#_):hover:not(:disabled),
-#ftAtcConvBtn:not(#_):not(#_):hover:not(:disabled),#ftCkBtn:not(#_):not(#_):hover:not(:disabled),
+#ftAtcConvBtn:not(#_):not(#_):hover:not(:disabled),#ftCkSaveBtn:not(#_):not(#_):hover:not(:disabled),
 #ftMnlBtn:not(#_):not(#_):hover:not(:disabled),#ftOfpRulesBtn:not(#_):not(#_):hover:not(:disabled),
 #ftMsgBtn:not(#_):not(#_):hover:not(:disabled){
   background:var(--x-red-solid-d) !important;border-color:var(--x-red-solid-d) !important;
@@ -1728,7 +1728,7 @@ const BTNRED2 = `<style id="btn-red-skin-2">
 }
 /* Đang bận / tắt: vẫn đỏ chữ trắng, chỉ mờ đi */
 #ftExtraFill:not(#_):not(#_):disabled,#ftPldRound:not(#_):not(#_):disabled,
-#ftAtcConvBtn:not(#_):not(#_):disabled,#ftCkBtn:not(#_):not(#_):disabled,
+#ftAtcConvBtn:not(#_):not(#_):disabled,#ftCkSaveBtn:not(#_):not(#_):disabled,
 #ftMnlBtn:not(#_):not(#_):disabled,#ftOfpRulesBtn:not(#_):not(#_):disabled,
 #ftMsgBtn:not(#_):not(#_):disabled{
   background:var(--x-red-solid) !important;border-color:var(--x-red-solid) !important;
