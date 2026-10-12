@@ -181,6 +181,25 @@ export const routes: Routes = {
       return new Response(errorMessage(exc), { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
     }
   },
+  // Xuất PDF một chuyến từ khung Hiệu chỉnh (dùng nội dung đang sửa, chưa cần lưu).
+  "POST /api/briefing/release.pdf": async (ctx) => {
+    const body = await ctx.json();
+    const cs = String(body["callsign"] ?? body["flight"] ?? "").trim();
+    if (!cs) return new Response("Thiếu số hiệu chuyến.", { status: 400 });
+    try {
+      const sheet = applyFields(await draft(ctx, cs, true), body);
+      const pdf = await toPdf(sheet);
+      return new Response(new Blob([pdf as BlobPart], { type: "application/pdf" }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${pdfFilename(sheet)}"`,
+        },
+      });
+    } catch (exc) {
+      return new Response(errorMessage(exc), { status: 400, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+    }
+  },
   // Tải file ZIP đã xuất về máy (link trong thông báo kết thúc job).
   "GET /api/briefing/export.zip": async (ctx) => {
     const name = String(ctx.params.get("f") ?? "").replace(/[^A-Za-z0-9._-]/g, "");

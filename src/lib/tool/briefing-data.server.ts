@@ -6,16 +6,29 @@ import { airportParentFir, apply24h, normIcao, placeFromPayload } from "./port/n
 import { fbJson } from "../flitebrief.server";
 import type { DraftFromFlightOpts } from "./port/briefingRelease";
 
-/** 24h NOTAM count from the FliteBrief portal; null = portal not read (never invent NIL). */
+const COUNT_TTL = 10 * 60 * 1000;
+const COUNT_TIMEOUT = 6000;
+const countCache = new Map<string, { at: number; n: number }>();
+
+/** 24h NOTAM count from the FliteBrief portal; null = portal not read (never invent NIL).
+ *  Successful reads are cached 10 min per worker; a slow portal times out to null. */
 async function portalCount(code: string, want: string): Promise<number | null> {
   const icao = normIcao(code);
   if (!icao) return null;
+  const key = `${want}:${icao}`;
+  const hit = countCache.get(key);
+  if (hit && Date.now() - hit.at < COUNT_TTL) return hit.n;
   try {
-    const payload = await fbJson<Record<string, unknown>>(`/webapi/icaos/${icao}`);
+    const payload = await Promise.race([
+      fbJson<Record<string, unknown>>(`/webapi/icaos/${icao}`),
+      new Promise<null>((r) => setTimeout(() => r(null), COUNT_TIMEOUT)),
+    ]);
     if (!payload || (typeof payload === "object" && !Object.keys(payload).length)) return null;
     const place = placeFromPayload(icao, payload, want);
     if (place.error && !(place.notams as unknown[])?.length) return null;
-    return Number(apply24h(place).notam_count ?? 0) || 0;
+    const n = Number(apply24h(place).notam_count ?? 0) || 0;
+    countCache.set(key, { at: Date.now(), n });
+    return n;
   } catch {
     return null;
   }
