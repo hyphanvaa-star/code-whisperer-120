@@ -3,7 +3,7 @@
 const mnlBtn=document.createElement('button');
 mnlBtn.type='button';mnlBtn.className='btn small';mnlBtn.id='ftMnlBtn';mnlBtn.textContent='FORM MNL';
 mnlBtn.title='Tạo FORM MNL (CAAP) từ View ICAO JetPlan cho chuyến đã tick';
-$('#ftCkBtn').insertAdjacentElement('afterend',mnlBtn);
+$('#ftCkSaveBtn').insertAdjacentElement('afterend',mnlBtn);
 function mnlScript(src,name){return window[name]?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('Không tải được '+src));document.head.appendChild(s);});}
 function mnlTime(date,utc){
   const d=String(date||''),u=/(\d{1,2}):?(\d{2})/.exec(String(utc||''));
