@@ -163,7 +163,39 @@ async function fetchOfpText(flight: Flight): Promise<string> {
     return head === "%PDF" ? await ofpPdfText(blob) : new TextDecoder().decode(blob);
   } catch { return ""; }
 }
-...
+
+async function fetchPlacesFor(flights: Flight[], ofpText = "", ofpTexts: Record<number, string> = {}): Promise<Place[]> {
+  const wantByCode = new Map<string, string>();
+  const firCodes = new Set<string>();
+  const usesByCode = new Map<string, { cs: string; role: string; id: number }[]>();
+  const use = (code: string, flight: Flight, role: string) => {
+    const held = usesByCode.get(code) || [];
+    if (!held.some(u => u.id === flight.id && u.role === role)) held.push({ cs: flight.callsign, role, id: flight.id });
+    usesByCode.set(code, held);
+  };
+  for (const flight of flights) {
+    const text = ofpTexts[flight.id] || ofpText;
+    const fields = text ? tuneAirfields(flight, text) : flightAirfields(flight);
+    for (const [code, role] of fields) { wantByCode.set(code, "A"); use(code, flight, role); }
+    if (text) {
+      for (const f of locationsOf(flight, text).firs || []) { const c = normIcao(f); if (c) { firCodes.add(c); use(c, flight, 'FIR'); } }
+    }
+  }
+  const places = await Promise.all([...wantByCode.entries()].map(([code, want]) => fetchPlace(code, want)));
+  for (const place of places) {
+    const fir = String((place as Record<string, unknown>).fir ?? "");
+    if (fir) {
+      firCodes.add(fir);
+      for (const u of usesByCode.get(String(place.code)) || []) {
+        const flight = flights.find(f => f.id === u.id);
+        if (flight) use(fir, flight, 'FIR');
+      }
+    }
+  }
+  const firPlaces = await Promise.all([...firCodes].map((code) => fetchPlace(code, "FIR")));
+  return [...places, ...firPlaces].map(p => ({ ...p, uses: usesByCode.get(String(p.code)) || [] }));
+}
+
 async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string }> {
   let jpErr = "";
   try {
