@@ -44,8 +44,8 @@ describe("Self-service account changes", () => {
     expect(m.authUpdate).not.toHaveBeenCalled();
   });
   it("renames and changes password only for the authenticated owner", async () => {
-    await updateMyAccount({ data: { currentPassword: "test-current", username: "newlogin", newPassword: "test-new" } });
-    expect(m.authUpdate).toHaveBeenCalledWith("owner-id", { email: "newlogin@app.local", email_confirm: true, password: "test-new" });
+    await updateMyAccount({ data: { currentPassword: "test-current", username: "newlogin", newPassword: "Tmp#Kha9x2" } });
+    expect(m.authUpdate).toHaveBeenCalledWith("owner-id", { email: "newlogin@app.local", email_confirm: true, password: "Tmp#Kha9x2" });
   });
   it("rejects non-image avatar bytes", async () => {
     await expect(saveMyAvatar({ data: { image: "data:image/jpeg;base64,aGVsbG8=" } })).rejects.toThrow("Ảnh JPEG");

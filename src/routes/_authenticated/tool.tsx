@@ -6,6 +6,7 @@ import { getMyAccount, saveMyAvatar, updateMyAccount } from "@/lib/account.funct
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Camera, Trash2 } from "lucide-react";
+import { passwordChecks } from "@/lib/password-rules";
 
 export const Route = createFileRoute("/_authenticated/tool")({
   head: () => ({
@@ -186,6 +187,10 @@ export function AccountDialog({ current, onClose, onSaved }: { current: string; 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (pw && pw !== pw2) return setMsg({ ok: false, t: "Hai lần nhập mật khẩu mới không khớp" });
+    if (pw) {
+      const bad = passwordChecks(pw, username).filter((c) => !c.ok);
+      if (bad.length) return setMsg({ ok: false, t: "Mật khẩu mới chưa đạt: " + bad.map((b) => b.label.toLowerCase()).join(", ") });
+    }
     setBusy(true); setMsg(null);
     try {
       const r = await save({ data: {
@@ -203,6 +208,7 @@ export function AccountDialog({ current, onClose, onSaved }: { current: string; 
     } finally { setBusy(false); }
   };
   const inp = "w-full rounded-md border border-input bg-background px-3 py-2 text-[15px]";
+  const checks = passwordChecks(pw, username);
   return (
     <Dialog open onOpenChange={(open) => { if (!open && !busy && !avatarBusy) onClose(); }}>
       <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-sm overflow-y-auto rounded-lg">
@@ -221,6 +227,20 @@ export function AccountDialog({ current, onClose, onSaved }: { current: string; 
         <label className="block text-sm">Tên đăng nhập<input className={inp} value={username} onChange={(e) => setUsername(e.target.value)} /></label>
         <label className="block text-sm">Tên hiển thị (để trống nếu giữ nguyên)<input className={inp} value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></label>
         <label className="block text-sm">Mật khẩu mới (để trống nếu giữ nguyên)<input type="password" autoComplete="new-password" className={inp} value={pw} onChange={(e) => setPw(e.target.value)} /></label>
+        {pw && (
+          <div className="rounded-md border border-border bg-muted/40 p-2 text-[11px] leading-snug">
+            <p className="mb-1 font-semibold">Mật khẩu mới phải đủ:</p>
+            <ul className="grid gap-0.5">
+              {checks.map((c) => (
+                <li key={c.label} className={c.ok ? "text-primary" : "text-muted-foreground"}>{c.ok ? "✓" : "○"} {c.label}</li>
+              ))}
+            </ul>
+            <p className="mt-1 text-muted-foreground">
+              Hệ thống còn tự chặn mật khẩu đã bị lộ trên mạng hoặc quá dễ đoán (12345678, password, Abc@1234, abcd, aaaa1111).
+              Mẹo: ghép 3 từ không liên quan + ký tự đặc biệt + số, ví dụ Hanoi!Office99.
+            </p>
+          </div>
+        )}
         {pw && <label className="block text-sm">Nhập lại mật khẩu mới<input type="password" autoComplete="new-password" className={inp} value={pw2} onChange={(e) => setPw2(e.target.value)} /></label>}
         <label className="block text-sm font-semibold">Mật khẩu hiện tại (bắt buộc)<input type="password" required autoComplete="current-password" className={inp} value={cur} onChange={(e) => setCur(e.target.value)} /></label>
         {msg && <p className={msg.ok ? "text-sm text-primary" : "text-sm text-destructive"}>{msg.t}</p>}
