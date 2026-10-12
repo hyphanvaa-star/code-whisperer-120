@@ -27,15 +27,24 @@ async function ruleData(ctx: Parameters<Routes[string]>[0]): Promise<RuleRow[]> 
   return defaultRuleData();
 }
 
-/** Kho file notice PDF trong bucket "notices/<tên>.pdf" (Rule Studio upload).
- *  Trả map title-thường → tên file để planSwap biết file nào có sẵn. */
+/** Kho file notice PDF: MEL/RegNotice đã tách (riêng tài khoản), file tạm
+ *  của phiên và kho chung "notices/". Trả map title-thường → đường dẫn đầy đủ
+ *  (VNA549 ↔ VN-A549 đều khớp) để planSwap biết file nào có sẵn. */
 async function noticeFiles(ctx: Parameters<Routes[string]>[0]): Promise<Map<string, string>> {
   const { listFiles } = await import("../store.server");
-  const files = await listFiles(ctx, "notices").catch(() => [] as Array<{ name: string }>);
+  const tmp = `notices-tmp/${ctx.userId}/${(ctx.sessionId || "nosession").replace(/[^a-zA-Z0-9-]/g, "")}`;
   const map = new Map<string, string>();
-  for (const f of files) {
-    const stem = f.name.replace(/\.pdf$/i, "").trim().toLowerCase();
-    if (stem) map.set(stem, f.name);
+  for (const dir of [`regnotice/${ctx.userId}`, tmp, "notices"]) {
+    const files = await listFiles(ctx, dir).catch(() => [] as Array<{ name: string }>);
+    for (const f of files) {
+      if (!/\.pdf$/i.test(f.name)) continue;
+      const stem = f.name.replace(/\.pdf$/i, "").trim().toLowerCase();
+      if (!stem) continue;
+      const path = `${dir}/${f.name}`;
+      map.set(stem, path);
+      const m = /^vn-?a(\d{3})$/.exec(stem);
+      if (m) { map.set(`vna${m[1]}`, path); map.set(`vn-a${m[1]}`, path); }
+    }
   }
   return map;
 }
@@ -394,10 +403,11 @@ export const jobs: Jobs = {
       // Lấy PDF notice từ kho "notices/" (Rule Studio upload) rồi đính kèm
       // lên FliteBrief bằng đúng luồng upload của api/upload.py.
       uploadAttachment: async (title) => {
-        const name = noticeMap.get(title.trim().toLowerCase());
-        if (!name) return { ok: false, alreadyExists: false, error: `thiếu file "${title}" trong kho notice` };
+        const path = noticeMap.get(title.trim().toLowerCase());
+        if (!path) return { ok: false, alreadyExists: false, error: `thiếu file "${title}" trong kho notice` };
+        const name = path.split("/").pop() || path;
         const { getFile } = await import("../store.server");
-        const buf = await getFile(ctx, `notices/${name}`);
+        const buf = await getFile(ctx, path);
         if (!buf) return { ok: false, alreadyExists: false, error: `không đọc được file ${name}` };
         const { uploadAndAttach } = await import("./briefing.server");
         const r = await uploadAndAttach(plan.sector_id, new Uint8Array(buf), name, title);
