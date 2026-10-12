@@ -31,8 +31,8 @@ const CREATED_FORMATS = [
   /^(\d{2}):(\d{2}) (\d{1,2}) (\w+) (\d{4})$/, // "HH:MM D Month YYYY"
 ];
 const MONTHS: Record<string, number> = {
-  january: 0, february: 1, march: 2, april: 3, may: 4, june: 5, july: 6,
-  august: 7, september: 8, october: 9, november: 10, december: 11,
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6,
+  aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
 };
 
 /** "VJC154-VVTS-VVNB-1350-260726" -> true (bản phát hành lại). */
@@ -40,7 +40,8 @@ export function revised(name: string): boolean {
   return RE_SUFFIX.test(name || "");
 }
 
-/** Đổi Create Time (UTC hiển thị trên trang) thành Date. */
+/** Đổi Create Time (UTC hiển thị trên trang) thành Date.
+ * Nhận: "13:50 26 July 2026", "02:13 - 11 Oct 2026" (Đà Nẵng), "2026-10-11 2h13" (Nội Bài). */
 export function parseCreated(text: string): Date | null {
   const t = String(text || "").trim().replace(/\s+/g, " ");
   if (!t) return null;
@@ -50,21 +51,36 @@ export function parseCreated(text: string): Date | null {
     const d = new Date(`${ymd}T${String(hh).padStart(2, "0")}:${mm}:00Z`);
     return Number.isNaN(d.getTime()) ? null : d;
   }
-  for (const re of CREATED_FORMATS) {
-    const m = re.exec(t);
-    if (m) {
-      const [, hh, mm, dd, mon, yyyy] = m;
-      const month = MONTHS[(mon || "").toLowerCase()];
-      if (month === undefined) continue;
+  const m = /(\d{1,2}):(\d{2})\s*-?\s*(\d{1,2})\s+([A-Za-z]+)\.?\s+(\d{4})/.exec(t);
+  if (m) {
+    const [, hh, mm, dd, mon, yyyy] = m;
+    const month = MONTHS[(mon || "").toLowerCase().slice(0, 3)];
+    if (month !== undefined) {
       const d = new Date(Date.UTC(Number(yyyy), month, Number(dd), Number(hh), Number(mm)));
-      return Number.isNaN(d.getTime()) ? null : d;
+      if (!Number.isNaN(d.getTime())) return d;
     }
   }
   return null;
 }
 
-export function ageHours(createdText: string, now: Date = new Date()): number | null {
-  const d = parseCreated(createdText);
+/** Giờ UTC ghi trong tên file: "-20261011-0212-" hoặc hậu tố phát hành lại "-1350-260726". */
+export function nameTime(name: string): Date | null {
+  const s = String(name || "");
+  let m = /(?:^|[-_])(20\d{2})(\d{2})(\d{2})[-_](\d{2})(\d{2})(?=[-_.]|$)/.exec(s);
+  if (m) {
+    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]));
+    if (!Number.isNaN(d.getTime()) && +m[4] < 24 && +m[5] < 60) return d;
+  }
+  m = /-(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/.exec(s.replace(/\.pdf$/i, ""));
+  if (m) {
+    const d = new Date(Date.UTC(2000 + +m[5], +m[4] - 1, +m[3], +m[1], +m[2]));
+    if (!Number.isNaN(d.getTime()) && +m[1] < 24 && +m[2] < 60) return d;
+  }
+  return null;
+}
+
+export function ageHours(createdText: string, now: Date = new Date(), name = ""): number | null {
+  const d = parseCreated(createdText) ?? nameTime(name);
   if (!d) return null;
   return (now.getTime() - d.getTime()) / 3_600_000;
 }
