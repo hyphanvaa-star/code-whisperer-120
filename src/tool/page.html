@@ -5849,7 +5849,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V54</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V55</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -11212,61 +11212,70 @@ async function aeStartDraft(){
   }
 }
 
-let fplVerApplied = {old: "", new: ""};
-const VER_BANG_KEY = "dispatch.verBang.v2";
-let verBangAcked = 0;
+ let fplVerApplied = {old: "", new: ""};
+ const VER_BANG_KEY = "dispatch.verBang.v3";
+ let verBangAcked = "";
 
-function verBangLoad(){
-  try{
-    const raw = JSON.parse(localStorage.getItem(VER_BANG_KEY) || "{}");
-    verBangAcked = Number(raw.acked) || 0;
-  }catch(err){
-    verBangAcked = 0;
-  }
-}
-function verBangSave(){
-  try{
-    localStorage.setItem(VER_BANG_KEY, JSON.stringify({acked: verBangAcked}));
-  }catch(err){}
-}
-function parseVerNo(name){
-  const m = String(name || "").match(/\bVER\s*(\d{1,3})\b/i);
-  return m ? Number(m[1]) : 0;
-}
-function verBangNo(ver){
-  return Number((ver && ver.new_ver) || 0)
-    || parseVerNo((ver && ver.new) || "")
-    || parseVerNo(($("#vNew") && $("#vNew").value) || "")
-    || parseVerNo(($("#verBang") && $("#verBang").textContent) || "");
-}
-function paintVerBang(ver){
-  const bang = $("#verBang");
-  if(!bang) return;
-  const n = verBangNo(ver);
-  if(!n){
-    bang.textContent = "";
-    bang.classList.remove("on", "flash", "ok");
-    bang.title = "";
-    return;
-  }
-  bang.textContent = "Ver " + n;
-  bang.classList.add("on");
-  const pending = n !== verBangAcked;
-  bang.classList.toggle("flash", pending);
-  bang.classList.toggle("ok", !pending);
-  bang.title = pending
-    ? "BẢN MỚI là FPL VER " + n + " — bấm tab Dữ liệu thay đổi để xác nhận"
-    : "FPL VER " + n + " — đã xem";
-}
-function verBangAck(){
-  const n = verBangNo();
-  if(!n) return;
-  if(verBangAcked !== n){
-    verBangAcked = n;
-    verBangSave();
-  }
-  paintVerBang();
-}
+ function verBangLoad(){
+   try{
+     const raw = JSON.parse(localStorage.getItem(VER_BANG_KEY) || "{}");
+     verBangAcked = String(raw.acked || "");
+   }catch(err){
+     verBangAcked = "";
+   }
+ }
+ function verBangSave(){
+   try{
+     localStorage.setItem(VER_BANG_KEY, JSON.stringify({acked: verBangAcked}));
+   }catch(err){}
+ }
+ function parseVerNo(name){
+   const m = String(name || "").match(/\bVER\s*(\d{1,3})\b/i);
+   return m ? Number(m[1]) : 0;
+ }
+ function verBangNo(ver){
+   return Number((ver && ver.new_ver) || 0)
+     || parseVerNo((ver && ver.new) || "")
+     || parseVerNo(($("#vNew") && $("#vNew").value) || "")
+     || parseVerNo(($("#verBang") && $("#verBang").textContent) || "");
+ }
+ // Khoá xác nhận theo TÊN FILE ver mới nhất (không theo số ver): số VER có thể
+ // lặp lại giữa các ngày, còn tên file thì không — nhờ vậy ver mới luôn nháy đỏ
+ // kể cả khi trùng số với ver đã xem hôm trước.
+ function verBangFileKey(ver){
+   return String((ver && ver.new) || "")
+     || String(($("#vNew") && $("#vNew").value) || "")
+     || ("VER " + (verBangNo(ver) || 0));
+ }
+ function paintVerBang(ver){
+   const bang = $("#verBang");
+   if(!bang) return;
+   const n = verBangNo(ver);
+   if(!n){
+     bang.textContent = "";
+     bang.classList.remove("on", "flash", "ok");
+     bang.title = "";
+     return;
+   }
+   bang.textContent = "Ver " + n;
+   bang.classList.add("on");
+   const pending = verBangFileKey(ver) !== verBangAcked;
+   bang.classList.toggle("flash", pending);
+   bang.classList.toggle("ok", !pending);
+   bang.title = pending
+     ? "BẢN MỚI là FPL VER " + n + " — bấm tab Dữ liệu thay đổi để xác nhận"
+     : "FPL VER " + n + " — đã xem";
+ }
+ function verBangAck(){
+   const n = verBangNo();
+   if(!n) return;
+   const key = verBangFileKey();
+   if(verBangAcked !== key){
+     verBangAcked = key;
+     verBangSave();
+   }
+   paintVerBang();
+ }
 
 async function applyFplVer(ver){
   const old = (ver && ver.old) || "", neu = (ver && ver.new) || "";
@@ -21046,9 +21055,12 @@ async function vLoadFiles({preferNewest = false} = {}){
       if(!preferNewest && keep && vFileList.some(f => f.name === keep)) next = keep;
       else if(vFileList.length > def) next = vFileList[def].name;
       else if(vFileList.length) next = vFileList[0].name;
-      vSetValue(which, next);
-    }
+       vSetValue(which, next);
+     }
     vPaintMenus();
+    // Ver mới có thể tới từ mọi đường (Outlook Web, PC helper, tải tay) —
+    // luôn cập nhật nhãn Ver theo BẢN MỚI hiện tại để nháy đỏ khi chưa xem.
+    paintVerBang();
   }catch(err){ /* im lặng */ }
 }
 
