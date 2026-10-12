@@ -133,7 +133,7 @@ function wake_(ac: string, fallback = "M"): string {
 export function render(
   code: string,
   fields: FplFields,
-  opts: { delay_min?: number; new_type?: string; orig_eobt?: string } = {},
+  opts: { delay_min?: number; new_type?: string; orig_eobt?: string; new_eobt?: string } = {},
 ): string {
   const delayMin = opts.delay_min ?? 0;
   const newType = opts.new_type ?? "";
@@ -148,7 +148,7 @@ export function render(
   const equip = fields.equip || "";
   const ac = icaoAcType(newType) || newType || oldType;
   if (ac !== oldType) wake = wake_(ac, wake);
-  const fresh = shift_item13(item13, delayMin);
+  const fresh = opts.new_eobt ? set_eobt(item13, opts.new_eobt) : shift_item13(item13, delayMin);
   const tail = dof ? "-" + dof : "";
   if (code === KIND_DLA) {
     return `(DLA-${cs}-${fresh}-${dest}${tail})`;

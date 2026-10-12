@@ -21821,6 +21821,7 @@ function vAtcCell(r){
   if(r.reg && r.reg.changed && r.reg.new){
     sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
     sp.dataset.route = String(r.route || "");
+    sp.dataset.date = vAtcIsoDate(r);
     sp.style.color = "#d10000"; sp.style.fontWeight = "700";
     setTimeout(vAtcRegSync, 300);
   }
@@ -21953,7 +21954,7 @@ function vAtcRegSync(){
     const sps = [...document.querySelectorAll("#vBody span.vatc[data-reg]")];
     if(!sps.length) return;
     const items = sps.map(sp => { const rt = sp.dataset.route || ""; const i = rt.indexOf("-");
-      return {flt: sp.dataset.flt, dep: i >= 0 ? rt.slice(0, i) : rt, arr: i >= 0 ? rt.slice(i + 1) : ""}; });
+      return {flt: sp.dataset.flt, dep: i >= 0 ? rt.slice(0, i) : rt, arr: i >= 0 ? rt.slice(i + 1) : "", date: sp.dataset.date || ""}; });
     try{
       const d = await (await fetch("/api/version/fbreg", {method: "POST",
         headers: {"Content-Type": "application/json"}, body: JSON.stringify({items})})).json();
@@ -21981,6 +21982,8 @@ async function vAtcExport(){
       arr: dash >= 0 ? route.slice(dash + 1) : "",
       date: vAtcIsoDate(r),
       delay_min: (r.delay && r.delay.min) || 0,
+      std: r.std_old || r.std_new || "",
+      etd: (r.delay && r.delay.changed && r.delay.to) || "",
       new_reg: (r.reg && r.reg.new) || ""
     };
   });
