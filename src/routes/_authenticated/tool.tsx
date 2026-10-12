@@ -2,7 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { updateMyAccount } from "@/lib/account.functions";
+import { getMyAccount, saveMyAvatar, updateMyAccount } from "@/lib/account.functions";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Camera, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/tool")({
   head: () => ({
@@ -34,10 +37,25 @@ function ToolPage() {
   const navigate = useNavigate();
   const frame = useRef<HTMLIFrameElement>(null);
   const emailRef = useRef("");
+  const profileRef = useRef({ avatarUrl: "", displayName: "" });
+  const readAccount = useServerFn(getMyAccount);
+  useEffect(() => {
+    let alive = true;
+    const refresh = () => { void readAccount().then((p) => {
+      if (!alive) return;
+      emailRef.current = p.email;
+      profileRef.current = p;
+      sendAccount();
+    }).catch(() => {}); };
+    refresh();
+    window.addEventListener("sohee-profile-updated", refresh);
+    const timer = setInterval(refresh, 30 * 60_000);
+    return () => { alive = false; clearInterval(timer); window.removeEventListener("sohee-profile-updated", refresh); };
+  }, [readAccount]);
 
   const sendAccount = useCallback(() => {
     frame.current?.contentWindow?.postMessage(
-      { type: "sohee-account", email: emailRef.current },
+      { type: "sohee-account", email: emailRef.current, ...profileRef.current },
       window.location.origin,
     );
   }, []);
@@ -94,7 +112,7 @@ function ToolPage() {
       if (!s) void navigate({ to: "/auth", replace: true });
     });
     const onMessage = (ev: MessageEvent) => {
-      if (ev.origin !== window.location.origin) return;
+      if (ev.origin !== window.location.origin || ev.source !== frame.current?.contentWindow) return;
       const d = (ev.data || {}) as { type?: string };
       if (d.type === "sohee-signout") void signOut();
       if (d.type === "sohee-account-request") sendAccount();
@@ -128,6 +146,37 @@ function ToolPage() {
 
 function AccountDialog({ current, onClose, onSaved }: { current: string; onClose: () => void; onSaved: (u: string) => void }) {
   const save = useServerFn(updateMyAccount);
+  const readAccount = useServerFn(getMyAccount);
+  const saveAvatar = useServerFn(saveMyAvatar);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const avatarInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let alive = true;
+    readAccount().then((p) => { if (alive) { setAvatarUrl(p.avatarUrl); setDisplayName(p.displayName); } }).catch(() => {});
+    return () => { alive = false; };
+  }, [readAccount]);
+  const changeAvatar = async (file: File | null) => {
+    setAvatarBusy(true); setMsg(null);
+    try {
+      let image: string | null = null;
+      if (file) {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) throw new Error("Chọn ảnh JPG, PNG hoặc WebP tối đa 10 MB");
+        const bitmap = await createImageBitmap(file);
+        const canvas = document.createElement("canvas"); canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { bitmap.close(); throw new Error("Không xử lý được ảnh"); }
+        const edge = Math.min(bitmap.width, bitmap.height);
+        ctx.drawImage(bitmap, (bitmap.width - edge) / 2, (bitmap.height - edge) / 2, edge, edge, 0, 0, 512, 512);
+        bitmap.close(); image = canvas.toDataURL("image/jpeg", 0.9);
+      }
+      await saveAvatar({ data: { image } });
+      const p = await readAccount(); setAvatarUrl(p.avatarUrl);
+      window.dispatchEvent(new Event("sohee-profile-updated"));
+      setMsg({ ok: true, t: file ? "Đã lưu ảnh đại diện" : "Đã xóa ảnh đại diện" });
+    } catch (err) { setMsg({ ok: false, t: err instanceof Error ? err.message : "Không lưu được ảnh" }); }
+    finally { setAvatarBusy(false); if (avatarInput.current) avatarInput.current.value = ""; }
+  };
   const [username, setUsername] = useState(current);
   const [displayName, setDisplayName] = useState("");
   const [pw, setPw] = useState("");
@@ -147,6 +196,7 @@ function AccountDialog({ current, onClose, onSaved }: { current: string; onClose
         newPassword: pw || undefined,
       } });
       onSaved(r.username);
+      window.dispatchEvent(new Event("sohee-profile-updated"));
       setMsg({ ok: true, t: r.emailChanged ? `Đã lưu. Lần sau đăng nhập bằng: ${r.username}` : "Đã lưu thay đổi" });
       setCur(""); setPw(""); setPw2("");
     } catch (err) {
@@ -155,9 +205,20 @@ function AccountDialog({ current, onClose, onSaved }: { current: string; onClose
   };
   const inp = "w-full rounded-md border border-input bg-background px-3 py-2 text-[15px]";
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" onClick={onClose}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="w-full max-w-sm space-y-3 rounded-xl bg-card p-5 text-card-foreground shadow-xl">
-        <h2 className="text-lg font-bold">Đổi tài khoản / mật khẩu</h2>
+    <Dialog open onOpenChange={(open) => { if (!open && !busy && !avatarBusy) onClose(); }}>
+      <DialogContent aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-sm overflow-y-auto rounded-lg">
+        <DialogTitle>Tài khoản & ảnh đại diện</DialogTitle>
+        <div className="flex items-center gap-4">
+          <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-xl font-bold text-primary-foreground">
+            {avatarUrl ? <img src={avatarUrl} alt="Ảnh đại diện" className="h-full w-full object-cover" /> : username.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex flex-col gap-2">
+            <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void changeAvatar(f); }} />
+            <Button type="button" variant="outline" disabled={avatarBusy || busy} onClick={() => avatarInput.current?.click()}><Camera />{avatarBusy ? "Đang lưu…" : "Chọn ảnh"}</Button>
+            {avatarUrl && <Button type="button" variant="ghost" disabled={avatarBusy || busy} onClick={() => void changeAvatar(null)}><Trash2 />Xóa ảnh</Button>}
+          </div>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
         <label className="block text-sm">Tên đăng nhập<input className={inp} value={username} onChange={(e) => setUsername(e.target.value)} /></label>
         <label className="block text-sm">Tên hiển thị (để trống nếu giữ nguyên)<input className={inp} value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></label>
         <label className="block text-sm">Mật khẩu mới (để trống nếu giữ nguyên)<input type="password" autoComplete="new-password" className={inp} value={pw} onChange={(e) => setPw(e.target.value)} /></label>
@@ -165,10 +226,11 @@ function AccountDialog({ current, onClose, onSaved }: { current: string; onClose
         <label className="block text-sm font-semibold">Mật khẩu hiện tại (bắt buộc)<input type="password" required autoComplete="current-password" className={inp} value={cur} onChange={(e) => setCur(e.target.value)} /></label>
         {msg && <p className={msg.ok ? "text-sm text-primary" : "text-sm text-destructive"}>{msg.t}</p>}
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md border border-input px-4 py-2 text-sm">Đóng</button>
-          <button disabled={busy} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">{busy ? "Đang lưu…" : "Lưu"}</button>
+          <Button type="button" variant="outline" disabled={busy || avatarBusy} onClick={onClose}>Đóng</Button>
+          <Button disabled={busy || avatarBusy}>{busy ? "Đang lưu…" : "Lưu"}</Button>
         </div>
       </form>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
