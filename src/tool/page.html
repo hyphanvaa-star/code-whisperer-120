@@ -13242,7 +13242,8 @@ function nmDrawFleetRoutes(){
   const tracks = nmData.tracks || {};
   const ids = Object.keys(tracks);
   const sig = ids.map(id => id + ":" + (nmFleetTicked(id) ? "1" : "0")).join(",")
-    + "|w" + (nmWptOn ? "1" : "0") + "|a" + nmAwyPick + "@" + nmAwyPickId;
+    + "|w" + (nmWptOn ? "1" : "0") + "|a" + nmAwyPick + "@" + nmAwyPickId
+    + "|alt" + JSON.stringify(nmAltOn) + Object.keys(nmAltData).map(k => k + ":" + (nmAltData[k] && nmAltData[k].loading ? "l" : "d")).join(",");
   const map = nmEnsureMap();
   if(!map || !nmDrawGroup) return;
   nmPaintFleetBox();
