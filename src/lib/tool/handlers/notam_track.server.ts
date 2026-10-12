@@ -157,7 +157,10 @@ async function fetchOfpText(flight: Flight): Promise<string> {
   try {
     const { fetchOfpPdf, ofpPdfText } = await import("./briefing_release.server");
     const blob = await fetchOfpPdf(flight.id);
-    return blob ? await ofpPdfText(blob) : "";
+    if (!blob) return "";
+    const head = String.fromCharCode(...blob.slice(0, 4));
+    // FliteBrief serves some OFPs as plain-text CFP instead of PDF.
+    return head === "%PDF" ? await ofpPdfText(blob) : new TextDecoder().decode(blob);
   } catch { return ""; }
 }
 
@@ -194,15 +197,23 @@ async function fetchPlacesFor(flights: Flight[], ofpText = "", ofpTexts: Record<
 }
 
 async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string }> {
+  let jpErr = "";
   try {
     const t = await trackFor(flight);
-    return { track: t as unknown as Track, error: "" };
+    if (t.points.length || t.line.length) return { track: t as unknown as Track, error: "" };
   } catch (exc) {
-    return {
-      track: { plan: "", via: "", points: [], line: [] },
-      error: String((exc as Error)?.message ?? exc),
-    };
+    jpErr = String((exc as Error)?.message ?? exc);
   }
+  // Fallback: NAV LOG coordinates from the FliteBrief OFP.
+  try {
+    const { parseNavlog } = await import("../port/ofp_navlog");
+    const text = await fetchOfpText(flight);
+    const nav = parseNavlog(text);
+    if (nav.line.length >= 2) {
+      return { track: { plan: "", via: "ofp", points: nav.points, line: nav.line } as unknown as Track, error: "" };
+    }
+  } catch { /* fall through */ }
+  return { track: { plan: "", via: "", points: [], line: [] }, error: jpErr || "Không lấy được route (JetPlan/OFP)." };
 }
 
 async function findFlight(id: number): Promise<Flight | null> {
