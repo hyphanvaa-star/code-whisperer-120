@@ -424,7 +424,7 @@ export const routes: Routes = {
       const pool = cands.filter((f) => (!it.date || sameOpsDay(f.std, it.date)) && inWin(f))
         .sort((a, b) => new Date(a.std).getTime() - new Date(b.std).getTime());
       const hit = pool[0] ?? null;
-      return { flt: it.flt, reg: hit ? String(hit.reg || hit.ofp_reg || "") : "" };
+      return { flt: it.flt, found: !!hit, reg: hit ? String(hit.reg || hit.ofp_reg || "") : "" };
     });
     return { ok: true, items: out };
   },

@@ -24630,7 +24630,61 @@ function ftRender(){
     if(box) box.focus();
   }
   ftSyncAllBox();
+  ftFbPaint();
+  ftFbSync();
 }
+// Màu số hiệu KHB: xanh lá = đã lên FliteBrief đúng tàu, xanh dương = chưa lên, đỏ = sai tàu.
+const ftFbState = {};
+let ftFbT = 0;
+function ftFbKey(st, f){ return [f.flt, st.date || f.date || "", st.dep || f.dep || "", st.arr || f.arr || "", st.reg || f.reg || ""].join("|"); }
+function ftFbPaint(){
+  const tb = $("#ftBody");
+  if(!tb) return;
+  const n3 = x => String(x || "").replace(/\D/g, "").slice(-3);
+  for(let i = 0; i < tb.children.length; i++){
+    const f = ftRows[i];
+    const inp = tb.children[i].querySelector("td:nth-child(2) input[type=text]");
+    if(!f || !inp) continue;
+    const st = ftSt(f);
+    const r = ftFbState[ftFbKey(st, f)];
+    inp.style.fontWeight = "700";
+    if(!r || !r.found){
+      inp.style.color = "#2563eb";
+      inp.title = r ? "Chưa thấy trên FliteBrief" : "Đang kiểm tra FliteBrief…";
+    }else if(r.reg && n3(r.reg) === n3(st.reg || f.reg)){
+      inp.style.color = "#0a8a2a";
+      inp.title = "Đã lên FliteBrief · đúng tàu " + r.reg;
+    }else{
+      inp.style.color = "#d10000";
+      inp.title = "Lệch tàu: FliteBrief " + (r.reg || "?") + " ≠ Crewlist " + (st.reg || f.reg || "?");
+    }
+  }
+}
+function ftFbSync(force){
+  clearTimeout(ftFbT);
+  ftFbT = setTimeout(async () => {
+    const rows = ftRows.filter(Boolean).filter(f => {
+      const r = ftFbState[ftFbKey(ftSt(f), f)];
+      return force || !r || !r.found || !r.ok;
+    });
+    if(!rows.length) return;
+    const items = rows.map(f => { const st = ftSt(f);
+      return {flt: f.flt, dep: st.dep || f.dep || "", arr: st.arr || f.arr || "", date: st.date || f.date || ""}; });
+    try{
+      const d = await (await fetch("/api/version/fbreg", {method: "POST",
+        headers: {"Content-Type": "application/json"}, body: JSON.stringify({items})})).json();
+      const n3 = x => String(x || "").replace(/\D/g, "").slice(-3);
+      (d.items || []).forEach((it, i) => {
+        const f = rows[i]; if(!f) return;
+        const st = ftSt(f);
+        ftFbState[ftFbKey(st, f)] = {found: !!it.found, reg: it.reg || "",
+          ok: !!it.found && !!it.reg && n3(it.reg) === n3(st.reg || f.reg)};
+      });
+      ftFbPaint();
+    }catch(e){}
+  }, 400);
+}
+setInterval(() => { if(!document.hidden && ftRows.some(Boolean)) ftFbSync(); }, 60000);
 let ftRouteDoc = {rows: []};
 function ftRouteNo(dep, arr, utc){
   const key = String(dep || "").toUpperCase() + String(arr || "").toUpperCase();
