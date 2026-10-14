@@ -406,3 +406,14 @@ export const jobs: Jobs = {
     }
   },
 };
+
+/** Lưu thẳng 1 file xuống folder `kind` trên máy công ty (D:, không có D thì C:). Trợ lý tắt → null. */
+export async function saveToPc(ctx: Ctx, kind: string, name: string, bytes: Uint8Array): Promise<string | null> {
+  const agent = await pc.agentInfo(ctx);
+  if (!pc.agentOnline(agent) || !(kind in PATH_KEYS)) return null;
+  const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
+  const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent);
+  const id = await pc.enqueue("save_file", { dir: dest, name, data_b64: Buffer.from(bytes).toString("base64") });
+  const r = await pc.waitResult(id, 60_000);
+  return String(r["path"] || `${dest}\\${name}`);
+}
