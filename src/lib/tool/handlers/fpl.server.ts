@@ -467,13 +467,27 @@ export const routes: Routes = {
 export const jobs: Jobs = {};
 
 /** True when STD (as local VN time, UTC+7) falls on the table's "d/m/yyyy" date. */
+const MON: Record<string, number> = { JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12 };
+/** Parse table date (d/m/yyyy, d-m-yy, d/m, yyyy-mm-dd, 14OCT, 14-Oct-26) → {y?,m,d} or null. */
+export function parseOpsDate(date: unknown): { y?: number; m: number; d: number } | null {
+  const s = String(date || "").trim().toUpperCase();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return { y: +m[1], m: +m[2], d: +m[3] };
+  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?/);
+  if (m) return { y: m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : undefined, m: +m[2], d: +m[1] };
+  m = s.match(/^(\d{1,2})[\s\-]?([A-Z]{3})[\s\-]?(\d{2,4})?/);
+  if (m && MON[m[2]]) return { y: m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : undefined, m: MON[m[2]], d: +m[1] };
+  return null;
+}
+/** True when STD (as local VN time, UTC+7) falls on the table's date. Unparseable date → true (no filter). */
 export function sameOpsDay(std: unknown, date: unknown): boolean {
-  const m = String(date || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (!m || !std) return false;
+  const p = parseOpsDate(date);
+  if (!p) return true;
+  if (!std) return false;
   const t = std instanceof Date ? std : new Date(String(std));
   if (isNaN(t.getTime())) return false;
   const l = new Date(t.getTime() + 7 * 3600e3);
-  return l.getUTCFullYear() === +m[3] && l.getUTCMonth() + 1 === +m[2] && l.getUTCDate() === +m[1];
+  return (p.y === undefined || l.getUTCFullYear() === p.y) && l.getUTCMonth() + 1 === p.m && l.getUTCDate() === p.d;
 }
 
 /** Local VN "HH:MM" → UTC "HHMM". */
@@ -503,9 +517,9 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
       if (byApt.length) hits = byApt;
       // Strict: đúng ngày bay (nếu có), trong khung −6/+24, chọn STD sớm nhất — không fallback ngày cũ.
       if (it.date) hits = hits.filter((f: any) => sameOpsDay(f.std, it.date));
-      hits = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
+      hits = hits.filter((f: any) => ae.inOpsWindow(f.std instanceof Date ? f.std : f.std ? new Date(f.std) : null));
       void now;
-      hits.sort((a: any, b: any) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
+      hits.sort((a: any, b: any) => (new Date(a.std).getTime() || Infinity) - (new Date(b.std).getTime() || Infinity));
       return hits[0] || null;
     };
     const pdfText = async (bytes: Uint8Array) => {
