@@ -184,12 +184,19 @@ export const jobs: Jobs = {
       });
       emit({ type: "line", text: "· đã giao trợ lý PC — Chrome trên máy công ty đang gửi FPL lên AviWeb…" });
       let last = 0;
-      const r = await pc.waitResult(id, 30 * 60_000, (el) => {
-        if (el - last >= 20) { last = el; emit({ type: "line", text: `· đang chờ trợ lý PC… (${Math.round(el)}s)` }); }
+      let shown = 0; // số dòng log của trợ lý PC đã hiện lên tab Công cụ hỗ trợ
+      const relay = (lines: Array<{ text?: string; cls?: string }> | undefined) => {
+        const arr = lines ?? [];
+        for (; shown < arr.length; shown++) {
+          const ln = arr[shown];
+          emit({ type: "line", text: String(ln?.text ?? ""), cls: ln?.cls || "" });
+        }
+      };
+      const r = await pc.waitResult(id, 30 * 60_000, (el, partial) => {
+        relay(partial?.["lines"] as Array<{ text?: string; cls?: string }> | undefined);
+        if (!shown && el - last >= 20) { last = el; emit({ type: "line", text: `· đang chờ trợ lý PC… (${Math.round(el)}s)` }); }
       });
-      for (const ln of (r["lines"] as Array<{ text?: string; cls?: string }> | undefined) ?? []) {
-        emit({ type: "line", text: String(ln.text ?? ""), cls: ln.cls || "" });
-      }
+      relay(r["lines"] as Array<{ text?: string; cls?: string }> | undefined);
       end({ code: Number(r["failed"] || 0) ? 2 : 0, ok: Number(r["ok"] || 0), failed: Number(r["failed"] || 0),
             bad: r["bad"] ?? [], pending: r["pending"] ?? [] });
     } catch (e) {

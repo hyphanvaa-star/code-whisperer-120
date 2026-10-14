@@ -23,6 +23,11 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
         if (typeof body["status_of"] === "string") {
           return Response.json({ status: await pc.jobStatus(body["status_of"] as string) });
         }
+        if (typeof body["progress_of"] === "string") {
+          const lines = Array.isArray(body["lines"]) ? (body["lines"] as Array<{ text?: string; cls?: string }>) : [];
+          await pc.appendProgress(body["progress_of"] as string, lines.slice(0, 500));
+          return Response.json({ status: await pc.jobStatus(body["progress_of"] as string) });
+        }
         const printers = Array.isArray(body["printers"]) ? body["printers"] : [];
         const pathsExist =
           body["paths_exist"] && typeof body["paths_exist"] === "object"

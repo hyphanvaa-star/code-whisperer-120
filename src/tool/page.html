@@ -5858,7 +5858,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V57</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V58</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -18911,6 +18911,35 @@ function atUpdateRetryButton(){
   btn.textContent = atFailedLabels.length
     ? "↻ Submit lại " + atFailedLabels.length + " chuyến lỗi"
     : "↻ Submit lại chuyến lỗi";
+  ftAtcRetryBadge();
+}
+/* Badge đỏ trên nút "Get ATC convert": số chuyến chưa submit được lên AviWeb.
+   Bấm vào số → sang tab Công cụ hỗ trợ và submit lại đúng các chuyến lỗi. */
+function ftAtcRetryBadge(){
+  const host = document.getElementById("ftAtcConvBtn");
+  if(!host) return;
+  let b = document.getElementById("ftAtcRetryBadge");
+  const n = atFailedLabels.length;
+  if(!n){ if(b) b.remove(); return; }
+  if(!b){
+    b = document.createElement("span");
+    b.id = "ftAtcRetryBadge";
+    b.setAttribute("role", "button");
+    b.style.cssText = "position:absolute;top:-9px;right:-9px;min-width:20px;height:20px;padding:0 5px;"
+      + "border-radius:10px;background:#B01028;border:2px solid #fff;font:800 11px/16px system-ui,sans-serif;"
+      + "text-align:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.35);z-index:3;box-sizing:border-box";
+    b.onclick = ev => {
+      ev.stopPropagation(); ev.preventDefault();
+      if(atJob){ alert("Đang gửi FPL — chờ chạy xong rồi submit lại."); return; }
+      setMode("tool");
+      atRun(true);
+    };
+    host.style.position = "relative";
+    host.style.overflow = "visible";
+    host.appendChild(b);
+  }
+  b.textContent = String(n);
+  b.title = "Bấm để submit lại " + n + " chuyến chưa gửi được: " + atFailedLabels.join(", ");
 }
 
 function atShowBox(on){ $("#atBox").classList.toggle("open", on); }
@@ -19010,7 +19039,9 @@ async function atRun(retryFailed=false){
           + ((m.pending || []).length ? " · chưa gửi " + m.pending.length : ""),
           m.failed ? "fail" : "ok");
         $("#bar").style.width = "100%";
-        atFailedLabels = (m.bad || []).map(b => b.flight);
+        atFailedLabels = (m.bad || []).map(b => b.flight)
+          .concat(limit ? [] : (m.pending || []))
+          .filter((x, i, a) => x && a.indexOf(x) === i);
         atUpdateRetryButton();
         if(atFailedLabels.length){
           write("Có thể bấm nút Submit lại chuyến lỗi: "
