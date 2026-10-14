@@ -102,12 +102,13 @@ async function loadLimits(ctx: Parameters<Routes[string]>[0]): Promise<LimitsDat
       data[key] = Array.isArray(v) ? (v as Record<string, unknown>[]) : [];
     }
   }
-  // Mục nào chưa từng lưu (rỗng) thì lấy dữ liệu gốc limits.json của tool cũ.
-  const seed = (await import("../data/limits.json")).default as unknown as Partial<LimitsData>;
-  for (const key of ["airports", "curfew", "special"] as const) {
-    if (!data[key].length && Array.isArray(seed[key])) data[key] = seed[key] as Record<string, unknown>[];
+  // Chỉ lấy dữ liệu gốc limits.json khi CHƯA từng lưu lần nào; đã lưu rồi thì giữ nguyên kể cả khi rỗng.
+  if (raw == null) {
+    const seed = (await import("../data/limits.json")).default as unknown as Partial<LimitsData>;
+    for (const key of ["airports", "curfew", "special", "aircraft"] as const) {
+      if (Array.isArray(seed[key])) data[key] = seed[key] as Record<string, unknown>[];
+    }
   }
-  if (!data.aircraft.length && Array.isArray(seed.aircraft)) data.aircraft = seed.aircraft as Record<string, unknown>[];
   return data;
 }
 
