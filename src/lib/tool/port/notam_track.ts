@@ -617,6 +617,9 @@ export function isNoFly(notam: Notam): boolean {
   if (/\bACT(?:IVAT(?:ED|ION)?)?\b/.test(blob)) {
     const ids = namedAreaIds(blob);
     if (ids.length) return true;
+    // Activated named volume resolved from AIP/DAH (e.g. "WILLIAMTOWN CTA C9 ACT") — a real area to draw.
+    if (((notam.sup_geoms as unknown[] | undefined) ?? []).length) return true;
+    if (/\b[A-Z][A-Z'\-]*\s+CTA\s+[A-Z]\d{1,2}\b/.test(blob)) return true;
   }
   return false;
 }
