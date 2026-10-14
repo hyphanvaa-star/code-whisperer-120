@@ -5858,7 +5858,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V63</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V66</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -7197,10 +7197,26 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     <div class="sheet-head">
       <h3>NOTAM library</h3>
       <button class="btn small t-undo" id="nmPinClearAll"
-              title="Xoá mọi NOTAM ghim cloud và theo chuyến, gỡ khỏi tờ briefing đã lưu">Xoá tất cả</button>
+               title="Xoá mọi NOTAM ghim cloud và theo chuyến, gỡ khỏi tờ briefing đã lưu">Xoá tất cả</button>
+      <button class="btn small" id="nmNoteToggle" type="button">+ Add ghi chú</button>
       <button class="btn small x" id="nmPinClose">✕</button>
     </div>
     <div class="sheet-body">
+      <div id="nmNoteForm" hidden style="border:1px solid var(--line,#ddd);border-radius:10px;padding:10px;margin-bottom:10px;display:grid;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="nmNoteTitle" type="text" placeholder="Tiêu đề (VD: NOTE, RWY CLSD)" style="flex:1;min-width:160px">
+          <select id="nmNoteKind"><option value="APT">Sân bay</option><option value="FIR">FIR</option></select>
+          <input id="nmNoteCode" type="text" maxlength="4" placeholder="ICAO (VVTS)" style="width:110px;text-transform:uppercase">
+        </div>
+        <textarea id="nmNoteText" rows="3" placeholder="Nội dung ghi chú…"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <label><input type="radio" name="nmNoteScope" value="cloud" checked> Cloud</label>
+          <label><input type="radio" name="nmNoteScope" value="flight"> Từng chuyến</label>
+          <input id="nmNoteFlights" type="text" placeholder="812 869 VJC210" disabled style="flex:1;min-width:140px">
+          <button class="btn primary small" id="nmNoteSave" type="button">Lưu ghi chú</button>
+        </div>
+        <span class="status" id="nmNoteMsg"></span>
+      </div>
       <div id="nmPinList" class="nm-pin-list"></div>
     </div>
   </div>
@@ -16864,6 +16880,43 @@ async function nmOpenPinClear(){
 $("#nmPinClear").onclick = nmOpenPinClear;
 $("#nmPinClose").onclick = () => $("#nmPinModal").classList.remove("open");
 $("#nmPinClearAll").onclick = nmClearBriefPins;
+$("#nmNoteToggle").onclick = () => {
+  const f = $("#nmNoteForm");
+  f.hidden = !f.hidden;
+  f.style.display = f.hidden ? "none" : "grid";
+  if(!f.hidden) $("#nmNoteText").focus();
+};
+$("#nmNoteForm").style.display = "none";
+document.querySelectorAll('input[name="nmNoteScope"]').forEach(r => r.onchange = () => {
+  $("#nmNoteFlights").disabled = !document.querySelector('input[name="nmNoteScope"][value="flight"]').checked;
+});
+$("#nmNoteSave").onclick = async () => {
+  const msg = $("#nmNoteMsg");
+  const body = String($("#nmNoteText").value || "").trim();
+  const code = String($("#nmNoteCode").value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const kind = $("#nmNoteKind").value === "FIR" ? "FIR" : "APT";
+  const flight = document.querySelector('input[name="nmNoteScope"][value="flight"]').checked;
+  const flights = String($("#nmNoteFlights").value || "").trim();
+  if(!body){ msg.textContent = "Nhập nội dung ghi chú."; return; }
+  if(code.length !== 4){ msg.textContent = "Nhập mã ICAO 4 ký tự của sân / FIR."; return; }
+  if(flight && !flights){ msg.textContent = "Gõ số hiệu chuyến, ví dụ 812 869."; return; }
+  const d0 = new Date(), p = n => String(n).padStart(2, "0");
+  const title = String($("#nmNoteTitle").value || "").trim().toUpperCase() || "NOTE";
+  const ident = title + " " + p(d0.getDate()) + p(d0.getMonth() + 1) + "-" + p(d0.getHours()) + p(d0.getMinutes()) + p(d0.getSeconds());
+  const payload = {ident: ident, kind: kind, code: code, text: title + ": " + body, e_field: body, head_vi: (title + ": " + body).slice(0, 170)};
+  msg.textContent = "Đang lưu…";
+  try{
+    const r = await fetch(flight ? "/api/notam/pins/flight" : "/api/notam/pins/cloud", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(flight ? {...payload, flights: flights} : payload)
+    });
+    const d = await r.json();
+    if(d.error){ msg.textContent = d.error; return; }
+    $("#nmNoteText").value = ""; $("#nmNoteTitle").value = "";
+    msg.textContent = "Đã lưu ghi chú.";
+    await nmAfterPinChange(d);
+  }catch(err){ msg.textContent = "Không lưu được: " + err.message; }
+};
 $("#nmPinList").onclick = e => {
   const btn = e.target.closest(".nm-pin-drop");
   if(btn) nmDropOnePin(btn);
