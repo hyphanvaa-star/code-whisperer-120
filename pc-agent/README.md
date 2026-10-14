@@ -17,7 +17,7 @@ pip install requests pywin32 openpyxl
 ## Chạy
 
 ```bat
-set PC_AGENT_URL=https://sohee-dispatcher-tool.lovable.app
+set PC_AGENT_URL=https://soheedispatch.cloud
 set PC_AGENT_TOKEN=<token do quản trị cấp>
 python pc_agent.py
 ```

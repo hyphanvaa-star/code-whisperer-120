@@ -29,7 +29,7 @@ FOLDER_NAME = "GENDEC"
 PRINTER_HINT = "RICOH MP 5055"
 LOOKBACK_H = 7 * 24
 MAX_PAGES = 6
-GD_BUILD = "v49"  # hiện trong nhật ký để biết máy đang chạy bản sửa fit 1 trang nào
+GD_BUILD = "v50"  # hiện trong nhật ký để biết máy đang chạy bản sửa fit 1 trang nào
 
 # Excel 1-based sheet index, copies, orientation.
 PRINT_PLAN: tuple[tuple[int, int, str], ...] = (
