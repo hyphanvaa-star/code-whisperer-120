@@ -5868,7 +5868,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V73</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V74</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -26954,7 +26954,7 @@ document.addEventListener("keydown", e => {
 
 /* ---------- hộp nhập tài khoản (FliteBrief + Omni + Outlook + AviWeb) ---------- */
 const AC_SRC = {env: "biến môi trường", file: "file", default: "mặc định", none: ""};
-const AC_SAVE_ONLY = new Set(["outlook", "aviweb"]);
+const AC_SAVE_ONLY = new Set(["outlook", "aviweb", "owa"]);
 
 function acRefresh(){
   fetch("/api/credentials").then(r => r.json()).then(d => {
@@ -26964,7 +26964,7 @@ function acRefresh(){
     $("#accWho").textContent = "Acc";
     $("#btnAcc").title = "Tài khoản API"
       + (fb.username ? (" — đang dùng: " + fb.username) : " — chưa đặt FliteBrief");
-    for(const [kind, pf] of [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["aviweb","Aviweb"]]){
+    for(const [kind, pf] of [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"]]){
       const info = a[kind] || {};
       $("#ac"+pf+"User").value = info.username || "";
       if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
@@ -27004,6 +27004,8 @@ async function acSave(kind, pf){
       if(kind === "outlook")
         msg.textContent = "✓ đã lưu — nháp vào "
           + (($("#acOutlookBox").value.trim()) || "hộp riêng của bạn");
+      else if(kind === "owa")
+        msg.textContent = "✓ đã lưu — trợ lý PC sẽ dùng email này để đăng nhập Outlook Web";
       else if(kind === "aviweb")
         msg.textContent = "✓ đã lưu — Submit/Check ATC sẽ dùng tài khoản này";
       else
@@ -27026,6 +27028,7 @@ $("#acFbSave").onclick = () => acSave("flitebrief", "Fb");
 $("#acOmniSave").onclick = () => acSave("omni", "Omni");
 $("#acOutlookSave").onclick = () => acSave("outlook", "Outlook");
 $("#acAviwebSave").onclick = () => acSave("aviweb", "Aviweb");
+$("#acOwaSave").onclick = () => acSave("owa", "Owa");
 
 /* ---------- Đường dẫn file (notice / briefing / reg / PIB+WX) ---------- */
 const PATH_ORDER = ["notice", "briefing", "reg", "pibwx", "fpl", "omni", "atcezfw"];
