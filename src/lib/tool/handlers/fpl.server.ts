@@ -314,8 +314,9 @@ export const routes: Routes = {
       const stdD = f.std ? new Date(new Date(f.std).getTime() + 7 * 3600e3) : null;
       const stdDate = stdD && !isNaN(stdD.getTime())
         ? `${String(stdD.getUTCDate()).padStart(2, "0")}/${String(stdD.getUTCMonth() + 1).padStart(2, "0")}/${stdD.getUTCFullYear()}` : "";
-      const km = khbDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      const khbNorm = km ? `${km[1].padStart(2, "0")}/${km[2].padStart(2, "0")}/${km[3]}` : "";
+      const kp = parseOpsDate(khbDate);
+      const khbY = kp ? (kp.y ?? (stdD && !isNaN(stdD.getTime()) ? stdD.getUTCFullYear() : new Date().getUTCFullYear())) : 0;
+      const khbNorm = kp ? `${String(kp.d).padStart(2, "0")}/${String(kp.m).padStart(2, "0")}/${khbY}` : "";
       // DOF là ngày UTC; chuyến sau nửa đêm giờ VN có DOF lùi 1 ngày nên so theo STD (giờ VN).
       const date_ok = khbNorm ? stdDate === khbNorm : null;
       const fbDsp = String(f.dispatcher || "").trim();
