@@ -59,7 +59,9 @@ export function pickClosest(cands: Flight[], now = new Date()): Flight | null {
 export function previewBriefing(flights: Flight[], files: BriefFile[], now = new Date()): BriefPlan[] {
   const plans: BriefPlan[] = [];
   for (const bf of files) {
-    const cands = flights.filter((f) => f.callsign.toUpperCase() === bf.callsign);
+    const cands = flights
+      .filter((f) => f.callsign.toUpperCase() === bf.callsign && inOpsWindow(f, now))
+      .sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
     if (!cands.length) {
       plans.push({ file: bf, flight: null, note: "không thấy chuyến trên FliteBrief", already: false });
       continue;
