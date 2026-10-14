@@ -21918,6 +21918,11 @@ function vAtcCell(r){
 
 /* EOBT gốc trên AviWeb cho chuyến DLA: key "VJC167|12/10/2026" → "1545". */
 const vAviEobt = {};
+/* Đã check AviWeb 1 lần (có hay không có kết quả) — không tự check lại vô hạn. */
+const vAviTried = {};
+/* CHG đã thấy FliteBrief lên tàu mới: key "flt|date|reg" → reg — giữ xanh khi chuyển tab. */
+const vAtcRegOk = {};
+function vAtcRegKey(sp){ return (sp.dataset.flt || "") + "|" + (sp.dataset.date || "") + "|" + (sp.dataset.reg || ""); }
 let vAviBusy = false, vAviT = 0;
 function vAviCs(flt){
   const n = String(flt || "").toUpperCase().replace(/\s+/g, "");
@@ -21925,12 +21930,13 @@ function vAviCs(flt){
 }
 function vAviKey(cs, date){ return cs + "|" + date; }
 function vAviDofMatches(dof, date){
-  // AviWeb DOF dạng YYMMDD; bảng dạng d/m/yyyy.
+  // AviWeb DOF dạng YYMMDD (UTC); bảng dạng d/m/yyyy (giờ VN) — cho lệch 1 ngày.
   const m = String(date || "").match(/^(\d+)\/(\d+)\/(\d{4})$/);
-  const d = String(dof || "").replace(/\D/g, "");
-  if(!m || !d) return true;
-  const want = m[3].slice(2) + String(m[2]).padStart(2, "0") + String(m[1]).padStart(2, "0");
-  return d.slice(-6) === want;
+  const d = String(dof || "").replace(/\D/g, "").slice(-6);
+  if(!m || d.length !== 6) return true;
+  const a = Date.UTC(+m[3], +m[2] - 1, +m[1]);
+  const b = Date.UTC(2000 + +d.slice(0, 2), +d.slice(2, 4) - 1, +d.slice(4, 6));
+  return Math.abs(a - b) <= 86400000;
 }
 function vPaintDla(sp){
   const t = vAviEobt[vAviKey(sp.dataset.cs, sp.dataset.date)];
