@@ -8532,6 +8532,19 @@ function startNewFlightWatch(){
   nfWatchTimer = setInterval(nfTick, 5000);
   document.addEventListener("visibilitychange", () => { if(!document.hidden) nfTick(); });
 }
+// Dropdown DSP (crew-file, PIB, briefing, ATC, NOTAM) đếm theo dữ liệu mới
+// mỗi lượt quét ngầm; bỏ qua khi người dùng đang thao tác một ô chọn.
+async function nfRefreshDropdowns(){
+  const a = document.activeElement;
+  if(a && a.tagName === "SELECT") return;
+  await syncToolFlights(false);
+  const a2 = document.activeElement;
+  if(a2 && a2.tagName === "SELECT") return;
+  try{ tlRefreshStdAll(); }catch(_){}
+  try{ tlRefreshDspList(); }catch(_){}
+  try{ acRefreshDspList(); }catch(_){}
+  try{ nmRefreshDspList(); }catch(_){}
+}
 async function nfTick(){
   const gap = document.hidden ? 60000 : 20000;
   if(nfBusy || !flights.length || Date.now() - nfLastAt < gap) return;
@@ -8544,7 +8557,7 @@ async function nfTick(){
     const old = new Set(flights.map(f => f.id));
     const added = d.flights.filter(f => !old.has(f.id));
     const gone = d.flights.length !== flights.length || added.length;
-    if(!gone) return;
+    if(!gone){ await nfRefreshDropdowns(); return; }
     await loadFlights(false, true);
     if(added.length){
       const names = added.slice(0, 6).map(f => f.callsign).join(", ") + (added.length > 6 ? "…" : "");
