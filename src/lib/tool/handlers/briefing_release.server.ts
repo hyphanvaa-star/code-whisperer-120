@@ -106,6 +106,13 @@ export const routes: Routes = {
     try {
       const sheet = applyFields(await draft(ctx, cs, true), body);
       await setJson(ctx, editSettingKey(sheet.callsign), toFields(sheet));
+      if (body["to_pc"]) {
+        try {
+          const { saveToPc } = await import("./pc.server");
+          const path = await saveToPc(ctx, "briefing", pdfFilename(sheet), pdf);
+          if (path) return new Response(JSON.stringify({ ok: true, path }), { status: 200, headers: { "Content-Type": "application/json" } });
+        } catch { /* rơi về tải qua trình duyệt */ }
+      }
       const out = toDict(sheet, { edit: true, edited: true });
       out["saved"] = true;
       return out;
@@ -173,13 +180,6 @@ export const routes: Routes = {
     try {
       const sheet = await draft(ctx, flight, true);
       const pdf = await toPdf(sheet);
-      if (body["to_pc"]) {
-        try {
-          const { saveToPc } = await import("./pc.server");
-          const path = await saveToPc(ctx, "briefing", pdfFilename(sheet), pdf);
-          if (path) return new Response(JSON.stringify({ ok: true, path }), { status: 200, headers: { "Content-Type": "application/json" } });
-        } catch { /* rơi về tải qua trình duyệt */ }
-      }
       return new Response(new Blob([pdf as BlobPart], { type: "application/pdf" }), {
         status: 200,
         headers: {
