@@ -105,7 +105,7 @@ export async function enqueueDeduped(
 export async function waitResult(
   id: string,
   timeoutMs: number,
-  onTick?: (elapsedS: number) => void,
+  onTick?: (elapsedS: number, partial: Record<string, unknown> | null) => void,
 ): Promise<Record<string, unknown>> {
   const t0 = Date.now();
   for (;;) {
@@ -134,7 +134,7 @@ export async function waitResult(
         .eq("status", "running");
       throw new Error("hết thời gian chờ trợ lý PC — kiểm tra trợ lý đang chạy trên máy công ty");
     }
-    onTick?.(elapsed);
+    onTick?.(elapsed, row?.result ?? null);
     await new Promise((r) => setTimeout(r, 2000));
   }
 }
@@ -220,6 +220,18 @@ export async function cancelAll(): Promise<number> {
 }
 
 /** Trạng thái 1 lệnh — trợ lý PC hỏi để biết có bị huỷ không. */
+/** Helper streams progress lines while a job runs; stored in result.lines so waitResult can relay them live. */
+export async function appendProgress(id: string, lines: Array<{ text?: string; cls?: string }>): Promise<void> {
+  if (!lines.length) return;
+  const a = await admin();
+  const { data } = await a.from("pc_jobs").select("status, result").eq("id", id).maybeSingle();
+  const row = data as { status: string; result: Record<string, unknown> | null } | null;
+  if (!row || row.status !== "running") return;
+  const prev = ((row.result ?? {})["lines"] as unknown[] | undefined) ?? [];
+  await a.from("pc_jobs").update({ result: { lines: [...prev, ...lines], partial: true } as never })
+    .eq("id", id).eq("status", "running");
+}
+
 export async function jobStatus(id: string): Promise<string> {
   const { data } = await (await admin()).from("pc_jobs").select("status").eq("id", id).maybeSingle();
   return String((data as { status?: string } | null)?.status ?? "missing");

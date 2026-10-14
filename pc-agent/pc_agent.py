@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "4.9"
+VERSION = "5.0"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1610,9 +1610,26 @@ def main() -> int:
                 log(f"◆ lệnh {kind} ({jid[:8]})")
                 lines: list[dict] = []
 
+                sent = {"n": 0, "t": 0.0}
+
+                def flush(force: bool = False, _jid=jid, _lines=lines, _sent=sent) -> None:
+                    # Đẩy log lên web ngay khi đang chạy (tab Công cụ hỗ trợ thấy từng dòng).
+                    if _sent["n"] >= len(_lines):
+                        return
+                    if not force and time.time() - _sent["t"] < 1.5:
+                        return
+                    chunk = _lines[_sent["n"]:]
+                    try:
+                        post(POLL_URL, {"progress_of": _jid, "lines": chunk})
+                        _sent["n"] += len(chunk)
+                    except Exception:
+                        pass
+                    _sent["t"] = time.time()
+
                 def say(text: str, cls: str = "") -> None:
                     lines.append({"text": text, "cls": cls})
                     log("  " + text)
+                    flush()
 
                 handler = HANDLERS.get(kind)
                 _CANCEL.clear()
