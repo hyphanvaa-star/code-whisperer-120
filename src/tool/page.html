@@ -24627,6 +24627,12 @@ function ftApplyCrewDiff(src){
         if(now !== old[k]){ chg[k] = {from: old[k], to: now, a: st.src, b: src}; total++; }
       }
     }
+    // Cùng một Crewlist được nạp lại (đồng bộ/quét lại) mà không có khác biệt mới
+    // thì giữ nguyên chữ cam; chỉ bản Crewlist khác mới tính lại cam từ đầu.
+    if(!Object.keys(chg).length && st.src === src && st.chg && Object.keys(st.chg).length){
+      total += Object.keys(st.chg).length;
+      continue;
+    }
     st.chg = chg;
     st.src = src;
   }
