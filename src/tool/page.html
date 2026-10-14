@@ -18111,7 +18111,9 @@ async function bgSubmit(d0, sectorIds, opts){
   const quiet = !!opts.quiet;
   const selectedIds = new Set(sectorIds);
   if(selectedIds.size){
-    d0 = {...d0, rows: d0.rows.filter(row => selectedIds.has(ntRowSectorId(row)))};
+    // Dòng trùng số hiệu chưa có sector (0) vẫn giữ: server gắn theo chặng đã chọn.
+    const rows = d0.rows.filter(row => selectedIds.has(ntRowSectorId(row)) || !ntRowSectorId(row));
+    d0 = {...d0, rows, ready: Math.max(d0.ready || 0, rows.length)};
   }
   if(!d0.ready && !sectorIds.length){
     if(!quiet) alert("Không có file briefing nào cần add.\n\n"

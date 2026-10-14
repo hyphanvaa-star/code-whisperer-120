@@ -224,8 +224,17 @@ export const jobs: Jobs = {
     let plans = previewBriefing(flights, files);
     if (sectorIds && sectorIds.length) {
       const keep = new Set(sectorIds.map((v) => Number(v)).filter((n) => Number.isFinite(n)));
-      const keepCs = new Set(flights.filter((f) => keep.has(f.id)).map((f) => f.callsign.toUpperCase()));
+      const chosen = flights.filter((f) => keep.has(f.id));
+      const keepCs = new Set(chosen.map((f) => f.callsign.toUpperCase()));
       if (keepCs.size) plans = plans.filter((p) => keepCs.has(p.file.callsign));
+      // Chặng người dùng đã chọn thắng mọi nhận diện tự động (kể cả trùng số hiệu).
+      const { briefCallsign } = await import("../port/briefing");
+      plans = plans.map((p) => {
+        const f = chosen.find((x) => x.callsign.toUpperCase() === p.file.callsign);
+        if (!f) return p;
+        const have = f.attachments.some((a) => !a.is_deleted && briefCallsign(a.filename()) === p.file.callsign);
+        return { file: p.file, flight: f, note: have ? "ghi đè briefing cũ" : "", already: false, overwrite: have };
+      });
     }
     if (!plans.length) {
       emit({ type: "line", text: `✗ folder ${BRIEF_DIR} không có file briefing nào`, cls: "bad" });
