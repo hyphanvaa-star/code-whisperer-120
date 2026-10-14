@@ -262,7 +262,8 @@ async function attachDsp(rows: Array<Record<string, unknown>>, days = 2): Promis
 
     const scored: Array<[number, Flight]> = [];
     for (const f of cand) {
-      if (!f.std) continue;
+      // Chỉ chuyến trong khung −6/+24 — không bao giờ bắt chuyến hôm qua cùng số hiệu.
+      if (!f.std || !inOpsWindow(f)) continue;
       let bestH: number | null = null;
       for (const local of whens) {
         const diffH = (f.std.getTime() - local) / 3600000;

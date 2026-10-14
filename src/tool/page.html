@@ -5858,7 +5858,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V58</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V59</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -18243,7 +18243,7 @@ async function tlExportBrief(opts){
       };
       bxEs.onerror = () => {
         if(bxJob){
-          write("mất kết nối khi đang xuất briefing", "fail");
+          write("mất kết nối khi đang xuất briefing — các chuyến đã ✓ vẫn lưu trong kho; bấm Xuất briefing lại cho chuyến còn thiếu", "fail");
           bxEs.close(); bxEs = null; bxJob = null;
           if(btn){ btn.disabled = false; btn.textContent = "Xuất briefing"; }
           resolve({ok:0, failed:1});
