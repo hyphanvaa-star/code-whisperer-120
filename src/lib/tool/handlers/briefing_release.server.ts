@@ -264,14 +264,23 @@ export const jobs: Jobs = {
           failed++;
           continue;
         }
-        const sheet = await draftFromFlight(f, {
-          ...sources,
-          fetchPdf: fetchOfpPdf,
-          pdfText: ofpPdfText,
-          applyEdits: true,
-          loadEdits: (c) => getJson(ctx, editSettingKey(c), null),
-        });
-        const pdf = await toPdf(sheet);
+        // Mỗi chuyến tối đa 40s — FliteBrief treo ở 1 chuyến không được làm đứt cả danh sách.
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const work = (async () => {
+          const sheet = await draftFromFlight(f, {
+            ...sources,
+            fetchPdf: fetchOfpPdf,
+            pdfText: ofpPdfText,
+            applyEdits: true,
+            loadEdits: (c) => getJson(ctx, editSettingKey(c), null),
+          });
+          return { sheet, pdf: await toPdf(sheet) };
+        })();
+        const out = await Promise.race([
+          work,
+          new Promise<never>((_, rej) => { timer = setTimeout(() => rej(new Error("FliteBrief phản hồi quá lâu (40s) — bỏ qua, xuất tay lại sau")), 40000); }),
+        ]).finally(() => clearTimeout(timer));
+        const { sheet, pdf } = out;
         const name = pdfFilename(sheet);
         files[name] = pdf;
         await store.putFile(ctx, `briefing/${name}`, pdf, "application/pdf");

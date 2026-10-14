@@ -104,7 +104,7 @@ function stream(run: JobFn, params: Record<string, unknown>, ctx: Ctx) {
         controller.enqueue(enc.encode(`data: ${JSON.stringify(msg)}\n\n`));
         if (msg["type"] === "end") ended = true;
       };
-      const ping = setInterval(() => !ended && controller.enqueue(enc.encode(": ping\n\n")), 10000);
+      const ping = setInterval(() => { try { if (!ended) controller.enqueue(enc.encode(": ping\n\n")); } catch { /* closed */ } }, 5000);
       try {
         await run(params, emit, ctx);
       } catch (e) {
@@ -117,7 +117,7 @@ function stream(run: JobFn, params: Record<string, unknown>, ctx: Ctx) {
     },
   });
   return new Response(body, {
-    headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache" },
+    headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no" },
   });
 }
 
