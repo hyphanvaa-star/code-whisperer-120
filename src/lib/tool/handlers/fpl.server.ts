@@ -469,7 +469,7 @@ export const jobs: Jobs = {};
 /** True when STD (as local VN time, UTC+7) falls on the table's "d/m/yyyy" date. */
 const MON: Record<string, number> = { JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12 };
 /** Parse table date (d/m/yyyy, d-m-yy, d/m, yyyy-mm-dd, 14OCT, 14-Oct-26) → {y?,m,d} or null. */
-export function parseOpsDate(date: unknown): { y?: number; m: number; d: number } | null {
+export function parseOpsDate(date: unknown): { y?: number | undefined; m: number; d: number } | null {
   const s = String(date || "").trim().toUpperCase();
   let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (m) return { y: +m[1], m: +m[2], d: +m[3] };
