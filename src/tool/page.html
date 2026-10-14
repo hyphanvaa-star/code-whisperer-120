@@ -5868,7 +5868,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V74</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V75</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -18644,8 +18644,12 @@ async function bfExportPdf(){
   try{
     const r = await fetch("/api/briefing/release.pdf", {
       method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(payload),
+      body: JSON.stringify(Object.assign({}, payload, {to_pc: true})),
     });
+    if(r.ok && (r.headers.get("content-type") || "").includes("json")){
+      const j = await r.json();
+      if(j.path){ bfMsg("✓ đã lưu " + j.path, "ok"); return; }
+    }
     if(!r.ok || !(r.headers.get("content-type") || "").includes("pdf")) throw new Error((await r.text()) || "Không tạo được PDF");
     const blob = await r.blob();
     const m = /filename="([^"]+)"/.exec(r.headers.get("content-disposition") || "");

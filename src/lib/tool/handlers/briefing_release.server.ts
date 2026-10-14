@@ -173,6 +173,13 @@ export const routes: Routes = {
     try {
       const sheet = await draft(ctx, flight, true);
       const pdf = await toPdf(sheet);
+      if (body["to_pc"]) {
+        try {
+          const { saveToPc } = await import("./pc.server");
+          const path = await saveToPc(ctx, "briefing", pdfFilename(sheet), pdf);
+          if (path) return new Response(JSON.stringify({ ok: true, path }), { status: 200, headers: { "Content-Type": "application/json" } });
+        } catch { /* rơi về tải qua trình duyệt */ }
+      }
       return new Response(new Blob([pdf as BlobPart], { type: "application/pdf" }), {
         status: 200,
         headers: {
@@ -241,7 +248,7 @@ export const jobs: Jobs = {
     const byId = new Map(flights.map((f) => [String(f.id), f]));
     const files: Record<string, Uint8Array> = {};
     const sources = await loadBriefingData(ctx);
-    let ok = 0, failed = 0, skipped = 0;
+    let ok = 0, failed = 0, skipped = 0, savedPc = 0;
     for (let i = 0; i < callsigns.length; i++) {
       const cs = callsigns[i];
       if (!cs) continue;
@@ -284,7 +291,13 @@ export const jobs: Jobs = {
         const name = pdfFilename(sheet);
         files[name] = pdf;
         await store.putFile(ctx, `briefing/${name}`, pdf, "application/pdf");
-        emit({ type: "line", text: `✓ ${cs} → ${name}`, cls: "ok" });
+        let where = "";
+        try {
+          const { saveToPc } = await import("./pc.server");
+          const p = await saveToPc(ctx, "briefing", name, pdf);
+          if (p) { where = ` (đã lưu ${p})`; savedPc++; }
+        } catch (e) { where = ` (không lưu được xuống máy: ${errorMessage(e)})`; }
+        emit({ type: "line", text: `✓ ${cs} → ${name}${where}`, cls: "ok" });
         ok++;
       } catch (exc) {
         emit({ type: "line", text: `✗ ${cs}: ${errorMessage(exc)}`, cls: "bad" });
@@ -300,7 +313,7 @@ export const jobs: Jobs = {
     }
     emit({
       type: "end", code: failed ? 2 : 0, elapsed: (Date.now() - t0) / 1000,
-      ok, failed, skipped, folder: "tải về máy", download,
+      ok, failed, skipped, folder: savedPc ? "ổ đĩa máy công ty" : "tải về máy", download: savedPc ? "" : download,
     });
   },
 };
