@@ -233,7 +233,11 @@ export const jobs: Jobs = {
       return;
     }
     const { zipSync } = await import("fflate");
-    const flights = await loadFlights(days);
+    const { inOpsWindow: inWin } = await import("../port/notices");
+    // Chỉ chuyến trong khung −6/+24, STD sớm nhất trước — .find() bên dưới chọn chuyến sớm nhất.
+    const flights = (await loadFlights(days))
+      .filter((f) => inWin(f))
+      .sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
     const byId = new Map(flights.map((f) => [String(f.id), f]));
     const files: Record<string, Uint8Array> = {};
     const sources = await loadBriefingData(ctx);
