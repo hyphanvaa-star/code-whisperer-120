@@ -11178,11 +11178,16 @@ async function aeStartDraft(){
   }
   aeCloseModal();
   // Mở sẵn tab mới ngay lúc bấm (tránh chặn popup); soạn xong sẽ chuyển tab này tới nháp.
-  let aeTab = null;
-  try{
-    aeTab = window.open("about:blank", "_blank");
-    if(aeTab) aeTab.document.write('<title>Đang soạn nháp…</title><p style="font:16px sans-serif;padding:24px">Đang soạn nháp ATC + EZFW trên Outlook Web…</p>');
-  }catch(_){}
+  // Trình duyệt chỉ cho mở tab ngay lúc bấm: mở sẵn đủ 1 tab cho mỗi chuyến.
+  const aeN = Math.max(1, flight.split(/[\s,;]+/).filter(Boolean).length);
+  const aeTabs = [];
+  for(let i = 0; i < aeN; i++){
+    try{
+      const t = window.open("about:blank", "_blank");
+      if(t){ t.document.write('<title>Đang soạn nháp…</title><p style="font:16px sans-serif;padding:24px">Đang soạn nháp ATC + EZFW trên Outlook Web…</p>'); aeTabs.push(t); }
+    }catch(_){}
+  }
+  const aeTab = aeTabs[0] || null;
   if(btn) btn.disabled = true;
   if(go) go.disabled = true;
   if(msg){ msg.textContent = "đang cắt ATC/EZFW " + flight + "…"; msg.className = "status"; }
@@ -11214,19 +11219,21 @@ async function aeStartDraft(){
           const mb = "omc%40vietjetair.com";
           const fallback = "https://outlook.cloud.microsoft/mail/" + mb + "/inbox";
           if(m.ok){
-            const first = links[0] || fallback;
-            if(aeTab && !aeTab.closed) aeTab.location.href = first;
-            else window.open(first, "_blank");
-            for(const u of links.slice(1)) window.open(u, "_blank");
+            const urls = links.length ? links : [fallback];
+            urls.forEach((u, i) => {
+              const t = aeTabs[i];
+              if(t && !t.closed) t.location.href = u; else window.open(u, "_blank");
+            });
+            for(const t of aeTabs.slice(urls.length)){ try{ if(!t.closed) t.close(); }catch(_){} }
           }else{
-            try{ if(aeTab && !aeTab.closed) aeTab.close(); }catch(_){}
+            for(const t of aeTabs){ try{ if(!t.closed) t.close(); }catch(_){} }
             alert("Không soạn được nháp.\nXem log ATC + EZFW.");
           }
         }
       }catch(e){}
     };
   }catch(err){
-    try{ if(aeTab && !aeTab.closed) aeTab.close(); }catch(_){}
+    for(const t of aeTabs){ try{ if(!t.closed) t.close(); }catch(_){} }
     if(btn) btn.disabled = false;
     if(go) go.disabled = false;
     if(msg){ msg.textContent = String(err.message || err); msg.className = "status bad"; }
