@@ -21880,22 +21880,38 @@ function vAtcCell(r){
       sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
       sp.dataset.route = String(r.route || "");
       sp.dataset.date = vAtcIsoDate(r);
-      sp.style.color = "#d10000"; sp.style.fontWeight = "700";
-      sp.title = "Chờ FliteBrief lên tàu mới " + r.reg.new;
-      setTimeout(vAtcRegSync, 300);
+      sp.style.fontWeight = "700";
+      const okReg = vAtcRegOk[vAtcRegKey(sp)];
+      if(okReg){
+        sp.style.color = "#0a8a2a";
+        sp.title = `FliteBrief đã lên tàu mới ${okReg} — lấy ATC đúng tàu`;
+      }else{
+        sp.style.color = "#d10000";
+        sp.title = "Chờ FliteBrief lên tàu mới " + r.reg.new;
+        setTimeout(vAtcRegSync, 300);
+      }
     }
     td.appendChild(sp);
   }
   if(hasDla){
     if(hasChg) td.appendChild(document.createTextNode(" "));
     const sp = document.createElement("span");
-    sp.className = "vatc vdla";
     sp.textContent = "DLA";
-    sp.dataset.cs = vAviCs(r.flt);
-    sp.dataset.date = vAtcIsoDate(r);
-    vPaintDla(sp);
-    td.appendChild(sp);
-    setTimeout(vAviAutoCheck, 500);
+    if(hasChg){
+      // Chỉ CHG DLA mới cần EOBT gốc trên AviWeb.
+      sp.className = "vatc vdla";
+      sp.dataset.cs = vAviCs(r.flt);
+      sp.dataset.date = vAtcIsoDate(r);
+      vPaintDla(sp);
+      td.appendChild(sp);
+      setTimeout(vAviAutoCheck, 500);
+    }else{
+      sp.className = "vatc";
+      sp.style.fontWeight = "700";
+      sp.style.color = "#0a8a2a";
+      sp.title = "DLA thường — dùng giờ STD/ETD trên bảng, không cần check AviWeb";
+      td.appendChild(sp);
+    }
   }
   return td;
 }
