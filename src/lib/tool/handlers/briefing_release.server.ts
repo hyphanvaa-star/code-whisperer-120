@@ -64,10 +64,13 @@ async function findFlight(flight: string) {
   const days = 2;
   const flights = await loadFlights(days);
   const want = callsignKey(flight);
-  return flights.find((f) => {
+  const { inOpsWindow } = await import("../port/notices");
+  const hits = flights.filter((f) => {
     const cs = (f.callsign || "").toUpperCase();
-    return callsignKey(cs) === want || String(f.id) === flight.trim();
+    return (callsignKey(cs) === want || String(f.id) === flight.trim()) && inOpsWindow(f);
   });
+  hits.sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
+  return hits[0];
 }
 
 async function draft(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<ReleaseSheet> {
@@ -230,7 +233,11 @@ export const jobs: Jobs = {
       return;
     }
     const { zipSync } = await import("fflate");
-    const flights = await loadFlights(days);
+    const { inOpsWindow: inWin } = await import("../port/notices");
+    // Chỉ chuyến trong khung −6/+24, STD sớm nhất trước — .find() bên dưới chọn chuyến sớm nhất.
+    const flights = (await loadFlights(days))
+      .filter((f) => inWin(f))
+      .sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
     const byId = new Map(flights.map((f) => [String(f.id), f]));
     const files: Record<string, Uint8Array> = {};
     const sources = await loadBriefingData(ctx);

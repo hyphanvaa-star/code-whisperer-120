@@ -402,7 +402,11 @@ export const routes: Routes = {
         const okA = !arr || [f.dest_iata, f.dest_icao].some((x: string) => String(x || "").toUpperCase() === arr);
         return okD && okA;
       });
-      const hit = cands.find((f) => sameOpsDay(f.std, it.date)) ?? (it.date ? null : cands[0]);
+      // Đúng ngày (nếu có) + trong khung −6/+24, chọn STD sớm nhất.
+      const inWin = (f: any) => { const t = f.std ? new Date(f.std).getTime() : NaN; const n = Date.now(); return t >= n - 6 * 3600_000 && t <= n + 24 * 3600_000; };
+      const pool = cands.filter((f) => (!it.date || sameOpsDay(f.std, it.date)) && inWin(f))
+        .sort((a, b) => new Date(a.std).getTime() - new Date(b.std).getTime());
+      const hit = pool[0] ?? null;
       return { flt: it.flt, reg: hit ? String(hit.reg || hit.ofp_reg || "") : "" };
     });
     return { ok: true, items: out };
@@ -481,11 +485,11 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
         (!dep || f.dep_iata?.toUpperCase() === dep || f.dep_icao?.toUpperCase() === dep) &&
         (!arr || f.dest_iata?.toUpperCase() === arr || f.dest_icao?.toUpperCase() === arr));
       if (byApt.length) hits = byApt;
-      const byDay = hits.filter((f: any) => sameOpsDay(f.std, it.date));
-      if (byDay.length) hits = byDay;
-      const win = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
-      if (win.length) hits = win;
-      hits.sort((a: any, b: any) => Math.abs((a.std?.getTime() ?? 0) - now) - Math.abs((b.std?.getTime() ?? 0) - now));
+      // Strict: đúng ngày bay (nếu có), trong khung −6/+24, chọn STD sớm nhất — không fallback ngày cũ.
+      if (it.date) hits = hits.filter((f: any) => sameOpsDay(f.std, it.date));
+      hits = hits.filter((f: any) => ae.inOpsWindow(f.std ?? null));
+      void now;
+      hits.sort((a: any, b: any) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
       return hits[0] || null;
     };
     const pdfText = async (bytes: Uint8Array) => {
