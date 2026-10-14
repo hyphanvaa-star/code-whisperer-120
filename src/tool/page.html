@@ -5858,7 +5858,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V56</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V57</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -25477,6 +25477,7 @@ $("#ftAtcSend").onclick = async function(){
   if(!ftAtcRows.length) return;
   ftAtcFlush();
   if(!ftAtcSaved){ alert("Bấm Lưu trước rồi mới GỬI ATC."); return; }
+  if(!ftAtcVerifyOk()) return;
   const text = ftAtcJoin(ftAtcRows.map(r => r.converted)).replace(/\r?\n/g, "\r\n");
   const btn = this; btn.disabled = true; btn.textContent = "Đang chuẩn bị…";
   try{
@@ -25708,7 +25709,7 @@ function ftAtcPaintTabs(){
     b.classList.toggle("chg", chg);
     // Inline !important: skin rules (color + -webkit-text-fill-color) must not override the text colour.
     const ink = chg ? "#16a34a" : "#e8112d";
-    [b, ...b.querySelectorAll("*")].forEach((el) => {
+    [b, ...b.querySelectorAll("*:not(.vtags):not(.vtags i)")].forEach((el) => {
       el.style.setProperty("color", ink, "important");
       el.style.setProperty("-webkit-text-fill-color", ink, "important");
     });
@@ -26364,6 +26365,7 @@ $("#ftAtcConv").addEventListener("keydown", function(ev){
   }
 });
 $("#ftAtcExport").onclick = function(){
+  if(!ftAtcMsg && !ftAtcVerifyOk()) return;
   ftAtcFlush();
   const text = ftAtcJoin(ftAtcRows.map(r => r.converted));
   if(!text.trim()){ alert("Chưa có ATC để xuất."); return; }
