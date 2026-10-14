@@ -34,6 +34,9 @@ import type { Chart } from '../port/aip_vn_chart';
 const AU_DAH_ID = /\bY[A-Z]{3}\/([MRDP]\d{3,4}[A-Z]?)(?![0-9])/gi;
 const AU_CTA_ID = /\bY[A-Z]{3}(?:-Y[A-Z]{3})?\/([A-Z][A-Z0-9'./\-]*(?:\s+[A-Z][A-Z0-9'./\-]*){0,6}\s+CTA\s+[A-Z]\d{1,2})\b/gi;
 
+// NOTAM E) often names the CTA without the ``YBBB/`` prefix: ``WILLIAMTOWN CTA C9 ACT``.
+const AU_CTA_BARE = /\b([A-Z][A-Z'\-]*(?:\s+[A-Z][A-Z'\-]*){0,3}\s+CTA\s+[A-Z]\d{1,2})\b/g;
+
 /** notam_check.py sup_hours_schedule + AIP SUP/DAH rings — bounded so Check NOTAM never hangs. */
 async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
   bindCtx(ctx);
@@ -114,6 +117,16 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
           for (const m of blob.matchAll(AU_CTA_ID)) {
             const ring = await dah_named(m[1]!, fir);
             if (ring.length >= 3) geoms.push({ name: m[1]!.toUpperCase(), shape: "polygon", ring, source: "DAH" });
+          }
+          for (const m of blob.toUpperCase().matchAll(AU_CTA_BARE)) {
+            const words = m[1]!.replace(/\s+/g, " ").trim().split(" ");
+            // try longest name first, dropping leading noise words (e.g. "E)", "ACTIVATION OF")
+            for (let k = 0; k < words.length - 2; k++) {
+              const name = words.slice(k).join(" ");
+              if (geoms.some(g => g.name === name)) break;
+              const ring = await dah_named(name, fir);
+              if (ring.length >= 3) { geoms.push({ name, shape: "polygon", ring, source: "DAH" }); break; }
+            }
           }
         }
         if (geoms.length) n.sup_geoms = geoms;
