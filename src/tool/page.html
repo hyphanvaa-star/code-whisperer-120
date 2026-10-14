@@ -7183,6 +7183,22 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         </div>
       </div>
 
+      <div class="accard" id="acOwa">
+        <div class="top"><b>Outlook Web (tải PIB / GENDEC)</b><span class="use" id="acOwaSrc"></span></div>
+        <p class="achint">Trợ lý PC dùng email này để tự đăng nhập Outlook Web khi tải PIB.
+          Ghi đầy đủ email công ty (ví dụ ten@vietjetair.com).</p>
+        <div class="acgrid">
+          <div class="field"><label for="acOwaUser">Email Outlook</label>
+            <input type="text" id="acOwaUser" autocomplete="off" spellcheck="false" placeholder="ten@vietjetair.com"></div>
+          <div class="field"><label for="acOwaPass">Password</label>
+            <input type="password" id="acOwaPass" placeholder="(giữ nguyên nếu để trống)" autocomplete="new-password"></div>
+        </div>
+        <div class="acfoot">
+          <button class="btn primary small" id="acOwaSave">Lưu</button>
+          <span class="acmsg" id="acOwaMsg"></span>
+        </div>
+      </div>
+
       <div class="accard" id="acAviweb">
         <div class="top"><b>AviWeb</b><span class="use" id="acAviwebSrc"></span></div>
         <p class="achint">Dùng khi Gửi FPL / Check ATC. Lưu vào credentials.json
