@@ -57,8 +57,27 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const krIds = /^RK/i.test(fir) ? namedAreaIds(blob).filter(id => /^RK[DRP]/.test(id)) : [];
       const enrIds = enrIdsInText(blob);
       if (!keys.length && !au && !jp && !krIds.length && !enrIds.length) continue;
+      // Bundled AU DAH names (e.g. "WILLIAMTOWN CTA C9") resolve offline — do it now so slow SUP downloads cannot starve them past the deadline.
+      if (au) {
+        const pre: Geom[] = [];
+        const U = blob.toUpperCase();
+        for (const m of U.matchAll(AU_CTA_ID)) {
+          const ring = await dah_named(m[1]!, fir);
+          if (ring.length >= 3 && !pre.some(g => g.name === m[1])) pre.push({ name: m[1]!, shape: "polygon", ring, source: "DAH" });
+        }
+        for (const m of U.matchAll(AU_CTA_BARE)) {
+          const words = m[1]!.replace(/\s+/g, " ").trim().split(" ");
+          for (let k = 0; k < words.length - 2; k++) {
+            const name = words.slice(k).join(" ");
+            if (pre.some(g => g.name === name)) break;
+            const ring = await dah_named(name, fir);
+            if (ring.length >= 3) { pre.push({ name, shape: "polygon", ring, source: "DAH" }); break; }
+          }
+        }
+        if (pre.length) n.sup_geoms = pre;
+      }
       const task = async () => {
-        const geoms: Geom[] = [];
+        const geoms: Geom[] = [...(((n.sup_geoms as Geom[] | undefined) ?? []))];
         for (const name of enrIds) {
           const ring = enrRing(name);
           if (ring.length >= 3 && !geoms.some(g => g.name === name)) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
