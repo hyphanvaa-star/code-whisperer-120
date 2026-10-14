@@ -22126,7 +22126,8 @@ let vAtcSyncT = 0;
 function vAtcRegSync(){
   clearTimeout(vAtcSyncT);
   vAtcSyncT = setTimeout(async () => {
-    const sps = [...document.querySelectorAll("#vBody span.vatc[data-reg]")];
+    const sps = [...document.querySelectorAll("#vBody span.vatc[data-reg]")]
+      .filter(sp => !vAtcRegOk[vAtcRegKey(sp)]);
     if(!sps.length) return;
     const items = sps.map(sp => { const rt = sp.dataset.route || ""; const i = rt.indexOf("-");
       return {flt: sp.dataset.flt, dep: i >= 0 ? rt.slice(0, i) : rt, arr: i >= 0 ? rt.slice(i + 1) : "", date: sp.dataset.date || ""}; });
@@ -22137,6 +22138,7 @@ function vAtcRegSync(){
       (d.items || []).forEach((it, i) => {
         const sp = sps[i]; if(!sp) return;
         const ok = it.reg && norm(it.reg) === norm(sp.dataset.reg);
+        if(ok) vAtcRegOk[vAtcRegKey(sp)] = it.reg;
         sp.style.color = ok ? "#0a8a2a" : "#d10000";
         sp.title = ok ? `FliteBrief đã lên tàu mới ${it.reg} — lấy ATC đúng tàu`
                       : `FliteBrief vẫn là ${it.reg || "?"} — chưa đổi sang ${sp.dataset.reg}`;
