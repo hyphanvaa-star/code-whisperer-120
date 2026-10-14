@@ -15961,6 +15961,23 @@ function nmEnsureMap(){
       "Bản đồ": streets, "Esri Light Gray": gray, "Vệ tinh": sat},
     {"Sân bay": nmAdGroup, "Đài": nmNavGroup},
     {position: "topright"}).addTo(nmMap);
+  const MapMaxCtl = L.Control.extend({
+    options: {position: "topright"},
+    onAdd: function(){
+      const d = L.DomUtil.create("div", "nm-map-max-ctl");
+      d.innerHTML = '<button type="button" class="nm-map-max-btn" id="nmMapMax" title="Phóng to gần full màn hình" aria-pressed="false" aria-label="Phóng to bản đồ">' +
+        '<svg class="nm-map-max-ico" viewBox="0 0 16 16" aria-hidden="true">' +
+        '<path class="out" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/>' +
+        '<path class="in" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" d="M6 2H2v4M14 6V2h-4M10 14h4v-4M2 10v4h4"/>' +
+        '</svg></button>';
+      L.DomEvent.disableClickPropagation(d);
+      d.querySelector("#nmMapMax").onclick = function(){
+        nmSetMapMax(!$("#wrapNmTrack").classList.contains("nm-map-max"));
+      };
+      return d;
+    }
+  });
+  new MapMaxCtl().addTo(nmMap);
   const nmLayerUpdate = nmLayerCtl._update;
   nmLayerCtl._update = function(){
     const ret = nmLayerUpdate.apply(this, arguments);
