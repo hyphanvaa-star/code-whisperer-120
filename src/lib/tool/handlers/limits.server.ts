@@ -6,12 +6,6 @@ import { DefectPdfError, processUpload } from "../port/defect_pdf";
 // Storage: app_settings key "limits" — value is the {aircraft,airports,curfew,special}
 // object directly (same shape saveLimits/getSetting in settings.functions.ts already use).
 
-const TAU_LIST = [
-  "VNA522", "VNA631", "VNA637", "VNA651", "VNA643", "VNA642", "VNA639",
-  "VNA635", "VNA632", "VNA641", "VNA649", "VNA657", "VNA634", "VNA687", "VNA698",
-].sort();
-const LOW_EGT_LABEL = "LOW EGT";
-
 type LimitsData = {
   aircraft: Record<string, unknown>[];
   airports: Record<string, unknown>[];
@@ -21,49 +15,6 @@ type LimitsData = {
 
 function emptyLimits(): LimitsData {
   return { aircraft: [], airports: [], curfew: [], special: [] };
-}
-
-const normReg = (v: unknown) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-const displayVnReg = (norm: string) => {
-  if (norm.length >= 6 && norm.startsWith("VNA")) return "VN-A" + norm.slice(3);
-  if (norm.length > 2 && norm.startsWith("VN")) return "VN-" + norm.slice(2);
-  return norm;
-};
-const isLowEgtDefect = (v: unknown) => /^\s*LOW\s+EGT/.test(String(v ?? "").toUpperCase());
-
-/** Port of web.py seed_low_egt_aircraft. */
-function seedLowEgtAircraft(rows: unknown[] | null | undefined): Record<string, unknown>[] {
-  const existing: Record<string, unknown>[] = [];
-  const haveEgt = new Set<string>();
-  const seenOther = new Set<string>();
-  for (const raw of rows ?? []) {
-    if (!raw || typeof raw !== "object") continue;
-    const row = raw as Record<string, unknown>;
-    const reg = normReg(row["reg"]);
-    if (!reg) continue;
-    if (isLowEgtDefect(row["defect"])) {
-      if (haveEgt.has(reg)) continue;
-      haveEgt.add(reg);
-      existing.push({ reg: String(row["reg"] ?? "").trim() || displayVnReg(reg), defect: LOW_EGT_LABEL, limit: String(row["limit"] ?? "") });
-      continue;
-    }
-    const key = `${reg}\u0000${String(row["defect"] ?? "").toUpperCase().replace(/\s+/g, " ").trim()}`;
-    if (seenOther.has(key)) continue;
-    seenOther.add(key);
-    existing.push(row);
-  }
-  const missing = TAU_LIST.filter((norm) => !haveEgt.has(norm)).map((norm) => ({ reg: displayVnReg(norm), defect: LOW_EGT_LABEL, limit: "" }));
-  return [...missing, ...existing];
-}
-
-function lowEgtMissing(rows: unknown[] | null | undefined): boolean {
-  const have = new Set<string>();
-  for (const raw of rows ?? []) {
-    if (!raw || typeof raw !== "object") continue;
-    const row = raw as Record<string, unknown>;
-    if (isLowEgtDefect(row["defect"])) have.add(normReg(row["reg"]));
-  }
-  return !TAU_LIST.every((t) => have.has(t));
 }
 
 /** Port of web.py save_limits. */
@@ -89,7 +40,7 @@ function cleanLimits(payload: Record<string, unknown>): LimitsData {
     }
     data[key] = cleaned;
   }
-  data.aircraft = seedLowEgtAircraft(data.aircraft);
+  // Không tự bù danh sách LOW EGT mẫu nữa — tôn trọng thao tác xoá/sửa của người dùng.
   return data;
 }
 
@@ -102,12 +53,13 @@ async function loadLimits(ctx: Parameters<Routes[string]>[0]): Promise<LimitsDat
       data[key] = Array.isArray(v) ? (v as Record<string, unknown>[]) : [];
     }
   }
-  // Mục nào chưa từng lưu (rỗng) thì lấy dữ liệu gốc limits.json của tool cũ.
-  const seed = (await import("../data/limits.json")).default as unknown as Partial<LimitsData>;
-  for (const key of ["airports", "curfew", "special"] as const) {
-    if (!data[key].length && Array.isArray(seed[key])) data[key] = seed[key] as Record<string, unknown>[];
+  // Chỉ lấy dữ liệu gốc limits.json khi CHƯA từng lưu lần nào; đã lưu rồi thì giữ nguyên kể cả khi rỗng.
+  if (raw == null) {
+    const seed = (await import("../data/limits.json")).default as unknown as Partial<LimitsData>;
+    for (const key of ["airports", "curfew", "special", "aircraft"] as const) {
+      if (Array.isArray(seed[key])) data[key] = seed[key] as Record<string, unknown>[];
+    }
   }
-  if (!data.aircraft.length && Array.isArray(seed.aircraft)) data.aircraft = seed.aircraft as Record<string, unknown>[];
   return data;
 }
 
@@ -125,10 +77,8 @@ function filledCount(rows: Record<string, unknown>[], keys: string[]): number {
 
 export const routes: Routes = {
   "GET /api/limits": async (ctx) => {
-    // Port of web.py ensure_low_egt_limits(): GET always has the default LOW EGT rows.
-    const data = await loadLimits(ctx);
-    if (!lowEgtMissing(data.aircraft)) return data;
-    return saveLimits(ctx, { ...data, aircraft: seedLowEgtAircraft(data.aircraft) });
+    // Trả dữ liệu đúng như người dùng đã lưu; không tự chèn lại LOW EGT mẫu.
+    return loadLimits(ctx);
   },
   "GET /api/limits/status": async (ctx) => {
     const data = await loadLimits(ctx);
