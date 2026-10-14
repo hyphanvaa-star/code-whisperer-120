@@ -70,20 +70,16 @@ export function ChatWidget() {
   }, []);
 
   const loadRooms = useCallback(async () => {
-    const { data } = await supabase.from("chat_rooms").select("id,kind,name,dm_key").order("created_at");
-    let list = (data as Room[] | null) ?? [];
+    const { data, error } = await supabase.from("chat_rooms").select("id,kind,name,dm_key").order("created_at");
+    if (error || !data) return rooms;
+    let list = data as Room[];
     if (!list.some((r) => r.kind === "group")) {
-      const { data: created } = await supabase
-        .from("chat_rooms")
-        .insert({ kind: "group", name: GROUP_NAME })
-        .select("id,kind,name,dm_key")
-        .single();
-      if (created) list = [created as Room, ...list];
-      else {
-        const again = await supabase.from("chat_rooms").select("id,kind,name,dm_key").order("created_at");
-        list = (again.data as Room[] | null) ?? [];
-      }
+      await supabase.from("chat_rooms").insert({ kind: "group", name: GROUP_NAME });
+      const again = await supabase.from("chat_rooms").select("id,kind,name,dm_key").order("created_at");
+      list = (again.data as Room[] | null) ?? [];
     }
+    const firstGroup = list.find((r) => r.kind === "group");
+    list = list.filter((r) => r.kind !== "group" || r === firstGroup);
     setRooms(list);
     return list;
   }, []);
