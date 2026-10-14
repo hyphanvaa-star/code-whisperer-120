@@ -5858,7 +5858,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V62</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V63</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -24648,14 +24648,15 @@ function ftFbPaint(){
     const st = ftSt(f);
     const r = ftFbState[ftFbKey(st, f)];
     inp.style.fontWeight = "700";
+    const ink = (c) => { inp.style.setProperty("color", c, "important"); inp.style.setProperty("-webkit-text-fill-color", c, "important"); };
     if(!r || !r.found){
-      inp.style.color = "#2563eb";
+      ink("#2563eb");
       inp.title = r ? "Chưa thấy trên FliteBrief" : "Đang kiểm tra FliteBrief…";
     }else if(r.reg && n3(r.reg) === n3(st.reg || f.reg)){
-      inp.style.color = "#0a8a2a";
+      ink("#0a8a2a");
       inp.title = "Đã lên FliteBrief · đúng tàu " + r.reg;
     }else{
-      inp.style.color = "#d10000";
+      ink("#d10000");
       inp.title = "Lệch tàu: FliteBrief " + (r.reg || "?") + " ≠ Crewlist " + (st.reg || f.reg || "?");
     }
   }
