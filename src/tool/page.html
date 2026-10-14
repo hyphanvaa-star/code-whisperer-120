@@ -1001,7 +1001,14 @@ td.cs{font-weight:700;color:var(--ink)}
 #estBang.on,#genBang.att-wrong{animation:extra-low-blink .85s ease-in-out infinite}
 #verBang.on{animation:none;min-width:52px;padding:0 8px;font-size:12px;white-space:nowrap;
   top:-24px;left:8px}
-#verBang.flash{animation:extra-low-blink .85s ease-in-out infinite !important;
+/* Nháy đỏ cho nhãn "Ver": nền đỏ/ghi ép bằng !important (không theme nào đổi
+   màu được), nên hiệu ứng phải chạy trên opacity + quầng sáng — animation không
+   thắng được !important nếu nháy đúng nền/chữ. */
+@keyframes ver-blink{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(227,25,55,.55),0 1px 6px rgba(192,54,44,.55)}
+  50%{opacity:.35;box-shadow:0 0 0 6px rgba(227,25,55,.16),0 1px 6px rgba(192,54,44,.2)}
+}
+#verBang.flash{animation:ver-blink .85s ease-in-out infinite !important;
   background:linear-gradient(135deg,#ec4b4d,#c0362c) !important;color:#fff !important}
 #verBang.ok{animation:none !important;
   background:linear-gradient(135deg,#1faa53,#0d7a37) !important;
@@ -3325,7 +3332,7 @@ html.tint.night .cmptbl .fuel-num.fuel-tight,
 html.night .cmptbl .pcr-hot,
 html.tint.night .cmptbl .pcr-hot,
 html.night #verBang.flash,
-html.tint.night #verBang.flash{animation-name:extra-low-blink-night}
+html.tint.night #verBang.flash{animation-name:ver-blink}
 @keyframes pcr-near-blink-night{
   0%,100%{background:#a56b16;color:#fff}
   50%{background:#3a2a10;color:#ffcc66}
@@ -5861,7 +5868,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V72</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V73</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
