@@ -2756,6 +2756,14 @@ html.night .ho-tbl input[type=text]{color:#e8edf4}
 #ftAtcTabs button{line-height:1.15;padding:3px 8px;background:#fff!important;color:#e8112d!important;border:1px solid #e8112d!important}
 #ftAtcTabs button .cfp{display:block;font-size:10px;opacity:.85;font-weight:600}
 #ftAtcTabs button.chg{color:#16a34a!important;font-weight:700}
+#ftAtcTabs .vtags{display:flex;gap:3px;margin-top:2px}
+#ftAtcTabs .vtags i{font-style:normal;font-size:10px;font-weight:700;padding:0 4px;border-radius:3px;background:#f1f5f9!important;-webkit-text-fill-color:#475569!important;color:#475569!important}
+#ftAtcTabs .vtags i[data-ok="1"]{background:#dcfce7!important;-webkit-text-fill-color:#15803d!important;color:#15803d!important}
+#ftAtcTabs .vtags i[data-ok="0"]{background:#fee2e2!important;-webkit-text-fill-color:#b91c1c!important;color:#b91c1c!important}
+.ftatc-verify{margin:6px 0;padding:6px 10px;border-radius:6px;font-size:13px;line-height:1.5;border:1px solid}
+.ftatc-verify.ok{background:#f0fdf4;border-color:#86efac;color:#14532d}
+.ftatc-verify.warn{background:#fff7ed;border-color:#fdba74;color:#9a3412}
+.ftatc-verify.bad{background:#fef2f2;border-color:#fca5a5;color:#991b1b}
 #ftAtcTabs button.on{box-shadow:0 0 0 2px rgba(232,17,45,.35)}
 #ftAtcTabs button.chg.on{color:#16a34a!important}
 .ftatc-pre{height:min(64vh,580px);overflow:auto;margin:0;padding:12px;background:#111;color:#e8e8e8;
@@ -5850,7 +5858,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V56</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V57</span></h1>
         <span class="sig">Sohee — A product by Rosie</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -7350,6 +7358,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
       <p class="note" id="ftAtcHint">Trái là FPL gốc (chỉ xem). Phải là bản convert, chữ xanh là chỗ tool đổi — gõ sửa được. Lăn chuột lên/xuống để chuyến trước/sau. Xuất ATC ra một file txt từ cột phải.</p>
       <div id="ftAtcMiss"></div>
       <div class="ftatc-tabs" id="ftAtcTabs"></div>
+      <div class="ftatc-verify" id="ftAtcVerify" style="display:none"></div>
       <div class="ftatc-split">
         <div class="ftatc-col">
           <h4>FPL gốc</h4>
@@ -25468,6 +25477,7 @@ $("#ftAtcSend").onclick = async function(){
   if(!ftAtcRows.length) return;
   ftAtcFlush();
   if(!ftAtcSaved){ alert("Bấm Lưu trước rồi mới GỬI ATC."); return; }
+  if(!ftAtcVerifyOk()) return;
   const text = ftAtcJoin(ftAtcRows.map(r => r.converted)).replace(/\r?\n/g, "\r\n");
   const btn = this; btn.disabled = true; btn.textContent = "Đang chuẩn bị…";
   try{
@@ -25638,7 +25648,7 @@ async function ftGetAtc(convert, kind){
     + items.length + " chuyến…";
   try{
     const url = msg ? "/api/fpltext/msg" : "/api/fpltext/atc";
-    const body = msg ? {items: items, kind: msg} : {items: items, convert: !!convert};
+    const body = msg ? {items: items, kind: msg} : {items: items, convert: !!convert, dsp: ($("#ftDspBox").value || "").trim()};
     const d = await (await fetch(url, {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify(body)
@@ -25699,13 +25709,38 @@ function ftAtcPaintTabs(){
     b.classList.toggle("chg", chg);
     // Inline !important: skin rules (color + -webkit-text-fill-color) must not override the text colour.
     const ink = chg ? "#16a34a" : "#e8112d";
-    [b, ...b.querySelectorAll("*")].forEach((el) => {
+    [b, ...b.querySelectorAll("*:not(.vtags):not(.vtags i)")].forEach((el) => {
       el.style.setProperty("color", ink, "important");
       el.style.setProperty("-webkit-text-fill-color", ink, "important");
     });
     b.style.setProperty("background", "#fff", "important");
     b.style.setProperty("border", "1px solid #e8112d", "important");
   });
+}
+function ftAtcBanner(row){
+  const el = $("#ftAtcVerify");
+  if(!el) return;
+  const v = row && row.verify;
+  if(!v || ftAtcMsg){ el.style.display = "none"; return; }
+  const esc = s => String(s || "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  const l1 = "Chuyến: <b>" + esc(row.callsign) + "</b> (" + esc(row.dep) + " - " + esc(row.arr) + ") · Tàu: " + esc(row.reg || "?") + " · CFP " + esc(row.plan || "?");
+  const l2 = v.date_ok === true ? "✓ Ngày bay " + esc(v.std_date) + (v.dof ? " (DOF " + esc(v.dof) + ")" : "") + " — đúng ngày KHB"
+    : v.date_ok === false ? "⚠️ SAI NGÀY BAY: FliteBrief " + esc(v.std_date) + " ≠ KHB " + esc(v.khb_date)
+    : "Ngày bay " + esc(v.std_date) + " — KHB chưa có ngày để đối chiếu";
+  const l3 = v.dsp_ok === true ? "✓ DSP: " + esc(v.fb_dsp) + " ⟷ KHB: " + esc(v.khb_dsp)
+    : v.dsp_ok === false ? (v.fb_dsp ? "⚠️ CFP do DSP khác làm (" + esc(v.fb_dsp) + " ≠ " + esc(v.khb_dsp) + ")" : "⚠️ Chưa gán DSP trên FliteBrief (KHB: " + esc(v.khb_dsp) + ")")
+    : "DSP FliteBrief: " + esc(v.fb_dsp || "—") + " — chưa điền ô Dispatcher";
+  const bad = v.date_ok === false ? "bad" : v.dsp_ok === false ? "warn" : "ok";
+  el.className = "ftatc-verify " + bad;
+  el.innerHTML = l1 + "<br>" + l2 + "<br>" + l3;
+  el.style.display = "";
+}
+function ftAtcVerifyOk(){
+  const bad = ftAtcRows.filter(r => r.verify && (r.verify.date_ok === false || r.verify.dsp_ok === false));
+  if(!bad.length) return true;
+  return confirm("Còn " + bad.length + " chuyến lệch ngày bay hoặc khác DSP:\n" + bad.map(r => "• " + r.callsign
+    + (r.verify.date_ok === false ? " sai ngày (" + r.verify.std_date + " ≠ " + r.verify.khb_date + ")" : "")
+    + (r.verify.dsp_ok === false ? " DSP " + (r.verify.fb_dsp || "chưa gán") : "")).join("\n") + "\n\nVẫn tiếp tục?");
 }
 function ftAtcShow(i){
   if(!ftAtcRows.length) return;
@@ -25738,6 +25773,7 @@ function ftAtcShow(i){
     conv.scrollTop = 0;
   }
   $("#ftAtcNote").textContent = (row.notes || []).join(" · ");
+  ftAtcBanner(row);
   const on = tabs && tabs.querySelector("button.on");
   if(on && on.scrollIntoView) on.scrollIntoView({inline: "nearest", block: "nearest"});
   const orig = $("#ftAtcOrig");
@@ -25815,6 +25851,14 @@ function ftOpenAtcReview(d){
     cfp.textContent = "CFP " + (row.plan || "?") + (row.reg ? " · " + row.reg : "");
     b.appendChild(cfp);
     b.appendChild(document.createTextNode((row.callsign || "?") + " " + [row.dep, row.arr].filter(Boolean).join("-")));
+    const v = row.verify;
+    if(v){
+      const tg = document.createElement("span"); tg.className = "vtags";
+      const mk = (txt, ok) => { const e = document.createElement("i"); e.textContent = txt; e.dataset.ok = ok === true ? "1" : ok === false ? "0" : ""; tg.appendChild(e); };
+      mk((v.std_date || "?").slice(0, 5), v.date_ok);
+      mk("DSP " + (v.fb_dsp || "—"), v.dsp_ok);
+      b.appendChild(tg);
+    }
     b.onclick = function(){ ftAtcFlush(); ftAtcShow(i); };
     tabs.appendChild(b);
   });
@@ -26321,6 +26365,7 @@ $("#ftAtcConv").addEventListener("keydown", function(ev){
   }
 });
 $("#ftAtcExport").onclick = function(){
+  if(!ftAtcMsg && !ftAtcVerifyOk()) return;
   ftAtcFlush();
   const text = ftAtcJoin(ftAtcRows.map(r => r.converted));
   if(!text.trim()){ alert("Chưa có ATC để xuất."); return; }
