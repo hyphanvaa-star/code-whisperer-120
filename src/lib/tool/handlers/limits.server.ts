@@ -89,7 +89,7 @@ function cleanLimits(payload: Record<string, unknown>): LimitsData {
     }
     data[key] = cleaned;
   }
-  data.aircraft = seedLowEgtAircraft(data.aircraft);
+  // Không tự bù danh sách LOW EGT mẫu nữa — tôn trọng thao tác xoá/sửa của người dùng.
   return data;
 }
 
@@ -125,10 +125,8 @@ function filledCount(rows: Record<string, unknown>[], keys: string[]): number {
 
 export const routes: Routes = {
   "GET /api/limits": async (ctx) => {
-    // Port of web.py ensure_low_egt_limits(): GET always has the default LOW EGT rows.
-    const data = await loadLimits(ctx);
-    if (!lowEgtMissing(data.aircraft)) return data;
-    return saveLimits(ctx, { ...data, aircraft: seedLowEgtAircraft(data.aircraft) });
+    // Trả dữ liệu đúng như người dùng đã lưu; không tự chèn lại LOW EGT mẫu.
+    return loadLimits(ctx);
   },
   "GET /api/limits/status": async (ctx) => {
     const data = await loadLimits(ctx);
