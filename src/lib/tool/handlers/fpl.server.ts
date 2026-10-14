@@ -302,9 +302,24 @@ export const routes: Routes = {
     }
     const atcFix = await import("../port/atc_fix");
     const rules = atcFix.load_rules(await getJson<Raw | null>(ctx, "fpl.atc_fix", null));
-    const rows = got.map(({ f, block, plan }) => {
+    const khbDsp = String(body.dsp || "").trim();
+    const normName = (s: string) => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]+/g, " ").trim();
+    const rows = got.map(({ ix, f, block, plan }) => {
       const parsed = atcFix.parse_block(block) || {};
       const [converted, notes, html] = atcFix.fix_block(block, rules);
+      const it = (items[ix] || {}) as Raw;
+      const khbDate = String(it.date || "");
+      const dofM = /DOF\/(\d{2})(\d{2})(\d{2})/.exec(block);
+      const dof = dofM ? `${dofM[3]}/${dofM[2]}/20${dofM[1]}` : "";
+      const stdD = f.std ? new Date(new Date(f.std).getTime() + 7 * 3600e3) : null;
+      const stdDate = stdD && !isNaN(stdD.getTime())
+        ? `${String(stdD.getUTCDate()).padStart(2, "0")}/${String(stdD.getUTCMonth() + 1).padStart(2, "0")}/${stdD.getUTCFullYear()}` : "";
+      const km = khbDate.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      const khbNorm = km ? `${km[1].padStart(2, "0")}/${km[2].padStart(2, "0")}/${km[3]}` : "";
+      // DOF là ngày UTC; chuyến sau nửa đêm giờ VN có DOF lùi 1 ngày nên so theo STD (giờ VN).
+      const date_ok = khbNorm ? stdDate === khbNorm : null;
+      const fbDsp = String(f.dispatcher || "").trim();
+      const dsp_ok = !khbDsp ? null : !fbDsp ? false : (normName(fbDsp).includes(normName(khbDsp)) || normName(khbDsp).includes(normName(fbDsp)));
       return {
         id: f.id,
         callsign: parsed.callsign || f.callsign || "",
@@ -313,6 +328,7 @@ export const routes: Routes = {
         arr: parsed.arr || f.dest_icao || "",
         original: block.trim(),
         converted, html, notes,
+        verify: { khb_date: khbNorm, std_date: stdDate, dof, date_ok, khb_dsp: khbDsp, fb_dsp: fbDsp, dsp_ok },
       };
     });
     return { ok: true, ok_n: rows.length, missed, flights: rows, filename: "ATC-ORG ÐÃ FIX.txt" };
