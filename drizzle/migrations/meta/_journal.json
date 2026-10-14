@@ -15,6 +15,13 @@
       "when": 1791804459012,
       "tag": "0001_avatars_owner_read",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791965162504,
+      "tag": "0002_dedupe_group_chat",
+      "breakpoints": true
     }
   ]
 }
