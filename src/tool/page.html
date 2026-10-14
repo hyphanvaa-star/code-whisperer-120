@@ -21953,9 +21953,12 @@ function vAviAutoCheck(){
   vAviT = setTimeout(async () => {
     if(vAviBusy || acJob) return;
     const sps = [...document.querySelectorAll("#vBody span.vdla")];
-    const want = [...new Set(sps.filter(sp => !vAviEobt[vAviKey(sp.dataset.cs, sp.dataset.date)])
-      .map(sp => sp.dataset.cs))];
+    const want = [...new Set(sps.filter(sp => {
+        const k = vAviKey(sp.dataset.cs, sp.dataset.date);
+        return !vAviEobt[k] && !vAviTried[k];
+      }).map(sp => sp.dataset.cs))];
     if(!want.length) return;
+    sps.forEach(sp => { if(want.includes(sp.dataset.cs)) vAviTried[vAviKey(sp.dataset.cs, sp.dataset.date)] = 1; });
     vAviBusy = true;
     // Gõ các chuyến sang tab Check ATC avi để người trực thấy kết quả.
     try{
@@ -21975,11 +21978,18 @@ function vAviAutoCheck(){
       const es = new EventSource("/api/stream?id=" + d.id);
       const take = r => {
         if(!r || !r.flight_time) return;
-        const cs = String(r.callsign || "").toUpperCase();
+        const cs = vAviCs(r.callsign);
+        let hit = false;
         document.querySelectorAll("#vBody span.vdla").forEach(sp => {
-          if(sp.dataset.cs === cs && vAviDofMatches(r.dof, sp.dataset.date))
-            vAviEobt[vAviKey(cs, sp.dataset.date)] = r.flight_time;
+          if(sp.dataset.cs === cs && vAviDofMatches(r.dof, sp.dataset.date)){
+            vAviEobt[vAviKey(cs, sp.dataset.date)] = r.flight_time; hit = true;
+          }
         });
+        // Không khớp ngày nào trên bảng nhưng chỉ có 1 dòng chuyến này → vẫn nhận.
+        if(!hit){
+          const same = [...document.querySelectorAll("#vBody span.vdla")].filter(sp => sp.dataset.cs === cs);
+          if(same.length === 1) vAviEobt[vAviKey(cs, same[0].dataset.date)] = r.flight_time;
+        }
         try{ acPaintResult(r); }catch(e){}
         vPaintAllDla();
       };
