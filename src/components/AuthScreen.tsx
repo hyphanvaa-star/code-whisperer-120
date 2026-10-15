@@ -231,7 +231,7 @@ export function AuthScreen() {
         </div>
 
         <p className="mt-6 text-center text-xs text-emerald-100/40">
-          Sohee — A product by Rosie
+          Sohee — A product by Hy
         </p>
       </div>
     </div>
