@@ -1963,7 +1963,7 @@ function ftRender(){
       + "}\n"
       + "async function defPullSummary(opts){",
     )
-    .replaceAll('A product by Rosie', 'A product by Hy')
+    .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     ;
   return cached;
