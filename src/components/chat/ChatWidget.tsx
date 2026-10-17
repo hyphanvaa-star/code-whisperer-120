@@ -36,8 +36,7 @@ function Avatar({ label, seed, size = 38, src }: { label: string; seed: string; 
   );
 }
 
-export function ChatWidget() {
-  const [me, setMe] = useState<string | null>(null);
+export function ChatWidget({ userId: me }: { userId: string | null }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -52,22 +51,19 @@ export function ChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (!me) return;
     let alive = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!alive || !data.user) return;
-      setMe(data.user.id);
-      supabase
+    void supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", data.user.id)
+        .eq("user_id", me)
         .then(({ data: roles }) => {
           if (alive) setIsAdmin(!!roles?.some((r) => r.role === "admin"));
         });
-    });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [me]);
 
   const loadRooms = useCallback(async () => {
     const { data, error } = await supabase.from("chat_rooms").select("id,kind,name,dm_key").order("created_at");
@@ -206,7 +202,10 @@ export function ChatWidget() {
         const again = await supabase.from("chat_rooms").select("id,kind,name,dm_key").eq("dm_key", key).single();
         if (again.data) room = again.data as Room;
       }
-      if (room) setRooms((prev) => [...prev, room!]);
+      if (room) {
+        const addedRoom = room;
+        setRooms((prev) => [...prev, addedRoom]);
+      }
     }
     if (room) setActive(room);
   };
