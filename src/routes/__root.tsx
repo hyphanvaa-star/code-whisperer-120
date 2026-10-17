@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -117,20 +117,28 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [chatUserId, setChatUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    let alive = true;
+    let identityChanged = false;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      identityChanged = true;
+      setChatUserId(session?.user.id ?? null);
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
-    return () => data.subscription.unsubscribe();
+    void supabase.auth.getUser().then(({ data }) => {
+      if (alive && !identityChanged) setChatUserId(data.user?.id ?? null);
+    }).catch(() => {});
+    return () => { alive = false; data.subscription.unsubscribe(); };
   }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <ChatWidget />
+      <ChatWidget key={chatUserId ?? "signed-out"} userId={chatUserId} />
       <Toaster richColors position="bottom-right" />
     </QueryClientProvider>
   );
