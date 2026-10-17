@@ -40,7 +40,7 @@ async function pullDefect(ctx: Parameters<Routes[string]>[0]) {
     if (!b64) return { error: String(r["error"] || "Trợ lý PC không gửi về file PDF defect summary.") };
     const buf = Buffer.from(b64, "base64");
     const { processUpload } = await import("../port/defect_pdf");
-    const { setJson } = await import("../store.server");
+    const { saveDefectSummary } = await import("../defect-limits.server");
     const name = String(r["name"] || "defect_summary.pdf");
     const res = await processUpload(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer, { sourceName: name });
     const summary = {
@@ -49,12 +49,8 @@ async function pullDefect(ctx: Parameters<Routes[string]>[0]) {
       saved_at: res.saved_at, aircraft: res.aircraft,
       subject: String(r["subject"] || name), mail_sent_text: String(r["sent"] || ""), slot: String(r["slot"] || ""),
     };
-    await setJson(ctx, "defect.summary", summary);
-    // Đồng bộ bảng Tàu/Defect vào limits như tool gốc.
-    const { getJson } = await import("../store.server");
-    const lim = await getJson<Record<string, unknown>>(ctx, "limits", {});
-    await setJson(ctx, "limits", { ...lim, aircraft: res.aircraft });
-    return { ...summary, ok: true };
+    const limitsAircraft = await saveDefectSummary(ctx, summary);
+    return { ...summary, limits_aircraft: limitsAircraft, ok: true };
   } catch (exc) {
     return { error: exc instanceof Error ? exc.message : String(exc) };
   }

@@ -158,8 +158,9 @@ Object.assign(routes, {
         saved_at: result.saved_at,
         aircraft: result.aircraft as unknown as Record<string, unknown>[],
       };
-      await setJson(ctx, DEFECT_SUMMARY_KEY, summary);
-      return { ...summary, ok: true };
+      const { saveDefectSummary } = await import("../defect-limits.server");
+      const limitsAircraft = await saveDefectSummary(ctx, { ...summary });
+      return { ...summary, limits_aircraft: limitsAircraft, ok: true };
     } catch (exc) {
       if (exc instanceof DefectPdfError) {
         return new Response(JSON.stringify({ error: exc.message }), { status: 400, headers: { "Content-Type": "application/json" } });
