@@ -2,7 +2,8 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 
-vi.mock("@tanstack/react-start", () => ({ useServerFn: () => async () => ({}) }));
+const { readAvatars } = vi.hoisted(() => ({ readAvatars: async () => ({}) }));
+vi.mock("@tanstack/react-start", () => ({ useServerFn: () => readAvatars }));
 vi.mock("@/lib/account.functions", () => ({ getChatAvatars: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
