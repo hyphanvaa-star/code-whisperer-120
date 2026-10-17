@@ -1944,24 +1944,10 @@ function ftRender(){
     // hiện lên trên máy công ty) — chỉ chạy khi bấm nút "Đăng nhập Outlook".
     .replace("  startOwaBoot();", "  /* startOwaBoot() tắt: chỉ đăng nhập Outlook khi bấm nút */")
     .replace("    if(ok) await defPullSummary({quiet: true});", "    /* defect summary chỉ tải khi bấm nút */")
-    // Tải defect summary: GỘP với bảng hiện có thay vì ghi đè — giữ nguyên
-    // các dòng LOW EGT mặc định và các dòng người dùng tự thêm, chỉ thay
-    // phần defect lấy từ mail summary.
+    // Use the persisted merge in the editor too.
     .replace(
       "    limData.aircraft = limPad(d.aircraft || [], LIM_ROWS, limBlankAc);",
-      "    limData.aircraft = limPad(limMergeDefect(limData.aircraft, d.aircraft || []), LIM_ROWS, limBlankAc);",
-    )
-    .replace(
-      "async function defPullSummary(opts){",
-      "function limMergeDefect(oldRows, newRows){\n"
-      + "  const isEgt = r => /^\\s*LOW\\s+EGT/i.test(String((r && r.defect) || \"\"));\n"
-      + "  const key = r => String((r && r.reg) || \"\").toUpperCase().replace(/[^A-Z0-9]/g, \"\") + \"\\u0000\" + String((r && r.defect) || \"\").toUpperCase().replace(/\\s+/g, \" \").trim();\n"
-      + "  const kept = (oldRows || []).filter(r => r && String(r.reg || \"\").trim() && (isEgt(r) || !String(r.defect || \"\").trim()));\n"
-      + "  const seen = new Set(kept.map(key));\n"
-      + "  const added = (newRows || []).filter(r => r && String(r.reg || \"\").trim() && !seen.has(key(r)));\n"
-      + "  return kept.concat(added);\n"
-      + "}\n"
-      + "async function defPullSummary(opts){",
+      "    limData.aircraft = limPad(d.limits_aircraft || d.aircraft || [], LIM_ROWS, limBlankAc);",
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
