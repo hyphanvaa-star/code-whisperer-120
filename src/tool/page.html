@@ -22247,18 +22247,25 @@ function vAtcRegSync(){
       const d = await (await fetch("/api/version/fbreg", {method: "POST",
         headers: {"Content-Type": "application/json"}, body: JSON.stringify({items})})).json();
       const norm = x => String(x || "").replace(/\D/g, "").slice(-3);
+      let newGreen = false;
       (d.items || []).forEach((it, i) => {
         const sp = sps[i]; if(!sp) return;
         const ok = it.reg && norm(it.reg) === norm(sp.dataset.reg);
-        if(ok) vAtcRegOk[vAtcRegKey(sp)] = it.reg;
+        if(ok){ vAtcRegOk[vAtcRegKey(sp)] = it.reg; newGreen = true; }
         sp.style.color = ok ? "#0a8a2a" : "#d10000";
         sp.title = ok ? `FliteBrief đã lên tàu mới ${it.reg} — lấy ATC đúng tàu`
                       : `FliteBrief vẫn là ${it.reg || "?"} — chưa đổi sang ${sp.dataset.reg}`;
       });
+      if(newGreen) vCatchRegVerifyAck();
     }catch(e){}
   }, 200);
 }
 setInterval(() => { if(!document.hidden) vAtcRegSync(); }, 60000);
+setInterval(() => {
+  if(document.hidden) return;
+  const body = document.getElementById("vBody");
+  if(body && body.offsetParent !== null) vCatchRegVerifyAck();
+}, 45000);
 async function vAtcExport(){
   const rows = vAtcVisible();
   if(!rows.length){ alert("Không có chuyến CHG/DLA trên bảng đang lọc."); return; }
