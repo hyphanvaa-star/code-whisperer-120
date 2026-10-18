@@ -190,14 +190,29 @@ export const jobs: Jobs = {
 
     let sheet;
     try {
+      // Giữ nguyên NOTAM/WX/ghi chú điều phái đã chỉnh trên tờ cũ; chỉ tàu + defect lấy mới.
+      const { getJson } = await import("../store.server");
+      const { editKey } = await import("../port/briefingRelease");
+      const keepEdits = async (cs: string) => {
+        const saved = await getJson<Record<string, unknown> | null>(ctx, `briefing_edit.${editKey(cs)}`, null);
+        if (!saved) return null;
+        const { reg: _r, defects: _d, callsign: _c, ...rest } = saved;
+        void _r; void _d; void _c;
+        return rest;
+      };
+      const saved = await keepEdits(f.callsign || "");
+      if (saved) emit({ type: "line", text: "· giữ nguyên NOTAM/ghi chú đã chỉnh của tờ cũ" });
       sheet = await draftFromFlight(f, {
         ...await loadBriefingData(ctx),
         fetchPdf: fetchOfpPdfLocal,
         pdfText: ofpPdfTextLocal,
-        applyEdits: false,
+        applyEdits: !!saved,
+        loadEdits: () => saved,
         reg: newReg,
         aircraft,
       });
+      sheet.reg = formatReg(newReg || sheet.reg);
+      sheet.defects = defectsFor(sheet.reg, aircraft);
     } catch (exc) {
       emit({ type: "line", text: `✗ ${(exc as Error).message}`, cls: "bad" });
       return end(1, { failed: 1 });
