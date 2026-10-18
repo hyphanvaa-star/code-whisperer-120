@@ -133,16 +133,24 @@ export const routes: Routes = {
     }
     if (!items.length) return { error: "Không có file nào" };
     const saved: string[] = [], failed: { name: string; error: string }[] = [];
+    const local: { name: string; bytes: Uint8Array }[] = [];
     for (let i = 0; i < items.length; i += 6) {
       await Promise.all(items.slice(i, i + 6).map(async ({ name, file }) => {
         const fname = name.replace(".PDF", ".pdf");
         try {
-          await store.putFile(ctx, `${regDir(ctx)}/${fname}`, new Uint8Array(await file.arrayBuffer()), "application/pdf");
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          local.push({ name: fname, bytes });
+          await store.putFile(ctx, `${regDir(ctx)}/${fname}`, bytes, "application/pdf");
           saved.push(fname);
         } catch (e) { failed.push({ name: fname, error: (e as Error).message }); }
       }));
     }
-    return { ok: true, saved, failed };
+    let pc_dir: string | null = null;
+    try {
+      const { queueFilesToPc } = await import("./pc.server");
+      pc_dir = await queueFilesToPc(ctx, "mel", local);
+    } catch { pc_dir = null; }
+    return { ok: true, saved, failed, pc_dir };
   },
 
   // web.py split_regnotice_pdf: split a combined PDF by "Status of VN-Axxx" page headers.

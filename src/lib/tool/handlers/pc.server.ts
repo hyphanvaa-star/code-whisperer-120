@@ -24,6 +24,7 @@ const PATH_KEYS: Record<string, [string, string]> = {
   omni: ["Folder Omni (EST)", "D:\\Omni"],
   atcezfw: ["Folder ATC + EZFW", "D:\\ATC-EZFW"],
   checklist: ["Folder Checklist (F-017)", "D:\\checklist"],
+  mel: ["Folder MEL (sau khi tách RegNotice)", "D:\\MEL"],
 };
 
 const PATHS_KEY = "tool.paths";
@@ -422,4 +423,16 @@ export async function saveToPc(ctx: Ctx, kind: string, name: string, bytes: Uint
   } catch {
     return `${dest}\\${name} (trợ lý đang bận — sẽ tự ghi khi rảnh)`;
   }
+}
+
+/** Xếp hàng ghi nhiều file xuống folder `kind` (D:, không có D thì C:), không chờ. Trợ lý tắt → null. */
+export async function queueFilesToPc(ctx: Ctx, kind: string, files: { name: string; bytes: Uint8Array }[]): Promise<string | null> {
+  const agent = await pc.agentInfo(ctx);
+  if (!agent || Date.now() - agent.at > 30 * 60_000 || !(kind in PATH_KEYS) || !files.length) return null;
+  const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
+  const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent);
+  for (const f of files) {
+    await pc.enqueue("save_file", { dir: dest, name: f.name, data_b64: Buffer.from(f.bytes).toString("base64") });
+  }
+  return dest;
 }
