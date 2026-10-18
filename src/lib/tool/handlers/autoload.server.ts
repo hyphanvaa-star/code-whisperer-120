@@ -46,7 +46,7 @@ async function pullDefect(ctx: Parameters<Routes[string]>[0]) {
     const summary = {
       exists: true, file: res["source"] as string, source: res["source"] as string,
       rows: res.rows, aircraft_count: res.aircraft_count, raw_rows: res.raw_rows,
-      saved_at: res.saved_at, aircraft: res.aircraft,
+      saved_at: res.saved_at, aircraft: res.aircraft.map(row => ({ ...row })),
       subject: String(r["subject"] || name), mail_sent_text: String(r["sent"] || ""), slot: String(r["slot"] || ""),
     };
     const limitsAircraft = await saveDefectSummary(ctx, summary);
