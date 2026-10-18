@@ -52,7 +52,14 @@ export async function readPreviousBriefing(bytes: Uint8Array, callsign: string):
           }
         }
       });
-      const bounds = [...new Set(ys.map((y) => Math.round(y * 10) / 10))].sort((a, b) => b - a);
+      let bounds = [...new Set(ys.map((y) => Math.round(y * 10) / 10))].sort((a, b) => b - a);
+      if (bounds.length < 2) {
+        // No vector rules: split rows by text anchors (row labels) instead.
+        const anchor = /NOTES\s+by|Flight\s+Permits|PIC\s+Ack|A\/C OPS|Check Tech log|Dept\.?\s*APT|Dest\.?\s*APT|Dest\.?\s*Alternate|Enr\.?\s*Alternate|^FIR|The Flight Crew study|If any doubts|By receiving and reviewing/i;
+        const tops = items.filter((i) => i.x >= left - 2 && i.x < c2 - 1 && anchor.test(i.str.trim())).map((i) => Math.round((i.y + 8) * 10) / 10);
+        bounds = [...new Set(tops)].sort((a, b) => b - a);
+        if (bounds.length) bounds.push(-1);
+      }
       if (bounds.length < 2) throw new Error("Không đọc được khung Briefing cũ — giữ nguyên tờ cũ.");
       for (let r = 0; r < bounds.length - 1; r++) {
         const top = bounds[r] ?? 0, bottom = bounds[r + 1] ?? 0;
