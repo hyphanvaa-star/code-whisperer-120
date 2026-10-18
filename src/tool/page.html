@@ -5870,7 +5870,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 0.2</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 0.4</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -25780,7 +25780,7 @@ function ckLoadZip(){
   if(ckZipLib) return ckZipLib;
   return ckZipLib = new Promise((ok, bad) => {
     const sc = document.createElement("script");
-    sc.src = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+    sc.src = "/vendor/jszip.min.js";
     sc.onload = () => ok(window.JSZip); sc.onerror = () => { ckZipLib = null; bad(new Error("Không tải được thư viện JSZip")); };
     document.head.appendChild(sc);
   });
@@ -26844,9 +26844,9 @@ $("#splitPdfFile").onchange = async e => {
   write("📄 Đọc file " + f.name + " (" + (f.size/1024).toFixed(0) + " KB)…", "hint");
   try{
     // Tách ngay trên máy (không gửi file lớn lên mạng — tường lửa văn phòng hay cắt kết nối dài).
-    const pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");
-    pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
-    const { PDFDocument } = await import("https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm");
+    const pdfjs = await import("/vendor/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = "/vendor/pdf.worker.min.mjs";
+    const { PDFDocument } = await import("/vendor/pdf-lib.esm.min.js");
     const bytes = new Uint8Array(await f.arrayBuffer());
     const doc = await pdfjs.getDocument({ data: bytes.slice() }).promise;
     const codePages = new Map();
