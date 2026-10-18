@@ -4,6 +4,7 @@ import type { Flight } from "../core/models";
 import { formatReg, defectsFor, draftFromFlight, toPdf, pdfFilename } from "../port/briefingRelease";
 import { uploadAndAttach } from "./briefing.server";
 import { loadBriefingData } from "../briefing-data.server";
+import { readPreviousBriefing, restorePreviousBriefing } from "../port/briefingPrevious";
 
 // Port of web.py "/api/briefswap/*" (api/briefswap.py + web.py briefswap_preview /
 // start_briefswap). Đổi tờ Official Briefing khi đổi tàu: soạn mới → xoá cũ → gắn mới.
@@ -85,10 +86,13 @@ function planReplace(flight: Flight, newReg: string, aircraft: unknown[]) {
 
 async function fetchOfpPdfLocal(sectorId: number): Promise<Uint8Array | null> {
   const { fbGet } = await import("@/lib/flitebrief.server");
-  const res = await fbGet(`/webapi/sectors/${sectorId}/ofp`, "application/pdf");
-  if (!res.ok || res.status === 204) return null;
-  const buf = new Uint8Array(await res.arrayBuffer());
-  return buf.byteLength ? buf : null;
+  for (const path of [`/webapi/sectors/${sectorId}/ofp/0`, `/webapi/sectors/${sectorId}/ofp`]) {
+    const res = await fbGet(path, "application/pdf");
+    if (!res.ok || res.status === 204) continue;
+    const buf = new Uint8Array(await res.arrayBuffer());
+    if (buf.byteLength) return buf;
+  }
+  return null;
 }
 
 async function ofpPdfTextLocal(blob: Uint8Array): Promise<string> {
@@ -190,29 +194,30 @@ export const jobs: Jobs = {
 
     let sheet;
     try {
-      // Giữ nguyên NOTAM/WX/ghi chú điều phái đã chỉnh trên tờ cũ; chỉ tàu + defect lấy mới.
-      const { getJson } = await import("../store.server");
-      const { editKey } = await import("../port/briefingRelease");
-      const keepEdits = async (cs: string) => {
-        const saved = await getJson<Record<string, unknown> | null>(ctx, `briefing_edit.${editKey(cs)}`, null);
-        if (!saved) return null;
-        const { reg: _r, defects: _d, callsign: _c, ...rest } = saved;
-        void _r; void _d; void _c;
-        return rest;
-      };
-      const saved = await keepEdits(f.callsign || "");
-      if (saved) emit({ type: "line", text: "· giữ nguyên NOTAM/ghi chú đã chỉnh của tờ cũ" });
+      // Actual sector attachment is authoritative, never callsign-only saved edits.
+      const oldFiles = attachmentsOn(f).sort((a, b) => (b.created_on?.getTime() ?? 0) - (a.created_on?.getTime() ?? 0) || b.id - a.id);
+      let previous;
+      if (oldFiles.length) {
+        const old = oldFiles[0];
+        if (!old) throw new Error("Không xác định được Briefing cũ.");
+        const { fbGet } = await import("@/lib/flitebrief.server");
+        emit({ type: "line", text: `· đang đọc NOTAM/NOTES/Permits từ ${old.original_filename || old.title} (ID ${old.id})…` });
+        const res = await fbGet(`/webapi/sectors/${f.id}/attachments/${old.id}`, "application/pdf");
+        if (!res.ok) throw new Error("Không tải được Briefing cũ — giữ nguyên tờ cũ, chưa đổi BF.");
+        previous = await readPreviousBriefing(new Uint8Array(await res.arrayBuffer()), f.callsign);
+        emit({ type: "line", text: `✓ Đã đọc cột NOTAM (${previous.notams.filter(Boolean).length} ô có nội dung) và NOTES/Permits từ Briefing cũ; WX lấy mới, REG ${plan.new_reg} + MEL tàu mới`, cls: "ok" });
+      } else emit({ type: "line", text: "· Chuyến chưa có Briefing cũ — soạn mới, NOTES để trống" });
       sheet = await draftFromFlight(f, {
         ...await loadBriefingData(ctx),
         fetchPdf: fetchOfpPdfLocal,
         pdfText: ofpPdfTextLocal,
-        applyEdits: !!saved,
-        loadEdits: () => saved,
+        applyEdits: false,
         reg: newReg,
         aircraft,
       });
       sheet.reg = formatReg(newReg || sheet.reg);
       sheet.defects = defectsFor(sheet.reg, aircraft);
+      if (previous) sheet = restorePreviousBriefing(sheet, previous);
     } catch (exc) {
       emit({ type: "line", text: `✗ ${(exc as Error).message}`, cls: "bad" });
       return end(1, { failed: 1 });

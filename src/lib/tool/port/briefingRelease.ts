@@ -256,7 +256,7 @@ export interface ReleaseSheet {
 export function newSheet(partial: Partial<ReleaseSheet> & Pick<ReleaseSheet, "callsign" | "published_at" | "dep" | "dest" | "dest_alts" | "enroute_alts" | "reg" | "defects" | "wx">): ReleaseSheet {
   return {
     ofp_note: "",
-    notes: NOTES_RED,
+    notes: "",
     permit_addr: PERMIT_ADDR,
     permit_kind: PERMIT_KIND,
     sig_wx: "",
@@ -825,7 +825,7 @@ export function sheetFromFields(data: Record<string, unknown>): ReleaseSheet {
     return { label: aptLabel(titles[i], codes), icaos: [...codes], texts: wxTextsOf(data, i, fallback) };
   });
 
-  const notes = data["notes"] === null || data["notes"] === undefined ? NOTES_RED : String(data["notes"]);
+  const notes = data["notes"] === null || data["notes"] === undefined ? "" : String(data["notes"]);
   return newSheet({
     callsign: cs,
     published_at: String(data["published_at"] ?? "").trim(),
@@ -904,7 +904,7 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
   let sheet = buildSheet(flight, text, opts);
   if (opts.applyEdits !== false && opts.loadEdits) {
     const saved = await opts.loadEdits(sheet.callsign);
-    if (saved) sheet = applyFields(sheet, saved);
+    if (saved) sheet = applyFields(sheet, { ...saved, ...(saved.notes === NOTES_RED ? { notes: "" } : {}) });
   }
   if (opts.pins) applyToSheet(sheet, opts.pins, await opts.pinContext?.(sheet, text) ?? {});
   return sheet;
