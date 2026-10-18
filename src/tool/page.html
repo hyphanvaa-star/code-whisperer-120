@@ -6209,6 +6209,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
               <th rowspan="2" style="width:100px" title="STD kế hoạch theo bản mới (giờ local Excel) — không phải ETD">NGÀY GIỜ</th>
               <th rowspan="2" style="width:150px" title="Dispatcher phụ trách chuyến này trên FliteBrief — người cần được báo về thay đổi. Excel không có cột này, tool tra sang danh sách chuyến bay theo số hiệu + chặng.">DSP</th>
               <th rowspan="2" title="Cột REG khác nhau giữa hai bản">ĐỔI TÀU</th>
+              <th rowspan="2" style="width:80px" title="Đổi tàu: xuất FPL.req mới — tàu/CI/taxi/pilot theo crewlist mới, Payload + Extra fuel giữ từ OFP cũ">REQ</th>
               <th rowspan="2" title="Khi đổi tàu: soạn lại Official Briefing (TAF/NOTAM mới nhất + defect tàu mới), xoá tờ cũ, gắn tờ mới">ĐỔI BRIEFING</th>
               <th rowspan="2" title="Tổ bay khác nhau. KHÔNG tính người có DHD (deadheading — bay hành khách).">ĐỔI CREW</th>
               <th colspan="2" class="dly-grp" title="STD kế hoạch và ETD bản mới (giờ local sân bay đi).">DELAY</th>
@@ -21245,7 +21246,7 @@ async function vDeleteFile(name){
     vPaintMenus();
     if($("#vOld").value && $("#vNew").value && $("#vOld").value !== $("#vNew").value) vRun();
     else {
-      $("#vBody").innerHTML = '<tr><td colspan="11" class="empty">'
+      $("#vBody").innerHTML = '<tr><td colspan="12" class="empty">'
         + 'Đã xoá. Chọn lại 2 file khác nhau rồi So sánh.</td></tr>';
       $("#vSum").textContent = "";
     }
@@ -21384,6 +21385,44 @@ function vRegCell(r){
       td.title = "Ngoài cửa sổ thao tác (−6h…+24h, đúng ngày) — không đổi file chuyến đã bay";
   }
   td.appendChild(wrap);
+  return td;
+}
+
+function vReqCell(r){
+  const td = document.createElement("td");
+  if(!r.reg || !r.reg.changed || !r.sector_id){
+    td.innerHTML = '<span class="v q">·</span>'; return td;
+  }
+  const b = document.createElement("button");
+  b.className = "briefbtn";
+  b.textContent = "REQ";
+  b.title = "Xuất FPL.req mới cho " + (r.fb_callsign || r.flt) + " tàu " + r.reg.new
+    + " — Payload + Extra fuel lấy từ OFP cũ trên FliteBrief";
+  b.onclick = async ev => {
+    ev.stopPropagation();
+    const box = document.getElementById("ftDspBox");
+    const dsp = ((box && box.value) || r.dsp || "").trim();
+    b.disabled = true; b.textContent = "…";
+    try{
+      const d = await (await fetch("/api/fpltext/chgreq", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({sector_id: r.sector_id, flt: r.flt, route: r.route,
+          date: r.day_new || "", dsp: dsp,
+          efb: ((document.getElementById("fEfb")||{}).value||"").trim()})
+      })).json();
+      if(d.error){ write("✗ REQ " + r.flt + ": " + d.error, "fail"); alert("REQ " + r.flt + ": " + d.error); return; }
+      const bin = atob(d.file); const bytes = new Uint8Array(bin.length);
+      for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([bytes], {type: "application/octet-stream"}));
+      a.download = d.filename || "FPL.req"; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+      write("✓ REQ " + r.flt + " · tàu " + d.reg + " · PAY " + d.pld + " · EXTRA " + d.extra + " (từ OFP cũ)", "ok");
+      b.classList.add("done");
+    }catch(e){ alert("REQ lỗi: " + e.message); }
+    finally{ b.disabled = false; b.textContent = "REQ"; }
+  };
+  td.appendChild(b);
   return td;
 }
 
@@ -22159,7 +22198,7 @@ function vRender(d){
       ? ("Đã nạp crewlist " + (vDuty.file_label || "")
         + ". Nạp thêm một bản nữa để so duty với bản trước.")
       : "Hai bản giống nhau — không có chuyến nào đổi tàu, đổi crew hay delay.";
-    tb.innerHTML = '<tr><td colspan="11" class="empty">'
+    tb.innerHTML = '<tr><td colspan="12" class="empty">'
       + esc(msg)
       + '</td></tr>';
     vFillDsp();
@@ -22187,6 +22226,7 @@ function vRender(d){
     }
     tr.appendChild(markDsp(dsp, r.dsp));
     tr.appendChild(vRegCell(r));
+    tr.appendChild(vReqCell(r));
     tr.appendChild(vBriefCell(r));
     tr.appendChild(vCrewCell(r));
     tr.appendChild(vDelayStdCell(r));
@@ -22207,7 +22247,7 @@ function vRender(d){
         tr.appendChild(txtCell(a.flt, "n"));
         tr.appendChild(txtCell(a.route, "q"));
         const td = document.createElement("td");
-        td.colSpan = 9;
+        td.colSpan = 10;
         td.innerHTML = '<span class="' + cls + '">' + nhan + "</span> · "
           + esc(a.std || "") + " · " + esc(a.reg || "");
         tr.appendChild(td);
@@ -22307,7 +22347,7 @@ async function vRun(){
   const o = $("#vOld").value, n = $("#vNew").value;
   if(!o || !n){ alert("Chưa có đủ 2 file Excel trong data/excel/."); return; }
   if(o === n){
-    $("#vBody").innerHTML = '<tr><td colspan="11" class="empty">'
+    $("#vBody").innerHTML = '<tr><td colspan="12" class="empty">'
       + 'Hai bản đang chọn là cùng một file — chọn 2 file khác nhau.</td></tr>';
     $("#vSum").textContent = ""; $("#vWarn").style.display = "none";
     return;
@@ -22319,14 +22359,14 @@ async function vRun(){
     const p = new URLSearchParams({old: o, new: n});
     const d = await (await fetch("/api/version/diff?" + p.toString())).json();
     if(d.error){
-      $("#vBody").innerHTML = '<tr><td colspan="11" class="empty">'
+      $("#vBody").innerHTML = '<tr><td colspan="12" class="empty">'
         + esc(d.error) + "</td></tr>";
       $("#vSum").textContent = "";
       return;
     }
     vRender(d);
   }catch(err){
-    $("#vBody").innerHTML = '<tr><td colspan="11" class="empty">Lỗi: '
+    $("#vBody").innerHTML = '<tr><td colspan="12" class="empty">Lỗi: '
       + esc(err.message) + "</td></tr>";
   }finally{
     btn.disabled = false; btn.textContent = "So sánh";
