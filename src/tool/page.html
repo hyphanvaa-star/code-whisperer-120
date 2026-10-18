@@ -22780,8 +22780,10 @@ function timeCell(r){
     lt.className = "v lt";
     lt.textContent = r.std_excel + " LT";
     td.appendChild(lt);
-    td.title = "FliteBrief: " + r.std + "Z (UTC)\nExcel: " + r.std_excel
-      + " (giờ local sân bay đi)\n\nLệch nhau đúng bằng múi giờ — không phải lỗi.";
+    td.title = "FliteBrief: " + r.std + "Z (UTC)\nExcel " + (r.std_excel_src || "STD") + ": " + r.std_excel
+      + " (giờ local sân bay đi)\n\n" + (r.std_excel_src === "ETD"
+        ? "Chuyến có ETD nên lấy giờ ETD (lịch đã đổi)."
+        : "Không có ETD nên lấy giờ STD.");
   }else{
     td.title = "FliteBrief: " + (r.std || "—") + "Z (UTC)"
       + (r.sta ? "\nSTA: " + r.sta + "Z" : "");

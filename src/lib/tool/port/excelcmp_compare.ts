@@ -395,6 +395,10 @@ function tableCells(flight: Flight, rowdict: Record<string, unknown>, mapping: R
       false,
     );
   }
+  // Giờ ETD theo tên cột (nếu file có cột ETD) — bảng ưu tiên giờ này hơn STD.
+  const etdRaw = mapping["etd"] ? rowdict[mapping["etd"]!] : null;
+  const etdT = normTime(etdRaw);
+  out["etd"] = cell(etdT ? fmtTime(etdT) : "—", fmtField(flight.etd, "time"), null, !!etdT);
   return out;
 }
 

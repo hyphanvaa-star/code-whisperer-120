@@ -125,7 +125,12 @@ function buildTable(flights: Flight[], resRows: Array<Record<string, unknown>>) 
       return { verdict: "", detail: "", excel: "—", flite: "", same: null, mapped: false };
     };
     const cStd = cells["std"];
-    const stdExcel = cStd && cStd.excel && cStd.excel !== "—" ? String(cStd.excel) : "";
+    const cEtd = cells["etd"];
+    const etdExcel = cEtd && cEtd.excel && cEtd.excel !== "—" ? String(cEtd.excel) : "";
+    const stdOnly = cStd && cStd.excel && cStd.excel !== "—" ? String(cStd.excel) : "";
+    // Có ETD thì lấy ETD (lịch đã đổi), không thì lấy STD.
+    const stdExcel = etdExcel || stdOnly;
+    const stdExcelSrc = etdExcel ? "ETD" : stdOnly ? "STD" : "";
     return {
       sector_id: f.id,
       callsign: f.callsign,
