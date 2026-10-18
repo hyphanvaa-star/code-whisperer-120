@@ -112,6 +112,17 @@ export const routes: Routes = {
     return new Response(buf, { headers: { "Content-Type": "application/pdf", "Cache-Control": "private, no-store" } });
   },
 
+  // Browser splits the big PDF locally, then uploads each small per-aircraft file here.
+  "POST /api/regnotice/put": async (ctx) => {
+    const name = (ctx.params.get("name") || "").toUpperCase();
+    if (!/^VNA\d{3}\.PDF$/.test(name)) return { error: "Tên file không hợp lệ" };
+    const buf = new Uint8Array(await ctx.request.arrayBuffer());
+    if (!buf.byteLength) return { error: "File rỗng" };
+    if (buf.byteLength > 20 * 1024 * 1024) return { error: "File quá lớn" };
+    await store.putFile(ctx, `${regDir(ctx)}/${name.replace(".PDF", ".pdf")}`, buf, "application/pdf");
+    return { ok: true };
+  },
+
   // web.py split_regnotice_pdf: split a combined PDF by "Status of VN-Axxx" page headers.
   "POST /api/split-regnotice": async (ctx) => {
     const buf = new Uint8Array(await ctx.request.arrayBuffer());
