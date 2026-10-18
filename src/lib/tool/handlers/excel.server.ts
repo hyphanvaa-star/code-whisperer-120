@@ -517,6 +517,23 @@ export const routes: Routes = {
     return { ok: true, deleted: name, files: await listExcel(ctx) };
   },
 
+  // Tên tổ bay lấy thẳng FliteBrief cho chuyến chưa khớp crewlist — chỉ để hiện, không so sánh.
+  "GET /api/excel/crewnames": async (ctx) => {
+    const ids = (ctx.params.get("ids") || "").split(",").map((x) => Number.parseInt(x.trim(), 10)).filter((n) => Number.isFinite(n) && n > 0).slice(0, 100);
+    if (!ids.length) return { names: {} };
+    const days = Number.parseInt(ctx.params.get("days") || "1", 10) || 1;
+    const want = new Set(ids);
+    const flights = (await loadFlights(days)).filter((f) => want.has(f.id));
+    await attachCrews(flights.filter((f) => !f.crews.length));
+    const names: Record<string, string> = {};
+    for (const f of flights) {
+      const fc = f.flight_crew.length ? f.flight_crew : f.crews;
+      const txt = fc.map((c) => c.full_name).filter(Boolean).join(", ");
+      if (txt) names[String(f.id)] = txt;
+    }
+    return { names };
+  },
+
   "GET /api/excel/crew": async (ctx) => {
     const idsRaw = ctx.params.get("ids") || "";
     const ids = idsRaw.split(",").map((x) => Number.parseInt(x.trim(), 10)).filter((n) => Number.isFinite(n) && String(n).length);

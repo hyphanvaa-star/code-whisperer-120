@@ -23588,16 +23588,15 @@ function fillCrewCell(td, cell, inExcel, fallback, sid){
     inExcel = true;
   }
   if(!inExcel || !cell || !cell.verdict){
-    const ic = document.createElement("span");
-    ic.className = "cmp-crew bad";
-    ic.style.opacity = "0.4";
-    ic.setAttribute("aria-hidden", "true");
-    td.appendChild(ic);
+    const sidK = String(td.dataset.crewSid || "");
+    const names = CREW_NAMES[sidK];
     const s = document.createElement("span");
-    s.className = "v q";
-    s.textContent = fallback || "—";
+    s.className = names ? "v" : "v q";
+    s.textContent = names || fallback || "—";
     td.appendChild(s);
-    td.title = inExcel ? "Excel không có cột này" : "Chưa khớp crewlist";
+    if(!names && sidK && !inExcel) cmpQueueNames(sidK);
+    td.title = (names ? "FliteBrief: " + names + "\n" : "")
+      + (inExcel ? "Excel không có cột này" : "Chưa khớp crewlist — đang hiện dữ liệu FliteBrief");
     cmpArmPick(td, td.dataset.crewSid);
     return td;
   }
