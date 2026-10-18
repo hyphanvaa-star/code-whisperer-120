@@ -29,7 +29,7 @@ describe("Briefing creation and aircraft replacement", () => {
     const swapped = restorePreviousBriefing(fresh, previous);
     expect(swapped.wx[0].texts.join(" ")).toContain("FRESH_WX");
     expect(swapped.reg).toBe("VN-A636"); expect(swapped.defects).toEqual(["NEW MEL"]);
-    expect(swapped.notes).toBe(old.notes); expect(swapped.notams).toEqual(old.notams);
+    expect(swapped.notes).toBe(""); expect(swapped.notams).toEqual(old.notams);
     mkdirSync("/tmp/briefing", { recursive: true });
     writeFileSync("/tmp/briefing/replaced.pdf", await toPdf(swapped));
     writeFileSync("/tmp/briefing/new.pdf", await toPdf(sheet()));
@@ -43,12 +43,11 @@ describe("Briefing creation and aircraft replacement", () => {
   it("rejects a PDF for another flight before replacement", async () => {
     await expect(readPreviousBriefing(await toPdf(sheet()), "VJC3908")).rejects.toThrow("không đúng số hiệu");
   }, 60000);
-  it("keeps the old CAT III note during replacement even though new briefings default to empty", async () => {
+  it("leaves dispatcher notes empty during replacement even when the old briefing had notes", async () => {
     const old = sheet(); old.notes = NOTES_RED;
     const previous = await readPreviousBriefing(await toPdf(old), "VJC161");
     const swapped = restorePreviousBriefing(sheet(), previous);
-    expect(swapped.notes).toContain("FOR PILOTS WHO HAVE CERTIFIED CATIIIS:");
-    expect(swapped.notes).toContain("any significant difference");
+    expect(swapped.notes).toBe("");
   }, 60000);
   it("reads continuation pages without losing the last NOTAM or dispatcher note", async () => {
     const old = sheet(); old.notams[0] = "A1234/26\n" + "RESTRICTION ".repeat(1500) + "END_OF_OLD_NOTAM"; old.notes = "END_OF_OLD_NOTE";

@@ -84,11 +84,11 @@ export async function readPreviousBriefing(bytes: Uint8Array, callsign: string):
         else if (section === "permit") { result.permit_addr = append(result.permit_addr, label); result.permit_kind = append(result.permit_kind, body); }
       }
     }
-    if (!titleSeen || !notamSeen || !notesSeen || !permitSeen) throw new Error("Chưa đọc đủ NOTAM/NOTES/Permits của Briefing cũ — giữ nguyên tờ cũ.");
+    if (!titleSeen || !notamSeen) throw new Error("Chưa đọc đủ NOTAM của Briefing cũ — giữ nguyên tờ cũ.");
     return result;
   } finally { await pdf.loadingTask.destroy(); }
 }
-/** Preserve only these fields AFTER fresh weather and pins. */
+/** Preserve only the old NOTAM cells AFTER fresh weather and pins; NOTES stay empty and Permits follow the normal build. */
 export function restorePreviousBriefing(sheet: ReleaseSheet, previous: PreviousBriefing): ReleaseSheet {
-  return { ...sheet, ...previous, notams: [...previous.notams] };
+  return { ...sheet, notes: "", notams: [...previous.notams] };
 }
