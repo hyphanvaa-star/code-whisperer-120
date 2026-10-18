@@ -79,7 +79,7 @@ export async function readPreviousBriefing(bytes: Uint8Array, callsign: string):
     }
     if (!titleSeen || !notamSeen || !notesSeen || !permitSeen) throw new Error("Chưa đọc đủ NOTAM/NOTES/Permits của Briefing cũ — giữ nguyên tờ cũ.");
     return result;
-  } finally { await pdf.destroy(); }
+  } finally { await pdf.loadingTask.destroy(); }
 }
 /** Preserve only these fields AFTER fresh weather and pins. */
 export function restorePreviousBriefing(sheet: ReleaseSheet, previous: PreviousBriefing): ReleaseSheet {

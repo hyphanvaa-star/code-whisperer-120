@@ -3,7 +3,7 @@ import { buildSheet, draftFromFlight, NOTES_RED, sheetFromFields, toPdf } from "
 import { readPreviousBriefing, restorePreviousBriefing } from "../briefingPrevious";
 import { mkdirSync, writeFileSync } from "node:fs";
 const flight = { id: 12, callsign: "VJC161", dep_icao: "VVNB", dest_icao: "VVTS", dest_alt1: "VVCR", dest_alt2: "VVCT", reg: "VN-A551" };
-const sheet = () => buildSheet(flight, "RALT/VVDN", { tafs: { VVNB: { icao: "VVNB", nil: false, issue: "181600", raw: "TAF VVNB FRESH_WX" } } });
+const sheet = () => buildSheet(flight, "RALT/VVDN", { tafs: { VVNB: { nil: false, issue: "181600", raw: "TAF VVNB FRESH_WX" } } });
 
 describe("Briefing creation and aircraft replacement", () => {
   it("leaves new dispatcher notes empty instead of CAT III text", () => {

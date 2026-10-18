@@ -1949,6 +1949,7 @@ function ftRender(){
       "    limData.aircraft = limPad(d.aircraft || [], LIM_ROWS, limBlankAc);",
       "    limData.aircraft = limPad(d.limits_aircraft || d.aircraft || [], LIM_ROWS, limBlankAc);",
     )
+    .replace(/(id="appVersion"[^>]*>)[^<]+/, '$1V 0.9')
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     ;
