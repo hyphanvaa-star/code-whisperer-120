@@ -123,6 +123,28 @@ export const routes: Routes = {
     return { ok: true };
   },
 
+  // One request with every per-aircraft file (FormData) — avoids dozens of small uploads.
+  "POST /api/regnotice/put-all": async (ctx) => {
+    const fd = await ctx.request.formData();
+    const items: { name: string; file: File }[] = [];
+    for (const [k, v] of fd.entries()) {
+      const name = k.toUpperCase();
+      if (typeof v !== "string" && /^VNA\d{3}\.PDF$/.test(name) && v.size > 0) items.push({ name, file: v as File });
+    }
+    if (!items.length) return { error: "Không có file nào" };
+    const saved: string[] = [], failed: { name: string; error: string }[] = [];
+    for (let i = 0; i < items.length; i += 6) {
+      await Promise.all(items.slice(i, i + 6).map(async ({ name, file }) => {
+        const fname = name.replace(".PDF", ".pdf");
+        try {
+          await store.putFile(ctx, `${regDir(ctx)}/${fname}`, new Uint8Array(await file.arrayBuffer()), "application/pdf");
+          saved.push(fname);
+        } catch (e) { failed.push({ name: fname, error: (e as Error).message }); }
+      }));
+    }
+    return { ok: true, saved, failed };
+  },
+
   // web.py split_regnotice_pdf: split a combined PDF by "Status of VN-Axxx" page headers.
   "POST /api/split-regnotice": async (ctx) => {
     const buf = new Uint8Array(await ctx.request.arrayBuffer());
