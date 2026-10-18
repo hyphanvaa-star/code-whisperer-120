@@ -5870,7 +5870,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 0.5</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 0.6</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -23562,6 +23562,36 @@ function txtCell(text, cls, wrap){
    Chuyến không có trong Excel -> hiện giá trị FliteBrief mờ, không coi là lệch.
    Tách phần ruột ra riêng vì ô CREW được vẽ lại tại chỗ khi lô crew về. */
 const cmpBind = {};
+const CREW_NAMES = {};
+let cmpNameQ = new Set(), cmpNameT = 0;
+function cmpQueueNames(sid){
+  if(sid in CREW_NAMES) return;
+  CREW_NAMES[sid] = "";
+  cmpNameQ.add(sid);
+  clearTimeout(cmpNameT);
+  cmpNameT = setTimeout(cmpFlushNames, 300);
+}
+async function cmpFlushNames(){
+  const ids = [...cmpNameQ]; cmpNameQ = new Set();
+  for(let i = 0; i < ids.length; i += 40){
+    const chunk = ids.slice(i, i + 40);
+    try{
+      const p = new URLSearchParams(qs());
+      p.set("ids", chunk.join(","));
+      const d = await (await fetch("/api/excel/crewnames?" + p.toString())).json();
+      for(const id of chunk){
+        const n = (d.names || {})[id];
+        if(!n) continue;
+        CREW_NAMES[id] = n;
+        for(const td of document.querySelectorAll('#cmpBody td[data-crew-sid="' + id + '"]')){
+          const r = cmpRowOf(id);
+          if(r && !(r.in_excel && r.crew && r.crew.verdict) && !cmpBind[id])
+            fillCrewCell(td, r.crew, r.in_excel, r.crew_count + " người", id);
+        }
+      }
+    }catch(e){ for(const id of chunk) delete CREW_NAMES[id]; }
+  }
+}
 function cmpFltNum(cs){
   const d = String(cs || "").toUpperCase().replace(/[^0-9]/g, "").replace(/^0+/, "");
   return d;
@@ -23588,16 +23618,15 @@ function fillCrewCell(td, cell, inExcel, fallback, sid){
     inExcel = true;
   }
   if(!inExcel || !cell || !cell.verdict){
-    const ic = document.createElement("span");
-    ic.className = "cmp-crew bad";
-    ic.style.opacity = "0.4";
-    ic.setAttribute("aria-hidden", "true");
-    td.appendChild(ic);
+    const sidK = String(td.dataset.crewSid || "");
+    const names = CREW_NAMES[sidK];
     const s = document.createElement("span");
-    s.className = "v q";
-    s.textContent = fallback || "—";
+    s.className = names ? "v" : "v q";
+    s.textContent = names || fallback || "—";
     td.appendChild(s);
-    td.title = inExcel ? "Excel không có cột này" : "Chưa khớp crewlist";
+    if(!names && sidK && !inExcel) cmpQueueNames(sidK);
+    td.title = (names ? "FliteBrief: " + names + "\n" : "")
+      + (inExcel ? "Excel không có cột này" : "Chưa khớp crewlist — đang hiện dữ liệu FliteBrief");
     cmpArmPick(td, td.dataset.crewSid);
     return td;
   }
@@ -23632,11 +23661,10 @@ function fillRegCell(td, cell, inExcel, fallback, sid){
   const reg = String((cell && (cell.flite || cell.excel)) || fallback || "—").trim() || "—";
   if(!inExcel || !cell || !cell.verdict){
     const s = document.createElement("span");
-    s.className = "cmp-reg bad";
-    s.style.opacity = "0.55";
+    s.className = "cmp-reg";
     s.textContent = reg;
     td.appendChild(s);
-    td.title = inExcel ? "Excel không có cột này" : "Chưa khớp crewlist";
+    td.title = (inExcel ? "Excel không có cột này" : "Chưa khớp crewlist — đang hiện tàu theo FliteBrief");
     cmpArmPick(td, td.dataset.regSid);
     return td;
   }
