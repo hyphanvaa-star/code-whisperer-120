@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] BF: đọc NOTAM/NOTES/Permits từ PDF cũ trước khi đổi tàu, WX lấy mới; bỏ note mẫu khi tạo mới; kiểm thử và kiểm tra PDF.
+
 - [x] Khôi phục 13 LOW EGT có sẵn trừ A649, giữ 56 dòng khác; tải/mail PDF giữ dòng tự nhập và thay summary cũ; 22 kiểm thử đạt, trang nhận bảng gộp, build OK.
 - [ ] Thử tải defect summary qua Outlook thật — chờ đăng nhập preview và trợ lý PC tại máy công ty.
 
