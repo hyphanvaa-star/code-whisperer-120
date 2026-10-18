@@ -463,6 +463,54 @@ export const routes: Routes = {
     const fileB64 = btoa(binary);
     return { ok: true, text, path: "", file_error: "", file: fileB64, filename: "FPL.req" };
   },
+  /** Đổi tàu: REQ mới theo crewlist mới (tàu/CI/taxi/pilot), PAY + EXTRA giữ từ OFP cũ của đúng sector. */
+  "POST /api/fpltext/chgreq": async (ctx) => {
+    const body = await ctx.json();
+    const db = await loadDb(ctx);
+    if (!db) return { error: NO_CREWLIST };
+    const sectorId = Number(body.sector_id) || 0;
+    if (!sectorId) return { error: "Không tra được chuyến trên FliteBrief." };
+    const dsp = String(body.dsp || "").trim();
+    if (!dsp) return { error: "Chưa điền tên DSP." };
+    const dg = (v: unknown) => String(v ?? "").replace(/\D/g, "").replace(/^0+/, "");
+    const up = (v: unknown) => String(v ?? "").trim().toUpperCase();
+    const [dep, arr] = String(body.route || "").split("-").map(up);
+    const want = dg(body.flt);
+    const day = parseOpsDate(body.date);
+    const cands = db.flights.filter((f) => dg(f.flt) === want && up(f.dep) === dep && up(f.arr) === arr
+      && (!day || (() => { const p = parseOpsDate(f.date); return !p || (p.d === day.d && p.m === day.m); })()));
+    if (cands.length !== 1) return { error: cands.length ? "Crewlist có nhiều chuyến trùng — không chắc đúng chuyến." : "Crewlist mới không có chuyến VJ" + want + " " + dep + "-" + arr + " đúng ngày." };
+    const flight = cands[0]!;
+    const { fbGet } = await import("@/lib/flitebrief.server");
+    let txt = "";
+    for (const p of [`/webapi/sectors/${sectorId}/ofp/0`, `/webapi/sectors/${sectorId}/ofp`]) {
+      const res = await fbGet(p, "application/pdf");
+      if (!res.ok || res.status === 204) continue;
+      const b = new Uint8Array(await res.arrayBuffer());
+      if (b.byteLength <= 4) continue;
+      if (String.fromCharCode(...b.slice(0, 4)) === "%PDF") {
+        const { ofpTextFromPdf } = await import("../port/ofp_weights");
+        txt = await ofpTextFromPdf(b);
+      } else txt = new TextDecoder().decode(b);
+      if (txt) break;
+    }
+    if (!txt) return { error: "Chưa đọc được OFP cũ trên FliteBrief." };
+    const { parseOperationalText } = await import("../port/ofp_weights");
+    let w;
+    try { w = parseOperationalText(txt, sectorId); } catch (e) { return { error: "OFP cũ: " + (e as Error).message }; }
+    if (w.pld == null) return { error: "OFP cũ không có PLD — không lấy được payload." };
+    const efb = String(body.efb || "").trim().replace(/^TLK\//i, "");
+    if (efb) (db as { tlk: string }).tlk = efb;
+    const routeDoc = await loadRouteDoc(ctx);
+    const item: Raw = { id: flight.row, seq: String(body.seq || ""), pay: String(Math.trunc(w.pld)), extra: String(w.extra_fuel ?? 0) };
+    const text = ft.build_req(db, [item], dsp, routeDoc.rows || []);
+    if (!text.trim()) return { error: "Không soạn được REQ." };
+    const bytes = ft.req_bytes(text);
+    let binary = "";
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return { ok: true, text, file: btoa(binary), filename: `VJC${want}_${dep}${arr}.req`,
+      pld: w.pld, extra: w.extra_fuel ?? 0, reg: flight.reg, plan_no: w.plan_no || "" };
+  },
 };
 
 export const jobs: Jobs = {};
