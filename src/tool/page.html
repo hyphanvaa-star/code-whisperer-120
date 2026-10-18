@@ -5870,7 +5870,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 0.4</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 0.5</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -26890,6 +26890,8 @@ $("#splitPdfFile").onchange = async e => {
     const ok = info.length - bad.size;
     write("✂ Tách xong 1 lần: " + ok + "/" + info.length + " tàu bay", bad.size ? "fail" : "ok");
     for(const x of d.failed || []) write("  ✗ " + x.name + ": " + x.error, "fail");
+    if(d.pc_dir) write("💾 Trợ lý PC đang chép " + info.length + " file vào " + d.pc_dir, "ok");
+    else write("⚠ Trợ lý PC chưa bật — chưa chép được vào D:\\MEL (web vẫn dùng được file)", "hint");
   }catch(err){
     write("✗ Lỗi: " + err.message, "fail");
   }finally{
