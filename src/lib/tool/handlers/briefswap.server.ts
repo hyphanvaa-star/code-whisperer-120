@@ -205,7 +205,7 @@ export const jobs: Jobs = {
         const res = await fbGet(`/webapi/sectors/${f.id}/attachments/${old.id}`, "application/pdf");
         if (!res.ok) throw new Error("Không tải được Briefing cũ — giữ nguyên tờ cũ, chưa đổi BF.");
         previous = await readPreviousBriefing(new Uint8Array(await res.arrayBuffer()), f.callsign);
-        emit({ type: "line", text: `✓ Đã đọc cột NOTAM (${previous.notams.filter(Boolean).length} ô có nội dung) và NOTES/Permits từ Briefing cũ; WX lấy mới, REG ${plan.new_reg} + MEL tàu mới`, cls: "ok" });
+        emit({ type: "line", text: `✓ Đã đọc cột NOTAM (${previous.notams.filter(Boolean).length} ô có nội dung) từ Briefing cũ; NOTES để trống, Permits soạn theo chuẩn; WX lấy mới, REG ${plan.new_reg} + MEL tàu mới`, cls: "ok" });
       } else emit({ type: "line", text: "· Chuyến chưa có Briefing cũ — soạn mới, NOTES để trống" });
       sheet = await draftFromFlight(f, {
         ...await loadBriefingData(ctx),
