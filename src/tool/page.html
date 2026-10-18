@@ -26843,18 +26843,43 @@ $("#splitPdfFile").onchange = async e => {
   writeSep();
   write("📄 Đọc file " + f.name + " (" + (f.size/1024).toFixed(0) + " KB)…", "hint");
   try{
-    const r = await fetch("/api/split-regnotice", {
-      method: "POST",
-      headers: {"Content-Type": "application/octet-stream"},
-      body: f,
-    });
-    const d = await r.json();
-    if(d.error){ write("✗ " + d.error, "fail"); return; }
-    write("✂ Tách xong: " + d.total + " tàu bay → " + d.output_dir, "ok");
-    for(const x of d.files){
-      write("  ✓ " + x.code + ": " + x.pages + " trang → " + x.file);
-      regPdfAvail.add(x.code.replace(/-/g, "").toUpperCase());
+    // Tách ngay trên máy (không gửi file lớn lên mạng — tường lửa văn phòng hay cắt kết nối dài).
+    const pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");
+    pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+    const { PDFDocument } = await import("https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm");
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    const doc = await pdfjs.getDocument({ data: bytes.slice() }).promise;
+    const codePages = new Map();
+    let current = null;
+    for(let i = 1; i <= doc.numPages; i++){
+      const tc = await (await doc.getPage(i)).getTextContent();
+      const txt = tc.items.map(t => t.str).join(" ");
+      const m = /Status of\s*(VN-A\d{3})/.exec(txt);
+      if(m) current = m[1];
+      if(current){ if(!codePages.has(current)) codePages.set(current, []); codePages.get(current).push(i - 1); }
+      if(i % 20 === 0) btn.textContent = "Đang đọc " + i + "/" + doc.numPages + "…";
     }
+    if(!codePages.size){ write("✗ Không thấy trang nào có 'Status of VN-Axxx'", "fail"); return; }
+    const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+    let ok = 0, fail = 0;
+    for(const code of [...codePages.keys()].sort()){
+      const pages = codePages.get(code);
+      const out = await PDFDocument.create();
+      for(const p of await out.copyPages(src, pages)) out.addPage(p);
+      const fname = code.replace("-", "") + ".pdf";
+      btn.textContent = "Đang lưu " + code + "…";
+      try{
+        const r = await fetch("/api/regnotice/put?name=" + encodeURIComponent(fname), {
+          method: "POST", headers: {"Content-Type": "application/pdf"}, body: await out.save(),
+        });
+        const d = await r.json();
+        if(d.error) throw new Error(d.error);
+        ok++;
+        write("  ✓ " + code + ": " + pages.length + " trang → " + fname);
+        regPdfAvail.add(code.replace(/-/g, "").toUpperCase());
+      }catch(er){ fail++; write("  ✗ " + code + ": " + er.message, "fail"); }
+    }
+    write("✂ Tách xong: " + ok + " tàu bay" + (fail ? (", lỗi " + fail) : ""), fail ? "fail" : "ok");
   }catch(err){
     write("✗ Lỗi: " + err.message, "fail");
   }finally{
