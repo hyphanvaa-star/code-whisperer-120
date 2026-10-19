@@ -267,6 +267,19 @@ export const jobs: Jobs = {
         onProgress: (text, cs) => emit({ type: "line", text: `  ${text}`, found: cs || undefined }),
       });
       const saved = res.saved.filter((f) => !f.skipped).length;
+      try {
+        const { getFile } = await import("../store.server");
+        const { queueFilesToPc } = await import("./pc.server");
+        const copies: { name: string; bytes: Uint8Array }[] = [];
+        for (const f of res.saved) {
+          const b = await getFile(ctx, `pibwx/${f.filename}`);
+          if (b?.byteLength) copies.push({ name: f.filename, bytes: new Uint8Array(b) });
+        }
+        if (copies.length) {
+          const dest = await queueFilesToPc(ctx, "pibwx", copies);
+          emit({ type: "line", text: dest ? `💾 lưu ${copies.length} file PIB về máy: ${dest}` : "· trợ lý PC chưa bật — chưa lưu được file về ổ D/C", cls: dest ? undefined : "bad" });
+        }
+      } catch { /* lưu máy lỗi — vẫn đính kèm */ }
       const skipped = res.saved.length - saved;
       for (const c of res.missing) emit({ type: "line", text: `✗ ${c}: không thấy PIB trong cửa sổ ±${hours}h`, cls: "bad" });
       for (const e of res.errors.slice(0, 10)) emit({ type: "line", text: `✗ ${e}`, cls: "bad" });

@@ -223,10 +223,8 @@ export const wxJobs: Jobs = {
         maxAgeH,
         onProgress: (text, cs) => emit({ type: "line", text: `  ${text}`, found: cs || undefined }),
         transport: pcTransport(ctx),
-        hasFile: async (filename) => {
-          const existing = await listFiles(ctx, "pibwx");
-          return existing.some((f) => f.name === filename);
-        },
+        // Không dùng lại file cũ — luôn tải bản mới.
+        hasFile: async () => false,
       });
     } catch (exc) {
       emit({ type: "line", text: `✗ ${(exc as Error)?.message ?? exc}`, cls: "bad" });
@@ -236,16 +234,23 @@ export const wxJobs: Jobs = {
 
     // Lưu PDF vào store "pibwx/" (thay ổ đĩa data/pibwx của bản PC).
     const savedMeta: Array<{ callsign: string; filename: string }> = [];
+    const pcCopies: { name: string; bytes: Uint8Array }[] = [];
     for (const s of res.saved) {
       try {
         await putFile(ctx, `pibwx/${safeFilename(s.filename)}`, s.bytes, "application/pdf");
         savedMeta.push({ callsign: s.callsign, filename: s.filename });
+        pcCopies.push({ name: safeFilename(s.filename), bytes: s.bytes });
       } catch (exc) {
         emit({ type: "line", text: `✗ ${s.callsign}: không lưu được ${s.filename} — ${(exc as Error)?.message ?? exc}`, cls: "bad" });
         res.missing.push(s.callsign);
       }
     }
 
+    if (pcCopies.length) {
+      const { queueFilesToPc } = await import("./pc.server");
+      const dest = await queueFilesToPc(ctx, "pibwx", pcCopies).catch(() => null);
+      emit({ type: "line", text: dest ? `💾 lưu ${pcCopies.length} file WX về máy: ${dest}` : "· trợ lý PC chưa bật — chưa lưu được file về ổ D/C", cls: dest ? undefined : "bad" });
+    }
     for (const cs of res.missing) emit({ type: "line", text: `✗ ${cs}: chưa phát hành WX`, cls: "bad" });
     for (const e of res.errors.slice(0, 10)) emit({ type: "line", text: `! ${e}`, cls: "bad" });
 
