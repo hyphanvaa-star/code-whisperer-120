@@ -215,7 +215,8 @@ export const jobs: Jobs = {
       return end(1, { ok: 0, skipped: 0, failed: 0 });
     }
     const { loadFlights, filterByWindow } = await import("../core/gantts.server");
-    const { getFile, listFiles } = await import("../store.server");
+    const { getFile, listFiles, removeFiles } = await import("../store.server");
+    const { checkAgainstStd } = await import("../port/pibwx_time");
     const { uploadAndAttach } = await import("./briefing.server");
     const callsigns = (params["callsigns"] as string[]) ?? [];
     const wantDigits = new Set(callsigns.map(digits).filter(Boolean));
@@ -234,13 +235,20 @@ export const jobs: Jobs = {
       const k = digits(f.callsign);
       if (k) byCs.set(k, [...(byCs.get(k) ?? []), f]);
     }
-    let names = ((params["filenames"] as string[]) ?? []).filter(Boolean);
+    // Chỉ dùng đúng các file vừa tải trong lần này — không bao giờ quét file cũ.
+    const names = ((params["filenames"] as string[]) ?? []).filter(Boolean);
+    // Dọn file tạm cũ (quá 2 giờ) còn sót lại.
+    try {
+      const stale = (await listFiles(ctx, "pibwx"))
+        .filter((f) => Date.now() - new Date(String((f as { updated_at?: string }).updated_at || 0)).getTime() > 2 * 3600e3)
+        .map((f) => `pibwx/${f.name}`);
+      if (stale.length) await removeFiles(ctx, stale);
+    } catch { /* ignore */ }
     if (!names.length) {
-      // Quét lại toàn bộ kho pibwx/ cho các chuyến đang có trong bảng.
-      names = (await listFiles(ctx, "pibwx").catch(() => [] as Array<{ name: string }>))
-        .map((f) => f.name)
-        .filter((n) => /\.pdf$/i.test(n));
+      emit({ type: "line", text: "· không có file PIB/WX mới nào vừa tải — không đính kèm file cũ" });
+      return end(0, { ok: 0, skipped: 0, failed: 0 });
     }
+    const done: string[] = [];
     const needRoute: Array<{ callsign: string; filename: string; kind: string }> = [];
     type Work = { f: (typeof flights)[number]; name: string; kind: string };
     const work: Work[] = [];
