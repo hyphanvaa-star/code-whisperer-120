@@ -323,9 +323,8 @@ export async function downloadPib(
   // File đã có trong kho pibwx/ — dùng để bỏ qua khi không overwrite.
   const existing = new Set<string>();
   try {
-    for (const f of await listFiles(ctx, "pibwx")) {
-      existing.add(String(f.name || "").toLowerCase());
-    }
+    // Không dùng lại file cũ trên máy chủ — luôn tải bản mới.
+    void listFiles;
   } catch {
     // kho chưa có thư mục — coi như trống
   }
