@@ -28154,6 +28154,7 @@ function init(){
   let files=[];
   const pick=async e=>{files=[...e.target.files];await scan(files);};
   $("#afDir").onchange=pick;$("#afFiles").onchange=pick;
+  $("#afFl").addEventListener("input",()=>{$("#afContent").value="";$("#afStat").textContent="";});
   $("#afFl").addEventListener("change",()=>{if(files.length)scan(files);else pullFpl();});
   $("#afExport").onclick=exportTpl;
   render();}
@@ -28168,19 +28169,32 @@ async function scan(files){
       if(line.trim()===""&&w) break;}}
   $("#afContent").value=out.join("\r\n");
   $("#afStat").textContent=out.length?`Tìm thấy ${sv} trong ${files.length} file`:`Không thấy ${sv} trong ${files.length} file`;}
+function fplNo(t){const m=String(t||"").match(/\(FPL-[A-Z]{2,3}0*(\d+)/i);return m?String(parseInt(m[1],10)):"";}
+function wantNo(){const d=$("#afFl").value.replace(/\D/g,"");return d?String(parseInt(d,10)):"";}
+function fplMismatch(){const got=fplNo($("#afContent").value),want=wantNo();return got&&want&&got!==want?got:"";}
 async function pullFpl(){
   const fl=$("#afFl").value.trim();if(!fl)return;
+  $("#afContent").value="";
+  $("#afStat").style.color="";
   $("#afStat").textContent="Đang lấy ATC FPL…";
   try{
     const d=await (await fetch("/api/atc/fpl?flt="+encodeURIComponent(fl))).json();
-    if(d.found){$("#afContent").value=d.text;$("#afStat").textContent=`Đã lấy FPL ${d.name||""} từ ${d.file}`;}
+    if(d.found){
+      $("#afContent").value=d.text;
+      const bad=fplMismatch();
+      if(bad){$("#afStat").style.color="#c00";$("#afStat").textContent=`⚠ SAI CHUYẾN: nhập ${wantNo()} nhưng điện văn lấy về là VJC${bad} (${d.file}). Kiểm tra OFP trên FliteBrief.`;}
+      else $("#afStat").textContent=`Đã lấy FPL ${d.name||""} từ ${d.file}`;
+    }
     else $("#afStat").textContent=d.error||"Không thấy FPL.";
   }catch(e){$("#afStat").textContent="Lỗi lấy FPL: "+(e&&e.message);}
 }
 async function exportTpl(){
   const fl=$("#afFl").value.trim();if(!fl){alert("Nhập FL NO trước");return;}
   if(!$("#afContent").value.trim()) await pullFpl();
-  const content=$("#afContent").value||"No content found.";
+  const bad=fplMismatch();
+  if(bad){alert(`Không xuất: bạn nhập chuyến ${wantNo()} nhưng nội dung FPL là VJC${bad}. Sửa nội dung hoặc kiểm tra lại OFP.`);return;}
+  if(!fplNo($("#afContent").value)){alert("Không có điện văn (FPL-… ) hợp lệ để xuất.");return;}
+  const content=$("#afContent").value;
   let x='<?xml version="1.0" encoding="Unicode" standalone="yes"?>\r\n<Message>\r\n';
   for(const r of recips()) x+="    <Recipient>"+r[1]+"</Recipient>\r\n";
   x+="    <Subject></Subject>\r\n    <Priority>0</Priority>\r\n    <AtsPriority>FF</AtsPriority>\r\n    <OHI></OHI>\r\n";
