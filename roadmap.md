@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] Sửa cắt EZFW ở Tự động tải và Tạo EZFW KHB: khôi phục cột theo tọa độ PDF, giữ dòng trống/chữ ký theo TXT mẫu; kiểm thử cả hai luồng.
+- [x] Sửa cắt EZFW ở Tự động tải và Tạo EZFW KHB: dùng chung cách khôi phục tọa độ PDF, giữ cột/dòng trống/chữ ký theo TXT mẫu; 17 kiểm thử đạt, gồm PDF có thứ tự chữ đảo và khoảng trắng bị tách; build OK. Chưa thử thư nháp/OFP thật tại máy người dùng.
 - [x] KHB V 1.8: nút Tạo EZFW nhập nhiều chuyến, đối chiếu ngày/chặng/tàu của cả sector và nội dung PDF; 14 kiểm thử đạt với hai TXT mẫu, hộp nhập đã kiểm tra; dùng trợ lý hiện tại lưu ATC/EZFW xuống D:\ATC-EZFW, dự phòng C.
 - [ ] KHB EZFW: thử OFP FliteBrief thật và xác nhận file trên D/C — cần phiên đăng nhập của người dùng và trợ lý PC tại máy; không tạo được phiên theo tài khoản Lovable hiện tại.
 
