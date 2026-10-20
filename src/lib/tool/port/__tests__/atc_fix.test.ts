@@ -160,3 +160,19 @@ describe("editor", () => {
     expect(editor.fl.length).toBe(1);
   });
 });
+
+describe("mumga point/fl", () => {
+  it("custom point and fl are applied and round-trip", () => {
+    const { doc, editor } = atcFix.save_editor({ mumga: [{ dep: "VVDL", arr: "VVNB", point: "MUMGA", fl: "270" }] });
+    expect(editor.mumga[0]).toMatchObject({ point: "MUMGA", fl: "270" });
+    const block = `(FPL-VJC1-IS
+-A320/M-S
+-VVDL1200
+-N0440F270 DCT MUMGA W1 BBB
+-VVNB0100 VVCI
+ C/1 NAME)
+`;
+    const [fixed] = atcFix.fix_block(block, atcFix.load_rules(doc));
+    expect(fixed).toContain("MUMGA/N0440F270");
+  });
+});

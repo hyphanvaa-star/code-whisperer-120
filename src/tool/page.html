@@ -26607,11 +26607,12 @@ let ftConvMu = [];
 const FT_CONV_FL = ["dep", "arr", "fl"];
 const FT_CONV_SID = ["sid", "expand"];
 const FT_CONV_PAIR = ["dep", "arr"];
+const FT_CONV_MU = ["dep", "arr", "point", "fl"];
 function ftPaintConv(){
   ftPaintBound("#ftConvFlBox", ["DEP", "ARR", "FL"], FT_CONV_FL, ftConvFl);
   ftPaintBound("#ftConvSidBox", ["SID", "Expand"], FT_CONV_SID, ftConvSid);
   ftPaintBound("#ftConvNoBox", ["DEP", "ARR"], FT_CONV_PAIR, ftConvNo);
-  ftPaintBound("#ftConvMuBox", ["DEP", "ARR"], FT_CONV_PAIR, ftConvMu);
+  ftPaintBound("#ftConvMuBox", ["DEP", "ARR", "Điểm", "FL"], FT_CONV_MU, ftConvMu);
 }
 function ftAddConv(rows, keys, box){
   const rec = {};
@@ -26636,7 +26637,7 @@ $("#ftConvBtn").onclick = function(){
 $("#ftConvFlAdd").onclick = function(){ ftAddConv(ftConvFl, FT_CONV_FL, "#ftConvFlBox"); };
 $("#ftConvSidAdd").onclick = function(){ ftAddConv(ftConvSid, FT_CONV_SID, "#ftConvSidBox"); };
 $("#ftConvNoAdd").onclick = function(){ ftAddConv(ftConvNo, FT_CONV_PAIR, "#ftConvNoBox"); };
-$("#ftConvMuAdd").onclick = function(){ ftAddConv(ftConvMu, FT_CONV_PAIR, "#ftConvMuBox"); };
+$("#ftConvMuAdd").onclick = function(){ ftAddConv(ftConvMu, FT_CONV_MU, "#ftConvMuBox"); };
 $("#ftConvSave").onclick = function(){
   fetch("/api/fpltext/convert", {
     method: "POST", headers: {"Content-Type": "application/json"},

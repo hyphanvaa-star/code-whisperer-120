@@ -103,9 +103,10 @@ export function editor_doc(doc?: Raw | null): Raw {
     const [dep, arr] = pairCells(pair, true);
     return { dep, arr };
   });
-  const muRows = (rules.mumga as string[]).map((key) => {
-    const [dep, arr] = pairCells(key);
-    return { dep, arr };
+  const muRows = (rules.mumga as string[]).map((raw) => {
+    const e = mumga_entry(raw);
+    const [dep, arr] = pairCells(e.key);
+    return { dep, arr, point: e.point, fl: String(e.fl) };
   });
   return { fl: flRows, special_sid: sidRows, no_expand: noRows, mumga: muRows };
 }
@@ -132,7 +133,7 @@ export function save_editor(payload: Raw): { doc: Raw; editor: Raw } {
   const mumga: string[] = [];
   for (const rec of payload.mumga || []) {
     const dep = _apt_cell(rec.dep), arr = _apt_cell(rec.arr);
-    if (dep && arr) mumga.push(dep + arr);
+    if (dep && arr) mumga.push(mumgaKey(dep, arr, rec.point, rec.fl));
   }
   const doc: Raw = { replace: true, fl, special_sid: special, no_expand: noExpand, mumga };
   return { doc, editor: editor_doc(doc) };
@@ -247,15 +248,29 @@ function stripSlashNear(tokens: string[], idx: number, toward: number): void {
   tokens[j] = tok.slice(0, slash);
 }
 
-function mumga(tokens: string[], speed: string): string {
+// Mumga entry: "DEPARR" (MUMGA/330) or "DEPARR|POINT|FL".
+export function mumga_entry(raw: string): { key: string; point: string; fl: number } {
+  const [k, p, f] = String(raw || "").toUpperCase().replace(/-/g, "").split("|");
+  const n = parseInt(String(f || ""), 10);
+  return { key: (k || "").trim(), point: (p || "").trim() || "MUMGA", fl: Number.isFinite(n) ? n : 330 };
+}
+
+function mumgaKey(dep: string, arr: string, point: string, fl: string): string {
+  const pt = String(point || "").trim().toUpperCase() || "MUMGA";
+  const n = parseInt(String(fl || "").trim(), 10);
+  const lv = Number.isFinite(n) ? n : 330;
+  return pt === "MUMGA" && lv === 330 ? dep + arr : `${dep}${arr}|${pt}|${lv}`;
+}
+
+function mumga(tokens: string[], speed: string, point = "MUMGA", fl = 330): string {
   let note = "";
   const out: string[] = [];
   for (let tok of tokens) {
     const up = tok.toUpperCase();
     if (up.startsWith("ENGIM/")) { tok = "ENGIM"; note = "ENGIM"; }
-    if (up.includes("MUMGA") && !up.includes("/N")) {
-      tok = tok + "/N" + speed + "F330";
-      note = (note + " MUMGA").trim();
+    if (bare(up) === point && !up.includes("/N")) {
+      tok = bare(tok) + "/N" + speed + "F" + String(fl).padStart(3, "0");
+      note = (note + " " + point + " F" + fl).trim();
     }
     out.push(tok);
   }
@@ -297,8 +312,10 @@ export function fix_route(tokens: string[], dep: string, arr: string, rules: Raw
     const [nw, changed] = setFl(cruise, Number(fl));
     if (changed) { work[0] = nw; notes.push("FL " + fl); cruise = nw; }
   }
-  if ((rules.mumga || []).includes(key)) {
-    const mu = mumga(work, speedOf(cruise));
+  for (const raw of rules.mumga || []) {
+    const e = mumga_entry(raw);
+    if (e.key !== key) continue;
+    const mu = mumga(work, speedOf(cruise), e.point, e.fl);
     if (mu) notes.push(mu);
   }
   tokens.length = 0;
