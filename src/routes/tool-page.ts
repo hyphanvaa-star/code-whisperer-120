@@ -1933,6 +1933,11 @@ function ftRender(){
   y = Math.max(12, Math.min(y, window.innerHeight - rect.height - 12));
   el.style.left = (x / zoom) + "px";
   el.style.top = (y / zoom) + "px";
+  const placed = el.getBoundingClientRect();
+  const dx = placed.right > window.innerWidth - 12 ? window.innerWidth - 12 - placed.right : placed.left < 12 ? 12 - placed.left : 0;
+  const dy = placed.bottom > window.innerHeight - 12 ? window.innerHeight - 12 - placed.bottom : placed.top < 12 ? 12 - placed.top : 0;
+  if(dx) el.style.left = ((parseFloat(el.style.left) || 0) + dx / zoom) + "px";
+  if(dy) el.style.top = ((parseFloat(el.style.top) || 0) + dy / zoom) + "px";
 }`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + MOBILE + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
