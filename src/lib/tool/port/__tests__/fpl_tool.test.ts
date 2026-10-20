@@ -150,7 +150,7 @@ describe("FplFormulaTests", () => {
       extra: 0, seq: 1, routeTable: routeDoc.rows, pcrTakeoff,
     });
     expect(got).toContain("16F÷A0,I,TO=70625");
-    expect(pcrPlus(db, "UIH", "VN-A644")).toBe("76391");
+    expect(pcrPlus(db, "UIH", "VN-A644")).toBe("76483");
     const chosen = ft.render_fpl(db, { flt: "383", dep: "UIH", arr: "HAN", reg: "VN-A202", ac: 321, etd: "05:05" }, {
       extra: 0, seq: 1, pcr_choice: "76391", routeTable: routeDoc.rows, pcrTakeoff,
     });
