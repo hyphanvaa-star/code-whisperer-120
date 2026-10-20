@@ -29,7 +29,7 @@ async function rawGet(ctx: Ctx, key: string): Promise<{ found: boolean; value: u
 export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T> {
   if (LAYERED_KEYS.has(key) && ctx.userId && !(await isAdmin(ctx))) {
     const own = await rawGet(ctx, userKey(ctx, key));
-    if (own.found && own.value != null) return own.value as T;
+    if (own.found && own.value != null && !(own.value as { __team?: boolean }).__team) return own.value as T;
   }
   const r = await rawGet(ctx, key);
   return (r.value as T) ?? fallback;
@@ -49,7 +49,7 @@ export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<vo
 /** Drop the caller's private copy so they follow the admin's team version again. */
 export async function resetToTeam(ctx: Ctx, key: string): Promise<void> {
   if (!LAYERED_KEYS.has(key)) return;
-  const { error } = await ctx.supabase.from("app_settings").update({ value: null as never }).eq("key", userKey(ctx, key));
+  const { error } = await ctx.supabase.from("app_settings").update({ value: { __team: true } as never }).eq("key", userKey(ctx, key));
   if (error) throw new Error(error.message);
 }
 
