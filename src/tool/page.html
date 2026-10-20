@@ -22181,7 +22181,7 @@ function vRender(d){
     '<span>' + (d.old_legs || 0) + " chặng (" + (d.old_days || []).join(", ")
     + ") → " + (d.new_legs || 0) + " chặng (" + (d.new_days || []).join(", ") + ")</span>"
     + '<span>đổi tàu <b>' + (d.n_reg || 0) + "</b></span>"
-    + '<span>đổi crew <b>' + (d.n_crew || 0) + "</b></span>"
+    + '<span title="' + esc(d.crew_note || "") + '">đổi crew <b>' + (d.n_crew || 0) + "</b></span>"
     + '<span>delay <b>' + (d.n_delay || 0) + "</b></span>"
     + (nDuty ? '<span>duty crewlist <b>' + nDuty + "</b></span>" : "")
     + ((d.added || []).length || (d.removed || []).length
