@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] KHB: nút Tạo EZFW, đối chiếu OFP đúng ngày/chặng/tàu và tự lưu hai file ATC/EZFW xuống D:\ATC-EZFW, dự phòng C qua trợ lý PC; thử chuyến thật cần trợ lý tại máy người dùng.
+
 - [x] EST KHB V 1.7: lưu STD riêng theo tên cột; khớp Omni theo STD trước ETD, lấy giờ gần nhất duy nhất cùng chuyến/ngày/chặng; 32 kiểm thử đạt, VJC774 EST 15.040 kg và REQ vẫn ETD 16:30.
 - [ ] EST KHB: thử VJC774 từ phiên thật — cần người dùng đăng nhập preview; tài khoản Lovable hiện tại không khớp tài khoản web.
 
