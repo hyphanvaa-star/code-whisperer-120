@@ -3,19 +3,53 @@
 // Files (uploaded Excel, PDFs, generated files): private storage bucket "tool-files".
 import type { Ctx } from "./types";
 
-export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T> {
+/** Team config tables: admin saves the team copy; other users save a private copy at `<key>@u:<uid>`. */
+export const LAYERED_KEYS = new Set([
+  "notice_rules", "fpl.cost_index", "fpl.taxi_fuel", "fpl.route_suffix",
+  "fpl.alt_route", "fpl.era", "fpl.pcr_limits",
+]);
+const userKey = (ctx: Ctx, key: string) => `${key}@u:${ctx.userId}`;
+const adminCache = new WeakMap<object, Promise<boolean>>();
+export function isAdmin(ctx: Ctx): Promise<boolean> {
+  let p = adminCache.get(ctx);
+  if (!p) {
+    p = Promise.resolve(ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" }))
+      .then(({ data }) => data === true, () => false);
+    adminCache.set(ctx, p);
+  }
+  return p;
+}
+
+async function rawGet(ctx: Ctx, key: string): Promise<{ found: boolean; value: unknown }> {
   const { data, error } = await ctx.supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
   if (error) throw new Error(error.message);
-  return (data?.value as T) ?? fallback;
+  return { found: !!data, value: data?.value };
+}
+
+export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T> {
+  if (LAYERED_KEYS.has(key) && ctx.userId && !(await isAdmin(ctx))) {
+    const own = await rawGet(ctx, userKey(ctx, key));
+    if (own.found && own.value != null) return own.value as T;
+  }
+  const r = await rawGet(ctx, key);
+  return (r.value as T) ?? fallback;
 }
 
 export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<void> {
+  const target = LAYERED_KEYS.has(key) && !(await isAdmin(ctx)) ? userKey(ctx, key) : key;
   const { error } = await ctx.supabase.from("app_settings").upsert({
-    key,
+    key: target,
     value: value as never,
     updated_by: ctx.userId,
     updated_at: new Date().toISOString(),
   });
+  if (error) throw new Error(error.message);
+}
+
+/** Drop the caller's private copy so they follow the admin's team version again. */
+export async function resetToTeam(ctx: Ctx, key: string): Promise<void> {
+  if (!LAYERED_KEYS.has(key)) return;
+  const { error } = await ctx.supabase.from("app_settings").update({ value: null as never }).eq("key", userKey(ctx, key));
   if (error) throw new Error(error.message);
 }
 
