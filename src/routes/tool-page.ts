@@ -1922,7 +1922,8 @@ function ftRender(){
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
-  const zoom = parseFloat(document.documentElement.style.zoom) || 1;
+  const zoom = (parseFloat(document.documentElement.style.zoom) || 1) * (parseFloat(document.body.style.zoom) || 1);
+  el.style.setProperty('--taf-read-scale', String(1 / zoom));
   const rect = el.getBoundingClientRect();
   const pad = 16;
   let x = ev.clientX + pad, y = ev.clientY + pad;
