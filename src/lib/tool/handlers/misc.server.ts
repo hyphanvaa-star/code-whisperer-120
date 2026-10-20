@@ -58,7 +58,7 @@ export const routes: Routes = {
       const mine = stored[kind];
       const envUser = k.user.map((n) => process.env[n]).find(Boolean) ?? "";
       const envPass = k.pass.map((n) => process.env[n]).find(Boolean) ?? "";
-      const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb" || kind === "jetplan";
+      const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb" || kind === "jetplan" || kind === "opscore";
       if (kind === "outlook") {
         // Không bao giờ điền sẵn tài khoản Outlook — người dùng tự nhập mỗi lần.
         const { OUTLOOK_TTL } = await import("../creds.server");
@@ -120,6 +120,19 @@ export const routes: Routes = {
         const { fbLoginTest } = await import("@/lib/flitebrief.server");
         const { runWithUserCreds } = await import("../creds.server");
         await runWithUserCreds(ctx.userId, () => runWithVars(vars, () => fbLoginTest()));
+        return { ok: true, name: username };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      }
+    }
+    if (kind === "opscore" && password) {
+      try {
+        const { login } = await import("../opscore.server");
+        await runWithVars({ OPSCORE_USER: username, OPSCORE_PASS: password }, () => login());
+        await runWithVars({ OPSCORE_USER: username, OPSCORE_PASS: password }, async () => {
+          const { getSnapshot } = await import("../opscore.server");
+          await getSnapshot(ctx as never, true);
+        });
         return { ok: true, name: username };
       } catch (e) {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };
