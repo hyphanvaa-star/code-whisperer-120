@@ -11,6 +11,7 @@ import formMnlAsset from '@/assets/form-mnl.asset.json';
 import mnlSigAsset from '@/assets/mnl-signature.asset.json';
 import aftnAddresses from '@/tool/aftn-addresses.txt?raw';
 import aftnBookScript from '@/tool/aftn-book.js?raw';
+import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1909,7 +1910,7 @@ function ftRender(){
       #wrapAftn label:has(#afFl){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:800;letter-spacing:.06em;color:var(--x-ink);-webkit-text-fill-color:var(--x-ink)}
       #wrapAftn #afFl{box-sizing:border-box!important;width:240px!important;min-height:68px!important;font-size:34px!important;font-weight:800!important;line-height:1;text-align:center!important;padding:8px 12px!important;border:2px solid var(--x-line)!important;border-radius:12px!important;background:var(--x-card)!important;color:#c00!important;-webkit-text-fill-color:#c00!important}
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
-    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script></body>`)
+    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script></body>`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + MOBILE + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
@@ -1949,7 +1950,7 @@ function ftRender(){
       "    limData.aircraft = limPad(d.aircraft || [], LIM_ROWS, limBlankAc);",
       "    limData.aircraft = limPad(d.limits_aircraft || d.aircraft || [], LIM_ROWS, limBlankAc);",
     )
-    .replace(/(id="appVersion"[^>]*>)[^<]+/, '$1V 1.7')
+    .replace(/(id="appVersion"[^>]*>)[^<]+/, '$1V 1.8')
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     ;
