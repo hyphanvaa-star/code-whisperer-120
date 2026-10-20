@@ -336,6 +336,28 @@ export const routes: Routes = {
     }
 
     const rows = xlsdiff.rowsForUi(res);
+    // Ngầm so 2 crewlist gần nhất (file FPL VER không có cột tổ bay).
+    let crewNote = "";
+    let nCrewList = 0;
+    try {
+      const files = (await listExcel(ctx)).filter((f) => !/\bVER\s*\d+/i.test(String(f.file)) && !String(f.file).startsWith("~$") && !String(f.file).startsWith("_crewprev_"));
+      const cur = await currentExcel(ctx);
+      const curIx = cur ? files.findIndex((f) => f.file === cur.file) : -1;
+      const newer = curIx >= 0 ? files[curIx]! : files[0];
+      const older = files.slice((curIx >= 0 ? curIx : 0) + 1).find(Boolean);
+      if (newer && older) {
+        const a = await getFile(ctx, `${excelDir(ctx)}/${older.file}`);
+        const b = await getFile(ctx, `${excelDir(ctx)}/${newer.file}`);
+        if (a && b) {
+          const cres = await xlsdiff.diff(String(older.file), a, String(newer.file), b);
+          const { mergeCrewlistDiff } = await import("../port/crewlist_diff");
+          nCrewList = mergeCrewlistDiff(rows, cres, res.newDays);
+          crewNote = `Đổi crew so crewlist ${older.file} → ${newer.file}`;
+        }
+      }
+    } catch (e) {
+      crewNote = "Không so được 2 crewlist: " + (e as Error).message;
+    }
     await attachDsp(rows);
 
     const fmtHm = (l: xlsdiff.Leg | null) => (l?.std ? `${String(l.std.h).padStart(2, "0")}:${String(l.std.m).padStart(2, "0")}` : "");
@@ -347,8 +369,9 @@ export const routes: Routes = {
       old_days: res.oldDays,
       new_days: res.newDays,
       warn: res.warn,
+      crew_note: crewNote,
       n_reg: xlsdiff.nReg(res),
-      n_crew: xlsdiff.nCrew(res),
+      n_crew: Math.max(xlsdiff.nCrew(res), nCrewList),
       n_delay: xlsdiff.nDelay(res),
       rows,
       added: xlsdiff.addedList(res).map((c) => ({ flt: c.flt, route: `${c.dep}-${c.arr}`, std: fmtHm(c.new), reg: c.new?.reg || "" })),
