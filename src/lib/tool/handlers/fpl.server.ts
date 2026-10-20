@@ -12,6 +12,8 @@ import pcrSeed from "../data/pcr_limits.json";
 import * as excelMod from "./excel.server";
 import { resolveCrewFlight } from '../port/fpl_flight_identity';
 import { omniPayload, exportPayloadItems } from '../port/fpl_payload';
+import { jobId } from '../jobs';
+import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
 // data/fpl_tool.json + data/fpl/*.json files web.py reads/writes with app_settings
@@ -86,6 +88,16 @@ function readRows(body: Record<string, unknown>): Raw[] {
 }
 
 export const routes: Routes = {
+  "POST /api/fpltext/ezfw": async (ctx) => {
+    const body = await ctx.json();
+    const input = String(body.flight || '').trim();
+    if (input.length > 500 || !/^(?:(?:VJC|VJ)?\d{1,5})(?:[\s,;]+(?:VJC|VJ)?\d{1,5})*$/i.test(input)) return { error: 'Nhập số hiệu chuyến, ví dụ 7527 3901.' };
+    const wants = [...new Set(input.toUpperCase().split(/[\s,;]+/).map(s => s.replace(/\D/g, '').replace(/^0+/, '')))];
+    if (!wants.length || wants.length > 30 || wants.some(s => !s)) return { error: 'Nhập từ 1 đến 30 chuyến.' };
+    const pc = await import('../pcagent.server');
+    if (!pc.agentOnline(await pc.agentInfo(ctx))) return { error: 'Mở trợ lý PC và đăng nhập cùng tài khoản để tự lưu xuống D/C.' };
+    return { id: jobId('khb_ezfw', { wants }) };
+  },
   "GET /api/fpltext": async (ctx) => {
     const db = await loadDb(ctx);
     if (!db) return { error: NO_CREWLIST };
@@ -513,7 +525,64 @@ export const routes: Routes = {
   },
 };
 
-export const jobs: Jobs = {};
+export const jobs: Jobs = {
+  khb_ezfw: async (params, emit, ctx) => {
+    const wants = Array.isArray(params.wants) ? params.wants.slice(0, 30).map(String).filter(s => /^\d{1,5}$/.test(s)) : [];
+    let ok = 0, failed = 0;
+    try {
+      if (!wants.length) throw new Error('Chưa nhập chuyến.');
+      const db = await loadDb(ctx);
+      if (!db) throw new Error(NO_CREWLIST);
+      const pc = await import('../pcagent.server');
+      if (!pc.agentOnline(await pc.agentInfo(ctx))) throw new Error('Trợ lý PC chưa kết nối.');
+      const { loadFlights } = await import('../core/gantts.server');
+      const { fbGet } = await import('@/lib/flitebrief.server');
+      const sectors = await loadFlights(3, true);
+      const now = new Date();
+      for (const want of wants) {
+        emit({ type: 'line', text: `VJC${want}: đang đối chiếu KHB và OFP…` });
+        try {
+          const rows = db.flights.filter(f => String(f.flt || '').replace(/\D/g, '').replace(/^0+/, '') === want);
+          if (!rows.length) throw new Error('Không có trong Crewlist KHB đang nạp.');
+          const matches: EzfwSector[] = [];
+          let reason = '';
+          for (const row of rows) {
+            try {
+              matches.push(pickEzfwSector(sectors, { flt: want, reg: String(row.reg || ''), dep: String(row.dep || ''), arr: String(row.arr || ''), day: parseOpsDate(row.date) }, now));
+            } catch (e) { reason = (e as Error).message; }
+          }
+          matches.sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
+          const sector = matches[0];
+          if (!sector) throw new Error(reason || 'Không xác định được chuyến.');
+          if (matches[1]?.std?.getTime() === sector.std?.getTime()) throw new Error('Crewlist có chuyến trùng — không tự chọn.');
+          let text = '';
+          for (const path of [`/webapi/sectors/${sector.id}/ofp/0`, `/webapi/sectors/${sector.id}/ofp`]) {
+            const res = await fbGet(path, 'application/pdf');
+            if (!res.ok || res.status === 204) continue;
+            const bytes = new Uint8Array(await res.arrayBuffer());
+            if (bytes.length <= 4) continue;
+            if (String.fromCharCode(...bytes.slice(0, 4)) === '%PDF') {
+              const { ofpTextFromPdf } = await import('../port/ofp_weights');
+              text = await ofpTextFromPdf(bytes);
+            } else text = new TextDecoder().decode(bytes);
+            if (text) break;
+          }
+          const files = cutVerifiedEzfw(text, sector);
+          emit({ type: 'line', text: `VJC${want}: đúng ${sector.reg}, ${sector.dep_icao}–${sector.dest_icao}, STD ${sector.std?.toISOString()} — đang lưu 2 file…` });
+          for (const file of files) {
+            const id = await pc.enqueue('save_file', { dir: 'D:\\ATC-EZFW', name: file.name, data_b64: Buffer.from(file.text.replace(/\r?\n/g, '\r\n'), 'utf8').toString('base64') });
+            const result = await pc.waitResult(id, 120_000);
+            if (!result.path) throw new Error('Trợ lý chưa xác nhận đường dẫn file đã ghi.');
+            emit({ type: 'line', text: `Đã lưu ${String(result.path)}` });
+          }
+          ok++;
+        } catch (e) { failed++; emit({ type: 'line', text: `VJC${want}: BỎ QUA — ${(e as Error).message}` }); }
+        emit({ type: 'progress', done: ok + failed, total: wants.length });
+      }
+      emit({ type: 'end', code: failed ? 1 : 0, ok, failed, text: `Đã lưu ${ok} chuyến (${ok * 2} file); lỗi ${failed} chuyến.` });
+    } catch (e) { emit({ type: 'line', text: (e as Error).message }); emit({ type: 'end', code: 1, ok, failed: wants.length - ok }); }
+  },
+};
 
 /** True when STD (as local VN time, UTC+7) falls on the table's "d/m/yyyy" date. */
 const MON: Record<string, number> = { JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12 };
