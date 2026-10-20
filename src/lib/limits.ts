@@ -117,9 +117,13 @@ export function checkLimits(f: Flight, L: Limits): LimitWarn[] {
     if ([...forms(f.destIata || f.dest)].some((x) => cf.has(x))) checks.push(["DEST/STA", f.sta]);
     for (const [r, a] of [["ALT1", f.alt1], ["ALT2", f.alt2]] as const) if ([...forms(a)].some((x) => cf.has(x))) checks.push([`${r}/STA`, f.sta]);
     for (const [r, when] of checks) {
-      const t = hm(when); if (t == null || !curfewHit(t, s, e)) continue;
-      const evd = `${r} ${pad(Math.floor(t / 60))}:${pad(t % 60)}Z trong ${row.start || "—"}→${row.end || "—"} UTC`;
-      out.push({ kind: "curfew", severity: "critical", text: `CURFEW ${toIata(row.code)}: ${evd}`, evidence: evd });
+      const t = hm(when); if (t == null) continue;
+      const w = (x: number) => ((x % 1440) + 1440) % 1440;
+      const near = (s != null && curfewHit(t, w(s - 90), s)) || (e != null && curfewHit(t, e, w(e + 90)));
+      const inside = curfewHit(t, s, e);
+      if (!inside && !near) continue;
+      const evd = `${r} ${pad(Math.floor(t / 60))}:${pad(t % 60)}Z ${inside ? "trong" : "sát (đệm 1h30)"} ${row.start || "—"}→${row.end || "—"} UTC`;
+      out.push({ kind: "curfew", severity: inside ? "critical" : "warning", text: `${inside ? "CURFEW" : "SÁT CURFEW"} ${toIata(row.code)}: ${evd}`, evidence: evd });
     }
   }
 

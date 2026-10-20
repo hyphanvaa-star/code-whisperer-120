@@ -80,6 +80,12 @@ function limHits(r: Row, L: Limits) {
     const t = hmOf(k === "dep" ? r.f.etdUtc : etaZ);
     if (t == null) h[k].push({ sev: "warn", why: `${role} ${v} có curfew ${c.start}→${c.end} UTC` });
     else if (inCurfew(t, c.start, c.end)) h[k].push({ sev: "crit", why: `CURFEW ${v}: ${role} trong ${c.start}→${c.end} UTC` });
+    else {
+      const f = (x: number | null) => { if (x == null) return ""; const y = ((x % 1440) + 1440) % 1440; return `${String(Math.floor(y / 60)).padStart(2, "0")}:${String(y % 60).padStart(2, "0")}`; };
+      const a = hmOf(c.start), b = hmOf(c.end);
+      if ((a != null && inCurfew(t, f(a - 90), f(a))) || (b != null && inCurfew(t, f(b), f(b + 90))))
+        h[k].push({ sev: "warn", why: `SÁT CURFEW ${v}: ${role} trong vùng đệm 1h30 của ${c.start}→${c.end} UTC` });
+    }
   }
   for (const s of L.special) {
     if (!s.reg || !s.code || !s.limit) continue;
