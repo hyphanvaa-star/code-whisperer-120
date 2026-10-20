@@ -30,7 +30,8 @@ export function fixedWidthPage(items: PositionedText[]): string {
     else rows.push({ y, items: [item] });
   }
   const gaps = rows.slice(1).map((row, i) => (rows[i]?.y ?? row.y) - row.y).filter(gap => gap > 2);
-  const pitch = median(gaps.filter(gap => gap <= median(gaps))) || 12;
+  const sortedGaps = [...gaps].sort((a, b) => a - b);
+  const pitch = sortedGaps[Math.floor((sortedGaps.length - 1) / 2)] || 12;
   const lines: string[] = [];
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
