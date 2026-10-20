@@ -79,6 +79,10 @@ export function currentIp(): string {
   return als.getStore()?.ip ?? "";
 }
 
+export function currentUserId(): string {
+  return als.getStore()?.userId ?? "";
+}
+
 export function requestIp(req: Request): string {
   const h = req.headers;
   return (h.get("cf-connecting-ip") || (h.get("x-forwarded-for") || "").split(",")[0] || h.get("x-real-ip") || "").trim();

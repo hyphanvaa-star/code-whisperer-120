@@ -35,12 +35,14 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
             : {};
         const { requestIp } = await import("@/lib/tool/creds.server");
         const ip = requestIp(request);
+        const login = String(body["user"] || request.headers.get("x-pc-agent-user") || "");
+        const uid = login ? await pc.resolveAgentUser(login) : "";
         await pc.recordHeartbeat({
           version: String(body["version"] || ""),
           printers: printers as never,
           paths_exist: pathsExist,
-        }, ip);
-        const jobs = await pc.claimPending(10, ip, printers);
+        }, ip, uid);
+        const jobs = await pc.claimPending(10, ip, printers, uid);
         // Paths the UI cares about, so the agent can report existence.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data } = await supabaseAdmin
@@ -49,7 +51,7 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
           .eq("key", "tool.paths")
           .maybeSingle();
         const saved = (data?.value as Record<string, string> | null) ?? {};
-        return Response.json({ jobs, check_paths: Object.values(saved).filter(Boolean) });
+        return Response.json({ jobs, paired: !!uid, check_paths: Object.values(saved).filter(Boolean) });
       },
     },
   },

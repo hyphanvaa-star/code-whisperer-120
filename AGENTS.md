@@ -13,6 +13,7 @@
 - KHB PLD uses `port/fpl_payload.ts` to match Omni by date/route, never seed or another day; explicit PAY wins to preserve edits.
 - FliteBrief access lives only in `src/lib/flitebrief.server.ts`; cookies persist in service-role-only `fb_session` so workers share one login. PDFs download via `/api/fb/file` with a bearer token so external credentials never reach the browser.
 - Every server fn / route touching flight data must call `assertDispatcher` — route guards are UX only.
+- PC helper pairs by login (`_uid` tag); IP match is only a fallback — office NAT splits IPs.
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via `handle_new_user`.
 - Python-tool port proceeds group by group per `roadmap.md`: every original `/api/*` endpoint goes into `src/lib/tool/handlers/<group>.server.ts` with web.py's exact JSON shapes; `src/lib/tool/router.server.ts` owns auth (bearer or `fbt` cookie for GET) and returns `{error, not_ported}` for unported routes. Pure module ports live in `src/lib/tool/port/<module>.ts`, tests in `__tests__/`.
 - Original `src/tool/page.html` runs via `/tool-page` iframe at `/tool`; only the `src/routes/tool-page.ts` shim may alter it. ATC uses global CSS tokens and CSS-only empty marks to preserve operational data. The iframe uses a per-load URL nonce plus no-store headers so revisions never reuse a stale document. AFTN book/default-address edits use this shim and the shared two-column editor; cells keep local storage and lookup for TPL compatibility.
@@ -26,7 +27,7 @@
 - Airport flags use bundled ICAO-country data; no external requests.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
 - AIP SUP/DAH rings/hours are fetched in `src/lib/tool/aip_sup.server.ts` (parsers in `port/aip_sup.ts`, cache in app_settings `aip_sup:*`), attached as `notam.sup_geoms` by the Check NOTAM handler — NOTAM text often only names the SUP area. JP ENR/KR KOCA use national parsers and country caches; client fixes preserve server arcs and separate areas.
-- Every publish bumps src/tool/page.html #appVersion to distinguish builds.
+- Each publish bumps page.html #appVersion.
 - Briefing uses `briefing-data.server.ts` for TAF/defects/pins and `port/briefingPdf.ts` for Unicode three-column Letter PDFs with lossless overflow. Replacement reads actual sector PDFs via `port/briefingPrevious.ts`, preserves cells after fresh sources, and aborts before deletion on parse failure to prevent data loss.
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can come from the dispatcher's browser login — Omni rejects token creation from the runtime's IPv6 X-Forwarded-For.
 - Named ENR 5.1 areas (WS/WM/WB/VV/VT/VI/RK…) resolve first from bundled `src/lib/tool/data/aip_enr_rings.json` via `port/aip_enr_catalog.ts`; tracking ATS routes use bundled `ats_routes.json` via `/api/notam/vnchart` — live AIP fetches are unreliable in a request.
@@ -34,4 +35,4 @@
 - NOTAM pins use `notam.pins:<userId>` to isolate libraries.
 - Chat uses `chat_rooms`/`chat_messages`, dispatcher RLS, admin-only delete and 4s polling. Root's single auth subscriber passes identity to user-keyed ChatWidget: show on login, clear on logout/account change.
 
-- Account edits use profiles/validated claims, not sessionless getUser. Private account-avatars use owner-only server writes and signed chat URLs.
+- Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs.
