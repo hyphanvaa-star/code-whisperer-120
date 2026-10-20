@@ -11,7 +11,7 @@
 
 ## Architecture rules
 - Subdirectories have their own `AGENTS.md`; read it before changing files there.
-- KHB PLD uses `port/fpl_payload.ts` to match Omni by date/route, never seed or another day; explicit PAY wins to preserve edits.
+- KHB PLD uses `port/fpl_payload.ts` to match Omni by date/route and separate crewlist STD (ETD fallback); nearest schedule must be unique to avoid arbitrary duplicate selection, and explicit PAY wins to preserve edits.
 - FliteBrief access lives only in `src/lib/flitebrief.server.ts`; cookies persist in service-role-only `fb_session` so workers share one login. PDFs download via `/api/fb/file` with a bearer token so external credentials never reach the browser.
 - Every server fn / route touching flight data must call `assertDispatcher` — route guards are UX only.
 - PC helper pairs by login (`_uid` tag); IP match is only a fallback — office NAT splits IPs.
