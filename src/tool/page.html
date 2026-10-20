@@ -22042,6 +22042,10 @@ function vAtcCell(r){
     const sp = document.createElement("span");
     sp.className = "vatc";
     sp.textContent = "CHG";
+    sp.classList.add("vavi");
+    sp.dataset.cs = vAviCs(r.flt);
+    sp.dataset.date = vAtcIsoDate(r);
+    setTimeout(vAviAutoCheck, 500);
     if(r.reg && r.reg.changed && r.reg.new){
       sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
       sp.dataset.route = String(r.route || "");
@@ -22065,7 +22069,7 @@ function vAtcCell(r){
     sp.textContent = "DLA";
     if(hasChg){
       // Chỉ CHG DLA mới cần EOBT gốc trên AviWeb.
-      sp.className = "vatc vdla";
+      sp.className = "vatc vdla vavi";
       sp.dataset.cs = vAviCs(r.flt);
       sp.dataset.date = vAtcIsoDate(r);
       vPaintDla(sp);
@@ -22118,7 +22122,7 @@ function vAviAutoCheck(){
   clearTimeout(vAviT);
   vAviT = setTimeout(async () => {
     if(vAviBusy || acJob) return;
-    const sps = [...document.querySelectorAll("#vBody span.vdla")];
+    const sps = [...document.querySelectorAll("#vBody span.vavi")];
     const want = [...new Set(sps.filter(sp => {
         const k = vAviKey(sp.dataset.cs, sp.dataset.date);
         return !vAviEobt[k] && !vAviTried[k];
@@ -22146,14 +22150,14 @@ function vAviAutoCheck(){
         if(!r || !r.flight_time) return;
         const cs = vAviCs(r.callsign);
         let hit = false;
-        document.querySelectorAll("#vBody span.vdla").forEach(sp => {
+        document.querySelectorAll("#vBody span.vavi").forEach(sp => {
           if(sp.dataset.cs === cs && vAviDofMatches(r.dof, sp.dataset.date)){
             vAviEobt[vAviKey(cs, sp.dataset.date)] = r.flight_time; hit = true;
           }
         });
         // Không khớp ngày nào trên bảng nhưng chỉ có 1 dòng chuyến này → vẫn nhận.
         if(!hit){
-          const same = [...document.querySelectorAll("#vBody span.vdla")].filter(sp => sp.dataset.cs === cs);
+          const same = [...document.querySelectorAll("#vBody span.vavi")].filter(sp => sp.dataset.cs === cs);
           if(same.length === 1) vAviEobt[vAviKey(cs, same[0].dataset.date)] = r.flight_time;
         }
         try{ acPaintResult(r); }catch(e){}
