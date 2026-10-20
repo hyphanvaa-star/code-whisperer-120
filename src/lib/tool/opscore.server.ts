@@ -2,6 +2,7 @@
 // ("opscore.snapshot") because workers share no memory.
 import type { Flight } from "./core/models";
 import { getJson, setJson } from "./store.server";
+import { env } from "./creds.server";
 
 type Ctx = Parameters<typeof getJson>[0];
 export type Track = {
@@ -48,9 +49,9 @@ const H = (extra: Record<string, string> = {}) => ({
   "User-Agent": "Mozilla/5.0", ...extra,
 });
 
-async function login(): Promise<string> {
-  const user = process.env["OPSCORE_USER"] || process.env["OPSCORE_USERNAME"] || "";
-  const pass = process.env["OPSCORE_PASS"] || process.env["OPSCORE_PASSWORD"] || "";
+export async function login(): Promise<string> {
+  const user = env("OPSCORE_USER") || env("OPSCORE_USERNAME") || "";
+  const pass = env("OPSCORE_PASS") || env("OPSCORE_PASSWORD") || "";
   if (!user || !pass) throw new Error("Thiếu tài khoản OpsCore");
   const r = await fetch(`${BASE}/api/auth/credentials?format=json`, {
     method: "POST", headers: H(), body: JSON.stringify({ userName: user, password: pass }),

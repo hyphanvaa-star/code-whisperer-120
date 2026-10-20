@@ -5870,7 +5870,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 1.8</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 1.9</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -7205,6 +7205,21 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         <div class="acfoot">
           <button class="btn primary small" id="acAviwebSave">Lưu</button>
           <span class="acmsg" id="acAviwebMsg"></span>
+        </div>
+      </div>
+
+      <div class="accard" id="acOpscore">
+        <div class="top"><b>OpsCore</b><span class="use" id="acOpscoreSrc"></span></div>
+        <p class="achint">Dùng để lấy điện OOOI (OUT/OFF/ON/IN) và STATUS chuyến bay. Chưa lưu thì dùng mặc định của đội.</p>
+        <div class="acgrid">
+          <div class="field"><label for="acOpscoreUser">Username</label>
+            <input type="text" id="acOpscoreUser" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label for="acOpscorePass">Password</label>
+            <input type="password" id="acOpscorePass" placeholder="(giữ nguyên nếu để trống)"></div>
+        </div>
+        <div class="acfoot">
+          <button class="btn primary small" id="acOpscoreSave">Lưu</button>
+          <span class="acmsg" id="acOpscoreMsg"></span>
         </div>
       </div>
     </div>
@@ -27136,6 +27151,8 @@ async function acSave(kind, pf){
         msg.textContent = "✓ đã lưu — trợ lý PC sẽ dùng email này để đăng nhập Outlook Web";
       else if(kind === "aviweb")
         msg.textContent = "✓ đã lưu — Submit/Check ATC sẽ dùng tài khoản này";
+      else if(kind === "opscore")
+        msg.textContent = "✓ đã lưu & đăng nhập OpsCore thành công — STATUS/OOOI sẽ cập nhật";
       else
         msg.textContent = "✓ đã lưu" + (d.name ? " — " + d.name : "") + " & đăng nhập thành công";
       $("#ac"+pf+"Pass").value = "";

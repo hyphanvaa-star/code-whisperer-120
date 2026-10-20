@@ -14,6 +14,7 @@ export const KINDS: Record<string, { user: string[]; pass: string[]; label: stri
   outlook: { user: ["OUTLOOK_MAIL_USER"], pass: ["OUTLOOK_MAIL_PASS"], label: "Outlook (mail nháp)" },
   aviweb: { user: ["AVIWEB_USERNAME", "AVIWEB_USER"], pass: ["AVIWEB_PASSWORD", "AVIWEB_PASS"], label: "AviWeb" },
   jetplan: { user: ["JETPLAN_USERNAME", "JETPLAN_USER"], pass: ["JETPLAN_PASSWORD", "JETPLAN_PASS"], label: "JetPlan" },
+  opscore: { user: ["OPSCORE_USER", "OPSCORE_USERNAME"], pass: ["OPSCORE_PASS", "OPSCORE_PASSWORD"], label: "OpsCore" },
 };
 
 function key() {
