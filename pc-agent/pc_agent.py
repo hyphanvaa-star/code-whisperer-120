@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "5.1"
+VERSION = "5.2"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -65,6 +65,7 @@ def _load_config() -> dict:
     return {
         "url": (os.environ.get("PC_AGENT_URL") or (cfg.get("url") if not any(x in str(cfg.get("url") or "") for x in ("code-whisperer", "dispatch-tool-v3")) else "") or DEFAULT_URL).rstrip("/"),
         "token": os.environ.get("PC_AGENT_TOKEN") or cfg.get("token") or DEFAULT_TOKEN,
+        "user": os.environ.get("PC_AGENT_USER") or cfg.get("user") or "",
         "tool_dir": os.environ.get("PC_TOOL_DIR") or cfg.get("tool_dir") or "",
         "_cfg_path": cfg_path,
     }
@@ -73,6 +74,7 @@ def _load_config() -> dict:
 _CFG = _load_config()
 BASE_URL = _CFG["url"]
 TOKEN = _CFG["token"]
+USER = _CFG["user"]
 
 
 def _save_config(**kw) -> None:
@@ -1587,7 +1589,16 @@ def main() -> int:
     if not BASE_URL or not TOKEN:
         print("Thiếu PC_AGENT_URL hoặc PC_AGENT_TOKEN — xem README.md")
         return 2
-    log(f"Trợ lý PC v{VERSION} — kết nối {BASE_URL}")
+    global USER
+    if not USER:
+        try:
+            USER = input("Nhập email (hoặc tên) đăng nhập Dispatch Board của anh/chị: ").strip()
+        except Exception:
+            USER = ""
+        if USER:
+            _save_config(user=USER)
+    log(f"Trợ lý PC v{VERSION} — kết nối {BASE_URL}" + (f" · tài khoản {USER}" if USER else ""))
+    warned = False
     check_paths: list[str] = []
     threading.Thread(target=_cancel_watcher, daemon=True).start()
     threading.Thread(target=_owa_keeper, name="owa-keeper", daemon=True).start()
@@ -1603,7 +1614,11 @@ def main() -> int:
                 "version": VERSION,
                 "printers": list_printers(),
                 "paths_exist": paths_exist,
+                "user": USER,
             })
+            if USER and d.get("paired") is False and not warned:
+                warned = True
+                log(f"⚠ Không tìm thấy tài khoản '{USER}' — xoá dòng \"user\" trong pc_agent_config.json rồi mở lại trợ lý để nhập lại.")
             check_paths = [str(p) for p in d.get("check_paths") or []]
             for job in d.get("jobs") or []:
                 jid, kind = job["id"], job["kind"]

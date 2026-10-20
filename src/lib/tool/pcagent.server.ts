@@ -59,12 +59,46 @@ async function myIp(): Promise<string> {
   return currentIp();
 }
 
+async function myUid(): Promise<string> {
+  const { currentUserId } = await import("./creds.server");
+  return currentUserId();
+}
+
+/** Tag jobs with the browser's account (primary) and network (legacy helpers). */
+async function tag(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const ip = await myIp();
+  const uid = await myUid();
+  return { ...payload, ...(ip ? { _ip: ip } : {}), ...(uid ? { _uid: uid } : {}) };
+}
+
+const uidCache = new Map<string, { id: string; at: number }>();
+/** Resolve the Dispatch Board login the helper was paired with (email or name before @). */
+export async function resolveAgentUser(login: string): Promise<string> {
+  const k = login.trim().toLowerCase();
+  if (!k) return "";
+  const hit = uidCache.get(k);
+  if (hit && Date.now() - hit.at < 10 * 60_000) return hit.id;
+  const a = await admin();
+  let id = "";
+  for (let page = 1; page <= 10 && !id; page++) {
+    const { data, error } = await a.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) break;
+    const u = data.users.find((x) => {
+      const e = (x.email ?? "").toLowerCase();
+      return e === k || e.split("@")[0] === k;
+    });
+    if (u) id = u.id;
+    if (data.users.length < 200) break;
+  }
+  uidCache.set(k, { id, at: Date.now() });
+  return id;
+}
+
 /** Each helper only receives jobs from browsers on the same public IP (same office / same home). */
 export async function enqueue(kind: PcJobKind, payload: Record<string, unknown>): Promise<string> {
-  const ip = await myIp();
   const { data, error } = await (await admin())
     .from("pc_jobs")
-    .insert({ kind, payload: (ip ? { ...payload, _ip: ip } : payload) as never })
+    .insert({ kind, payload: (await tag(payload)) as never })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
@@ -93,8 +127,7 @@ export async function enqueueDeduped(
     .order("created_at", { ascending: false })
     .limit(20);
   if (error) throw new Error(error.message);
-  const ip = await myIp();
-  const want = JSON.stringify(ip ? { ...payload, _ip: ip } : payload);
+  const want = JSON.stringify(await tag(payload));
   const rows = (data ?? []) as Array<{ id: string; payload: Record<string, unknown> | null }>;
   const hit = rows.find((r) => JSON.stringify(r.payload ?? {}) === want);
   if (hit) return hit.id;
@@ -140,18 +173,22 @@ export async function waitResult(
 }
 
 /** Agent heartbeat, written by the public poll route (no user session). */
-export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = ""): Promise<void> {
-  const { error } = await (await admin()).from("app_settings").upsert({
-    key: ip ? `pc.agent:${ip}` : "pc.agent",
-    value: { ...info, at: Date.now() } as never,
-    updated_at: new Date().toISOString(),
-  });
+export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid = ""): Promise<void> {
+  const value = { ...info, at: Date.now() } as never;
+  const updated_at = new Date().toISOString();
+  const rows = [{ key: ip ? `pc.agent:${ip}` : "pc.agent", value, updated_at }];
+  if (uid) rows.push({ key: `pc.agent:u:${uid}`, value, updated_at });
+  const { error } = await (await admin()).from("app_settings").upsert(rows);
   if (error) throw new Error(error.message);
 }
 
 export async function agentInfo(ctx: Ctx): Promise<AgentInfo | null> {
   const ip = await myIp();
-  return getJson<AgentInfo | null>(ctx, ip ? `pc.agent:${ip}` : "pc.agent", null);
+  const uid = ctx.userId || (await myUid());
+  const byUser = uid ? await getJson<AgentInfo | null>(ctx, `pc.agent:u:${uid}`, null) : null;
+  const byIp = await getJson<AgentInfo | null>(ctx, ip ? `pc.agent:${ip}` : "pc.agent", null);
+  if (byUser && (!byIp || byUser.at >= byIp.at - 60_000)) return byUser;
+  return byIp ?? byUser;
 }
 
 /** Agent is considered online if it polled within the last 90 seconds. */
@@ -160,14 +197,18 @@ export function agentOnline(info: AgentInfo | null): boolean {
 }
 
 /** Claim pending jobs for the agent (public poll route, service role). */
-export async function claimPending(limit = 5, ip = "", printers: unknown[] = []): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
+export async function claimPending(limit = 5, ip = "", printers: unknown[] = [], uid = ""): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
   const a = await admin();
   let q = a
     .from("pc_jobs")
     .select("id, kind, payload")
     .eq("status", "pending");
   // Only jobs created from the helper's own network; untagged legacy jobs stay claimable.
-  q = ip ? q.or(`payload->>_ip.eq.${ip},payload->>_ip.is.null`) : q.is("payload->>_ip", null);
+  // Paired helper: jobs of its own account (any network). Otherwise legacy same-IP matching.
+  const conds = ["payload->>_ip.is.null"];
+  if (uid) conds.push(`payload->>_uid.eq.${uid}`);
+  if (ip) conds.push(`and(payload->>_ip.eq.${ip},payload->>_uid.is.null)`, ...(uid ? [] : [`payload->>_ip.eq.${ip}`]));
+  q = q.or(conds.join(","));
   const { data, error } = await q
     .order("created_at", { ascending: true })
     .limit(limit);
@@ -208,11 +249,13 @@ export async function finishJob(id: string, ok: boolean, result: Record<string, 
 /** Huỷ mọi lệnh PC đang chờ/đang chạy (nút Stop). Trả số lệnh bị huỷ. */
 export async function cancelAll(): Promise<number> {
   const ip = await myIp();
+  const uid = await myUid();
   let q = (await admin())
     .from("pc_jobs")
     .update({ status: "failed", result: { error: "đã huỷ bởi người dùng", cancelled: true } as never, done_at: new Date().toISOString() })
     .in("status", ["pending", "running"]);
-  if (ip) q = q.eq("payload->>_ip", ip);
+  if (uid) q = q.eq("payload->>_uid", uid);
+  else if (ip) q = q.eq("payload->>_ip", ip);
   const { data, error } = await q
     .select("id");
   if (error) throw new Error(error.message);
