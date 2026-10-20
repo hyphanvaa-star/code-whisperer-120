@@ -28206,5 +28206,32 @@ async function exportTpl(){
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
 </script>
+<script>
+/* Lưu 2 tầng: Admin = bản chung, user thường = bản riêng + nút "Khôi phục theo Admin". */
+(function(){
+  var MAP={"#nrPath":"notice_rules","#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix","#ftAltMsg":"fpl.alt_route","#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"};
+  function go(){
+    fetch("/api/settings/scope").then(function(r){return r.json();}).then(function(d){
+      if(!d||!d.ok||d.admin)return;
+      Object.keys(MAP).forEach(function(sel){
+        var el=document.querySelector(sel); if(!el||el.dataset.scopeBtn)return;
+        el.dataset.scopeBtn="1";
+        var b=document.createElement("button"); b.type="button"; b.className="btn";
+        b.textContent="Khôi phục theo Admin"; b.title="Bạn đang sửa bản riêng (chỉ bạn thấy). Bấm để bỏ bản riêng, dùng lại bản của Admin.";
+        b.style.marginLeft="8px";
+        b.onclick=function(){
+          if(!confirm("Bỏ chỉnh sửa riêng của bạn và dùng lại bản của Admin?"))return;
+          fetch("/api/settings/reset",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({key:MAP[sel]})})
+            .then(function(r){return r.json();}).then(function(x){ alert(x.error||"Đã khôi phục theo Admin. Mở lại bảng để xem."); });
+        };
+        el.insertAdjacentElement("afterend",b);
+        var n=document.createElement("span"); n.textContent=" (Lưu riêng cho bạn)"; n.style.opacity=".7"; n.style.fontSize="12px";
+        b.insertAdjacentElement("afterend",n);
+      });
+    }).catch(function(){});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",go);else go();
+})();
+</script>
 </body>
 </html>
