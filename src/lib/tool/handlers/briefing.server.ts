@@ -336,6 +336,8 @@ export const jobs: Jobs = {
         });
         if (![200, 201, 204].includes(att.status)) throw new Error(`gắn sector ${flight.id}: HTTP ${att.status}`);
         ok++;
+        // Gắn xong là xoá khỏi máy chủ — không giữ briefing cũ để tránh gắn nhầm ngày sau.
+        try { await store.removeFiles(ctx, [`${BRIEF_DIR}/${pl.file.name}`]); } catch { /* lần sau dọn */ }
         emit({ type: "line", text: `✓ ${briefLabel(pl)} ← ${pl.file.name}${pl.overwrite ? " (ghi đè)" : ""}`, progress });
       } catch (e) {
         failed++;
