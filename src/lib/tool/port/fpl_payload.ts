@@ -9,7 +9,15 @@ function dayOf(value: unknown): string | null {
   const y = Number(m[3]);
   return `${y < 100 ? y + 2000 : y}-${String(Number(m[2])).padStart(2, '0')}-${String(Number(m[1])).padStart(2, '0')}`;
 }
-/** Never substitute a different date or route for missing EST. */
+function clockMinutes(value: unknown): number | null {
+  const s = String(value ?? '').trim();
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(s) ?? /^(\d{2})(\d{2})$/.exec(s);
+  if (!m) return null;
+  const hours = Number(m[1]), minutes = Number(m[2]);
+  return hours < 24 && minutes < 60 ? hours * 60 + minutes : null;
+}
+/** Never substitute a different date or route for missing EST.
+ * STD is the schedule key; ETD is only a fallback when STD is unavailable. */
 export function omniPayload(rows: Raw[], flight: Raw): number | null {
   const day = dayOf(flight.date);
   if (!day || !digits(flight.flt) || !text(flight.dep) || !text(flight.arr)) return null;
@@ -17,8 +25,15 @@ export function omniPayload(rows: Raw[], flight: Raw): number | null {
     && text(r.dep) === text(flight.dep) && text(r.arr) === text(flight.arr)
     && dayOf(r.std_local) === day);
   if (matches.length > 1) {
-    const clock = String(flight.etd ?? '').replace(':', '').padStart(4, '0');
-    matches = matches.filter(r => String(r.std_local ?? '').slice(11, 16).replace(':', '') === clock);
+    const clock = clockMinutes(flight.std) ?? clockMinutes(flight.etd);
+    if (clock === null) return null;
+    const ranked = matches.map(row => {
+      const time = clockMinutes(String(row.std_local ?? '').slice(11, 16));
+      return { row, distance: time === null ? Infinity : Math.abs(time - clock) };
+    }).filter(item => Number.isFinite(item.distance));
+    const nearest = Math.min(...ranked.map(item => item.distance));
+    // Equidistant schedules remain ambiguous; never pick by response order.
+    matches = ranked.filter(item => item.distance === nearest).map(item => item.row);
   }
   if (matches.length !== 1) return null;
   const n = Number(matches[0]?.est_payload);
