@@ -1,0 +1,45 @@
+PLAN 1755 VJC7527 20OCT  ZGGG TO VVNB 32SK    14/F IFR  20/10/26
+NONSTOP COMPUTED 1053Z  FOR ETD/ETA 1810Z/2003Z   PROGS 2006UK   VNA629    KGS
+
+V1:. . . . .          VR:. . . . . .         V2:. . . . .          RWY:. . . .
+
+FLX:. . . . .         FOB:. . . . . .        FLAPS:. . . . .       RTOW:. . . .
+
+FUEL PLAN
+GROUND DIST  655       AIR DIST: 0651      P007 (255/P007) MXSH 03/GG671
+AVG W/C: P004          AVG ISA:  +15
+
+                       FUEL   TIME
+TRIP                   4960   1:33    . . . .
+ROUTE RES 5PCT          248   0:05    . . . .
+1ST ALT / VVCI         1468   0:25    . . . .
+FINAL RES              1400   0:30    . . . .
+EXTRA                   500   0:11    . . . .
+DISCR                     0   0:00    . . . .
+TAKE OFF               8576   2:45    . . . .
+TAXI                    270           . . . .
+BLOCK                  8846   2:45    . . . .
+
+FINAL FUEL ORDER.........
+
+GREATER THAN 500 KGS OF DISCRETIONARY FUEL REQUIRED . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+LRC  FL301  005033  01:33
+
+PIC SIGNATURE:_________________ LICENCE No: ______________ EXPIRY DATE: _______
+
+PIC"S SIGNATURE CONFIRMS THE ACCEPTANCE OF THIS FLIGHT PLAN
+
+CAPT 13330 KONOVALO   FO 13054 LE ANH DISPATCHER PHAN THANH HY
+
+ROUTE CANHAN1     FL320    CRZ TEMP M34
+
+PLD  22000 KG          . . . . . .            DOW    48518
+ZFW  70518 KG          . . . . . .            MZFW   71500
+TOW  79094 KG          . . . . . .            MTOW   89000
+LWT  74134 KG          . . . . . .            MLWT   75500
+
+FUEL CONSUMPTION - PLUS +05.2 PCT/HR/ENG
+
+WEIGHT CHANGE P1000 KG  FP   38 KG  TRIP FUEL
