@@ -2,6 +2,7 @@
 import { IATA_ICAO } from "./limits_check";
 import * as taf from "./taf";
 import type { TafRec } from "./taf";
+import { limitKhbPilotName } from "../../khb-pilot-name";
 
 export type Raw = Record<string, any>;
 
@@ -23,9 +24,9 @@ export function _num(v: any): string {
 export function _person(ident: any, name: any): string {
   const left = _num(ident).trim(), right = _num(name).trim();
   if ((left === "" || left === "0") && !right) return "";
-  if (left === "" || left === "0") return right;
-  if (!right) return left;
-  return (left + " " + right).trim();
+  if (left === "" || left === "0") return limitKhbPilotName(right);
+  if (!right) return limitKhbPilotName(left);
+  return limitKhbPilotName(left + " " + right);
 }
 
 export function _minutes(hhmm: any): number | null {
