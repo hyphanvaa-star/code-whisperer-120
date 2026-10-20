@@ -528,15 +528,17 @@ export function parseOpsDate(date: unknown): { y?: number | undefined; m: number
   if (m && MON[m[2]]) return { y: m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : undefined, m: MON[m[2]], d: +m[1] };
   return null;
 }
-/** True when STD (as local VN time, UTC+7) falls on the table's date. Unparseable date → true (no filter). */
+/** True when STD falls on the table's date in UTC or VN time (UTC+7) — crewlist dates follow departure local time. Unparseable date → true (no filter). */
 export function sameOpsDay(std: unknown, date: unknown): boolean {
   const p = parseOpsDate(date);
   if (!p) return true;
   if (!std) return false;
   const t = std instanceof Date ? std : new Date(String(std));
   if (isNaN(t.getTime())) return false;
-  const l = new Date(t.getTime() + 7 * 3600e3);
-  return (p.y === undefined || l.getUTCFullYear() === p.y) && l.getUTCMonth() + 1 === p.m && l.getUTCDate() === p.d;
+  return [0, 7].some((h) => {
+    const l = new Date(t.getTime() + h * 3600e3);
+    return (p.y === undefined || l.getUTCFullYear() === p.y) && l.getUTCMonth() + 1 === p.m && l.getUTCDate() === p.d;
+  });
 }
 
 /** Local VN "HH:MM" → UTC "HHMM". */
