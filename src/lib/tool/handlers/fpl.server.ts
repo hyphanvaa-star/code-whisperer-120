@@ -483,7 +483,6 @@ export const routes: Routes = {
     const sectorId = Number(body.sector_id) || 0;
     if (!sectorId) return { error: "Không tra được chuyến trên FliteBrief." };
     const dsp = String(body.dsp || "").trim();
-    if (!dsp) return { error: "Chưa điền tên DSP." };
     const dg = (v: unknown) => String(v ?? "").replace(/\D/g, "").replace(/^0+/, "");
     const up = (v: unknown) => String(v ?? "").trim().toUpperCase();
     const [dep, arr] = String(body.route || "").split("-").map(up);
@@ -514,14 +513,17 @@ export const routes: Routes = {
     const efb = String(body.efb || "").trim().replace(/^TLK\//i, "");
     if (efb) (db as { tlk: string }).tlk = efb;
     const routeDoc = await loadRouteDoc(ctx);
-    const item: Raw = { id: flight.row, seq: String(body.seq || ""), pay: String(Math.trunc(w.pld)), extra: String(w.extra_fuel ?? 0) };
-    const text = ft.build_req(db, [item], dsp, routeDoc.rows || []);
+    const extra = ft.extraMinutesText(w.extra_time);
+    const oldDsp = ft.ofpDispatcher(txt) || dsp;
+    if (!oldDsp) return { error: "OFP cũ không ghi tên DSP và chưa điền tên DSP." };
+    const item: Raw = { id: flight.row, seq: String(body.seq || ""), pay: String(Math.trunc(w.pld)), extra };
+    const text = ft.build_req(db, [item], oldDsp, routeDoc.rows || []);
     if (!text.trim()) return { error: "Không soạn được REQ." };
     const bytes = ft.req_bytes(text);
     let binary = "";
     for (const b of bytes) binary += String.fromCharCode(b);
     return { ok: true, text, file: btoa(binary), filename: `VJC${want}_${dep}${arr}.req`,
-      pld: w.pld, extra: w.extra_fuel ?? 0, reg: flight.reg, plan_no: w.plan_no || "" };
+      pld: w.pld, extra, dsp: oldDsp, reg: flight.reg, plan_no: w.plan_no || "" };
   },
 };
 

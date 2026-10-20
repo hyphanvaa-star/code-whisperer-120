@@ -38,6 +38,20 @@ export function _minutes(hhmm: any): number | null {
   return h * 60 + m;
 }
 
+/** OFP EXTRA "H:MM" → REQ extra in minutes ("0:20" → "20M"); none → "0". */
+export function extraMinutesText(time: string | null | undefined): string {
+  const m = /^(\d{1,2}):([0-5]\d)$/.exec(String(time ?? "").trim());
+  if (!m) return "0";
+  const min = Number(m[1]) * 60 + Number(m[2]);
+  return min > 0 ? `${min}M` : "0";
+}
+
+/** "DISPATCHER PHAN THANH HY" line on the OFP → dispatcher name. */
+export function ofpDispatcher(text: string): string {
+  const m = /\bDISPATCHER[ \t]+([A-Z][A-Z .'-]*?)[ \t]*$/im.exec(text || "");
+  return m ? m[1]!.replace(/\s+/g, " ").trim() : "";
+}
+
 export function _extraText(extra: any): string {
   if (extra == null || String(extra).trim() === "") return "0";
   return _num(extra);
