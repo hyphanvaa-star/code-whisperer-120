@@ -36,3 +36,4 @@
 - Chat uses `chat_rooms`/`chat_messages`, dispatcher RLS, admin-only delete and 4s polling. Root's single auth subscriber passes identity to user-keyed ChatWidget: show on login, clear on logout/account change.
 
 - Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs.
+- Ver tab crew changes come from diffing the two newest non-VER crewlists (`port/crewlist_diff.ts`) — FPL VER files have no crew column.
