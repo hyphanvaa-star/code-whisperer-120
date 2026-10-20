@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import atc from './fixtures/ATC_VJC7527.txt?raw';
+import ezfw from './fixtures/EZFW_VJC7527.txt?raw';
 import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../khb_ezfw';
 
-const atc = readFileSync(new URL('./fixtures/ATC_VJC7527.txt', import.meta.url), 'utf8');
-const ezfw = readFileSync(new URL('./fixtures/EZFW_VJC7527.txt', import.meta.url), 'utf8');
 const sector: EzfwSector = { id: 7527, callsign: 'VJC7527', std: new Date('2026-10-20T18:10:00Z'), reg: 'VN-A629', dep_icao: 'ZGGG', dep_iata: 'CAN', dest_icao: 'VVNB', dest_iata: 'HAN' };
 const now = new Date('2026-10-20T14:48:00Z');
 const crew = { flt: '7527', reg: 'VN-A629', dep: 'CAN', arr: 'HAN', day: { y: 2026, m: 10, d: 20 } };
