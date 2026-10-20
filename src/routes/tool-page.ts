@@ -12,6 +12,7 @@ import mnlSigAsset from '@/assets/mnl-signature.asset.json';
 import aftnAddresses from '@/tool/aftn-addresses.txt?raw';
 import aftnBookScript from '@/tool/aftn-book.js?raw';
 import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
+import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1778,6 +1779,15 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // Shared pilot formatting for KHB load/pick/edit/export; source names remain intact.
+    .replace('function ftCrewLabel(person){', khbPilotNameScript.replace('export function', 'function') + '\nfunction ftCrewLabel(person){')
+    .replace('if(person && person.label) return String(person.label);', 'if(person && person.label) return limitKhbPilotName(person.label);')
+    .replace('return ((person && person.id) ? person.id + " " : "") + ((person && person.name) || "");', 'return limitKhbPilotName(((person && person.id) ? person.id + " " : "") + ((person && person.name) || ""));')
+    .replace('st.cptText = cpt ? ftCrewLabel(cpt).trim() : (f.cpt || "");', 'st.cptText = limitKhbPilotName(cpt ? ftCrewLabel(cpt) : f.cpt);')
+    .replace('st.foText = fo ? ftCrewLabel(fo).trim() : (f.fo || "");', 'st.foText = limitKhbPilotName(fo ? ftCrewLabel(fo) : f.fo);')
+    .replace('  const td = document.createElement("td");\n  td.className = "ftflt";\n  if(list.length >= 2){', '  st[key] = limitKhbPilotName(st[key]);\n  const td = document.createElement("td");\n  td.className = "ftflt";\n  if(list.length >= 2){')
+    .replace('inp.addEventListener("input", function(){ st[key] = inp.value; });\n  td.appendChild(inp);\n  return ftPack(td);\n}\nfunction ftTafPlace', 'inp.addEventListener("input", function(){ st[key] = inp.value; });\n  inp.addEventListener("change", function(){ st[key] = limitKhbPilotName(inp.value); inp.value = st[key]; });\n  td.appendChild(inp);\n  return ftPack(td);\n}\nfunction ftTafPlace')
+    .replace('    const typedCpt = String(st.cptText || "").trim().match', '    st.cptText = limitKhbPilotName(st.cptText);\n    st.foText = limitKhbPilotName(st.foText);\n    const typedCpt = String(st.cptText || "").trim().match')
     // A new workbook invalidates both the lookup catalogue and selected KHB rows.
     .replace('if(fplText && !ftCatalog.length) ftLoad();', 'if(fplText) ftLoad();')
     .replace('async function ftLoad(){', `let ftCrewRevision = 0;

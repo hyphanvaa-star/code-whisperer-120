@@ -1,0 +1,1 @@
+export function limitKhbPilotName(value: unknown): string;
