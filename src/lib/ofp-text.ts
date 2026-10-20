@@ -1,4 +1,6 @@
 // Client-only: extract text from an OFP PDF and cut ATC / EZFW blocks (port of atc_ezfw.py).
+import { fixedWidthPage, type PositionedText } from './pdf-text-layout';
+import { extractEzfw as cutEzfw } from './tool/port/atc_ezfw';
 export async function pdfText(blob: Blob): Promise<string> {
   const pdfjs = await import("pdfjs-dist");
   const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
@@ -8,18 +10,7 @@ export async function pdfText(blob: Blob): Promise<string> {
   for (let p = 1; p <= doc.numPages; p++) {
     const page = await doc.getPage(p);
     const tc = await page.getTextContent();
-    const rows = new Map<number, { x: number; s: string }[]>();
-    for (const it of tc.items as { str: string; transform: number[] }[]) {
-      if (!("str" in it)) continue;
-      const y = Math.round(it.transform[5]! / 2) * 2;
-      const arr = rows.get(y) ?? [];
-      arr.push({ x: it.transform[4]!, s: it.str });
-      rows.set(y, arr);
-    }
-    const lines = [...rows.entries()]
-      .sort((a, b) => b[0] - a[0])
-      .map(([, items]) => items.sort((a, b) => a.x - b.x).map((i) => i.s).join("").replace(/\s+$/, ""));
-    pages.push(lines.join("\n"));
+    pages.push(fixedWidthPage(tc.items.filter(item => 'str' in item) as PositionedText[]));
   }
   return pages.join("\n");
 }
@@ -44,30 +35,8 @@ export const joinAtcBlocks = (blocks: string[]) => {
   return parts.length ? parts.join("\n".repeat(5)) + "\n" : "";
 };
 
-const BREAKS = [
-  /^V1:/, /^FLX:/, /^FUEL PLAN\b/, /^\s+FUEL\s+TIME\s*$/, /^FINAL FUEL ORDER/, /^GREATER THAN\b/, /^LRC\b/,
-  /^PIC SIGNATURE/, /^PIC"S SIGNATURE/, /^CAPT\b/, /^ROUTE\b.*\bCRZ\b/, /^PLD\b/, /^FUEL CONSUMPTION\b/, /^WEIGHT CHANGE\b/,
-];
-
-function spaceOut(text: string) {
-  const out: string[] = [];
-  for (const line of text.split("\n")) {
-    if (BREAKS.some((rx) => rx.test(line)) && out.length && out[out.length - 1]!.trim()) out.push("");
-    out.push(line.trimEnd());
-  }
-  return out.join("\n").replace(/^\n+|\n+$/g, "");
-}
-
 export function extractEzfw(text: string): string {
-  const m = /^PLAN\s+(\d+)\s+\S+/m.exec(text);
-  if (!m) throw new Error("OFP không có khối PLAN (trang fuel/EZFW).");
-  let chunk = text.slice(m.index);
-  const end = /^WEIGHT CHANGE[^\n]*/im.exec(chunk);
-  if (end) chunk = chunk.slice(0, end.index + end[0].length);
-  const lines = chunk.split("\n").map((l) => l.trimEnd()).filter((l) => l.trim() && !/^Page\s*-/i.test(l));
-  const out = spaceOut(lines.join("\n").trim());
-  if (!out.toUpperCase().includes("FUEL PLAN")) throw new Error("Khối PLAN thiếu FUEL PLAN — kiểm tra OFP.");
-  return out + "\n";
+  return cutEzfw(text);
 }
 
 /** "VJ5513" -> "VJC5513" like file_callsign in the original. */

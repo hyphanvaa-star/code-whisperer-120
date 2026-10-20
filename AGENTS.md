@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Both Outlook draft and KHB ATC/EZFW use `port/ofp_layout.ts` with the browser-safe `pdf-text-layout.ts` coordinate renderer; keep general weight extraction separate so fixed-width columns survive without changing other OFP parsers.
 - KHB ATC/EZFW exports validate both ICAO DOF/REG and PLAN date/route/REG against the uniquely selected in-window Crewlist/FliteBrief sector before queuing PC writes; completion requires the helper's returned file path.
 - Subdirectories have their own `AGENTS.md`; read it before changing files there.
 - KHB PLD uses `port/fpl_payload.ts` to match Omni by date/route and separate crewlist STD (ETD fallback); nearest schedule must be unique to avoid arbitrary duplicate selection, and explicit PAY wins to preserve edits.

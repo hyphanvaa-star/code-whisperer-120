@@ -157,8 +157,8 @@ export const jobs: Jobs = {
           const pdf = await fbGet(`/webapi/sectors/${flight.id}/ofp`, "application/pdf");
           if (!pdf.ok) throw new ae.AeError(`${flight.callsign}: chưa lấy được OFP`);
           const bytes = new Uint8Array(await pdf.arrayBuffer());
-          const { ofpTextFromPdf } = await import("../port/ofp_weights");
-          const text = await ofpTextFromPdf(bytes);
+          const { ofpLayoutFromPdf } = await import("../port/ofp_layout");
+          const text = await ofpLayoutFromPdf(bytes);
           const atc = ae.extractAtc(text).trim();
           const ezfw = ae.extractEzfw(text);
           const subject = ae.subjectOf(flight.callsign, flight.std);

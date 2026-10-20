@@ -562,8 +562,8 @@ export const jobs: Jobs = {
             const bytes = new Uint8Array(await res.arrayBuffer());
             if (bytes.length <= 4) continue;
             if (String.fromCharCode(...bytes.slice(0, 4)) === '%PDF') {
-              const { ofpTextFromPdf } = await import('../port/ofp_weights');
-              text = await ofpTextFromPdf(bytes);
+              const { ofpLayoutFromPdf } = await import('../port/ofp_layout');
+              text = await ofpLayoutFromPdf(bytes);
             } else text = new TextDecoder().decode(bytes);
             if (text) break;
           }

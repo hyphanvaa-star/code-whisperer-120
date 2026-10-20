@@ -105,21 +105,23 @@ export function spaceOut(text: string): string {
   return out.join("\n").replace(/^\n+|\n+$/g, "");
 }
 
-const RE_PLAN = /^PLAN\s+(\d+)\s+\S+/m;
-const RE_PAGE = /^Page\s*-/i;
+const RE_PLAN = /^[ \t]*PLAN\s+(\d+)\s+\S+/m;
+const RE_PAGE = /^[ \t]*Page\s*-/i;
 
 export function extractEzfw(text: string): string {
   const t = text || "";
   const m = RE_PLAN.exec(t);
   if (!m) throw new AeError("OFP không có khối PLAN (trang fuel/EZFW).");
   let chunk = t.slice(m.index);
-  const end = /^WEIGHT CHANGE[^\n]*/im.exec(chunk);
+  const end = /^[ \t]*WEIGHT CHANGE[^\n]*/im.exec(chunk);
   if (end) chunk = chunk.slice(0, end.index + end[0].length);
   const lines = chunk
     .split("\n")
     .map((l) => l.replace(/\s+$/, ""))
-    .filter((l) => !RE_PAGE.test(l) && l.trim());
-  const out = spaceOut(lines.join("\n").trim());
+    .filter((l) => !RE_PAGE.test(l));
+  // Retain source blank lines and column spacing. Add section gaps only for
+  // compact source PDFs; never collapse existing horizontal whitespace.
+  const out = spaceOut(lines.join("\n").replace(/^\n+|\n+$/g, ""));
   if (!out.toUpperCase().includes("FUEL PLAN")) {
     throw new AeError("Khối PLAN thiếu FUEL PLAN — kiểm tra OFP.");
   }
