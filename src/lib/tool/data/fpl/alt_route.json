@@ -375,7 +375,7 @@
       "podpoa": "ADAHAN",
       "etp_pod": "/ADA/OITR/OIIE/OIZH/VIJP/VAJB/CCU/RGN",
       "talt": "DIY",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/OITR/OIIE/OIZH/VIJP/VAJB/CCU/RGN/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -672,7 +672,7 @@
       "podpoa": "DXBHAN",
       "etp_pod": "/DXB/KHI/DEL/CCU/RGN",
       "talt": "AUH",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/KHI/DEL/CCU/RGN/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -681,7 +681,7 @@
       "podpoa": "DXBSGN",
       "etp_pod": "/DXB/MCT/AMD/NAG/VYYY/VTBS",
       "talt": "AUH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/MCT/AMD/NAG/VYYY/VTBS/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -690,7 +690,7 @@
       "podpoa": "MCTSGN",
       "etp_pod": "/MCT/KHI/CCU/BKK",
       "talt": "OMFJ",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/KHI/CCU/BKK/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -870,7 +870,7 @@
       "podpoa": "RMQDAD",
       "etp_pod": "/RMQ/HKG",
       "talt": "KHH",
-      "fl": "320,KAPLI,340",
+      "fl": "320,KAPLI,320",
       "etp_poa": "/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -897,7 +897,7 @@
       "podpoa": "RMQSGN",
       "etp_pod": "/RMQ/HKG/DAD",
       "talt": "TPE",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HKG/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -1014,7 +1014,7 @@
       "podpoa": "TPEVCA",
       "etp_pod": "/TPE/KHH/HKG/DAD/SGN",
       "talt": "KHH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KHH/HKG/DAD/SGN/VCA",
       "alt1": "CXR",
       "alt2": "SGN"
@@ -1050,7 +1050,7 @@
       "podpoa": "TPEPQC",
       "etp_pod": "/TPE/KHH/HKG/DAD",
       "talt": "KHH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KHH/HKG/DAD/PQC",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -1104,7 +1104,7 @@
       "podpoa": "HUNDAD",
       "etp_pod": "/HUN/HKG",
       "talt": "TPE",
-      "fl": "320,KAPLI,340",
+      "fl": "320,KAPLI,320",
       "etp_poa": "/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1194,7 +1194,7 @@
       "podpoa": "NRTCXR",
       "etp_pod": "/NRT/KIX/OKA/TPE/RPLC/ZJSY/DAD",
       "talt": "HND",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/KIX/OKA/TPE/RPLC/ZJSY/DAD/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -1203,7 +1203,7 @@
       "podpoa": "NRTVCA",
       "etp_pod": "/NRT/KIX/OKA/TPE/RPLC/ZJSY/DAD",
       "talt": "",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/RPLC/ZJSY/DAD/VCA",
       "alt1": "HND",
       "alt2": "HND"
@@ -1212,7 +1212,7 @@
       "podpoa": "NRTDAD",
       "etp_pod": "/NRT/KIX/OKA/TPE/HKG",
       "talt": "HND",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1221,7 +1221,7 @@
       "podpoa": "NRTHAN",
       "etp_pod": "/NRT/FUK/HGH/HKG",
       "talt": "HND",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1248,7 +1248,7 @@
       "podpoa": "NRTSGN",
       "etp_pod": "/NRT/KIX/OKA/TPE/MNL/DAD",
       "talt": "HND",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/MNL/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -1257,7 +1257,7 @@
       "podpoa": "NRTVII",
       "etp_pod": "/NRT/KIX/CJU/HGH/CSX/HKG",
       "talt": "HND",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/KIX/CJU/HGH/CSX/HKG/VII",
       "alt1": "DAD",
       "alt2": "HAN"
@@ -1302,7 +1302,7 @@
       "podpoa": "IBRSGN",
       "etp_pod": "/IBR/KIX/MYJ/KOJ/OKA/TPE/RPLC/ZJSY/DAD",
       "talt": "NGO",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/KIX/MYJ/KOJ/OKA/TPE/RPLC/ZJSY/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -1383,7 +1383,7 @@
       "podpoa": "KIXCXR",
       "etp_pod": "/KIX/MYJ/KOJ/OKA/TPE/TNN/HKG",
       "talt": "NGO",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/MYJ/KOJ/OKA/TPE/TNN/HKG/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -1392,7 +1392,7 @@
       "podpoa": "KIXDAD",
       "etp_pod": "/KIX/OKA/TPE/HKG",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1401,7 +1401,7 @@
       "podpoa": "KIXHAN",
       "etp_pod": "/KIX/FUK/HGH/HKG",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1410,7 +1410,7 @@
       "podpoa": "KIXSGN",
       "etp_pod": "/KIX/OKA/TPE/RPLC/DAD",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/OKA/TPE/RPLC/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -1464,7 +1464,7 @@
       "podpoa": "SHMHAN",
       "etp_pod": "/SHM/FUK/HGH/HKG",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1545,7 +1545,7 @@
       "podpoa": "CTSDAD",
       "etp_pod": "/CTS/KIX/OKA/TPE/HKG",
       "talt": "SDJ",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1554,7 +1554,7 @@
       "podpoa": "CTSHAN",
       "etp_pod": "/CTS/KIX/FUK/CJU/HGH/CSX/HKG",
       "talt": "HKD",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/FUK/CJU/HGH/CSX/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1770,7 +1770,7 @@
       "podpoa": "FUKDAD",
       "etp_pod": "/FUK/KOJ/NGB/TPE/HKG",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KOJ/NGB/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1779,7 +1779,7 @@
       "podpoa": "FUKHAN",
       "etp_pod": "/FUK/HGH/HKG",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1824,7 +1824,7 @@
       "podpoa": "KOJHAN",
       "etp_pod": "/KOJ/HGH/HKG",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1905,7 +1905,7 @@
       "podpoa": "NGODAD",
       "etp_pod": "/NGO/OKA/TPE/HKG",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1914,7 +1914,7 @@
       "podpoa": "NGOHAN",
       "etp_pod": "/NGO/FUK/HGH/HKG",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -1923,7 +1923,7 @@
       "podpoa": "NGOSGN",
       "etp_pod": "/KIX/OKA/TPE/MNL/DAD",
       "talt": "KIX",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/OKA/TPE/MNL/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -1977,7 +1977,7 @@
       "podpoa": "KMQDAD",
       "etp_pod": "/KMQ/KOJ/TPE/HKG",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KOJ/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -1986,7 +1986,7 @@
       "podpoa": "KMQHAN",
       "etp_pod": "/KMQ/FUK/HGH/HKG",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2031,7 +2031,7 @@
       "podpoa": "FSZDAD",
       "etp_pod": "/FSZ/KIX/OKA/TPE/HKG",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2040,7 +2040,7 @@
       "podpoa": "FSZHAN",
       "etp_pod": "/FSZ/KIX/OKA/TPE/HKG",
       "talt": "NGO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2148,7 +2148,7 @@
       "podpoa": "HIJHAN",
       "etp_pod": "/HIJ/HGH/HKG",
       "talt": "RJFF",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2211,7 +2211,7 @@
       "podpoa": "MYJHAN",
       "etp_pod": "/MYJ/CJU/HGH/HKG",
       "talt": "FUK",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2220,7 +2220,7 @@
       "podpoa": "MYJSGN",
       "etp_pod": "/MYJ/OKA/TPE/RPLC/DAD",
       "talt": "KIX",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/OKA/TPE/RPLC/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2346,7 +2346,7 @@
       "podpoa": "FKSHAN",
       "etp_pod": "/FKS/FUK/HGH/HKG",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2355,7 +2355,7 @@
       "podpoa": "FKSSGN",
       "etp_pod": "/FKS/KIX/OKA/TPE/HKG/DAD",
       "talt": "NRT",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/KIX/OKA/TPE/HKG/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2400,7 +2400,7 @@
       "podpoa": "KIJDAD",
       "etp_pod": "/KIJ/KIX/OKA/TPE/HKG",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2409,7 +2409,7 @@
       "podpoa": "KIJHAN",
       "etp_pod": "/KIJ/FUK/HGH/HKG",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/FUK/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2418,7 +2418,7 @@
       "podpoa": "KIJSGN",
       "etp_pod": "/KIJ/KIX/OKA/TNN/HKG/SYX/CXR",
       "talt": "NRT",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/KIX/OKA/TNN/HKG/SYX/CXR/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2454,7 +2454,7 @@
       "podpoa": "SDJDAD",
       "etp_pod": "/SDJ/KIX/OKA/TPE/HKG",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2463,7 +2463,7 @@
       "podpoa": "SDJHAN",
       "etp_pod": "/SDJ/CJU/SHA/HKG",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/SHA/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2490,7 +2490,7 @@
       "podpoa": "HNDDAD",
       "etp_pod": "/HND/KOJ/TPE/HKG",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KOJ/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2508,7 +2508,7 @@
       "podpoa": "HNDSGN",
       "etp_pod": "/HND/KIX/OKA/TPE/MNL/DAD",
       "talt": "NRT",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/KIX/OKA/TPE/MNL/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2553,7 +2553,7 @@
       "podpoa": "MWXCXR",
       "etp_pod": "/MWX/CJU/SHA/TPE/HKG/DAD",
       "talt": "CJU",
-      "fl": "340",
+      "fl": "320",
       "etp_poa": "/CJU/SHA/TPE/HKG/DAD/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -2562,7 +2562,7 @@
       "podpoa": "MWXDLI",
       "etp_pod": "/MWX/CJU/HGH/HKG/DAD",
       "talt": "CJU",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/HGH/HKG/DAD/DLI",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -2571,7 +2571,7 @@
       "podpoa": "MWXDAD",
       "etp_pod": "/MWX/TPE/HKG",
       "talt": "CJU",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2589,7 +2589,7 @@
       "podpoa": "MWXPQC",
       "etp_pod": "/MWX/CJU/HGH/HKG/CXR",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/HGH/HKG/CXR/PQC",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -2643,7 +2643,7 @@
       "podpoa": "YNYHAN",
       "etp_pod": "/YNY/CJJ/HGH/HKG",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJJ/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2652,7 +2652,7 @@
       "podpoa": "YNYSGN",
       "etp_pod": "/YNY/CJU/TPE/HKG/RPLC/ZJSY/CXR",
       "talt": "GMP",
-      "fl": "360",
+      "fl": "320",
       "etp_poa": "/CJU/TPE/HKG/RPLC/ZJSY/CXR/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2688,7 +2688,7 @@
       "podpoa": "CJUCXR",
       "etp_pod": "/CJU/TPE/HKG",
       "talt": "ICN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/TPE/HKG/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -2697,7 +2697,7 @@
       "podpoa": "CJUSGN",
       "etp_pod": "/CJU/SHA/HKG/DAD",
       "talt": "ICN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/SHA/HKG/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2787,7 +2787,7 @@
       "podpoa": "PUSCXR",
       "etp_pod": "/PUS/CJU/TPE/CRK",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/CRK/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -2796,7 +2796,7 @@
       "podpoa": "PUSDLI",
       "etp_pod": "/PUS/TPE/HKG/DAD",
       "talt": "CJU",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/TPE/HKG/DAD/DLI",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -2805,7 +2805,7 @@
       "podpoa": "PUSDAD",
       "etp_pod": "/PUS/CJU/TPE/HKG",
       "talt": "CJU",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2814,7 +2814,7 @@
       "podpoa": "PUSHAN",
       "etp_pod": "/PUS/HGH/HKG",
       "talt": "CJU",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2832,7 +2832,7 @@
       "podpoa": "PUSSGN",
       "etp_pod": "/PUS/CJU/TPE/CRK/DAD",
       "talt": "ICN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/CRK/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -2904,7 +2904,7 @@
       "podpoa": "ICNHPH",
       "etp_pod": "/ICN/CJU/HGH/TPE/HKG",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/HGH/TPE/HKG/HPH",
       "alt1": "DAD",
       "alt2": "HAN"
@@ -2913,7 +2913,7 @@
       "podpoa": "ICNCXR",
       "etp_pod": "/ICN/CJJ/TPE/MNL/DAD",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJJ/TPE/MNL/DAD/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -2922,7 +2922,7 @@
       "podpoa": "ICNVCA",
       "etp_pod": "/ICN/CJU/TPE/RPLC/DAD/SGN",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/RPLC/DAD/SGN/VCA",
       "alt1": "GMP",
       "alt2": "GMP"
@@ -2931,7 +2931,7 @@
       "podpoa": "ICNDLI",
       "etp_pod": "/ICN/CJU/TPE/HKG/DAD",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/HKG/DAD/DLI",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -2940,7 +2940,7 @@
       "podpoa": "ICNDAD",
       "etp_pod": "/ICN/CJJ/TPE/HKG",
       "talt": "CJJ",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJJ/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -2949,7 +2949,7 @@
       "podpoa": "ICNHAN",
       "etp_pod": "/ICN/HGH/HKG",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HGH/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -2967,7 +2967,7 @@
       "podpoa": "ICNPQC",
       "etp_pod": "/ICN/CJU/TPE/CRK/DAD",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/CRK/DAD/PQC",
       "alt1": "CXR",
       "alt2": "SGN"
@@ -2976,7 +2976,7 @@
       "podpoa": "ICNSGN",
       "etp_pod": "/CJJ/TPE/MNL/DAD",
       "talt": "GMP",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/TPE/MNL/DAD/SGN",
       "alt1": "CXR",
       "alt2": "PQC"
@@ -3057,7 +3057,7 @@
       "podpoa": "TAECXR",
       "etp_pod": "/TAE/CJU/TPE/HKG",
       "talt": "PUS",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/HKG/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -3066,7 +3066,7 @@
       "podpoa": "TAEDAD",
       "etp_pod": "/TAE/CJU/TPE/HKG",
       "talt": "PUS",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -3120,7 +3120,7 @@
       "podpoa": "CJJHPH",
       "etp_pod": "/CJJ/PUS/HGH/HKG",
       "talt": "ICN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/PUS/HGH/HKG/HPH",
       "alt1": "DAD",
       "alt2": "HAN"
@@ -3129,7 +3129,7 @@
       "podpoa": "CJJCXR",
       "etp_pod": "/CJJ/PUS/SHA/HKG/DAD",
       "talt": "ICN",
-      "fl": "340",
+      "fl": "320",
       "etp_poa": "/PUS/SHA/HKG/DAD/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -3138,7 +3138,7 @@
       "podpoa": "CJJDLI",
       "etp_pod": "/CJJ/PUS/SHA/HKG/DAD",
       "talt": "ICN",
-      "fl": "340,340",
+      "fl": "320,320",
       "etp_poa": "/PUS/SHA/HKG/DAD/DLI",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -3147,7 +3147,7 @@
       "podpoa": "CJJDAD",
       "etp_pod": "/CJJ/SHA/HGH/TPE/HKG",
       "talt": "ICN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/SHA/HGH/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -3156,7 +3156,7 @@
       "podpoa": "CJJHAN",
       "etp_pod": "/CJJ/PUS/SHA/HKG",
       "talt": "ICN",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/PUS/SHA/HKG/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -3309,7 +3309,7 @@
       "podpoa": "LAOSGN",
       "etp_pod": "/LAO/DAD",
       "talt": "MNL",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -3354,7 +3354,7 @@
       "podpoa": "MNLSGN",
       "etp_pod": "/MNL/CXR",
       "talt": "CRK",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CXR/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -3363,7 +3363,7 @@
       "podpoa": "CEBSGN",
       "etp_pod": "/CEB/PPS/CXR",
       "talt": "ILO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/PPS/CXR/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -4047,7 +4047,7 @@
       "podpoa": "TASCXR",
       "etp_pod": "/TAS/OIMM/OIZH/OPRK/VIDP/VECC/RGN/SGN",
       "talt": "CRZ",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/OIMM/OIZH/OPRK/VIDP/VECC/RGN/SGN/CXR",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -4218,7 +4218,7 @@
       "podpoa": "AMDDAD",
       "etp_pod": "/AMD/HYD/CCU/RGN/BKK",
       "talt": "BOM",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/BKK/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -4227,7 +4227,7 @@
       "podpoa": "AMDHAN",
       "etp_pod": "/AMD/HYD/CCU/RGN/VTE",
       "talt": "BOM",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/VTE/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -4236,7 +4236,7 @@
       "podpoa": "AMDPQC",
       "etp_pod": "/AMD/HYD/CCU/RGN/BKK",
       "talt": "BOM",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/BKK/PQC",
       "alt1": "CXR",
       "alt2": "CXR"
@@ -4245,7 +4245,7 @@
       "podpoa": "AMDSGN",
       "etp_pod": "/AMD/HYD/CCU/RGN",
       "talt": "BOM",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/SGN",
       "alt1": "CXR",
       "alt2": "PQC"
@@ -4317,7 +4317,7 @@
       "podpoa": "BOMDAD",
       "etp_pod": "/BOM/HYD/CCU/RGN/BKK",
       "talt": "AMD",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/BKK/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -4326,7 +4326,7 @@
       "podpoa": "BOMHAN",
       "etp_pod": "/BOM/HYD/CCU/RGN",
       "talt": "AMD",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -4335,7 +4335,7 @@
       "podpoa": "BOMPQC",
       "etp_pod": "/BOM/NAG/CCU/RGN/BKK",
       "talt": "AMD",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/NAG/CCU/RGN/BKK/PQC",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -4344,7 +4344,7 @@
       "podpoa": "BOMSGN",
       "etp_pod": "/BOM/HYD/CCU/RGN",
       "talt": "AMD",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HYD/CCU/RGN/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -4524,7 +4524,7 @@
       "podpoa": "VNSSGN",
       "etp_pod": "/VNS/CCU/RGN/BKK",
       "talt": "IXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/CCU/RGN/BKK/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -4596,7 +4596,7 @@
       "podpoa": "CCUSGN",
       "etp_pod": "/CCU/RGN/BKK/PNH",
       "talt": "RGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/RGN/BKK/PNH/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -4668,7 +4668,7 @@
       "podpoa": "GAYDAD",
       "etp_pod": "/GAY/VGHS/VYMD/VLVT",
       "talt": "CCU",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/VGHS/VYMD/VLVT/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -4677,7 +4677,7 @@
       "podpoa": "GAYHAN",
       "etp_pod": "/GAY/VGHS/VYMD/VLVT",
       "talt": "CCU",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/VGHS/VYMD/VLVT/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -4686,7 +4686,7 @@
       "podpoa": "GAYSGN",
       "etp_pod": "/GAY/CCU/RGN/BKK",
       "talt": "CCU",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/CCU/RGN/BKK/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -4812,7 +4812,7 @@
       "podpoa": "DACSGN",
       "etp_pod": "/DAC/CCU/RGN/BKK",
       "talt": "CCU",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/CCU/RGN/BKK/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -4875,7 +4875,7 @@
       "podpoa": "HKGPQC",
       "etp_pod": "/HKG/DAD",
       "talt": "MFM",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/PQC",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -4884,7 +4884,7 @@
       "podpoa": "HKGSGN",
       "etp_pod": "/HKG/DAD",
       "talt": "MFM",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -5064,7 +5064,7 @@
       "podpoa": "DELPQC",
       "etp_pod": "/DEL/CCU/RGN/BKK",
       "talt": "LKO",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/CCU/RGN/BKK/PQC",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -5073,7 +5073,7 @@
       "podpoa": "DELSGN",
       "etp_pod": "/DEL/CCU/RGN",
       "talt": "LKO",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/CCU/RGN/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -5343,7 +5343,7 @@
       "podpoa": "BLRSGN",
       "etp_pod": "/BLR/MAA/CCU/RGN",
       "talt": "COK",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/MAA/CCU/RGN/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -5397,7 +5397,7 @@
       "podpoa": "COKSGN",
       "etp_pod": "/COK/MAA/CCU/RGN",
       "talt": "BLR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/MAA/CCU/RGN/SGN",
       "alt1": "CXR",
       "alt2": "PQC"
@@ -5487,7 +5487,7 @@
       "podpoa": "HYDSGN",
       "etp_pod": "/HYD/CCU/RGN/BKK",
       "talt": "BLR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/CCU/RGN/BKK/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -5892,7 +5892,7 @@
       "podpoa": "BKKVCA",
       "etp_pod": "",
       "talt": "UTP",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "PQC"
@@ -5901,7 +5901,7 @@
       "podpoa": "BKKDLI",
       "etp_pod": "",
       "talt": "UTP",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -5919,7 +5919,7 @@
       "podpoa": "BKKHAN",
       "etp_pod": "",
       "talt": "UTP",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "VII",
       "alt2": "HPH"
@@ -6936,7 +6936,7 @@
       "podpoa": "HPHICN",
       "etp_pod": "/HPH/HKG/HGH",
       "talt": "HAN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HKG/HGH/ICN",
       "alt1": "CJJ",
       "alt2": "GMP"
@@ -6945,7 +6945,7 @@
       "podpoa": "HPHCJJ",
       "etp_pod": "/HPH/HKG/HGH/PUS",
       "talt": "HAN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HKG/HGH/PUS/CJJ",
       "alt1": "CJU",
       "alt2": "ICN"
@@ -6972,7 +6972,7 @@
       "podpoa": "HPHBKK",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "280,VILAO,340",
+      "fl": "280,VILAO,320",
       "etp_poa": "",
       "alt1": "DMK",
       "alt2": "UTP"
@@ -6990,7 +6990,7 @@
       "podpoa": "HPHCXR",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -6999,7 +6999,7 @@
       "podpoa": "HPHVCA",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "PQC"
@@ -7017,7 +7017,7 @@
       "podpoa": "HPHDLI",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -7026,7 +7026,7 @@
       "podpoa": "HPHDAD",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "340",
+      "fl": "320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -7071,7 +7071,7 @@
       "podpoa": "HPHPQC",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -7278,7 +7278,7 @@
       "podpoa": "CXRCJU",
       "etp_pod": "/CXR/HKG/TPE",
       "talt": "DAD",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HKG/TPE/CJU",
       "alt1": "ICN",
       "alt2": "ICN"
@@ -7350,7 +7350,7 @@
       "podpoa": "CXRALA",
       "etp_pod": "/CXR/HAN/TFU/XNN/URC",
       "talt": "DAD",
-      "fl": "100,350,VPH,400",
+      "fl": "100,330,VPH,400",
       "etp_poa": "/HAN/TFU/XNN/URC/ALA",
       "alt1": "NQZ",
       "alt2": "FRU"
@@ -7359,7 +7359,7 @@
       "podpoa": "CXRNQZ",
       "etp_pod": "/CXR/HAN/TFU/XNN/URC/ALA",
       "talt": "DAD",
-      "fl": "100,350,VPH,400",
+      "fl": "100,330,VPH,400",
       "etp_poa": "/HAN/TFU/XNN/URC/ALA/NQZ",
       "alt1": "ALA",
       "alt2": "KGF"
@@ -7458,7 +7458,7 @@
       "podpoa": "CXRTAS",
       "etp_pod": "/CXR/SGN/RGN/VECC/VIDP/OPRK/OIZH/OIMM",
       "talt": "DAD",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/SGN/RGN/VECC/VIDP/OPRK/OIZH/OIMM/TAS",
       "alt1": "CRZ",
       "alt2": "CRZ"
@@ -7593,7 +7593,7 @@
       "podpoa": "CXRBKK",
       "etp_pod": "",
       "talt": "DAD",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "DMK",
       "alt2": "UTP"
@@ -7764,7 +7764,7 @@
       "podpoa": "CXRCGK",
       "etp_pod": "/CXR/SGN/SIN",
       "talt": "SGN",
-      "fl": "340",
+      "fl": "320",
       "etp_poa": "/SGN/SIN/CGK",
       "alt1": "",
       "alt2": ""
@@ -8349,7 +8349,7 @@
       "podpoa": "VCATPE",
       "etp_pod": "/VCA/DAD/HKG/KHH",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/KHH/TPE",
       "alt1": "KHH",
       "alt2": "TNN"
@@ -8358,7 +8358,7 @@
       "podpoa": "VCAICN",
       "etp_pod": "/VCA/DAD/HKG/TPE/CJU",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/TPE/CJU/ICN",
       "alt1": "CJJ",
       "alt2": "GMP"
@@ -8529,7 +8529,7 @@
       "podpoa": "DLIMWX",
       "etp_pod": "/DLI/DAD/HKG/TPE/HGH/CJU",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/TPE/HGH/CJU/MWX",
       "alt1": "ICN",
       "alt2": "CJU"
@@ -8538,7 +8538,7 @@
       "podpoa": "DLIPUS",
       "etp_pod": "/DLI/DAD/HKG/TPE/CJU",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/TPE/CJU/PUS",
       "alt1": "ICN",
       "alt2": "CJU"
@@ -8547,7 +8547,7 @@
       "podpoa": "DLIICN",
       "etp_pod": "/DLI/DAD/HKG/TPE/CJU",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/TPE/CJU/ICN",
       "alt1": "CJJ",
       "alt2": "GMP"
@@ -8556,7 +8556,7 @@
       "podpoa": "DLICJJ",
       "etp_pod": "/DLI/DAD/HKG/HGH/PUS",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/HGH/PUS/CJJ",
       "alt1": "PUS",
       "alt2": "ICN"
@@ -8943,7 +8943,7 @@
       "podpoa": "DADICN",
       "etp_pod": "/DAD/HKG/TPE/CJJ",
       "talt": "HAN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HKG/TPE/CJJ/ICN",
       "alt1": "CJJ",
       "alt2": "CJJ"
@@ -9024,7 +9024,7 @@
       "podpoa": "DADAMD",
       "etp_pod": "/DAD/BKK/RGN/CCU/HYD",
       "talt": "HAN",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/HYD/AMD",
       "alt1": "BOM",
       "alt2": "JAI"
@@ -9033,7 +9033,7 @@
       "podpoa": "DADBOM",
       "etp_pod": "/DAD/BKK/RGN/CCU/HYD",
       "talt": "HAN",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/HYD/BOM",
       "alt1": "HYD",
       "alt2": "AMD"
@@ -9078,7 +9078,7 @@
       "podpoa": "DADGAY",
       "etp_pod": "/DAD/VLVT/VYMD/VGHS",
       "talt": "HAN",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/VLVT/VYMD/VGHS/GAY",
       "alt1": "DEL",
       "alt2": "CCU"
@@ -9123,7 +9123,7 @@
       "podpoa": "DADDEL",
       "etp_pod": "/DAD/BKK/RGN/CCU",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/DEL",
       "alt1": "LKO",
       "alt2": "JAI"
@@ -9150,7 +9150,7 @@
       "podpoa": "DADMFM",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "HKG",
       "alt2": "CAN"
@@ -9375,7 +9375,7 @@
       "podpoa": "DADKUL",
       "etp_pod": "/DAD/SGN",
       "talt": "SGN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/SGN/KUL",
       "alt1": "SIN",
       "alt2": "PEN"
@@ -9384,7 +9384,7 @@
       "podpoa": "DADSIN",
       "etp_pod": "/DAD/SGN",
       "talt": "SGN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/SGN/SIN",
       "alt1": "PEN",
       "alt2": "KUL"
@@ -9789,7 +9789,7 @@
       "podpoa": "HANADA",
       "etp_pod": "/HAN/RGN/CCU/VAJB/VIJP/OIZH/OIIE/OITR",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/VAJB/VIJP/OIZH/OIIE/OITR/ADA",
       "alt1": "DIY",
       "alt2": "ESB"
@@ -9816,7 +9816,7 @@
       "podpoa": "HANANC",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "",
       "alt2": ""
@@ -9915,7 +9915,7 @@
       "podpoa": "HANCTS",
       "etp_pod": "/HAN/HKG/CSX/HGH/CJU/KIX/KIJ",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HKG/CSX/HGH/CJU/KIX/KIJ/CTS",
       "alt1": "NRT",
       "alt2": "KJI"
@@ -10005,7 +10005,7 @@
       "podpoa": "HANHIJ",
       "etp_pod": "/HAN/HKG/HGH",
       "talt": "HPH",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HKG/HGH/HIJ",
       "alt1": "KIX",
       "alt2": "KIX"
@@ -10104,7 +10104,7 @@
       "podpoa": "HANICN",
       "etp_pod": "/HAN/HKG/HGH",
       "talt": "HPH",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/HKG/HGH/ICN",
       "alt1": "CJJ",
       "alt2": "GMP"
@@ -10122,7 +10122,7 @@
       "podpoa": "HANMNL",
       "etp_pod": "/HAN/CXR",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CXR/MNL",
       "alt1": "CRK",
       "alt2": "CRK"
@@ -10149,7 +10149,7 @@
       "podpoa": "HANGYD",
       "etp_pod": "/HAN/RGN/CCU/DEL/KHI/ZAH/THR",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/DEL/KHI/ZAH/THR/GYD",
       "alt1": "GNJ",
       "alt2": "GNJ"
@@ -10221,7 +10221,7 @@
       "podpoa": "HANAMD",
       "etp_pod": "/HAN/RGN/CCU/HYD",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/HYD/AMD",
       "alt1": "BOM",
       "alt2": "JAI"
@@ -10230,7 +10230,7 @@
       "podpoa": "HANBOM",
       "etp_pod": "/HAN/RGN/CCU/HYD",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/HYD/BOM",
       "alt1": "HYD",
       "alt2": "AMD"
@@ -10239,7 +10239,7 @@
       "podpoa": "HANCMB",
       "etp_pod": "/HAN/VYMD/VECC/VOVZ",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/VYMD/VECC/VOVZ/CMB",
       "alt1": "TRV",
       "alt2": "HRI"
@@ -10248,7 +10248,7 @@
       "podpoa": "HANREP",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "SGN"
@@ -10275,7 +10275,7 @@
       "podpoa": "HANGAY",
       "etp_pod": "/HAN/VYMD/VGHS",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/VYMD/VGHS/GAY",
       "alt1": "DEL",
       "alt2": "CCU"
@@ -10329,7 +10329,7 @@
       "podpoa": "HANDEL",
       "etp_pod": "/HAN/RGN/CCU",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/DEL",
       "alt1": "LKO",
       "alt2": "JAI"
@@ -10383,7 +10383,7 @@
       "podpoa": "HANHYD",
       "etp_pod": "/HAN/CNX/RGN/CCU",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/CNX/RGN/CCU/HYD",
       "alt1": "BOM",
       "alt2": "BLR"
@@ -10392,7 +10392,7 @@
       "podpoa": "HANMAA",
       "etp_pod": "/HAN/RGN/BBI",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/RGN/BBI/MAA",
       "alt1": "BRL",
       "alt2": "BRL"
@@ -10410,7 +10410,7 @@
       "podpoa": "HANBKK",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "DMK",
       "alt2": "UTP"
@@ -10428,7 +10428,7 @@
       "podpoa": "HANHKT",
       "etp_pod": "/HAN/BKK",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/BKK/HKT",
       "alt1": "HDY",
       "alt2": "KBV"
@@ -10455,7 +10455,7 @@
       "podpoa": "HANVCL",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "DAD"
@@ -10473,7 +10473,7 @@
       "podpoa": "HANCXR",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -10491,7 +10491,7 @@
       "podpoa": "HANVCA",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "PQC"
@@ -10509,7 +10509,7 @@
       "podpoa": "HANDLI",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "CXR"
@@ -10554,7 +10554,7 @@
       "podpoa": "HANPQC",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -10572,7 +10572,7 @@
       "podpoa": "HANSGN",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -10608,7 +10608,7 @@
       "podpoa": "HANRGN",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "BKK",
       "alt2": "CNX"
@@ -10617,7 +10617,7 @@
       "podpoa": "HANDPS",
       "etp_pod": "/HAN/SGN/KCH",
       "talt": "HPH",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/SGN/KCH/DPS",
       "alt1": "SUB",
       "alt2": "LOP"
@@ -10635,7 +10635,7 @@
       "podpoa": "HANBWN",
       "etp_pod": "/HAN/SGN",
       "talt": "HPH",
-      "fl": "340,LOSON,350",
+      "fl": "320,LOSON,330",
       "etp_poa": "/SGN/BWN",
       "alt1": "KCH",
       "alt2": "BKI"
@@ -10644,7 +10644,7 @@
       "podpoa": "HANCGK",
       "etp_pod": "/HAN/DAD/SGN/SIN",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/SGN/SIN/CGK",
       "alt1": "SUB",
       "alt2": "PLM"
@@ -10653,7 +10653,7 @@
       "podpoa": "HANKUL",
       "etp_pod": "/HAN/SGN",
       "talt": "HPH",
-      "fl": "280,VILAO,280,PNH,340",
+      "fl": "280,VILAO,280,PNH,320",
       "etp_poa": "/SGN/KUL",
       "alt1": "SIN",
       "alt2": "PEN"
@@ -10671,7 +10671,7 @@
       "podpoa": "HANSIN",
       "etp_pod": "/HAN/SGN",
       "talt": "HPH",
-      "fl": "280,VILAO,280,PNH,340",
+      "fl": "280,VILAO,280,PNH,320",
       "etp_poa": "/SGN/SIN",
       "alt1": "PEN",
       "alt2": "KUL"
@@ -11364,7 +11364,7 @@
       "podpoa": "PQCICN",
       "etp_pod": "/PQC/DAD/HKG/TPE/CJJ",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/TPE/CJJ/ICN",
       "alt1": "CJJ",
       "alt2": "GMP"
@@ -11427,7 +11427,7 @@
       "podpoa": "PQCAMD",
       "etp_pod": "/PQC/BKK/RGN/CCU/HYD",
       "talt": "SGN",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/HYD/AMD",
       "alt1": "BOM",
       "alt2": "JAI"
@@ -11436,7 +11436,7 @@
       "podpoa": "PQCBOM",
       "etp_pod": "/pqc/BKK/RGN/CCU/HYD",
       "talt": "SGN",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/HYD/BOM",
       "alt1": "HYD",
       "alt2": "AMD"
@@ -11472,7 +11472,7 @@
       "podpoa": "PQCDEL",
       "etp_pod": "/PQC/BKK/RGN/CCU",
       "talt": "SGN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/DEL",
       "alt1": "LKO",
       "alt2": "JAI"
@@ -11562,7 +11562,7 @@
       "podpoa": "PQCHAN",
       "etp_pod": "",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "VII",
       "alt2": "HPH"
@@ -11787,7 +11787,7 @@
       "podpoa": "PQCCTU",
       "etp_pod": "",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "",
       "alt2": ""
@@ -11967,7 +11967,7 @@
       "podpoa": "SGNKHH",
       "etp_pod": "/SGN/DAD/HKG",
       "talt": "CXR",
-      "fl": "350",
+      "fl": "330",
       "etp_poa": "/DAD/HKG/KHH",
       "alt1": "TPE",
       "alt2": "RMQ"
@@ -12003,7 +12003,7 @@
       "podpoa": "SGNNRT",
       "etp_pod": "/SGN/DAD/CRK/OKA/KIX",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/CRK/OKA/KIX/NRT",
       "alt1": "KIX",
       "alt2": "HND"
@@ -12012,7 +12012,7 @@
       "podpoa": "SGNIBR",
       "etp_pod": "/SGN/DAD/HKG/TPE/OKA/KOJ/RJBB/MYJ",
       "talt": "CXR",
-      "fl": "350",
+      "fl": "330",
       "etp_poa": "/DAD/HKG/TPE/OKA/KOJ/RJBB/MYJ/IBR",
       "alt1": "KIX",
       "alt2": "NGO"
@@ -12021,7 +12021,7 @@
       "podpoa": "SGNKIX",
       "etp_pod": "/SGN/DAD/CRK/OKA",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/CRK/OKA/KIX",
       "alt1": "FUK",
       "alt2": "NGO"
@@ -12093,7 +12093,7 @@
       "podpoa": "SGNNGO",
       "etp_pod": "/SGN/DAD/MNL/TPE/OKA/KIX",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/MNL/TPE/OKA/KIX/NGO",
       "alt1": "NRT",
       "alt2": "KIX"
@@ -12156,7 +12156,7 @@
       "podpoa": "SGNFKS",
       "etp_pod": "/SGN/DAD/HKG/TNN/OKA/KIX",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/HKG/TNN/OKA/KIX/FKS",
       "alt1": "NGO",
       "alt2": "NRT"
@@ -12165,7 +12165,7 @@
       "podpoa": "SGNKIJ",
       "etp_pod": "/SGN/dad/hkg/TPE/OKA/KIX",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/dad/hkg/TPE/OKA/KIX/KIJ",
       "alt1": "NGO",
       "alt2": "NRT"
@@ -12183,7 +12183,7 @@
       "podpoa": "SGNYNY",
       "etp_pod": "/SGN/DAD/HKG/TPE/HGH/CJU/TAE/CJJ",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/HKG/TPE/HGH/CJU/TAE/CJJ/YNY",
       "alt1": "ICN",
       "alt2": "GMP"
@@ -12246,7 +12246,7 @@
       "podpoa": "SGNMNL",
       "etp_pod": "/SGN/CXR",
       "talt": "CXR",
-      "fl": "350",
+      "fl": "330",
       "etp_poa": "/CXR/MNL",
       "alt1": "CRK",
       "alt2": "CRK"
@@ -12336,7 +12336,7 @@
       "podpoa": "SGNAMD",
       "etp_pod": "/SGN/RGN/CCU/HYD",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/HYD/AMD",
       "alt1": "BOM",
       "alt2": "JAI"
@@ -12345,7 +12345,7 @@
       "podpoa": "SGNBOM",
       "etp_pod": "/SGN/RGN/CCU/HYD",
       "talt": "CXR",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/HYD/BOM",
       "alt1": "HYD",
       "alt2": "AMD"
@@ -12381,7 +12381,7 @@
       "podpoa": "SGNVNS",
       "etp_pod": "/SGN/BKK/RGN/CCU",
       "talt": "CXR",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/VNS",
       "alt1": "DEL",
       "alt2": "LKO"
@@ -12399,7 +12399,7 @@
       "podpoa": "SGNGAY",
       "etp_pod": "/SGN/BKK/RGN/CCU",
       "talt": "CXR",
-      "fl": "100,360",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/GAY",
       "alt1": "DEL",
       "alt2": "CCU"
@@ -12444,7 +12444,7 @@
       "podpoa": "SGNDEL",
       "etp_pod": "/SGN/RGN/CCU",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/RGN/CCU/DEL",
       "alt1": "AMD",
       "alt2": "JAI"
@@ -12498,7 +12498,7 @@
       "podpoa": "SGNBLR",
       "etp_pod": "/SGN/RGN/CCU/MAA",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/MAA/BLR",
       "alt1": "HYD",
       "alt2": "COK"
@@ -12507,7 +12507,7 @@
       "podpoa": "SGNCOK",
       "etp_pod": "/SGN/RGN/CCU/MAA",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/MAA/COK",
       "alt1": "TRZ",
       "alt2": "BLR"
@@ -12516,7 +12516,7 @@
       "podpoa": "SGNHYD",
       "etp_pod": "/SGN/BKK/RGN/CCU",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/CCU/HYD",
       "alt1": "BOM",
       "alt2": "BLR"
@@ -12525,7 +12525,7 @@
       "podpoa": "SGNMAA",
       "etp_pod": "/SGN/BKK/RGN/BBI",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/BKK/RGN/BBI/MAA",
       "alt1": "BLR",
       "alt2": "BLR"
@@ -12552,7 +12552,7 @@
       "podpoa": "SGNMLE",
       "etp_pod": "",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "",
       "alt2": ""
@@ -12570,7 +12570,7 @@
       "podpoa": "SGNBKK",
       "etp_pod": "",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "DMK",
       "alt2": "UTP"
@@ -12579,7 +12579,7 @@
       "podpoa": "SGNCNX",
       "etp_pod": "",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "BKK",
       "alt2": "CEI"
@@ -12588,7 +12588,7 @@
       "podpoa": "SGNHKT",
       "etp_pod": "",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "HDY",
       "alt2": "KBV"
@@ -12768,7 +12768,7 @@
       "podpoa": "SGNRGN",
       "etp_pod": "",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "BKK",
       "alt2": "CNX"
@@ -12777,7 +12777,7 @@
       "podpoa": "SGNDPS",
       "etp_pod": "/SGN/wsss/wiii",
       "talt": "PQC",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/Wsss/Wiii/DPS",
       "alt1": "SUB",
       "alt2": "LOP"
@@ -12795,7 +12795,7 @@
       "podpoa": "SGNBWN",
       "etp_pod": "",
       "talt": "CXR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "",
       "alt2": ""
@@ -12804,7 +12804,7 @@
       "podpoa": "SGNCGK",
       "etp_pod": "/SGN/SIN",
       "talt": "CXR",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/SIN/CGK",
       "alt1": "SUB",
       "alt2": "PLM"
@@ -12840,7 +12840,7 @@
       "podpoa": "SGNSIN",
       "etp_pod": "",
       "talt": "PQC",
-      "fl": "340",
+      "fl": "320",
       "etp_poa": "",
       "alt1": "PEN",
       "alt2": "KUL"
@@ -13137,7 +13137,7 @@
       "podpoa": "THDCXR",
       "etp_pod": "",
       "talt": "VII",
-      "fl": "340,KONCO",
+      "fl": "320,KONCO",
       "etp_poa": "",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -13191,7 +13191,7 @@
       "podpoa": "THDPQC",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -13200,7 +13200,7 @@
       "podpoa": "THDSGN",
       "etp_pod": "",
       "talt": "VII",
-      "fl": "320,KONCO,340",
+      "fl": "320,KONCO,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -13290,7 +13290,7 @@
       "podpoa": "VDOVCA",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "SGN"
@@ -13326,7 +13326,7 @@
       "podpoa": "VDOSGN",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -13470,7 +13470,7 @@
       "podpoa": "VIIPQC",
       "etp_pod": "",
       "talt": "DAD",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -13569,7 +13569,7 @@
       "podpoa": "DPSHAN",
       "etp_pod": "/DPS/kch/CXR/DAD",
       "talt": "LOP",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/KCH/CXR/DAD/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -13587,7 +13587,7 @@
       "podpoa": "DPSSGN",
       "etp_pod": "/DPS/WALL/WBSB",
       "talt": "LOP",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/WALL/WBSB/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -13659,7 +13659,7 @@
       "podpoa": "BWNCXR",
       "etp_pod": "",
       "talt": "BKI",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "DAD",
       "alt2": "SGN"
@@ -13677,7 +13677,7 @@
       "podpoa": "BWNSGN",
       "etp_pod": "",
       "talt": "BKI",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -13686,7 +13686,7 @@
       "podpoa": "BWNVDO",
       "etp_pod": "",
       "talt": "BKI",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "",
       "alt2": ""
@@ -13722,7 +13722,7 @@
       "podpoa": "BTHDAD",
       "etp_pod": "",
       "talt": "SIN",
-      "fl": "340",
+      "fl": "320",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -13749,7 +13749,7 @@
       "podpoa": "CGKHAN",
       "etp_pod": "/CGK/SIN/SGN",
       "talt": "PLM",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/SIN/SGN/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -13812,7 +13812,7 @@
       "podpoa": "KULVCA",
       "etp_pod": "",
       "talt": "",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "",
       "alt1": "CXR",
       "alt2": "SGN"
@@ -13821,7 +13821,7 @@
       "podpoa": "KULDAD",
       "etp_pod": "/KUL/SGN",
       "talt": "PEN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/SGN/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -14010,7 +14010,7 @@
       "podpoa": "SINDAD",
       "etp_pod": "/SIN/SGN",
       "talt": "KUL",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/SGN/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -18123,7 +18123,7 @@
       "podpoa": "SGNTRZ",
       "etp_pod": "/SGN/RGN/CCU/MAA",
       "talt": "VCA",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/RGN/CCU/MAA/TRZ",
       "alt1": "COK",
       "alt2": "BLR"
@@ -18132,7 +18132,7 @@
       "podpoa": "TRZSGN",
       "etp_pod": "/TRZ/MAA/CCU/RGN",
       "talt": "BLR",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/MAA/CCU/RGN/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -18141,7 +18141,7 @@
       "podpoa": "PQCPUS",
       "etp_pod": "/PQC/SGN/DAD/HKG/TPE",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/SGN/DAD/HKG/TPE/PUS",
       "alt1": "ICN",
       "alt2": "CJU"
@@ -18150,7 +18150,7 @@
       "podpoa": "PUSPQC",
       "etp_pod": "/PUS/CJU/TPE/CRK/DAD",
       "talt": "ICN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/CJU/TPE/CRK/DAD/PQC",
       "alt1": "SGN",
       "alt2": "VCA"
@@ -18168,7 +18168,7 @@
       "podpoa": "DINSGN",
       "etp_pod": "",
       "talt": "HAN",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "VCA",
       "alt2": "VCA"
@@ -18240,7 +18240,7 @@
       "podpoa": "HANSAI",
       "etp_pod": "",
       "talt": "HPH",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "",
       "alt1": "SGN",
       "alt2": "PQC"
@@ -18285,7 +18285,7 @@
       "podpoa": "PQCMWX",
       "etp_pod": "/PQC/DAD/HKG/TPE/HGH/CJU",
       "talt": "SGN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/DAD/HKG/TPE/HGH/CJU/MWX",
       "alt1": "CJJ",
       "alt2": "CJJ"
@@ -18321,7 +18321,7 @@
       "podpoa": "KULHAN",
       "etp_pod": "/KUL/SGN",
       "talt": "PEN",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/SGN/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -18330,7 +18330,7 @@
       "podpoa": "OKJDAD",
       "etp_pod": "/OKJ/HGH/TPE/HKG",
       "talt": "HIJ",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HGH/TPE/HKG/DAD",
       "alt1": "CXR",
       "alt2": "HUI"
@@ -18348,7 +18348,7 @@
       "podpoa": "CANSGN",
       "etp_pod": "/CAN/DAD",
       "talt": "HKG",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/DAD/SGN",
       "alt1": "CXR",
       "alt2": "VCA"
@@ -18384,7 +18384,7 @@
       "podpoa": "PKXHAN",
       "etp_pod": "/PKX/WUH",
       "talt": "PEK",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/WUH/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -18438,7 +18438,7 @@
       "podpoa": "HANKHV",
       "etp_pod": "/HAN/WUH/PKX/HRB",
       "talt": "HPH",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/WUH/PKX/HRB/KHV",
       "alt1": "VVO",
       "alt2": "VVO"
@@ -18447,7 +18447,7 @@
       "podpoa": "KHVHAN",
       "etp_pod": "/KHV/HRB/PKX/WUH",
       "talt": "VVO",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/HRB/PKX/WUH/HAN",
       "alt1": "VII",
       "alt2": "HPH"
@@ -18456,7 +18456,7 @@
       "podpoa": "HANVVO",
       "etp_pod": "/HAN/WUH/PKX",
       "talt": "HPH",
-      "fl": "100,350",
+      "fl": "100,330",
       "etp_poa": "/WUH/PKX/VVO",
       "alt1": "KHV",
       "alt2": "HRB"
@@ -18465,7 +18465,7 @@
       "podpoa": "VVOHAN",
       "etp_pod": "/VVO/PKX/WUH",
       "talt": "KHV",
-      "fl": "100,340",
+      "fl": "100,320",
       "etp_poa": "/PKX/WUH/HAN",
       "alt1": "VII",
       "alt2": "HPH"
