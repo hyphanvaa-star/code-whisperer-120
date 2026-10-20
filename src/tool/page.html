@@ -5870,7 +5870,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 1.8</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 1.9</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -27151,6 +27151,8 @@ async function acSave(kind, pf){
         msg.textContent = "✓ đã lưu — trợ lý PC sẽ dùng email này để đăng nhập Outlook Web";
       else if(kind === "aviweb")
         msg.textContent = "✓ đã lưu — Submit/Check ATC sẽ dùng tài khoản này";
+      else if(kind === "opscore")
+        msg.textContent = "✓ đã lưu & đăng nhập OpsCore thành công — STATUS/OOOI sẽ cập nhật";
       else
         msg.textContent = "✓ đã lưu" + (d.name ? " — " + d.name : "") + " & đăng nhập thành công";
       $("#ac"+pf+"Pass").value = "";
