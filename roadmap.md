@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] EST KHB: lưu STD riêng khi đọc crewlist; khớp Omni theo STD trước ETD, lấy giờ gần nhất cùng chuyến/ngày/chặng; kiểm thử VJC774 EST 15.040 kg.
+
 - [x] PIB/WX: chỉ đọc E.T.D. của WX và SYSTEM TIME/BULLETIN VALIDITY PERIOD của PIB trên trang đầu; bỏ mốc METAR/TAF/NOTAM, 14 kiểm thử đạt giới hạn 4 giờ; nhật ký ghi rõ nguồn giờ, V 1.6.
 - [ ] PIB/WX: thử đính kèm hai PDF thật theo ảnh — cần file PDF thực tế và Trợ lý PC của người dùng; ảnh hiện tại chỉ là mô tả trường cần đọc.
 
