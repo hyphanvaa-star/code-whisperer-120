@@ -54,6 +54,8 @@ export const saveNoticeRules = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertDispatcher, logActivity } = await import("./flights.server");
     await assertDispatcher(context.supabase, context.userId);
+    const { data: adm } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (adm !== true) throw new Error("Chỉ Admin được sửa bản luật chung. Hãy sửa trong tab Thiết lập file add (lưu riêng cho bạn).");
     const { error } = await context.supabase.from("app_settings").upsert({
       key: "notice_rules", value: data.rules, updated_by: context.userId, updated_at: new Date().toISOString(),
     });

@@ -1,5 +1,5 @@
 import type { Jobs, Routes } from "../types";
-import { getJson, setJson } from "../store.server";
+import { getJson, setJson, isAdmin, resetToTeam, LAYERED_KEYS } from "../store.server";
 import { jobId } from "../jobs";
 import {
   defaultRuleData, cleanRuleData, preview as noticesPreview,
@@ -19,7 +19,18 @@ async function loadRules(ctx: Parameters<Routes[string]>[0]): Promise<RuleRow[]>
 }
 
 export const routes: Routes = {
-  "GET /api/notices/rules": async (ctx) => ({ rules: await loadRules(ctx), path: "notice_rules" }),
+  "GET /api/notices/rules": async (ctx) => ({ rules: await loadRules(ctx), path: "notice_rules", admin: await isAdmin(ctx) }),
+
+  /** Non-admin: drop private copy of a team table and follow the admin version again. */
+  "POST /api/settings/reset": async (ctx) => {
+    const body = (await ctx.json()) as { key?: string };
+    const key = String(body.key || "");
+    if (!LAYERED_KEYS.has(key)) return { error: "Bảng không hợp lệ." };
+    if (await isAdmin(ctx)) return { ok: true, admin: true };
+    await resetToTeam(ctx, key);
+    return { ok: true };
+  },
+  "GET /api/settings/scope": async (ctx) => ({ ok: true, admin: await isAdmin(ctx) }),
 
   "POST /api/notices/rules": async (ctx) => {
     try {
