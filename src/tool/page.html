@@ -24470,6 +24470,16 @@ function ftInCurfew(hm, start, end){
   if(a != null) return hm >= a;
   return hm <= b;
 }
+/* Vùng đệm 1h30 trước giờ đóng và sau giờ mở curfew → cảnh báo vàng. */
+const FT_CURFEW_BUF = 90;
+function ftNearCurfew(hm, start, end){
+  if(hm == null) return false;
+  const a = ftHm(start), b = ftHm(end);
+  const fmt = function(x){ x = ((x % 1440) + 1440) % 1440; return String(Math.floor(x/60)).padStart(2,"0") + String(x%60).padStart(2,"0"); };
+  if(a != null && ftInCurfew(hm, fmt(a - FT_CURFEW_BUF), fmt(a))) return true;
+  if(b != null && ftInCurfew(hm, fmt(b), fmt(b + FT_CURFEW_BUF))) return true;
+  return false;
+}
 function ftPerfSev(defect, limit){
   const t = (String(defect || "") + " " + String(limit || "")).toUpperCase();
   if(/FUEL PENALT|APU INOP|APU U\/S|EDTO IS NOT CONDUCTED|DOWNGRADED TO CAT|CAT 1|CAT I\b|LIMITED TO|MAX(?:IMUM)?.{0,16}(TOW|LWT|ZFW)/.test(t))
@@ -24528,6 +24538,8 @@ function ftLimHits(st){
       }
       if(ftInCurfew(hm, row.start, row.end))
         ftLimAdd(hits[p[0]], "critical", "CURFEW " + ftAptNorm(p[1]) + ": " + p[2] + " " + clock + "Z trong " + window);
+      else if(ftNearCurfew(hm, row.start, row.end))
+        ftLimAdd(hits[p[0]], "warning", "SÁT CURFEW " + ftAptNorm(p[1]) + ": " + p[2] + " " + clock + "Z trong vùng đệm 1h30 của " + window);
     });
   });
   (lim.special || []).forEach(function(row){
