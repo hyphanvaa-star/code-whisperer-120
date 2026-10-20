@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] PIB/WX: chỉ đọc E.T.D. của WX và SYSTEM TIME/BULLETIN VALIDITY PERIOD của PIB; bỏ mốc METAR/TAF/NOTAM, kiểm thử giới hạn 4 giờ.
+- [x] PIB/WX: chỉ đọc E.T.D. của WX và SYSTEM TIME/BULLETIN VALIDITY PERIOD của PIB trên trang đầu; bỏ mốc METAR/TAF/NOTAM, 14 kiểm thử đạt giới hạn 4 giờ; nhật ký ghi rõ nguồn giờ, V 1.6.
+- [ ] PIB/WX: thử đính kèm hai PDF thật theo ảnh — cần file PDF thực tế và Trợ lý PC của người dùng; ảnh hiện tại chỉ là mô tả trường cần đọc.
 
 - [x] BF: đọc NOTAM/NOTES/Permits từ PDF cũ trước khi đổi tàu, WX lấy mới; bỏ note mẫu khi tạo mới; kiểm thử giữ 6 ô và trang tiếp nối đạt, PDF tạo mới/đổi tàu không tràn chữ.
 - [ ] BF: thử đổi tờ thật trên FliteBrief — chờ người dùng đăng nhập preview; không tạo được phiên cho tài khoản Lovable hiện tại. Không xoá BF cũ khi đọc thiếu ô.
