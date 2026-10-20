@@ -16,6 +16,7 @@ export async function ofpLayoutFromPdf(bytes: Uint8Array | ArrayBuffer): Promise
     }
     return pages.join('\n');
   } finally {
-    await doc.destroy();
+    const disposable = doc as unknown as { destroy?: () => Promise<void> };
+    await disposable.destroy?.();
   }
 }
