@@ -13,7 +13,7 @@
 - KHB PLD uses `port/fpl_payload.ts` to match Omni by date/route, never seed or another day; explicit PAY wins to preserve edits.
 - FliteBrief access lives only in `src/lib/flitebrief.server.ts`; cookies persist in service-role-only `fb_session` so workers share one login. PDFs download via `/api/fb/file` with a bearer token so external credentials never reach the browser.
 - Every server fn / route touching flight data must call `assertDispatcher` — route guards are UX only.
-- PC helper pairs by Dispatch Board login (`user` in its config → `_uid` job tag, heartbeat `pc.agent:u:<uid>`); IP matching is only a fallback for unpaired helpers because office NAT splits browser and helper IPs.
+- PC helper pairs by login (`_uid` tag); IP match is only a fallback — office NAT splits IPs.
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via `handle_new_user`.
 - Python-tool port proceeds group by group per `roadmap.md`: every original `/api/*` endpoint goes into `src/lib/tool/handlers/<group>.server.ts` with web.py's exact JSON shapes; `src/lib/tool/router.server.ts` owns auth (bearer or `fbt` cookie for GET) and returns `{error, not_ported}` for unported routes. Pure module ports live in `src/lib/tool/port/<module>.ts`, tests in `__tests__/`.
 - Original `src/tool/page.html` runs via `/tool-page` iframe at `/tool`; only the `src/routes/tool-page.ts` shim may alter it. ATC uses global CSS tokens and CSS-only empty marks to preserve operational data. The iframe uses a per-load URL nonce plus no-store headers so revisions never reuse a stale document. AFTN book/default-address edits use this shim and the shared two-column editor; cells keep local storage and lookup for TPL compatibility.
