@@ -1,58 +1,54 @@
-// Đọc ngày/giờ ghi trong nội dung PDF PIB/WX và so với STD chuyến.
-// File chỉ được đính kèm khi có ít nhất một mốc giờ cách STD không quá maxH giờ.
-
-const MON: Record<string, number> = {
-  JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11,
+// Only named first-page header fields establish a PIB/WX document's time.
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+export type DocumentKind = "pib" | "wx";
+interface HeaderTime { field: string; time: Date | null }
+const utc = (y: number, month: number, day: number, hour: number, minute: number) => {
+  if (month < 0 || month > 11 || day < 1 || day > 31 || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  const date = new Date(Date.UTC(y, month, day, hour, minute));
+  return date.getUTCFullYear() === y && date.getUTCMonth() === month && date.getUTCDate() === day ? date : null;
 };
 
-const yr = (y: string) => (y.length === 2 ? 2000 + Number(y) : Number(y));
-const utc = (y: number, m: number, d: number, h: number, mi: number) => {
-  if (m < 0 || m > 11 || d < 1 || d > 31 || h > 23 || mi > 59) return null;
-  const t = new Date(Date.UTC(y, m, d, h, mi));
-  return t.getUTCDate() === d ? t : null;
-};
-
-/** Mọi mốc ngày-giờ (UTC) đọc được trong chữ của PDF. `ref` dùng để đoán tháng/năm cho dạng DDHHMMZ. */
-export function pdfTimes(text: string, ref: Date): Date[] {
-  const s = String(text || "").toUpperCase();
-  const out: Date[] = [];
-  const push = (d: Date | null) => { if (d) out.push(d); };
-  let m: RegExpExecArray | null;
-  // 2026-10-19 05:30 / 2026/10/19 0530
-  const iso = /\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})[ T,]+(\d{1,2}):?(\d{2})\b/g;
-  while ((m = iso.exec(s))) push(utc(+m[1]!, +m[2]! - 1, +m[3]!, +m[4]!, +m[5]!));
-  // 19/10/2026 05:30 · 19-10-26 0530
-  const dmy = /\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2}|\d{2})[ ,]+(\d{1,2}):?(\d{2})\b/g;
-  while ((m = dmy.exec(s))) push(utc(yr(m[3]!), +m[2]! - 1, +m[1]!, +m[4]!, +m[5]!));
-  // 19OCT26 0530 · 19 OCT 2026 05:30 · 19-OCT-2026 0530Z
-  const dmon = /\b(\d{1,2})[ -]?(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[ -]?(20\d{2}|\d{2})[ ,/]+(\d{2}):?(\d{2})/g;
-  while ((m = dmon.exec(s))) push(utc(yr(m[3]!), MON[m[2]!]!, +m[1]!, +m[4]!, +m[5]!));
-  // 2610190530 (NOTAM YYMMDDHHMM)
-  const notam = /\b(2\d)(\d{2})(\d{2})(\d{2})(\d{2})\b/g;
-  while ((m = notam.exec(s))) push(utc(2000 + +m[1]!, +m[2]! - 1, +m[3]!, +m[4]!, +m[5]!));
-  // 190530Z (METAR/TAF) — tháng/năm lấy theo STD, lùi 1 tháng nếu ngày lớn hơn
-  const dz = /\b(\d{2})(\d{2})(\d{2})Z\b/g;
-  while ((m = dz.exec(s))) {
-    const d = +m[1]!;
-    let y = ref.getUTCFullYear(), mo = ref.getUTCMonth();
-    if (d - ref.getUTCDate() > 15) { mo--; if (mo < 0) { mo = 11; y--; } }
-    else if (ref.getUTCDate() - d > 15) { mo++; if (mo > 11) { mo = 0; y++; } }
-    push(utc(y, mo, d, +m[2]!, +m[3]!));
+function headerTimes(text: string, kind?: DocumentKind): HeaderTime[] {
+  // Never cross into bulletin/weather body or a subsequent page.
+  const header = String(text || "").toUpperCase().split(/\f|\b(?:METAR|TAF|NOTAM)\s*(?:\r?\n|:|\b[AB]\))/)[0] ?? "";
+  const isPib = kind === "pib" || (!kind && /SYSTEM\s+TIME\s*:/.test(header));
+  if (isPib) {
+    return ["SYSTEM TIME", "BULLETIN VALIDITY PERIOD"].map((field) => {
+      const label = field.replaceAll(" ", "\\s+");
+      const match = new RegExp(`\\b${label}\\s*:\\s*(\\d{2}|20\\d{2})-(\\d{2})-(\\d{2})\\s+(\\d{2}):?(\\d{2})\\b`).exec(header);
+      if (!match) return { field, time: null };
+      const year = Number(match[1]);
+      return { field, time: utc(year < 100 ? year + 2000 : year, Number(match[2]) - 1, Number(match[3]), Number(match[4]), Number(match[5])) };
+    });
   }
-  return out;
+  const match = /\bE\s*\.?\s*T\s*\.?\s*D\s*\.?\s*:\s*(\d{2}):?(\d{2})\s*UTC\s+(\d{1,2})\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+(20\d{2})\b/.exec(header);
+  return [{ field: "E.T.D.", time: match ? utc(Number(match[5]), MONTHS.indexOf(match[4] ?? ""), Number(match[3]), Number(match[1]), Number(match[2])) : null }];
 }
 
-export interface TimeCheck { ok: boolean; nearestH: number | null; nearest: Date | null }
+/** Compatibility export: only explicit header timestamps, never inferred METAR dates. */
+export function pdfTimes(text: string, _ref: Date): Date[] {
+  return headerTimes(text).flatMap(({ time }) => time ? [time] : []);
+}
 
-/** ok khi có mốc giờ trong file cách STD ≤ maxH giờ. Không đọc được mốc nào → ok=false. */
-export function checkAgainstStd(text: string, std: Date, maxH = 4): TimeCheck {
-  const times = pdfTimes(text, std);
-  let best: Date | null = null, bestD = Infinity;
-  for (const t of times) {
-    const d = Math.abs(t.getTime() - std.getTime());
-    if (d < bestD) { bestD = d; best = t; }
+export interface TimeCheck {
+  ok: boolean;
+  nearestH: number | null;
+  nearest: Date | null;
+  field: string;
+  reason?: string;
+  fields: Array<{ field: string; time: Date; deltaH: number }>;
+}
+
+/** Every required header time must be readable and within maxH of STD (UTC). */
+export function checkAgainstStd(text: string, std: Date, maxH = 4, kind?: DocumentKind): TimeCheck {
+  const headers = headerTimes(text, kind);
+  const fields = headers.flatMap(({ field, time }) => time ? [{ field, time, deltaH: Math.abs(time.getTime() - std.getTime()) / 3600e3 }] : []);
+  const missing = headers.find(({ time }) => !time);
+  if (missing || !Number.isFinite(std.getTime())) {
+    return { ok: false, nearestH: null, nearest: null, field: missing?.field ?? "STD", reason: `không đọc được ${missing?.field ?? "STD"}`, fields };
   }
-  if (!best) return { ok: false, nearestH: null, nearest: null };
-  const h = bestD / 3600e3;
-  return { ok: h <= maxH, nearestH: Math.round(h * 10) / 10, nearest: best };
+  // Report the failing field, not a nearer unrelated date that might hide stale data.
+  const selected = fields.find(({ deltaH }) => deltaH > maxH) ?? fields[fields.length - 1];
+  if (!selected) return { ok: false, nearestH: null, nearest: null, field: "", fields };
+  return { ok: fields.every(({ deltaH }) => deltaH <= maxH), nearestH: Math.round(selected.deltaH * 100) / 100, nearest: selected.time, field: selected.field, fields };
 }

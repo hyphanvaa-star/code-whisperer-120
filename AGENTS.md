@@ -20,6 +20,7 @@
 - Original `src/tool/page.html` runs via `/tool-page` iframe at `/tool`; only the `src/routes/tool-page.ts` shim may alter it. ATC uses global CSS tokens and CSS-only empty marks to preserve operational data. The iframe uses a per-load URL nonce plus no-store headers so revisions never reuse a stale document. AFTN book/default-address edits use this shim and the shared two-column editor; cells keep local storage and lookup for TPL compatibility.
 - Jobs encode kind+params in id; run via `/api/stream` (`jobs.ts`); no shared memory.
 - State: `app_settings`; files: private `tool-files` via `store.server.ts`.
+- PIB/WX attachment validation is centralized in `port/pibwx_time.ts` and receives only first-page text plus document kind, so body timestamps cannot authorize a stale file.
 - Mail/upload PDFs share `defect-limits.server.ts`: replace exact old-report rows, preserve manual/edited/LOW EGT rows, return merged limits to the editor.
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py`: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with `PC_AGENT_TOKEN` — a Worker cannot reach LAN devices.
 - Server-side Excel reading uses SheetJS (`xlsx` CDN tarball) — ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, via `src/lib/exceljs-load.ts`.

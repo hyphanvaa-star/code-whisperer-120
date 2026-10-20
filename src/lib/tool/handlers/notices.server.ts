@@ -307,16 +307,17 @@ export const jobs: Jobs = {
         let text = "";
         try {
           const pdf = await getDocumentProxy(new Uint8Array(buf.slice(0)));
-          const r = await extractText(pdf, { mergePages: true });
-          text = String(r.text || "");
+          const r = await extractText(pdf, { mergePages: false });
+          text = String(r.text[0] || "");
         } catch { /* đọc lỗi → text rỗng */ }
-        const chk = checkAgainstStd(text, w.f.std, 4);
+        const chk = checkAgainstStd(text, w.f.std, 4, w.kind === "pib" ? "pib" : "wx");
         if (!chk.ok) {
           const why = chk.nearest
-            ? `giờ trong file ${chk.nearest.toISOString().slice(0, 16).replace("T", " ")}Z lệch ${chk.nearestH}h so với STD`
-            : "không đọc được ngày giờ trong file";
+            ? `${chk.field} ${chk.nearest.toISOString().slice(0, 16).replace("T", " ")}Z lệch ${chk.nearestH}h so với STD`
+            : chk.reason || "không đọc được ngày giờ đầu trang";
           throw new Error(`BỎ QUA — ${why} (cho phép tối đa 4h)`);
         }
+        emit({ type: "line", text: `· ${label}: ${chk.fields.map((f) => `${f.field}=${f.time.toISOString().slice(0, 16).replace("T", " ")}Z (lệch ${Math.round(f.deltaH * 100) / 100}h)`).join(" · ")} so với STD ${w.f.std.toISOString().slice(0, 16).replace("T", " ")}Z` });
         const res = await uploadAndAttach(w.f.id, new Uint8Array(buf), w.name, w.name.replace(/\.pdf$/i, ""));
         if (!res.ok) throw new Error(res.error || "lỗi");
         ok++;
