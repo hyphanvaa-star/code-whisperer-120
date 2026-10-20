@@ -26,6 +26,7 @@ const SHIM = `<script>
       var w = window.innerWidth || BASE;
       var z = Math.max(0.67, Math.min(1, w / BASE));
       document.documentElement.style.zoom = z < 0.99 ? String(z) : "";
+      document.documentElement.style.setProperty('--taf-read-scale', String(z < 0.99 ? 1 / z : 1));
     }
     fit();
     window.addEventListener("resize", fit);
@@ -1003,7 +1004,14 @@ td .dim,.dim{color:var(--x-mute) !important}
   --hover-text:var(--vj-dark-ink);--hover-muted:#c5cddb;
   --hover-danger:#ffb4ac;--hover-success:#9af0bf;--hover-warning:#ffe099;
   color:var(--hover-text) !important;
+  box-sizing:border-box;max-width:min(calc(760px * var(--taf-read-scale,1)),calc((100vw - 24px) * var(--taf-read-scale,1))) !important;
+  max-height:calc((100vh - 24px) * var(--taf-read-scale,1));overflow:auto;
+  padding:calc(16px * var(--taf-read-scale,1)) calc(20px * var(--taf-read-scale,1)) !important;
+  font-size:calc(18px * var(--taf-read-scale,1)) !important;line-height:1.65 !important;
+  letter-spacing:0;border-radius:8px !important;
 }
+.taf-tip .meta{font-size:calc(15px * var(--taf-read-scale,1)) !important;margin-bottom:10px !important}
+.taf-tip .tip-line,.taf-tip .tip-text,.taf-tip .tip-row{font-size:inherit !important;overflow-wrap:anywhere}
 .taf-tip,.taf-tip *{-webkit-text-fill-color:currentColor !important}
 .taf-tip .lim-tip-head,.taf-tip .tip-line,.taf-tip .tip-text{color:var(--hover-text) !important}
 .taf-tip .meta,.taf-tip .tip-dim{color:var(--hover-muted) !important}
@@ -1911,6 +1919,26 @@ function ftRender(){
       #wrapAftn #afFl{box-sizing:border-box!important;width:240px!important;min-height:68px!important;font-size:34px!important;font-weight:800!important;line-height:1;text-align:center!important;padding:8px 12px!important;border:2px solid var(--x-line)!important;border-radius:12px!important;background:var(--x-card)!important;color:#c00!important;-webkit-text-fill-color:#c00!important}
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
     </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script></body>`)
+    .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
+  const el = tafTipEl();
+  if(!el.classList.contains("show")) return;
+  const zoom = (parseFloat(document.documentElement.style.zoom) || 1) * (parseFloat(document.body.style.zoom) || 1);
+  el.style.setProperty('--taf-read-scale', String(1 / zoom));
+  const rect = el.getBoundingClientRect();
+  const pad = 16;
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  if(x + rect.width > window.innerWidth - 12) x = ev.clientX - rect.width - pad;
+  if(y + rect.height > window.innerHeight - 12) y = ev.clientY - rect.height - pad;
+  x = Math.max(12, Math.min(x, window.innerWidth - rect.width - 12));
+  y = Math.max(12, Math.min(y, window.innerHeight - rect.height - 12));
+  el.style.left = (x / zoom) + "px";
+  el.style.top = (y / zoom) + "px";
+  const placed = el.getBoundingClientRect();
+  const dx = placed.right > window.innerWidth - 12 ? window.innerWidth - 12 - placed.right : placed.left < 12 ? 12 - placed.left : 0;
+  const dy = placed.bottom > window.innerHeight - 12 ? window.innerHeight - 12 - placed.bottom : placed.top < 12 ? 12 - placed.top : 0;
+  if(dx) el.style.left = ((parseFloat(el.style.left) || 0) + dx / zoom) + "px";
+  if(dy) el.style.top = ((parseFloat(el.style.top) || 0) + dy / zoom) + "px";
+}`)
     .replace("<head>", "<head>" + FONTS + SHIM)
     .replace("</head>", SKIN + POPART + PRO + FONTUP + ATC_SKIN + BTNRED + BTNRED2 + DROPDOWN + MOBILE + `<style>:root{--dispatch-sky:url("${dispatchSkyHeader}");--airport-clean:url("${dispatchAirportClean}");--vj-logo:url("${vietjetLogo}")}</style>` + "</head>")
     .replace(
