@@ -93,6 +93,11 @@ export const createAccount = createServerFn({ method: "POST" })
       user_metadata: { full_name: data.displayName?.trim() || u },
     });
     if (error || !made.user) throw new Error(/already/i.test(error?.message ?? "") ? "ID này đã có người dùng" : error?.message || "Không tạo được tài khoản");
+    const { error: profErr } = await supabaseAdmin.from("profiles").upsert(
+      { id: made.user.id, email: `${u}@app.local`, display_name: data.displayName?.trim() || u, original_username: u },
+      { onConflict: "id" },
+    );
+    if (profErr) throw new Error("Đã tạo tài khoản nhưng không lưu được hồ sơ");
     const roles: { user_id: string; role: "admin" | "dispatcher" }[] = [{ user_id: made.user.id, role: "dispatcher" }];
     if (data.admin) roles.push({ user_id: made.user.id, role: "admin" });
     await supabaseAdmin.from("user_roles").upsert(roles, { onConflict: "user_id,role", ignoreDuplicates: true });
