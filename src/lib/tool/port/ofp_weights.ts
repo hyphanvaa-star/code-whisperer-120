@@ -464,6 +464,7 @@ export function parseOperationalText(text: string, sectorId = 0): Weights {
 
   const cfp = _CFP_NO.exec(text);
   if (cfp) w.plan_no = cfp[1]!;
+  w.firs = fplFirs(text);
 
   fillFlytime(w, text);
 

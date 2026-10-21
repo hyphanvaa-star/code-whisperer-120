@@ -525,6 +525,7 @@ export function checkFlightLimits(
       for (const h of srEvaluate(row as SrRow, {
         reg: f.reg, ac: acType, dep: f.dep_icao || f.dep_iata, dest: f.dest_icao || f.dest_iata,
         alt1: f.dest_alt1, alt2: f.dest_alt2, talt: byRole["TALT"], etops: !!f.etops,
+        firs: Array.isArray(ofpValue(ofp, "firs")) ? (ofpValue(ofp, "firs") as string[]) : null,
       }, limits.acgroups)) {
         warns.push(warning("special", h.text, { severity: h.sev === "critical" ? CRITICAL : WARNING, check: "special", evidence: h.role, limit: String(row["limit"] || "") }));
       }

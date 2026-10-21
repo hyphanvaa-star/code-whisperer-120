@@ -98,9 +98,12 @@ export function srEvaluate(row, f, groups) {
   const apts = row.apts || [];
   const route = at(["DEP", "DEST"]);
   switch (row.rule) {
-    case "DOMESTIC_ONLY":
+    case "DOMESTIC_ONLY": {
       route.forEach(([r, c]) => { if (srRegionOf(c) !== "VN") add(r, "critical", r + " " + c + " không phải sân Việt Nam"); });
+      const foreign = (f.firs || []).map(norm).filter((x) => x && !x.startsWith("VV"));
+      if (foreign.length) add("DEP", "critical", "đường bay ATC FPL đi qua FIR nước ngoài " + foreign.join(", "));
       break;
+    }
     case "NO_DOMESTIC":
       if (route.length === 2 && route.every(([, c]) => srRegionOf(c) === "VN"))
         route.forEach(([r, c]) => add(r, "critical", "chặng nội địa, " + r + " " + c));
