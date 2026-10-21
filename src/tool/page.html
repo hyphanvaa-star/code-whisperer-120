@@ -19616,7 +19616,16 @@ function srRowCells(row, i, td1, td2, td3){
   note.style.cssText = "width:100%;margin-top:4px";
   note.oninput = () => { row.note = note.value; srSyncText(row); limPersist(limData); };
   note.onchange = () => limTouch();
-  td3.append(s, note);
+  const del = document.createElement("button");
+  del.type = "button"; del.className = "btn small danger"; del.textContent = "🗑 Xóa rule";
+  del.style.cssText = "margin-top:4px";
+  del.onclick = () => {
+    if(!confirm("Xóa rule này?")) return;
+    limData.special.splice(i, 1);
+    if(limData.special.length < LIM_ROWS) limData.special = limPad(limData.special, LIM_ROWS, limBlankSp);
+    limTouch(); limRender();
+  };
+  td3.append(s, note, del);
 }
 async function srAcOptions(){
   const fleet = await srLoadFleet();
