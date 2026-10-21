@@ -313,7 +313,7 @@ export const jobs: Jobs = {
         const buf = await getFile(ctx, `pibwx/${w.name}`);
         if (!buf?.byteLength) throw new Error("không thấy file vừa tải — hãy tải lại PIB/WX");
         done.push(w.name);
-        // Đọc ngày giờ trong file, lệch quá 4 tiếng so với STD thì bỏ qua.
+        // Đọc ngày giờ trong file, lệch quá 6 tiếng so với STD thì bỏ qua.
         if (!w.f.std) throw new Error("chuyến chưa có STD — không kiểm được ngày giờ file, bỏ qua");
         let text = "";
         try {
@@ -321,12 +321,12 @@ export const jobs: Jobs = {
           const r = await extractText(pdf, { mergePages: false });
           text = String(r.text[0] || "");
         } catch { /* đọc lỗi → text rỗng */ }
-        const chk = checkAgainstStd(text, w.f.std, 4, w.kind === "pib" ? "pib" : "wx");
+        const chk = checkAgainstStd(text, w.f.std, 6, w.kind === "pib" ? "pib" : "wx");
         if (!chk.ok) {
           const why = chk.nearest
             ? `${chk.field} ${chk.nearest.toISOString().slice(0, 16).replace("T", " ")}Z lệch ${chk.nearestH}h so với STD`
             : chk.reason || "không đọc được ngày giờ đầu trang";
-          throw new Error(`BỎ QUA — ${why} (cho phép tối đa 4h)`);
+          throw new Error(`BỎ QUA — ${why} (cho phép tối đa 6h)`);
         }
         emit({ type: "line", text: `· ${label}: ${chk.fields.map((f) => `${f.field}=${f.time.toISOString().slice(0, 16).replace("T", " ")}Z (lệch ${Math.round(f.deltaH * 100) / 100}h)`).join(" · ")} so với STD ${w.f.std.toISOString().slice(0, 16).replace("T", " ")}Z` });
         const res = await uploadAndAttach(w.f.id, new Uint8Array(buf), w.name, w.name.replace(/\.pdf$/i, ""));

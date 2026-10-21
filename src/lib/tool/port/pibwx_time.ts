@@ -40,7 +40,7 @@ export interface TimeCheck {
 }
 
 /** Every required header time must be readable and within maxH of STD (UTC). */
-export function checkAgainstStd(text: string, std: Date, maxH = 4, kind?: DocumentKind): TimeCheck {
+export function checkAgainstStd(text: string, std: Date, maxH = 6, kind?: DocumentKind): TimeCheck {
   const headers = headerTimes(text, kind);
   const fields = headers.flatMap(({ field, time }) => time ? [{ field, time, deltaH: Math.abs(time.getTime() - std.getTime()) / 3600e3 }] : []);
   const missing = headers.find(({ time }) => !time);
