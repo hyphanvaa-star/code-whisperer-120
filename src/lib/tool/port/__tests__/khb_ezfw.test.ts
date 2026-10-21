@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import atc from './fixtures/ATC_VJC7527.txt?raw';
-import ezfw from './fixtures/EZFW_VJC7527.txt?raw';
+import atc from './fixtures/ATC_VJC7527_1755.txt?raw';
+import ezfw from './fixtures/EZFW_VJC7527_1755.txt?raw';
 import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../khb_ezfw';
 
 const sector: EzfwSector = { id: 7527, callsign: 'VJC7527', std: new Date('2026-10-20T18:10:00Z'), reg: 'VN-A629', dep_icao: 'ZGGG', dep_iata: 'CAN', dest_icao: 'VVNB', dest_iata: 'HAN' };

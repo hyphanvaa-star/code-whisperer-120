@@ -4,8 +4,8 @@ import { fixedWidthPage } from '@/lib/pdf-text-layout';
 import { extractAtc, extractEzfw } from '../atc_ezfw';
 import { cutVerifiedEzfw, type EzfwSector } from '../khb_ezfw';
 import { ofpLayoutFromPdf } from '../ofp_layout';
-import atc from './fixtures/ATC_VJC7527.txt?raw';
-import ezfw from './fixtures/EZFW_VJC7527.txt?raw';
+import atc from './fixtures/ATC_VJC7527_1755.txt?raw';
+import ezfw from './fixtures/EZFW_VJC7527_1755.txt?raw';
 
 const sample = ezfw.replace(/\r\n/g, '\n').trim() + '\n';
 const sector: EzfwSector = { id: 7527, callsign: 'VJC7527', std: new Date('2026-10-20T18:10:00Z'), reg: 'VN-A629', dep_iata: 'CAN', dep_icao: 'ZGGG', dest_iata: 'HAN', dest_icao: 'VVNB' };
@@ -47,8 +47,8 @@ describe('OFP layout shared by mail draft and KHB EZFW', () => {
   it('KHB creates the same sample from PDF after flight/date/aircraft validation', async () => {
     const text = await ofpLayoutFromPdf(await positionedPdf());
     expect(cutVerifiedEzfw(text, sector)).toEqual([
-      { name: 'ATC_VJC7527.txt', text: atc.replace(/\r\n/g, '\n').trim() + '\n' },
-      { name: 'EZFW_VJC7527.txt', text: sample },
+      { name: 'ATC_VJC7527_1755.txt', text: atc.replace(/\r\n/g, '\n').trim() + '\n' },
+      { name: 'EZFW_VJC7527_1755.txt', text: sample },
     ]);
   });
 });
