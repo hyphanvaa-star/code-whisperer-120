@@ -185,6 +185,16 @@ export const jobs: Jobs = {
             pass: credEnv("OUTLOOK_MAIL_PASS") || "",
             mailbox: credEnv("OUTLOOK_MAILBOX") || "omc@vietjetair.com",
           };
+          // Lưu bản sao ATC/EZFW xuống máy (D:\ATC-EZFW, helper tự dự phòng C nếu không có D).
+          for (const a of attachments) {
+            try {
+              const sid = await pc.enqueue("save_file", { dir: "D:\\ATC-EZFW", name: a.name, data_b64: Buffer.from(Buffer.from(a.data_b64, "base64").toString("utf-8").replace(/\r?\n/g, "\r\n"), "utf-8").toString("base64") });
+              const sr = (await pc.waitResult(sid, 60_000)) as { path?: string } | null;
+              emit({ type: "line", text: `  ↳ đã lưu ${sr?.path || a.name}` });
+            } catch (se) {
+              emit({ type: "line", text: `  ↳ chưa lưu được ${a.name}: ${se instanceof Error ? se.message : String(se)}`, cls: "bad" });
+            }
+          }
           const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, attachments, ...mail });
           const r = (await pc.waitResult(id, 120_000)) as { draft_id?: string; mailbox?: string } | null;
           emit({ type: "line", text: `✓ ${subject}` });

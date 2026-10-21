@@ -10,8 +10,12 @@ const crew = { flt: '7527', reg: 'VN-A629', dep: 'CAN', arr: 'HAN', day: { y: 20
 describe('KHB ATC/EZFW', () => {
   it('cuts both supplied samples with the exact file names', () => {
     const files = cutVerifiedEzfw('HEADER\n' + atc + '\n' + ezfw + '\nPage - 3\nNEXT PAGE', sector);
-    expect(files[0]).toEqual({ name: expect.stringMatching(/^ATC_VJC7527_\d+_\d{2}[A-Z]{3}\.txt$/), text: atc.trim() + '\n' });
-    expect(files[1]).toEqual({ name: expect.stringMatching(/^EZFW_VJC7527_\d+_\d{2}[A-Z]{3}\.txt$/), text: ezfw.replace(/\r\n/g, '\n').trim() + '\n' });
+    expect(files[0]).toEqual({ name: expect.stringMatching(/^ATC_VJC7527_1755\.txt$/), text: atc.trim() + '\n' });
+    expect(files[1]).toEqual({ name: expect.stringMatching(/^EZFW_VJC7527_1755\.txt$/), text: ezfw.replace(/\r\n/g, '\n').trim() + '\n' });
+  });
+  it("reads flight date from GENERAL INFO row, not the computed date", () => {
+    const ofp = "FLT NBR   A/C REG   DATE\nVJC7527   VNA629    20/10/26  CAN/HAN\n" + atc + ezfw.replace("20OCT", "19OCT").replace("20/10/26", "19/10/26");
+    expect(cutVerifiedEzfw(ofp, sector)[1]!.name).toBe("EZFW_VJC7527_1755.txt");
   });
   it('rejects the previous flight number inside an OFP', () => {
     expect(() => cutVerifiedEzfw((atc + ezfw).replace(/VJC7527/g, 'VJC3901'), sector)).toThrow('Số hiệu');
@@ -23,7 +27,7 @@ describe('KHB ATC/EZFW', () => {
     expect(() => cutVerifiedEzfw(atc + ezfw.replace('VNA629', 'VNA663'), sector)).toThrow('Tàu');
   });
   it('rejects the wrong date inside PLAN', () => {
-    expect(() => cutVerifiedEzfw(atc + ezfw.replace('20/10/26', '12/10/26'), sector)).toThrow('Ngày');
+    expect(() => cutVerifiedEzfw(atc + ezfw.replace('20OCT', '12OCT').replace('20/10/26', '12/10/26'), sector)).toThrow('Ngày');
   });
   it('rejects the wrong route inside PLAN', () => {
     expect(() => cutVerifiedEzfw(atc + ezfw.replace('ZGGG TO VVNB', 'ZGGG TO VVTS'), sector)).toThrow('chặng');

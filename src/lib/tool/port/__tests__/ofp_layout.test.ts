@@ -47,8 +47,8 @@ describe('OFP layout shared by mail draft and KHB EZFW', () => {
   it('KHB creates the same sample from PDF after flight/date/aircraft validation', async () => {
     const text = await ofpLayoutFromPdf(await positionedPdf());
     expect(cutVerifiedEzfw(text, sector)).toEqual([
-      { name: 'ATC_VJC7527.txt', text: atc.replace(/\r\n/g, '\n').trim() + '\n' },
-      { name: 'EZFW_VJC7527.txt', text: sample },
+      { name: 'ATC_VJC7527_1755.txt', text: atc.replace(/\r\n/g, '\n').trim() + '\n' },
+      { name: 'EZFW_VJC7527_1755.txt', text: sample },
     ]);
   });
 });

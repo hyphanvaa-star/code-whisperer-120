@@ -1,4 +1,4 @@
-import { aeFileNames, extractAtc, extractEzfw, fileCallsign, inOpsWindow } from './atc_ezfw';
+import { aeFileNames, extractAtc, extractEzfw, fileCallsign, inOpsWindow, ofpFlightDates } from './atc_ezfw';
 
 export interface EzfwSector {
   id: number;
@@ -53,10 +53,11 @@ export function cutVerifiedEzfw(text: string, sector: EzfwSector): { name: strin
   const utcDate = sector.std.toISOString().slice(2, 10).replace(/-/g, '');
   if (/\bDOF\/(\d{6})\b/.exec(atc)?.[1] !== utcDate) throw new Error('DOF trong OFP không đúng ngày UTC của chuyến.');
   const atcReg = /\bREG\/([A-Z0-9-]+)/.exec(atc)?.[1] || '';
-  const plan = /^PLAN\s+\d+\s+([A-Z0-9]+)\b[^\n]*\b([A-Z]{4})\s+TO\s+([A-Z]{4})[^\n]*\b(\d{2})\/(\d{2})\/(\d{2,4})\s*$/m.exec(ezfw);
+  const plan = /^PLAN\s+\d+\s+([A-Z0-9]+)\b[^\n]*\b([A-Z]{4})\s+TO\s+([A-Z]{4})/m.exec(ezfw);
   if (!plan || plan[1] !== cs || plan[2] !== sector.dep_icao || plan[3] !== sector.dest_icao) throw new Error('Khối PLAN không khớp số hiệu/chặng OFP.');
-  const planDate = (plan[6].length === 4 ? plan[6].slice(2) : plan[6]) + plan[5] + plan[4];
-  if (planDate !== utcDate) throw new Error('Ngày trong khối PLAN không khớp chuyến.');
+  // Ngày bay lấy từ hàng GENERAL INFO (DATE) — dòng PLAN/CFP cuối là ngày tính toán, có thể là hôm trước.
+  const dates = ofpFlightDates(text);
+  if (!dates.length || dates[0] !== utcDate) throw new Error('Ngày trong khối PLAN không khớp chuyến.');
   const planReg = /\b(VN-?A\d{3})\b/.exec(ezfw)?.[1] || '';
   if (norm(atcReg) !== norm(sector.reg) || norm(planReg) !== norm(sector.reg)) throw new Error('Tàu trong OFP không khớp tàu KHB/FliteBrief.');
   if (!new RegExp('-' + sector.dep_icao + '\\d{4}\\b').test(atc) || !new RegExp('-' + sector.dest_icao + '\\d{4}\\b').test(atc)) throw new Error('Chặng trong điện ATC không khớp chuyến.');
