@@ -101,7 +101,7 @@ export function srEvaluate(row, f, groups) {
     case "DOMESTIC_ONLY": {
       route.forEach(([r, c]) => { if (srRegionOf(c) !== "VN") add(r, "critical", r + " " + c + " không phải sân Việt Nam"); });
       const foreign = (f.firs || []).map(norm).filter((x) => x && !x.startsWith("VV"));
-      if (foreign.length) add("DEP", "critical", "đường bay ATC FPL đi qua FIR nước ngoài " + foreign.join(", "));
+      if (foreign.length) add("FIR " + foreign.join(", "), "critical", "đường bay ATC FPL đi qua FIR nước ngoài " + foreign.join(", "));
       break;
     }
     case "NO_DOMESTIC":
