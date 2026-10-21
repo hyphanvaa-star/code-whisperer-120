@@ -222,6 +222,75 @@ export interface SheetPinContext {
   firs?: string[];
   /** Missing/null means the portal has not been read successfully; never invent NIL. */
   counts?: Record<string, number | null>;
+  /** Flight off-block/on-block in ms (UTC). Cloud NOTAMs are filtered against it ±2h. */
+  flightWindow?: { from: number; to: number } | null;
+}
+
+export const CLOUD_BUFFER_MS = 2 * 3600 * 1000;
+
+function nStamp(raw: string): number | null {
+  const m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(raw.trim());
+  return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null;
+}
+
+const MON: Record<string, number> = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
+const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+/** Parse D) into a predicate over UTC day (ms at 00Z) -> [startMin,endMin][] ; null = cannot read (keep NOTAM). */
+function parseD(d: string): ((day: number) => [number, number][]) | null {
+  const t = d.toUpperCase().replace(/\s+/g, " ").trim();
+  if (!t) return null;
+  const times = [...t.matchAll(/(\d{4})\s*-\s*(\d{4})/g)].map((m) => {
+    const a = +m[1].slice(0, 2) * 60 + +m[1].slice(2), b = +m[2].slice(0, 2) * 60 + +m[2].slice(2);
+    return [a, b] as [number, number];
+  });
+  if (!times.length) return t.includes("SR") || t.includes("SS") ? null : null;
+  const head = t.slice(0, t.search(/\d{4}\s*-\s*\d{4}/)).trim();
+  if (!head || /^DAILY|^H24/.test(head)) return () => times;
+  const dows = [...head.matchAll(/\b(SUN|MON|TUE|WED|THU|FRI|SAT)\b/g)].map((m) => DAYS.indexOf(m[1]));
+  if (dows.length && !/\d/.test(head)) {
+    let set = new Set(dows);
+    const r = /(SUN|MON|TUE|WED|THU|FRI|SAT)\s*-\s*(SUN|MON|TUE|WED|THU|FRI|SAT)/.exec(head);
+    if (r) { set = new Set(); for (let i = DAYS.indexOf(r[1]); ; i = (i + 1) % 7) { set.add(i); if (i === DAYS.indexOf(r[2])) break; } }
+    return (day) => (set.has(new Date(day).getUTCDay()) ? times : []);
+  }
+  // Date lists like "OCT 21 22 25-27" — only when month names are present.
+  if (/\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/.test(head)) {
+    const allowed = new Set<string>();
+    let mon = -1;
+    for (const tok of head.match(/[A-Z]{3}|\d{1,2}\s*-\s*\d{1,2}|\d{1,2}/g) ?? []) {
+      if (tok in MON) { mon = MON[tok]; continue; }
+      if (mon < 0) continue;
+      const [a, b] = tok.split("-").map((x) => +x.trim());
+      for (let i = a; i <= (b ?? a); i++) allowed.add(`${mon}-${i}`);
+    }
+    return (day) => { const x = new Date(day); return allowed.has(`${x.getUTCMonth()}-${x.getUTCDate()}`) ? times : []; };
+  }
+  return null;
+}
+
+/** Cloud NOTAM applies when B)–C) and (if present) D) overlap the flight window ±2h. Unreadable = keep. */
+export function cloudHitsFlight(text: string, win: { from: number; to: number } | null | undefined): boolean {
+  if (!win || !Number.isFinite(win.from) || !Number.isFinite(win.to)) return true;
+  const from = win.from - CLOUD_BUFFER_MS, to = win.to + CLOUD_BUFFER_MS;
+  const up = String(text || "").toUpperCase();
+  const b = /\bB\)\s*(\d{12})/.exec(up), c = /\bC\)\s*(\d{12})/.exec(up);
+  const bs = b ? nStamp(b[1]) : null, cs = c ? nStamp(c[1]) : null;
+  if (bs != null && bs > to) return false;
+  if (cs != null && cs < from) return false;
+  const dm = /(?:^|\n)\s*D\)\s*([^\n]*(?:\n(?!\s*[EFG]\))[^\n]*)*)/.exec(up);
+  if (!dm) return true;
+  const rule = parseD(dm[1]);
+  if (!rule) return true;
+  const lo = Math.max(from, bs ?? from), hi = Math.min(to, cs ?? to);
+  for (let day = Math.floor(lo / 864e5) * 864e5 - 864e5; day <= hi; day += 864e5) {
+    for (const [a, z] of rule(day)) {
+      const s = day + a * 60000;
+      const e = day + (z <= a ? z + 1440 : z) * 60000;
+      if (s <= hi && e >= lo) return true;
+    }
+  }
+  return false;
 }
 
 export function applyToSheet(sheet: PinSheet, store: PinStore, context: SheetPinContext = {}): string[] {
@@ -230,7 +299,9 @@ export function applyToSheet(sheet: PinSheet, store: PinStore, context: SheetPin
     return text.toUpperCase().trim() === "NO SIG" ? "" : text;
   });
   const jobs: Array<[PinItem, boolean]> = [
-    ...(store.cloud ?? []).map((item): [PinItem, boolean] => [item, false]),
+    ...(store.cloud ?? [])
+      .filter((item) => cloudHitsFlight(item.text || item.e_field, context.flightWindow))
+      .map((item): [PinItem, boolean] => [item, false]),
     ...(store.flights?.[callsignKey(sheet.callsign)] ?? []).map((item): [PinItem, boolean] => [item, true]),
   ];
   for (const [item, force] of jobs) {

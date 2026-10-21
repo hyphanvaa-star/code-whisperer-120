@@ -144,6 +144,19 @@ interface FlightLike {
   id?: number | string | null;
 }
 
+/** Off/on-block window (UTC ms) from FliteBrief flight; ETD/ETA preferred, STD/STA fallback. */
+export function flightWindowOf(flight: FlightLike): { from: number; to: number } | null {
+  const r = (flight.raw ?? {}) as Record<string, unknown>;
+  const t = (...keys: string[]) => {
+    for (const k of keys) { const v = r[k]; if (v) { const n = Date.parse(String(v)); if (Number.isFinite(n)) return n; } }
+    return NaN;
+  };
+  const from = t("etd", "std", "atd");
+  let to = t("eta", "sta", "ata");
+  if (!Number.isFinite(from)) return null;
+  if (!Number.isFinite(to) || to < from) to = from + 6 * 3600 * 1000;
+  return { from, to };
+}
 export function destAltsOf(flight: FlightLike): string[] {
   const raw = [
     flight.dest_alt1 ?? "",
@@ -906,7 +919,10 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
     const saved = await opts.loadEdits(sheet.callsign);
     if (saved) sheet = applyFields(sheet, { ...saved, ...(saved.notes === NOTES_RED ? { notes: "" } : {}) });
   }
-  if (opts.pins) applyToSheet(sheet, opts.pins, await opts.pinContext?.(sheet, text) ?? {});
+  if (opts.pins) {
+    const ctx = await opts.pinContext?.(sheet, text) ?? {};
+    applyToSheet(sheet, opts.pins, { ...ctx, flightWindow: ctx.flightWindow ?? flightWindowOf(flight) });
+  }
   return sheet;
 }
 
