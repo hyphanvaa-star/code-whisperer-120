@@ -153,7 +153,18 @@ export const jobs: Jobs = {
         const want = wants[i]!;
         emit({ type: "line", text: `── ${want} (${i + 1}/${wants.length})` });
         try {
-          const flight = ae.findFlight(known, want);
+          let flight: ae.AeFlight;
+          try {
+            flight = ae.findFlight(known, want);
+          } catch (e0) {
+            // Danh sách nạp sẵn có thể cũ (thiếu sector hôm sau) → nạp lại mới từ FliteBrief rồi thử lại.
+            const fresh = await loadFlights(3, true);
+            known.splice(0, known.length, ...fresh.map((f) => ({
+              id: f.id, callsign: f.callsign || "", fltno: f.fltno, commercial_fltno: f.commercial_fltno, std: f.std,
+            })));
+            flight = ae.findFlight(known, want);
+            void e0;
+          }
           const pdf = await fbGet(`/webapi/sectors/${flight.id}/ofp`, "application/pdf");
           if (!pdf.ok) throw new ae.AeError(`${flight.callsign}: chưa lấy được OFP`);
           const bytes = new Uint8Array(await pdf.arrayBuffer());
