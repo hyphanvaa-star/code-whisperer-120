@@ -19581,10 +19581,23 @@ function srChipBtn(text, empty, onClick){
   return b;
 }
 function srRowCells(row, i, td1, td2, td3){
-  td1.appendChild(srChipBtn(srAcLabel(row.acs), "chọn tàu…", async () => {
+  const acs = row.acs || [];
+  const short = acs.length > 3 ? srAcLabel(acs.slice(0, 3)) + " +" + (acs.length - 3) : srAcLabel(acs);
+  td1.appendChild(srChipBtn(short, "chọn tàu…", async () => {
     const opts = await srAcOptions();
     srPicker("Chọn tàu bay áp dụng", opts, row.acs || [], sel => { row.acs = sel; srSyncText(row); limTouch(); limRender(); });
   }));
+  if(acs.length > 3){
+    const tg = document.createElement("button");
+    tg.type = "button"; tg.className = "btn small";
+    tg.style.cssText = "width:100%;margin-top:4px;font-size:12px";
+    const full = document.createElement("div");
+    full.style.cssText = "display:none;margin-top:4px;font-size:12.5px;line-height:1.35;word-break:break-word";
+    full.textContent = srAcLabel(acs);
+    tg.textContent = "▼ Xem tất cả " + acs.length + " tàu";
+    tg.onclick = () => { const o = full.style.display === "none"; full.style.display = o ? "block" : "none"; tg.textContent = (o ? "▲ Thu gọn" : "▼ Xem tất cả " + acs.length + " tàu"); };
+    td1.append(tg, full);
+  }
   const rule = SR_RULES.find(r => r.id === row.rule);
   const aptOff = rule && !rule.apt;
   const ab = srChipBtn(aptOff ? "(không cần — tự xét DEP/DEST)" : srAptLabel(row.apts), "chọn sân bay…", () => {
