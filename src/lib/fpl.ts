@@ -65,7 +65,8 @@ function ci(db: FplDb, dep: string, arr: string, ac: string, reg: string) {
   return ch ? String(ch[col as "a320"] ?? "").trim() : "";
 }
 function hold(db: FplDb, route: string, arr: string, sta: string, ac: string, a1: string, a2: string) {
-  if (a1) { let t = `${a1}/${arr}${a1}1/100/300`; if (a2) t += `,${a2}/${arr}${a2}1/100/300`; return "HLD÷30," + t; }
+  const kept = [a1, a2].map((a) => String(a || "").trim()).filter(Boolean);
+  if (kept.length) return "HLD÷30," + kept.map((a) => `${a}/${arr}${a}1/100/300`).join(",");
   const row = db.etp[route]; if (!row) return "HLD÷30,";
   const m = mins(sta); const night = ac === "330" || (m != null && (m < 360 || m >= 1140));
   const pair = String((night ? row[1] : row[0]) || ""); const l = pair.slice(0, 3), r = pair.length >= 3 ? pair.slice(-3) : pair;
