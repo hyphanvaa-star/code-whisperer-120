@@ -13,6 +13,7 @@ import aftnAddresses from '@/tool/aftn-addresses.txt?raw';
 import aftnBookScript from '@/tool/aftn-book.js?raw';
 import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
+import specialRulesScript from '@/lib/special-rules.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1779,6 +1780,8 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // Structured special limits (rules/aircraft groups) shared with the server checker.
+    .replace('function limBlankAc(){', specialRulesScript.replace(/^export /gm, '') + '\nfunction limBlankAc(){')
     // Shared pilot formatting for KHB load/pick/edit/export; source names remain intact.
     .replace('function ftCrewLabel(person){', khbPilotNameScript.replace('export function', 'function') + '\nfunction ftCrewLabel(person){')
     .replace('if(person && person.label) return String(person.label);', 'if(person && person.label) return limitKhbPilotName(person.label);')
