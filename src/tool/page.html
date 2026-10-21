@@ -19202,7 +19202,7 @@ const LIM_ROWS = 10;
 function limBlankAc(){ return {reg: "", defect: "", limit: ""}; }
 function limBlankAp(){ return {code: "", limit: ""}; }
 function limBlankCf(){ return {code: "", start: "", end: ""}; }
-function limBlankSp(){ return {reg: "", code: "", limit: ""}; }
+function limBlankSp(){ return {reg: "", code: "", limit: "", rule: "", acs: [], apts: [], note: ""}; }
 
 function limNormCf(row){
   if(!row || typeof row !== "object") return limBlankCf();
@@ -24715,6 +24715,14 @@ function ftLimHits(st){
     });
   });
   (lim.special || []).forEach(function(row){
+    if(row && row.rule){
+      const mapR = {DEP:"dep", DEST:"arr", TALT:"talt", ALT1:"alt1", ALT2:"alt2"};
+      srEvaluate(row, {reg: st.reg, ac: ac, dep: st.dep, dest: st.arr, alt1: st.alt1, alt2: st.alt2, talt: st.talt, etops: !!st.etops},
+        (typeof srGroups !== "undefined" ? srGroups : [])).forEach(function(h){
+        ftLimAdd(hits[mapR[h.role] || "dep"], h.sev, h.text);
+      });
+      return;
+    }
     const token = String(row.reg || "").trim();
     const code = row.code;
     const limit = String(row.limit || "").trim();
