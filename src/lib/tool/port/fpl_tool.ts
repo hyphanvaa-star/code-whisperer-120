@@ -3,6 +3,7 @@ import { IATA_ICAO } from "./limits_check";
 import * as taf from "./taf";
 import type { TafRec } from "./taf";
 import { limitKhbPilotName } from "../../khb-pilot-name";
+import WORLD_TZ from "../data/world_tz.json";
 
 export type Raw = Record<string, any>;
 
@@ -30,12 +31,14 @@ export function _person(ident: any, name: any): string {
 }
 
 export function _minutes(hhmm: any): number | null {
-  const text = String(hhmm ?? "").trim();
+  let text = String(hhmm ?? "").trim();
+  const neg = text.startsWith("-");
+  if (neg) text = text.slice(1);
   if (text.length < 4 || !text.includes(":")) return null;
   const [hour, minute] = text.split(":", 2);
   const h = parseInt(hour, 10), m = parseInt(minute, 10);
   if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  return h * 60 + m;
+  return (neg ? -1 : 1) * (h * 60 + m);
 }
 
 /** OFP EXTRA "H:MM" → REQ extra in minutes ("0:20" → "20M"); none → "0". */
@@ -393,7 +396,7 @@ export class Db {
     this.etp = _first(raw.etp || []);
     this.alt = _first(raw.alt || []);
     this.alt_route = Db._loadAltRoute(raw, opts?.altRoutesDoc);
-    this.tz = {};
+    this.tz = { ...(WORLD_TZ as Record<string, string>) };
     for (const row of raw.tz || []) if (row && row[0]) this.tz[row[0]] = row[1];
     this.taxi = _first(raw.taxi || []);
     this.domestic = new Set((raw.domestic || []).map((x: any) => String(x).toUpperCase()));
