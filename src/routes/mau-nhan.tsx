@@ -200,6 +200,7 @@ function Swatch({ color, label }: { color: string; label: string }) {
 function Sample({ v }: { v: Variant }) {
   return (
     <div
+      data-sample={v.n}
       style={{
         border: "1px solid #e5e7eb",
         borderRadius: 18,
