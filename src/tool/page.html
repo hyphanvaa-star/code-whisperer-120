@@ -8597,7 +8597,7 @@ function startNewFlightWatch(){
 async function nfRefreshDropdowns(){
   const a = document.activeElement;
   if(a && a.tagName === "SELECT") return;
-  await syncToolFlights(false);
+  await syncToolFlights(true);
   const a2 = document.activeElement;
   if(a2 && a2.tagName === "SELECT") return;
   try{ tlRefreshStdAll(); }catch(_){}
