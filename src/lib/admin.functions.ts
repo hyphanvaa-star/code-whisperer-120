@@ -93,8 +93,8 @@ export const createAccount = createServerFn({ method: "POST" })
       user_metadata: { full_name: data.displayName?.trim() || u },
     });
     if (error || !made.user) throw new Error(/already/i.test(error?.message ?? "") ? "ID này đã có người dùng" : error?.message || "Không tạo được tài khoản");
-    const roles = [{ user_id: made.user.id, role: "dispatcher" as const }];
-    if (data.admin) roles.push({ user_id: made.user.id, role: "admin" as const });
+    const roles: { user_id: string; role: "admin" | "dispatcher" }[] = [{ user_id: made.user.id, role: "dispatcher" }];
+    if (data.admin) roles.push({ user_id: made.user.id, role: "admin" });
     await supabaseAdmin.from("user_roles").upsert(roles, { onConflict: "user_id,role", ignoreDuplicates: true });
     const { logActivity } = await import("./flights.server");
     await logActivity(context.userId, "create_account", u);
