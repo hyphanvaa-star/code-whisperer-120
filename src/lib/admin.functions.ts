@@ -154,3 +154,51 @@ export const updateAccountInfo = createServerFn({ method: "POST" })
     await logActivity(context.userId, "edit_account", data.userId);
     return { ok: true };
   });
+
+const DATA_LABEL: Record<string, string> = {
+  notice_rules: "Notice Rules", "fpl.cost_index": "KHB · Cost Index", "fpl.taxi_fuel": "KHB · Taxi fuel",
+  "fpl.route_suffix": "KHB · Route suffix", "fpl.alt_route": "KHB · Alternate route", "fpl.era": "KHB · ERA route",
+  "fpl.pcr_limits": "KHB · PCR",
+};
+
+// Ảnh đại diện + mọi dữ liệu do người này chỉnh (bản riêng và bản chung họ sửa gần nhất).
+export const accountDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ userIds: z.array(z.string().uuid()).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: profs }, { data: rows }] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id, avatar_path").in("id", data.userIds),
+      supabaseAdmin.from("app_settings").select("key, updated_by, updated_at, value").in("updated_by", data.userIds).order("updated_at", { ascending: false }).limit(1000),
+    ]);
+    const out: Record<string, { avatarUrl: string; edits: { key: string; label: string; personal: boolean; updatedAt: string; size: number }[] }> = {};
+    for (const id of data.userIds) out[id] = { avatarUrl: "", edits: [] };
+    await Promise.all((profs ?? []).map(async (p) => {
+      if (!p.avatar_path) return;
+      const s = await supabaseAdmin.storage.from("account-avatars").createSignedUrl(p.avatar_path, 3600);
+      if (s.data?.signedUrl) out[p.id].avatarUrl = s.data.signedUrl;
+    }));
+    for (const r of rows ?? []) {
+      if (!r.updated_by || !out[r.updated_by]) continue;
+      const personal = r.key.includes("@u:");
+      const base = r.key.split("@u:")[0];
+      const v = r.value as unknown;
+      const size = Array.isArray(v) ? v.length : v && typeof v === "object" ? Object.keys(v).length : 1;
+      out[r.updated_by].edits.push({ key: r.key, label: DATA_LABEL[base] ?? base, personal, updatedAt: r.updated_at, size });
+    }
+    return out;
+  });
+
+export const resetPersonalData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ key: z.string().regex(/@u:[0-9a-f-]{36}$/) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("app_settings").delete().eq("key", data.key);
+    if (error) throw new Error("Không xóa được bản riêng");
+    const { logActivity } = await import("./flights.server");
+    await logActivity(context.userId, "reset_personal", data.key);
+    return { ok: true };
+  });
