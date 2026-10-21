@@ -170,3 +170,15 @@ export function findFlight(flights: Iterable<AeFlight>, want: string, now?: Date
   fresh.sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
   return fresh[0]!;
 }
+
+const AE_MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+/** Tên file ATC/EZFW: ATC_VJC1876_5348_21OCT — số CFP + ngày lấy từ khối PLAN, ngày dự phòng STD (UTC). */
+export function aeFileNames(callsign: string, ezfw: string, std?: Date | null): { atc: string; ezfw: string } {
+  const cs = fileCallsign(callsign);
+  const plan = /^PLAN\s+(\d+)\s+[A-Z0-9]+\b[^\n]*\b(\d{2})\/(\d{2})\/(\d{2,4})\s*$/m.exec(ezfw);
+  let day = '';
+  if (plan) day = plan[2] + (AE_MON[Number(plan[3]) - 1] || '');
+  else if (std && !isNaN(std.getTime())) day = String(std.getUTCDate()).padStart(2, '0') + AE_MON[std.getUTCMonth()];
+  const tail = [plan?.[1], day].filter(Boolean).map((p) => '_' + p).join('');
+  return { atc: `ATC_${cs}${tail}.txt`, ezfw: `EZFW_${cs}${tail}.txt` };
+}

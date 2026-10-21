@@ -162,9 +162,10 @@ export const jobs: Jobs = {
           const atc = ae.extractAtc(text).trim();
           const ezfw = ae.extractEzfw(text);
           const subject = ae.subjectOf(flight.callsign, flight.std);
+          const names = ae.aeFileNames(flight.callsign, ezfw, flight.std);
           const attachments = [
-            { name: `ATC_${ae.fileCallsign(flight.callsign)}.txt`, data_b64: Buffer.from(atc, "utf-8").toString("base64") },
-            { name: `EZFW_${ae.fileCallsign(flight.callsign)}.txt`, data_b64: Buffer.from(ezfw, "utf-8").toString("base64") },
+            { name: names.atc, data_b64: Buffer.from(atc, "utf-8").toString("base64") },
+            { name: names.ezfw, data_b64: Buffer.from(ezfw, "utf-8").toString("base64") },
           ];
           // Nháp phải nằm trong hộp thư chung omc@vietjetair.com trên Outlook
           // Web (owa_draft) — không mở Outlook desktop (outlook_draft).
