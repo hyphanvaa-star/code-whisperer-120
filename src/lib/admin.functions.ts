@@ -127,3 +127,30 @@ export const deleteAccount = createServerFn({ method: "POST" })
     await logActivity(context.userId, "delete_account", data.userId);
     return { ok: true };
   });
+
+export const updateAccountInfo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ userId: z.string().uuid(), username: idSchema.optional(), displayName: z.string().trim().max(80).optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: { email?: string; display_name?: string } = {};
+    if (data.username) {
+      const email = `${data.username.toLowerCase()}@app.local`;
+      const { data: taken } = await supabaseAdmin.from("profiles").select("id").eq("email", email).neq("id", data.userId).maybeSingle();
+      if (taken) throw new Error("ID này đã có người dùng");
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { email, email_confirm: true });
+      if (error) throw new Error(error.message || "Không đổi được ID");
+      patch.email = email;
+    }
+    if (data.displayName !== undefined) patch.display_name = data.displayName;
+    if (Object.keys(patch).length) {
+      const { error } = await supabaseAdmin.from("profiles").update(patch).eq("id", data.userId);
+      if (error) throw new Error("Không lưu được thông tin");
+    }
+    const { logActivity } = await import("./flights.server");
+    await logActivity(context.userId, "edit_account", data.userId);
+    return { ok: true };
+  });
