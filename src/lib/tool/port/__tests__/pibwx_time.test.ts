@@ -19,6 +19,12 @@ describe("PIB/WX time vs STD (4h)", () => {
     expect(checkAgainstStd("E.T.D.: 23:10 UTC 19 Oct 2026", std).ok).toBe(true);
     expect(checkAgainstStd("E.T.D.: 11:10 UTC 20 Oct 2026", std).ok).toBe(true);
   });
+  it("PIB allows 8h, WX allows 6h around STD", () => {
+    expect(checkAgainstStd(pib("26-10-20 02:10"), std, 8, "pib").ok).toBe(true);
+    expect(checkAgainstStd(pib("26-10-19 21:09"), std, 8, "pib").ok).toBe(false);
+    expect(checkAgainstStd("E.T.D.: 11:10 UTC 20 Oct 2026", std, 6, "wx").ok).toBe(true);
+    expect(checkAgainstStd("E.T.D.: 11:11 UTC 20 Oct 2026", std, 6, "wx").ok).toBe(false);
+  });
   it("rejects over 6h even by one minute", () => {
     expect(checkAgainstStd("E.T.D.: 23:09 UTC 19 Oct 2026", std).ok).toBe(false);
     expect(checkAgainstStd("E.T.D.: 11:11 UTC 20 Oct 2026", std).ok).toBe(false);
