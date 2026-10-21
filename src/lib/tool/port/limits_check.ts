@@ -1,6 +1,7 @@
 // Port of limits_check.py — full line-by-line translation. Kept close to the
 // Python source so future diffs are easy to re-check.
 import type { Flight } from "../core/models";
+import { srEvaluate, type SrGroup, type SrRow } from "../../special-rules";
 
 export const WARNING = "warning";
 export const CRITICAL = "critical";
