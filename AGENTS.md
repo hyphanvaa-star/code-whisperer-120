@@ -38,4 +38,3 @@
 - Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs.
 - Ver tab crew changes come from diffing the two newest non-VER crewlists (`port/crewlist_diff.ts`) — FPL VER files have no crew column.
 - Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others.
-- Special limits are structured rows (`rule`/`acs`/`apts`) evaluated by browser-safe `src/lib/special-rules.js`, shared by the tool page (via shim) and `limits_check.ts`; aircraft groups live in admin-only `limits.acgroups` so one rule set is interpreted identically everywhere. Legacy free-text rows keep the old parser.
