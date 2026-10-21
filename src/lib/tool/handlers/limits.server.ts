@@ -100,7 +100,33 @@ export const routes: Routes = {
       return { error: String((exc as Error).message || exc) };
     }
   },
+  // Nhóm tàu cho giới hạn đặc biệt — ai cũng xem, chỉ admin sửa.
+  "GET /api/limits/acgroups": async (ctx) => {
+    const { isAdmin } = await import("../store.server");
+    return { groups: await getJson(ctx, GROUPS_KEY, []), can_edit: await isAdmin(ctx) };
+  },
+  "POST /api/limits/acgroups": async (ctx) => {
+    const { isAdmin } = await import("../store.server");
+    if (!(await isAdmin(ctx))) return new Response(JSON.stringify({ error: "Chỉ admin được sửa nhóm tàu" }), { status: 403, headers: { "Content-Type": "application/json" } });
+    const body = (await ctx.json().catch(() => ({}))) as { groups?: unknown };
+    const groups = (Array.isArray(body.groups) ? body.groups : [])
+      .map((g) => g as { name?: unknown; items?: unknown })
+      .map((g) => ({ name: String(g.name ?? "").trim().slice(0, 60), items: (Array.isArray(g.items) ? g.items : []).map(String).filter(Boolean).slice(0, 500) }))
+      .filter((g) => g.name);
+    await setJson(ctx, GROUPS_KEY, groups);
+    return { ok: true, groups };
+  },
+  // Danh sách tàu từ JetPlan (cache dùng chung).
+  "GET /api/limits/fleet": async (ctx) => {
+    const jp = await import("../jetplan.server");
+    try { await jp.ensureRegs(ctx, []); } catch { /* dùng cache cũ */ }
+    const cache = await getJson<{ rows?: Record<string, { name?: string; type?: string }> }>(ctx, "jetplan.ac", { rows: {} });
+    const fleet = Object.entries(cache.rows || {}).map(([reg, r]) => ({ reg, name: r.name || reg, type: (r.type || "").toUpperCase() }))
+      .sort((a, b) => a.reg.localeCompare(b.reg));
+    return { fleet };
+  },
 };
+const GROUPS_KEY = "limits.acgroups";
 
 const DEFECT_SUMMARY_KEY = "defect.summary";
 
