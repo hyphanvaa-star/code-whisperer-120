@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { History, KeyRound, Search, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
-import { createAccount, deleteAccount, listActivity, listUsers, resetAccountPassword, setRole, updateAccountInfo } from "@/lib/admin.functions";
+import { ArrowLeft, Database, RotateCcw, History, KeyRound, Search, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
+import { accountDetails, resetPersonalData, createAccount, deleteAccount, listActivity, listUsers, resetAccountPassword, setRole, updateAccountInfo } from "@/lib/admin.functions";
 import { passwordChecks } from "@/lib/password-rules";
 
 const inp = "w-full rounded-lg border border-input bg-background px-3 py-2 text-[15px] shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
@@ -12,6 +11,7 @@ const lbl = "mb-1 block text-[11px] font-semibold uppercase tracking-wide text-m
 const card = "rounded-xl border border-border bg-card p-4 shadow-sm";
 
 const ACTION: Record<string, string> = {
+  reset_personal: "Về bản chung",
   update_account: "Tự sửa tài khoản", create_account: "Tạo tài khoản", reset_password: "Đổi mật khẩu",
   delete_account: "Xóa tài khoản", edit_account: "Sửa thông tin", grant_role: "Cấp quyền", revoke_role: "Gỡ quyền",
 };
@@ -37,6 +37,10 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   const infoFn = useServerFn(updateAccountInfo);
   const users = useQuery({ queryKey: ["users"], queryFn: () => usersFn() });
   const log = useQuery({ queryKey: ["activity"], queryFn: () => logFn() });
+  const detFn = useServerFn(accountDetails);
+  const resetDataFn = useServerFn(resetPersonalData);
+  const ids = (users.data ?? []).map((x) => x.id);
+  const det = useQuery({ queryKey: ["acct-details", ids.join(",")], enabled: ids.length > 0, queryFn: () => detFn({ data: { userIds: ids } }) });
   const [sel, setSel] = useState<string | "new">("new");
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -55,7 +59,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
 
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     setBusy(true); setMsg(null);
-    try { await fn(); setMsg({ ok: true, t: ok }); await qc.invalidateQueries({ queryKey: ["users"] }); qc.invalidateQueries({ queryKey: ["activity"] }); return true; }
+    try { await fn(); setMsg({ ok: true, t: ok }); await qc.invalidateQueries({ queryKey: ["users"] }); qc.invalidateQueries({ queryKey: ["activity"] }); qc.invalidateQueries({ queryKey: ["acct-details"] }); return true; }
     catch (e) { setMsg({ ok: false, t: e instanceof Error ? e.message : "Lỗi" }); return false; }
     finally { setBusy(false); }
   };
@@ -78,39 +82,43 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   const Msg = msg && <p className={`rounded-lg px-3 py-2 text-sm font-medium ${msg.ok ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>{msg.t}</p>;
 
   return (
-    <Dialog open onOpenChange={(o) => { if (!o && !busy) onClose(); }}>
-      <DialogContent aria-describedby={undefined} className="flex h-[88dvh] w-[calc(100%-2rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl p-0">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
         <div className="flex items-center gap-3 bg-header px-6 py-4 text-primary-foreground">
+          <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={() => { if (!busy) onClose(); }}><ArrowLeft />Quay lại</Button>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/15"><Users className="h-5 w-5" /></div>
           <div>
-            <DialogTitle className="text-lg font-bold">Quản lí tài khoản</DialogTitle>
+            <h2 className="text-lg font-bold">Quản lí tài khoản</h2>
             <p className="text-xs opacity-85">{users.data?.length ?? 0} tài khoản · chỉ hyphan thấy mục này</p>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 md:grid-cols-[280px_1fr]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(520px,1.1fr)_1fr]">
           <aside className="flex min-h-0 flex-col border-r border-border bg-muted/30">
-            <div className="space-y-2 p-3">
-              <Button className="w-full" variant={sel === "new" ? "default" : "outline"} onClick={() => setSel("new")}><UserPlus />Tạo tài khoản mới</Button>
-              <div className="relative"><Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-8"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+            <div className="flex gap-2 p-3">
+              <div className="relative flex-1"><Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-8"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+              <Button variant={sel === "new" ? "default" : "outline"} onClick={() => setSel("new")}><UserPlus />Tạo mới</Button>
             </div>
-            <ul className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
-              {users.isLoading && <li className="p-3 text-sm text-muted-foreground">Đang tải…</li>}
-              {list.map((x) => {
-                const l = x.email.split("@")[0]; const adm = x.roles.includes("admin");
-                return (
-                  <li key={x.id}>
-                    <button onClick={() => setSel(x.id)} className={`mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${sel === x.id ? "bg-primary/10 ring-1 ring-primary/40" : "hover:bg-muted"}`}>
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-bold text-primary">{l.slice(0, 2).toUpperCase()}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold">{l}{x.isSelf && " (bạn)"}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{x.name || "—"}</span>
-                      </span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${adm ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{adm ? "QT" : "DSP"}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="min-h-0 flex-1 overflow-auto px-3 pb-3">
+              <table className="w-full overflow-hidden rounded-xl border border-border bg-card text-sm shadow-sm">
+                <thead className="sticky top-0 bg-muted text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                  <tr><th className="px-3 py-2">Tài khoản</th><th className="px-3 py-2">Quyền</th><th className="px-3 py-2">Dữ liệu riêng</th><th className="px-3 py-2">Ngày tạo</th></tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {users.isLoading && <tr><td colSpan={4} className="p-3 text-muted-foreground">Đang tải…</td></tr>}
+                  {list.map((x) => {
+                    const l = x.email.split("@")[0]; const adm = x.roles.includes("admin"); const d = det.data?.[x.id];
+                    const own = d?.edits.filter((e) => e.personal).length ?? 0;
+                    return (
+                      <tr key={x.id} onClick={() => setSel(x.id)} className={`cursor-pointer transition-colors ${sel === x.id ? "bg-primary/10" : "hover:bg-muted/60"}`}>
+                        <td className="px-3 py-2"><div className="flex items-center gap-3"><Avatar url={d?.avatarUrl} text={l} size="h-9 w-9" /><div className="min-w-0"><div className="truncate font-semibold">{l}{x.isSelf && " (bạn)"}</div><div className="truncate text-xs text-muted-foreground">{x.name || "—"}</div></div></div></td>
+                        <td className="px-3 py-2"><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-muted text-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span></td>
+                        <td className="px-3 py-2">{own ? <span className="font-semibold text-primary">{own} mục</span> : <span className="text-muted-foreground">—</span>}</td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground">{new Date(x.createdAt).toLocaleDateString("vi-VN")}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </aside>
 
           <section className="min-h-0 overflow-y-auto p-6">
@@ -129,7 +137,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             ) : user ? (
               <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-4">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/15 text-xl font-bold text-primary">{login.slice(0, 2).toUpperCase()}</span>
+                  <Avatar url={det.data?.[user.id]?.avatarUrl} text={login} size="h-16 w-16 text-xl" />
                   <div className="flex-1">
                     <h3 className="text-xl font-bold">{login}</h3>
                     <p className="text-sm text-muted-foreground">{user.name || "—"} · tạo ngày {new Date(user.createdAt).toLocaleDateString("vi-VN")}{user.original && user.original !== login ? ` · ID gốc: ${user.original}` : ""}</p>
@@ -161,6 +169,22 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                   </div>
                 )}
                 <div className={card}>
+                  <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><Database className="h-4 w-4 text-primary" />Điều chỉnh dữ liệu</h4>
+                  <ul className="divide-y divide-border text-sm">
+                    {(det.data?.[user.id]?.edits ?? []).map((e) => (
+                      <li key={e.key} className="flex items-center gap-3 py-2">
+                        <span className="flex-1 font-medium">{e.label}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${e.personal ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{e.personal ? "Bản riêng" : "Bản chung"}</span>
+                        <span className="w-14 text-right text-xs text-muted-foreground">{e.size} dòng</span>
+                        <span className="w-36 text-right font-mono text-xs text-muted-foreground">{new Date(e.updatedAt).toLocaleString("vi-VN")}</span>
+                        {e.personal ? <Button size="sm" variant="ghost" disabled={busy} title="Xóa bản riêng, người này quay về bản chung" onClick={() => { if (window.confirm(`Đưa ${e.label} của ${login} về bản chung?`)) void run(() => resetDataFn({ data: { key: e.key } }), "Đã đưa về bản chung"); }}><RotateCcw /></Button> : <span className="w-9" />}
+                      </li>
+                    ))}
+                    {det.isLoading && <li className="py-3 text-muted-foreground">Đang tải…</li>}
+                    {!det.isLoading && !(det.data?.[user.id]?.edits.length) && <li className="py-3 text-muted-foreground">Người này chưa chỉnh dữ liệu nào.</li>}
+                  </ul>
+                </div>
+                <div className={card}>
                   <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><History className="h-4 w-4 text-primary" />Lịch sử thay đổi</h4>
                   <ul className="max-h-72 divide-y divide-border overflow-y-auto text-sm">
                     {userLog.map((l) => (
@@ -177,7 +201,12 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             ) : null}
           </section>
         </div>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
+}
+
+function Avatar({ url, text, size }: { url?: string | undefined; text: string; size: string }) {
+  return url
+    ? <img src={url} alt="" className={`${size} shrink-0 rounded-full object-cover ring-2 ring-primary/20`} />
+    : <span className={`${size} flex shrink-0 items-center justify-center rounded-full bg-primary/15 font-bold text-primary`}>{text.slice(0, 2).toUpperCase()}</span>;
 }
