@@ -205,7 +205,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function Avatar({ url, text, size }: { url?: string; text: string; size: string }) {
+function Avatar({ url, text, size }: { url?: string | undefined; text: string; size: string }) {
   return url
     ? <img src={url} alt="" className={`${size} shrink-0 rounded-full object-cover ring-2 ring-primary/20`} />
     : <span className={`${size} flex shrink-0 items-center justify-center rounded-full bg-primary/15 font-bold text-primary`}>{text.slice(0, 2).toUpperCase()}</span>;
