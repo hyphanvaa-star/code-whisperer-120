@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as MauNhanRouteImport } from './routes/mau-nhan'
 import { Route as ToolPageRouteImport } from './routes/tool-page'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAircraftRouteImport } from './routes/_authenticated/aircraft'
@@ -43,6 +44,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MauNhanRoute = MauNhanRouteImport.update({
+  id: '/mau-nhan',
+  path: '/mau-nhan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolPageRoute = ToolPageRouteImport.update({
@@ -139,6 +145,7 @@ const ApiPublicPcAgentReportRoute = ApiPublicPcAgentReportRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mau-nhan': typeof MauNhanRoute
   '/tool-page': typeof ToolPageRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mau-nhan': typeof MauNhanRoute
   '/tool-page': typeof ToolPageRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/aircraft': typeof AuthenticatedAircraftRoute
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mau-nhan': typeof MauNhanRoute
   '/tool-page': typeof ToolPageRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/aircraft': typeof AuthenticatedAircraftRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/mau-nhan'
     | '/tool-page'
     | '/admin'
     | '/aircraft'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/mau-nhan'
     | '/tool-page'
     | '/admin'
     | '/aircraft'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/mau-nhan'
     | '/tool-page'
     | '/_authenticated/admin'
     | '/_authenticated/aircraft'
@@ -278,6 +290,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  MauNhanRoute: typeof MauNhanRoute
   ToolPageRoute: typeof ToolPageRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiFbFileRoute: typeof ApiFbFileRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mau-nhan': {
+      id: '/mau-nhan'
+      path: '/mau-nhan'
+      fullPath: '/mau-nhan'
+      preLoaderRoute: typeof MauNhanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tool-page': {
@@ -476,6 +496,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  MauNhanRoute: MauNhanRoute,
   ToolPageRoute: ToolPageRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiFbFileRoute: ApiFbFileRoute,
