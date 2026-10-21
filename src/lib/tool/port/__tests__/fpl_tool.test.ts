@@ -122,6 +122,13 @@ describe("FplFormulaTests", () => {
     expect(got).toContain("HLD÷30,CXR/SGNCXR1/100/300,vca/SGNvca1/100/300");
   });
 
+  it("a deleted ALT1 leaves only ALT2 in HLD", () => {
+    const f = { flt: "852", dep: "SGN", arr: "RMQ", reg: "VN-A525", ac: 321, etd: "10:10" };
+    const got = ft.render_fpl(db, f, { extra: 0, seq: 1, alt1: "", alt2: "TPE", routeTable: routeDoc.rows });
+    expect(got).toContain("HLD÷30,TPE/RMQTPE1/100/300\n");
+    expect(got).not.toContain("TNN");
+  });
+
   it("alt route library uses the sheet columns", () => {
     const rec = db.alt_route.SGNPVG;
     expect(rec.podpoa).toBe("SGNPVG");

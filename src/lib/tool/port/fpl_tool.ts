@@ -659,11 +659,9 @@ export function _ci(db: Db, dep: string, arr: string, ac: string, reg: string): 
 }
 
 function _hold(db: Db, route: string, arr: string, sta: string, ac: string, alt1: string, alt2: string): string {
-  if (alt1) {
-    let text = `${alt1}/${arr}${alt1}1/100/300`;
-    if (alt2) text += `,${alt2}/${arr}${alt2}1/100/300`;
-    return "HLD÷30," + text;
-  }
+  // Chỉ ghi các ALT còn lại; xóa ALT1 thì không được quay về bảng mặc định.
+  const kept = [alt1, alt2].map((a) => String(a || "").trim()).filter(Boolean);
+  if (kept.length) return "HLD÷30," + kept.map((a) => `${a}/${arr}${a}1/100/300`).join(",");
   const row = db.etp[route];
   if (!row) return "HLD÷30,";
   const staMin = _minutes(sta);
