@@ -555,7 +555,7 @@ export const routes: Routes = {
     for (const f of flights) if (asked.has(f.id)) planNow[String(f.id)] = { ofp: f.ofp_status || "", reg: f.reg || "" };
 
     const useCacheOnly = params.get("cache") === "1";
-    const limits = await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS);
+    const limits: LimitsData = { ...(await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS)), acgroups: await getJson(ctx, "limits.acgroups", []) };
     const rev = await limitsRevision(ctx);
     const ofpRules = await loadOfpRules(ctx);
 
@@ -630,7 +630,7 @@ export const routes: Routes = {
     const refresh = params.get("refresh") === "1";
     const flights = await loadFlights(days, refresh);
     const shown = applyFilters(flights, params);
-    const limits = await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS);
+    const limits: LimitsData = { ...(await getJson<LimitsData>(ctx, "limits", EMPTY_LIMITS)), acgroups: await getJson(ctx, "limits.acgroups", []) };
     OPS_TRACKS = await getSnapshot(ctx, refresh);
     const tafCache = await getJson<TafSnapshot>(ctx, "wx.taf", { tafs: {} } as TafSnapshot);
     const tafs = (tafCache?.tafs || {}) as Record<string, TafRec>;

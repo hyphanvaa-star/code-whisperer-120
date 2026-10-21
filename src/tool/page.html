@@ -5870,7 +5870,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 1.9</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.0</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -6663,6 +6663,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <button class="btn small" id="limApAdd" title="Thêm dòng sân bay (hoặc Enter ở dòng cuối)">+ sân bay</button>
           <button class="btn small" id="limCfAdd" title="Thêm dòng curfew (hoặc Enter ở dòng cuối)">+ curfew</button>
           <button class="btn small" id="limSpAdd" title="Thêm dòng giới hạn đặc biệt (hoặc Enter ở dòng cuối)">+ đặc biệt</button>
+          <button class="btn small" id="limGrpBtn" title="Nhóm tàu dùng cho giới hạn đặc biệt (chỉ admin sửa)">Nhóm tàu</button>
           <button class="btn small primary" id="limSaveBtn"
                   title="Lưu tàu / sân bay / curfew / đặc biệt vào limits.json">
             Lưu</button>
@@ -19201,7 +19202,7 @@ const LIM_ROWS = 10;
 function limBlankAc(){ return {reg: "", defect: "", limit: ""}; }
 function limBlankAp(){ return {code: "", limit: ""}; }
 function limBlankCf(){ return {code: "", start: "", end: ""}; }
-function limBlankSp(){ return {reg: "", code: "", limit: ""}; }
+function limBlankSp(){ return {reg: "", code: "", limit: "", rule: "", acs: [], apts: [], note: ""}; }
 
 function limNormCf(row){
   if(!row || typeof row !== "object") return limBlankCf();
@@ -19529,9 +19530,20 @@ function limRender(){
     const td3 = document.createElement("td");
     const td4 = document.createElement("td");
     const enter = () => limAddSp(true);
-    td1.appendChild(limInput(row.reg, v => { limData.special[i].reg = v; limTouch(); }, enter));
-    td2.appendChild(limInput(row.code, v => { limData.special[i].code = v; limTouch(); }, enter));
-    td3.appendChild(limInput(row.limit, v => { limData.special[i].limit = v; limTouch(); }, enter));
+    const legacy = !row.rule && (String(row.reg||"").trim() || String(row.limit||"").trim());
+    if(legacy){
+      td1.appendChild(limInput(row.reg, v => { limData.special[i].reg = v; limTouch(); }, enter));
+      td2.appendChild(limInput(row.code, v => { limData.special[i].code = v; limTouch(); }, enter));
+      td3.appendChild(limInput(row.limit, v => { limData.special[i].limit = v; limTouch(); }, enter));
+      const conv = document.createElement("button");
+      conv.type = "button"; conv.className = "btn small"; conv.textContent = "Chuyển sang chọn";
+      conv.title = "Dòng cũ gõ tay — bấm để chọn lại theo mẫu (máy hiểu chắc chắn)";
+      conv.style.marginTop = "4px";
+      conv.onclick = () => { limData.special[i] = {reg:"", code:"", limit:"", rule:"", acs:[], apts:[], note: String(row.limit||"")}; limTouch(); limRender(); };
+      td3.appendChild(conv);
+    } else {
+      srRowCells(row, i, td1, td2, td3);
+    }
     td4.appendChild(limDelBtn(() => {
       limData.special.splice(i, 1);
       if(limData.special.length < LIM_ROWS) limData.special = limPad(limData.special, LIM_ROWS, limBlankSp);
@@ -19541,6 +19553,166 @@ function limRender(){
     sp.appendChild(tr);
   });
 }
+
+/* ---------- Giới hạn đặc biệt: chọn tàu / sân / loại giới hạn ---------- */
+let srFleet = null, srGroups = [], srCanEdit = false;
+async function srLoadMeta(){
+  try{ const r = await fetch("/api/limits/acgroups"); const d = await r.json(); srGroups = d.groups || []; srCanEdit = !!d.can_edit; }catch(e){}
+  if(typeof limRender === "function") limRender();
+  if(typeof ftPaintAllLim === "function") ftPaintAllLim();
+}
+async function srLoadFleet(){
+  if(srFleet) return srFleet;
+  try{ const r = await fetch("/api/limits/fleet"); const d = await r.json(); srFleet = d.fleet || []; }catch(e){ srFleet = []; }
+  return srFleet;
+}
+function srSyncText(row){
+  row.reg = srAcLabel(row.acs);
+  row.code = srAptLabel(row.apts);
+  row.limit = row.rule ? (srRuleLabel(row.rule) + (row.note ? " — " + row.note : "")) : (row.note || "");
+}
+function srChipBtn(text, empty, onClick){
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "btn small sr-pick";
+  b.style.cssText = "width:100%;text-align:left;white-space:normal;line-height:1.3;font-size:12.5px";
+  b.textContent = text || empty;
+  if(!text) b.style.opacity = ".6";
+  b.onclick = onClick;
+  return b;
+}
+function srRowCells(row, i, td1, td2, td3){
+  td1.appendChild(srChipBtn(srAcLabel(row.acs), "chọn tàu…", async () => {
+    const opts = await srAcOptions();
+    srPicker("Chọn tàu bay áp dụng", opts, row.acs || [], sel => { row.acs = sel; srSyncText(row); limTouch(); limRender(); });
+  }));
+  const rule = SR_RULES.find(r => r.id === row.rule);
+  const aptOff = rule && !rule.apt;
+  const ab = srChipBtn(aptOff ? "(không cần — tự xét DEP/DEST)" : srAptLabel(row.apts), "chọn sân bay…", () => {
+    if(aptOff) return;
+    srPicker("Chọn sân bay / khu vực", srAptOptions(row.apts || []), row.apts || [], sel => { row.apts = sel; srSyncText(row); limTouch(); limRender(); }, true);
+  });
+  if(aptOff) ab.disabled = true;
+  td2.appendChild(ab);
+  const s = document.createElement("select");
+  s.style.cssText = "width:100%;font-size:13px;padding:4px";
+  s.innerHTML = '<option value="">— chọn loại giới hạn —</option>' + SR_RULES.map(r => '<option value="'+r.id+'">'+r.label+'</option>').join("");
+  s.value = row.rule || "";
+  s.onchange = () => { row.rule = s.value; row.acs = row.acs || []; row.apts = row.apts || []; srSyncText(row); limTouch(); limRender(); };
+  const note = document.createElement("input");
+  note.type = "text"; note.placeholder = "ghi chú / lý do (không bắt buộc)"; note.value = row.note || "";
+  note.style.cssText = "width:100%;margin-top:4px";
+  note.oninput = () => { row.note = note.value; srSyncText(row); limPersist(limData); };
+  note.onchange = () => limTouch();
+  td3.append(s, note);
+}
+async function srAcOptions(){
+  const fleet = await srLoadFleet();
+  const types = [...new Set(["A21N","A321","A320","A333"].concat(fleet.map(f => f.type).filter(Boolean)))];
+  return [{value:"ALL", label:"Tất cả tàu", sec:"Chung"}]
+    .concat(srGroups.map(g => ({value:"GROUP:"+g.name, label:g.name+" ("+g.items.length+")", sec:"Nhóm tàu (admin)"})))
+    .concat(types.map(t => ({value:"TYPE:"+t, label:t, sec:"Theo loại tàu"})))
+    .concat(fleet.map(f => ({value:"REG:"+f.reg, label:f.reg+(f.type?" · "+f.type:""), sec:"Từng tàu (JetPlan, "+fleet.length+")"})));
+}
+function srAptOptions(cur){
+  const known = ["VVNB","VVTS","VVDN","VVCI","VVCR","VVCT","VVCA","VVPK","VVTX","VVPQ","VVPB","VVBM","VVVH","VVDH","VVDL","VVTH","VVDB","VVPC","VVVD","VVRG","VVCM","VVCS"];
+  const extra = (cur || []).filter(c => !SR_REGIONS.some(r => r.id === c) && known.indexOf(c) < 0);
+  return SR_REGIONS.map(r => ({value:r.id, label:r.label, sec:"Khu vực"}))
+    .concat(known.concat(extra).map(c => ({value:c, label:c, sec:"Sân bay"})));
+}
+function srPicker(title, opts, selected, onDone, allowCode){
+  const sel = new Set(selected);
+  const ov = document.createElement("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(10,15,40,.45);z-index:9999;display:flex;align-items:center;justify-content:center";
+  const box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:12px;width:min(640px,94vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:14px";
+  box.innerHTML = '<div style="padding:12px 14px;border-bottom:1px solid var(--line);font-weight:700;font-size:15px"></div>'
+    + '<div style="padding:8px 14px;display:flex;gap:6px"><input type="text" placeholder="tìm…" style="flex:1;padding:6px 8px;font-size:14px"></div>'
+    + '<div class="sr-list" style="overflow:auto;padding:4px 14px;flex:1"></div>'
+    + '<div style="padding:10px 14px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;align-items:center"><span class="dim sr-count" style="margin-right:auto"></span><button class="btn small sr-clear">Bỏ chọn hết</button><button class="btn small sr-cancel">Huỷ</button><button class="btn small primary sr-ok">Xong</button></div>';
+  box.firstChild.textContent = title;
+  const q = box.querySelector("input"), list = box.querySelector(".sr-list"), cnt = box.querySelector(".sr-count");
+  if(allowCode) q.placeholder = "tìm hoặc gõ mã sân (VD: RKSI) rồi Enter";
+  function draw(){
+    const k = q.value.trim().toUpperCase();
+    list.innerHTML = ""; let sec = "";
+    opts.filter(o => !k || o.label.toUpperCase().indexOf(k) >= 0 || o.value.toUpperCase().indexOf(k) >= 0).forEach(o => {
+      if(o.sec !== sec){ sec = o.sec; const h = document.createElement("div"); h.textContent = sec; h.style.cssText = "font-weight:700;margin:10px 0 4px;color:var(--ink-soft);font-size:12px;text-transform:uppercase"; list.appendChild(h); }
+      const l = document.createElement("label");
+      l.style.cssText = "display:inline-flex;align-items:center;gap:5px;margin:3px 10px 3px 0;cursor:pointer";
+      const c = document.createElement("input"); c.type = "checkbox"; c.checked = sel.has(o.value);
+      c.onchange = () => { c.checked ? sel.add(o.value) : sel.delete(o.value); cnt.textContent = "Đã chọn " + sel.size; };
+      l.append(c, document.createTextNode(o.label)); list.appendChild(l);
+    });
+    cnt.textContent = "Đã chọn " + sel.size;
+  }
+  q.oninput = draw;
+  q.onkeydown = e => {
+    if(e.key !== "Enter" || !allowCode) return;
+    const v = q.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if(v.length < 3) return;
+    if(!opts.some(o => o.value === v)) opts.push({value:v, label:v, sec:"Sân bay"});
+    sel.add(v); q.value = ""; draw();
+  };
+  const close = () => ov.remove();
+  box.querySelector(".sr-cancel").onclick = close;
+  box.querySelector(".sr-clear").onclick = () => { sel.clear(); draw(); };
+  box.querySelector(".sr-ok").onclick = () => { close(); onDone([...sel]); };
+  ov.onclick = e => { if(e.target === ov) close(); };
+  ov.appendChild(box); document.body.appendChild(ov); draw(); q.focus();
+}
+async function srGroupsDialog(){
+  await srLoadMeta();
+  const ov = document.createElement("div");
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(10,15,40,.45);z-index:9998;display:flex;align-items:center;justify-content:center";
+  const box = document.createElement("div");
+  box.style.cssText = "background:#fff;border-radius:12px;width:min(620px,94vw);max-height:86vh;overflow:auto;padding:14px;font-size:14px";
+  ov.appendChild(box); document.body.appendChild(ov);
+  let groups = JSON.parse(JSON.stringify(srGroups));
+  function draw(){
+    box.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:6px">Nhóm tàu</div><div class="dim" style="margin-bottom:10px">'
+      + (srCanEdit ? "Bạn là admin — sửa xong bấm Lưu nhóm, mọi người dùng chung." : "Chỉ admin được sửa nhóm. Bạn chỉ xem.") + '</div>';
+    groups.forEach((g, i) => {
+      const d = document.createElement("div");
+      d.style.cssText = "border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px";
+      const name = document.createElement("input"); name.type = "text"; name.value = g.name; name.placeholder = "tên nhóm";
+      name.disabled = !srCanEdit; name.style.cssText = "font-weight:700;width:60%";
+      name.oninput = () => { g.name = name.value; };
+      const items = document.createElement("div"); items.style.cssText = "margin:6px 0;font-size:13px"; items.textContent = srAcLabel(g.items) || "(chưa có tàu)";
+      d.append(name, items);
+      if(srCanEdit){
+        const pick = document.createElement("button"); pick.className = "btn small"; pick.textContent = "Chọn tàu";
+        pick.onclick = async () => { const o = (await srAcOptions()).filter(x => x.value !== "GROUP:" + g.name); srPicker("Tàu trong nhóm " + g.name, o, g.items, s => { g.items = s; draw(); }); };
+        const del = document.createElement("button"); del.className = "btn small"; del.textContent = "Xoá nhóm"; del.style.marginLeft = "6px";
+        del.onclick = () => { groups.splice(i, 1); draw(); };
+        d.append(pick, del);
+      }
+      box.appendChild(d);
+    });
+    const bar = document.createElement("div"); bar.style.cssText = "display:flex;gap:8px;justify-content:flex-end;margin-top:8px";
+    const msg = document.createElement("span"); msg.className = "dim"; msg.style.marginRight = "auto";
+    if(srCanEdit){
+      const add = document.createElement("button"); add.className = "btn small"; add.textContent = "+ nhóm mới";
+      add.onclick = () => { groups.push({name:"Nhóm " + (groups.length + 1), items:[]}); draw(); };
+      const save = document.createElement("button"); save.className = "btn small primary"; save.textContent = "Lưu nhóm";
+      save.onclick = async () => {
+        msg.textContent = "đang lưu…";
+        try{
+          const r = await fetch("/api/limits/acgroups", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({groups})});
+          const d = await r.json();
+          if(!r.ok || d.error) throw new Error(d.error || ("HTTP " + r.status));
+          srGroups = d.groups; groups = JSON.parse(JSON.stringify(srGroups)); msg.textContent = "✓ đã lưu"; msg.style.color = "var(--green)";
+          if(typeof ftPaintAllLim === "function") ftPaintAllLim();
+        }catch(e){ msg.textContent = "Không lưu được: " + e.message; msg.style.color = "var(--red)"; }
+      };
+      bar.append(msg, add, save);
+    } else bar.append(msg);
+    const cl = document.createElement("button"); cl.className = "btn small"; cl.textContent = "Đóng"; cl.onclick = () => { ov.remove(); limRender(); };
+    bar.append(cl); box.appendChild(bar);
+  }
+  draw();
+}
+$("#limGrpBtn").onclick = srGroupsDialog;
+srLoadMeta();
 
 $("#limAcAdd").onclick = () => limAddAc(true);
 $("#limAcSearch").oninput = limRender;
@@ -24543,6 +24715,14 @@ function ftLimHits(st){
     });
   });
   (lim.special || []).forEach(function(row){
+    if(row && row.rule){
+      const mapR = {DEP:"dep", DEST:"arr", TALT:"talt", ALT1:"alt1", ALT2:"alt2"};
+      srEvaluate(row, {reg: st.reg, ac: ac, dep: st.dep, dest: st.arr, alt1: st.alt1, alt2: st.alt2, talt: st.talt, etops: !!st.etops},
+        (typeof srGroups !== "undefined" ? srGroups : [])).forEach(function(h){
+        ftLimAdd(hits[mapR[h.role] || "dep"], h.sev, h.text);
+      });
+      return;
+    }
     const token = String(row.reg || "").trim();
     const code = row.code;
     const limit = String(row.limit || "").trim();
