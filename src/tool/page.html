@@ -27125,7 +27125,8 @@ function acRefresh(){
     $("#accWho").textContent = "Acc";
     $("#btnAcc").title = "Tài khoản API"
       + (fb.username ? (" — đang dùng: " + fb.username) : " — chưa đặt FliteBrief");
-    for(const [kind, pf] of [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"]]){
+    for(const [kind, pf] of [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"],["opscore","Opscore"]]){
+      if(!$("#ac"+pf+"User")) continue;
       const info = a[kind] || {};
       $("#ac"+pf+"User").value = info.username || "";
       if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
@@ -27192,6 +27193,7 @@ $("#acOmniSave").onclick = () => acSave("omni", "Omni");
 $("#acOutlookSave").onclick = () => acSave("outlook", "Outlook");
 $("#acAviwebSave").onclick = () => acSave("aviweb", "Aviweb");
 $("#acOwaSave").onclick = () => acSave("owa", "Owa");
+$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");
 
 /* ---------- Đường dẫn file (notice / briefing / reg / PIB+WX) ---------- */
 const PATH_ORDER = ["notice", "briefing", "reg", "pibwx", "fpl", "omni", "atcezfw"];
