@@ -15,13 +15,13 @@ describe("PIB/WX time vs STD (4h)", () => {
     expect(result.ok).toBe(true);
     expect(result.fields.map((f) => f.time.toISOString())).toEqual(["2026-10-20T02:10:00.000Z", "2026-10-20T05:10:00.000Z"]);
   });
-  it("accepts exactly 4h before and after STD", () => {
-    expect(checkAgainstStd("E.T.D.: 01:10 UTC 20 Oct 2026", std).ok).toBe(true);
-    expect(checkAgainstStd("E.T.D.: 09:10 UTC 20 Oct 2026", std).ok).toBe(true);
+  it("accepts exactly 6h before and after STD", () => {
+    expect(checkAgainstStd("E.T.D.: 23:10 UTC 19 Oct 2026", std).ok).toBe(true);
+    expect(checkAgainstStd("E.T.D.: 11:10 UTC 20 Oct 2026", std).ok).toBe(true);
   });
-  it("rejects over 4h even by one minute", () => {
-    expect(checkAgainstStd("E.T.D.: 01:09 UTC 20 Oct 2026", std).ok).toBe(false);
-    expect(checkAgainstStd("E.T.D.: 09:11 UTC 20 Oct 2026", std).ok).toBe(false);
+  it("rejects over 6h even by one minute", () => {
+    expect(checkAgainstStd("E.T.D.: 23:09 UTC 19 Oct 2026", std).ok).toBe(false);
+    expect(checkAgainstStd("E.T.D.: 11:11 UTC 20 Oct 2026", std).ok).toBe(false);
   });
   it("never rescues stale WX with current METAR, TAF or NOTAM body dates", () => {
     expect(checkAgainstStd("E.T.D.: 05:10 UTC 12 Oct 2026\nMETAR VVTS 200510Z\nTAF 20/10/2026 05:10\nB)2610200510", std).ok).toBe(false);
