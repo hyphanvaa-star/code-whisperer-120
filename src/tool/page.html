@@ -1774,8 +1774,13 @@ footer .lamp{background:#f7f8fd;border-color:#e0e4f0}
 #cmpFileBar{margin-left:8px;font-weight:700;color:#9f1239;max-width:min(420px,46vw);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #cmpFileBar[data-old]{color:#b45309}
-.crew-using,#cmpFileBar.crew-using{color:#15803d !important;font-weight:700;font-size:12.5px;margin-left:auto;white-space:nowrap}
-html.night .crew-using,html.night #cmpFileBar.crew-using{color:#4ade80 !important}
+.crew-using,#cmpFileBar.crew-using{display:inline-flex !important;align-items:center;gap:7px;margin-left:auto;
+  padding:6px 14px 6px 11px;border-radius:999px;font-size:14px;font-weight:700;white-space:nowrap;max-width:min(460px,50vw);
+  overflow:hidden;text-overflow:ellipsis;color:#047857 !important;background:linear-gradient(135deg,#ecfdf5,#d1fae5);
+  border:1px solid #6ee7b7;box-shadow:0 2px 8px rgba(16,185,129,.18)}
+.crew-using:empty,.crew-using[hidden]{display:none !important}
+.crew-using::before{content:"";width:9px;height:9px;flex:none;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.25)}
+html.night .crew-using,html.night #cmpFileBar.crew-using{color:#6ee7b7 !important;background:rgba(16,185,129,.14);border-color:rgba(110,231,183,.45)}
 #wrapCompare .cmptbl thead th{background:#a92163;color:#fff;border-color:#a92163}
 #wrapCompare .cmptbl thead tr:first-child th{top:0;z-index:3}
 #wrapCompare .cmptbl thead tr:nth-child(2) th{top:38px;z-index:2;font-size:12px;
@@ -21166,14 +21171,15 @@ function vMergeDuty(src){
 function vShowDutyChrome(){
   const name = $("#vCrewName");
   if(!name) return;
-  const label = vDuty && (vDuty.file_label || vDuty.new_file || "");
+  const label = (vDuty && (vDuty.file_label || vDuty.new_file || ""))
+    || (typeof xls !== "undefined" && xls && xls.file) || "";
   if(!label){
     name.hidden = true;
     name.textContent = "";
     return;
   }
   name.hidden = false;
-  name.textContent = vDuty.need_prev
+  name.textContent = (vDuty && vDuty.need_prev)
     ? ("Crewlist đang dùng: " + label + " — chưa có bản trước để so duty")
     : ("Crewlist đang dùng: " + label);
 }
