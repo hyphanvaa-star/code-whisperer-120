@@ -1774,6 +1774,8 @@ footer .lamp{background:#f7f8fd;border-color:#e0e4f0}
 #cmpFileBar{margin-left:8px;font-weight:700;color:#9f1239;max-width:min(420px,46vw);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #cmpFileBar[data-old]{color:#b45309}
+.crew-using,#cmpFileBar.crew-using{color:#15803d !important;font-weight:700;font-size:12.5px;margin-left:auto;white-space:nowrap}
+html.night .crew-using,html.night #cmpFileBar.crew-using{color:#4ade80 !important}
 #wrapCompare .cmptbl thead th{background:#a92163;color:#fff;border-color:#a92163}
 #wrapCompare .cmptbl thead tr:first-child th{top:0;z-index:3}
 #wrapCompare .cmptbl thead tr:nth-child(2) th{top:38px;z-index:2;font-size:12px;
@@ -6144,8 +6146,8 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   title="Upload file cargo-report.xlsx xuất thủ công từ Omni dashboard (full ngày). Gộp vào cache.">📂 Omni</button>
           <button class="btn small ico" id="cmpRun" data-ico="⇄" title="Đối chiếu lại với FliteBrief / OFP / Crewlist hiện tại. Tool đã tự so mỗi khi đổi bộ lọc, nút này để so lại ngay khi cần." data-talk="so lại FliteBrief / OFP.">Cmp</button>
           <input type="file" id="estFile" accept=".xlsx,.xlsm" style="display:none">
-          <span class="dim" id="estStat" style="font-size:11px"></span>
-          <span class="dim xls-bar-name" id="cmpFileBar" title="File Crewlist Aims đang dùng để đối chiếu"></span>
+          <span class="dim" id="estStat" style="font-size:11px" hidden></span>
+          <span class="dim xls-bar-name crew-using" id="cmpFileBar" title="File Crewlist Aims đang dùng để đối chiếu"></span>
           <span class="cmpsum" id="estCrew" style="display:none"></span>
         </div>
         <div class="tbl-wrap" style="flex:1;min-height:0">
@@ -6196,7 +6198,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <label class="chk" style="padding:0"
                  title="Bỏ tick để xem cả chuyến chỉ có ở một trong hai bản">
             <input type="checkbox" id="vOnlyChg" checked> chỉ chuyến thay đổi</label>
-          <span class="cmpsum" id="vCrewName" hidden></span>
+          <span class="cmpsum crew-using" id="vCrewName" hidden></span>
           <span class="cmpsum" id="vSum"></span>
         </div>
         <div class="vwarn" id="vWarn" style="display:none"></div>
@@ -6789,6 +6791,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           </div>
           <span class="dim" id="ftStat" style="font-size:11px"></span>
           <span class="spacer"></span>
+          <span class="crew-using" id="ftCrewUse"></span>
           <label class="ftdsp">Dispatcher : <input type="text" id="ftDspBox" spellcheck="false"></label>
         </div>
         <div class="tbl-wrap" style="flex:1;min-height:0">
@@ -11517,7 +11520,7 @@ function paintCmpFile(title){
     el.title = tip;
   }
   if(bar){
-    bar.textContent = (!xls || !xls.file) ? "" : ("Crewlist: " + text);
+    bar.textContent = (!xls || !xls.file) ? "" : ("Crewlist đang dùng: " + text);
     bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";
     if(old) bar.setAttribute("data-old", "1");
     else bar.removeAttribute("data-old");
@@ -21171,8 +21174,8 @@ function vShowDutyChrome(){
   }
   name.hidden = false;
   name.textContent = vDuty.need_prev
-    ? ("Crewlist: " + label + " — chưa có bản trước để so duty")
-    : ("Crewlist: " + label);
+    ? ("Crewlist đang dùng: " + label + " — chưa có bản trước để so duty")
+    : ("Crewlist đang dùng: " + label);
 }
 let vFileList = [];
 const vDone = new Set();
@@ -25137,9 +25140,8 @@ async function ftLoad(){
     await ftLoadRoutes();
     ftRefreshAutoRoute();
     const nChg = ftApplyCrewDiff(d.source || "");
-    $("#ftStat").textContent = "Crewlist " + (d.source || "") + " · " + ftCatalog.length
-      + " chuyến. Gõ số hiệu vào cột Số rồi Enter."
-      + (nChg ? " · " + nChg + " ô thay đổi so với bản trước (chữ cam)." : "");
+    $("#ftStat").textContent = nChg ? (nChg + " ô thay đổi so với bản trước (chữ cam).") : "";
+    { const cu = $("#ftCrewUse"); if(cu) cu.textContent = d.source ? ("Crewlist đang dùng: " + d.source) : ""; }
     ftRender();
     if(nChg) try{ ftKeepLater(); }catch(e){}
   }catch(err){ $("#ftStat").textContent = err.message; }
