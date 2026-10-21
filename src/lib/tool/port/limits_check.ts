@@ -282,6 +282,7 @@ export interface LimitsData {
   airports?: Array<Record<string, unknown>>;
   curfew?: Array<Record<string, unknown>>;
   special?: Array<Record<string, unknown>>;
+  acgroups?: SrGroup[];
 }
 
 export function needsOfpLimitCheck(f: Flight, limits: LimitsData | null | undefined): boolean {
@@ -516,8 +517,18 @@ export function checkFlightLimits(
     }
   }
 
+  const byRole = Object.fromEntries(apts.map(([role, code]) => [role, code]));
   for (const row of limits.special ?? []) {
     if (!row) continue;
+    if (row["rule"]) {
+      for (const h of srEvaluate(row as SrRow, {
+        reg: f.reg, ac: acType, dep: f.dep_icao || f.dep_iata, dest: f.dest_icao || f.dest_iata,
+        alt1: f.dest_alt1, alt2: f.dest_alt2, talt: byRole["TALT"], etops: !!f.etops,
+      }, limits.acgroups)) {
+        warns.push(warning("special", h.text, { severity: h.sev === "critical" ? CRITICAL : WARNING, check: "special", evidence: h.role, limit: String(row["limit"] || "") }));
+      }
+      continue;
+    }
     const token = String(row["reg"] || "").trim();
     const ruleForms = codeForms(String(row["code"] || ""));
     const code = toIata(String(row["code"] || ""));
