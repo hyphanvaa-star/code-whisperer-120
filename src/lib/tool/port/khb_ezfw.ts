@@ -1,4 +1,4 @@
-import { extractAtc, extractEzfw, fileCallsign, inOpsWindow } from './atc_ezfw';
+import { aeFileNames, extractAtc, extractEzfw, fileCallsign, inOpsWindow } from './atc_ezfw';
 
 export interface EzfwSector {
   id: number;
@@ -60,5 +60,6 @@ export function cutVerifiedEzfw(text: string, sector: EzfwSector): { name: strin
   const planReg = /\b(VN-?A\d{3})\b/.exec(ezfw)?.[1] || '';
   if (norm(atcReg) !== norm(sector.reg) || norm(planReg) !== norm(sector.reg)) throw new Error('Tàu trong OFP không khớp tàu KHB/FliteBrief.');
   if (!new RegExp('-' + sector.dep_icao + '\\d{4}\\b').test(atc) || !new RegExp('-' + sector.dest_icao + '\\d{4}\\b').test(atc)) throw new Error('Chặng trong điện ATC không khớp chuyến.');
-  return [{ name: `ATC_${cs}.txt`, text: atc }, { name: `EZFW_${cs}.txt`, text: ezfw }];
+  const names = aeFileNames(cs, ezfw, sector.std);
+  return [{ name: names.atc, text: atc }, { name: names.ezfw, text: ezfw }];
 }

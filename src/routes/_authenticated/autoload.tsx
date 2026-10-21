@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { getFlights } from "@/lib/flights.functions";
 import type { Flight } from "@/lib/flight-model";
 import { fetchFbFile, saveBlob } from "@/lib/download";
+import { aeFileNames } from "@/lib/tool/port/atc_ezfw";
 import { extractAtc, extractEzfw, fileCallsign, joinAtcBlocks, mailCallsign, pdfText } from "@/lib/ofp-text";
 
 export const Route = createFileRoute("/_authenticated/autoload")({
@@ -89,11 +90,13 @@ function AutoLoad() {
         const text = await pdfText(await fetchFbFile({ sector: f.id, kind: "ofp" }));
         const fc = fileCallsign(f.callsign);
         const atc = extractAtc(text);
-        files[`ATC_${fc}.txt`] = strToU8(atc);
         atcBlocks.push(atc);
         let ez = "";
-        try { ez = extractEzfw(text); files[`EZFW_${fc}.txt`] = strToU8(ez); } catch (e) { out.push(`${f.callsign}: ${(e as Error).message}`); }
-        out.push(`✓ ${f.callsign} ${f.dep}-${f.dest} — ATC_${fc}.txt${ez ? `, EZFW_${fc}.txt` : ""} · tiêu đề: ATC + EZFW ${mailCallsign(f.callsign)} ${tag}`);
+        try { ez = extractEzfw(text); } catch (e) { out.push(`${f.callsign}: ${(e as Error).message}`); }
+        const nm = aeFileNames(f.callsign, ez, f.std ? new Date(f.std as unknown as string) : null);
+        files[nm.atc] = strToU8(atc);
+        if (ez) files[nm.ezfw] = strToU8(ez);
+        out.push(`✓ ${f.callsign} ${f.dep}-${f.dest} — ${nm.atc}${ez ? `, ${nm.ezfw}` : ""} · tiêu đề: ATC + EZFW ${mailCallsign(f.callsign)} ${tag}`);
       } catch (e) {
         out.push(`✗ ${sp}: ${(e as Error).message}`);
       }

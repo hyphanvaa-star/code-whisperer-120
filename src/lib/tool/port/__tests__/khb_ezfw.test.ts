@@ -10,8 +10,8 @@ const crew = { flt: '7527', reg: 'VN-A629', dep: 'CAN', arr: 'HAN', day: { y: 20
 describe('KHB ATC/EZFW', () => {
   it('cuts both supplied samples with the exact file names', () => {
     const files = cutVerifiedEzfw('HEADER\n' + atc + '\n' + ezfw + '\nPage - 3\nNEXT PAGE', sector);
-    expect(files[0]).toEqual({ name: 'ATC_VJC7527.txt', text: atc.trim() + '\n' });
-    expect(files[1]).toEqual({ name: 'EZFW_VJC7527.txt', text: ezfw.replace(/\r\n/g, '\n').trim() + '\n' });
+    expect(files[0]).toEqual({ name: expect.stringMatching(/^ATC_VJC7527_\d+_\d{2}[A-Z]{3}\.txt$/), text: atc.trim() + '\n' });
+    expect(files[1]).toEqual({ name: expect.stringMatching(/^EZFW_VJC7527_\d+_\d{2}[A-Z]{3}\.txt$/), text: ezfw.replace(/\r\n/g, '\n').trim() + '\n' });
   });
   it('rejects the previous flight number inside an OFP', () => {
     expect(() => cutVerifiedEzfw((atc + ezfw).replace(/VJC7527/g, 'VJC3901'), sector)).toThrow('Số hiệu');
