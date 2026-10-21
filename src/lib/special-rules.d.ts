@@ -1,0 +1,14 @@
+export type SrRow = { rule?: string; acs?: string[]; apts?: string[]; note?: string };
+export type SrFlight = { reg?: string; ac?: string; dep?: string; dest?: string; alt1?: string; alt2?: string; talt?: string; etops?: boolean };
+export type SrGroup = { name: string; items: string[] };
+export type SrHit = { role: string; sev: "critical" | "warning"; text: string };
+export const SR_RULES: { id: string; label: string; apt: boolean }[];
+export const SR_REGIONS: { id: string; label: string }[];
+export function srIcao(code: unknown): string;
+export function srRegionOf(code: unknown): string;
+export function srAptIn(apts: string[] | undefined, code: unknown): boolean;
+export function srAcMatch(acs: string[] | undefined, reg: unknown, acType: unknown, groups: SrGroup[] | undefined, depth?: number): boolean;
+export function srAcLabel(acs: string[] | undefined): string;
+export function srAptLabel(apts: string[] | undefined): string;
+export function srRuleLabel(id: string): string;
+export function srEvaluate(row: SrRow, f: SrFlight, groups: SrGroup[] | undefined): SrHit[];
