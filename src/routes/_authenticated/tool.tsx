@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Camera, KeyRound, ShieldCheck, Trash2, User } from "lucide-react";
 import { passwordChecks } from "@/lib/password-rules";
+import { amIAccountOwner } from "@/lib/admin.functions";
+import { ManageAccountsDialog } from "@/components/ManageAccountsDialog";
 
 export const Route = createFileRoute("/_authenticated/tool")({
   head: () => ({
@@ -34,6 +36,9 @@ function ToolPage() {
   const [ready, setReady] = useState(false);
   const [toolVersion, setToolVersion] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
+  const ownerRef = useRef(false);
+  const checkOwner = useServerFn(amIAccountOwner);
   const ctx = Route.useRouteContext();
   const navigate = useNavigate();
   const frame = useRef<HTMLIFrameElement>(null);
@@ -42,7 +47,7 @@ function ToolPage() {
   const readAccount = useServerFn(getMyAccount);
   const sendAccount = useCallback(() => {
     frame.current?.contentWindow?.postMessage(
-      { type: "sohee-account", email: emailRef.current, ...profileRef.current },
+      { type: "sohee-account", email: emailRef.current, ...profileRef.current, canManage: ownerRef.current },
       window.location.origin,
     );
   }, []);
@@ -55,10 +60,11 @@ function ToolPage() {
       sendAccount();
     }).catch(() => {}); };
     refresh();
+    void checkOwner().then((r) => { if (alive) { ownerRef.current = r.ok; sendAccount(); } }).catch(() => {});
     window.addEventListener("sohee-profile-updated", refresh);
     const timer = setInterval(refresh, 30 * 60_000);
     return () => { alive = false; clearInterval(timer); window.removeEventListener("sohee-profile-updated", refresh); };
-  }, [readAccount, sendAccount]);
+  }, [readAccount, sendAccount, checkOwner]);
 
   const signOut = useCallback(async () => {
     await ctx.queryClient.cancelQueries();
@@ -117,6 +123,7 @@ function ToolPage() {
       if (d.type === "sohee-signout") void signOut();
       if (d.type === "sohee-account-request") sendAccount();
       if (d.type === "sohee-account-edit") setEditOpen(true);
+      if (d.type === "sohee-accounts-manage" && ownerRef.current) setManageOpen(true);
     };
     window.addEventListener("message", onMessage);
     return () => {
@@ -132,6 +139,7 @@ function ToolPage() {
   return (
     <>
     {editOpen && <AccountDialog current={emailRef.current.split("@")[0]} onClose={() => setEditOpen(false)} onSaved={(u) => { emailRef.current = `${u}@app.local`; sendAccount(); }} />}
+    {manageOpen && <ManageAccountsDialog onClose={() => setManageOpen(false)} />}
     <iframe
       ref={frame}
       key={toolVersion}
