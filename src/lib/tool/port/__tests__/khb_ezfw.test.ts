@@ -23,7 +23,7 @@ describe('KHB ATC/EZFW', () => {
     expect(() => cutVerifiedEzfw(atc + ezfw.replace('VNA629', 'VNA663'), sector)).toThrow('Tàu');
   });
   it('rejects the wrong date inside PLAN', () => {
-    expect(() => cutVerifiedEzfw(atc + ezfw.replace('20/10/26', '12/10/26'), sector)).toThrow('Ngày');
+    expect(() => cutVerifiedEzfw(atc + ezfw.replace('20OCT', '12OCT').replace('20/10/26', '12/10/26'), sector)).toThrow('Ngày');
   });
   it('rejects the wrong route inside PLAN', () => {
     expect(() => cutVerifiedEzfw(atc + ezfw.replace('ZGGG TO VVNB', 'ZGGG TO VVTS'), sector)).toThrow('chặng');
