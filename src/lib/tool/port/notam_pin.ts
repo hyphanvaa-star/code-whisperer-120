@@ -274,7 +274,7 @@ export function cloudHitsFlight(text: string, win: { from: number; to: number } 
   if (!win || !Number.isFinite(win.from) || !Number.isFinite(win.to)) return true;
   const from = win.from - CLOUD_BUFFER_MS, to = win.to + CLOUD_BUFFER_MS;
   const up = String(text || "").toUpperCase();
-  const b = /\bB\)\s*(\d{10})/.exec(up), c = /\bC\)\s*(\d{10})/.exec(up);
+  const b = /\bB\)\s*(\d{12})/.exec(up), c = /\bC\)\s*(\d{12})/.exec(up);
   const bs = b ? nStamp(b[1]) : null, cs = c ? nStamp(c[1]) : null;
   if (bs != null && bs > to) return false;
   if (cs != null && cs < from) return false;
