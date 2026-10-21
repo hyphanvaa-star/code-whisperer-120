@@ -62,3 +62,68 @@ export const listActivity = createServerFn({ method: "POST" })
       .limit(200);
     return data ?? [];
   });
+
+// Chỉ tài khoản gốc "hyphan" (admin) được quản lý tài khoản.
+const OWNER = "hyphan";
+async function assertOwner(supabase: any, userId: string) {
+  await assertAdmin(supabase, userId);
+  const { data } = await supabase.from("profiles").select("original_username").eq("id", userId).maybeSingle();
+  if ((data?.original_username ?? "").toLowerCase() !== OWNER) throw new Error("Chỉ hyphan mới quản lý được tài khoản");
+}
+
+export const amIAccountOwner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    try { await assertOwner(context.supabase, context.userId); return { ok: true }; } catch { return { ok: false }; }
+  });
+
+const idSchema = z.string().trim().min(2).max(60).regex(/^[a-z0-9._-]+$/i, "ID chỉ gồm chữ, số, . _ -");
+
+export const createAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ username: idSchema, password: z.string().min(8).max(72), displayName: z.string().max(80).optional(), admin: z.boolean().optional() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const u = data.username.toLowerCase();
+    const { data: made, error } = await supabaseAdmin.auth.admin.createUser({
+      email: `${u}@app.local`, password: data.password, email_confirm: true,
+      user_metadata: { full_name: data.displayName?.trim() || u },
+    });
+    if (error || !made.user) throw new Error(/already/i.test(error?.message ?? "") ? "ID này đã có người dùng" : error?.message || "Không tạo được tài khoản");
+    const roles = [{ user_id: made.user.id, role: "dispatcher" as const }];
+    if (data.admin) roles.push({ user_id: made.user.id, role: "admin" as const });
+    await supabaseAdmin.from("user_roles").upsert(roles, { onConflict: "user_id,role", ignoreDuplicates: true });
+    const { logActivity } = await import("./flights.server");
+    await logActivity(context.userId, "create_account", u);
+    return { ok: true };
+  });
+
+export const resetAccountPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ userId: z.string().uuid(), password: z.string().min(8).max(72) }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, { password: data.password });
+    if (error) throw new Error(error.message || "Không đổi được mật khẩu");
+    const { logActivity } = await import("./flights.server");
+    await logActivity(context.userId, "reset_password", data.userId);
+    return { ok: true };
+  });
+
+export const deleteAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ userId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase, context.userId);
+    if (data.userId === context.userId) throw new Error("Không thể tự xóa tài khoản của mình");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message || "Không xóa được tài khoản");
+    const { logActivity } = await import("./flights.server");
+    await logActivity(context.userId, "delete_account", data.userId);
+    return { ok: true };
+  });
