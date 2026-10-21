@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { getFlights } from "@/lib/flights.functions";
 import type { Flight } from "@/lib/flight-model";
 import { fetchFbFile, saveBlob } from "@/lib/download";
-import { extractAtc, extractEzfw, aeFileNames, fileCallsign, joinAtcBlocks, mailCallsign, pdfText } from "@/lib/ofp-text";
+import { aeFileNames } from "@/lib/tool/port/atc_ezfw";
+import { extractAtc, extractEzfw, fileCallsign, joinAtcBlocks, mailCallsign, pdfText } from "@/lib/ofp-text";
 
 export const Route = createFileRoute("/_authenticated/autoload")({
   head: () => ({
