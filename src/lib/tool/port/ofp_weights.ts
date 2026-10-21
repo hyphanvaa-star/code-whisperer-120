@@ -3,7 +3,17 @@
 
 export const MARGIN_KG = Number(process.env["FLITEBRIEF_MARGIN_KG"] ?? "1000");
 
-const _CACHE_SCHEMA_VERSION = 9;
+const _CACHE_SCHEMA_VERSION = 10;
+
+/** FIRs crossed, read from the ATC FPL item 18 `EET/` list inside the OFP (e.g. EET/VLVT0035 VVHN0110). null = no FPL found. */
+export function fplFirs(text: string): string[] | null {
+  const fpl = /\(FPL-[\s\S]*?\)/.exec(text || "");
+  if (!fpl) return null;
+  const body = fpl[0].replace(/\s+/g, " ");
+  const eet = /\bEET\/((?:\s*[A-Z]{4}\d{4})+)/.exec(body);
+  if (!eet) return [];
+  return [...new Set([...eet[1]!.matchAll(/([A-Z]{4})\d{4}/g)].map((m) => m[1]!))];
+}
 
 // "PLD 15000 KG ... DOW 42913" — cặp giá trị thực tế + giới hạn trên cùng một dòng
 const _ROW = /^[ \t]*(PLD|ZFW|TOW|LWT)[ \t]+(\d+)[ \t]*(?:KG|KGS)?.*?\b(DOW|MZFW|MTOW|MLWT)[ \t]+(\d+)/gim;
@@ -88,6 +98,7 @@ export class Weights {
   cache_schema: number = _CACHE_SCHEMA_VERSION;
   pdf_sha: string | null = null;
   plan_no: string | null = null;
+  firs: string[] | null = null;
 
   constructor(sector_id: number) {
     this.sector_id = sector_id;
@@ -158,6 +169,7 @@ export class Weights {
       cache_schema: this.cache_schema,
       pdf_sha: this.pdf_sha,
       plan_no: this.plan_no,
+      firs: this.firs,
     };
     d["tow_margin"] = this.tow_margin;
     d["lwt_margin"] = this.lwt_margin;
@@ -452,6 +464,7 @@ export function parseOperationalText(text: string, sectorId = 0): Weights {
 
   const cfp = _CFP_NO.exec(text);
   if (cfp) w.plan_no = cfp[1]!;
+  w.firs = fplFirs(text);
 
   fillFlytime(w, text);
 

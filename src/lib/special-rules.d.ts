@@ -1,5 +1,5 @@
 export type SrRow = { rule?: string; acs?: string[]; apts?: string[]; note?: string };
-export type SrFlight = { reg?: string; ac?: string; dep?: string; dest?: string; alt1?: string; alt2?: string; talt?: string; etops?: boolean };
+export type SrFlight = { reg?: string; ac?: string; dep?: string; dest?: string; alt1?: string; alt2?: string; talt?: string; etops?: boolean; firs?: string[] | null };
 export type SrGroup = { name: string; items: string[] };
 export type SrHit = { role: string; sev: "critical" | "warning"; text: string };
 export const SR_RULES: { id: string; label: string; apt: boolean }[];
