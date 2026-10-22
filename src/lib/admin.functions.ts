@@ -188,6 +188,8 @@ export const accountDetails = createServerFn({ method: "POST" })
       if (!r.updated_by || !out[r.updated_by]) continue;
       const personal = r.key.includes("@u:");
       const base = r.key.split("@u:")[0];
+      // Automatic per-flight/working caches are not user edits — hide them.
+      if (/^(ofp\.|excel\.current)/.test(base)) continue;
       const v = r.value as unknown;
       const size = Array.isArray(v) ? v.length : v && typeof v === "object" ? Object.keys(v).length : 1;
       out[r.updated_by].edits.push({ key: r.key, label: DATA_LABEL[base] ?? base, personal, updatedAt: r.updated_at, size });
