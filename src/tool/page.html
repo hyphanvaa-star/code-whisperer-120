@@ -25368,8 +25368,20 @@ function hoFetchAll(force){
     hoAllFlights = (d && d.flights) || [];
     hoAllFresh = Date.now();
     return hoAllFlights;
-  }).catch(function(){ return hoAllFlights; }).finally(function(){ hoAllPromise = null; });
+  }).catch(function(){ return hoAllFlights; }).finally(function(){
+    hoAllPromise = null;
+    hoDrainPending();
+  });
   return hoAllPromise;
+}
+// Danh sách vừa về → chạy lại những dòng đã gõ lúc đang chờ.
+function hoDrainPending(){
+  const q = hoPending; hoPending = [];
+  for(const it of q){
+    if(!it.tr.isConnected) continue;
+    const inp = it.tr.querySelector('input[data-ho="callsign"]');
+    if(inp && hoCsKey(inp.value) === it.cs) hoTryFill(it.tr);
+  }
 }
 // "VJC456" hoặc chỉ gõ "456" cũng ra; nhiều chuyến cùng mã thì lấy chuyến gần giờ này nhất.
 function hoMatchFlight(list, cs){
