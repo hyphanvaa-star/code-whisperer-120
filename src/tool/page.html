@@ -2738,7 +2738,7 @@ html.night #wrapFplText .fttbl input[type=text].ft-ac-a330{color:#86efac;backgro
 .ho-tbl input[type=text]:focus{outline:2px solid #c41e3a;outline-offset:-2px;background:#fff;border-radius:6px}
 .ho-tbl .ho-cs{width:96px;font-weight:700}
 .ho-tbl .ho-apt{width:64px;text-align:center}
-.ho-tbl .ho-ac{width:56px;text-align:center}
+.ho-tbl .ho-ac{width:86px;text-align:center;font-weight:700;letter-spacing:.02em}
 .ho-tbl .ho-tm{width:72px;text-align:center;font-variant-numeric:tabular-nums}
 .ho-tbl .ho-num{width:88px;text-align:center}
 .ho-tbl .ho-mark{width:88px;text-align:center}
@@ -25331,6 +25331,21 @@ function hoAcType(f){
   const m = t.match(/(\d{3})/);
   return m ? m[1] : t.replace(/^A/, "");
 }
+// Cột A/C của bảng giao ca hiển thị SỐ TÀU (VNA532), không phải loại tàu (321).
+function hoRegLabel(f){
+  return String((f && f.reg) || "").trim().toUpperCase().replace(/\s+/g, "");
+}
+function hoIsTypeLabel(t){
+  const s = String(t || "").trim().toUpperCase();
+  return !s || /^\d{2,3}[A-Z]?$/.test(s) || /^A\d{2,3}[A-Z]?$/.test(s);
+}
+// Ưu tiên số tàu; nếu dòng đã được gõ tay (không phải nhãn loại tàu tự động) thì giữ nguyên.
+function hoAcCell(hit, f){
+  const reg = hoRegLabel(f);
+  const old = String((hit && hit.ac) || "").trim();
+  if(reg && hoIsTypeLabel(old)) return reg;
+  return old || reg || hoAcType(f);
+}
 function hoHHMMZ(iso){
   if(!iso) return "";
   const d = new Date(iso);
@@ -25522,7 +25537,7 @@ function hoFromFlight(f, saved){
     callsign: hit.callsign || f.callsign || "",
     dep: hit.dep || hoApt(f, "dep"),
     arr: hit.arr || hoApt(f, "arr"),
-    ac: hit.ac || hoAcType(f),
+    ac: hoAcCell(hit, f),
     std: hit.std || hoHHMMZ(f.std),
     sta: hit.sta || hoHHMMZ(f.sta),
     payload: hit.payload || hoPldText(f),
