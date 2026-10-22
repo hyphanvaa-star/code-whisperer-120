@@ -7184,13 +7184,13 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           và soạn mail nháp ATC+EZFW. Không dùng Outlook desktop.</p>
         <div class="acgrid">
           <div class="field"><label for="acOutlookUser">Username</label>
-            <input type="text" id="acOutlookUser" value="omc@vietjetair.com" autocomplete="off" spellcheck="false" placeholder="email Outlook của bạn"></div>
+            <input type="text" id="acOutlookUser" autocomplete="off" spellcheck="false" placeholder="email Outlook của bạn"></div>
           <div class="field"><label for="acOutlookPass">Password</label>
             <input type="password" id="acOutlookPass" placeholder="nhập mật khẩu" autocomplete="new-password"></div>
         </div>
         <div class="acgrid">
           <div class="field"><label for="acOutlookBox">Hộp thư lưu nháp</label>
-            <input type="text" id="acOutlookBox" autocomplete="off" spellcheck="false"
+            <input type="text" id="acOutlookBox" autocomplete="off" spellcheck="false" value="omc@vietjetair.com"
                    placeholder="omc@vietjetair.com — để trống thì nháp vào hộp riêng"></div>
         </div>
         <div class="acfoot">
@@ -27370,7 +27370,7 @@ function acRefresh(){
       const info = a[kind] || {};
       $("#ac"+pf+"User").value = info.username || AC_DEF_USER[kind] || "";
       if(kind === "outlook" && !info.username && a.owa && a.owa.username) $("#acOutlookUser").value = a.owa.username;
-      if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
+      if(kind === "outlook" && info.mailbox) $("#acOutlookBox").value = info.mailbox;
       const pi = $("#ac"+pf+"Pass");
       pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
       const hasPw = Boolean(info.has_password);
