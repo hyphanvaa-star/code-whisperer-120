@@ -1131,6 +1131,12 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
  /* Giữ icon màu đỏ trên dòng đang chọn — không tô trắng phủ mất icon */
  .mode.on::before{background:var(--x-red) !important}
  .mode-bang,.mode .mode-bang{top:50% !important;transform:translateY(-50%);right:10px !important;left:auto !important;border-color:#fff !important}
+/* Icon tab: to hơn một tí để dễ nhận ra từng chức năng. */
+.aside-head .mode::before,.modes .mode::before{width:18px !important;height:18px !important;-webkit-mask-size:18px !important;mask-size:18px !important}
+/* Hai tab cuối trước đây cùng hiện một khối xám giống hệt nhau — nay mỗi tab có icon riêng. */
+#mAftn::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m6 9 4 4-4 4'/%3E%3Cpath d='M13 17h5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m6 9 4 4-4 4'/%3E%3Cpath d='M13 17h5'/%3E%3C/svg%3E");background:#4338ca !important}
+#opsAcctManage::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");background:#334155 !important}
+.mode.on#mAftn::before,.mode.on#opsAcctManage::before{background:var(--x-red) !important}
 
 /* Bảng: không khối đỏ — đầu bảng trắng chữ đỏ, gạch đỏ; dòng thoáng phẳng */
 aside,main.split2{border-radius:12px !important;overflow:hidden}
