@@ -90,69 +90,84 @@ export const jobs: Jobs = {};
 // ---- /api/wx/radar, /api/wx/storms, /api/wx/download (wx_overlay.py port) ----
 import {
   RAINVIEWER_JSON, UA_HEADERS, JTWC_RSS, JMA_UA_HEADERS, JMA_TARGET, jmaFcstUrl,
-  parseKmzUrls, kmlFeatures, todayFeatures, jmaFeatures,
+  parseKmzUrls, kmlFeatures, todayFeatures,
 } from "../port/wx_overlay";
 import { unzipSync, strFromU8 } from "fflate";
+import { jmaCode, jmaStorm, jtwcStorms, mergeStorms, type Storm } from '../port/storms';
 
 let stormsCacheAt = 0;
 let stormsCache: unknown = null;
 const STORM_TTL_MS = 300_000;
 
-async function fetchJtwcStorms(): Promise<{ features: unknown[]; source: string }> {
-  const rssRes = await fetch(JTWC_RSS, { headers: UA_HEADERS });
+type StormResult = { features: unknown[]; storms: Storm[]; source: string; warning?: string };
+async function fetchJtwcStorms(): Promise<StormResult> {
+  const rssRes = await fetch(JTWC_RSS, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
   if (!rssRes.ok) throw new Error(`JTWC RSS ${rssRes.status}`);
   const rss = await rssRes.text();
+  const storms = jtwcStorms(rss);
   const kmzUrls = parseKmzUrls(rss);
   const features: unknown[] = [];
-  for (const url of kmzUrls) {
+  await Promise.all(kmzUrls.slice(0, 16).map(async (url) => {
     try {
-      const r = await fetch(url, { headers: UA_HEADERS });
-      if (!r.ok) continue;
+      const r = await fetch(url, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
+      if (!r.ok) return;
       const buf = new Uint8Array(await r.arrayBuffer());
       const files = unzipSync(buf);
       const kmlName = Object.keys(files).find((n) => n.toLowerCase().endsWith(".kml"));
-      if (!kmlName) continue;
+      if (!kmlName) return;
       const kml = strFromU8(files[kmlName] as Uint8Array);
       const feats = todayFeatures(kmlFeatures(kml));
       features.push(...feats);
     } catch {
       // một storm lỗi không chặn các storm khác
     }
-  }
-  return { features, source: "jtwc" };
+  }));
+  return { features, storms, source: "JTWC", warning: kmzUrls.length && !features.length ? 'Không tải được bản đồ JTWC' : undefined };
 }
 
-async function fetchJmaStorms(): Promise<{ features: unknown[]; source: string }> {
-  const r = await fetch(JMA_TARGET, { headers: JMA_UA_HEADERS });
+async function fetchJmaStorms(): Promise<StormResult> {
+  const r = await fetch(JMA_TARGET, { headers: JMA_UA_HEADERS, signal: AbortSignal.timeout(12000) });
   if (!r.ok) throw new Error(`JMA ${r.status}`);
   const targets = (await r.json()) as Array<Record<string, unknown>>;
   const features: unknown[] = [];
-  for (const t of targets) {
-    const code = String(t.code ?? t.id ?? "");
-    if (!code) continue;
+  const storms: Storm[] = [];
+  let failed = 0;
+  await Promise.all(targets.map(async (t) => {
+    const code = jmaCode(t);
+    if (!code) { failed++; return; }
     try {
-      const fr = await fetch(jmaFcstUrl(code), { headers: JMA_UA_HEADERS });
-      if (!fr.ok) continue;
+      const fr = await fetch(jmaFcstUrl(code), { headers: JMA_UA_HEADERS, signal: AbortSignal.timeout(12000) });
+      if (!fr.ok) { failed++; return; }
       const fcst = (await fr.json()) as Array<Record<string, unknown>>;
-      features.push(...jmaFeatures(fcst));
+      const parsed = jmaStorm(fcst, t);
+      features.push(...parsed.features);
+      storms.push(parsed.storm);
+      if (!parsed.features.length) failed++;
     } catch {
-      // bỏ qua storm lỗi
+      failed++;
     }
-  }
-  return { features, source: "jma" };
+  }));
+  return { features, storms, source: "JMA", warning: failed ? 'Một số bản tin bão JMA chưa tải được' : undefined };
 }
 
 async function stormsPayload(force: boolean) {
   const now = Date.now();
   if (!force && stormsCache && now - stormsCacheAt < STORM_TTL_MS) return stormsCache;
-  let out: { features: unknown[]; source: string };
+  let out: StormResult;
   try {
     out = await fetchJtwcStorms();
-    if (!out.features.length) out = await fetchJmaStorms();
-  } catch {
-    out = await fetchJmaStorms();
+  } catch (e) {
+    out = { features: [], storms: [], source: 'JTWC', warning: String((e as Error).message) };
   }
-  const payload = { type: "FeatureCollection", features: out.features, source: out.source, at: new Date().toISOString() };
+  if (!out.features.length) {
+    try {
+      const jma = await fetchJmaStorms();
+      out = { ...jma, storms: mergeStorms(out.storms, jma.storms), warning: jma.warning || (out.storms.length && !jma.features.length ? out.warning || 'Có cảnh báo bão, chưa tải được bản đồ' : undefined) };
+    } catch (e) {
+      out.warning = `Chưa tải được bản đồ bão: ${String((e as Error).message)}`;
+    }
+  }
+  const payload = { type: "FeatureCollection", ...out, error: !out.features.length && !out.storms.length && out.warning ? out.warning : undefined, at: new Date().toISOString() };
   stormsCache = payload;
   stormsCacheAt = now;
   return payload;
