@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 2.14: sửa nguồn bão JTWC/JMA, hiện tên bão trên thanh công cụ và thêm thanh kéo ngang dưới thanh đen; kiểm thử dữ liệu và thao tác kéo.
+- [x] V 2.14: sửa JTWC/JMA và hiện tên bão; dữ liệu thật nhận Champi (29W), Vance (22E), Agueda (02S), 36 lớp JTWC/13 lớp JMA; 9 kiểm thử đạt, thanh kéo hoạt động ở 1280px/636px với trang kiểm tra riêng, build OK; chưa publish.
+- [ ] V 2.14: kiểm tra trong phiên đăng nhập của người dùng — không tạo được phiên cho tài khoản Lovable hiện tại; cần người dùng mở Bão và thử thanh kéo trên preview.
 
 - [x] Acc V 2.7: cuộn trong khung tài khoản, giữ tiêu đề/nút đóng và chữ lớn; đã kiểm tra thấy OpsCore/nút Lưu trên máy tính 1280×800 và điện thoại 390×844; kiểm thử dấu mật khẩu đạt, chưa publish.
 
