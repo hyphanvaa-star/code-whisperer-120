@@ -52,7 +52,8 @@ FOLDER_CACHE = config.CACHE_DIR / "owa_pib_folder.json"
 MAIL_PROFILE_DIR = config.BROWSER_PROFILE_DIR / "chrome_owa_mail_profile"
 MAIL_TOKEN_CACHE = config.CACHE_DIR / "owa_mail_token.json"
 _POOL = 8  # tải PDF song song
-_TOKEN_SAFETY_S = 300
+# Keep a short request buffer without discarding several usable minutes.
+_TOKEN_SAFETY_S = 60
 _SESSION_LOCK = threading.RLock()
 
 

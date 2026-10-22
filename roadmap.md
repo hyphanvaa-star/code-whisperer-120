@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] Outlook Web: quét nền không đổi trạng thái đăng nhập; giảm trừ hao 300→60 giây; thao tác PIB vẫn kiểm tra/làm mới phiên và giữ lỗi Microsoft; gói trợ lý 5.4 đã cập nhật, 8 kiểm thử đạt, build OK.
+- [ ] Outlook Web: thử giữ phiên và tải PIB thật — cần người dùng chạy trợ lý 5.4 trên máy công ty; chưa publish.
+
 - [x] KHB CAPT/FO: tối đa 30 ký tự gồm ID/khoảng trắng; tên dài từ 3 cụm giữ đầu/cuối, áp dụng nạp/chọn/sửa và REQ; 17 kiểm thử đạt, mẫu 9180 AUCANCELA ARMANDO đã kiểm tra trong trang KHB. Chưa thử chuyến thật.
 
 - [x] Sửa cắt EZFW ở Tự động tải và Tạo EZFW KHB: dùng chung cách khôi phục tọa độ PDF, giữ cột/dòng trống/chữ ký theo TXT mẫu; 17 kiểm thử đạt, gồm PDF có thứ tự chữ đảo và khoảng trắng bị tách; build OK. Chưa thử thư nháp/OFP thật tại máy người dùng.
