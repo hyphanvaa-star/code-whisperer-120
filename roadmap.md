@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 2.14: sửa nguồn bão JTWC/JMA, hiện tên bão trên thanh công cụ và thêm thanh kéo ngang dưới thanh đen; kiểm thử dữ liệu và thao tác kéo.
+
 - [x] Acc V 2.7: cuộn trong khung tài khoản, giữ tiêu đề/nút đóng và chữ lớn; đã kiểm tra thấy OpsCore/nút Lưu trên máy tính 1280×800 và điện thoại 390×844; kiểm thử dấu mật khẩu đạt, chưa publish.
 
 - [x] Acc V 2.6: giữ dấu mật khẩu sau khi lưu kể cả khi tải trạng thái lỗi; chữ nhập 19px, nhãn/nút 17px; kiểm thử và thao tác lưu/mở lại với dữ liệu kiểm tra đạt, chưa thử tài khoản thật vì không có phiên.
