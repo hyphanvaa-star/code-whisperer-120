@@ -14,6 +14,7 @@ const ACTION: Record<string, string> = {
   reset_personal: "Về bản chung",
   update_account: "Tự sửa tài khoản", create_account: "Tạo tài khoản", reset_password: "Đổi mật khẩu",
   delete_account: "Xóa tài khoản", edit_account: "Sửa thông tin", grant_role: "Cấp quyền", revoke_role: "Gỡ quyền",
+  sign_in: "Đăng nhập", sign_out: "Đăng xuất",
 };
 
 function Checks({ pw, user }: { pw: string; user: string }) {
@@ -109,7 +110,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(380px,420px)_1fr]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(280px,320px)_minmax(380px,460px)_1fr]">
           <aside className="flex min-h-0 flex-col border-r border-border bg-card">
             <div className="space-y-2 border-b border-border p-4">
               <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-9"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
