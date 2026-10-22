@@ -99,7 +99,7 @@ let stormsCacheAt = 0;
 let stormsCache: unknown = null;
 const STORM_TTL_MS = 300_000;
 
-type StormResult = { features: unknown[]; storms: Storm[]; source: string; warning?: string };
+type StormResult = { features: unknown[]; storms: Storm[]; source: string; warning?: string | undefined };
 async function fetchJtwcStorms(): Promise<StormResult> {
   const rssRes = await fetch(JTWC_RSS, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
   if (!rssRes.ok) throw new Error(`JTWC RSS ${rssRes.status}`);
