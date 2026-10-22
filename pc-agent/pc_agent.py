@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "5.5"
+VERSION = "5.6"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1469,7 +1469,7 @@ def do_owa_efb(payload: dict, say) -> dict:
 
 
 # Đài khí tượng chỉ có địa chỉ IP — máy chủ web bị chặn, trợ lý gửi request hộ.
-_MET_HOSTS = {"113.161.121.25", "14.177.232.218", "118.69.213.84"}
+_MET_HOSTS = {"113.161.121.25", "14.177.232.218", "118.69.213.84", "www.metoc.navy.mil", "metoc.navy.mil"}
 _HTTP_SESSIONS: dict = {}
 
 

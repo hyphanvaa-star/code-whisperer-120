@@ -100,8 +100,15 @@ let stormsCache: unknown = null;
 const STORM_TTL_MS = 300_000;
 
 type StormResult = { features: unknown[]; storms: Storm[]; source: string; warning?: string | undefined };
-async function fetchJtwcStorms(): Promise<StormResult> {
-  const rssRes = await fetch(JTWC_RSS, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
+type Getter = (url: string) => Promise<Response>;
+const directGet: Getter = (url) => fetch(url, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
+/** Trợ lý PC trên mạng văn phòng tải hộ khi navy.mil chặn máy chủ. */
+function pcGetter(ctx: Ctx): Getter {
+  const t = pcTransport(ctx);
+  return (url) => t({ session: "jtwc", method: "GET", url, headers: { ...(UA_HEADERS as Record<string, string>) }, timeoutMs: 25000 });
+}
+async function fetchJtwcStorms(get: Getter = directGet, source = "JTWC"): Promise<StormResult> {
+  const rssRes = await get(JTWC_RSS);
   if (!rssRes.ok) throw new Error(`JTWC RSS ${rssRes.status}`);
   const rss = await rssRes.text();
   const storms = jtwcStorms(rss);
@@ -109,7 +116,7 @@ async function fetchJtwcStorms(): Promise<StormResult> {
   const features: unknown[] = [];
   await Promise.all(kmzUrls.slice(0, 16).map(async (url) => {
     try {
-      const r = await fetch(url, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
+      const r = await get(url);
       if (!r.ok) return;
       const buf = new Uint8Array(await r.arrayBuffer());
       const files = unzipSync(buf);
@@ -122,7 +129,7 @@ async function fetchJtwcStorms(): Promise<StormResult> {
       // một storm lỗi không chặn các storm khác
     }
   }));
-  return { features, storms, source: "JTWC", warning: kmzUrls.length && !features.length ? 'Không tải được bản đồ JTWC' : undefined };
+  return { features, storms, source, warning: kmzUrls.length && !features.length ? 'Không tải được bản đồ JTWC' : undefined };
 }
 
 async function fetchJmaStorms(): Promise<StormResult> {
@@ -150,7 +157,7 @@ async function fetchJmaStorms(): Promise<StormResult> {
   return { features, storms, source: "JMA", warning: failed ? 'Một số bản tin bão JMA chưa tải được' : undefined };
 }
 
-async function stormsPayload(force: boolean) {
+async function stormsPayload(force: boolean, ctx?: Ctx) {
   const now = Date.now();
   if (!force && stormsCache && now - stormsCacheAt < STORM_TTL_MS) return stormsCache;
   let out: StormResult;
@@ -158,6 +165,14 @@ async function stormsPayload(force: boolean) {
     out = await fetchJtwcStorms();
   } catch (e) {
     out = { features: [], storms: [], source: 'JTWC', warning: String((e as Error).message) };
+  }
+  if (!out.features.length && ctx) {
+    try {
+      const viaPc = await fetchJtwcStorms(pcGetter(ctx), "JTWC (qua trợ lý PC)");
+      if (viaPc.features.length || viaPc.storms.length >= out.storms.length) out = viaPc;
+    } catch {
+      // trợ lý PC offline/lỗi → rơi tiếp xuống JMA
+    }
   }
   if (!out.features.length) {
     try {
