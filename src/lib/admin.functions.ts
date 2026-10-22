@@ -177,22 +177,26 @@ export const accountDetails = createServerFn({ method: "POST" })
       supabaseAdmin.from("profiles").select("id, avatar_path").in("id", data.userIds),
       supabaseAdmin.from("app_settings").select("key, updated_by, updated_at, value").in("updated_by", data.userIds).order("updated_at", { ascending: false }).limit(1000),
     ]);
-    const out: Record<string, { avatarUrl: string; edits: { key: string; label: string; personal: boolean; updatedAt: string; size: number; lines: string[] }[] }> = {};
+    type Chg = { at: string; by: string; added: string[]; removed: string[] };
+    const out: Record<string, { avatarUrl: string; edits: { key: string; label: string; personal: boolean; updatedAt: string; size: number; lines: string[]; changes: Chg[] }[] }> = {};
     for (const id of data.userIds) out[id] = { avatarUrl: "", edits: [] };
     await Promise.all((profs ?? []).map(async (p) => {
       if (!p.avatar_path) return;
       const s = await supabaseAdmin.storage.from("account-avatars").createSignedUrl(p.avatar_path, 3600);
       if (s.data?.signedUrl) out[p.id].avatarUrl = s.data.signedUrl;
     }));
+    const { data: chgRows } = await supabaseAdmin.from("app_settings").select("key, value").like("key", "chg:%").limit(500);
+    const chg = new Map<string, Chg[]>((chgRows ?? []).map((c) => [c.key.slice(4), ((c.value as { list?: Chg[] })?.list ?? [])]));
     for (const r of rows ?? []) {
       if (!r.updated_by || !out[r.updated_by]) continue;
       const personal = r.key.includes("@u:");
       const base = r.key.split("@u:")[0];
       // Automatic per-flight/working caches and login tokens are not user edits — hide them.
-      if (/^(ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|.*token|.*session|.*cookie)/i.test(base)) continue;
+      if (/^(chg:|ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|.*token|.*session|.*cookie)/i.test(base)) continue;
       const v = r.value as unknown;
       const size = Array.isArray(v) ? v.length : v && typeof v === "object" ? Object.keys(v).length : 1;
-      out[r.updated_by].edits.push({ key: r.key, label: DATA_LABEL[base] ?? base, personal, updatedAt: r.updated_at, size, lines: previewLines(v) });
+      const changes = (chg.get(r.key) ?? []).filter((c) => c.by === r.updated_by);
+      out[r.updated_by].edits.push({ key: r.key, label: DATA_LABEL[base] ?? base, personal, updatedAt: r.updated_at, size, lines: [], changes });
     }
     return out;
   });

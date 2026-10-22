@@ -177,13 +177,19 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                           <summary className="flex cursor-pointer list-none items-center gap-3">
                             <span className="flex-1 font-medium">▸ {e.label}</span>
                             <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${e.personal ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{e.personal ? "Bản riêng" : "Bản chung"}</span>
-                            <span className="w-14 text-right text-xs text-muted-foreground">{e.size} dòng</span>
+                            <span className="w-20 text-right text-xs text-muted-foreground">{e.changes?.length ?? 0} lần sửa</span>
                             <span className="w-36 text-right font-mono text-xs text-muted-foreground">{new Date(e.updatedAt).toLocaleString("vi-VN")}</span>
                             {e.personal ? <Button size="sm" variant="ghost" disabled={busy} title="Xóa bản riêng, người này quay về bản chung" onClick={(ev) => { ev.preventDefault(); if (window.confirm(`Đưa ${e.label} của ${login} về bản chung?`)) void run(() => resetDataFn({ data: { key: e.key } }), "Đã đưa về bản chung"); }}><RotateCcw /></Button> : <span className="w-9" />}
                           </summary>
                           <ul className="mt-2 max-h-80 overflow-y-auto rounded-lg bg-muted/50 px-3 py-2 text-xs">
-                            {(e.lines ?? []).map((t, i) => <li key={i} className={`whitespace-pre-wrap break-words py-0.5 ${t.startsWith("■") ? "mt-1 font-bold text-foreground" : ""}`}>{t}</li>)}
-                            {!e.lines?.length && <li className="text-muted-foreground">Không có nội dung.</li>}
+                            {(e.changes ?? []).map((c, i) => (
+                              <li key={i} className="py-1">
+                                <div className="font-mono font-bold text-muted-foreground">{new Date(c.at).toLocaleString("vi-VN")}</div>
+                                {c.added.map((t, j) => <div key={"a" + j} className="break-words text-primary">+ Thêm: {t}</div>)}
+                                {c.removed.map((t, j) => <div key={"r" + j} className="break-words text-destructive">− Xoá: {t}</div>)}
+                              </li>
+                            ))}
+                            {!e.changes?.length && <li className="text-muted-foreground">Chưa ghi nhận thêm/xoá nào (chỉ ghi từ bản này trở đi).</li>}
                           </ul>
                         </details>
                       </li>
