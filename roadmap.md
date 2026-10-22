@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] Outlook Web: quét nền không tự đổi nút đỏ vì token gần hết hạn; giảm trừ hao phiên, giữ yêu cầu đăng nhập khi thao tác thật bị từ chối, cập nhật trợ lý và kiểm thử.
+
 - [x] KHB CAPT/FO: tối đa 30 ký tự gồm ID/khoảng trắng; tên dài từ 3 cụm giữ đầu/cuối, áp dụng nạp/chọn/sửa và REQ; 17 kiểm thử đạt, mẫu 9180 AUCANCELA ARMANDO đã kiểm tra trong trang KHB. Chưa thử chuyến thật.
 
 - [x] Sửa cắt EZFW ở Tự động tải và Tạo EZFW KHB: dùng chung cách khôi phục tọa độ PDF, giữ cột/dòng trống/chữ ký theo TXT mẫu; 17 kiểm thử đạt, gồm PDF có thứ tự chữ đảo và khoảng trắng bị tách; build OK. Chưa thử thư nháp/OFP thật tại máy người dùng.
