@@ -6878,7 +6878,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   <th class="ho-num">Extra fuel</th>
                   <th class="ho-mark">ATC filing<label class="ho-tick"><input type="checkbox" id="hoAllAtc" title="Tích cả cột ATC"></label></th>
                   <th class="ho-mark">EZFW<label class="ho-tick"><input type="checkbox" id="hoAllEzfw" title="Tích cả cột EZFW"></label></th>
-                  <th class="ho-mark">ATFM filling<label class="ho-tick"><input type="checkbox" id="hoAllAtfm" title="Tích cả cột ATFM"></label></th>
+                  <th class="ho-mark">ATFM filing<label class="ho-tick"><input type="checkbox" id="hoAllAtfm" title="Tích cả cột ATFM"></label></th>
                   <th class="ho-mark">EDTO<label class="ho-tick"><input type="checkbox" id="hoAllEdto" title="Tích cả cột EDTO"></label></th>
                   <th class="ho-note">Note</th>
                 </tr>
@@ -25346,6 +25346,123 @@ function hoAcCell(hit, f){
   if(reg && hoIsTypeLabel(old)) return reg;
   return old || reg || hoAcType(f);
 }
+/* Gõ mã chuyến vào ô CHUYẾN BAY là dữ liệu của chuyến đó hiện ra ngay, khỏi bấm Nạp chuyến.
+   Danh sách chuyến lấy một lần rồi giữ lại; nếu chưa thấy thì thử lấy lại đúng một lần
+   (chuyến vừa đẩy lên thường có mặt chậm vài chục giây). */
+let hoAllFlights = [];
+let hoAllFresh = 0;
+let hoAllPromise = null;
+let hoLookupBusy = false;
+let hoTypeTimer = null;
+function hoCsKey(cs){ return String(cs || "").replace(/\s+/g,"").toUpperCase(); }
+function hoSay(msg){ const st = $("#hoStat"); if(st) st.textContent = msg; }
+function hoFetchAll(force){
+  if(!force && hoAllFlights.length && Date.now() - hoAllFresh < 120000) return Promise.resolve(hoAllFlights);
+  if(hoAllPromise) return hoAllPromise;
+  hoAllPromise = fetch("/api/flights?days=" + DAYS).then(function(r){
+    if(!r.ok) throw new Error("máy chủ trả về " + r.status);
+    return r.json();
+  }).then(function(d){
+    if(d && d.error) throw new Error(d.error);
+    hoAllFlights = (d && d.flights) || [];
+    hoAllFresh = Date.now();
+    return hoAllFlights;
+  }).catch(function(){ return hoAllFlights; }).finally(function(){ hoAllPromise = null; });
+  return hoAllPromise;
+}
+// "VJC456" hoặc chỉ gõ "456" cũng ra; nhiều chuyến cùng mã thì lấy chuyến gần giờ này nhất.
+function hoMatchFlight(list, cs){
+  const t = hoCsKey(cs);
+  if(t.length < 3) return null;
+  const onlyDigits = /^\d+$/.test(t);
+  let best = null, bestD = Infinity;
+  const now = Date.now();
+  for(const f of (list || [])){
+    const c = hoCsKey(f && f.callsign);
+    if(!c) continue;
+    const hit = c === t || (onlyDigits && c.length > t.length && c.slice(-t.length) === t);
+    if(!hit) continue;
+    const d = Math.abs(new Date(f.std).getTime() - now);
+    if(!(d < bestD)) continue;
+    bestD = d; best = f;
+  }
+  return best;
+}
+function hoSetCell(tr, name, value){
+  const inp = tr.querySelector('input[data-ho="' + name + '"]');
+  if(inp) inp.value = (value == null ? "" : String(value));
+}
+// Ô EZFW / ATFM: chuyến nội địa thì gạch "—", chuyến quốc tế về VN thì cho tích.
+function hoSetMarkCell(tr, idx, kind, showNa){
+  const td = tr.children[idx];
+  if(!td) return;
+  const hasBox = !!td.querySelector('input[data-ho="' + kind + '"]');
+  if(hasBox === !showNa) return;
+  td.innerHTML = "";
+  if(showNa){ td.className = "ho-mark ho-na"; td.appendChild(document.createTextNode("—")); }
+  else { td.className = "ho-mark"; td.appendChild(hoTickBox(kind, false)); }
+}
+async function hoGrabWeights(tr, f){
+  const id = f && f.id;
+  if(!id) return;
+  try{
+    const r = await fetch("/api/weights?days=" + DAYS + "&ids=" + id + "&cache=1");
+    if(!r.ok) return;
+    const d = await r.json();
+    if(!d || d.error) return;
+    const w = (d.weights || {})[String(id)];
+    if(!w || !tr.isConnected) return;
+    const p = w.pld != null ? Number(w.pld) : null;
+    if(p || p === 0) hoSetCell(tr, "payload", p.toLocaleString("en-US"));
+    const et = String(w.extra_time || "").trim();
+    if(et && et !== "0:00"){
+      const v = Number(f.extra_fuel) || 0;
+      hoSetCell(tr, "extra", et + (v ? " · " + v.toLocaleString("en-US") : ""));
+    }
+  }catch(_){}
+}
+function hoFillRow(tr, f){
+  const dep = hoApt(f, "dep"), arr = hoApt(f, "arr");
+  hoSetCell(tr, "callsign", f.callsign || "");
+  hoSetCell(tr, "dep", dep);
+  hoSetCell(tr, "arr", arr);
+  hoSetCell(tr, "ac", hoAcCell({}, f));
+  hoSetCell(tr, "std", hoHHMMZ(f.std));
+  hoSetCell(tr, "sta", hoHHMMZ(f.sta));
+  hoSetCell(tr, "payload", hoPldText(f));
+  hoSetCell(tr, "extra", hoExtraText(f));
+  tr.dataset.hoKey = hoFltKey(f);
+  const na = !hoNeedsEzfwAtfm({ dep: dep, arr: arr });
+  hoSetMarkCell(tr, 9, "ezfw", na);
+  hoSetMarkCell(tr, 10, "atfm", na);
+  hoMarkDirty();
+  hoSay(String(f.callsign || "") + " · tàu " + (hoRegLabel(f) || "chưa rõ tàu") + " · " + dep + "→" + arr);
+  hoGrabWeights(tr, f);
+}
+function hoTryFill(tr){
+  const inp = tr.querySelector('input[data-ho="callsign"]');
+  const cs = hoCsKey(inp && inp.value);
+  if(cs.length < 3) return;
+  const f = hoMatchFlight(hoAllFlights, cs);
+  if(f){
+    if(hoFltKey(f) !== (tr.dataset.hoKey || "")) hoFillRow(tr, f);
+    return;
+  }
+  if(!/^[A-Z]{2,3}\d{3,4}$/.test(cs)) return;   // đang gõ dở, chưa ra một mã hoàn chỉnh
+  if(hoLookupBusy) return;
+  if(hoAllFlights.length && Date.now() - hoAllFresh < 20000){
+    hoSay("Không thấy chuyến " + cs + " trong danh sách hôm nay");
+    return;
+  }
+  hoLookupBusy = true;
+  hoFetchAll(true).then(function(list){
+    const now = tr.querySelector('input[data-ho="callsign"]');
+    if(!now || hoCsKey(now.value) !== cs) return;   // người dùng đã gõ tiếp chữ khác
+    const g = hoMatchFlight(list, cs);
+    if(g) hoFillRow(tr, g);
+    else if((list || []).length) hoSay("Không thấy chuyến " + cs + " trong danh sách hôm nay");
+  }).finally(function(){ hoLookupBusy = false; });
+}
 function hoHHMMZ(iso){
   if(!iso) return "";
   const d = new Date(iso);
@@ -25699,6 +25816,26 @@ $("#hoSaveBtn").onclick = () => hoSave();
 $("#hoXlsBtn").onclick = () => hoExport();
 $("#hoPrintBtn").onclick = () => window.print();
 $("#hoReloadBtn").onclick = () => hoLoadDsp();
+// Gõ mã chuyến ngay trong bảng là dữ liệu chuyến đó hiện ra (chờ một chút sau chữ cuối).
+(function(){
+  const tb = $("#hoBody");
+  if(!tb) return;
+  tb.addEventListener("input", function(ev){
+    const inp = ev.target;
+    if(!inp || inp.getAttribute("data-ho") !== "callsign") return;
+    const tr = inp.closest("tr");
+    if(!tr) return;
+    hoFetchAll(false);
+    clearTimeout(hoTypeTimer);
+    hoTypeTimer = setTimeout(function(){ hoTryFill(tr); }, 450);
+  });
+  tb.addEventListener("change", function(ev){
+    const inp = ev.target;
+    if(!inp || inp.getAttribute("data-ho") !== "callsign") return;
+    const tr = inp.closest("tr");
+    if(tr) hoTryFill(tr);
+  });
+})();
 document.querySelectorAll("#hoShiftPills [data-ho-shift]").forEach(function(btn){
   btn.addEventListener("click", function(){
     hoSetShift(btn.getAttribute("data-ho-shift"));
