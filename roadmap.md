@@ -140,3 +140,5 @@
 - [x] KHB: gõ số hiệu không có trong Crewlist thì giữ nguyên số trên bảng (trước đây tự xoá mất số); số này vẫn tính vào dòng "Tổng: N chuyến"; đã kiểm offline 7 ca (gõ, Enter, dán lẫn lộn, xoá, nạp lại), chưa publish.
 - [x] Sân bay hạn chế APU: chỉ tô vàng khi tàu APU INOP hoặc REQ APU/ACU/ASU (page.html + limits_check.ts), test 17 đạt, chưa publish
 - [x] Xuất full dữ liệu: soheedispatch-backup.zip (7 CSV + 251 file kho) đã gửi
+
+- [x] Tài khoản: thu nhỏ ô nhập/nút trong khung 🔑 Tài khoản (chữ 16.5px, ô cao 40px, khung 880px) — đo bằng Playwright 1280x800 + 390x844, cuộn xuống thấy đủ AviWeb/OpsCore, badge V 2.20, chưa publish
