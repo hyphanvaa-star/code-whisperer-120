@@ -1227,7 +1227,17 @@ html.night .ai-foot textarea{background:#f0f0f0;color:#111;border:0}
 .acmsg{font-size:11.5px;line-height:1.5}
 .acpw{position:relative;display:flex}.acpw input{flex:1;padding-right:34px}
 .aceye{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:15px;opacity:.7}.aceye:hover{opacity:1}
-.accaps{font-size:11.5px;color:var(--red);margin-top:3px}
+.accaps{font-size:13px;color:var(--red);margin-top:4px;font-weight:600}
+#accModal .sheet{max-width:820px;width:calc(100% - 24px)}
+#accModal .sheet-head h3{font-size:20px}
+#accModal .accard .top b{font-size:17px}
+#accModal .accard .top .use,#accModal .achint,#accModal .acwarn{font-size:14px;line-height:1.5}
+#accModal .field label{font-size:12.5px}
+#accModal input{font-size:16px;padding:10px 12px;min-height:42px}
+#accModal .acpw input{padding-right:40px}
+#accModal .aceye{font-size:18px}
+#accModal .acmsg{font-size:14px}
+#accModal .btn.small{font-size:14px;padding:7px 14px}
 .acmsg.ok{color:var(--green)}.acmsg.bad{color:var(--red)}.acmsg.q{color:var(--ink-soft)}
 @media (max-width:520px){.acgrid{grid-template-columns:1fr}}
 
@@ -27321,6 +27331,7 @@ document.addEventListener("keydown", e => {
 /* ---------- hộp nhập tài khoản (FliteBrief + Omni + Outlook + AviWeb) ---------- */
 const AC_SRC = {env: "biến môi trường", file: "file", default: "mặc định", none: ""};
 const AC_SAVE_ONLY = new Set(["outlook", "aviweb", "owa"]);
+const AC_MASK = "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
 
 function acRefresh(){
   fetch("/api/credentials").then(r => r.json()).then(d => {
@@ -27336,8 +27347,11 @@ function acRefresh(){
       $("#ac"+pf+"User").value = info.username || "";
       if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
       const pi = $("#ac"+pf+"Pass");
-      pi.value = ""; pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
-      pi.placeholder = pi.dataset.saved ? "••••••••  (đã lưu — để trống là giữ nguyên)" : (info.source === "env" ? "(giữ nguyên nếu để trống)" : "nhập mật khẩu");
+      pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
+      const hasPw = Boolean(info.has_password);
+      pi.dataset.mask = hasPw ? "1" : "";
+      pi.value = hasPw ? AC_MASK : "";
+      pi.placeholder = "nhập mật khẩu";
       const src = $("#ac"+pf+"Src");
       if(info.source === "env")
         src.textContent = "đang dùng từ " + AC_SRC.env + " (" + (info.env_names||[]).join(", ") + ")";
@@ -27353,7 +27367,8 @@ function acRefresh(){
 
 async function acSave(kind, pf){
   const user = $("#ac"+pf+"User").value.trim();
-  const pass = $("#ac"+pf+"Pass").value;
+  const pin = $("#ac"+pf+"Pass");
+  const pass = pin.dataset.mask ? "" : pin.value;
   const msg  = $("#ac"+pf+"Msg");
   const btn  = $("#ac"+pf+"Save");
   if(!user){ msg.className = "acmsg bad"; msg.textContent = "chưa nhập username"; return; }
@@ -27408,16 +27423,20 @@ function acPwSetup(){
     const capCheck = e => { if(e.getModifierState) caps.hidden = !e.getModifierState("CapsLock"); };
     inp.addEventListener("keydown", capCheck); inp.addEventListener("keyup", capCheck);
     inp.addEventListener("blur", () => caps.hidden = true);
+    const unmask = () => { if(inp.dataset.mask){ inp.dataset.mask = ""; inp.value = ""; } };
+    inp.addEventListener("keydown", e => { if(inp.dataset.mask && e.key.length === 1 || e.key === "Backspace" || e.key === "Delete") unmask(); });
+    inp.addEventListener("paste", unmask);
     eye.onclick = async () => {
       if(inp.type === "text"){ inp.type = "password"; eye.textContent = "👁"; return; }
-      if(!inp.value && inp.dataset.saved && kind){
+      if(inp.dataset.mask && !inp.dataset.saved){ alert("Mục này đang dùng tài khoản mặc định của đội — không xem được mật khẩu."); return; }
+      if(inp.dataset.mask && inp.dataset.saved && kind){
         const lp = prompt("Nhập mật khẩu đăng nhập web của bạn để xem mật khẩu đã lưu:");
         if(!lp) return;
         try{
           const r = await fetch("/api/credentials/reveal", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({kind, login_password: lp})});
           const d = await r.json();
           if(!d.ok){ alert(d.error || "không xem được"); return; }
-          inp.value = d.password;
+          inp.dataset.mask = ""; inp.value = d.password;
         }catch(e){ alert("lỗi mạng: " + e.message); return; }
       }
       inp.type = "text"; eye.textContent = "🙈";
