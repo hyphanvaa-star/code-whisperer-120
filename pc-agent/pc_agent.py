@@ -699,7 +699,7 @@ def do_aviweb_submit(payload: dict, say) -> dict:
     say(f"· file ATC: {fpath}")
 
     total = len(atcfpl.read_fpl_blocks(fpath))
-    state = {"n": 0}
+    seen: set = set()
 
     def on_progress(text, flight: str = "") -> None:
         # giống web.py cũ: progress(text, flight)
@@ -707,8 +707,8 @@ def do_aviweb_submit(payload: dict, say) -> dict:
             text = text.get("text") or ""
         text = str(text or "")
         if flight and text.startswith(("\u2713", "\u2717")):
-            state["n"] += 1
-            text = f"[{state['n']}/{total}] {text}"
+            seen.add(flight)  # chuyến gửi lại không bị đếm 2 lần
+            text = f"[{len(seen)}/{total}] {text}"
         if text:
             say(text, "bad" if text.startswith("\u2717") else "")
 

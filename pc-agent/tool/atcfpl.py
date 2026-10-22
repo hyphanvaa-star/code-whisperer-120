@@ -958,12 +958,26 @@ def submit_fpl(
         res.items = [FplItem(index=i, name=fpl_name(b), route=fpl_route(b))
                      for i, b in enumerate(todo, 1)]
 
-        for it, block in zip(res.items, todo):
+        # Hàng gửi: mỗi chuyến lỗi (chưa bấm Submit cuối) được gửi lại ĐÚNG 1 lần
+        # ở cuối đợt; vẫn lỗi thì giữ nguyên báo lỗi như cũ.
+        queue = [(it, block, 0) for it, block in zip(res.items, todo)]
+        qi = 0
+        while qi < len(queue):
+            it, block, tries = queue[qi]
+            qi += 1
             if cancel is not None and cancel.is_set():
                 say("— đã huỷ —")
                 break
             i, name = it.index, it.name
+            if tries:
+                # bỏ dấu lỗi lần trước; nếu lần này vẫn lỗi sẽ ghi lại
+                if name in res.failed:
+                    res.failed.remove(name)
+                res.errors = [e for e in res.errors if not e.startswith(f"{it.label}:")]
+                it.reason = ""
+                say(f"↻ gửi lại 1 lần: {it.label}", name)
             it.attempted = True
+            final_clicked = False
             say(f"→ [{i}/{len(todo)}] {it.label}", name)
             try:
                 ntab = _keep_main_tab(driver)
@@ -980,7 +994,7 @@ def submit_fpl(
                 # Popup/error của block trước phải đóng hẳn trước khi mở block mới.
                 _close_fpl_dialogs(driver)
                 load = _wait_fpl_ready(driver, 40)
-                time.sleep(0.4)
+                time.sleep(0.15)
                 _click(driver, load)
 
                 ta = wait.until(lambda d: _visible_fpl_textarea(d))
@@ -993,7 +1007,7 @@ def submit_fpl(
                     got = ta.get_attribute("value") or ""
                 if len(got) < need:
                     raise AtcError("không dán được FPL vào ô Add FPL")
-                time.sleep(0.7)
+                time.sleep(0.25)
                 try:
                     _click_window_button(driver, "Submit")
                 except Exception:
@@ -1007,10 +1021,10 @@ def submit_fpl(
                         + (f" (đã đóng {ntab} tab)" if ntab else "")
                     )
 
-                time.sleep(1)
-                target = wait.until(EC.presence_of_element_located(
+                # Chờ đúng lúc nút sẵn sàng thay vì ngủ cố định 3 giây
+                target = wait.until(EC.element_to_be_clickable(
                     (By.XPATH, XP["target"])))
-                time.sleep(2)
+                time.sleep(0.3)
                 _click(driver, driver.find_element(By.XPATH, XP["target"]))
 
                 # Có thông báo lỗi -> đọc NỘI DUNG lỗi rồi bỏ block này
@@ -1038,12 +1052,12 @@ def submit_fpl(
                 except TimeoutException:
                     pass
 
-                time.sleep(1)
-                addr = wait.until(EC.presence_of_element_located(
+                addr = wait.until(EC.element_to_be_clickable(
                     (By.XPATH, XP["address"])))
+                time.sleep(0.2)
                 _type(addr, ORIGIN_ADDR)
                 addr.send_keys(Keys.TAB)
-                time.sleep(1)
+                time.sleep(0.4)
 
                 # Gõ thêm địa chỉ vào ô đang focus — send_keys, không ActionChains
                 try:
@@ -1051,7 +1065,7 @@ def submit_fpl(
                     active.send_keys(EXTRA_ADDR)
                 except Exception:
                     addr.send_keys(EXTRA_ADDR)
-                time.sleep(1)
+                time.sleep(0.4)
 
                 # Bước cuối: chờ nút Submit sẵn sàng, bấm, rồi XÁC NHẬN dialog địa chỉ
                 # đã đóng. Chưa đóng = Submit chưa ăn -> bấm lại; vẫn không -> báo lỗi,
@@ -1083,6 +1097,7 @@ def submit_fpl(
                 for _try in range(3):
                     if cancel is not None and cancel.is_set():
                         break
+                    final_clicked = True
                     _final_submit()
                     end = time.monotonic() + 12
                     while time.monotonic() < end and _addr_open():
@@ -1100,6 +1115,7 @@ def submit_fpl(
                         break
                     say(f"· Submit cuối chưa ăn — bấm lại ({_try + 2}/3)", name)
                 if not sent:
+                    final_clicked = False  # khung địa chỉ còn mở = chắc chắn chưa gửi
                     raise AtcError("chưa bấm được Submit ở bước cuối — chuyến CHƯA gửi")
                 _close_fpl_dialogs(driver)
                 _wait_fpl_ready(driver, 20)
@@ -1116,6 +1132,10 @@ def submit_fpl(
                 res.failed.append(name)
                 res.errors.append(f"{it.label}: {it.reason}")
                 say(f"✗ {it.label} — {it.reason}", name)
+                # Chỉ gửi lại khi CHẮC CHẮN chưa bấm Submit cuối (tránh gửi trùng)
+                if not tries and not final_clicked:
+                    queue.append((it, block, 1))
+                    say(f"· sẽ gửi lại {it.label} 1 lần ở cuối đợt", name)
                 # Phục hồi FPL Filing; lệch HTTP/Dashboard thì kéo về, không được
                 # thì dừng hẳn — không để chuyến sau lỗi dây chuyền.
                 try:
