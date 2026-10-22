@@ -7143,7 +7143,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
 <div class="modal" id="accModal">
   <div class="sheet">
     <div class="sheet-head">
-      <h3>🔑 Tài khoản API</h3>
+      <h3>🔑 Tài khoản</h3>
       <button class="btn small x" id="accClose">✕</button>
     </div>
     <div class="sheet-body">
@@ -27339,7 +27339,7 @@ function acRefresh(){
     const a = d.accounts || {};
     const fb = a.flitebrief || {};
     $("#accWho").textContent = "Acc";
-    $("#btnAcc").title = "Tài khoản API"
+    $("#btnAcc").title = "Tài khoản"
       + (fb.username ? (" — đang dùng: " + fb.username) : " — chưa đặt FliteBrief");
     for(const [kind, pf] of [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"],["opscore","Opscore"]]){
       if(!$("#ac"+pf+"User")) continue;
