@@ -1105,11 +1105,11 @@ header .btn:hover{background:var(--x-red-50) !important;border-color:var(--x-red
 header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important}
 
 /* Khung chính: menu dọc trái | bảng | chi tiết */
-.body{grid-template-columns:minmax(0,1fr) calc(420px + 5cm) !important;padding-left:248px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
+.body{grid-template-columns:minmax(0,1fr) calc(420px + 5cm) !important;padding-left:274px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
 /* Check NOTAM: bản đồ bên phải nới rộng sang trái thêm 5cm */
 .app > .body:has(#wrapNotam:not([style*="none"])){grid-template-columns:minmax(0,1fr) calc(420px + 10cm) !important}
 .aside-head{
-  position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:236px !important;display:block !important;z-index:30 !important;
+  position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:262px !important;display:block !important;z-index:30 !important;
   background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
 }
 .aside-head::before{content:"CHỨC NĂNG";display:block;font:600 10px var(--x-sans);letter-spacing:.14em;color:var(--x-mute);padding:0 10px 10px}
@@ -1124,7 +1124,7 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 .mode svg,.mode svg *{stroke:var(--x-mute) !important}
 .aside-head .mode:hover,.mode:hover{background:var(--x-bg) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important}
 .aside-head .mode.on,.mode.on{
-  background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:700 !important;
+  background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:800 !important;
   box-shadow:inset 3px 0 0 var(--x-red) !important;
 }
  .mode.on svg,.mode.on svg *{stroke:var(--x-red) !important}
@@ -1329,8 +1329,8 @@ header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block 
    Giới hạn, Giao ca, Thiết lập file add, bản đồ NOTAM) dùng cỡ chữ lớn hơn,
    kể cả tên tab trên menu trái. */
 const FONTUP = `<style id="fontup-skin">
-.aside-head .mode,.modes .mode{font-size:14.5px !important;line-height:1.35 !important}
-.aside-head .mode#mFplText,.modes .mode#mFplText{font-size:13px !important}
+.aside-head .mode,.modes .mode{font-size:15.5px !important;line-height:1.4 !important;font-weight:650 !important}
+.aside-head .mode#mFplText,.modes .mode#mFplText{font-size:14px !important}
 :is(#wrapGeneral,#wrapCompare,#wrapVer,#wrapFpl,#wrapTool,#wrapNotam,#wrapAtcCheck,#wrapLimits,#wrapHandover,#wrapNoticeRules,#wrapNmTrack){
   font-size:14px !important;
 }
@@ -1785,7 +1785,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.31</span>')
+    .replace('>V 2.5</span>', '>V 2.32</span>')
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
     .replace('id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acAviwebPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
