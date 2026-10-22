@@ -1090,9 +1090,9 @@ def _loop() -> None:
             token = owa._load_cached_token()
             if not token or not owa._token_ok_for_mail(token):
                 note(
-                    "Outlook Web hết hạn — dừng tự tải FPL. "
-                    "Bấm Đăng nhập Outlook Web để chạy lại.",
-                    "bad",
+                    "Tạm dừng tự tải FPL — token cần làm mới. "
+                    "Lần tải PIB tiếp theo sẽ kiểm tra và làm mới bằng Outlook Web.",
+                    "sys",
                 )
                 break
             result = poll_once(token)

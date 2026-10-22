@@ -1987,6 +1987,10 @@ function ftRender(){
     // Mở web KHÔNG tự đăng nhập Outlook nữa (tránh cửa sổ Microsoft Sign-in
     // hiện lên trên máy công ty) — chỉ chạy khi bấm nút "Đăng nhập Outlook".
     .replace("  startOwaBoot();", "  /* startOwaBoot() tắt: chỉ đăng nhập Outlook khi bấm nút */")
+    // Watcher inactivity/token age is not a Microsoft login rejection.
+    // Active login/PIB events still own setOwaState, including real auth errors.
+    .replace('    if(!owaJob && !tlJob && !d.running) setOwaState("stale");', '')
+    .replace(': "chưa chạy — đăng nhập Outlook Web";', ': "tạm dừng quét FPL";')
     .replace("    if(ok) await defPullSummary({quiet: true});", "    /* defect summary chỉ tải khi bấm nút */")
     // Use the persisted merge in the editor too.
     .replace(
