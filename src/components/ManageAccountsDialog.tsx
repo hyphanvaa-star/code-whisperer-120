@@ -110,7 +110,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(280px,320px)_minmax(380px,460px)_1fr]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(356px,396px)_minmax(456px,536px)_1fr]">
           <aside className="flex min-h-0 flex-col border-r border-border bg-card">
             <div className="space-y-2 border-b border-border p-4">
               <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-9"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
