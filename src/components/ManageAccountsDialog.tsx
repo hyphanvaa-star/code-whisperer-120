@@ -161,7 +161,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                     <h3 className="text-2xl font-extrabold tracking-tight">{login}</h3>
                     <p className="text-sm text-muted-foreground">{user.name || "—"} · tạo ngày {new Date(user.createdAt).toLocaleDateString("vi-VN")}{user.original && user.original !== login ? ` · ID gốc: ${user.original}` : ""}</p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
+                  <span className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị viên" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                 </div>
                 {Msg}
                 <form onSubmit={saveInfo} className={card + " space-y-3"}>
