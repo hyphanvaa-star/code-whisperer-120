@@ -142,3 +142,4 @@
 - [x] Xuất full dữ liệu: soheedispatch-backup.zip (7 CSV + 251 file kho) đã gửi
 
 - [x] Tài khoản: thu nhỏ ô nhập/nút trong khung 🔑 Tài khoản (chữ 16.5px, ô cao 40px, khung 880px) — đo bằng Playwright 1280x800 + 390x844, cuộn xuống thấy đủ AviWeb/OpsCore, badge V 2.20, chưa publish
+- [x] Tài khoản: đưa khung Outlook lên ngay trên InFlight Omni (FliteBrief → Outlook → Omni → AviWeb → OpsCore), badge V 2.21, Playwright xác nhận thứ tự + dấu mật khẩu, chưa publish
