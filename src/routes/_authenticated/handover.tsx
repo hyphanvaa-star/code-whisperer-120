@@ -237,7 +237,7 @@ async function exportXlsx(p: { shift: string; date: string; dsp: string; toDsp: 
   const ExcelJS = await (await import("@/lib/exceljs-load")).loadExcelJS();
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Sheet1");
-  const headers = ["CHUYẾN BAY", "DEP", "ARR", "A/C", "STD", "STA", "PAYLOAD", "EXTRA FUEL", "ATC FILING", "EZFW", "ATFM FILLING", "NOTE"];
+  const headers = ["CHUYẾN BAY", "DEP", "ARR", "A/C", "STD", "STA", "PAYLOAD", "EXTRA FUEL", "ATC FILING", "EZFW", "ATFM FILING", "NOTE"];
   [14, 10, 10, 10, 12, 12, 12, 14, 14, 12, 16, 40].forEach((w, i) => (ws.getColumn(i + 1).width = w));
   ws.mergeCells("I1:L2");
   ws.getCell("I1").value = `${p.shift} HANDOVER`;
