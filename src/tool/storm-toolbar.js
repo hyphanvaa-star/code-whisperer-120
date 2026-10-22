@@ -35,28 +35,10 @@
     const k = p.kts ? p.kts + ' knots' : '';
     return (p.label && /knots/.test(p.label)) ? p.label : [String(t).split(' ·')[0].split(',')[0], k].filter(Boolean).join(' - ');
   }
-  const RSHOW = {34: true, 50: true, 64: true, swath: true};
-  let lastDrawn = null;
-  function radiiPanel(){
-    if(!nmMap || nmMap._nmRadiiCtl || !L.control) return;
-    const ctl = L.control({position: 'topright'});
-    ctl.onAdd = function(){
-      const d = L.DomUtil.create('div', 'nm-radii-ctl');
-      d.style.cssText = 'background:#fff;color:#111;padding:6px 10px;border-radius:8px;font:600 13px/1.6 sans-serif;box-shadow:0 1px 6px rgba(0,0,0,.3)';
-      const row = (k, txt, col) => '<label style="display:block;cursor:pointer"><input type="checkbox" data-r="' + k + '" checked> <span style="display:inline-block;width:12px;height:12px;border:2px solid ' + col + ';vertical-align:middle;margin-right:4px"></span>' + txt + '</label>';
-      d.innerHTML = '<div style="margin-bottom:2px">Bán kính gió bão</div>' + row(34, '34 knots', '#e879f9') + row(50, '50 knots', '#db2777') + row(64, '64 knots', '#be185d') + row('swath', 'Vùng nguy hiểm', '#b91c1c');
-      L.DomEvent.disableClickPropagation(d);
-      d.addEventListener('change', function(e){ const k = e.target.getAttribute('data-r'); RSHOW[k] = e.target.checked; if(lastDrawn) nmDrawStorms(lastDrawn); });
-      return d;
-    };
-    ctl.addTo(nmMap); nmMap._nmRadiiCtl = ctl;
-  }
   nmDrawStorms = function(pack){
     if(!nmStormGroup) return;
     nmStormGroup.clearLayers();
-    lastDrawn = pack;
-    try{ radiiPanel(); }catch(_){}
-    const feats = ((pack && pack.features) || []).filter(function(f){ const p = f.properties||{}; if(p.swath) return RSHOW.swath; if(p.radii) return RSHOW[p.radii >= 64 ? 64 : p.radii >= 50 ? 50 : 34]; return true; });
+    const feats = ((pack && pack.features) || []).slice();
     const rank = f => { const p = f.properties||{}, t = (f.geometry||{}).type||''; return p.swath ? 0 : /Polygon/.test(t) ? (p.radii ? 10 - p.radii/10 : 1) : t === 'LineString' ? 20 : 30; };
     feats.sort((a,b) => rank(a) - rank(b));
     feats.forEach(function(f){
