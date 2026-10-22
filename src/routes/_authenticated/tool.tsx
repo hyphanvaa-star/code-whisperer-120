@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Camera, KeyRound, ShieldCheck, Trash2, User } from "lucide-react";
 import { passwordChecks } from "@/lib/password-rules";
 import { amIAccountOwner } from "@/lib/admin.functions";
+import { logAuthEvent } from "@/lib/auth-activity.functions";
 import { ManageAccountsDialog } from "@/components/ManageAccountsDialog";
 
 export const Route = createFileRoute("/_authenticated/tool")({
@@ -69,6 +70,7 @@ function ToolPage() {
   const signOut = useCallback(async () => {
     await ctx.queryClient.cancelQueries();
     ctx.queryClient.clear();
+    await logAuthEvent({ data: { event: "sign_out" } }).catch(() => {});
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }, [ctx.queryClient, navigate]);
