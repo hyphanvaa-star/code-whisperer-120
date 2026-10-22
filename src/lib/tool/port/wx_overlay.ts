@@ -351,21 +351,28 @@ function todayStorm(feats: GeoFeature[], day: number): GeoFeature[] {
   const todayPts = dated.filter((f) => fcstDay(String(f.properties.name ?? "")) === day);
   const first = (todayPts.length ? todayPts : dated)[0] ?? null;
   const keepPt = new Set(dated);
-  let radiiOn = false;
+  void first;
+  let when = "";
   const picked: GeoFeature[] = [];
   for (const f of fcst) {
     const kind = f.geometry.type;
     const name = String(f.properties.name ?? "");
     const dd = fcstDay(name);
     if (kind === "Point" && dd !== null) {
-      radiiOn = f === first;
+      when = fcstLabel(name).split(",")[0] ?? "";
       if (keepPt.has(f)) picked.push(f);
       continue;
     }
     if (kind === "Polygon" && name.toUpperCase().includes("RADIUS")) {
-      if (radiiOn) picked.push(f);
+      // Mỗi mốc dự báo giữ đủ vòng 34/50/64 KT như bản đồ JTWC.
+      const kt = /(\d+)\s*KT/i.exec(name);
+      f.properties.radii = kt ? Number(kt[1]) : 34;
+      f.properties.when = when;
+      f.properties.name = `${when} · bán kính gió ${f.properties.radii} KT`;
+      picked.push(f);
       continue;
     }
+    if (kind === "Polygon" && /swath/i.test(name)) f.properties.swath = true;
     picked.push(f);
   }
   return [...rest, ...picked];

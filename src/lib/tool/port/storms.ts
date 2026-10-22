@@ -50,10 +50,13 @@ export function jmaStorm(fcst: Record<string, unknown>[], target: Record<string,
     const circle = p.probabilityCircle as { radius?: number } | undefined;
     const gale = p.galeWarningArea as { radius?: number; center?: unknown } | undefined;
     const radius = Number(circle?.radius || gale?.radius || 0);
-    if (radius > 0 && Number.isFinite(radius)) rings.push({ c: point(gale?.center) || center, r: radius });
+    if (radius > 0 && Number.isFinite(radius)) {
+      const c0 = point(gale?.center) || center;
+      rings.push({ c: c0, r: radius });
+      // Mỗi mốc dự báo một vòng tròn riêng để biết ngày nào bão ở đâu.
+      features.push({ type: 'Feature', properties: { storm: storm.label, source: 'JMA', radii: 34, when: label, name: `${label} · vùng gió mạnh/xác suất`, stroke: '#a21caf' }, geometry: { type: 'Polygon', coordinates: [circleRing(c0, radius)] } });
+    }
   }
-  const cone = coneRing(rings);
-  if (cone) features.unshift({ type: 'Feature', properties: { storm: storm.label, name: `${storm.label} · vùng nguy hiểm`, source: 'JMA', stroke: '#f59e0b', fill: '#f59e0b', fillOpacity: 0.15, strokeWidth: 1.5 }, geometry: { type: 'Polygon', coordinates: [cone] } });
   if (line.length > 1) features.unshift({ type: 'Feature', properties: { storm: storm.label, name: storm.label, source: 'JMA' }, geometry: { type: 'LineString', coordinates: line } });
   return { storm, features };
 }
@@ -61,6 +64,14 @@ export function jmaStorm(fcst: Record<string, unknown>[], target: Record<string,
 export function mergeStorms(primary: Storm[], fallback: Storm[]): Storm[] {
   const out = [...primary];
   for (const storm of fallback) if (!out.some(s => s.name.toLowerCase() === storm.name.toLowerCase())) out.push(storm);
+  return out;
+}
+export function circleRing(c: number[], r: number): number[][] {
+  const [lon = 0, lat = 0] = c;
+  const dLat = r / 111_320;
+  const dLon = r / (111_320 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
+  const out: number[][] = [];
+  for (let a = 0; a <= 360; a += 10) out.push([lon + dLon * Math.cos((a * Math.PI) / 180), lat + dLat * Math.sin((a * Math.PI) / 180)]);
   return out;
 }
 /** Danger-area cone: convex hull of sampled forecast circles (like JTWC graphics). */
