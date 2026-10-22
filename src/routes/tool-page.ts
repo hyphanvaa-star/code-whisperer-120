@@ -1784,7 +1784,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.8</span>')
+    .replace('>V 2.5</span>', '>V 2.9</span>')
     .replace('      $("#ac"+pf+"Pass").value = "";', `      pin.type = "password";
       pin.dataset.saved = "1";
       pin.dataset.mask = "1";
