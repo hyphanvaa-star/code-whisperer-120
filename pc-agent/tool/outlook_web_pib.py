@@ -987,14 +987,23 @@ def _download_pib_sources(
     if remain is None or remain:
         if stations and remain and on_progress:
             on_progress("· chưa đủ trên hộp OMC — tìm PIB mail cá nhân", "")
-        part = _download_outlook_rest(
-            token,
-            callsigns=remain if callsigns else None,
-            folder_name=folder_name,
-            mailbox="",
-            **common,
-        )
-        _absorb_pib(res, part)
+        try:
+            part = _download_outlook_rest(
+                token,
+                callsigns=remain if callsigns else None,
+                folder_name=folder_name,
+                mailbox="",
+                **common,
+            )
+            _absorb_pib(res, part)
+        except (OwaAuthError, OwaCancelled):
+            raise
+        except OwaError as exc:
+            # Hộp cá nhân thiếu thư mục PIB (hoặc lỗi liệt kê) — bỏ qua,
+            # giữ nguyên các file đã tải được từ hộp chung OMC.
+            log.info("PIB mail cá nhân: %s", exc)
+            if on_progress:
+                on_progress(f"· mail cá nhân: {exc} — giữ kết quả từ hộp OMC", "")
     return res
 
 
