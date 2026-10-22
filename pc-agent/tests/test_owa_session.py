@@ -25,7 +25,8 @@ def load():
     ns = {"base64": base64, "json": json, "Any": object, "Callable": object,
           "Path": Path, "time": SimpleNamespace(time=lambda: 1000),
           "_SESSION_LOCK": threading.RLock()}
-    exec(compile(ast.Module(body=[ast.ImportFrom(module="__future__", names=[ast.alias(name="annotations")], level=0)] + nodes, type_ignores=[]), str(SOURCE), "exec"), ns)
+    module = ast.Module(body=ast.parse("from __future__ import annotations").body + nodes, type_ignores=[])
+    exec(compile(ast.fix_missing_locations(module), str(SOURCE), "exec"), ns)
     return ns
 
 class SessionTests(unittest.TestCase):
