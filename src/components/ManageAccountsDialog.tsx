@@ -8,7 +8,7 @@ import { passwordChecks } from "@/lib/password-rules";
 
 const inp = "w-full rounded-lg border border-input bg-background px-3 py-2 text-[15px] shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25";
 const lbl = "mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
-const card = "rounded-xl border border-border bg-card p-4 shadow-sm";
+const card = "rounded-2xl border border-border bg-card p-5 shadow-sm";
 
 const ACTION: Record<string, string> = {
   reset_personal: "Về bản chung",
