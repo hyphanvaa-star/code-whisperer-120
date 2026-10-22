@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "5.2"
+VERSION = "5.3"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1063,32 +1063,9 @@ def do_owa_pib(payload: dict, say) -> dict:
         emit({"type": "owa_state", "text": str(owa_failure),
               "state": "stale" if auth_failed else "error"})
         line(f"✗ Outlook Web không khả dụng: {owa_failure}", "bad")
-        line("· Dùng Outlook desktop (cache offline)…")
-        try:
-            import outlook_pib  # noqa: E402  (module của tool gốc)
-            res = outlook_pib.download(
-                days=hours / 24.0, callsigns=set(want), overwrite=overwrite,
-                out_dir=config.get_path("pibwx"),
-            )
-            saved, skipped = len(res.new), len(res.saved) - len(res.new)
-            errors = list(res.errors)
-            got = set(res.by_callsign)
-            source = "outlook_desktop"
-            seen_names: set[str] = set()
-            for f in res.saved:
-                if f.path.name in seen_names:
-                    continue
-                seen_names.add(f.path.name)
-                emit({
-                    "type": "line",
-                    "text": f"  {'· đã có sẵn: ' if f.skipped else '✓ tải mới: '}{f.path.name}",
-                    "found": to_input(f.callsign),
-                })
-        except Exception as exc2:
-            line(f"✗ không đọc được Outlook desktop: {exc2}", "bad")
-            line("✗ Không tải được PIB vì nguồn Outlook không khả dụng.", "bad")
-            return {"ok": 0, "skipped": 0, "failed": len(want), "missing": want,
-                    "auth_failed": auth_failed, "source": "none", "events": events}
+        line("✗ Không tải được PIB — hãy bấm Đăng nhập Outlook Web rồi thử lại.", "bad")
+        return {"ok": 0, "skipped": 0, "failed": len(want), "missing": want,
+                "auth_failed": auth_failed, "source": "none", "events": events}
 
     got_d = {digits(c) for c in got}
     missing = [c for c in want if digits(c) not in got_d]
