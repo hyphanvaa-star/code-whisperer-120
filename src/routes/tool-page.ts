@@ -1785,7 +1785,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.19</span>')
+    .replace('>V 2.5</span>', '>V 2.20</span>')
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
     .replace('id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acAviwebPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
@@ -1801,25 +1801,25 @@ async function page(): Promise<string> {
     .replace('  fetch("/api/credentials").then(r => r.json()).then(d => {', '  return fetch("/api/credentials").then(r => r.json()).then(d => {')
     .replace('    acRefresh();\n  }catch(e){', '    await acRefresh();\n  }catch(e){')
     .replace('</head>', `<style>
-#accModal{zoom:calc(var(--taf-read-scale,1) * var(--account-body-scale,1));padding:24px 8px}
-#accModal .sheet{max-width:1000px;width:100%;max-height:85vh;max-height:85dvh;display:flex;flex-direction:column;flex-shrink:0}
+#accModal{zoom:calc(var(--taf-read-scale,1) * var(--account-body-scale,1));padding:18px 8px}
+#accModal .sheet{max-width:880px;width:100%;max-height:85vh;max-height:85dvh;display:flex;flex-direction:column;flex-shrink:0}
 #accModal .sheet-head{flex-shrink:0}
-#accModal .sheet-head h3{font-size:26px !important;line-height:1.4}
-#accModal .sheet-body{padding:22px;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-gutter:stable}
-#accModal .accard{padding:18px;margin-bottom:18px}
-#accModal .accard .top{gap:12px;flex-wrap:wrap}
-#accModal .accard .top b{font-size:21px !important;line-height:1.4}
-#accModal .accard .top .use,#accModal .achint,#accModal .acwarn{font-size:17px !important;line-height:1.6;overflow-wrap:anywhere}
-#accModal .field label{font-size:17px !important;line-height:1.5;letter-spacing:0 !important;text-transform:none !important}
-#accModal input{font-size:19px !important;min-height:50px;padding:12px 14px;min-width:0}
+#accModal .sheet-head h3{font-size:22px !important;line-height:1.35}
+#accModal .sheet-body{padding:16px;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-gutter:stable}
+#accModal .accard{padding:13px;margin-bottom:12px}
+#accModal .accard .top{gap:9px;flex-wrap:wrap}
+#accModal .accard .top b{font-size:18px !important;line-height:1.35}
+#accModal .accard .top .use,#accModal .achint,#accModal .acwarn{font-size:14.5px !important;line-height:1.5;overflow-wrap:anywhere}
+#accModal .field label{font-size:14px !important;line-height:1.4;letter-spacing:0 !important;text-transform:none !important}
+#accModal input{font-size:16.5px !important;min-height:40px;padding:8px 11px;min-width:0}
 #accModal .acpw{min-width:0}
-#accModal .acpw input{padding-right:52px;width:100%}
-#accModal .aceye{font-size:23px !important;width:44px;height:44px}
-#accModal .acmsg,#accModal .accaps{font-size:17px !important;line-height:1.5}
-#accModal .btn.small{font-size:17px !important;min-height:44px;padding:10px 18px}
-#accModal .acgrid{gap:16px}
-#accModal .acfoot{flex-wrap:wrap;gap:12px}
-@media(max-width:700px){#accModal .acgrid{grid-template-columns:minmax(0,1fr)}#accModal .sheet-body{padding:14px}}
+#accModal .acpw input{padding-right:44px;width:100%}
+#accModal .aceye{font-size:19px !important;width:34px;height:34px}
+#accModal .acmsg,#accModal .accaps{font-size:14px !important;line-height:1.4}
+#accModal .btn.small{font-size:15px !important;min-height:36px;padding:7px 14px}
+#accModal .acgrid{gap:11px}
+#accModal .acfoot{flex-wrap:wrap;gap:9px}
+@media(max-width:700px){#accModal .acgrid{grid-template-columns:minmax(0,1fr)}#accModal .sheet-body{padding:12px}}
 </style></head>`)
     // Structured special limits (rules/aircraft groups) shared with the server checker.
     .replace('function limBlankAc(){', specialRulesScript.replace(/^export /gm, '') + '\nfunction limBlankAc(){')
