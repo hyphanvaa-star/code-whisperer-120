@@ -26800,7 +26800,26 @@ $("#ftAltAdd").onclick = function(){
   if(tb) tb.appendChild(ftBindRow(FT_ALT_KEYS, rec));
 };
 $("#ftAltSave").onclick = function(){
-  ftSaveSheet("/api/fpltext/alt", ftAltRows, "#ftAltMsg").catch(err => alert(err.message));
+  ftSaveSheet("/api/fpltext/alt", ftAltRows, "#ftAltMsg").then(d => {
+    if(d && d.error) return;
+    const map = {};
+    ftAltRows.forEach(r => { const k = String(r.podpoa || "").trim().toUpperCase(); if(k) map[k] = r; });
+    let n = 0;
+    ftRows.forEach(f => {
+      if(!f) return;
+      const st = ftSt(f);
+      const k = (String(st.dep || f.dep || "") + String(st.arr || f.arr || "")).toUpperCase();
+      const r = map[k];
+      if(!r) return;
+      st.etp_pod = r.etp_pod || ""; st.etp_poa = r.etp_poa || ""; st.fl = r.fl || "";
+      st.talt = r.talt || ""; st.alt1 = r.alt1 || ""; st.alt2 = r.alt2 || "";
+      f.etp_pod = st.etp_pod; f.etp_poa = st.etp_poa; f.fl = st.fl;
+      f.talt = st.talt; f.alt1 = st.alt1; f.alt2 = st.alt2;
+      n++;
+    });
+    if(n){ ftRender(); ftBindTaf(false).catch(function(){}); }
+    $("#ftAltMsg").textContent = "Đã lưu và cập nhật " + n + " chuyến trên bảng KHB.";
+  }).catch(err => alert(err.message));
 };
 $("#ftEraBtn").onclick = function(){
   ftOpenSheet("/api/fpltext/era", "#ftEraModal", "#ftEraBox", "#ftEraMsg").then(rows => {
