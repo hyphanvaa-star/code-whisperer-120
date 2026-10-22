@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { logAuthEvent } from "@/lib/auth-activity.functions";
 
 function NotFoundComponent() {
   return (

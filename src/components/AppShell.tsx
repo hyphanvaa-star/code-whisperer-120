@@ -10,6 +10,7 @@ import {
 import { useGlobalFilters } from "@/lib/global-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { getMe } from "@/lib/flights.functions";
+import { logAuthEvent } from "@/lib/auth-activity.functions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/vj-logo.png";
@@ -62,6 +63,7 @@ function useSignOut() {
   return async () => {
     await qc.cancelQueries();
     qc.clear();
+    await logAuthEvent({ data: { event: "sign_out" } }).catch(() => {});
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
