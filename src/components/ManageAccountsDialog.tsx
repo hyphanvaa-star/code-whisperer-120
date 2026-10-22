@@ -20,7 +20,7 @@ function Checks({ pw, user }: { pw: string; user: string }) {
   const c = passwordChecks(pw, user);
   return (
     <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-      {c.map((x) => <li key={x.label} className={x.ok ? "font-medium text-primary" : "text-muted-foreground"}>{x.ok ? "✓" : "○"} {x.label}</li>)}
+      {c.map((x) => <li key={x.label} className={x.ok ? "font-bold text-primary" : "font-medium text-foreground/75"}>{x.ok ? "✓" : "○"} {x.label}</li>)}
     </ul>
   );
 }
