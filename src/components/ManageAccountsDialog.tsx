@@ -164,21 +164,19 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                 </div>
                 {Msg}
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <form onSubmit={saveInfo} className={card + " space-y-3"}>
-                    <h4 className="text-sm font-bold">Thông tin đăng nhập</h4>
-                    <label className="block"><span className={lbl}>ID đăng nhập</span><input className={inp} value={eu} disabled={user.isSelf} onChange={(e) => setEu(e.target.value)} /></label>
-                    <label className="block"><span className={lbl}>Tên hiển thị</span><input className={inp} value={en} onChange={(e) => setEn(e.target.value)} /></label>
-                    <Button size="sm" disabled={busy}>Lưu thông tin</Button>
-                  </form>
-                  <form onSubmit={savePw} className={card + " space-y-3"}>
-                    <h4 className="flex items-center gap-2 text-sm font-bold"><KeyRound className="h-4 w-4 text-primary" />Mật khẩu</h4>
-                    <p className="text-xs text-muted-foreground">Mật khẩu được mã hóa nên không ai xem được, kể cả hyphan. Đặt mật khẩu mới rồi báo lại cho người dùng.</p>
-                    <input className={inp} type="text" autoComplete="new-password" placeholder="Mật khẩu mới" value={ep} onChange={(e) => setEp(e.target.value)} />
-                    {ep && <Checks pw={ep} user={login} />}
-                    <Button size="sm" disabled={busy || !ep}>Đặt mật khẩu mới</Button>
-                  </form>
-                </div>
+                <form onSubmit={saveInfo} className={card + " space-y-3"}>
+                  <h4 className="text-sm font-bold">Thông tin đăng nhập</h4>
+                  <label className="block"><span className={lbl}>ID đăng nhập</span><input className={inp} value={eu} disabled={user.isSelf} onChange={(e) => setEu(e.target.value)} /></label>
+                  <label className="block"><span className={lbl}>Tên hiển thị</span><input className={inp} value={en} onChange={(e) => setEn(e.target.value)} /></label>
+                  <Button size="sm" disabled={busy}>Lưu thông tin</Button>
+                </form>
+                <form onSubmit={savePw} className={card + " space-y-3"}>
+                  <h4 className="flex items-center gap-2 text-sm font-bold"><KeyRound className="h-4 w-4 text-primary" />Mật khẩu</h4>
+                  <p className="text-xs text-muted-foreground">Mật khẩu được mã hóa nên không ai xem được, kể cả hyphan. Đặt mật khẩu mới rồi báo lại cho người dùng.</p>
+                  <input className={inp} type="text" autoComplete="new-password" placeholder="Mật khẩu mới" value={ep} onChange={(e) => setEp(e.target.value)} />
+                  {ep && <Checks pw={ep} user={login} />}
+                  <Button size="sm" disabled={busy || !ep}>Đặt mật khẩu mới</Button>
+                </form>
                 {!user.isSelf && (
                   <div className={card + " flex flex-wrap items-center gap-3"}>
                     <ShieldCheck className="h-4 w-4 text-primary" />
