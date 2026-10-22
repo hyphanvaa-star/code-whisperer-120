@@ -1785,7 +1785,6 @@ async function page(): Promise<string> {
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
     .replace('>V 2.5</span>', '>V 2.6</span>')
-    .replace('      $("ac"+pf+"Pass").value = "";', '      $("ac"+pf+"Pass").value = "";')
     .replace('      $("#ac"+pf+"Pass").value = "";', `      pin.type = "password";
       pin.dataset.saved = "1";
       pin.dataset.mask = "1";
@@ -1797,19 +1796,19 @@ async function page(): Promise<string> {
     .replace('    acRefresh();\n  }catch(e){', '    await acRefresh();\n  }catch(e){')
     .replace('</head>', `<style>
 #accModal .sheet{zoom:calc(var(--taf-read-scale,1) * var(--account-body-scale,1));max-width:1000px;width:calc(100% - 32px);max-height:85vh}
-#accModal .sheet-head h3{font-size:26px;line-height:1.4}
+#accModal .sheet-head h3{font-size:26px !important;line-height:1.4}
 #accModal .sheet-body{padding:22px}
 #accModal .accard{padding:18px;margin-bottom:18px}
 #accModal .accard .top{gap:12px;flex-wrap:wrap}
-#accModal .accard .top b{font-size:21px;line-height:1.4}
-#accModal .accard .top .use,#accModal .achint,#accModal .acwarn{font-size:17px;line-height:1.6;overflow-wrap:anywhere}
-#accModal .field label{font-size:17px;line-height:1.5}
-#accModal input{font-size:19px;min-height:50px;padding:12px 14px;min-width:0}
+#accModal .accard .top b{font-size:21px !important;line-height:1.4}
+#accModal .accard .top .use,#accModal .achint,#accModal .acwarn{font-size:17px !important;line-height:1.6;overflow-wrap:anywhere}
+#accModal .field label{font-size:17px !important;line-height:1.5;letter-spacing:0 !important;text-transform:none !important}
+#accModal input{font-size:19px !important;min-height:50px;padding:12px 14px;min-width:0}
 #accModal .acpw{min-width:0}
 #accModal .acpw input{padding-right:52px;width:100%}
-#accModal .aceye{font-size:23px;width:44px;height:44px}
-#accModal .acmsg,#accModal .accaps{font-size:17px;line-height:1.5}
-#accModal .btn.small{font-size:17px;min-height:44px;padding:10px 18px}
+#accModal .aceye{font-size:23px !important;width:44px;height:44px}
+#accModal .acmsg,#accModal .accaps{font-size:17px !important;line-height:1.5}
+#accModal .btn.small{font-size:17px !important;min-height:44px;padding:10px 18px}
 #accModal .acgrid{gap:16px}
 #accModal .acfoot{flex-wrap:wrap;gap:12px}
 @media(max-width:700px){#accModal .acgrid{grid-template-columns:minmax(0,1fr)}#accModal .sheet-body{padding:14px}}
