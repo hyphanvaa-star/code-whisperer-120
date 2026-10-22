@@ -172,12 +172,21 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                   <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><Database className="h-4 w-4 text-primary" />Điều chỉnh dữ liệu</h4>
                   <ul className="divide-y divide-border text-sm">
                     {(det.data?.[user.id]?.edits ?? []).map((e) => (
-                      <li key={e.key} className="flex items-center gap-3 py-2">
-                        <span className="flex-1 font-medium">{e.label}</span>
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${e.personal ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{e.personal ? "Bản riêng" : "Bản chung"}</span>
-                        <span className="w-14 text-right text-xs text-muted-foreground">{e.size} dòng</span>
-                        <span className="w-36 text-right font-mono text-xs text-muted-foreground">{new Date(e.updatedAt).toLocaleString("vi-VN")}</span>
-                        {e.personal ? <Button size="sm" variant="ghost" disabled={busy} title="Xóa bản riêng, người này quay về bản chung" onClick={() => { if (window.confirm(`Đưa ${e.label} của ${login} về bản chung?`)) void run(() => resetDataFn({ data: { key: e.key } }), "Đã đưa về bản chung"); }}><RotateCcw /></Button> : <span className="w-9" />}
+                      <li key={e.key} className="py-2">
+                        <details>
+                          <summary className="flex cursor-pointer list-none items-center gap-3">
+                            <span className="flex-1 font-medium">▸ {e.label}</span>
+                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${e.personal ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{e.personal ? "Bản riêng" : "Bản chung"}</span>
+                            <span className="w-14 text-right text-xs text-muted-foreground">{e.size} dòng</span>
+                            <span className="w-36 text-right font-mono text-xs text-muted-foreground">{new Date(e.updatedAt).toLocaleString("vi-VN")}</span>
+                            {e.personal ? <Button size="sm" variant="ghost" disabled={busy} title="Xóa bản riêng, người này quay về bản chung" onClick={(ev) => { ev.preventDefault(); if (window.confirm(`Đưa ${e.label} của ${login} về bản chung?`)) void run(() => resetDataFn({ data: { key: e.key } }), "Đã đưa về bản chung"); }}><RotateCcw /></Button> : <span className="w-9" />}
+                          </summary>
+                          <ol className="mt-2 max-h-64 list-decimal overflow-y-auto rounded-lg bg-muted/50 py-2 pl-8 pr-3 text-xs">
+                            {(e.lines ?? []).map((t, i) => <li key={i} className="break-words py-0.5">{t}</li>)}
+                            {!e.lines?.length && <li className="list-none text-muted-foreground">Không có nội dung.</li>}
+                            {e.size > (e.lines?.length ?? 0) && <li className="list-none text-muted-foreground">… và {e.size - (e.lines?.length ?? 0)} dòng nữa</li>}
+                          </ol>
+                        </details>
                       </li>
                     ))}
                     {det.isLoading && <li className="py-3 text-muted-foreground">Đang tải…</li>}
