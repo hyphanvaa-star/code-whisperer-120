@@ -25449,12 +25449,14 @@ function hoTryFill(tr){
     return;
   }
   if(!/^[A-Z]{2,3}\d{3,4}$/.test(cs)) return;   // đang gõ dở, chưa ra một mã hoàn chỉnh
+  if(!hoAllFlights.length) hoSay("Đang lấy danh sách chuyến — chờ vài giây…");
   if(hoLookupBusy) return;
   if(hoAllFlights.length && Date.now() - hoAllFresh < 20000){
     hoSay("Không thấy chuyến " + cs + " trong danh sách hôm nay");
     return;
   }
   hoLookupBusy = true;
+  hoSay("Đang tìm " + cs + "…");
   hoFetchAll(true).then(function(list){
     const now = tr.querySelector('input[data-ho="callsign"]');
     if(!now || hoCsKey(now.value) !== cs) return;   // người dùng đã gõ tiếp chữ khác
