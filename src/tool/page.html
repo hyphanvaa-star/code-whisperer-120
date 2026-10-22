@@ -25986,8 +25986,12 @@ $("#ftPldRound").onclick = async function(){
     return;
   }
   const ids = [];
-  for(const f of ftRows) if(f) ids.push(f.id);
-  if(!ids.length){ alert("Chưa có chuyến trên lưới."); return; }
+  for(const f of ftRows) if(f && ftSt(f).on) ids.push(f.id);
+  if(!ids.length){
+    ftPldOn = false; this.classList.remove("on"); this.setAttribute("aria-pressed", "false");
+    this.textContent = "Auto Rounding PLD";
+    alert("Chưa tick chuyến nào. Tick chuyến cần làm tròn payload trước."); return;
+  }
   $("#ftStat").textContent = "Đang làm tròn payload…";
   try{
     const d = await (await fetch("/api/fpltext/pld", {
@@ -26000,7 +26004,7 @@ $("#ftPldRound").onclick = async function(){
     const byId = {};
     for(const row of d.rows || []) byId[String(row.id)] = row;
     for(const f of ftRows){
-      if(!f) continue;
+      if(!f || !ftSt(f).on) continue;
       const row = byId[String(f.id)];
       const st = ftSt(f);
       if(!row || !row.pay){
@@ -26449,6 +26453,7 @@ async function ftBindTaf(fill){
     const row = byId[String(f.id)];
     if(!row) continue;
     const st = ftSt(f);
+    if(fill && !st.on){ st.tafPlaces = row.places || []; continue; }
     st.tafPlaces = row.places || [];
     if(fill && row.extra !== ""){
       const n = parseInt(String(row.extra), 10);
@@ -26473,8 +26478,8 @@ async function ftBindTaf(fill){
   }
 }
 $("#ftExtraFill").onclick = function(){
-  const n = ftRows.filter(Boolean).length;
-  if(!n){ alert("Chưa có chuyến trên lưới."); return; }
+  const n = ftRows.filter(f => f && ftSt(f).on).length;
+  if(!n){ alert("Chưa tick chuyến nào. Tick chuyến cần Extra autofill trước."); return; }
   ftBindTaf(true).catch(err => {
     $("#ftStat").textContent = err.message;
     alert(err.message);
