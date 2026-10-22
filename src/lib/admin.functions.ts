@@ -209,3 +209,22 @@ export const resetPersonalData = createServerFn({ method: "POST" })
     await logActivity(context.userId, "reset_personal", data.key);
     return { ok: true };
   });
+
+const SECRET_RE = /pass|token|secret|cookie|session|pwd/i;
+function cell(x: unknown): string {
+  if (x == null || x === "") return "";
+  if (typeof x !== "object") return String(x);
+  if (Array.isArray(x)) return x.map(cell).filter(Boolean).join(" · ");
+  return Object.entries(x as Record<string, unknown>)
+    .filter(([k, val]) => !SECRET_RE.test(k) && val !== "" && val != null)
+    .map(([k, val]) => `${k}: ${typeof val === "object" ? JSON.stringify(val).slice(0, 60) : String(val)}`)
+    .join(" · ");
+}
+/** Readable summary of a saved table so the owner can see what was changed. */
+function previewLines(v: unknown): string[] {
+  let list: string[];
+  if (Array.isArray(v)) list = v.map(cell);
+  else if (v && typeof v === "object") list = Object.entries(v as Record<string, unknown>).filter(([k]) => !SECRET_RE.test(k)).map(([k, val]) => `${k} → ${cell(val)}`);
+  else list = [cell(v)];
+  return list.filter(Boolean).slice(0, 50).map((s) => (s.length > 220 ? s.slice(0, 220) + "…" : s));
+}
