@@ -14,6 +14,7 @@ import aftnBookScript from '@/tool/aftn-book.js?raw';
 import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
+import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1784,7 +1785,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.13</span>')
+    .replace('>V 2.5</span>', '>V 2.14</span>')
     .replace('      $("#ac"+pf+"Pass").value = "";', `      pin.type = "password";
       pin.dataset.saved = "1";
       pin.dataset.mask = "1";
@@ -1966,7 +1967,13 @@ function ftRender(){
       #wrapAftn label:has(#afFl){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:800;letter-spacing:.06em;color:var(--x-ink);-webkit-text-fill-color:var(--x-ink)}
       #wrapAftn #afFl{box-sizing:border-box!important;width:240px!important;min-height:68px!important;font-size:34px!important;font-weight:800!important;line-height:1;text-align:center!important;padding:8px 12px!important;border:2px solid var(--x-line)!important;border-radius:12px!important;background:var(--x-card)!important;color:#c00!important;-webkit-text-fill-color:#c00!important}
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
-    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script></body>`)
+      #wrapNmTrack .nm-track-head{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;scrollbar-color:var(--x-ink2) var(--x-line);max-width:100%;min-width:0}
+      #wrapNmTrack .nm-track-head #nmTrackHead{flex:0 0 auto;min-width:320px}
+      #wrapNmTrack .nm-track-head #nmTrackHead:empty{min-width:0;display:none}
+      #wrapNmTrack .nm-th-tools{flex-wrap:nowrap;white-space:nowrap;flex:0 0 auto}
+      #nmToolbarScroll{display:block;box-sizing:border-box;width:100%;height:20px;min-height:20px;margin:3px 0 5px;padding:0;accent-color:var(--x-red);cursor:ew-resize;touch-action:pan-y;zoom:var(--taf-read-scale,1)}
+      #nmToolbarScroll:disabled{opacity:.35;cursor:default}
+    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script><script>${stormToolbarScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
