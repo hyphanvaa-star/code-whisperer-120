@@ -1105,11 +1105,11 @@ header .btn:hover{background:var(--x-red-50) !important;border-color:var(--x-red
 header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-text-fill-color:#fff !important;border-color:var(--x-red) !important}
 
 /* Khung chính: menu dọc trái | bảng | chi tiết */
-.body{grid-template-columns:minmax(0,1fr) calc(420px + 5cm) !important;padding-left:248px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
+.body{grid-template-columns:minmax(0,1fr) calc(420px + 5cm) !important;padding-left:274px !important;gap:12px !important;padding-top:12px !important;padding-right:12px !important}
 /* Check NOTAM: bản đồ bên phải nới rộng sang trái thêm 5cm */
 .app > .body:has(#wrapNotam:not([style*="none"])){grid-template-columns:minmax(0,1fr) calc(420px + 10cm) !important}
 .aside-head{
-  position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:236px !important;display:block !important;z-index:30 !important;
+  position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:262px !important;display:block !important;z-index:30 !important;
   background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
 }
 .aside-head::before{content:"CHỨC NĂNG";display:block;font:600 10px var(--x-sans);letter-spacing:.14em;color:var(--x-mute);padding:0 10px 10px}
@@ -1124,13 +1124,19 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 .mode svg,.mode svg *{stroke:var(--x-mute) !important}
 .aside-head .mode:hover,.mode:hover{background:var(--x-bg) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important}
 .aside-head .mode.on,.mode.on{
-  background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:700 !important;
+  background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:800 !important;
   box-shadow:inset 3px 0 0 var(--x-red) !important;
 }
  .mode.on svg,.mode.on svg *{stroke:var(--x-red) !important}
  /* Giữ icon màu đỏ trên dòng đang chọn — không tô trắng phủ mất icon */
  .mode.on::before{background:var(--x-red) !important}
  .mode-bang,.mode .mode-bang{top:50% !important;transform:translateY(-50%);right:10px !important;left:auto !important;border-color:#fff !important}
+/* Icon tab: to hơn một tí để dễ nhận ra từng chức năng. */
+.aside-head .mode::before,.modes .mode::before{width:18px !important;height:18px !important;-webkit-mask-size:18px !important;mask-size:18px !important}
+/* Hai tab cuối trước đây cùng hiện một khối xám giống hệt nhau — nay mỗi tab có icon riêng. */
+#mAftn::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m6 9 4 4-4 4'/%3E%3Cpath d='M13 17h5'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='2' y='4' width='20' height='16' rx='2'/%3E%3Cpath d='m6 9 4 4-4 4'/%3E%3Cpath d='M13 17h5'/%3E%3C/svg%3E");background:#4338ca !important}
+#opsAcctManage::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87'/%3E%3Cpath d='M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");background:#334155 !important}
+.mode.on#mAftn::before,.mode.on#opsAcctManage::before{background:var(--x-red) !important}
 
 /* Bảng: không khối đỏ — đầu bảng trắng chữ đỏ, gạch đỏ; dòng thoáng phẳng */
 aside,main.split2{border-radius:12px !important;overflow:hidden}
@@ -1329,8 +1335,8 @@ header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block 
    Giới hạn, Giao ca, Thiết lập file add, bản đồ NOTAM) dùng cỡ chữ lớn hơn,
    kể cả tên tab trên menu trái. */
 const FONTUP = `<style id="fontup-skin">
-.aside-head .mode,.modes .mode{font-size:14.5px !important;line-height:1.35 !important}
-.aside-head .mode#mFplText,.modes .mode#mFplText{font-size:13px !important}
+.aside-head .mode,.modes .mode{font-size:15.5px !important;line-height:1.4 !important;font-weight:650 !important}
+.aside-head .mode#mFplText,.modes .mode#mFplText{font-size:14px !important}
 :is(#wrapGeneral,#wrapCompare,#wrapVer,#wrapFpl,#wrapTool,#wrapNotam,#wrapAtcCheck,#wrapLimits,#wrapHandover,#wrapNoticeRules,#wrapNmTrack){
   font-size:14px !important;
 }
@@ -1785,7 +1791,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.31</span>')
+    .replace('>V 2.5</span>', '>V 2.32</span>')
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
     .replace('id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acAviwebPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
