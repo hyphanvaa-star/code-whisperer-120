@@ -14,6 +14,7 @@ const ACTION: Record<string, string> = {
   reset_personal: "Về bản chung",
   update_account: "Tự sửa tài khoản", create_account: "Tạo tài khoản", reset_password: "Đổi mật khẩu",
   delete_account: "Xóa tài khoản", edit_account: "Sửa thông tin", grant_role: "Cấp quyền", revoke_role: "Gỡ quyền",
+  sign_in: "Đăng nhập", sign_out: "Đăng xuất",
 };
 
 function Checks({ pw, user }: { pw: string; user: string }) {
@@ -109,7 +110,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(380px,420px)_1fr]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(280px,320px)_minmax(380px,460px)_1fr]">
           <aside className="flex min-h-0 flex-col border-r border-border bg-card">
             <div className="space-y-2 border-b border-border p-4">
               <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-9"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
@@ -139,9 +140,9 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </aside>
 
-          <section className="min-h-0 overflow-y-auto bg-muted p-6">
+          <section className="min-h-0 overflow-y-auto border-r border-border bg-muted p-5">
             {sel === "new" ? (
-              <form onSubmit={create} className={card + " mx-auto max-w-xl space-y-4 p-6"}>
+              <form onSubmit={create} className={card + " space-y-4 p-6"}>
                 <h3 className="flex items-center gap-2 text-lg font-bold"><UserPlus className="h-5 w-5 text-primary" />Tạo tài khoản mới</h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label><span className={lbl}>ID đăng nhập</span><input className={inp} value={nu} onChange={(e) => setNu(e.target.value)} placeholder="vd: nguyenvana" required /></label>
@@ -153,7 +154,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 <Button disabled={busy}>{busy ? "Đang tạo…" : "Tạo tài khoản"}</Button>
               </form>
             ) : user ? (
-              <div className="mx-auto max-w-5xl space-y-4">
+              <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <Avatar url={det.data?.[user.id]?.avatarUrl} text={login} size="h-16 w-16 text-xl" />
                   <div className="flex-1">
@@ -163,21 +164,19 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                 </div>
                 {Msg}
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <form onSubmit={saveInfo} className={card + " space-y-3"}>
-                    <h4 className="text-sm font-bold">Thông tin đăng nhập</h4>
-                    <label className="block"><span className={lbl}>ID đăng nhập</span><input className={inp} value={eu} disabled={user.isSelf} onChange={(e) => setEu(e.target.value)} /></label>
-                    <label className="block"><span className={lbl}>Tên hiển thị</span><input className={inp} value={en} onChange={(e) => setEn(e.target.value)} /></label>
-                    <Button size="sm" disabled={busy}>Lưu thông tin</Button>
-                  </form>
-                  <form onSubmit={savePw} className={card + " space-y-3"}>
-                    <h4 className="flex items-center gap-2 text-sm font-bold"><KeyRound className="h-4 w-4 text-primary" />Mật khẩu</h4>
-                    <p className="text-xs text-muted-foreground">Mật khẩu được mã hóa nên không ai xem được, kể cả hyphan. Đặt mật khẩu mới rồi báo lại cho người dùng.</p>
-                    <input className={inp} type="text" autoComplete="new-password" placeholder="Mật khẩu mới" value={ep} onChange={(e) => setEp(e.target.value)} />
-                    {ep && <Checks pw={ep} user={login} />}
-                    <Button size="sm" disabled={busy || !ep}>Đặt mật khẩu mới</Button>
-                  </form>
-                </div>
+                <form onSubmit={saveInfo} className={card + " space-y-3"}>
+                  <h4 className="text-sm font-bold">Thông tin đăng nhập</h4>
+                  <label className="block"><span className={lbl}>ID đăng nhập</span><input className={inp} value={eu} disabled={user.isSelf} onChange={(e) => setEu(e.target.value)} /></label>
+                  <label className="block"><span className={lbl}>Tên hiển thị</span><input className={inp} value={en} onChange={(e) => setEn(e.target.value)} /></label>
+                  <Button size="sm" disabled={busy}>Lưu thông tin</Button>
+                </form>
+                <form onSubmit={savePw} className={card + " space-y-3"}>
+                  <h4 className="flex items-center gap-2 text-sm font-bold"><KeyRound className="h-4 w-4 text-primary" />Mật khẩu</h4>
+                  <p className="text-xs text-muted-foreground">Mật khẩu được mã hóa nên không ai xem được, kể cả hyphan. Đặt mật khẩu mới rồi báo lại cho người dùng.</p>
+                  <input className={inp} type="text" autoComplete="new-password" placeholder="Mật khẩu mới" value={ep} onChange={(e) => setEp(e.target.value)} />
+                  {ep && <Checks pw={ep} user={login} />}
+                  <Button size="sm" disabled={busy || !ep}>Đặt mật khẩu mới</Button>
+                </form>
                 {!user.isSelf && (
                   <div className={card + " flex flex-wrap items-center gap-3"}>
                     <ShieldCheck className="h-4 w-4 text-primary" />
@@ -187,6 +186,13 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                     <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={busy} onClick={() => { if (window.confirm(`Xóa hẳn tài khoản ${login}? Không khôi phục được.`)) void run(() => delFn({ data: { userId: user.id } }), `Đã xóa ${login}`).then((ok) => ok && setSel("new")); }}><Trash2 />Xóa</Button>
                   </div>
                 )}
+              </div>
+            ) : null}
+          </section>
+
+          <section className="min-h-0 overflow-y-auto bg-muted/60 p-5">
+            {sel !== "new" && user ? (
+              <div className="space-y-4">
                 <div className={card}>
                   <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><Database className="h-4 w-4 text-primary" />Điều chỉnh dữ liệu</h4>
                   <ul className="divide-y divide-border text-sm">
@@ -219,7 +225,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className={card}>
                   <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><History className="h-4 w-4 text-primary" />Lịch sử thay đổi</h4>
-                  <ul className="max-h-72 divide-y divide-border overflow-y-auto text-sm">
+                  <ul className="max-h-[60vh] divide-y divide-border overflow-y-auto text-sm">
                     {userLog.map((l) => (
                       <li key={l.id} className="flex gap-3 py-2">
                         <span className="w-36 shrink-0 font-mono text-xs text-muted-foreground">{new Date(l.created_at).toLocaleString("vi-VN")}</span>
@@ -231,7 +237,9 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                   </ul>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">Chọn một tài khoản để xem dữ liệu và lịch sử.</div>
+            )}
           </section>
         </div>
     </div>
