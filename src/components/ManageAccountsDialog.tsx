@@ -181,11 +181,10 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                             <span className="w-36 text-right font-mono text-xs text-muted-foreground">{new Date(e.updatedAt).toLocaleString("vi-VN")}</span>
                             {e.personal ? <Button size="sm" variant="ghost" disabled={busy} title="Xóa bản riêng, người này quay về bản chung" onClick={(ev) => { ev.preventDefault(); if (window.confirm(`Đưa ${e.label} của ${login} về bản chung?`)) void run(() => resetDataFn({ data: { key: e.key } }), "Đã đưa về bản chung"); }}><RotateCcw /></Button> : <span className="w-9" />}
                           </summary>
-                          <ol className="mt-2 max-h-64 list-decimal overflow-y-auto rounded-lg bg-muted/50 py-2 pl-8 pr-3 text-xs">
-                            {(e.lines ?? []).map((t, i) => <li key={i} className="break-words py-0.5">{t}</li>)}
-                            {!e.lines?.length && <li className="list-none text-muted-foreground">Không có nội dung.</li>}
-                            {e.size > (e.lines?.length ?? 0) && <li className="list-none text-muted-foreground">… và {e.size - (e.lines?.length ?? 0)} dòng nữa</li>}
-                          </ol>
+                          <ul className="mt-2 max-h-80 overflow-y-auto rounded-lg bg-muted/50 px-3 py-2 text-xs">
+                            {(e.lines ?? []).map((t, i) => <li key={i} className={`whitespace-pre-wrap break-words py-0.5 ${t.startsWith("■") ? "mt-1 font-bold text-foreground" : ""}`}>{t}</li>)}
+                            {!e.lines?.length && <li className="text-muted-foreground">Không có nội dung.</li>}
+                          </ul>
                         </details>
                       </li>
                     ))}
