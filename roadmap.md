@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] Acc V 2.6: giữ dấu mật khẩu sau khi lưu và tăng cỡ chữ; kiểm tra bảng và thao tác lưu.
+- [x] Acc V 2.6: giữ dấu mật khẩu sau khi lưu kể cả khi tải trạng thái lỗi; chữ nhập 19px, nhãn/nút 17px; kiểm thử và thao tác lưu/mở lại với dữ liệu kiểm tra đạt, chưa thử tài khoản thật vì không có phiên.
 
 - [x] Outlook Web: quét nền không đổi trạng thái đăng nhập; giảm trừ hao 300→60 giây; thao tác PIB vẫn kiểm tra/làm mới phiên và giữ lỗi Microsoft; gói trợ lý 5.4 đã cập nhật, 8 kiểm thử đạt, build OK.
 - [ ] Outlook Web: thử giữ phiên và tải PIB thật — cần người dùng chạy trợ lý 5.4 trên máy công ty; chưa publish.
