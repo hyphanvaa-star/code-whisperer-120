@@ -81,50 +81,68 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
 
   const Msg = msg && <p className={`rounded-lg px-3 py-2 text-sm font-medium ${msg.ok ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>{msg.t}</p>;
 
+  const all = users.data ?? [];
+  const stats = [
+    { k: "Tổng tài khoản", v: all.length },
+    { k: "Quản trị", v: all.filter((x) => x.roles.includes("admin")).length },
+    { k: "Dispatcher", v: all.filter((x) => !x.roles.includes("admin") && x.roles.includes("dispatcher")).length },
+    { k: "Đã khóa", v: all.filter((x) => !x.roles.includes("admin") && !x.roles.includes("dispatcher")).length },
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-background">
-        <div className="flex items-center gap-3 bg-header px-6 py-4 text-primary-foreground">
-          <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={() => { if (!busy) onClose(); }}><ArrowLeft />Quay lại</Button>
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/15"><Users className="h-5 w-5" /></div>
-          <div>
-            <h2 className="text-lg font-bold">Quản lí tài khoản</h2>
-            <p className="text-xs opacity-85">{users.data?.length ?? 0} tài khoản · chỉ hyphan thấy mục này</p>
+    <div className="fixed inset-0 z-50 flex flex-col bg-muted/40">
+        <div className="bg-header px-6 py-4 text-primary-foreground shadow-md">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={() => { if (!busy) onClose(); }}><ArrowLeft />Quay lại</Button>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-foreground/15 ring-1 ring-primary-foreground/25"><Users className="h-5 w-5" /></div>
+            <div className="mr-auto">
+              <h2 className="text-xl font-extrabold tracking-tight">Quản lí tài khoản</h2>
+              <p className="text-xs opacity-85">Chỉ hyphan thấy mục này</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {stats.map((s) => (
+                <div key={s.k} className="min-w-[96px] rounded-xl bg-primary-foreground/12 px-3 py-1.5 ring-1 ring-primary-foreground/20">
+                  <div className="text-lg font-extrabold leading-tight">{s.v}</div>
+                  <div className="text-[11px] font-medium opacity-85">{s.k}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(520px,1.1fr)_1fr]">
-          <aside className="flex min-h-0 flex-col border-r border-border bg-muted/30">
-            <div className="flex gap-2 p-3">
-              <div className="relative flex-1"><Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-8"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
-              <Button variant={sel === "new" ? "default" : "outline"} onClick={() => setSel("new")}><UserPlus />Tạo mới</Button>
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(380px,420px)_1fr]">
+          <aside className="flex min-h-0 flex-col border-r border-border bg-card">
+            <div className="space-y-2 border-b border-border p-4">
+              <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-9"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+              <Button className="w-full" variant={sel === "new" ? "default" : "outline"} onClick={() => setSel("new")}><UserPlus />Tạo tài khoản mới</Button>
             </div>
-            <div className="min-h-0 flex-1 overflow-auto px-3 pb-3">
-              <table className="w-full overflow-hidden rounded-xl border border-border bg-card text-sm shadow-sm">
-                <thead className="sticky top-0 bg-muted text-left text-[11px] uppercase tracking-wide text-muted-foreground">
-                  <tr><th className="px-3 py-2">Tài khoản</th><th className="px-3 py-2">Quyền</th><th className="px-3 py-2">Dữ liệu riêng</th><th className="px-3 py-2">Ngày tạo</th></tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {users.isLoading && <tr><td colSpan={4} className="p-3 text-muted-foreground">Đang tải…</td></tr>}
-                  {list.map((x) => {
-                    const l = x.email.split("@")[0]; const adm = x.roles.includes("admin"); const d = det.data?.[x.id];
-                    const own = d?.edits.filter((e) => e.personal).length ?? 0;
-                    return (
-                      <tr key={x.id} onClick={() => setSel(x.id)} className={`cursor-pointer transition-colors ${sel === x.id ? "bg-primary/10" : "hover:bg-muted/60"}`}>
-                        <td className="px-3 py-2"><div className="flex items-center gap-3"><Avatar url={d?.avatarUrl} text={l} size="h-9 w-9" /><div className="min-w-0"><div className="truncate font-semibold">{l}{x.isSelf && " (bạn)"}</div><div className="truncate text-xs text-muted-foreground">{x.name || "—"}</div></div></div></td>
-                        <td className="px-3 py-2"><span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-muted text-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span></td>
-                        <td className="px-3 py-2">{own ? <span className="font-semibold text-primary">{own} mục</span> : <span className="text-muted-foreground">—</span>}</td>
-                        <td className="px-3 py-2 text-xs text-muted-foreground">{new Date(x.createdAt).toLocaleDateString("vi-VN")}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="min-h-0 flex-1 space-y-1.5 overflow-auto p-3">
+              {users.isLoading && <p className="p-3 text-sm text-muted-foreground">Đang tải…</p>}
+              {list.map((x) => {
+                const l = x.email.split("@")[0]; const adm = x.roles.includes("admin"); const d = det.data?.[x.id];
+                const own = d?.edits.filter((e) => e.personal).length ?? 0;
+                const active = sel === x.id;
+                return (
+                  <button type="button" key={x.id} onClick={() => setSel(x.id)} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all ${active ? "border-primary bg-primary/10 shadow-sm" : "border-transparent hover:border-border hover:bg-muted/60"}`}>
+                    <Avatar url={d?.avatarUrl} text={l} size="h-10 w-10" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 truncate text-[15px] font-bold">{l}{x.isSelf && <span className="text-xs font-medium text-muted-foreground">(bạn)</span>}</div>
+                      <div className="truncate text-xs text-muted-foreground">{x.name || "—"} · {new Date(x.createdAt).toLocaleDateString("vi-VN")}</div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
+                      {own > 0 && <span className="text-[11px] font-semibold text-primary">{own} mục riêng</span>}
+                    </div>
+                  </button>
+                );
+              })}
+              {!users.isLoading && list.length === 0 && <p className="p-3 text-sm text-muted-foreground">Không tìm thấy tài khoản.</p>}
             </div>
           </aside>
 
           <section className="min-h-0 overflow-y-auto p-6">
             {sel === "new" ? (
-              <form onSubmit={create} className={card + " max-w-xl space-y-4"}>
-                <h3 className="flex items-center gap-2 font-bold"><UserPlus className="h-4 w-4 text-primary" />Tạo tài khoản mới</h3>
+              <form onSubmit={create} className={card + " mx-auto max-w-xl space-y-4 p-6"}>
+                <h3 className="flex items-center gap-2 text-lg font-bold"><UserPlus className="h-5 w-5 text-primary" />Tạo tài khoản mới</h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label><span className={lbl}>ID đăng nhập</span><input className={inp} value={nu} onChange={(e) => setNu(e.target.value)} placeholder="vd: nguyenvana" required /></label>
                   <label><span className={lbl}>Tên hiển thị</span><input className={inp} value={nn} onChange={(e) => setNn(e.target.value)} placeholder="không bắt buộc" /></label>
@@ -135,13 +153,14 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 <Button disabled={busy}>{busy ? "Đang tạo…" : "Tạo tài khoản"}</Button>
               </form>
             ) : user ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-4">
+              <div className="mx-auto max-w-5xl space-y-4">
+                <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <Avatar url={det.data?.[user.id]?.avatarUrl} text={login} size="h-16 w-16 text-xl" />
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold">{login}</h3>
+                    <h3 className="text-2xl font-extrabold tracking-tight">{login}</h3>
                     <p className="text-sm text-muted-foreground">{user.name || "—"} · tạo ngày {new Date(user.createdAt).toLocaleDateString("vi-VN")}{user.original && user.original !== login ? ` · ID gốc: ${user.original}` : ""}</p>
                   </div>
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                 </div>
                 {Msg}
                 <div className="grid gap-4 lg:grid-cols-2">
