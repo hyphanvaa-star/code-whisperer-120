@@ -7168,7 +7168,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         <div class="top"><b>InFlight Omni</b><span class="use" id="acOmniSrc"></span></div>
         <div class="acgrid">
           <div class="field"><label for="acOmniUser">Username</label>
-            <input type="text" id="acOmniUser" autocomplete="off" spellcheck="false"></div>
+            <input type="text" id="acOmniUser" value="hyphanthanh@vietjetair.com" autocomplete="off" spellcheck="false"></div>
           <div class="field"><label for="acOmniPass">Password</label>
             <input type="password" id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"></div>
         </div>
@@ -7179,9 +7179,9 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
       </div>
 
       <div class="accard" id="acOutlook">
-        <div class="top"><b>Outlook (mail nháp)</b><span class="use" id="acOutlookSrc"></span></div>
-        <p class="achint">Chỉ dùng khi soạn nháp ATC+EZFW trên Outlook Web.
-          Không dùng Outlook desktop, không dùng cho PIB/GENDEC.</p>
+        <div class="top"><b>Outlook (mail nháp + tải PIB / GENDEC)</b><span class="use" id="acOutlookSrc"></span></div>
+        <p class="achint">Một tài khoản dùng chung: đăng nhập Outlook Web để tải PIB/GENDEC
+          và soạn mail nháp ATC+EZFW. Không dùng Outlook desktop.</p>
         <div class="acgrid">
           <div class="field"><label for="acOutlookUser">Username</label>
             <input type="text" id="acOutlookUser" autocomplete="off" spellcheck="false" placeholder="email Outlook của bạn"></div>
@@ -7199,7 +7199,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         </div>
       </div>
 
-      <div class="accard" id="acOwa">
+      <div class="accard" id="acOwa" style="display:none">
         <div class="top"><b>Outlook Web (tải PIB / GENDEC)</b><span class="use" id="acOwaSrc"></span></div>
         <p class="achint">Trợ lý PC dùng email này để tự đăng nhập Outlook Web khi tải PIB.
           Ghi đầy đủ email công ty (ví dụ ten@vietjetair.com).</p>
@@ -7221,7 +7221,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           (aviweb_username / aviweb_password). Chưa lưu thì dùng mặc định OMC.</p>
         <div class="acgrid">
           <div class="field"><label for="acAviwebUser">Username</label>
-            <input type="text" id="acAviwebUser" autocomplete="off" spellcheck="false"></div>
+            <input type="text" id="acAviwebUser" value="omc@vietjetair.com" autocomplete="off" spellcheck="false"></div>
           <div class="field"><label for="acAviwebPass">Password</label>
             <input type="password" id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"></div>
         </div>
@@ -7236,7 +7236,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         <p class="achint">Dùng để lấy điện OOOI (OUT/OFF/ON/IN) và STATUS chuyến bay. Chưa lưu thì dùng mặc định của đội.</p>
         <div class="acgrid">
           <div class="field"><label for="acOpscoreUser">Username</label>
-            <input type="text" id="acOpscoreUser" autocomplete="off" spellcheck="false"></div>
+            <input type="text" id="acOpscoreUser" value="OMC.VIETJETAIR.BACKUP" autocomplete="off" spellcheck="false"></div>
           <div class="field"><label for="acOpscorePass">Password</label>
             <input type="password" id="acOpscorePass" placeholder="(giữ nguyên nếu để trống)"></div>
         </div>
@@ -27344,7 +27344,8 @@ function acRefresh(){
     for(const [kind, pf] of [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"],["opscore","Opscore"]]){
       if(!$("#ac"+pf+"User")) continue;
       const info = a[kind] || {};
-      $("#ac"+pf+"User").value = info.username || "";
+      $("#ac"+pf+"User").value = info.username || AC_DEF_USER[kind] || "";
+      if(kind === "outlook" && !info.username && a.owa && a.owa.username) $("#acOutlookUser").value = a.owa.username;
       if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
       const pi = $("#ac"+pf+"Pass");
       pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
@@ -27365,6 +27366,7 @@ function acRefresh(){
   }).catch(() => {});
 }
 
+const AC_DEF_USER = {omni:"hyphanthanh@vietjetair.com", aviweb:"omc@vietjetair.com", opscore:"OMC.VIETJETAIR.BACKUP"};
 async function acSave(kind, pf){
   const user = $("#ac"+pf+"User").value.trim();
   const pin = $("#ac"+pf+"Pass");
@@ -27384,10 +27386,14 @@ async function acSave(kind, pf){
     });
     const d = await r.json();
     if(d.error){ msg.className = "acmsg bad"; msg.textContent = d.error; return; }
+    if(d.ok && kind === "outlook"){
+      try{ await fetch("/api/credentials/save", {method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({kind:"owa", username:user, password:pass})}); }catch(_){}
+    }
     if(d.ok){
       msg.className = "acmsg ok";
       if(kind === "outlook")
-        msg.textContent = "✓ đã lưu — nháp vào "
+        msg.textContent = "✓ đã lưu — dùng cho Outlook Web (PIB/GENDEC) & nháp vào "
           + (($("#acOutlookBox").value.trim()) || "hộp riêng của bạn");
       else if(kind === "owa")
         msg.textContent = "✓ đã lưu — trợ lý PC sẽ dùng email này để đăng nhập Outlook Web";
