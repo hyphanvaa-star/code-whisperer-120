@@ -26,7 +26,7 @@ export function enc(s: string) {
   const ct = Buffer.concat([c.update(s, "utf8"), c.final()]);
   return Buffer.concat([iv, c.getAuthTag(), ct]).toString("base64");
 }
-function dec(s: string) {
+export function dec(s: string) {
   try {
     const b = Buffer.from(s, "base64");
     const d = createDecipheriv("aes-256-gcm", key(), b.subarray(0, 12));
@@ -57,7 +57,8 @@ export async function saveStored(userId: string, data: Stored, resetFb = false) 
   if (error) throw new Error(error.message);
 }
 
-export const OUTLOOK_TTL = 12 * 3600_000;
+// Lưu lâu dài cho tới khi người dùng tự đổi.
+export const OUTLOOK_TTL = 100 * 365 * 24 * 3600_000;
 
 function toVars(st: Stored): Record<string, string> {
   const vars: Record<string, string> = {};
@@ -65,7 +66,6 @@ function toVars(st: Stored): Record<string, string> {
     const k = KINDS[kind];
     if (!k || !v?.username || !v.password) continue;
     // Outlook (mail nháp): chỉ dùng trong 12 giờ sau khi người dùng tự nhập, không giữ lâu.
-    if (kind === "outlook" && !(v.saved_at && Date.now() - v.saved_at < OUTLOOK_TTL)) continue;
     const pw = dec(v.password);
     if (!pw) continue;
     for (const n of k.user) vars[n] = v.username;

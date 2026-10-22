@@ -1225,6 +1225,9 @@ html.night .ai-foot textarea{background:#f0f0f0;color:#111;border:0}
 .acgrid .field{gap:5px}
 .acfoot{display:flex;align-items:center;gap:10px;margin-top:11px}
 .acmsg{font-size:11.5px;line-height:1.5}
+.acpw{position:relative;display:flex}.acpw input{flex:1;padding-right:34px}
+.aceye{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:15px;opacity:.7}.aceye:hover{opacity:1}
+.accaps{font-size:11.5px;color:var(--red);margin-top:3px}
 .acmsg.ok{color:var(--green)}.acmsg.bad{color:var(--red)}.acmsg.q{color:var(--ink-soft)}
 @media (max-width:520px){.acgrid{grid-template-columns:1fr}}
 
@@ -27332,11 +27335,14 @@ function acRefresh(){
       const info = a[kind] || {};
       $("#ac"+pf+"User").value = info.username || "";
       if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
+      const pi = $("#ac"+pf+"Pass");
+      pi.value = ""; pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
+      pi.placeholder = pi.dataset.saved ? "••••••••  (đã lưu — để trống là giữ nguyên)" : (info.source === "env" ? "(giữ nguyên nếu để trống)" : "nhập mật khẩu");
       const src = $("#ac"+pf+"Src");
       if(info.source === "env")
         src.textContent = "đang dùng từ " + AC_SRC.env + " (" + (info.env_names||[]).join(", ") + ")";
       else if(info.source === "file")
-        src.textContent = kind === "outlook" ? "đang dùng (tự hết sau 12 giờ)" : (info.has_password ? "đã lưu" : "chưa có mật khẩu");
+        src.textContent = info.has_password ? "đã lưu (giữ cho các lần sau)" : "chưa có mật khẩu";
       else if(info.source === "default")
         src.textContent = "đang dùng " + AC_SRC.default + " (chưa lưu file)";
       else
@@ -27387,7 +27393,38 @@ async function acSave(kind, pf){
   }finally{ btn.disabled = false; }
 }
 
-$("#btnAcc").onclick = () => { acRefresh(); $("#accModal").classList.add("open"); };
+/* mắt xem mật khẩu + cảnh báo Caps Lock */
+function acPwSetup(){
+  document.querySelectorAll('#accModal input[type=password]').forEach(inp => {
+    if(inp.dataset.eye) return; inp.dataset.eye = "1";
+    const pf = inp.id.replace(/^ac/,"").replace(/Pass$/,"");
+    const kind = {Fb:"flitebrief",Omni:"omni",Outlook:"outlook",Owa:"owa",Aviweb:"aviweb",Opscore:"opscore"}[pf] || "";
+    const wrap = document.createElement("div"); wrap.className = "acpw";
+    inp.parentNode.insertBefore(wrap, inp); wrap.appendChild(inp);
+    const eye = document.createElement("button"); eye.type = "button"; eye.className = "aceye"; eye.title = "Xem mật khẩu"; eye.textContent = "👁";
+    wrap.appendChild(eye);
+    const caps = document.createElement("div"); caps.className = "accaps"; caps.textContent = "⚠ Caps Lock đang bật"; caps.hidden = true;
+    wrap.parentNode.appendChild(caps);
+    const capCheck = e => { if(e.getModifierState) caps.hidden = !e.getModifierState("CapsLock"); };
+    inp.addEventListener("keydown", capCheck); inp.addEventListener("keyup", capCheck);
+    inp.addEventListener("blur", () => caps.hidden = true);
+    eye.onclick = async () => {
+      if(inp.type === "text"){ inp.type = "password"; eye.textContent = "👁"; return; }
+      if(!inp.value && inp.dataset.saved && kind){
+        const lp = prompt("Nhập mật khẩu đăng nhập web của bạn để xem mật khẩu đã lưu:");
+        if(!lp) return;
+        try{
+          const r = await fetch("/api/credentials/reveal", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({kind, login_password: lp})});
+          const d = await r.json();
+          if(!d.ok){ alert(d.error || "không xem được"); return; }
+          inp.value = d.password;
+        }catch(e){ alert("lỗi mạng: " + e.message); return; }
+      }
+      inp.type = "text"; eye.textContent = "🙈";
+    };
+  });
+}
+$("#btnAcc").onclick = () => { acPwSetup(); acRefresh(); $("#accModal").classList.add("open"); };
 $("#accClose").onclick = () => $("#accModal").classList.remove("open");
 $("#accModal").onclick = e => { if(e.target === $("#accModal")) $("#accModal").classList.remove("open"); };
 $("#acFbSave").onclick = () => acSave("flitebrief", "Fb");
