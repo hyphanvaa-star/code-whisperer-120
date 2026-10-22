@@ -177,7 +177,7 @@ export const accountDetails = createServerFn({ method: "POST" })
       supabaseAdmin.from("profiles").select("id, avatar_path").in("id", data.userIds),
       supabaseAdmin.from("app_settings").select("key, updated_by, updated_at, value").in("updated_by", data.userIds).order("updated_at", { ascending: false }).limit(1000),
     ]);
-    const out: Record<string, { avatarUrl: string; edits: { key: string; label: string; personal: boolean; updatedAt: string; size: number }[] }> = {};
+    const out: Record<string, { avatarUrl: string; edits: { key: string; label: string; personal: boolean; updatedAt: string; size: number; lines: string[] }[] }> = {};
     for (const id of data.userIds) out[id] = { avatarUrl: "", edits: [] };
     await Promise.all((profs ?? []).map(async (p) => {
       if (!p.avatar_path) return;
@@ -188,11 +188,11 @@ export const accountDetails = createServerFn({ method: "POST" })
       if (!r.updated_by || !out[r.updated_by]) continue;
       const personal = r.key.includes("@u:");
       const base = r.key.split("@u:")[0];
-      // Automatic per-flight/working caches are not user edits — hide them.
-      if (/^(ofp\.|excel\.current)/.test(base)) continue;
+      // Automatic per-flight/working caches and login tokens are not user edits — hide them.
+      if (/^(ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|.*token|.*session|.*cookie)/i.test(base)) continue;
       const v = r.value as unknown;
       const size = Array.isArray(v) ? v.length : v && typeof v === "object" ? Object.keys(v).length : 1;
-      out[r.updated_by].edits.push({ key: r.key, label: DATA_LABEL[base] ?? base, personal, updatedAt: r.updated_at, size });
+      out[r.updated_by].edits.push({ key: r.key, label: DATA_LABEL[base] ?? base, personal, updatedAt: r.updated_at, size, lines: previewLines(v) });
     }
     return out;
   });
@@ -209,3 +209,22 @@ export const resetPersonalData = createServerFn({ method: "POST" })
     await logActivity(context.userId, "reset_personal", data.key);
     return { ok: true };
   });
+
+const SECRET_RE = /pass|token|secret|cookie|session|pwd/i;
+function cell(x: unknown): string {
+  if (x == null || x === "") return "";
+  if (typeof x !== "object") return String(x);
+  if (Array.isArray(x)) return x.map(cell).filter(Boolean).join(" · ");
+  return Object.entries(x as Record<string, unknown>)
+    .filter(([k, val]) => !SECRET_RE.test(k) && val !== "" && val != null)
+    .map(([k, val]) => `${k}: ${typeof val === "object" ? JSON.stringify(val).slice(0, 60) : String(val)}`)
+    .join(" · ");
+}
+/** Readable summary of a saved table so the owner can see what was changed. */
+function previewLines(v: unknown): string[] {
+  let list: string[];
+  if (Array.isArray(v)) list = v.map(cell);
+  else if (v && typeof v === "object") list = Object.entries(v as Record<string, unknown>).filter(([k]) => !SECRET_RE.test(k)).map(([k, val]) => `${k} → ${cell(val)}`);
+  else list = [cell(v)];
+  return list.filter(Boolean).slice(0, 50).map((s) => (s.length > 220 ? s.slice(0, 220) + "…" : s));
+}
