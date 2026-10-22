@@ -25352,7 +25352,7 @@ function hoAcCell(hit, f){
 let hoAllFlights = [];
 let hoAllFresh = 0;
 let hoAllPromise = null;
-let hoLookupBusy = false;
+// (không cần cờ "đang tìm" riêng: hoAllPromise đã là cờ đó)
 let hoTypeTimer = null;
 let hoPending = [];
 function hoCsKey(cs){ return String(cs || "").replace(/\s+/g,"").toUpperCase(); }
@@ -25461,15 +25461,20 @@ function hoTryFill(tr){
     if(hoFltKey(f) !== (tr.dataset.hoKey || "")) hoFillRow(tr, f);
     return;
   }
-  if(!/^[A-Z]{2,3}\d{3,4}$/.test(cs)) return;   // đang gõ dở, chưa ra một mã hoàn chỉnh
-  if(!hoAllFlights.length) hoSay("Đang lấy danh sách chuyến — chờ vài giây…");
-  // Đang lấy danh sách dở thì xếp hàng lại, danh sách về là tự chạy tiếp dòng này.
-  if(hoLookupBusy){ hoPending.push({ tr: tr, cs: cs }); return; }
-  if(hoAllFlights.length && Date.now() - hoAllFresh < 20000){
+  // Phải gõ xong một mã hẳn hoi mới tìm: "VJC456" hoặc "456"; "VJC4" là còn đang gõ.
+  if(!/^[A-Z]{2,3}\d{3,4}$/.test(cs) && !/^\d{3,4}$/.test(cs)) return;
+  // Danh sách chưa có hoặc đang tải dở → xếp hàng, danh sách về là tự chạy lại dòng này.
+  if(hoAllPromise || !hoAllFlights.length){
+    hoSay("Đang lấy danh sách chuyến — chờ vài giây…");
+    hoPending.push({ tr: tr, cs: cs });
+    hoFetchAll(false);
+    return;
+  }
+  // Vừa lấy xong mà không thấy → chỉ báo, khỏi gọi máy chủ lại liên tục.
+  if(Date.now() - hoAllFresh < 20000){
     hoSay("Không thấy chuyến " + cs + " trong danh sách hôm nay");
     return;
   }
-  hoLookupBusy = true;
   hoSay("Đang tìm " + cs + "…");
   hoFetchAll(true).then(function(list){
     const now = tr.querySelector('input[data-ho="callsign"]');
@@ -25477,14 +25482,6 @@ function hoTryFill(tr){
     const g = hoMatchFlight(list, cs);
     if(g) hoFillRow(tr, g);
     else if((list || []).length) hoSay("Không thấy chuyến " + cs + " trong danh sách hôm nay");
-  }).finally(function(){
-    hoLookupBusy = false;
-    const q = hoPending; hoPending = [];
-    for(const it of q){
-      if(!it.tr.isConnected) continue;
-      const inp = it.tr.querySelector('input[data-ho="callsign"]');
-      if(inp && hoCsKey(inp.value) === it.cs) hoTryFill(it.tr);
-    }
   });
 }
 function hoHHMMZ(iso){
