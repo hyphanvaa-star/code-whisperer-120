@@ -237,7 +237,9 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                   </ul>
                 </div>
               </div>
-            ) : null}
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">Chọn một tài khoản để xem dữ liệu và lịch sử.</div>
+            )}
           </section>
         </div>
     </div>
