@@ -85,7 +85,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   const all = users.data ?? [];
   const stats = [
     { k: "Tổng tài khoản", v: all.length },
-    { k: "Quản trị", v: all.filter((x) => x.roles.includes("admin")).length },
+    { k: "Quản trị viên", v: all.filter((x) => x.roles.includes("admin")).length },
     { k: "Dispatcher", v: all.filter((x) => !x.roles.includes("admin") && x.roles.includes("dispatcher")).length },
     { k: "Đã khóa", v: all.filter((x) => !x.roles.includes("admin") && !x.roles.includes("dispatcher")).length },
   ];
