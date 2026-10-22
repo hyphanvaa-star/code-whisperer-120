@@ -186,6 +186,13 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                     <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={busy} onClick={() => { if (window.confirm(`Xóa hẳn tài khoản ${login}? Không khôi phục được.`)) void run(() => delFn({ data: { userId: user.id } }), `Đã xóa ${login}`).then((ok) => ok && setSel("new")); }}><Trash2 />Xóa</Button>
                   </div>
                 )}
+              </div>
+            ) : null}
+          </section>
+
+          <section className="min-h-0 overflow-y-auto bg-muted/60 p-5">
+            {sel !== "new" && user ? (
+              <div className="space-y-4">
                 <div className={card}>
                   <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><Database className="h-4 w-4 text-primary" />Điều chỉnh dữ liệu</h4>
                   <ul className="divide-y divide-border text-sm">
