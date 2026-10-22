@@ -958,12 +958,26 @@ def submit_fpl(
         res.items = [FplItem(index=i, name=fpl_name(b), route=fpl_route(b))
                      for i, b in enumerate(todo, 1)]
 
-        for it, block in zip(res.items, todo):
+        # Hàng gửi: mỗi chuyến lỗi (chưa bấm Submit cuối) được gửi lại ĐÚNG 1 lần
+        # ở cuối đợt; vẫn lỗi thì giữ nguyên báo lỗi như cũ.
+        queue = [(it, block, 0) for it, block in zip(res.items, todo)]
+        qi = 0
+        while qi < len(queue):
+            it, block, tries = queue[qi]
+            qi += 1
             if cancel is not None and cancel.is_set():
                 say("— đã huỷ —")
                 break
             i, name = it.index, it.name
+            if tries:
+                # bỏ dấu lỗi lần trước; nếu lần này vẫn lỗi sẽ ghi lại
+                if name in res.failed:
+                    res.failed.remove(name)
+                res.errors = [e for e in res.errors if not e.startswith(f"{it.label}:")]
+                it.reason = ""
+                say(f"↻ gửi lại 1 lần: {it.label}", name)
             it.attempted = True
+            final_clicked = False
             say(f"→ [{i}/{len(todo)}] {it.label}", name)
             try:
                 ntab = _keep_main_tab(driver)
