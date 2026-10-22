@@ -1795,7 +1795,8 @@ async function page(): Promise<string> {
     .replace('  fetch("/api/credentials").then(r => r.json()).then(d => {', '  return fetch("/api/credentials").then(r => r.json()).then(d => {')
     .replace('    acRefresh();\n  }catch(e){', '    await acRefresh();\n  }catch(e){')
     .replace('</head>', `<style>
-#accModal .sheet{zoom:calc(var(--taf-read-scale,1) * var(--account-body-scale,1));max-width:min(1000px,calc(100vw - 32px));width:calc(100% - 32px);max-height:85vh;max-height:85dvh;display:flex;flex-direction:column;flex-shrink:0}
+#accModal{zoom:calc(var(--taf-read-scale,1) * var(--account-body-scale,1));padding:24px 8px}
+#accModal .sheet{max-width:1000px;width:100%;max-height:85vh;max-height:85dvh;display:flex;flex-direction:column;flex-shrink:0}
 #accModal .sheet-head{flex-shrink:0}
 #accModal .sheet-head h3{font-size:26px !important;line-height:1.4}
 #accModal .sheet-body{padding:22px;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;scrollbar-gutter:stable}
