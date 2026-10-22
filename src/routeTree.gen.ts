@@ -29,6 +29,7 @@ import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedVerRouteImport } from './routes/_authenticated/ver'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiFbFileRouteImport } from './routes/api/fb.file'
+import { Route as ApiPublicCronCleanupFilesRouteImport } from './routes/api/public/cron/cleanup-files'
 import { Route as ApiPublicPcAgentPollRouteImport } from './routes/api/public/pc-agent/poll'
 import { Route as ApiPublicPcAgentReportRouteImport } from './routes/api/public/pc-agent/report'
 
@@ -131,6 +132,12 @@ const ApiFbFileRoute = ApiFbFileRouteImport.update({
   path: '/api/fb/file',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronCleanupFilesRoute =
+  ApiPublicCronCleanupFilesRouteImport.update({
+    id: '/api/public/cron/cleanup-files',
+    path: '/api/public/cron/cleanup-files',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPcAgentPollRoute = ApiPublicPcAgentPollRouteImport.update({
   id: '/api/public/pc-agent/poll',
   path: '/api/public/pc-agent/poll',
@@ -162,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
+  '/api/public/cron/cleanup-files': typeof ApiPublicCronCleanupFilesRoute
   '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
   '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
 }
@@ -185,6 +193,7 @@ export interface FileRoutesByTo {
   '/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
+  '/api/public/cron/cleanup-files': typeof ApiPublicCronCleanupFilesRoute
   '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
   '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
 }
@@ -210,6 +219,7 @@ export interface FileRoutesById {
   '/_authenticated/ver': typeof AuthenticatedVerRoute
   '/api/$': typeof ApiSplatRoute
   '/api/fb/file': typeof ApiFbFileRoute
+  '/api/public/cron/cleanup-files': typeof ApiPublicCronCleanupFilesRoute
   '/api/public/pc-agent/poll': typeof ApiPublicPcAgentPollRoute
   '/api/public/pc-agent/report': typeof ApiPublicPcAgentReportRoute
 }
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/ver'
     | '/api/$'
     | '/api/fb/file'
+    | '/api/public/cron/cleanup-files'
     | '/api/public/pc-agent/poll'
     | '/api/public/pc-agent/report'
   fileRoutesByTo: FileRoutesByTo
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/ver'
     | '/api/$'
     | '/api/fb/file'
+    | '/api/public/cron/cleanup-files'
     | '/api/public/pc-agent/poll'
     | '/api/public/pc-agent/report'
   id:
@@ -282,6 +294,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ver'
     | '/api/$'
     | '/api/fb/file'
+    | '/api/public/cron/cleanup-files'
     | '/api/public/pc-agent/poll'
     | '/api/public/pc-agent/report'
   fileRoutesById: FileRoutesById
@@ -294,6 +307,7 @@ export interface RootRouteChildren {
   ToolPageRoute: typeof ToolPageRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiFbFileRoute: typeof ApiFbFileRoute
+  ApiPublicCronCleanupFilesRoute: typeof ApiPublicCronCleanupFilesRoute
   ApiPublicPcAgentPollRoute: typeof ApiPublicPcAgentPollRoute
   ApiPublicPcAgentReportRoute: typeof ApiPublicPcAgentReportRoute
 }
@@ -440,6 +454,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFbFileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/cleanup-files': {
+      id: '/api/public/cron/cleanup-files'
+      path: '/api/public/cron/cleanup-files'
+      fullPath: '/api/public/cron/cleanup-files'
+      preLoaderRoute: typeof ApiPublicCronCleanupFilesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pc-agent/poll': {
       id: '/api/public/pc-agent/poll'
       path: '/api/public/pc-agent/poll'
@@ -500,6 +521,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolPageRoute: ToolPageRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiFbFileRoute: ApiFbFileRoute,
+  ApiPublicCronCleanupFilesRoute: ApiPublicCronCleanupFilesRoute,
   ApiPublicPcAgentPollRoute: ApiPublicPcAgentPollRoute,
   ApiPublicPcAgentReportRoute: ApiPublicPcAgentReportRoute,
 }

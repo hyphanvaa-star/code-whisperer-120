@@ -40,3 +40,4 @@
 - Ver tab crew changes come from diffing the two newest non-VER crewlists (`port/crewlist_diff.ts`) — FPL VER files have no crew column.
 - Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others.
 - Storm warning identities and modern JMA forecast parsing live in browser-safe `port/storms.ts`; retain JTWC RSS names when overlays fail and distinguish unavailable data from confirmed empty feeds. Toolbar changes load through the tool-page shim to preserve the original HTML.
+- tool-files retention lives in pure `port/file_retention.ts`, run hourly by cron route `/api/public/cron/cleanup-files` (admin client, cron secret) — workers cannot clean up after a session ends.
