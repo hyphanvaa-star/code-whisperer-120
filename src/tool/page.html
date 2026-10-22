@@ -7184,7 +7184,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           và soạn mail nháp ATC+EZFW. Không dùng Outlook desktop.</p>
         <div class="acgrid">
           <div class="field"><label for="acOutlookUser">Username</label>
-            <input type="text" id="acOutlookUser" autocomplete="off" spellcheck="false" placeholder="email Outlook của bạn"></div>
+            <input type="text" id="acOutlookUser" value="omc@vietjetair.com" autocomplete="off" spellcheck="false" placeholder="email Outlook của bạn"></div>
           <div class="field"><label for="acOutlookPass">Password</label>
             <input type="password" id="acOutlookPass" placeholder="nhập mật khẩu" autocomplete="new-password"></div>
         </div>
@@ -27390,7 +27390,7 @@ function acRefresh(){
   }).catch(() => {});
 }
 
-const AC_DEF_USER = {omni:"hyphanthanh@vietjetair.com", aviweb:"omc@vietjetair.com", opscore:"OMC.VIETJETAIR.BACKUP"};
+const AC_DEF_USER = {omni:"hyphanthanh@vietjetair.com", aviweb:"omc@vietjetair.com", opscore:"OMC.VIETJETAIR.BACKUP", outlook:"omc@vietjetair.com"};
 async function acSave(kind, pf){
   const user = $("#ac"+pf+"User").value.trim();
   const pin = $("#ac"+pf+"Pass");
