@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] Outlook Web: quét nền không tự đổi nút đỏ vì token gần hết hạn; giảm trừ hao phiên, giữ yêu cầu đăng nhập khi thao tác thật bị từ chối, cập nhật trợ lý và kiểm thử.
+- [x] Outlook Web: quét nền không đổi trạng thái đăng nhập; giảm trừ hao 300→60 giây; thao tác PIB vẫn kiểm tra/làm mới phiên và giữ lỗi Microsoft; gói trợ lý 5.4 đã cập nhật, 8 kiểm thử đạt, build OK.
+- [ ] Outlook Web: thử giữ phiên và tải PIB thật — cần người dùng chạy trợ lý 5.4 trên máy công ty; chưa publish.
 
 - [x] KHB CAPT/FO: tối đa 30 ký tự gồm ID/khoảng trắng; tên dài từ 3 cụm giữ đầu/cuối, áp dụng nạp/chọn/sửa và REQ; 17 kiểm thử đạt, mẫu 9180 AUCANCELA ARMANDO đã kiểm tra trong trang KHB. Chưa thử chuyến thật.
 
