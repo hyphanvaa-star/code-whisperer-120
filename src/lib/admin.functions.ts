@@ -211,20 +211,38 @@ export const resetPersonalData = createServerFn({ method: "POST" })
   });
 
 const SECRET_RE = /pass|token|secret|cookie|session|pwd/i;
+const GROUP_VI: Record<string, string> = {
+  curfew: "Giờ cấm bay (curfew)", special: "Giới hạn đặc biệt", aircraft: "Giới hạn theo tàu",
+  airports: "Giới hạn sân bay", acgroups: "Nhóm tàu", defects: "Lỗi kỹ thuật",
+};
+const FIELD_VI: Record<string, string> = {
+  code: "Sân", reg: "Tàu", defect: "Lỗi", limit: "Giới hạn", start: "Từ", end: "Đến", type: "Loại",
+  note: "Ghi chú", rule: "Quy tắc", acs: "Tàu", apts: "Sân", text: "Nội dung", id: "Mã",
+};
 function cell(x: unknown): string {
   if (x == null || x === "") return "";
   if (typeof x !== "object") return String(x);
-  if (Array.isArray(x)) return x.map(cell).filter(Boolean).join(" · ");
-  return Object.entries(x as Record<string, unknown>)
-    .filter(([k, val]) => !SECRET_RE.test(k) && val !== "" && val != null)
-    .map(([k, val]) => `${k}: ${typeof val === "object" ? JSON.stringify(val).slice(0, 60) : String(val)}`)
-    .join(" · ");
+  if (Array.isArray(x)) return x.map(cell).filter(Boolean).join(", ");
+  const o = x as Record<string, unknown>;
+  if (o.start != null && o.end != null && o.code) return `${o.code}: cấm ${o.start} – ${o.end}`;
+  return Object.entries(o)
+    .filter(([k, val]) => !SECRET_RE.test(k) && val !== "" && val != null && !/^(_|at$|ts$|updated)/.test(k))
+    .map(([k, val]) => `${FIELD_VI[k] ?? k}: ${typeof val === "object" ? cell(val) : String(val)}`)
+    .join(" | ");
 }
-/** Readable summary of a saved table so the owner can see what was changed. */
+/** Readable summary: one line per saved item, grouped by section, so the owner sees exactly what was set. */
 function previewLines(v: unknown): string[] {
-  let list: string[];
-  if (Array.isArray(v)) list = v.map(cell);
-  else if (v && typeof v === "object") list = Object.entries(v as Record<string, unknown>).filter(([k]) => !SECRET_RE.test(k)).map(([k, val]) => `${k} → ${cell(val)}`);
-  else list = [cell(v)];
-  return list.filter(Boolean).slice(0, 50).map((s) => (s.length > 220 ? s.slice(0, 220) + "…" : s));
+  const list: string[] = [];
+  const push = (s: string) => { if (s) list.push(s.length > 220 ? s.slice(0, 220) + "…" : s); };
+  if (Array.isArray(v)) v.forEach((it, i) => push(`${i + 1}. ${cell(it)}`));
+  else if (v && typeof v === "object") {
+    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+      if (SECRET_RE.test(k)) continue;
+      if (Array.isArray(val)) {
+        push(`■ ${GROUP_VI[k] ?? k} (${val.length} mục)`);
+        val.forEach((it) => push(`   • ${cell(it)}`));
+      } else push(`${GROUP_VI[k] ?? FIELD_VI[k] ?? k}: ${cell(val)}`);
+    }
+  } else push(cell(v));
+  return list.slice(0, 120);
 }
