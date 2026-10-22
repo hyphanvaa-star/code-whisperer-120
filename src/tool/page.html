@@ -27370,7 +27370,7 @@ function acRefresh(){
       const info = a[kind] || {};
       $("#ac"+pf+"User").value = info.username || AC_DEF_USER[kind] || "";
       if(kind === "outlook" && !info.username && a.owa && a.owa.username) $("#acOutlookUser").value = a.owa.username;
-      if(kind === "outlook") $("#acOutlookBox").value = info.mailbox || "";
+      if(kind === "outlook" && info.mailbox) $("#acOutlookBox").value = info.mailbox;
       const pi = $("#ac"+pf+"Pass");
       pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
       const hasPw = Boolean(info.has_password);
