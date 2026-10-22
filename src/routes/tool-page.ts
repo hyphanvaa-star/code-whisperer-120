@@ -109,6 +109,7 @@ const SHIM = `<script>
     // vuốt ngang phần còn lại. Máy tính/bảng lớn giữ nguyên hành vi cũ.
     var isPhone = window.innerWidth < 820;
     if (isPhone) z = Math.max(z, 0.5);
+    de.style.setProperty('--account-body-scale', String(z < 0.999 ? 1 / z : 1));
     // Narrow-screen CSS keys off viewport width; while zoom-fit is active the
     // real layout width is innerWidth/z, so mark <html> and disable those rules.
     de.classList.toggle('fit-scaled', z < 0.999);
@@ -1782,6 +1783,37 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
+    // The embedded source stays intact; account fixes belong in this shim.
+    .replace('>V 2.5</span>', '>V 2.6</span>')
+    .replace('      $("ac"+pf+"Pass").value = "";', '      $("ac"+pf+"Pass").value = "";')
+    .replace('      $("#ac"+pf+"Pass").value = "";', `      pin.type = "password";
+      pin.dataset.saved = "1";
+      pin.dataset.mask = "1";
+      pin.value = AC_MASK;
+      pin.placeholder = "nhập mật khẩu";
+      const savedEye = pin.parentNode.querySelector(".aceye");
+      if(savedEye) savedEye.textContent = "👁";`)
+    .replace('  fetch("/api/credentials").then(r => r.json()).then(d => {', '  return fetch("/api/credentials").then(r => r.json()).then(d => {')
+    .replace('    acRefresh();\n  }catch(e){', '    await acRefresh();\n  }catch(e){')
+    .replace('</head>', `<style>
+#accModal .sheet{zoom:calc(var(--taf-read-scale,1) * var(--account-body-scale,1));max-width:1000px;width:calc(100% - 32px);max-height:85vh}
+#accModal .sheet-head h3{font-size:26px;line-height:1.4}
+#accModal .sheet-body{padding:22px}
+#accModal .accard{padding:18px;margin-bottom:18px}
+#accModal .accard .top{gap:12px;flex-wrap:wrap}
+#accModal .accard .top b{font-size:21px;line-height:1.4}
+#accModal .accard .top .use,#accModal .achint,#accModal .acwarn{font-size:17px;line-height:1.6;overflow-wrap:anywhere}
+#accModal .field label{font-size:17px;line-height:1.5}
+#accModal input{font-size:19px;min-height:50px;padding:12px 14px;min-width:0}
+#accModal .acpw{min-width:0}
+#accModal .acpw input{padding-right:52px;width:100%}
+#accModal .aceye{font-size:23px;width:44px;height:44px}
+#accModal .acmsg,#accModal .accaps{font-size:17px;line-height:1.5}
+#accModal .btn.small{font-size:17px;min-height:44px;padding:10px 18px}
+#accModal .acgrid{gap:16px}
+#accModal .acfoot{flex-wrap:wrap;gap:12px}
+@media(max-width:700px){#accModal .acgrid{grid-template-columns:minmax(0,1fr)}#accModal .sheet-body{padding:14px}}
+</style></head>`)
     // Structured special limits (rules/aircraft groups) shared with the server checker.
     .replace('function limBlankAc(){', specialRulesScript.replace(/^export /gm, '') + '\nfunction limBlankAc(){')
     // Shared pilot formatting for KHB load/pick/edit/export; source names remain intact.
