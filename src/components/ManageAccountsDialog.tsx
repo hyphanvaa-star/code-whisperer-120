@@ -180,7 +180,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 {!user.isSelf && (
                   <div className={card + " flex flex-wrap items-center gap-3"}>
                     <ShieldCheck className="h-4 w-4 text-primary" />
-                    <span className="flex-1 text-sm">Quyền: <b>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Chưa có quyền"}</b></span>
+                    <span className="flex-1 text-sm">Quyền: <b className="text-[15px]">{user.roles.includes("admin") ? "Quản trị viên" : user.roles.includes("dispatcher") ? "Dispatcher" : "Chưa có quyền"}</b></span>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => void run(() => roleFn({ data: { userId: user.id, role: "dispatcher", grant: !user.roles.includes("dispatcher") } }), "Đã cập nhật quyền")}>{user.roles.includes("dispatcher") ? "Khóa dùng" : "Cho dùng"}</Button>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => void run(() => roleFn({ data: { userId: user.id, role: "admin", grant: !user.roles.includes("admin") } }), "Đã cập nhật quyền")}>{user.roles.includes("admin") ? "Bỏ quản trị" : "Cho quản trị"}</Button>
                     <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={busy} onClick={() => { if (window.confirm(`Xóa hẳn tài khoản ${login}? Không khôi phục được.`)) void run(() => delFn({ data: { userId: user.id } }), `Đã xóa ${login}`).then((ok) => ok && setSel("new")); }}><Trash2 />Xóa</Button>
