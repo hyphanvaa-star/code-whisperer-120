@@ -85,7 +85,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   const all = users.data ?? [];
   const stats = [
     { k: "Tổng tài khoản", v: all.length },
-    { k: "Quản trị", v: all.filter((x) => x.roles.includes("admin")).length },
+    { k: "Quản trị viên", v: all.filter((x) => x.roles.includes("admin")).length },
     { k: "Dispatcher", v: all.filter((x) => !x.roles.includes("admin") && x.roles.includes("dispatcher")).length },
     { k: "Đã khóa", v: all.filter((x) => !x.roles.includes("admin") && !x.roles.includes("dispatcher")).length },
   ];
@@ -110,7 +110,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(280px,320px)_minmax(380px,460px)_1fr]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(356px,396px)_minmax(456px,536px)_1fr]">
           <aside className="flex min-h-0 flex-col border-r border-border bg-card">
             <div className="space-y-2 border-b border-border p-4">
               <div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className={inp + " pl-9"} placeholder="Tìm tài khoản…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
@@ -130,7 +130,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                       <div className="truncate text-xs text-muted-foreground">{x.name || "—"} · {new Date(x.createdAt).toLocaleDateString("vi-VN")}</div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[13px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị viên" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                       {own > 0 && <span className="text-[11px] font-semibold text-primary">{own} mục riêng</span>}
                     </div>
                   </button>
@@ -161,7 +161,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                     <h3 className="text-2xl font-extrabold tracking-tight">{login}</h3>
                     <p className="text-sm text-muted-foreground">{user.name || "—"} · tạo ngày {new Date(user.createdAt).toLocaleDateString("vi-VN")}{user.original && user.original !== login ? ` · ID gốc: ${user.original}` : ""}</p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
+                  <span className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị viên" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                 </div>
                 {Msg}
                 <form onSubmit={saveInfo} className={card + " space-y-3"}>
@@ -180,7 +180,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 {!user.isSelf && (
                   <div className={card + " flex flex-wrap items-center gap-3"}>
                     <ShieldCheck className="h-4 w-4 text-primary" />
-                    <span className="flex-1 text-sm">Quyền: <b>{user.roles.includes("admin") ? "Quản trị" : user.roles.includes("dispatcher") ? "Dispatcher" : "Chưa có quyền"}</b></span>
+                    <span className="flex-1 text-sm">Quyền: <b className="text-[15px]">{user.roles.includes("admin") ? "Quản trị viên" : user.roles.includes("dispatcher") ? "Dispatcher" : "Chưa có quyền"}</b></span>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => void run(() => roleFn({ data: { userId: user.id, role: "dispatcher", grant: !user.roles.includes("dispatcher") } }), "Đã cập nhật quyền")}>{user.roles.includes("dispatcher") ? "Khóa dùng" : "Cho dùng"}</Button>
                     <Button size="sm" variant="outline" disabled={busy} onClick={() => void run(() => roleFn({ data: { userId: user.id, role: "admin", grant: !user.roles.includes("admin") } }), "Đã cập nhật quyền")}>{user.roles.includes("admin") ? "Bỏ quản trị" : "Cho quản trị"}</Button>
                     <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={busy} onClick={() => { if (window.confirm(`Xóa hẳn tài khoản ${login}? Không khôi phục được.`)) void run(() => delFn({ data: { userId: user.id } }), `Đã xóa ${login}`).then((ok) => ok && setSel("new")); }}><Trash2 />Xóa</Button>
