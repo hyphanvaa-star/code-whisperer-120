@@ -125,6 +125,7 @@ function RootComponent() {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       identityChanged = true;
+      if (event === "SIGNED_IN") void logAuthEvent({ data: { event: "sign_in" } }).catch(() => {});
       setChatUserId(session?.user.id ?? null);
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
