@@ -130,7 +130,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                       <div className="truncate text-xs text-muted-foreground">{x.name || "—"} · {new Date(x.createdAt).toLocaleDateString("vi-VN")}</div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
-                      <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[13px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị viên" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
                       {own > 0 && <span className="text-[11px] font-semibold text-primary">{own} mục riêng</span>}
                     </div>
                   </button>
