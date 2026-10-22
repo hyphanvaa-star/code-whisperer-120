@@ -2,21 +2,28 @@
   const head = document.querySelector('.nm-track-head');
   const btn = document.getElementById('nmStorm');
   if(!head || !btn) return;
-  const slider = document.createElement('input');
-  slider.type = 'range'; slider.id = 'nmToolbarScroll';
-  slider.min = '0'; slider.max = '0'; slider.value = '0'; slider.step = '1';
-  slider.setAttribute('aria-label', 'Kéo thanh công cụ qua trái hoặc phải');
-  head.insertAdjacentElement('afterend', slider);
-  function sync(){
-    const max = Math.max(0, head.scrollWidth - head.clientWidth);
-    slider.max = String(max); slider.value = String(head.scrollLeft);
-    slider.disabled = max < 1;
+  function arrow(dir){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'nm-th-arrow nm-th-' + (dir < 0 ? 'l' : 'r');
+    b.textContent = dir < 0 ? '◀' : '▶';
+    b.setAttribute('aria-label', dir < 0 ? 'Cuộn thanh công cụ sang trái' : 'Cuộn thanh công cụ sang phải');
+    b.addEventListener('click', function(e){ e.stopPropagation(); head.scrollBy({left: dir * Math.max(160, head.clientWidth * 0.6), behavior:'smooth'}); });
+    return b;
   }
-  slider.addEventListener('input', function(){ head.scrollLeft = Number(slider.value); });
+  const left = arrow(-1), right = arrow(1);
+  head.insertBefore(left, head.firstChild); head.appendChild(right);
+  function sync(){
+    const max = head.scrollWidth - head.clientWidth;
+    left.hidden = head.scrollLeft < 2;
+    right.hidden = max < 2 || head.scrollLeft >= max - 2;
+  }
+  head.addEventListener('wheel', function(e){
+    if(head.scrollWidth <= head.clientWidth + 1 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    head.scrollLeft += e.deltaY; e.preventDefault();
+  }, {passive:false});
   head.addEventListener('scroll', sync, {passive:true});
   window.addEventListener('resize', sync);
   new ResizeObserver(sync).observe(head);
-  new MutationObserver(sync).observe(head, {childList:true,subtree:true,characterData:true,attributes:true});
   sync();
 
   // JTWC-style track: colour by intensity, past track solid, forecast dashed, labelled points.

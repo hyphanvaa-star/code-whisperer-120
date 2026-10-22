@@ -1785,7 +1785,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.17</span>')
+    .replace('>V 2.5</span>', '>V 2.18</span>')
     .replace('      $("#ac"+pf+"Pass").value = "";', `      pin.type = "password";
       pin.dataset.saved = "1";
       pin.dataset.mask = "1";
@@ -1971,9 +1971,11 @@ function ftRender(){
       #wrapNmTrack .nm-track-head #nmTrackHead{flex:0 0 auto;min-width:320px}
       #wrapNmTrack .nm-track-head #nmTrackHead:empty{min-width:0;display:none}
       #wrapNmTrack .nm-th-tools{flex-wrap:nowrap;white-space:nowrap;flex:0 0 auto}
-      #nmToolbarScroll{display:block;box-sizing:border-box;width:100%;height:20px;min-height:20px;margin:3px 0 5px;padding:0;accent-color:var(--x-red);cursor:ew-resize;touch-action:pan-y;zoom:var(--taf-read-scale,1)}
       .nm-storm-lbl{background:rgba(17,24,39,.85);color:#fff;border:0;font:700 11px/1.2 sans-serif;padding:2px 5px;box-shadow:none}
-      #nmToolbarScroll:disabled{opacity:.35;cursor:default}
+      #wrapNmTrack .nm-th-arrow{position:sticky;z-index:3;flex:0 0 auto;align-self:stretch;min-width:28px;border:0;background:var(--x-red);color:#fff;font-size:13px;cursor:pointer;padding:0 6px}
+      #wrapNmTrack .nm-th-arrow[hidden]{display:none}
+      #wrapNmTrack .nm-th-l{left:0}
+      #wrapNmTrack .nm-th-r{right:0;margin-left:auto}
     </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script><script>${stormToolbarScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
