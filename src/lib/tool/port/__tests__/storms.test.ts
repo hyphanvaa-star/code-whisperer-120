@@ -23,9 +23,10 @@ describe('storm source parsing', () => {
       { part: { en: 'Forecast for 12 hours ahead' }, center: [21.9, 124.4], validtime: { UTC: '2026-10-22T18:00:00Z' }, probabilityCircle: { radius: 46300 } },
     ]);
     expect(result.storm.label).toBe('Champi (2630)');
-    expect(result.features[0]?.geometry.coordinates).toEqual([[125.4, 20.8], [124.4, 21.9]]);
-    expect(result.features[1]?.properties.label).toBe('22/06Z');
-    expect(result.features[3]?.properties.radiusM).toBe(46300);
+    expect(result.features.find(f => f.geometry.type === 'LineString')?.geometry.coordinates).toEqual([[125.4, 20.8], [124.4, 21.9]]);
+    expect(result.features.find(f => f.geometry.type === 'Point')?.properties.label).toBe('22/06Z');
+    expect(result.features.find(f => f.geometry.type === 'Polygon')).toBeTruthy();
+    expect(result.features.some(f => f.properties.radiusM)).toBe(false);
   });
   it('preserves legacy coordinate records', () => {
     expect(jmaStorm([{ part: 'track', coord: { center: [10, 120] }, time: '2026-10-22T00:00:00Z' }]).features[0]?.geometry.coordinates).toEqual([120, 10]);

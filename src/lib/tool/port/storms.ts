@@ -34,6 +34,7 @@ export function jmaStorm(fcst: Record<string, unknown>[], target: Record<string,
   const storm: Storm = { name, id, label: `${name}${id ? ` (${id})` : ''}`, source: 'JMA' };
   const features: GeoFeature[] = [];
   const line: number[][] = [];
+  const rings: { c: number[]; r: number }[] = [];
   for (const p of fcst) {
     const c = p.coord as { center?: unknown } | undefined;
     const center = point(p.center ?? c?.center);
@@ -41,15 +42,18 @@ export function jmaStorm(fcst: Record<string, unknown>[], target: Record<string,
     const valid = p.validtime as { UTC?: string } | undefined;
     const at = String(valid?.UTC || p.time || p.initialTime || '');
     const label = at ? `${at.slice(8, 10)}/${at.slice(11, 13)}Z` : '';
-    const props = { storm: storm.label, source: 'JMA', at, name: label, label };
+    const kts = Number((p.maximumWind as { sustained?: { kt?: number } } | undefined)?.sustained?.kt || 0) || undefined;
+    const props = { storm: storm.label, source: 'JMA', at, name: label, label: kts ? `${label}, ${kts}KTS` : label, kts, track: 'fcst' };
     line.push(center);
     features.push({ type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: center } });
     if (!storm.at) storm.at = at;
     const circle = p.probabilityCircle as { radius?: number } | undefined;
     const gale = p.galeWarningArea as { radius?: number; center?: unknown } | undefined;
     const radius = Number(circle?.radius || gale?.radius || 0);
-    if (radius > 0 && Number.isFinite(radius)) features.push({ type: 'Feature', properties: { ...props, label: '', radiusM: radius, name: `${storm.label} · ${circle ? 'Forecast probability' : 'Gale warning'}`, fillOpacity: 0.08 }, geometry: { type: 'Point', coordinates: point(gale?.center) || center } });
+    if (radius > 0 && Number.isFinite(radius)) rings.push({ c: point(gale?.center) || center, r: radius });
   }
+  const cone = coneRing(rings);
+  if (cone) features.unshift({ type: 'Feature', properties: { storm: storm.label, name: `${storm.label} · vùng nguy hiểm`, source: 'JMA', stroke: '#f59e0b', fill: '#f59e0b', fillOpacity: 0.15, strokeWidth: 1.5 }, geometry: { type: 'Polygon', coordinates: [cone] } });
   if (line.length > 1) features.unshift({ type: 'Feature', properties: { storm: storm.label, name: storm.label, source: 'JMA' }, geometry: { type: 'LineString', coordinates: line } });
   return { storm, features };
 }
@@ -58,4 +62,22 @@ export function mergeStorms(primary: Storm[], fallback: Storm[]): Storm[] {
   const out = [...primary];
   for (const storm of fallback) if (!out.some(s => s.name.toLowerCase() === storm.name.toLowerCase())) out.push(storm);
   return out;
+}
+/** Danger-area cone: convex hull of sampled forecast circles (like JTWC graphics). */
+export function coneRing(rings: { c: number[]; r: number }[]): number[][] | null {
+  if (!rings.length) return null;
+  const pts: number[][] = [];
+  for (const { c, r } of rings) {
+    const [lon = 0, lat = 0] = c;
+    const dLat = r / 111_320;
+    const dLon = r / (111_320 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
+    for (let a = 0; a < 360; a += 15) pts.push([lon + dLon * Math.cos((a * Math.PI) / 180), lat + dLat * Math.sin((a * Math.PI) / 180)]);
+  }
+  pts.sort((p, q) => (p[0]! - q[0]!) || (p[1]! - q[1]!));
+  const cross = (o: number[], a: number[], b: number[]) => (a[0]! - o[0]!) * (b[1]! - o[1]!) - (a[1]! - o[1]!) * (b[0]! - o[0]!);
+  const lo: number[][] = [], up: number[][] = [];
+  for (const p of pts) { while (lo.length >= 2 && cross(lo[lo.length - 2]!, lo[lo.length - 1]!, p) <= 0) lo.pop(); lo.push(p); }
+  for (const p of [...pts].reverse()) { while (up.length >= 2 && cross(up[up.length - 2]!, up[up.length - 1]!, p) <= 0) up.pop(); up.push(p); }
+  const hull = [...lo.slice(0, -1), ...up.slice(0, -1)];
+  return [...hull, hull[0]!];
 }

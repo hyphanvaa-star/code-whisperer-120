@@ -293,6 +293,9 @@ export function kmlFeatures(kml: string): GeoFeature[] {
       const props: Record<string, unknown> = { name, storm, folder, ...st };
       const lab = fcstLabel(name);
       if (lab) props.label = lab;
+      const kt = KTS.exec(name);
+      if (kt) props.kts = Number(kt[1]);
+      if (folder.toLowerCase() === "forecast") props.track = "fcst";
       feats.push(...geomFeatures(el, props));
       return;
     }
@@ -337,7 +340,7 @@ function todayStorm(feats: GeoFeature[], day: number): GeoFeature[] {
     const fol = String(f.properties.folder ?? "");
     const low = fol.toLowerCase();
     if (fol) anyFolder = true;
-    if (low.includes("previous best track")) continue;
+    if (low.includes("previous best track")) { f.properties.track = "past"; rest.push(f); continue; }
     if (low === "forecast") fcst.push(f);
     else rest.push(f);
   }
