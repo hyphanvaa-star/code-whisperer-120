@@ -225,7 +225,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 </div>
                 <div className={card}>
                   <h4 className="mb-2 flex items-center gap-2 text-sm font-bold"><History className="h-4 w-4 text-primary" />Lịch sử thay đổi</h4>
-                  <ul className="max-h-72 divide-y divide-border overflow-y-auto text-sm">
+                  <ul className="max-h-[60vh] divide-y divide-border overflow-y-auto text-sm">
                     {userLog.map((l) => (
                       <li key={l.id} className="flex gap-3 py-2">
                         <span className="w-36 shrink-0 font-mono text-xs text-muted-foreground">{new Date(l.created_at).toLocaleString("vi-VN")}</span>
