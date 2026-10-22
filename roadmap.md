@@ -144,3 +144,4 @@
 - [x] Tài khoản: thu nhỏ ô nhập/nút trong khung 🔑 Tài khoản (chữ 16.5px, ô cao 40px, khung 880px) — đo bằng Playwright 1280x800 + 390x844, cuộn xuống thấy đủ AviWeb/OpsCore, badge V 2.20, chưa publish
 - [x] Tài khoản: đưa khung Outlook lên ngay trên InFlight Omni (FliteBrief → Outlook → Omni → AviWeb → OpsCore), badge V 2.21, Playwright xác nhận thứ tự + dấu mật khẩu, chưa publish
 - [x] Bão: khi navy.mil chặn máy chủ, nhờ trợ lý PC 5.6 tải hộ RSS/KMZ JTWC rồi mới rơi xuống JMA; badge V 2.23, chưa publish
+- [x] Bão: vẽ kiểu Google Earth JTWC (vòng gió hồng mờ, vùng nguy hiểm viền đỏ, biểu tượng xoáy đỏ, nhãn "giờ - knots"), V 2.24, chưa publish

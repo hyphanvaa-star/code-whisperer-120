@@ -26,35 +26,48 @@
   new ResizeObserver(sync).observe(head);
   sync();
 
-  // JTWC-style track: colour by intensity, past track solid, forecast dashed, labelled points.
-  function ktColor(k){ return !k ? '#e5e7eb' : k < 34 ? '#38bdf8' : k < 64 ? '#facc15' : k < 130 ? '#ef4444' : '#d946ef'; }
+  // Kiểu JTWC/Google Earth: vòng bán kính gió tô hồng trong mờ, vùng nguy hiểm viền đỏ đậm,
+  // tâm bão biểu tượng xoáy đỏ, đường đã qua vàng chấm xám, nhãn "22/06Z - 105 knots".
+  const CYC = '<svg viewBox="0 0 24 24" width="22" height="22"><path fill="#e11d1d" stroke="#7f1d1d" stroke-width=".6" d="M12 7.2a4.8 4.8 0 1 0 0 9.6a4.8 4.8 0 1 0 0-9.6zm0 2.6a2.2 2.2 0 1 1 0 4.4a2.2 2.2 0 1 1 0-4.4zM15.6 8.6C15 4.6 11.4 2.6 7.6 3.4c2.6.6 4.6 2.2 5.2 4.6zM8.4 15.4c.6 4 4.2 6 8 5.2c-2.6-.6-4.6-2.2-5.2-4.6z"/></svg>';
+  const cycIcon = (L && L.divIcon) ? L.divIcon({html: CYC, className: 'nm-cyc', iconSize: [22,22], iconAnchor: [11,11]}) : null;
+  function lbl(p){
+    const t = p.when || p.name || '';
+    const k = p.kts ? p.kts + ' knots' : '';
+    return (p.label && /knots/.test(p.label)) ? p.label : [String(t).split(' ·')[0].split(',')[0], k].filter(Boolean).join(' - ');
+  }
   nmDrawStorms = function(pack){
     if(!nmStormGroup) return;
     nmStormGroup.clearLayers();
-    const feats = (pack && pack.features) || [];
+    const feats = ((pack && pack.features) || []).slice();
+    const rank = f => { const p = f.properties||{}, t = (f.geometry||{}).type||''; return p.swath ? 0 : /Polygon/.test(t) ? (p.radii ? 10 - p.radii/10 : 1) : t === 'LineString' ? 20 : 30; };
+    feats.sort((a,b) => rank(a) - rank(b));
     feats.forEach(function(f){
       const p = f.properties || {}, g = f.geometry || {};
       if(g.type === 'Point'){
         if(p.radiusM) return;
         const ll = [g.coordinates[1], g.coordinates[0]];
         const past = p.track === 'past';
-        const m = L.circleMarker(ll, {radius: past ? 4 : 7, color: '#111827', weight: 1.5, fillColor: past ? '#9ca3af' : ktColor(p.kts), fillOpacity: 1});
-        if(p.label && !past) m.bindTooltip(p.label, {permanent: true, direction: 'right', className: 'nm-storm-lbl', offset: [8,0]});
-        else m.bindTooltip(p.name || p.label || '');
+        let m;
+        if(past) m = L.circleMarker(ll, {radius: 4, color: '#4b5563', weight: 1, fillColor: '#9ca3af', fillOpacity: 1});
+        else if(cycIcon) m = L.marker(ll, {icon: cycIcon, interactive: true});
+        else m = L.circleMarker(ll, {radius: 6, color: '#7f1d1d', weight: 1.5, fillColor: '#e11d1d', fillOpacity: 1});
+        const text = lbl(p);
+        if(text && !past) m.bindTooltip(text, {permanent: true, direction: 'right', className: 'nm-storm-lbl', offset: [10,0]});
+        else m.bindTooltip(text || p.name || '');
         m.addTo(nmStormGroup);
         return;
       }
       L.geoJSON(f, {style: function(){
         const poly = /Polygon/.test(g.type);
+        if(poly && p.swath) return {color: '#b91c1c', weight: 3, opacity: .95, fillColor: '#ffffff', fillOpacity: .12};
         if(poly && p.radii){
-          const c = p.radii >= 64 ? '#d946ef' : p.radii >= 50 ? '#dc2626' : '#991b1b';
-          return {color: c, weight: 2, opacity: .95, fill: false};
+          const c = p.radii >= 64 ? '#be185d' : p.radii >= 50 ? '#db2777' : '#e879f9';
+          return {color: c, weight: 1.6, opacity: .95, fillColor: p.radii >= 64 ? '#f472b6' : '#fbcfe8', fillOpacity: p.radii >= 64 ? .28 : p.radii >= 50 ? .22 : .16};
         }
-        if(poly && p.swath) return {color: '#dc2626', weight: 1.5, opacity: .9, dashArray: '6 5', fillColor: '#5eead4', fillOpacity: .18};
-        if(poly) return {color: p.stroke || '#f59e0b', weight: 1.5, opacity: .9, fillColor: p.fill || '#f59e0b', fillOpacity: p.fillOpacity == null ? .15 : Math.min(.25, p.fillOpacity)};
+        if(poly) return {color: p.stroke || '#e879f9', weight: 1.5, opacity: .9, fillColor: '#fbcfe8', fillOpacity: .15};
         const past = p.track === 'past';
-        return {color: past ? '#6b7280' : '#ef4444', weight: past ? 2.5 : 3, opacity: .95, dashArray: past ? null : '8 6'};
-      }, onEachFeature: function(_, l){ if(p.name) l.bindTooltip(p.name); }}).addTo(nmStormGroup);
+        return {color: past ? '#eab308' : '#dc2626', weight: past ? 3 : 2, opacity: .95};
+      }, onEachFeature: function(_, l){ if(p.name) l.bindTooltip(p.name, {sticky: true}); }}).addTo(nmStormGroup);
     });
   };
   let last = null, loading = false;

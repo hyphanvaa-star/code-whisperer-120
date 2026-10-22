@@ -49,14 +49,22 @@ export function jmaStorm(fcst: Record<string, unknown>[], target: Record<string,
     if (!storm.at) storm.at = at;
     const circle = p.probabilityCircle as { radius?: number } | undefined;
     const gale = p.galeWarningArea as { radius?: number; center?: unknown } | undefined;
-    const radius = Number(circle?.radius || gale?.radius || 0);
+    const strong = p.stormWarningArea as { radius?: number; center?: unknown } | undefined;
+    props.label = kts ? `${label} - ${kts} knots` : label;
+    const radius = Number(gale?.radius || circle?.radius || 0);
     if (radius > 0 && Number.isFinite(radius)) {
       const c0 = point(gale?.center) || center;
       rings.push({ c: c0, r: radius });
       // Mỗi mốc dự báo một vòng tròn riêng để biết ngày nào bão ở đâu.
-      features.push({ type: 'Feature', properties: { storm: storm.label, source: 'JMA', radii: 34, when: label, name: `${label} · vùng gió mạnh/xác suất`, stroke: '#a21caf' }, geometry: { type: 'Polygon', coordinates: [circleRing(c0, radius)] } });
+      features.push({ type: 'Feature', properties: { storm: storm.label, source: 'JMA', radii: 34, when: label, name: `${label} · bán kính gió 34 KT` }, geometry: { type: 'Polygon', coordinates: [circleRing(c0, radius)] } });
+    }
+    const r50 = Number(strong?.radius || 0);
+    if (r50 > 0 && Number.isFinite(r50)) {
+      features.push({ type: 'Feature', properties: { storm: storm.label, source: 'JMA', radii: 50, when: label, name: `${label} · bán kính gió 50 KT` }, geometry: { type: 'Polygon', coordinates: [circleRing(point(strong?.center) || center, r50)] } });
     }
   }
+  const cone = coneRing(rings);
+  if (cone && rings.length > 1) features.unshift({ type: 'Feature', properties: { storm: storm.label, source: 'JMA', swath: true, name: `${storm.label} · vùng nguy hiểm 34 KT` }, geometry: { type: 'Polygon', coordinates: [cone] } });
   if (line.length > 1) features.unshift({ type: 'Feature', properties: { storm: storm.label, name: storm.label, source: 'JMA' }, geometry: { type: 'LineString', coordinates: line } });
   return { storm, features };
 }
