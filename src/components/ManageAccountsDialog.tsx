@@ -140,9 +140,9 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </aside>
 
-          <section className="min-h-0 overflow-y-auto bg-muted p-6">
+          <section className="min-h-0 overflow-y-auto border-r border-border bg-muted p-5">
             {sel === "new" ? (
-              <form onSubmit={create} className={card + " mx-auto max-w-xl space-y-4 p-6"}>
+              <form onSubmit={create} className={card + " space-y-4 p-6"}>
                 <h3 className="flex items-center gap-2 text-lg font-bold"><UserPlus className="h-5 w-5 text-primary" />Tạo tài khoản mới</h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label><span className={lbl}>ID đăng nhập</span><input className={inp} value={nu} onChange={(e) => setNu(e.target.value)} placeholder="vd: nguyenvana" required /></label>
@@ -154,7 +154,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 <Button disabled={busy}>{busy ? "Đang tạo…" : "Tạo tài khoản"}</Button>
               </form>
             ) : user ? (
-              <div className="mx-auto max-w-5xl space-y-4">
+              <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <Avatar url={det.data?.[user.id]?.avatarUrl} text={login} size="h-16 w-16 text-xl" />
                   <div className="flex-1">
