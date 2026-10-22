@@ -62,8 +62,9 @@ export const routes: Routes = {
       if (kind === "outlook") {
         // Không bao giờ điền sẵn tài khoản Outlook — người dùng tự nhập mỗi lần.
         const { OUTLOOK_TTL } = await import("../creds.server");
-        const live = Boolean(mine?.username && mine.password && mine.saved_at && Date.now() - mine.saved_at < OUTLOOK_TTL);
-        accounts[kind] = { label: k.label, username: "", mailbox: mine?.mailbox || process.env["OUTLOOK_MAILBOX"] || "omc@vietjetair.com",
+        void OUTLOOK_TTL;
+        const live = Boolean(mine?.username && mine.password);
+        accounts[kind] = { label: k.label, username: live ? mine!.username : "", mailbox: mine?.mailbox || process.env["OUTLOOK_MAILBOX"] || "omc@vietjetair.com",
           has_password: live, source: live ? "file" : "none", env_names: [] };
         continue;
       }
@@ -139,6 +140,37 @@ export const routes: Routes = {
       }
     }
     return { ok: true, name: username };
+  },
+
+  // Xem lại mật khẩu đã lưu: bắt buộc nhập đúng mật khẩu đăng nhập web của chính người đó.
+  "POST /api/credentials/reveal": async (ctx) => {
+    const b = await ctx.json();
+    const kind = String(b["kind"] || "");
+    const loginPw = String(b["login_password"] || "");
+    if (!loginPw) return { error: "nhập mật khẩu đăng nhập của bạn" };
+    const { loadStored, dec } = await import("../creds.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(ctx.userId);
+    const email = u?.user?.email;
+    if (!email) return { error: "không xác định được tài khoản" };
+    const { createClient } = await import("@supabase/supabase-js");
+    const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+    const check = createClient(process.env["SUPABASE_URL"]!, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { fetch: (input, init) => {
+        const h = new Headers(init?.headers);
+        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
+        h.set("apikey", key);
+        return fetch(input, { ...init, headers: h });
+      } },
+    });
+    const { error } = await check.auth.signInWithPassword({ email, password: loginPw });
+    if (error) return { error: "mật khẩu đăng nhập không đúng" };
+    const enc = (await loadStored(ctx.userId))[kind]?.password;
+    if (!enc) return { error: "chưa lưu mật khẩu riêng cho mục này" };
+    const pw = dec(enc);
+    if (!pw) return { error: "không giải mã được mật khẩu" };
+    return { ok: true, password: pw };
   },
 };
 
