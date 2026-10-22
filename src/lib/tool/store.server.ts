@@ -37,6 +37,8 @@ export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T>
 
 export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<void> {
   const target = LAYERED_KEYS.has(key) && !(await isAdmin(ctx)) ? userKey(ctx, key) : key;
+  const track = !/^(ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|chg:|.*token|.*session|.*cookie)/i.test(target);
+  const prev = track ? (await rawGet(ctx, target).catch(() => ({ value: null }))).value : null;
   const { error } = await ctx.supabase.from("app_settings").upsert({
     key: target,
     value: value as never,
@@ -44,6 +46,21 @@ export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<vo
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error(error.message);
+  if (track) await logChange(ctx, target, prev, value).catch(() => {});
+}
+
+/** Keep a short history of what each save added/removed so the admin can see real edits. */
+async function logChange(ctx: Ctx, target: string, prev: unknown, next: unknown) {
+  const { diffLines } = await import("./port/change_lines");
+  const d = diffLines(prev, next);
+  if (!d.added.length && !d.removed.length) return;
+  const key = `chg:${target}`;
+  const old = (await rawGet(ctx, key)).value as { list?: unknown[] } | null;
+  const entry = { at: new Date().toISOString(), by: ctx.userId, added: d.added.slice(0, 100), removed: d.removed.slice(0, 100) };
+  await ctx.supabase.from("app_settings").upsert({
+    key, value: { list: [entry, ...(old?.list ?? [])].slice(0, 30) } as never,
+    updated_by: ctx.userId, updated_at: entry.at,
+  });
 }
 
 /** Drop the caller's private copy so they follow the admin's team version again. */
