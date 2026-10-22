@@ -1122,7 +1122,7 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 }
 .mode *:not(.mode-bang):not(.mode-bang *){color:inherit !important;-webkit-text-fill-color:inherit !important}
 .mode svg,.mode svg *{stroke:var(--x-mute) !important}
-.aside-head .mode:hover,.mode:hover{background:var(--x-bg) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important}
+.aside-head .mode:hover,.mode:hover{background:#E9EDF3 !important;color:#04060A !important;-webkit-text-fill-color:#04060A !important;font-weight:700 !important}
 .aside-head .mode.on,.mode.on{
   background:var(--x-red-50) !important;color:var(--x-red) !important;-webkit-text-fill-color:var(--x-red) !important;font-weight:800 !important;
   box-shadow:inset 4px 0 0 var(--x-red) !important;
@@ -1823,7 +1823,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.36</span>')
+    .replace('>V 2.5</span>', '>V 2.37</span>')
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
     .replace('id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acAviwebPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
