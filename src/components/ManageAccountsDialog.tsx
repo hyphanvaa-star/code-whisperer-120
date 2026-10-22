@@ -90,7 +90,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-muted/40">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
         <div className="bg-header px-6 py-4 text-primary-foreground shadow-md">
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" onClick={() => { if (!busy) onClose(); }}><ArrowLeft />Quay lại</Button>
@@ -139,7 +139,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </aside>
 
-          <section className="min-h-0 overflow-y-auto p-6">
+          <section className="min-h-0 overflow-y-auto bg-muted p-6">
             {sel === "new" ? (
               <form onSubmit={create} className={card + " mx-auto max-w-xl space-y-4 p-6"}>
                 <h3 className="flex items-center gap-2 text-lg font-bold"><UserPlus className="h-5 w-5 text-primary" />Tạo tài khoản mới</h3>
