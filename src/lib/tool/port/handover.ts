@@ -38,7 +38,7 @@ export const HEADERS = [
   "EXTRA FUEL",
   "ATC FILING",
   "EZFW",
-  "ATFM FILLING",
+  "ATFM FILING",
   "EDTO",
   "NOTE",
 ] as const;
