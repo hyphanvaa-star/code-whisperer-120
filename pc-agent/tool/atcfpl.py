@@ -1097,6 +1097,7 @@ def submit_fpl(
                 for _try in range(3):
                     if cancel is not None and cancel.is_set():
                         break
+                    final_clicked = True
                     _final_submit()
                     end = time.monotonic() + 12
                     while time.monotonic() < end and _addr_open():
@@ -1114,6 +1115,7 @@ def submit_fpl(
                         break
                     say(f"· Submit cuối chưa ăn — bấm lại ({_try + 2}/3)", name)
                 if not sent:
+                    final_clicked = False  # khung địa chỉ còn mở = chắc chắn chưa gửi
                     raise AtcError("chưa bấm được Submit ở bước cuối — chuyến CHƯA gửi")
                 _close_fpl_dialogs(driver)
                 _wait_fpl_ready(driver, 20)
@@ -1130,6 +1132,10 @@ def submit_fpl(
                 res.failed.append(name)
                 res.errors.append(f"{it.label}: {it.reason}")
                 say(f"✗ {it.label} — {it.reason}", name)
+                # Chỉ gửi lại khi CHẮC CHẮN chưa bấm Submit cuối (tránh gửi trùng)
+                if not tries and not final_clicked:
+                    queue.append((it, block, 1))
+                    say(f"· sẽ gửi lại {it.label} 1 lần ở cuối đợt", name)
                 # Phục hồi FPL Filing; lệch HTTP/Dashboard thì kéo về, không được
                 # thì dừng hẳn — không để chuyến sau lỗi dây chuyền.
                 try:
