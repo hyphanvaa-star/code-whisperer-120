@@ -46,6 +46,11 @@
       }
       L.geoJSON(f, {style: function(){
         const poly = /Polygon/.test(g.type);
+        if(poly && p.radii){
+          const c = p.radii >= 64 ? '#d946ef' : p.radii >= 50 ? '#dc2626' : '#991b1b';
+          return {color: c, weight: 2, opacity: .95, fill: false};
+        }
+        if(poly && p.swath) return {color: '#dc2626', weight: 1.5, opacity: .9, dashArray: '6 5', fillColor: '#5eead4', fillOpacity: .18};
         if(poly) return {color: p.stroke || '#f59e0b', weight: 1.5, opacity: .9, fillColor: p.fill || '#f59e0b', fillOpacity: p.fillOpacity == null ? .15 : Math.min(.25, p.fillOpacity)};
         const past = p.track === 'past';
         return {color: past ? '#6b7280' : '#ef4444', weight: past ? 2.5 : 3, opacity: .95, dashArray: past ? null : '8 6'};
