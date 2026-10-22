@@ -19,6 +19,32 @@
   new MutationObserver(sync).observe(head, {childList:true,subtree:true,characterData:true,attributes:true});
   sync();
 
+  // JTWC-style track: colour by intensity, past track solid, forecast dashed, labelled points.
+  function ktColor(k){ return !k ? '#e5e7eb' : k < 34 ? '#38bdf8' : k < 64 ? '#facc15' : k < 130 ? '#ef4444' : '#d946ef'; }
+  nmDrawStorms = function(pack){
+    if(!nmStormGroup) return;
+    nmStormGroup.clearLayers();
+    const feats = (pack && pack.features) || [];
+    feats.forEach(function(f){
+      const p = f.properties || {}, g = f.geometry || {};
+      if(g.type === 'Point'){
+        if(p.radiusM) return;
+        const ll = [g.coordinates[1], g.coordinates[0]];
+        const past = p.track === 'past';
+        const m = L.circleMarker(ll, {radius: past ? 4 : 7, color: '#111827', weight: 1.5, fillColor: past ? '#9ca3af' : ktColor(p.kts), fillOpacity: 1});
+        if(p.label && !past) m.bindTooltip(p.label, {permanent: true, direction: 'right', className: 'nm-storm-lbl', offset: [8,0]});
+        else m.bindTooltip(p.name || p.label || '');
+        m.addTo(nmStormGroup);
+        return;
+      }
+      L.geoJSON(f, {style: function(){
+        const poly = /Polygon/.test(g.type);
+        if(poly) return {color: p.stroke || '#f59e0b', weight: 1.5, opacity: .9, fillColor: p.fill || '#f59e0b', fillOpacity: p.fillOpacity == null ? .15 : Math.min(.25, p.fillOpacity)};
+        const past = p.track === 'past';
+        return {color: past ? '#6b7280' : '#ef4444', weight: past ? 2.5 : 3, opacity: .95, dashArray: past ? null : '8 6'};
+      }, onEachFeature: function(_, l){ if(p.name) l.bindTooltip(p.name); }}).addTo(nmStormGroup);
+    });
+  };
   let last = null, loading = false;
   nmPaintStormAge = function(pack){
     const age = document.getElementById('nmStormAge');
