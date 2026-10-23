@@ -10,10 +10,18 @@ async function assertAdmin(supabase: { rpc: Function }, userId: string) {
   if (!data) throw new Error("Chỉ quản trị viên mới làm được việc này");
 }
 
+export const pingPresence = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await context.supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", context.userId);
+    return { ok: true };
+  });
+
 export const listUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
+    await context.supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", context.userId);
     const [{ data: profiles }, { data: roles }] = await Promise.all([
       context.supabase.from("profiles").select("id, email, display_name, original_username, created_at, last_seen_at").order("created_at"),
       context.supabase.from("user_roles").select("user_id, role"),
