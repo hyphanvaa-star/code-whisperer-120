@@ -7021,8 +7021,6 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   title="Xem nguyên PDF OFP/CFP trên FliteBrief">OFP</button>
           <button type="button" class="dtab" id="tabMel" data-tab="mel"
                   title="MEL / RegNotice PDF của tàu đang chọn">MEL</button>
-          <button type="button" class="dtab" id="tabView" data-tab="view"
-                  title="Ẩn toàn bộ khung chi tiết và MEL để xem ảnh nền nguyên bản">View</button>
           <button type="button" class="dtab" id="tabLimit" data-tab="limit"
                   title="Kết quả Check OFP live: chuyến nào phải check, defect nào bắt phải check, OFP trả lời gì">Check OFP</button>
           <span class="hint" id="detailTabHint"></span>
@@ -10460,12 +10458,11 @@ let detailTab = "flt";
 let ofpLoadedFor = null;
 
 function setDetailTab(tab){
-  detailTab = ["flt","ofp","mel","view","limit"].includes(tab) ? tab : "flt";
+  detailTab = ["flt","ofp","mel","limit"].includes(tab) ? tab : "flt";
   const main = document.querySelector("main");
   $("#tabFlt").classList.toggle("on", detailTab === "flt");
   $("#tabOfp").classList.toggle("on", detailTab === "ofp");
   $("#tabMel").classList.toggle("on", detailTab === "mel");
-  $("#tabView").classList.toggle("on", detailTab === "view");
   $("#tabLimit").classList.toggle("on", detailTab === "limit");
   main.classList.toggle("bg-view", detailTab === "view");
   $("#pane").style.display = detailTab === "flt" ? "" : "none";
@@ -10533,7 +10530,6 @@ async function refreshExtraAfterOfp(id){
 $("#tabFlt").onclick = () => setDetailTab("flt");
 $("#tabOfp").onclick = () => setDetailTab("ofp");
 $("#tabMel").onclick = () => setDetailTab("mel");
-$("#tabView").onclick = () => setDetailTab("view");
 $("#tabLimit").onclick = () => setDetailTab("limit");
 
 async function showDetail(id){
