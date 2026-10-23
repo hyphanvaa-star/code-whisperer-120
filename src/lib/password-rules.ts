@@ -52,7 +52,6 @@ export function passwordChecks(pw: string, username = ""): PwCheck[] {
     { label: "Có số", ok: digits },
     { label: "Có ký tự đặc biệt (! @ # $ ... )", ok: CLASSES.test(pw) },
     { label: "Không chứa tên đăng nhập", ok: !user || !low.includes(user) },
-    { label: "Không phải mẫu dễ đoán", ok: !isPredictable(pw) },
   ];
 }
 
