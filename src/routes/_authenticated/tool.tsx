@@ -70,7 +70,7 @@ function ToolPage() {
   // Tín hiệu online: mỗi 40s khi tab đang mở.
   useEffect(() => {
     const id = ctx.user.id;
-    const beat = () => { if (document.visibilityState === "visible") void supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", id); };
+    const beat = () => { void supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", id); };
     beat();
     const t = setInterval(beat, 40_000);
     document.addEventListener("visibilitychange", beat);
