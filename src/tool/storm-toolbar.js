@@ -42,6 +42,20 @@
     age.title = error || (pack && pack.warning) || btn.title;
     sync();
   };
+  async function jtwcFromBrowser(){
+    const rss = await (await fetch('https://www.metoc.navy.mil/jtwc/rss/jtwc.rss', {cache:'no-store'})).text();
+    const urls = Array.from(new Set((rss.match(/https?:\/\/[^\s"'<>]+\.kmz/gi) || []))).slice(0, 16);
+    const kmz = [];
+    for(const u of urls){
+      try{
+        const b = new Uint8Array(await (await fetch(u, {cache:'no-store'})).arrayBuffer());
+        let s = ''; for(let i = 0; i < b.length; i += 32768) s += String.fromCharCode.apply(null, b.subarray(i, i + 32768));
+        kmz.push(btoa(s));
+      }catch(e){}
+    }
+    const r = await fetch('/api/wx/storms-kmz', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({rss, kmz})});
+    return r.ok ? r.json() : null;
+  }
   nmLoadStorms = async function(opt){
     if(loading) return;
     if(last && nmStormOn){ nmDrawStorms(last); nmPaintStormAge(last); }
@@ -49,7 +63,10 @@
     try{
       const r = await fetch('/api/wx/storms' + (opt && opt.refresh ? '?refresh=1' : ''));
       if(!r.ok) throw new Error('Không tải được dữ liệu bão');
-      const pack = await r.json();
+      let pack = await r.json();
+      if(!/^JTWC/.test(pack.source || '') || !(pack.features && pack.features.length)){
+        try{ const j = await jtwcFromBrowser(); if(j && j.features && j.features.length) pack = j; }catch(e){}
+      }
       if(!pack.error) last = pack;
       nmPaintStormAge(pack);
       if(nmStormOn){ nmDrawStorms(pack); if(opt && opt.fit) nmRevealStorms(); }
