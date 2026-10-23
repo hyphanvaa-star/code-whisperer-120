@@ -61,10 +61,23 @@ function ToolPage() {
       sendAccount();
     }).catch(() => {}); };
     refresh();
-    void checkOwner().then((r) => { if (alive) { ownerRef.current = r.ok; sendAccount(); } }).catch(() => {});
+    let liveTimer: ReturnType<typeof setInterval> | undefined;
+    const sendLive = () => {
+      void import("@/lib/admin.functions").then(async (m) => {
+        const { presence } = await import("@/lib/presence");
+        const users = await m.listUsers();
+        const count = users.filter((u) => presence(u.lastSeen).live).length;
+        if (alive) frame.current?.contentWindow?.postMessage({ type: "sohee-live-count", count }, window.location.origin);
+      }).catch(() => {});
+    };
+    void checkOwner().then((r) => {
+      if (!alive) return;
+      ownerRef.current = r.ok; sendAccount();
+      if (r.ok) { setTimeout(sendLive, 2500); liveTimer = setInterval(sendLive, 30_000); }
+    }).catch(() => {});
     window.addEventListener("sohee-profile-updated", refresh);
     const timer = setInterval(refresh, 30 * 60_000);
-    return () => { alive = false; clearInterval(timer); window.removeEventListener("sohee-profile-updated", refresh); };
+    return () => { alive = false; clearInterval(timer); if (liveTimer) clearInterval(liveTimer); window.removeEventListener("sohee-profile-updated", refresh); };
   }, [readAccount, sendAccount, checkOwner]);
 
   // Tín hiệu online: mỗi 40s khi tab đang mở.
