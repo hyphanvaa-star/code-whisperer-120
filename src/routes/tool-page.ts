@@ -318,7 +318,7 @@ const SHIM = `<script>
       var aftnTab=document.getElementById('mAftn');
       if(aftnTab&&!document.getElementById('opsAcctManage')){ var acctMg=document.createElement('button'); acctMg.type='button'; acctMg.className='mode'; acctMg.id='opsAcctManage'; acctMg.hidden=true; acctMg.title='Chỉ hyphan thấy mục này'; acctMg.textContent='Quản lí tài khoản'; aftnTab.insertAdjacentElement('afterend',acctMg); acctMg.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); try{ window.parent.postMessage({type:'sohee-accounts-manage'},window.location.origin); }catch(err){} },true); }
       if(acctOut)acctOut.addEventListener('click',function(){ try{ window.parent.postMessage({type:'sohee-signout'},window.location.origin); }catch(e){} });
-      window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} if(d.type==='sohee-live-count'){ var mg2=document.getElementById('opsAcctManage'); if(!mg2)return; var lb=document.getElementById('opsLiveCount'); if(!lb){ lb=document.createElement('span'); lb.id='opsLiveCount'; lb.style.cssText='margin-left:auto;display:inline-flex;align-items:center;gap:5px;font:800 12.5px/1 system-ui;color:#15803D;-webkit-text-fill-color:#15803D'; mg2.appendChild(lb);} var n=Number(d.count)||0; lb.title=n+' người đang online'; lb.innerHTML='<span style="width:9px;height:9px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,.25)"></span>'+n; } });
+      window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} if(d.type==='sohee-live-count'){ var mg2=document.getElementById('opsAcctManage'); if(!mg2)return; var lb=document.getElementById('opsLiveCount'); if(!lb){ lb=document.createElement('span'); lb.id='opsLiveCount'; lb.className='ops-live'; mg2.appendChild(lb);} var n=Number(d.count)||0; lb.title=n+' người đang online'; lb.classList.toggle('off',n<=0); lb.innerHTML='<b class="ops-live-n">'+n+'</b><i class="ops-live-d"></i>'; } });
       try{ window.parent.postMessage({type:'sohee-account-request'},window.location.origin); }catch(e){}
       var tick=function(){
         var now=new Date();
@@ -1157,6 +1157,36 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
 /* Quản lí tài khoản: một người kèm bánh răng phía sau. */
 .aside-head .modes .mode#opsAcctManage::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2'/%3E%3Ccircle cx='18' cy='16' r='2.5'/%3E%3Cpath d='M18 11.5V10M18 22v-1.5M22.5 16H21M15 16h-1.5M21.2 12.8l-1 1M15.8 19.2l-1 1M21.2 19.2l-1-1M15.8 12.8l1 1'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M2 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2'/%3E%3Ccircle cx='18' cy='16' r='2.5'/%3E%3Cpath d='M18 11.5V10M18 22v-1.5M22.5 16H21M15 16h-1.5M21.2 12.8l-1 1M15.8 19.2l-1 1M21.2 19.2l-1-1M15.8 12.8l1 1'/%3E%3C/svg%3E");background:#475569}
 
+/* ===== SỐ NGƯỜI ĐANG ONLINE CẠNH "QUẢN LÍ TÀI KHOẢN" =====
+   Số đứng trước, chấm xanh nhấp nháy phía sau — pill xanh lá rõ, chữ to dễ đọc. */
+.aside-head .modes .mode#opsAcctManage .ops-live{
+  position:static !important;display:inline-flex !important;visibility:visible !important;opacity:1 !important;
+  align-items:center;justify-content:center;gap:8px;margin-left:auto !important;flex:0 0 auto !important;
+  padding:4px 11px 4px 13px;border-radius:999px;
+  background:linear-gradient(135deg,#E9FBF0,#BBF3D0) !important;
+  border:1.5px solid #6EE7A7 !important;
+  box-shadow:0 2px 7px rgba(21,128,61,.20),inset 0 1px 0 #fff !important;
+  animation:none !important;
+}
+.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-n{
+  font:800 17px/1 var(--x-sans) !important;color:#15803D !important;-webkit-text-fill-color:#15803D !important;
+  font-variant-numeric:tabular-nums;letter-spacing:.01em;
+}
+.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-d{
+  width:11px;height:11px;border-radius:50%;background:#16A34A !important;
+  box-shadow:0 0 0 3px rgba(22,163,74,.26),0 0 9px rgba(22,163,74,.55);
+  animation:ops-live-pulse 1.7s ease-out infinite;
+}
+.aside-head .modes .mode#opsAcctManage .ops-live.off{
+  background:#F1F3F6 !important;border-color:#D7DDE6 !important;box-shadow:none !important;
+}
+.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-n{color:#8A94A3 !important;-webkit-text-fill-color:#8A94A3 !important}
+.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-d{background:#B6BFCC !important;box-shadow:0 0 0 3px rgba(150,160,175,.18) !important;animation:none !important}
+@keyframes ops-live-pulse{
+  0%{box-shadow:0 0 0 2px rgba(22,163,74,.34),0 0 8px rgba(22,163,74,.5)}
+  65%{box-shadow:0 0 0 8px rgba(22,163,74,0),0 0 12px rgba(22,163,74,.32)}
+  100%{box-shadow:0 0 0 2px rgba(22,163,74,.34),0 0 8px rgba(22,163,74,.5)}
+}
 /* ===== NHÃN ĐẾM TRÊN TAB: vòng hổ phách cho số, viên xanh đậm cho chữ "Ver" ===== */
 .aside-head .modes .mode-bang#genBang,.aside-head .modes .mode-bang#estBang{
   background:#FBBF24 !important;color:#1E293B !important;-webkit-text-fill-color:#1E293B !important;
@@ -1823,7 +1853,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.54</span>')
+    .replace('>V 2.5</span>', '>V 2.55</span>')
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
     .replace('id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acAviwebPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
