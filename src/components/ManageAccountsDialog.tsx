@@ -1,3 +1,4 @@
+import { presence } from "@/lib/presence";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -251,4 +252,16 @@ function Avatar({ url, text, size }: { url?: string | undefined; text: string; s
   return url
     ? <img src={url} alt="" className={`${size} shrink-0 rounded-full object-cover ring-2 ring-primary/20`} />
     : <span className={`${size} flex shrink-0 items-center justify-center rounded-full bg-primary/15 font-bold text-primary`}>{text.slice(0, 2).toUpperCase()}</span>;
+}
+
+function Presence({ at, small }: { at: string | null; small?: boolean }) {
+  const p = presence(at);
+  return (
+    <span className={`inline-flex items-center gap-1.5 font-bold ${small ? "text-[11px]" : "text-sm"} ${p.live ? "text-success" : "text-muted-foreground"}`}>
+      <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${p.live ? "bg-success" : "bg-muted-foreground/50"}`}>
+        {p.live && <span className="absolute inset-0 animate-ping rounded-full bg-success opacity-60" />}
+      </span>
+      {p.text}
+    </span>
+  );
 }
