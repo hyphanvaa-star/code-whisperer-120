@@ -293,9 +293,6 @@ export function kmlFeatures(kml: string): GeoFeature[] {
       const props: Record<string, unknown> = { name, storm, folder, ...st };
       const lab = fcstLabel(name);
       if (lab) props.label = lab;
-      const kt = KTS.exec(name);
-      if (kt) props.kts = Number(kt[1]);
-      if (folder.toLowerCase() === "forecast") props.track = "fcst";
       feats.push(...geomFeatures(el, props));
       return;
     }
@@ -340,7 +337,7 @@ function todayStorm(feats: GeoFeature[], day: number): GeoFeature[] {
     const fol = String(f.properties.folder ?? "");
     const low = fol.toLowerCase();
     if (fol) anyFolder = true;
-    if (low.includes("previous best track")) { f.properties.track = "past"; rest.push(f); continue; }
+    if (low.includes("previous best track")) continue;
     if (low === "forecast") fcst.push(f);
     else rest.push(f);
   }
@@ -351,28 +348,21 @@ function todayStorm(feats: GeoFeature[], day: number): GeoFeature[] {
   const todayPts = dated.filter((f) => fcstDay(String(f.properties.name ?? "")) === day);
   const first = (todayPts.length ? todayPts : dated)[0] ?? null;
   const keepPt = new Set(dated);
-  void first;
-  let when = "";
+  let radiiOn = false;
   const picked: GeoFeature[] = [];
   for (const f of fcst) {
     const kind = f.geometry.type;
     const name = String(f.properties.name ?? "");
     const dd = fcstDay(name);
     if (kind === "Point" && dd !== null) {
-      when = fcstLabel(name).split(",")[0] ?? "";
+      radiiOn = f === first;
       if (keepPt.has(f)) picked.push(f);
       continue;
     }
     if (kind === "Polygon" && name.toUpperCase().includes("RADIUS")) {
-      // Mỗi mốc dự báo giữ đủ vòng 34/50/64 KT như bản đồ JTWC.
-      const kt = /(\d+)\s*KT/i.exec(name);
-      f.properties.radii = kt ? Number(kt[1]) : 34;
-      f.properties.when = when;
-      f.properties.name = `${when} · bán kính gió ${f.properties.radii} KT`;
-      picked.push(f);
+      if (radiiOn) picked.push(f);
       continue;
     }
-    if (kind === "Polygon" && /swath/i.test(name)) f.properties.swath = true;
     picked.push(f);
   }
   return [...rest, ...picked];
