@@ -227,6 +227,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          last_seen_at: string | null
           original_username: string | null
         }
         Insert: {
@@ -235,6 +236,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          last_seen_at?: string | null
           original_username?: string | null
         }
         Update: {
@@ -243,6 +245,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          last_seen_at?: string | null
           original_username?: string | null
         }
         Relationships: []
