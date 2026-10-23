@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated")({
     if (!sessionStorage.getItem("fb-login-done")) {
       const { data: s } = await supabase.auth.getSession();
       if (s.session) {
-        await supabase.auth.signOut();
+        await supabase.auth.signOut({ scope: "local" });
         throw redirect({ to: "/auth" });
       }
     }
