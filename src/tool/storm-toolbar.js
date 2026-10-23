@@ -52,19 +52,19 @@
         else if(cycIcon) m = L.marker(ll, {icon: cycIcon, interactive: true});
         else m = L.circleMarker(ll, {radius: 6, color: '#7f1d1d', weight: 1.5, fillColor: '#e11d1d', fillOpacity: 1});
         const text = lbl(p);
-        if(text && !past) m.bindTooltip(text, {permanent: true, direction: 'right', className: 'nm-storm-lbl', offset: [10,0]});
+        if(text && !past) m.bindTooltip(text, {permanent: true, direction: 'top', className: 'nm-storm-lab', offset: [0,-10]});
         else m.bindTooltip(text || p.name || '');
         m.addTo(nmStormGroup);
         return;
       }
       L.geoJSON(f, {style: function(){
         const poly = /Polygon/.test(g.type);
-        if(poly && p.swath) return {color: '#b91c1c', weight: 3, opacity: .95, fillColor: '#ffffff', fillOpacity: .12};
+        if(poly && p.swath) return {color: '#3f6666', weight: 2, opacity: .9, fillColor: '#7faaaa', fillOpacity: .45};
         if(poly && p.radii){
-          const c = p.radii >= 64 ? '#be185d' : p.radii >= 50 ? '#db2777' : '#e879f9';
-          return {color: c, weight: 1.6, opacity: .95, fillColor: p.radii >= 64 ? '#f472b6' : '#fbcfe8', fillOpacity: p.radii >= 64 ? .28 : p.radii >= 50 ? .22 : .16};
+          const c = p.radii >= 64 ? '#9d174d' : p.radii >= 50 ? '#be185d' : '#d63384';
+          return {color: c, weight: 1.2, opacity: .9, fillColor: p.radii >= 64 ? '#f9a8d4' : '#fbcfe8', fillOpacity: p.radii >= 64 ? .3 : p.radii >= 50 ? .22 : .15};
         }
-        if(poly) return {color: p.stroke || '#e879f9', weight: 1.5, opacity: .9, fillColor: '#fbcfe8', fillOpacity: .15};
+        if(poly) return {color: p.stroke || '#d63384', weight: 1.2, opacity: .9, fillColor: '#fbcfe8', fillOpacity: .15};
         const past = p.track === 'past';
         return {color: past ? '#eab308' : '#dc2626', weight: past ? 3 : 2, opacity: .95};
       }, onEachFeature: function(_, l){
