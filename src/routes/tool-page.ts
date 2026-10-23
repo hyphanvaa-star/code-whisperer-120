@@ -318,7 +318,7 @@ const SHIM = `<script>
       var aftnTab=document.getElementById('mAftn');
       if(aftnTab&&!document.getElementById('opsAcctManage')){ var acctMg=document.createElement('button'); acctMg.type='button'; acctMg.className='mode'; acctMg.id='opsAcctManage'; acctMg.hidden=true; acctMg.title='Chỉ hyphan thấy mục này'; acctMg.textContent='Quản lí tài khoản'; aftnTab.insertAdjacentElement('afterend',acctMg); acctMg.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); try{ window.parent.postMessage({type:'sohee-accounts-manage'},window.location.origin); }catch(err){} },true); }
       if(acctOut)acctOut.addEventListener('click',function(){ try{ window.parent.postMessage({type:'sohee-signout'},window.location.origin); }catch(e){} });
-      window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} });
+      window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} if(d.type==='sohee-live-count'){ var mg2=document.getElementById('opsAcctManage'); if(!mg2)return; var lb=document.getElementById('opsLiveCount'); if(!lb){ lb=document.createElement('span'); lb.id='opsLiveCount'; lb.style.cssText='margin-left:auto;display:inline-flex;align-items:center;gap:5px;font:800 12.5px/1 system-ui;color:#15803D;-webkit-text-fill-color:#15803D'; mg2.appendChild(lb);} var n=Number(d.count)||0; lb.title=n+' người đang online'; lb.innerHTML='<span style="width:9px;height:9px;border-radius:50%;background:#22C55E;box-shadow:0 0 0 3px rgba(34,197,94,.25)"></span>'+n; } });
       try{ window.parent.postMessage({type:'sohee-account-request'},window.location.origin); }catch(e){}
       var tick=function(){
         var now=new Date();
@@ -1823,7 +1823,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = raw
     // The embedded source stays intact; account fixes belong in this shim.
-    .replace('>V 2.5</span>', '>V 2.52</span>')
+    .replace('>V 2.5</span>', '>V 2.53</span>')
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
     .replace('id="acAviwebPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acAviwebPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
