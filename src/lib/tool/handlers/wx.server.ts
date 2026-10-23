@@ -202,10 +202,33 @@ Object.assign(routes, {
   "GET /api/wx/storms": async (ctx: Parameters<Routes[string]>[0]) => {
     const force = ctx.params.get("refresh") === "1";
     try {
-      return await stormsPayload(force);
+      return await stormsPayload(force, ctx);
     } catch (exc) {
       return { features: [], storms: [], error: String((exc as Error)?.message ?? exc) };
     }
+  },
+
+  // Trình duyệt tự tải RSS + KMZ JTWC (navy.mil cho phép) khi máy chủ bị chặn;
+  // máy chủ chỉ giải nén/đọc KML giống hệt luồng JTWC gốc.
+  "POST /api/wx/storms-kmz": async (ctx: Parameters<Routes[string]>[0]) => {
+    const body = await ctx.json();
+    const rss = String(body["rss"] ?? "");
+    const list = ((body["kmz"] as unknown[]) ?? []).map(String).slice(0, 16);
+    const features: unknown[] = [];
+    for (const b64 of list) {
+      try {
+        const bin = atob(b64);
+        const buf = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+        const files = unzipSync(buf);
+        const kmlName = Object.keys(files).find((n) => n.toLowerCase().endsWith(".kml"));
+        if (!kmlName) continue;
+        features.push(...todayFeatures(kmlFeatures(strFromU8(files[kmlName] as Uint8Array))));
+      } catch { /* bỏ qua bão lỗi */ }
+    }
+    const payload = { type: "FeatureCollection", features, storms: jtwcStorms(rss), source: "JTWC", at: new Date().toISOString() };
+    if (features.length) { stormsCache = payload; stormsCacheAt = Date.now(); }
+    return payload;
   },
 
   // Port of web.py "/api/wx/download" → start_wx_download(): trả {id} rồi job
