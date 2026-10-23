@@ -3,7 +3,9 @@ import { MIN_LEN, isPredictable, passwordChecks } from "@/lib/password-rules";
 
 // Every sample here was run against the live backend: REJECT means the
 // server refused it with weak_password, ACCEPT means it stored it.
-const REJECTED = ["abc123", "12345678", "password", "Flight2024", "Abc@1234", "abcd@efgh", "abc12345678", "aaaa1111!", "supabase123"];
+// The "predictable pattern" checklist rule was dropped at the user's request,
+// so only rejections caught by the remaining rules are listed.
+const REJECTED = ["abc123", "12345678", "password", "Flight2024", "abcd@efgh", "abc12345678", "supabase123"];
 const ACCEPTED = ["Xk9#mQ2$Lv7!", "Sohee#Dispatch2026", "Mekong7#River", "Hanoi!Office99", "Dong@Nai8821"];
 
 describe("password-rules", () => {
