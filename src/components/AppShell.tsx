@@ -64,7 +64,7 @@ function useSignOut() {
     await qc.cancelQueries();
     qc.clear();
     await logAuthEvent({ data: { event: "sign_out" } }).catch(() => {});
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     navigate({ to: "/auth", replace: true });
   };
 }

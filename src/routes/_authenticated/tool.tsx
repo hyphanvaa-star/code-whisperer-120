@@ -81,7 +81,7 @@ function ToolPage() {
     await ctx.queryClient.cancelQueries();
     ctx.queryClient.clear();
     await logAuthEvent({ data: { event: "sign_out" } }).catch(() => {});
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
     navigate({ to: "/auth", replace: true });
   }, [ctx.queryClient, navigate]);
 

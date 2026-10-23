@@ -33,7 +33,7 @@ export function AuthScreen() {
     // xoá mất phiên vừa tạo và người dùng phải bấm lần thứ 2.
     ready.current = (async () => {
       const { data } = await supabase.auth.getSession();
-      if (data.session) await supabase.auth.signOut();
+      if (data.session) await supabase.auth.signOut({ scope: "local" });
     })();
     // Không đăng ký onAuthStateChange: submit() tự điều hướng sau khi đã set
     // cờ fb-login-done. Listener trước đây điều hướng sớm hơn cờ khiến guard
