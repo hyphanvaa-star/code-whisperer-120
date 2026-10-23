@@ -76,7 +76,7 @@ function ToolPage() {
     window.addEventListener("focus", beat);
     const t = setInterval(beat, 40_000);
     document.addEventListener("visibilitychange", beat);
-    return () => { clearInterval(t); document.removeEventListener("visibilitychange", beat); };
+    return () => { clearTimeout(first); clearInterval(t); window.removeEventListener("focus", beat); document.removeEventListener("visibilitychange", beat); };
   }, [ctx.user.id]);
 
   const signOut = useCallback(async () => {
