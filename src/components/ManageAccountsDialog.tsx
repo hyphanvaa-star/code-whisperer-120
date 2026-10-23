@@ -36,7 +36,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
   const delFn = useServerFn(deleteAccount);
   const roleFn = useServerFn(setRole);
   const infoFn = useServerFn(updateAccountInfo);
-  const users = useQuery({ queryKey: ["users"], queryFn: () => usersFn() });
+  const users = useQuery({ queryKey: ["users"], queryFn: () => usersFn(), refetchInterval: 30_000 });
   const log = useQuery({ queryKey: ["activity"], queryFn: () => logFn() });
   const detFn = useServerFn(accountDetails);
   const resetDataFn = useServerFn(resetPersonalData);
@@ -128,6 +128,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 truncate text-[15px] font-bold">{l}{x.isSelf && <span className="text-xs font-medium text-muted-foreground">(bạn)</span>}</div>
                       <div className="truncate text-xs text-muted-foreground">{x.name || "—"} · {new Date(x.createdAt).toLocaleDateString("vi-VN")}</div>
+                      <Presence at={x.lastSeen} small />
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <span className={`rounded-full px-2.5 py-1 text-[13px] font-bold ${adm ? "bg-primary text-primary-foreground" : x.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{adm ? "Quản trị viên" : x.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
@@ -158,7 +159,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                   <Avatar url={det.data?.[user.id]?.avatarUrl} text={login} size="h-16 w-16 text-xl" />
                   <div className="flex-1">
-                    <h3 className="text-2xl font-extrabold tracking-tight">{login}</h3>
+                    <h3 className="flex items-center gap-3 text-2xl font-extrabold tracking-tight">{login}<Presence at={user.lastSeen} /></h3>
                     <p className="text-sm text-muted-foreground">{user.name || "—"} · tạo ngày {new Date(user.createdAt).toLocaleDateString("vi-VN")}{user.original && user.original !== login ? ` · ID gốc: ${user.original}` : ""}</p>
                   </div>
                   <span className={`rounded-full px-3.5 py-1.5 text-[13px] font-bold ${user.roles.includes("admin") ? "bg-primary text-primary-foreground" : user.roles.includes("dispatcher") ? "bg-secondary text-secondary-foreground" : "bg-destructive/10 text-destructive"}`}>{user.roles.includes("admin") ? "Quản trị viên" : user.roles.includes("dispatcher") ? "Dispatcher" : "Đã khóa"}</span>
