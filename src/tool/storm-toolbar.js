@@ -31,6 +31,12 @@
   const CYC = '<svg viewBox="0 0 24 24" width="22" height="22"><path fill="#e11d1d" stroke="#7f1d1d" stroke-width=".6" d="M12 7.2a4.8 4.8 0 1 0 0 9.6a4.8 4.8 0 1 0 0-9.6zm0 2.6a2.2 2.2 0 1 1 0 4.4a2.2 2.2 0 1 1 0-4.4zM15.6 8.6C15 4.6 11.4 2.6 7.6 3.4c2.6.6 4.6 2.2 5.2 4.6zM8.4 15.4c.6 4 4.2 6 8 5.2c-2.6-.6-4.6-2.2-5.2-4.6z"/></svg>';
   const cycIcon = (L && L.divIcon) ? L.divIcon({html: CYC, className: 'nm-cyc', iconSize: [22,22], iconAnchor: [11,11]}) : null;
   function lbl(p){
+    const s = String(p.label || '').trim();
+    if(/^\d{1,2}\/\d{2}Z/.test(s)){
+      const m = /(\d+)\s*knots?/i.exec(s);
+      const when = s.split(/[,\-]/)[0].trim();
+      return m ? when + ', ' + m[1] + 'KTS' : when;
+    }
     const t = String(p.when || p.name || '').split(' ·')[0].split(',')[0].trim();
     const k = p.kts ? p.kts + 'KTS' : '';
     return [t, k].filter(Boolean).join(', ');
