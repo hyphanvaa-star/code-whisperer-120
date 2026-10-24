@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "5.6"
+VERSION = "5.8"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1554,6 +1554,35 @@ def post(path: str, body: dict) -> dict:
     raise last
 
 
+def _report_ok(jid: str, result: dict) -> None:
+    """Gửi kết quả lệnh. Gói có file đính kèm (FPL VER) lớn hay bị mạng công ty
+    cắt giữa chừng → gửi lại từng phần nhỏ hơn: chỉ 1 file, rồi không file.
+    File chưa gửi được bỏ khỏi danh sách "đã gửi" để lượt sau gửi lại."""
+    try:
+        post(REPORT_URL, {"id": jid, "ok": True, "result": result})
+        return
+    except (requests.ConnectionError, requests.Timeout):
+        ups = result.get("uploads") or []
+        if not ups:
+            raise
+    for keep in (ups[:1], []):
+        for u in ups[len(keep):]:
+            _SENT_VER.discard(u.get("name"))
+        r = dict(result)
+        if keep:
+            r["uploads"] = keep
+        else:
+            r.pop("uploads", None)
+        try:
+            post(REPORT_URL, {"id": jid, "ok": True, "result": r})
+            if len(keep) < len(ups):
+                log(f"  ⚠ mạng cắt gói lớn — đã gửi {len(keep)}/{len(ups)} file FPL VER, phần còn lại gửi lượt sau")
+            return
+        except (requests.ConnectionError, requests.Timeout):
+            continue
+    raise requests.ConnectionError("mạng cắt kết nối khi gửi kết quả")
+
+
 def main() -> int:
     global TOKEN
     if not TOKEN:
@@ -1630,18 +1659,29 @@ def main() -> int:
                     if handler is None:
                         raise RuntimeError(f"trợ lý không biết lệnh {kind!r}")
                     result = handler(job.get("payload") or {}, say)
-                    result["lines"] = lines
-                    post(REPORT_URL, {"id": jid, "ok": True, "result": result})
-                    log(f"✓ xong {kind}")
                 except Exception as exc:
                     traceback.print_exc()
-                    post(REPORT_URL, {
-                        "id": jid, "ok": False,
-                        "result": {"error": str(exc), "lines": lines},
-                    })
-                    log(f"✗ {kind}: {exc}")
-                finally:
-                    _CURRENT_JOB[0] = None
+                    result = None
+                    err = str(exc)
+                if result is not None:
+                    result["lines"] = lines
+                    try:
+                        _report_ok(jid, result)
+                        log(f"✓ xong {kind}")
+                    except Exception as exc:
+                        # Lệnh đã chạy xong nhưng mạng cắt lúc gửi kết quả: không biến
+                        # thành lỗi lệnh, chỉ ghi lại; web sẽ hỏi lại ở lượt sau.
+                        log(f"⚠ {kind}: chạy xong nhưng chưa gửi được kết quả về web ({exc}) — lượt sau gửi lại")
+                else:
+                    try:
+                        post(REPORT_URL, {
+                            "id": jid, "ok": False,
+                            "result": {"error": err, "lines": lines},
+                        })
+                    except Exception as exc2:
+                        log(f"⚠ không gửi được báo lỗi về web: {exc2}")
+                    log(f"✗ {kind}: {err}")
+                _CURRENT_JOB[0] = None
         except KeyboardInterrupt:
             return 0
         except Exception as exc:
