@@ -1630,16 +1630,28 @@ def main() -> int:
                     if handler is None:
                         raise RuntimeError(f"trợ lý không biết lệnh {kind!r}")
                     result = handler(job.get("payload") or {}, say)
-                    result["lines"] = lines
-                    post(REPORT_URL, {"id": jid, "ok": True, "result": result})
-                    log(f"✓ xong {kind}")
                 except Exception as exc:
                     traceback.print_exc()
-                    post(REPORT_URL, {
-                        "id": jid, "ok": False,
-                        "result": {"error": str(exc), "lines": lines},
-                    })
-                    log(f"✗ {kind}: {exc}")
+                    result = None
+                    err = str(exc)
+                if result is not None:
+                    result["lines"] = lines
+                    try:
+                        _report_ok(jid, result)
+                        log(f"✓ xong {kind}")
+                    except Exception as exc:
+                        # Lệnh đã chạy xong nhưng mạng cắt lúc gửi kết quả: không biến
+                        # thành lỗi lệnh, chỉ ghi lại; web sẽ hỏi lại ở lượt sau.
+                        log(f"⚠ {kind}: chạy xong nhưng chưa gửi được kết quả về web ({exc}) — lượt sau gửi lại")
+                else:
+                    try:
+                        post(REPORT_URL, {
+                            "id": jid, "ok": False,
+                            "result": {"error": err, "lines": lines},
+                        })
+                    except Exception as exc2:
+                        log(f"⚠ không gửi được báo lỗi về web: {exc2}")
+                    log(f"✗ {kind}: {err}")
                 finally:
                     _CURRENT_JOB[0] = None
         except KeyboardInterrupt:
