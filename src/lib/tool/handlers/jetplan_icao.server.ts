@@ -65,23 +65,40 @@ export function pickPlan(rows: PlanRow[], callsign: string, want: number): PlanR
   return hits[0] ?? null;
 }
 
+/** A directly fetched View ICAO page must belong to the requested callsign. */
+export function planBelongsTo(html: string, callsign: string): boolean {
+  return new RegExp("-" + callsign.toUpperCase() + "\\b").test((html || "").toUpperCase());
+}
+
 export const routes: Routes = {
   "GET /api/jetplan/icao": async (ctx) => {
     const digits = (ctx.params.get("flt") || "").replace(/\D/g, "");
     if (!digits) return { error: "Thiếu số hiệu chuyến" };
     const callsign = "VJC" + digits;
     const want = Number(ctx.params.get("t") || 0);
+    const direct = Number((ctx.params.get("plan") || "").replace(/\D/g, "") || 0);
     let jar: Jar;
     try { jar = await login(); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; }
     let row: PlanRow | null = null;
-    for (let first = -1, pages = 0; pages < 3 && !row; pages++) {
-      const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=410&firstPlanNumber=${first}&numberOfPlans=50&thType=FP&direction=init`)).text();
-      const rows = parseDispatch(html);
-      row = pickPlan(rows, callsign, want);
-      if (!rows.length) break;
-      const min = Math.min(...rows.map((r) => r.plan));
-      if (min <= 1) break;
-      first = min - 1;
+    if (direct) {
+      // Số CFP trên crewlist chính là số plan JetPlan: tải thẳng, khỏi lật
+      // từng trang Dispatch (plan tính sớm trôi khỏi các trang đầu).
+      const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=776&plan=${direct}`)).text();
+      if (planBelongsTo(html, callsign)) {
+        row = { plan: direct, pod: "", poa: "", etd: "", callsign, t: 0 };
+      } else {
+        return { error: `Plan ${direct} không phải của ${callsign} — kiểm tra lại số CFP` };
+      }
+    } else {
+      for (let first = -1, pages = 0; pages < 6 && !row; pages++) {
+        const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=410&firstPlanNumber=${first}&numberOfPlans=50&thType=FP&direction=init`)).text();
+        const rows = parseDispatch(html);
+        row = pickPlan(rows, callsign, want);
+        if (!rows.length) break;
+        const min = Math.min(...rows.map((r) => r.plan));
+        if (min <= 1) break;
+        first = min - 1;
+      }
     }
     if (!row) return { error: `Không tìm thấy plan ${callsign} trong Dispatch JetPlan` };
     let html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=776&plan=${row.plan}`)).text();
