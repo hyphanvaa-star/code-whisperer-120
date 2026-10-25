@@ -197,9 +197,18 @@ export const jobs: Jobs = {
       const buf = await getFile(ctx, path);
       if (!buf) throw new Error("không tìm thấy file ATC trong kho — tải file lên lại");
       const text = new TextDecoder("utf-8").decode(buf);
+      const catalogue = await loadFlights(3, true);
+      const labels = Array.isArray(params.only_labels) ? params.only_labels.map(String) : [];
+      const blocks = readFplBlocks(text).filter(block => !labels.length || labels.includes(fplName(block)));
+      if (!blocks.length) throw new Error("Không có FPL đã chọn để gửi.");
+      for (const block of blocks) {
+        const candidates = catalogue.filter(f => f.callsign === fplName(block));
+        const matching = candidates.filter(f => { try { validateOperationalAtc(block, f); return true; } catch { return false; } });
+        if (matching.length !== 1) throw new Error(`${fplName(block)}: điện văn không khớp duy nhất ngày/chặng trong −6/+24 — không gửi.`);
+      }
       const id = await pc.enqueue("aviweb_submit", {
         name: path.split("/").pop(),
-        text,
+        text: blocks.join("\n\n"),
         headless: params["headless"] !== false,
         limit: params["limit"] ?? null,
         only_labels: params["only_labels"] ?? [],

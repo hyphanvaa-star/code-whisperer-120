@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 2.63: khóa chọn chuyến đúng ngày/chặng, duy nhất trong −6/+24; rà các chức năng và chặn OFP/điện văn ngày cũ.
+- [x] V 2.63: khóa chung danh sách −6/+24 cả khi dùng cache; CHG/DLA, Get ATC/CNL/CHG, AFTN, REQ, AviWeb và mail EZFW chặn ngày/chặng cũ; bỏ nhận EOBT sai DOF. 75 kiểm thử đạt, gồm VJC807 bỏ 0745 hôm trước và nhận 0830 đúng ngày.
+- [ ] V 2.63: thử VJC807 thật từ Check ATC đến xuất CHG/DLA — không tạo được phiên của người yêu cầu; cần người dùng thử preview, chưa publish.
 
 - [x] V 2.62: giữ thông tin tài khoản theo từng người khi mở lại; không lưu mật khẩu trên trình duyệt, giữ thông tin khi tải lỗi và bảo vệ ô đang sửa.
 - [ ] V 2.62: thử lưu/mở lại tài khoản hyphan trong phiên thật — không tạo được phiên cho tài khoản Lovable hiện tại; cần người dùng thử trên preview, chưa publish.
