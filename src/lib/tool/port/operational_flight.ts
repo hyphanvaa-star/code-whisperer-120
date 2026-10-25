@@ -1,7 +1,7 @@
 import { inOpsWindow } from './atc_ezfw';
 
 const MON: Record<string, number> = { JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12 };
-export function parseOpsDate(date: unknown): { y?: number; m: number; d: number } | null {
+export function parseOpsDate(date: unknown): { y?: number | undefined; m: number; d: number } | null {
   const s = String(date ?? '').trim().toUpperCase();
   let match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
   let y: number | undefined, m: number, d: number;
