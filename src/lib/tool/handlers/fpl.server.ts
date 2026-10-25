@@ -404,7 +404,8 @@ export const routes: Routes = {
       const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
       // Ưu tiên giờ trên bảng (STD gốc / ETD mới, giờ VN) — FliteBrief có thể đã đổi STD theo ETD.
       // EOBT gốc từ AviWeb (UTC HHMM) thắng mọi nguồn khác — đó là điện gốc đã nộp.
-      const avi = /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
+      const dof = std?.toISOString().slice(2, 10).replace(/-/g, "");
+      const avi = it.avi_dof === dof && /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
       const orig = avi || vnToUtc(it.std) || (std && !isNaN(std.getTime())
         ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "");
       const fresh = vnToUtc(it.etd);

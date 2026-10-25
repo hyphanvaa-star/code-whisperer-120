@@ -141,14 +141,8 @@ export const jobs: Jobs = {
     try {
       const { fbGet } = await import("@/lib/flitebrief.server");
       const { loadFlights } = await import("../core/gantts.server");
-      const flights = await loadFlights(2);
-      const known: ae.AeFlight[] = flights.map((f) => ({
-        id: f.id,
-        callsign: f.callsign || "",
-        fltno: f.fltno,
-        commercial_fltno: f.commercial_fltno,
-        std: f.std,
-      }));
+      const flights = await loadFlights(3, true);
+      const known = [...flights];
       for (let i = 0; i < wants.length; i++) {
         const want = wants[i]!;
         emit({ type: "line", text: `── ${want} (${i + 1}/${wants.length})` });
@@ -159,9 +153,7 @@ export const jobs: Jobs = {
           } catch (e0) {
             // Danh sách nạp sẵn có thể cũ (thiếu sector hôm sau) → nạp lại mới từ FliteBrief rồi thử lại.
             const fresh = await loadFlights(3, true);
-            known.splice(0, known.length, ...fresh.map((f) => ({
-              id: f.id, callsign: f.callsign || "", fltno: f.fltno, commercial_fltno: f.commercial_fltno, std: f.std,
-            })));
+            known.splice(0, known.length, ...fresh);
             flight = ae.findFlight(known, want);
             void e0;
           }
@@ -171,6 +163,10 @@ export const jobs: Jobs = {
           const { ofpLayoutFromPdf } = await import("../port/ofp_layout");
           const text = await ofpLayoutFromPdf(bytes);
           const atc = ae.extractAtc(text).trim();
+          const sector = known.find(f => f.id === flight.id);
+          if (!sector) throw new Error("Không xác định được chuyến để kiểm tra OFP.");
+          const { validateOperationalAtc } = await import("../port/operational_flight");
+          validateOperationalAtc(atc, sector);
           const ezfw = ae.extractEzfw(text);
           const subject = ae.subjectOf(flight.callsign, flight.std);
           const names = ae.aeFileNames(flight.callsign, ezfw, flight.std);

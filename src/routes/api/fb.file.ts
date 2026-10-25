@@ -52,6 +52,8 @@ export const Route = createFileRoute("/api/fb/file")({
         const { fbGet } = await import("@/lib/flitebrief.server");
         const { logActivity } = await import("@/lib/flights.server");
         try {
+          const { loadFlights } = await import("@/lib/tool/core/gantts.server");
+          if (!(await loadFlights(3, true)).some(f => f.id === sector)) return new Response("Chuyến ngoài khung −6/+24 giờ hoặc không còn trên FliteBrief", { status: 409 });
           const res = await fbGet(path, "application/pdf,*/*");
           if (!res.ok) return new Response("Không tải được file", { status: res.status === 404 ? 404 : 502 });
           await logActivity(userId, "download", `${kind} ${sector}/${att ?? ""}`);

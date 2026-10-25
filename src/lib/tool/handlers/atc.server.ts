@@ -44,8 +44,11 @@ export const routes: Routes = {
     if (!flt) return { found: false, error: "Thiếu số chuyến." };
     const digits = String(parseInt(flt, 10));
     let sector;
-    try { sector = selectOperationalFlight(await loadFlights(3, true), {
-      flt: digits, sector_id: ctx.params.get("sector_id"), date: ctx.params.get("date"),
+    const catalogue = await loadFlights(3, true);
+    const unique = catalogue.filter(f => [f.callsign, f.fltno, f.commercial_fltno].some(cs => String(cs || "").replace(/\D/g, "").replace(/^0+/, "") === digits));
+    const selectedId = ctx.params.get("sector_id") || (unique.length === 1 ? unique[0]?.id : null);
+    try { sector = selectOperationalFlight(catalogue, {
+      flt: digits, sector_id: selectedId, date: ctx.params.get("date"),
       dep: ctx.params.get("dep"), arr: ctx.params.get("arr"),
     }); } catch (e) { return { found: false, error: (e as Error).message }; }
     const files = await listFiles(ctx, ATC_DIR).catch(() => []);
@@ -125,12 +128,13 @@ export const routes: Routes = {
       const sameFlt = crew.filter((c) => c.flt === n);
       let cands = sameFlt.filter((c) => (!c.dep || dep.includes(c.dep)) && (!c.arr || arr.includes(c.arr)));
       const day = ddmm(fr.std as Date | null);
-      if (cands.length > 1 && day) {
+      if (day) {
         const byDay = cands.filter((c) => crewDate(c.date) === day);
-        if (byDay.length) cands = byDay;
+        cands = byDay;
       }
-      if (!cands.length) continue;
+      if (cands.length !== 1) continue;
       const c = cands[0];
+      if (!c) continue;
       by_sector[String(f.id)] = {
         crewlist_reg: c.reg, row_no: c.row, file: state.file, sheet: sheetName,
         safe: cands.length === 1,
