@@ -122,7 +122,7 @@ async function acRefresh(attempt){
     if(revision !== acRevision) return;
     acRenderAccounts(false);
     // Phiên đăng nhập có thể chưa sẵn sàng ngay khi mở web: tự thử lại, không bắt người dùng mở lại.
-    if(attempt < 8) setTimeout(() => acRefresh(attempt + 1), 1500);
+    if(attempt < 8 && typeof setTimeout === "function") setTimeout(() => acRefresh(attempt + 1), 1500);
   }
 }
 function acRememberSaved(kind,pf,hasPassword){
