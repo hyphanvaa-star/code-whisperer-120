@@ -155,7 +155,7 @@ mnlBtn.onclick=async function(){
     for(const leg of legs){
       $('#ftStat').textContent='Đang lấy View ICAO JetPlan '+leg.flt+'…';
       try{
-        const r=await fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t);
+        const r=await fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t+(leg.plan?'&plan='+leg.plan:''));
         const j=await r.json();
         if(!j || j.error) throw new Error(j&&j.error||('HTTP '+r.status));
         files.push({plan:j.plan,reg:((/REG\/([A-Z0-9]+)/.exec(j.html)||[])[1]||'?'),flt:leg.flt,html:j.html,name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.pdf'});
