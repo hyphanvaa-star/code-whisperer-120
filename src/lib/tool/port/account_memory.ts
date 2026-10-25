@@ -37,17 +37,21 @@ function acWriteCache(){
 }
 function acSelectOwner(){
   const uid = acUserId();
-  if(!uid) return false;
+  if(!uid) return true;
   if(acOwner !== uid){
-    acOwner = uid; acMetadata = {}; acRevision++;
-    for(const [,pf] of AC_FIELDS){
-      for(const suffix of ["User","Pass","Box"]){
-        const input = $("#ac"+pf+suffix);
-        if(input){ input.value = ""; input.dataset.dirty = ""; input.dataset.saved = ""; input.dataset.mask = ""; if(suffix === "Pass") input.type = "password"; }
+    const switching = acOwner !== "";
+    acOwner = uid; acRevision++;
+    if(switching){
+      acMetadata = {};
+      for(const [,pf] of AC_FIELDS){
+        for(const suffix of ["User","Pass","Box"]){
+          const input = $("#ac"+pf+suffix);
+          if(input){ input.value = ""; input.dataset.dirty = ""; input.dataset.saved = ""; input.dataset.mask = ""; if(suffix === "Pass") input.type = "password"; }
+        }
+        const msg = $("#ac"+pf+"Msg"); if(msg) msg.textContent = "";
       }
-      const msg = $("#ac"+pf+"Msg"); if(msg) msg.textContent = "";
     }
-    try { acMetadata = acSafeAccounts(JSON.parse(localStorage.getItem("sohee:accounts:v1:" + uid) || "{}")); } catch(e){}
+    try { const c = acSafeAccounts(JSON.parse(localStorage.getItem("sohee:accounts:v1:" + uid) || "{}")); if(Object.keys(c).length) acMetadata = {...c, ...acMetadata}; } catch(e){}
   }
   return true;
 }
@@ -64,10 +68,15 @@ function acRenderAccounts(checking){
     const user = $("#ac"+pf+"User"); if(!user) continue;
     const info = acMetadata[kind];
     const src = $("#ac"+pf+"Src");
-    if(!info){ if(src) src.textContent = checking ? "Đang kiểm tra tài khoản đã lưu…" : "Chưa có tài khoản lưu"; continue; }
     const fallback = kind === "outlook" ? (acMetadata.owa?.username || "") : (AC_DEF_USER[kind] || "");
+    if(!info){
+      if(!user.dataset.dirty && !user.value) user.value = fallback;
+      if(kind === "outlook"){ const box = $("#acOutlookBox"); if(box && !box.dataset.dirty && !box.value) box.value = AC_DEF_USER.outlook || ""; }
+      if(src) src.textContent = checking ? "Đang tải…" : (fallback ? "Đang dùng tài khoản mặc định" : "");
+      continue;
+    }
     if(!user.dataset.dirty) user.value = info.username || fallback;
-    const box = $("#ac"+pf+"Box"); if(box && !box.dataset.dirty) box.value = info.mailbox || "";
+    const box = $("#ac"+pf+"Box"); if(box && !box.dataset.dirty) box.value = info.mailbox || box.value || "";
     const pi = $("#ac"+pf+"Pass");
     if(pi && !pi.dataset.dirty){
       pi.type = "password"; pi.dataset.saved = info.source === "file" && info.has_password ? "1" : "";
@@ -76,14 +85,13 @@ function acRenderAccounts(checking){
     }
     if(src){
       src.className = "use";
-      src.textContent = info.source === "file" && info.has_password ? "✓ Đã có tài khoản lưu" : info.source === "env" ? "Đang dùng tài khoản chung" : info.has_password ? "Đã có mật khẩu" : "Chưa có mật khẩu";
+      src.textContent = info.source === "file" && info.has_password ? "✓ Đã có tài khoản lưu" : info.source === "env" ? "Đang dùng tài khoản chung" : info.source === "default" ? "Đang dùng tài khoản mặc định" : info.has_password ? "Đã có mật khẩu" : "Chưa có mật khẩu";
       if(info.source === "file" && info.has_password) src.classList.add("ok");
-      if(checking) src.textContent += " · Đang kiểm tra…";
     }
   }
 }
 function acRestore(){
-  if(acSelectOwner()) acRenderAccounts(true);
+  acSelectOwner(); acRenderAccounts(false);
   acWatchEdits();
 }
 function acClose(){
@@ -93,24 +101,28 @@ function acClose(){
     if(pi && pi.dataset.saved && !pi.dataset.dirty){ pi.type = "password"; pi.dataset.mask = "1"; pi.value = AC_MASK; }
   }
 }
-async function acRefresh(){
-  if(!acSelectOwner()) return;
+async function acRefresh(attempt){
+  attempt = attempt || 0;
+  acSelectOwner();
   const uid = acOwner, revision = ++acRevision;
-  acRenderAccounts(true); acWatchEdits();
+  acRenderAccounts(false); acWatchEdits();
   try{
     const r = await fetch("/api/credentials", {cache:"no-store"});
-    if(!r.ok) throw new Error("Không tải được tài khoản");
+    if(!r.ok) throw new Error("x");
     const d = await r.json();
-    if(uid !== acUserId() || revision !== acRevision) return;
-    if(d.error || !d.accounts || typeof d.accounts !== "object") throw new Error("Không tải được tài khoản");
+    if(revision !== acRevision) return;
+    if(d.error || !d.accounts || typeof d.accounts !== "object") throw new Error("x");
+    acSelectOwner();
+    if(uid && acOwner !== uid) return;
     acMetadata = acSafeAccounts(d.accounts); acWriteCache(); acRenderAccounts(false);
     const fb = acMetadata.flitebrief || {};
     $("#accWho").textContent = "Acc";
     $("#btnAcc").title = "Tài khoản" + (fb.username ? " — đang dùng: " + fb.username : "");
   }catch(e){
-    if(uid !== acUserId() || revision !== acRevision) return;
+    if(revision !== acRevision) return;
     acRenderAccounts(false);
-    for(const [,pf] of AC_FIELDS){ const src = $("#ac"+pf+"Src"); if(src) src.textContent += " · Chưa kiểm tra được, mở lại để thử"; }
+    // Phiên đăng nhập có thể chưa sẵn sàng ngay khi mở web: tự thử lại, không bắt người dùng mở lại.
+    if(attempt < 8 && typeof setTimeout === "function") setTimeout(() => acRefresh(attempt + 1), 1500);
   }
 }
 function acRememberSaved(kind,pf,hasPassword){
@@ -122,19 +134,6 @@ function acRememberSaved(kind,pf,hasPassword){
 }
 // Đồng bộ tài khoản ngay khi mở web: chờ khung ngoài cung cấp danh tính
 // người dùng (tối đa ~20 giây) rồi tự tải tài khoản đã lưu, không cần mở khung Tài khoản.
-let acAutoSyncTimer = 0;
-function acAutoSync(){
-  if(acAutoSyncTimer) return;
-  let tries = 0;
-  acAutoSyncTimer = setInterval(() => {
-    tries++;
-    if(acUserId()){
-      clearInterval(acAutoSyncTimer); acAutoSyncTimer = 0;
-      acRestore(); acRefresh();
-    } else if(tries > 40){
-      clearInterval(acAutoSyncTimer); acAutoSyncTimer = 0;
-    }
-  }, 500);
-}
-if(typeof setInterval === "function") acAutoSync();
+if(typeof setTimeout === "function") setTimeout(() => { acRestore(); acRefresh(); }, 800);
+
 `;
