@@ -14,7 +14,7 @@ function harness() {
     AC_MASK: '••••••••', AC_DEF_USER: {},
     fetch: async () => ({ ok: true, json: async () => ({ accounts: {flitebrief: {username: 'test-flight', source: 'file', has_password: true, password: 'must-not-store'}} }) }),
   };
-  const api = runInNewContext(ACCOUNT_MEMORY_SCRIPT + '\n({acRestore,acRefresh,acRememberSaved})', context);
+  const api = runInNewContext(ACCOUNT_MEMORY_SCRIPT + '\n({acRestore,acRefresh,acRememberSaved,acSafeAccounts})', context);
   return {api, context, stored, switchUser: (id: string) => { uid = id; }, field: (id: string) => document.getElementById(id) as HTMLInputElement};
 }
 
@@ -31,6 +31,13 @@ describe('per-user remembered account metadata', () => {
     const h = harness(); await h.api.acRefresh(); h.switchUser('other-user'); h.api.acRestore();
     expect(h.field('acFbUser').value).toBe('');
     expect(h.field('acFbPass').value).toBe('');
+  });
+  it('removes passwords and reveal responses from cached metadata', () => {
+    const h = harness();
+    const safe = h.api.acSafeAccounts({flitebrief:{username:'test-flight', source:'file', has_password:true, password:'revealed-secret', login_password:'web-secret'}});
+    expect(JSON.stringify(safe)).not.toContain('revealed-secret');
+    expect(JSON.stringify(safe)).not.toContain('web-secret');
+    expect(safe.flitebrief.has_password).toBe(true);
   });
   it('keeps remembered values if the server cannot be reached', async () => {
     const h = harness(); await h.api.acRefresh();

@@ -4,7 +4,8 @@ export function patchAccountMemoryPage(html: string): string {
     .replace(/function acRefresh\(\)\{[\s\S]*?(?=\nconst AC_DEF_USER)/, ACCOUNT_MEMORY_SCRIPT + '\n')
     .replace('    if(d.ok){\n      msg.className = "acmsg ok";', '    if(d.ok){\n      acRememberSaved(kind, pf, Boolean(pass));\n      msg.className = "acmsg ok";')
     .replace('acPwSetup(); acRefresh(); $("#accModal").classList.add("open");', 'acPwSetup(); acRestore(); acRefresh(); $("#accModal").classList.add("open");')
-    .replace('function acPwSetup(){', 'function acPwSetup(){\n  acWatchEdits();');
+    .replace('function acPwSetup(){', 'function acPwSetup(){\n  acWatchEdits();')
+    .replace(/\$\("#accModal"\)\.classList\.remove\("open"\)/g, 'acClose()');
 }
 
 export const ACCOUNT_MEMORY_SCRIPT = `
@@ -84,6 +85,13 @@ function acRenderAccounts(checking){
 function acRestore(){
   if(acSelectOwner()) acRenderAccounts(true);
   acWatchEdits();
+}
+function acClose(){
+  $("#accModal").classList.remove("open");
+  for(const [,pf] of AC_FIELDS){
+    const pi = $("#ac"+pf+"Pass");
+    if(pi && pi.dataset.saved && !pi.dataset.dirty){ pi.type = "password"; pi.dataset.mask = "1"; pi.value = AC_MASK; }
+  }
 }
 async function acRefresh(){
   if(!acSelectOwner()) return;
