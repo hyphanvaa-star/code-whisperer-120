@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 2.61: ngăn danh sách chuyến cũ/lỗi đè lượt mới; giữ DSP/chuyến khi quét nền và sau NOTAM tracking, giữ nguyên khung −6/+24 giờ.
+
 - [x] V 2.14: sửa JTWC/JMA và hiện tên bão; dữ liệu thật nhận Champi (29W), Vance (22E), Agueda (02S), 36 lớp JTWC/13 lớp JMA; 9 kiểm thử đạt, thanh kéo hoạt động ở 1280px/636px với trang kiểm tra riêng, build OK; chưa publish.
 - [ ] V 2.14: kiểm tra trong phiên đăng nhập của người dùng — không tạo được phiên cho tài khoản Lovable hiện tại; cần người dùng mở Bão và thử thanh kéo trên preview.
 
