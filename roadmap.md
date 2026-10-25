@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 2.62: giữ thông tin tài khoản theo từng người khi mở lại; không lưu mật khẩu trên trình duyệt, giữ thông tin khi tải lỗi và bảo vệ ô đang sửa.
+
 - [x] V 2.61: lượt danh sách luôn lấy mới, bỏ phản hồi đến trễ/lỗi thay vì đè bằng bảng đã lọc; giữ DSP/chuyến đã chọn khi tạm thiếu, không nạp lại tab sau tracking; 6 kiểm thử đạt, chưa publish.
 - [ ] V 2.61: thử DSP PHAN THANH HY và NOTAM tracking trong phiên thật — không tạo được phiên theo tài khoản Lovable hiện tại; cần người dùng thử trên preview.
 

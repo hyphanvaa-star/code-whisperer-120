@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_authenticated/tool")({
 declare global {
   interface Window {
     __fbToken?: () => string | null;
+    __fbUserId?: () => string | null;
     __fbRefresh?: () => Promise<string | null>;
     __fbExpired?: () => void;
   }
@@ -108,6 +109,7 @@ function ToolPage() {
       expiresAt = (s?.expires_at ?? 0) * 1000;
     };
     window.__fbToken = () => token;
+    window.__fbUserId = () => ctx.user.id;
     // Làm mới phiên khi token hết hạn (tab để lâu/máy ngủ làm trễ việc tự làm mới).
     window.__fbRefresh = async () => {
       const { data } = await supabase.auth.getSession();
@@ -155,12 +157,13 @@ function ToolPage() {
     window.addEventListener("message", onMessage);
     return () => {
       sub.subscription.unsubscribe();
+      delete window.__fbUserId;
       window.removeEventListener("message", onMessage);
       document.removeEventListener("visibilitychange", wake);
       window.removeEventListener("focus", wake);
       clearInterval(tick);
     };
-  }, [navigate, sendAccount, signOut]);
+  }, [navigate, sendAccount, signOut, ctx.user.id]);
 
   if (!ready || !toolVersion) return <div className="p-6 text-sm text-muted-foreground">Đang mở Dispatch Board…</div>;
   return (

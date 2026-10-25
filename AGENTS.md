@@ -29,6 +29,7 @@
 - Server-side Excel reading uses SheetJS (`xlsx` CDN tarball) — ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, via `src/lib/exceljs-load.ts`.
 - Airport flags use bundled ICAO-country data; no external requests.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
+- Account dialog metadata is remembered through the HTML shim in a user-ID-scoped browser cache containing only usernames, mailboxes and saved-password flags; never cache passwords, and reject stale or cross-user reads to avoid leaking another user's account or overwriting edits.
 - Each publish bumps page.html #appVersion.
 - Flight catalogue refreshes use the HTML shim's flight_refresh patch: force fresh unfiltered reads, reject out-of-order/error responses, and preserve selected options as disabled when absent, so background updates cannot silently switch DSP scope.
 - Passive FPL watcher status must not change Outlook login state; active Outlook Web login/PIB operations verify and refresh tokens, while real authentication failures remain visible.
