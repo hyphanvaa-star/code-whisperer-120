@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 2.61: lượt danh sách luôn lấy mới, bỏ phản hồi đến trễ/lỗi thay vì đè bằng bảng đã lọc; giữ DSP/chuyến đã chọn khi tạm thiếu, không nạp lại tab sau tracking; 6 kiểm thử đạt, chưa publish.
+- [ ] V 2.61: thử DSP PHAN THANH HY và NOTAM tracking trong phiên thật — không tạo được phiên theo tài khoản Lovable hiện tại; cần người dùng thử trên preview.
+
 - [x] V 2.14: sửa JTWC/JMA và hiện tên bão; dữ liệu thật nhận Champi (29W), Vance (22E), Agueda (02S), 36 lớp JTWC/13 lớp JMA; 9 kiểm thử đạt, thanh kéo hoạt động ở 1280px/636px với trang kiểm tra riêng, build OK; chưa publish.
 - [ ] V 2.14: kiểm tra trong phiên đăng nhập của người dùng — không tạo được phiên cho tài khoản Lovable hiện tại; cần người dùng mở Bão và thử thanh kéo trên preview.
 

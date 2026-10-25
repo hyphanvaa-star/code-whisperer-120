@@ -15,6 +15,7 @@ import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
+import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1851,7 +1852,7 @@ const MOBILE = `<style id="mobile-skin">
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
-  cached = raw
+  cached = patchFlightRefreshPage(raw)
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
