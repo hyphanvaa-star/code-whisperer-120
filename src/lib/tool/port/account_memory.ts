@@ -134,6 +134,6 @@ function acRememberSaved(kind,pf,hasPassword){
 }
 // Đồng bộ tài khoản ngay khi mở web: chờ khung ngoài cung cấp danh tính
 // người dùng (tối đa ~20 giây) rồi tự tải tài khoản đã lưu, không cần mở khung Tài khoản.
-setTimeout(() => { acRestore(); acRefresh(); }, 800);
+if(typeof setTimeout === "function") setTimeout(() => { acRestore(); acRefresh(); }, 800);
 
 `;
