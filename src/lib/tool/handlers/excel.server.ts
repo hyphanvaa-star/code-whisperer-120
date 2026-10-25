@@ -1,3 +1,4 @@
+import { sameOpsDay } from "../port/operational_flight";
 import type { Ctx, Jobs, Routes } from "../types";
 import { safeFilename, Flight } from "../core/models";
 import { applyFilters, loadFlights } from "../core/gantts.server";
@@ -270,6 +271,8 @@ async function attachDsp(rows: Array<Record<string, unknown>>, days = 2): Promis
     for (const f of cand) {
       // Chỉ chuyến trong khung −6/+24 — không bao giờ bắt chuyến hôm qua cùng số hiệu.
       if (!f.std || !inOpsWindow(f)) continue;
+      const tableDate = String(r.when_new || r.when_old || "").slice(0, 10);
+      if (!sameOpsDay(f.std, tableDate)) continue;
       let bestH: number | null = null;
       for (const local of whens) {
         const diffH = (f.std.getTime() - local) / 3600000;
@@ -287,7 +290,10 @@ async function attachDsp(rows: Array<Record<string, unknown>>, days = 2): Promis
     if (wantCs) {
       const csHit = scored.filter(([, f]) => f.callsign.toUpperCase() === wantCs);
       if (!csHit.length) continue;
-      best = csHit[0]![1];
+      if (csHit.length !== 1) continue;
+      const selected = csHit[0];
+      if (!selected) continue;
+      best = selected[1];
     } else {
       best = scored[0]![1];
       const hit = scored.filter(([s, f]) => s <= DSP_REG_TOL && want.has(normRegLocal(f.reg)));
@@ -402,7 +408,8 @@ export const routes: Routes = {
 
     const acks: Record<string, boolean> = {};
     for (const sid of want) {
-      let f = byId.get(sid) || new Flight({ id: sid });
+      let f = byId.get(sid);
+      if (!f) continue;
       if (live) {
         try {
           const j = await fbJson<unknown>(`/webapi/sectors/${sid}`);
@@ -419,7 +426,7 @@ export const routes: Routes = {
           // giữ dữ liệu cũ nếu đọc lại lỗi
         }
       }
-      acks[String(sid)] = ofpAckNeeded(f);
+      if (inOpsWindow(f)) acks[String(sid)] = ofpAckNeeded(f);
     }
     return { acks, n: Object.keys(acks).length };
   },

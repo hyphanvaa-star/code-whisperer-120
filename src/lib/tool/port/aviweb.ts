@@ -233,6 +233,7 @@ export function parseFplDetail(text: string): { reg?: string; dof?: string; eobt
 export async function checkFlightsOnline(
   callsigns: string[],
   onProgress?: (text: string) => void,
+  expected?: Record<string, { dof: string; dep: string; arr: string }>,
 ): Promise<AtcCheckResult[]> {
   const cred = getAviwebCredentials();
   if (!cred) throw new Error("Chưa có tài khoản AviWeb — mở tab Account để lưu.");
@@ -250,20 +251,19 @@ export async function checkFlightsOnline(
     } catch {
       continue;
     }
-    const picked = new Map<string, AviRow>();
+    const picked: Array<[string, AviRow]> = [];
     for (const row of rows) {
       const cs = (row.cells[0] ?? "").trim().toUpperCase();
       if (!want.has(cs) || out.has(cs)) continue;
-      const cur = picked.get(cs);
-      // Danh sách mới nhất ở trên: lấy hàng đầu, nhưng ưu tiên hàng không Cancelled.
-      if (!cur || (isCancel(cur.status) && !isCancel(row.status))) picked.set(cs, row);
+      if (!isCancel(row.status)) picked.push([cs, row]);
     }
-    onProgress?.(`· ${view.replace("manager-", "")}: ${rows.length} dòng, thấy ${picked.size} chuyến — đang bấm View từng chuyến…`);
+    onProgress?.(`· ${view.replace("manager-", "")}: ${rows.length} dòng, thấy ${picked.length} chuyến — đang bấm View từng chuyến…`);
     let i = 0;
     for (const [cs, row] of picked) {
+      if (out.has(cs)) continue;
       i++;
       const r: AtcCheckResult = {
-        callsign: want.get(cs)!,
+        callsign: want.get(cs) ?? cs,
         status: row.status || view.replace("manager-", ""),
         ok: true,
       };
@@ -271,6 +271,10 @@ export async function checkFlightsOnline(
         const text = await s.viewFpl(row);
         if (text && fplIsFor(text, cs)) {
           const det = parseFplDetail(text);
+          const identity = expected?.[cs];
+          if (identity && (det.dof !== identity.dof
+            || !new RegExp('-' + identity.dep + '\\d{4}\\b').test(text)
+            || !new RegExp('-' + identity.arr + '\\d{4}\\b').test(text))) continue;
           if (det.reg) r.reg = det.reg;
           if (det.dof) r.dof = det.dof;
           if (det.eobt) r.flight_time = det.eobt;
@@ -281,7 +285,7 @@ export async function checkFlightsOnline(
         r.ok = false;
         r.error = "bấm View lỗi: " + (e instanceof Error ? e.message : String(e));
       }
-      onProgress?.(`· View ${i}/${picked.size} ${cs}: ${r.status} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"}`);
+      onProgress?.(`· View ${i}/${picked.length} ${cs}: ${r.status} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"}`);
       out.set(cs, r);
     }
     if (out.size >= want.size) break;

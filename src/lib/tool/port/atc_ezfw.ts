@@ -167,8 +167,11 @@ export function findFlight(flights: Iterable<AeFlight>, want: string, now?: Date
         "Chưa có OFP hôm nay thì chờ OMC release rồi soạn lại.",
     );
   }
+  if (fresh.length > 1) throw new AeError(`Có nhiều sector chuyến ${digits} trong khung −6/+24 — cần chọn đúng ngày/chặng.`);
   fresh.sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
-  return fresh[0]!;
+  const selected = fresh[0];
+  if (!selected) throw new AeError("Không xác định được chuyến.");
+  return selected;
 }
 
 const AE_MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];

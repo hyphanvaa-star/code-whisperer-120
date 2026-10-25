@@ -14,6 +14,8 @@ import { resolveCrewFlight } from '../port/fpl_flight_identity';
 import { omniPayload, exportPayloadItems } from '../port/fpl_payload';
 import { jobId } from '../jobs';
 import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
+import { parseOpsDate, sameOpsDay, selectOperationalFlight, validateOperationalAtc } from '../port/operational_flight';
+export { parseOpsDate, sameOpsDay } from '../port/operational_flight';
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
 // data/fpl_tool.json + data/fpl/*.json files web.py reads/writes with app_settings
@@ -402,7 +404,8 @@ export const routes: Routes = {
       const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
       // Ưu tiên giờ trên bảng (STD gốc / ETD mới, giờ VN) — FliteBrief có thể đã đổi STD theo ETD.
       // EOBT gốc từ AviWeb (UTC HHMM) thắng mọi nguồn khác — đó là điện gốc đã nộp.
-      const avi = /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
+      const dof = std?.toISOString().slice(2, 10).replace(/-/g, "");
+      const avi = it.avi_dof === dof && /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
       const orig = avi || vnToUtc(it.std) || (std && !isNaN(std.getTime())
         ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "");
       const fresh = vnToUtc(it.etd);
@@ -422,21 +425,10 @@ export const routes: Routes = {
     const { loadFlights } = await import("../core/gantts.server");
     const flights = (await loadFlights(3, true)) as any[];
     const out = items.map((it) => {
-      const d = String(parseInt(String(it.flt || "").replace(/\D/g, ""), 10) || "");
-      const dep = String(it.dep || "").toUpperCase(), arr = String(it.arr || "").toUpperCase();
-      const cands = flights.filter((f) => {
-        const n = String(parseInt(String(f.fltno || f.commercial_fltno || f.callsign || "").replace(/\D/g, ""), 10) || "");
-        if (!d || n !== d) return false;
-        const okD = !dep || [f.dep_iata, f.dep_icao].some((x: string) => String(x || "").toUpperCase() === dep);
-        const okA = !arr || [f.dest_iata, f.dest_icao].some((x: string) => String(x || "").toUpperCase() === arr);
-        return okD && okA;
-      });
-      // Đúng ngày (nếu có) + trong khung −6/+24, chọn STD sớm nhất.
-      const inWin = (f: any) => { const t = f.std ? new Date(f.std).getTime() : NaN; const n = Date.now(); return t >= n - 6 * 3600_000 && t <= n + 24 * 3600_000; };
-      const pool = cands.filter((f) => (!it.date || sameOpsDay(f.std, it.date)) && inWin(f))
-        .sort((a, b) => new Date(a.std).getTime() - new Date(b.std).getTime());
-      const hit = pool[0] ?? null;
-      return { flt: it.flt, found: !!hit, reg: hit ? String(hit.reg || hit.ofp_reg || "") : "" };
+      try {
+        const hit = selectOperationalFlight(flights, it);
+        return { flt: it.flt, sector_id: hit.id, found: true, reg: String(hit.reg || "") };
+      } catch (e) { return { flt: it.flt, found: false, reg: "", error: (e as Error).message }; }
     });
     return { ok: true, items: out };
   },
@@ -488,10 +480,16 @@ export const routes: Routes = {
     const [dep, arr] = String(body.route || "").split("-").map(up);
     const want = dg(body.flt);
     const day = parseOpsDate(body.date);
+    if (!day || !dep || !arr) return { error: "Thiếu ngày/chặng chuyến — không soạn REQ." };
+    const { loadFlights } = await import("../core/gantts.server");
+    let sector;
+    try { sector = selectOperationalFlight(await loadFlights(3, true), { sector_id: sectorId, flt: body.flt, date: body.date, dep, arr }); }
+    catch (e) { return { error: (e as Error).message }; }
     const cands = db.flights.filter((f) => dg(f.flt) === want && up(f.dep) === dep && up(f.arr) === arr
-      && (!day || (() => { const p = parseOpsDate(f.date); return !p || (p.d === day.d && p.m === day.m); })()));
+      && (() => { const p = parseOpsDate(f.date); return !!p && p.d === day.d && p.m === day.m && (day.y === undefined || p.y === day.y); })());
     if (cands.length !== 1) return { error: cands.length ? "Crewlist có nhiều chuyến trùng — không chắc đúng chuyến." : "Crewlist mới không có chuyến VJ" + want + " " + dep + "-" + arr + " đúng ngày." };
-    const flight = cands[0]!;
+    const flight = cands[0];
+    if (!flight) return { error: "Không xác định được dòng Crewlist." };
     const { fbGet } = await import("@/lib/flitebrief.server");
     let txt = "";
     for (const p of [`/webapi/sectors/${sectorId}/ofp/0`, `/webapi/sectors/${sectorId}/ofp`]) {
@@ -506,6 +504,8 @@ export const routes: Routes = {
       if (txt) break;
     }
     if (!txt) return { error: "Chưa đọc được OFP cũ trên FliteBrief." };
+    const { extractAtc } = await import("../port/atc_ezfw");
+    try { validateOperationalAtc(extractAtc(txt), sector); } catch (e) { return { error: (e as Error).message }; }
     const { parseOperationalText } = await import("../port/ofp_weights");
     let w;
     try { w = parseOperationalText(txt, sectorId); } catch (e) { return { error: "OFP cũ: " + (e as Error).message }; }
@@ -586,32 +586,6 @@ export const jobs: Jobs = {
   },
 };
 
-/** True when STD (as local VN time, UTC+7) falls on the table's "d/m/yyyy" date. */
-const MON: Record<string, number> = { JAN:1,FEB:2,MAR:3,APR:4,MAY:5,JUN:6,JUL:7,AUG:8,SEP:9,OCT:10,NOV:11,DEC:12 };
-/** Parse table date (d/m/yyyy, d-m-yy, d/m, yyyy-mm-dd, 14OCT, 14-Oct-26) → {y?,m,d} or null. */
-export function parseOpsDate(date: unknown): { y?: number | undefined; m: number; d: number } | null {
-  const s = String(date || "").trim().toUpperCase();
-  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if (m) return { y: +m[1], m: +m[2], d: +m[3] };
-  m = s.match(/^(\d{1,2})[\/.\-](\d{1,2})(?:[\/.\-](\d{2,4}))?/);
-  if (m) return { y: m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : undefined, m: +m[2], d: +m[1] };
-  m = s.match(/^(\d{1,2})[\s\-]?([A-Z]{3})[\s\-]?(\d{2,4})?/);
-  if (m && MON[m[2]]) return { y: m[3] ? (m[3].length === 2 ? 2000 + +m[3] : +m[3]) : undefined, m: MON[m[2]], d: +m[1] };
-  return null;
-}
-/** True when STD falls on the table's date in UTC or VN time (UTC+7) — crewlist dates follow departure local time. Unparseable date → true (no filter). */
-export function sameOpsDay(std: unknown, date: unknown): boolean {
-  const p = parseOpsDate(date);
-  if (!p) return true;
-  if (!std) return false;
-  const t = std instanceof Date ? std : new Date(String(std));
-  if (isNaN(t.getTime())) return false;
-  return [0, 7].some((h) => {
-    const l = new Date(t.getTime() + h * 3600e3);
-    return (p.y === undefined || l.getUTCFullYear() === p.y) && l.getUTCMonth() + 1 === p.m && l.getUTCDate() === p.d;
-  });
-}
-
 /** Local VN "HH:MM" → UTC "HHMM". */
 function vnToUtc(hm: unknown): string {
   const m = String(hm || "").match(/(\d{1,2})\D?(\d{2})/);
@@ -625,25 +599,6 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
     const { loadFlights } = await import("../core/gantts.server");
     const { fbGet } = await import("@/lib/flitebrief.server");
     const flights = await loadFlights(3, true);
-    const now = Date.now();
-    const pickFlight = (it: Raw) => {
-      const digits = ae.digitsOf(String(it.flt || ""));
-      if (!digits) return null;
-      const rx = new RegExp(`(?<!\\d)${digits}(?!\\d)`);
-      const dep = String(it.dep || "").toUpperCase().trim();
-      const arr = String(it.arr || "").toUpperCase().trim();
-      let hits = flights.filter((f: any) => rx.test([f.callsign, f.fltno, f.commercial_fltno].filter(Boolean).join(" ")));
-      const byApt = hits.filter((f: any) =>
-        (!dep || f.dep_iata?.toUpperCase() === dep || f.dep_icao?.toUpperCase() === dep) &&
-        (!arr || f.dest_iata?.toUpperCase() === arr || f.dest_icao?.toUpperCase() === arr));
-      if (byApt.length) hits = byApt;
-      // Strict: đúng ngày bay (nếu có), trong khung −6/+24, chọn STD sớm nhất — không fallback ngày cũ.
-      if (it.date) hits = hits.filter((f: any) => sameOpsDay(f.std, it.date));
-      hits = hits.filter((f: any) => ae.inOpsWindow(f.std instanceof Date ? f.std : f.std ? new Date(f.std) : null));
-      void now;
-      hits.sort((a: any, b: any) => (new Date(a.std).getTime() || Infinity) - (new Date(b.std).getTime() || Infinity));
-      return hits[0] || null;
-    };
     const pdfText = async (bytes: Uint8Array) => {
       const { extractText, getDocumentProxy } = await import("unpdf");
       const pdf = await getDocumentProxy(bytes);
@@ -654,9 +609,8 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
     const got: { ix: number; f: any; block: string; plan?: string }[] = [];
     await Promise.all(items.map(async (it: Raw, ix: number) => {
       const label = `VJ${it.flt} ${it.dep || ""}-${it.arr || ""}`.trim();
-      const f = pickFlight(it);
-      if (!f) { missed.push(`${label}: không thấy trên FliteBrief`); return; }
       try {
+        const f = selectOperationalFlight(flights, it);
         // Same endpoint as the working OFP download (/api/fb/file): /ofp/0, then legacy /ofp.
         // FliteBrief serves the OFP either as PDF or as plain-text CFP; accept both.
         let txt = "";
@@ -671,7 +625,9 @@ export async function fetchAtcBlocks(items: Raw[]): Promise<{ got: { ix: number;
         }
         if (!txt) { missed.push(`${label}: chưa có OFP`); return; }
         const cfp = /^[ \t]*CFP[ \t]+(\d+)\b/im.exec(txt)?.[1] || "";
-        got.push({ ix, f, block: ae.extractAtc(txt), plan: String(f.plan_no || cfp || "") });
+        const block = ae.extractAtc(txt);
+        validateOperationalAtc(block, f);
+        got.push({ ix, f, block, plan: String(f.plan_no || cfp || "") });
       } catch (e) {
         missed.push(`${label}: ${(e as Error).message}`);
       }

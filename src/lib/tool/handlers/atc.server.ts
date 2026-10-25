@@ -6,6 +6,7 @@ import * as pc from "../pcagent.server";
 import * as excelMod from "./excel.server";
 import * as ft from "../port/fpl_tool";
 import { loadFlights } from "../core/gantts.server";
+import { selectOperationalFlight, validateOperationalAtc } from "../port/operational_flight";
 
 const ATC_DIR = "atc";
 
@@ -42,23 +43,31 @@ export const routes: Routes = {
     const flt = (ctx.params.get("flt") || "").replace(/\D/g, "");
     if (!flt) return { found: false, error: "Thiếu số chuyến." };
     const digits = String(parseInt(flt, 10));
+    let sector;
+    const catalogue = await loadFlights(3, true);
+    const unique = catalogue.filter(f => [f.callsign, f.fltno, f.commercial_fltno].some(cs => String(cs || "").replace(/\D/g, "").replace(/^0+/, "") === digits));
+    const selectedId = ctx.params.get("sector_id") || (unique.length === 1 ? unique[0]?.id : null);
+    try { sector = selectOperationalFlight(catalogue, {
+      flt: digits, sector_id: selectedId, date: ctx.params.get("date"),
+      dep: ctx.params.get("dep"), arr: ctx.params.get("arr"),
+    }); } catch (e) { return { found: false, error: (e as Error).message }; }
     const files = await listFiles(ctx, ATC_DIR).catch(() => []);
     for (let i = files.length - 1; i >= 0; i--) {
-      const buf = await getFile(ctx, `${ATC_DIR}/${files[i].name}`);
+      const file = files[i];
+      if (!file) continue;
+      const buf = await getFile(ctx, `${ATC_DIR}/${file.name}`);
       if (!buf) continue;
-      const text = new TextDecoder("utf-8").decode(buf);
-      for (const b of readFplBlocks(text)) {
-        const name = fplName(b);
-        if (name.replace(/\D/g, "") === digits) {
-          return { found: true, text: b, file: files[i].name, name };
-        }
+      for (const block of readFplBlocks(new TextDecoder("utf-8").decode(buf))) {
+        try { validateOperationalAtc(block, sector); }
+        catch { continue; }
+        return { found: true, text: block, file: file.name, name: fplName(block) };
       }
     }
     // Không có trong file ATC → đọc thẳng OFP trên FliteBrief (đã release hay
     // chưa đều lấy qua View OFP /ofp/0 rồi /ofp), giống nút Get ATC.
     try {
       const { fetchAtcBlocks } = await import("./fpl.server");
-      const { got, missed } = await fetchAtcBlocks([{ flt: digits }]);
+      const { got, missed } = await fetchAtcBlocks([{ flt: digits, sector_id: sector.id }]);
       const g = got.find((x) => String(x.block || "").trim());
       if (g) return { found: true, text: g.block.trim(), file: `OFP ${g.f?.callsign || "VJC" + digits}${g.plan ? " CFP " + g.plan : ""}`, name: g.f?.callsign || `VJC${digits}` };
       return { found: false, error: `Không lấy được FPL VJC${digits} từ OFP: ${missed.join("; ") || "OFP không có khối ATC FPL"}` };
@@ -119,12 +128,13 @@ export const routes: Routes = {
       const sameFlt = crew.filter((c) => c.flt === n);
       let cands = sameFlt.filter((c) => (!c.dep || dep.includes(c.dep)) && (!c.arr || arr.includes(c.arr)));
       const day = ddmm(fr.std as Date | null);
-      if (cands.length > 1 && day) {
+      if (day) {
         const byDay = cands.filter((c) => crewDate(c.date) === day);
-        if (byDay.length) cands = byDay;
+        cands = byDay;
       }
-      if (!cands.length) continue;
+      if (cands.length !== 1) continue;
       const c = cands[0];
+      if (!c) continue;
       by_sector[String(f.id)] = {
         crewlist_reg: c.reg, row_no: c.row, file: state.file, sheet: sheetName,
         safe: cands.length === 1,
@@ -161,7 +171,19 @@ export const routes: Routes = {
     const payload = (await ctx.request.json().catch(() => ({}))) as Record<string, unknown>;
     const cs = (payload["callsigns"] as string[] | undefined) ?? [];
     if (!cs.length) return { error: "chưa có chuyến nào" };
-    return { id: jobId("atc_check", { callsigns: cs }) };
+    const flights = await loadFlights(3, true);
+    const items = Array.isArray(payload.items) ? payload.items as Record<string, unknown>[] : [];
+    const identities: Record<string, { dof: string; dep: string; arr: string }> = {};
+    try {
+      for (const callsign of cs) {
+        const spec = items.find(it => String(it.flt).replace(/\D/g, '') === callsign.replace(/\D/g, ''));
+        const candidates = flights.filter(f => f.callsign.toUpperCase() === callsign.toUpperCase());
+        const f = spec ? selectOperationalFlight(flights, spec) : candidates.length === 1 ? candidates[0] : null;
+        if (!f?.std) throw new Error(`${callsign}: cần chọn đúng ngày/chặng trong khung −6/+24 giờ.`);
+        identities[callsign.toUpperCase()] = { dof: f.std.toISOString().slice(2, 10).replace(/-/g, ''), dep: f.dep_icao, arr: f.dest_icao };
+      }
+    } catch (e) { return { error: (e as Error).message }; }
+    return { id: jobId("atc_check", { callsigns: cs, identities }) };
   },
 };
 
@@ -175,9 +197,18 @@ export const jobs: Jobs = {
       const buf = await getFile(ctx, path);
       if (!buf) throw new Error("không tìm thấy file ATC trong kho — tải file lên lại");
       const text = new TextDecoder("utf-8").decode(buf);
+      const catalogue = await loadFlights(3, true);
+      const labels = Array.isArray(params.only_labels) ? params.only_labels.map(String) : [];
+      const blocks = readFplBlocks(text).filter(block => !labels.length || labels.includes(fplName(block)));
+      if (!blocks.length) throw new Error("Không có FPL đã chọn để gửi.");
+      for (const block of blocks) {
+        const candidates = catalogue.filter(f => f.callsign === fplName(block));
+        const matching = candidates.filter(f => { try { validateOperationalAtc(block, f); return true; } catch { return false; } });
+        if (matching.length !== 1) throw new Error(`${fplName(block)}: điện văn không khớp duy nhất ngày/chặng trong −6/+24 — không gửi.`);
+      }
       const id = await pc.enqueue("aviweb_submit", {
         name: path.split("/").pop(),
-        text,
+        text: blocks.join("\n\n"),
         headless: params["headless"] !== false,
         limit: params["limit"] ?? null,
         only_labels: params["only_labels"] ?? [],
@@ -216,9 +247,14 @@ export const jobs: Jobs = {
       return;
     }
     try {
-      const results = await checkFlightsOnline(callsigns, (text) =>
-        emit({ type: "line", text, cls: "sys" }),
-      );
+      const identities = params.identities as Record<string, { dof: string; dep: string; arr: string }> | undefined;
+      if (!identities) throw new Error("Lệnh cũ thiếu ngày/chặng — bấm Check lại.");
+      const current = await loadFlights(3, true);
+      for (const cs of callsigns) {
+        const ident = identities[cs.toUpperCase()];
+        if (!ident || !current.some(f => f.callsign.toUpperCase() === cs.toUpperCase() && f.std?.toISOString().slice(2, 10).replace(/-/g, '') === ident.dof && f.dep_icao === ident.dep && f.dest_icao === ident.arr)) throw new Error(`${cs}: chuyến đã ngoài khung hoặc thay đổi — Check lại.`);
+      }
+      const results = await checkFlightsOnline(callsigns, text => emit({ type: "line", text, cls: "sys" }), identities);
       for (const r of results) {
         if (r.ok) emit({ type: "line", text: `✓ ${r.callsign}: ${r.status ?? "?"} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"} · DOF ${r.dof ?? "?"}`, cls: "ok" });
         else emit({ type: "line", text: `✗ ${r.callsign}: ${r.error ?? "lỗi"}`, cls: "bad" });

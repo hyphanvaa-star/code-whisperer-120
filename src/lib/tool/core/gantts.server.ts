@@ -37,7 +37,7 @@ async function doFetch(days: number) {
   return flights;
 }
 
-export async function loadFlights(days: number, refresh = false): Promise<Flight[]> {
+async function loadFlightCatalogue(days: number, refresh = false): Promise<Flight[]> {
   const hit = cache.get(days);
   const age = hit ? (Date.now() - hit.at) / 1000 : Infinity;
   if (!refresh && hit && age < CACHE_TTL) return hit.flights;
@@ -54,6 +54,11 @@ export async function loadFlights(days: number, refresh = false): Promise<Flight
   const p = doFetch(days).finally(() => inflight.delete(days));
   inflight.set(days, p);
   return p;
+}
+
+/** Recheck the clock on every read, including cached catalogues. */
+export async function loadFlights(days: number, refresh = false): Promise<Flight[]> {
+  return filterByWindow(await loadFlightCatalogue(days, refresh), 6, 24);
 }
 
 export function filterByWindow(flights: Flight[], hoursBack: number | null, hoursAhead: number | null, ref = new Date()) {

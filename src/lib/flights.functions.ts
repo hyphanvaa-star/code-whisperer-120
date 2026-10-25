@@ -19,6 +19,11 @@ export const getFlights = createServerFn({ method: "POST" })
       const list = (Array.isArray(raw) ? raw : [])
         .filter((x): x is Record<string, unknown> => !!x && typeof x === "object")
         .map(toFlight)
+        .filter(f => {
+          const t = f.std ? new Date(f.std).getTime() : NaN;
+          const now = Date.now();
+          return t >= now - 6 * 3600_000 && t <= now + 24 * 3600_000;
+        })
         .sort((a, b) => (a.std ?? "9").localeCompare(b.std ?? "9") || a.callsign.localeCompare(b.callsign));
       return { flights: list, fetchedAt: new Date().toISOString(), error: null };
     } catch (e) {
@@ -39,6 +44,8 @@ export const getCrews = createServerFn({ method: "POST" })
     await assertDispatcher(context.supabase, context.userId);
     const { fbJson } = await import("./flitebrief.server");
     try {
+      const { loadFlights } = await import("./tool/core/gantts.server");
+      if (!(await loadFlights(3)).some(f => f.id === data.sectorId)) return { crews: [], error: "Chuyến ngoài khung −6/+24 giờ hoặc không còn trên FliteBrief" };
       const raw = await fbJson<unknown>(`/webapi/sectors/${data.sectorId}/crews`);
       const arr = Array.isArray(raw) ? raw : ((raw as { crews?: unknown[] })?.crews ?? []);
       const crews = (arr as Record<string, unknown>[]).map(toCrew).filter((c): c is Crew => !!c);

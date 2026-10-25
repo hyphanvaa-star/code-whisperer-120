@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Operational catalogue reads are always clipped to −6/+24 hours at read time; ATC selection uses `port/operational_flight.ts` for unique sector/date/route matching and validates source DOF before using OFP or AviWeb EOBT, so missing identity never falls back to yesterday.
 - Both Outlook draft and KHB ATC/EZFW use `port/ofp_layout.ts` with the browser-safe `pdf-text-layout.ts` coordinate renderer; keep general weight extraction separate so fixed-width columns survive without changing other OFP parsers.
 - KHB ATC/EZFW exports validate both ICAO DOF/REG and PLAN date/route/REG against the uniquely selected in-window Crewlist/FliteBrief sector before queuing PC writes; completion requires the helper's returned file path.
 - Subdirectories have their own `AGENTS.md`; read it before changing files there.
