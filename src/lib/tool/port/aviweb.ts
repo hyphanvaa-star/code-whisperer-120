@@ -285,7 +285,7 @@ export async function checkFlightsOnline(
         r.ok = false;
         r.error = "bấm View lỗi: " + (e instanceof Error ? e.message : String(e));
       }
-      onProgress?.(`· View ${i}/${picked.size} ${cs}: ${r.status} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"}`);
+      onProgress?.(`· View ${i}/${picked.length} ${cs}: ${r.status} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"}`);
       out.set(cs, r);
     }
     if (out.size >= want.size) break;
