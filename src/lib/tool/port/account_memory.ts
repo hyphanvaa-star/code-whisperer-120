@@ -87,7 +87,7 @@ function acRestore(){
   acWatchEdits();
 }
 function acClose(){
-  $("#accModal").classList.remove("open");
+  document.getElementById("accModal").classList.remove("open");
   for(const [,pf] of AC_FIELDS){
     const pi = $("#ac"+pf+"Pass");
     if(pi && pi.dataset.saved && !pi.dataset.dirty){ pi.type = "password"; pi.dataset.mask = "1"; pi.value = AC_MASK; }
