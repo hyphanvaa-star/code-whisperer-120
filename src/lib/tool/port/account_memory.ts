@@ -136,5 +136,5 @@ function acAutoSync(){
     }
   }, 500);
 }
-acAutoSync();
+if(typeof setInterval === "function") acAutoSync();
 `;
