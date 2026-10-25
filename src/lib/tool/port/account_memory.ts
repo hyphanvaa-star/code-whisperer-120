@@ -134,19 +134,6 @@ function acRememberSaved(kind,pf,hasPassword){
 }
 // Đồng bộ tài khoản ngay khi mở web: chờ khung ngoài cung cấp danh tính
 // người dùng (tối đa ~20 giây) rồi tự tải tài khoản đã lưu, không cần mở khung Tài khoản.
-let acAutoSyncTimer = 0;
-function acAutoSync(){
-  if(acAutoSyncTimer) return;
-  let tries = 0;
-  acAutoSyncTimer = setInterval(() => {
-    tries++;
-    if(acUserId()){
-      clearInterval(acAutoSyncTimer); acAutoSyncTimer = 0;
-      acRestore(); acRefresh();
-    } else if(tries > 40){
-      clearInterval(acAutoSyncTimer); acAutoSyncTimer = 0;
-    }
-  }, 500);
-}
-if(typeof setInterval === "function") acAutoSync();
+setTimeout(() => { acRestore(); acRefresh(); }, 800);
+
 `;
