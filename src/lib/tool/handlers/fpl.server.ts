@@ -406,8 +406,11 @@ export const routes: Routes = {
       // EOBT gốc từ AviWeb (UTC HHMM) thắng mọi nguồn khác — đó là điện gốc đã nộp.
       const dof = std?.toISOString().slice(2, 10).replace(/-/g, "");
       const avi = it.avi_dof === dof && /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
-      const orig = avi || vnToUtc(it.std) || (std && !isNaN(std.getTime())
+      // Không có AviWeb: CHG lấy ETD hiện tại; CHG DLA/DLA lấy ETD cũ; không có ETD mới dùng STD.
+      const etdBase = vnToUtc(code === atcChg.KIND_CHG ? it.etd_cur : it.etd_old);
+      const orig = avi || etdBase || vnToUtc(it.std) || (std && !isNaN(std.getTime())
         ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "");
+      if (!avi) missed.push(`${fields.callsign || f.callsign}: chưa có EOBT gốc AviWeb — tạm dùng ${etdBase ? "ETD" : "STD"} ${orig} UTC, kiểm tra lại`);
       const fresh = vnToUtc(it.etd);
       const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || ""), orig_eobt: orig, new_eobt: fresh });
       const region = atcChg.aro_of(fields.dep || f.dep_icao);
