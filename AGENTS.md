@@ -30,6 +30,7 @@
 - Airport flags use bundled ICAO-country data; no external requests.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
 - Each publish bumps page.html #appVersion.
+- Flight catalogue refreshes use the HTML shim's flight_refresh patch: force fresh unfiltered reads, reject out-of-order/error responses, and preserve selected options as disabled when absent, so background updates cannot silently switch DSP scope.
 - Passive FPL watcher status must not change Outlook login state; active Outlook Web login/PIB operations verify and refresh tokens, while real authentication failures remain visible.
 - Briefing uses `briefing-data.server.ts` for TAF/defects/pins and `port/briefingPdf.ts` for Unicode three-column Letter PDFs with lossless overflow. Replacement reads actual sector PDFs via `port/briefingPrevious.ts`, preserves cells after fresh sources, and aborts before deletion on parse failure to prevent data loss.
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can come from the dispatcher's browser login — Omni rejects token creation from the runtime's IPv6 X-Forwarded-For.
