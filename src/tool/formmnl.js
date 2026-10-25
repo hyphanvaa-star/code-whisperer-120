@@ -143,7 +143,7 @@ mnlBtn.onclick=async function(){
   for(const f of ftRows){
     if(!f) continue; const st=ftSt(f); if(!st.on) continue;
     const digits=String(f.flt||'').replace(/\D/g,'');
-    legs.push({digits,flt:'VJ'+digits,dep:String(st.dep||'').toUpperCase(),arr:String(st.arr||'').toUpperCase(),date:st.date,t:mnlTime(st.date,st.utc)});
+    legs.push({digits,flt:'VJ'+digits,dep:String(st.dep||'').toUpperCase(),arr:String(st.arr||'').toUpperCase(),date:st.date,t:mnlTime(st.date,st.utc),plan:String(f.plan_no||'').replace(/\D/g,'')});
   }
   if(!legs.length){alert('Tick ít nhất một chuyến.');return;}
   const lic=($('#ftLicInput').value||'').trim();
