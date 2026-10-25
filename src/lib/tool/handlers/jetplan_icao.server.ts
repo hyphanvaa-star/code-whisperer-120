@@ -65,6 +65,11 @@ export function pickPlan(rows: PlanRow[], callsign: string, want: number): PlanR
   return hits[0] ?? null;
 }
 
+/** A directly fetched View ICAO page must belong to the requested callsign. */
+export function planBelongsTo(html: string, callsign: string): boolean {
+  return new RegExp("-" + callsign.toUpperCase() + "\\b").test((html || "").toUpperCase());
+}
+
 export const routes: Routes = {
   "GET /api/jetplan/icao": async (ctx) => {
     const digits = (ctx.params.get("flt") || "").replace(/\D/g, "");
