@@ -84,7 +84,7 @@ export const routes: Routes = {
       // Số CFP trên crewlist chính là số plan JetPlan: tải thẳng, khỏi lật
       // từng trang Dispatch (plan tính sớm trôi khỏi các trang đầu).
       const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=776&plan=${direct}`)).text();
-      if (new RegExp("-" + callsign + "\\b").test(html.toUpperCase())) {
+      if (planBelongsTo(html, callsign)) {
         row = { plan: direct, pod: "", poa: "", etd: "", callsign, t: 0 };
       } else {
         return { error: `Plan ${direct} không phải của ${callsign} — kiểm tra lại số CFP` };
