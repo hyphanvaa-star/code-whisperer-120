@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 2.63: khóa chọn chuyến đúng ngày/chặng, duy nhất trong −6/+24; rà các chức năng và chặn OFP/điện văn ngày cũ.
+
 - [x] V 2.62: giữ thông tin tài khoản theo từng người khi mở lại; không lưu mật khẩu trên trình duyệt, giữ thông tin khi tải lỗi và bảo vệ ô đang sửa.
 - [ ] V 2.62: thử lưu/mở lại tài khoản hyphan trong phiên thật — không tạo được phiên cho tài khoản Lovable hiện tại; cần người dùng thử trên preview, chưa publish.
 
