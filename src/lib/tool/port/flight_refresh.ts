@@ -1,5 +1,14 @@
 /** Applied only by the HTML shim; preserve the original operational page. */
 export function patchFlightRefreshPage(html: string): string {
+  // Limit option retention to flight/DSP catalogues; unrelated editors keep their rules.
+  for (const name of ["nmRefreshDspList", "nmRefreshFltList", "acRefreshDspList", "tlRefreshDspList", "tlRefreshDspPibList", "tlRefreshDspBriefList"]) {
+    const block = new RegExp(`function ${name}\\(\\)\\{[\\s\\S]*?(?=\\n(?:async )?function |\\n/\\*)`);
+    html = html.replace(block, source => source
+      .replace('  const keep = sel.value;', '  const keep = sel.value;\n  const previous = [...sel.options].find(o => o.value === keep);')
+      .replace(/(  const sel = [^\n]+, keep = sel.value;)/, '$1\n  const previous = [...sel.options].find(o => o.value === keep);')
+      .replace('  if(keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;', '  keepFlightSelection(sel, keep, previous);')
+      .replace('  sel.value = keep;', '  keepFlightSelection(sel, keep, previous);'));
+  }
   return html
     .replace(/async function syncToolFlights\(refresh\)\{[\s\S]*?(?=\n\/\/ Đổi bộ lọc)/, `let toolFlightRevision = 0;
 async function syncToolFlights(refresh){
@@ -33,8 +42,6 @@ function keepFlightSelection(sel, value, previous){
 `)
     // A detected change must not be re-read from a different worker's stale cache.
     .replace('    await loadFlights(false, true);', '    await loadFlights(true, true);')
-    .replaceAll('  const keep = sel.value;', '  const keep = sel.value;\n  const previous = [...sel.options].find(o => o.value === keep);')
-    .replaceAll('  if(keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;', '  keepFlightSelection(sel, keep, previous);')
     .replace('    nmDrawTrack(d);\n    setMode("notam");', '    nmDrawTrack(d);\n    if(mode !== "notam") setMode("notam");')
     .replace(/(<span id="appVersion"[^>]*>)V 2\.60(<\/span>)/, '$1V 2.61$2');
 }

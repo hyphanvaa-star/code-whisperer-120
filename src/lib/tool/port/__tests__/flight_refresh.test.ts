@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { runInNewContext } from "node:vm";
+import { runInNewContext, Script } from "node:vm";
 import { describe, expect, it } from "vitest";
 import { patchFlightRefreshPage } from "../flight_refresh";
 
@@ -12,6 +12,11 @@ function harness(fetch: (url: string) => Promise<unknown>) {
 const response = (flights: unknown[]) => ({ ok: true, json: async () => ({ flights }) });
 
 describe("flight catalogue refresh", () => {
+  it("keeps every embedded script valid after applying the shim", () => {
+    const scripts = [...page.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)];
+    expect(scripts.length).toBeGreaterThan(0);
+    for (const script of scripts) expect(() => new Script(script[1] ?? "")).not.toThrow();
+  });
   it("always requests fresh unfiltered flights in −6/+24 hours", async () => {
     let query = "";
     const { api, context } = harness(async url => { query = url; return response([{ id: 394 }]); });
