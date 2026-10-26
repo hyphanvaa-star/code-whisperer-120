@@ -98,9 +98,18 @@ function ftValidationSync(){
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
       result = ftValidationResult(alerts,pending);
     }
+    const key = sector ? sector.id : "";
+    window.__ftValLast = window.__ftValLast || {};
+    if(key && (!r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; continue; }
+    if(result.status === "pending"){
+      const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
+      const rest = result.text.replace(/^Chưa đủ dữ liệu: /, "").split(", ").filter(x => !(x === "CREW" && capt && fo));
+      result = rest.length ? ftValidationResult([], rest) : ftValidationResult([], []);
+    }
     td.dataset.status = result.status;
     td.textContent = result.text;
     td.title = details.length ? details.join("\\n\\n") : result.text;
+    if(key && r && tr) window.__ftValLast[key] = {s: td.dataset.status, t: td.textContent, h: td.title};
   }
 }
 new MutationObserver(ftValidationLater).observe($("#cmpBody"), {childList:true,subtree:true,attributes:true,characterData:true});
