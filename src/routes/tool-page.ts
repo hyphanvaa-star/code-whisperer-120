@@ -1857,8 +1857,8 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))
-    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.76$2')
-    .replace('</head>', '<style>.ft-pld-cell{position:relative;min-width:110px}.ft-pld-cell input{width:100%;padding-right:30px!important}.ft-pld-cell .ft-est-arrow{position:absolute;right:5px;top:50%;transform:translateY(-50%);min-width:24px;padding:2px 5px!important;background:var(--x-red)!important;color:var(--x-card)!important;border-color:var(--x-red)!important}</style></head>')
+    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.77$2')
+    .replace('</head>', '<style>#wrapFplText .fttbl th:nth-child(16),#wrapFplText .fttbl td:nth-child(16){width:180px!important;min-width:180px}.ft-pld-cell{position:relative;padding-right:32px!important}.ft-pld-value{display:block;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;color:var(--x-khb-ink)}.ft-pld-cell .ft-est-arrow{position:absolute;right:5px;top:50%;transform:translateY(-50%);min-width:24px;padding:2px 5px!important;background:var(--x-red)!important;color:var(--x-card)!important;border-color:var(--x-red)!important}</style></head>')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
