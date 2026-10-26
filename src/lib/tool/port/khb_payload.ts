@@ -36,7 +36,7 @@ export function patchKhbPayloadPage(html: string): string {
   return html
     .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
     .replace('width:1760px;min-width:100%', 'width:2640px;min-width:100%')
-    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th>PLD</th><th>FL</th>')
+    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head">PLD<div style="display:flex;justify-content:space-around;font-size:10px;opacity:.85;border-top:1px solid currentColor;margin-top:2px;padding-top:2px"><span>OFP</span><span>EST</span></div></th><th>FL</th>')
     .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftValidationCell(null));\n      blank.appendChild(ftPldCell(null));')
     .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftValidationCell(f));\n    tr.appendChild(ftPldCell(f));')
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
@@ -161,12 +161,6 @@ function ftPldCell(f){
       }).catch(() => { value.title = "Chưa lấy được payload OFP / EST Omni (kg)"; })
       .finally(() => ftOfpPending.delete(sector.id));
   }
-  const btn = document.createElement("button");
-  btn.type = "button"; btn.className = "btn small ft-est-arrow";
-  btn.textContent = "↓"; btn.title = "Lấy EST Omni · VJ" + f.flt;
-  btn.setAttribute("aria-label", btn.title);
-  btn.onclick = () => ftLoadEst([f], btn);
-  td.appendChild(btn);
   return td;
 }
 let ftEstBusy = false;
