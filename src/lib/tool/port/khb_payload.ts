@@ -40,7 +40,7 @@ function ftPayloadSector(f){
     && dateKey(g.std) === day && ftAptHit(st.dep, g.dep_icao || g.dep)
     && ftAptHit(st.arr, g.dest_icao || g.arr || g.dest)
     && ftRegKey(st.reg) === ftRegKey(g.reg)
-    && opsKeepFlight(g));
+    && inOpsWindow(g));
   return hits.length === 1 ? hits[0] : null;
 }
 function ftPldCell(f){
