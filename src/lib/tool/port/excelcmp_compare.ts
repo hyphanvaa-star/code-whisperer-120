@@ -476,8 +476,9 @@ function diffH(flight: Flight, dtLocal: Date): number | null {
 }
 
 /** Crewlist time is local at the departure airport; convert it to UTC with the airport time-zone table. */
-export function excelUtc(rowdict: Record<string, unknown>, mapping: Record<string, string>): Date | null {
-  const dt = excelDt(rowdict, mapping);
+export function excelUtc(rowdict: Record<string, unknown>, mapping: Record<string, string>, useEtd = false): Date | null {
+  if (useEtd && !mapping["etd"]) return null;
+  const dt = excelDt(rowdict, useEtd ? { ...mapping, std: mapping["etd"]! } : mapping);
   if (!dt || !mapping["std"] || !mapping["dep"]) return null;
   const dep = airportCode(rowdict[mapping["dep"]!]);
   const tz = (WORLD_TZ as Record<string, string>)[dep];
@@ -564,6 +565,12 @@ function resolve(rowdict: Record<string, unknown>, mapping: Record<string, strin
   }
 
   const utc = excelUtc(rowdict, mapping);
+  const utcEtd = excelUtc(rowdict, mapping, true);
+  if (utcEtd) {
+    // ETD (giờ dự kiến mới) khớp đúng STD UTC của CFP thì không báo lệch.
+    const [fe, noteE] = pickByTime(cands, utcEtd, rowdict, mapping, 0, windowH);
+    if (fe && !/lệch/.test(noteE)) return [fe, noteE, ""];
+  }
   if (utc) {
     // Giờ UTC tự tính từ múi giờ sân bay đi: không còn "lệch −7h/−9h" giả.
     const [fu, noteU] = pickByTime(cands, utc, rowdict, mapping, 0, windowH);
