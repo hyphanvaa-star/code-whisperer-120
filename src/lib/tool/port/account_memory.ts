@@ -101,11 +101,19 @@ function acClose(){
     if(pi && pi.dataset.saved && !pi.dataset.dirty){ pi.type = "password"; pi.dataset.mask = "1"; pi.value = AC_MASK; }
   }
 }
-async function acRefresh(attempt){
-  attempt = attempt || 0;
+let acPending = null, acPendingOwner = "";
+function acRefresh(attempt){
   acSelectOwner();
-  const uid = acOwner, revision = ++acRevision;
   acRenderAccounts(false); acWatchEdits();
+  // Lệnh đang chạy thì dùng chung kết quả, không huỷ nhau.
+  if(acPending && acPendingOwner === acOwner) return acPending;
+  acPendingOwner = acOwner;
+  const p = acLoad(attempt || 0).finally(() => { if(acPending === p) acPending = null; });
+  acPending = p;
+  return p;
+}
+async function acLoad(attempt){
+  const uid = acOwner, revision = acRevision;
   try{
     const r = await fetch("/api/credentials", {cache:"no-store"});
     if(!r.ok) throw new Error("x");
