@@ -15,6 +15,7 @@ import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
+import databaseTabScript from '@/tool/database-tab.js?raw';
 import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
 import { patchAccountMemoryPage } from '@/lib/tool/port/account_memory';
 import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
@@ -1855,7 +1856,7 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw)))
-    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.73$2')
+    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.74$2')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
@@ -2052,7 +2053,20 @@ function ftRender(){
       #wrapNmTrack .nm-th-arrow[hidden]{display:none}
       #wrapNmTrack .nm-th-l{left:0}
       #wrapNmTrack .nm-th-r{right:0;margin-left:auto}
-    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script><script>${stormToolbarScript}</script></body>`)
+    </style><script>${aftnBookScript}</script><script>${notamGeometryFixes}</script><script>${ddScript}</script><script>${khbEzfwScript}</script><script>${stormToolbarScript}</script><style>.dbx-wrap{flex-direction:column;flex:1;min-height:0;overflow:auto;padding:20px;gap:18px;background:linear-gradient(180deg,#fff7f7,#fff)}
+.dbx-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.dbx-head h2{margin:0;font-size:26px;font-weight:800;color:#b91c1c;letter-spacing:-.02em}
+.dbx-head p{margin:4px 0 0;color:#64748b;font-size:14px}
+#dbxFind{padding:9px 14px;border:1px solid #fecaca;border-radius:999px;min-width:220px;font-size:14px}
+.dbx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.dbx-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:18px;border:1px solid #f1f5f9;border-radius:16px;background:#fff;cursor:pointer;box-shadow:0 2px 10px rgba(15,23,42,.06);transition:transform .15s,box-shadow .15s,border-color .15s;overflow:hidden}
+.dbx-card::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--c)}
+.dbx-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(15,23,42,.12);border-color:var(--c)}
+.dbx-ic{font-size:26px;width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:color-mix(in srgb,var(--c) 12%,#fff)}
+.dbx-t{font-size:17px;font-weight:800;color:#0f172a}
+.dbx-d{font-size:13px;color:#64748b;line-height:1.4;flex:1}
+.dbx-go{font-size:12px;font-weight:700;color:var(--c);margin-top:4px}
+</style><script>${databaseTabScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
