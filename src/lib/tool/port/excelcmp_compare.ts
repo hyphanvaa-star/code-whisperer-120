@@ -1,6 +1,7 @@
 // Port of excelcmp/compare.py — compares an uploaded Excel sheet with FliteBrief flights.
 import type { Flight, Crew } from "../core/models";
 import { type Sheet, sheetDicts } from "./excelcmp_reader";
+import WORLD_TZ from "../data/world_tz.json";
 
 export interface FieldDef {
   key: string;
@@ -474,6 +475,18 @@ function diffH(flight: Flight, dtLocal: Date): number | null {
   return (flight.std.getTime() - dtLocal.getTime()) / 3600000;
 }
 
+/** Crewlist time is local at the departure airport; convert it to UTC with the airport time-zone table. */
+export function excelUtc(rowdict: Record<string, unknown>, mapping: Record<string, string>): Date | null {
+  const dt = excelDt(rowdict, mapping);
+  if (!dt || !mapping["std"] || !mapping["dep"]) return null;
+  const dep = airportCode(rowdict[mapping["dep"]!]);
+  const tz = (WORLD_TZ as Record<string, string>)[dep];
+  const m = /^([+-])?(\d{1,2}):(\d{2})$/.exec(String(tz || ""));
+  if (!m) return null;
+  const off = (m[1] === "-" ? -1 : 1) * (Number(m[2]) + Number(m[3]) / 60);
+  return new Date(dt.getTime() - off * 3600000);
+}
+
 function refOffset(rows: Array<[number, Record<string, unknown>]>, mapping: Record<string, string>, byCs: Map<string, Flight[]>, windowH = WINDOW_H): number {
   const seen: number[] = [];
   for (const [, rowdict] of rows) {
@@ -550,6 +563,13 @@ function resolve(rowdict: Record<string, unknown>, mapping: Record<string, strin
     return [f, cands.length > 1 && !note ? `callsign trùng ${cands.length} chuyến` : note, ""];
   }
 
+  const utc = excelUtc(rowdict, mapping);
+  if (utc) {
+    // Giờ UTC tự tính từ múi giờ sân bay đi: không còn "lệch −7h/−9h" giả.
+    const [fu, noteU] = pickByTime(cands, utc, rowdict, mapping, 0, windowH);
+    if (fu) return [fu, noteU.replace(/so với giờ Excel \(giờ địa phương ↔ UTC\)/, "so với giờ UTC tính từ Crewlist"), ""];
+    if (noteU) return [null, "", noteU];
+  }
   const [f, note] = pickByTime(cands, dt, rowdict, mapping, refH, windowH);
   if (f) return [f, note, ""];
   if (note) return [null, "", note];
