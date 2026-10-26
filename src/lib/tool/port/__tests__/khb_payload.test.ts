@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rawOmniPay } from '../khb_payload';
+import { payloadPair, rawOmniPay } from '../khb_payload';
 
 const flight = { flt: '774', date: '20/10/2026', dep: 'CXR', arr: 'HAN', std: '15:45', etd: '16:30' };
 const rows = [
@@ -7,6 +7,13 @@ const rows = [
   { digits: '774', dep: 'CXR', arr: 'HAN', std_local: '2026-10-20T15:45:00', est_payload: 15040 },
 ];
 describe('KHB explicit EST download', () => {
+  it('keeps OFP payload first and raw Omni EST second', () => {
+    expect(payloadPair(15000, 16582)).toBe('15000 / 16582');
+  });
+  it('does not substitute one source for a missing source', () => {
+    expect(payloadPair(null, 16582)).toBe('— / 16582');
+    expect(payloadPair(15000, '')).toBe('15000 / —');
+  });
   it('fills PLD with the original Omni EST, without rounding or adding 1000', () => {
     expect(rawOmniPay(rows, flight)).toBe('15040');
   });
