@@ -11,7 +11,7 @@ import routeSeed from "../data/fpl/route_suffix.json";
 import pcrSeed from "../data/pcr_limits.json";
 import * as excelMod from "./excel.server";
 import { resolveCrewFlight } from '../port/fpl_flight_identity';
-import { omniPayload, exportPayloadItems } from '../port/fpl_payload';
+import { exportPayloadItems } from '../port/fpl_payload';
 import { rawOmniPay } from '../port/khb_payload';
 import { jobId } from '../jobs';
 import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
@@ -37,7 +37,8 @@ const NO_CREWLIST = "Chưa nạp Crewlist. Bấm Crew trên thanh lọc.";
 async function omniEstFallback(ctx: Ctx, flight: Raw): Promise<number | null> {
   try {
     const cache = await getJson<{ rows?: Array<Record<string, unknown>> }>(ctx, "omni.cache", { rows: [] });
-    return omniPayload(cache.rows || [], flight);
+    const pay = rawOmniPay(cache.rows || [], flight);
+    return pay === null ? null : Number(pay);
   } catch {
     return null;
   }
@@ -278,7 +279,6 @@ export const routes: Routes = {
       const flt = String(flight.flt || "");
       const est = await omniEstFallback(ctx, flight);
       if (body.mode === 'est') {
-        const pay = est === null ? null : rawOmniPay([{ digits: flight.flt, dep: flight.dep, arr: flight.arr, std_local: '', est_payload: est }], flight);
         rows.push({ id: rawId, flt, est, pay: est === null ? '' : String(est), manual: false,
           alert: est === null ? `VJ${flt}: không có EST Omni đúng ngày/chặng; giữ PLD hiện tại.` : '' });
         continue;
