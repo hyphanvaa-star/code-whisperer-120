@@ -9,6 +9,8 @@ export function rawOmniPay(rows: Raw[], flight: Raw): string | null {
 
 export function patchKhbPayloadPage(html: string): string {
   return html
+    .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
+    .replace('width:1760px;min-width:100%', 'width:1870px;min-width:100%')
     .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th>PLD</th><th>FL</th>')
     .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftBox(pending, "etp_poa", true));\n      blank.appendChild(ftBox(pending, "pay", false));')
     .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftBox(st, "etp_poa", true));\n    tr.appendChild(ftPldCell(f));')
@@ -56,7 +58,7 @@ async function ftLoadEst(flights, btn){
         notes.push("VJ" + snap.f.flt + ": đã đổi dữ liệu trong lúc tải; giữ ô PLD hiện tại."); continue;
       }
       const row = (d.rows || []).find(r => String(r.id) === String(snap.f.id));
-      if(!row || row.est == null){ notes.push((row && row.alert) || "VJ" + snap.f.flt + ": không có EST đúng ngày/chặng; giữ PLD hiện tại."); continue; }
+      if(!row || row.est == null || !Number.isFinite(Number(row.est)) || Number(row.est) <= 0){ notes.push((row && row.alert) || "VJ" + snap.f.flt + ": không có EST đúng ngày/chặng; giữ PLD hiện tại."); continue; }
       snap.st.pay = String(row.est); snap.st.payManual = false; count++;
     }
     ftRender(); ftKeepSave();
