@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 2.77: hiện cột PLD đúng vị trí với hai nguồn riêng payload OFP / EST Omni (15000 / 16582).
+
 - [x] V 2.76: đổi ETP POA thành Validation, thêm PLD và lấy EST Omni theo chuyến đã chọn; giữ sửa tay và báo thiếu EST; 17 kiểm thử đạt.
 - [ ] V 2.76: thử lấy EST Omni với chuyến thật — không tạo được phiên người yêu cầu; cần người dùng thử bản preview.
 
