@@ -102,7 +102,7 @@ function ftValidationSync(){
     window.__ftValLast = window.__ftValLast || {};
     if(key && (!r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; continue; }
     if(result.status === "pending"){
-      const stc = ftSt(f), capt = String(stc.capt || stc.cpt || f.capt || "").trim(), fo = String(stc.fo || f.fo || "").trim();
+      const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
       const rest = result.text.replace(/^Chưa đủ dữ liệu: /, "").split(", ").filter(x => !(x === "CREW" && capt && fo));
       result = rest.length ? ftValidationResult([], rest) : ftValidationResult([], []);
     }
