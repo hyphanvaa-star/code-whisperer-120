@@ -1,11 +1,17 @@
 /** Keep the source HTML intact; operational identity travels through the shim. */
 const RETRY = `
+const vAviFails = {};
 function vAviRetry(want, why){
-  let left = 0;
+  let left = 0, stop = [];
   document.querySelectorAll("#vBody span.vavi").forEach(sp => {
     const k = vAviKey(sp.dataset.cs, sp.dataset.date);
-    if(want.includes(sp.dataset.cs) && !vAviEobt[k]){ delete vAviTried[k]; left++; }
+    if(want.includes(sp.dataset.cs) && !vAviEobt[k]){
+      vAviFails[k] = (vAviFails[k] || 0) + 1;
+      if(vAviFails[k] < 3){ delete vAviTried[k]; left++; }
+      else if(!stop.includes(sp.dataset.cs)) stop.push(sp.dataset.cs);
+    }
   });
+  if(stop.length) write("ATC avi: đã thử 3 lần không được — dừng check " + stop.join(", ") + " (" + (why || "chưa lấy được EOBT gốc") + "). Điện sẽ dùng ETD/STD tạm, kiểm tra lại.", "fail");
   if(!left) return;
   write("ATC avi: " + (why || "chưa lấy được EOBT gốc") + " — tự thử lại sau 30 giây", "fail");
   setTimeout(vAviAutoCheck, 30000);
