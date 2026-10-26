@@ -12,6 +12,7 @@ import pcrSeed from "../data/pcr_limits.json";
 import * as excelMod from "./excel.server";
 import { resolveCrewFlight } from '../port/fpl_flight_identity';
 import { omniPayload, exportPayloadItems } from '../port/fpl_payload';
+import { rawOmniPay } from '../port/khb_payload';
 import { jobId } from '../jobs';
 import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
 import { parseOpsDate, sameOpsDay, selectOperationalFlight, validateOperationalAtc } from '../port/operational_flight';
@@ -276,6 +277,12 @@ export const routes: Routes = {
       }
       const flt = String(flight.flt || "");
       const est = await omniEstFallback(ctx, flight);
+      if (body.mode === 'est') {
+        const pay = est === null ? null : rawOmniPay([{ digits: flight.flt, dep: flight.dep, arr: flight.arr, std_local: '', est_payload: est }], flight);
+        rows.push({ id: rawId, flt, est, pay: est === null ? '' : String(est), manual: false,
+          alert: est === null ? `VJ${flt}: không có EST Omni đúng ngày/chặng; giữ PLD hiện tại.` : '' });
+        continue;
+      }
       if (est === null) {
         // Không có EST: điền tạm 9999, đánh dấu manual để dispatcher tự kiểm tra.
         rows.push({ id: rawId, flt, pay: "9999", manual: true, alert: `VJ${flt} không có EST — điền tạm 9999, tự kiểm tra` });
