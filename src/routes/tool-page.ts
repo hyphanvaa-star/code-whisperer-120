@@ -19,6 +19,7 @@ import databaseTabScript from '@/tool/database-tab.js?raw';
 import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
 import { patchAccountMemoryPage } from '@/lib/tool/port/account_memory';
 import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
+import { patchKhbPayloadPage } from '@/lib/tool/port/khb_payload';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1855,8 +1856,9 @@ const MOBILE = `<style id="mobile-skin">
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
-  cached = patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw)))
-    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.75$2')
+  cached = patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))
+    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.76$2')
+    .replace('</head>', '<style>.ft-pld-cell{position:relative;min-width:110px}.ft-pld-cell input{width:100%;padding-right:30px!important}.ft-pld-cell .ft-est-arrow{position:absolute;right:5px;top:50%;transform:translateY(-50%);min-width:24px;padding:2px 5px!important;background:var(--x-red)!important;color:var(--x-card)!important;border-color:var(--x-red)!important}</style></head>')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')

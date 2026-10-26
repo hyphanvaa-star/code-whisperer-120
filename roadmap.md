@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 2.76: đổi ETP POA thành Validation, thêm PLD và lấy EST Omni theo chuyến đã chọn; giữ sửa tay và báo thiếu EST; 17 kiểm thử đạt.
+- [ ] V 2.76: thử lấy EST Omni với chuyến thật — không tạo được phiên người yêu cầu; cần người dùng thử bản preview.
+
 - [x] V 2.63: khóa chung danh sách −6/+24 cả khi dùng cache; CHG/DLA, Get ATC/CNL/CHG, AFTN, REQ, AviWeb và mail EZFW chặn ngày/chặng cũ; bỏ nhận EOBT sai DOF. 75 kiểm thử đạt, gồm VJC807 bỏ 0745 hôm trước và nhận 0830 đúng ngày.
 - [ ] V 2.63: thử VJC807 thật từ Check ATC đến xuất CHG/DLA — không tạo được phiên của người yêu cầu; cần người dùng thử preview, chưa publish.
 
