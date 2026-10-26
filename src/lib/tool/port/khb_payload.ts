@@ -95,8 +95,10 @@ function ftPayloadSector(f, requireReg = true){
     const s = String(value || "");
     const iso = /^(\\d{4})-(\\d{2})-(\\d{2})/.exec(s);
     if(iso) return iso[1] + iso[2] + iso[3];
-    const local = /^(\\d{1,2})[/-](\\d{1,2})[/-](\\d{4})/.exec(s);
-    return local ? local[3] + local[2].padStart(2,"0") + local[1].padStart(2,"0") : "";
+    const local = /^(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{2}|\\d{4})\\b/.exec(s);
+    if(!local) return "";
+    const y = local[3].length === 2 ? "20" + local[3] : local[3];
+    return y + local[2].padStart(2,"0") + local[1].padStart(2,"0");
   };
   const day = dateKey(st.date);
   if(!day || !st.dep || !st.arr) return null;
@@ -115,6 +117,7 @@ function ftPldCell(f){
   value.title = "Payload OFP / EST Omni (kg)";
   td.appendChild(value);
   if(!f){ value.textContent = ftPayloadPair(null,null); return td; }
+  ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
   const update = w => { value.textContent = ftPayloadPair(w && w.pld, st.est); };
   const cached = sector && W_CACHE[sector.id];
@@ -144,8 +147,21 @@ function ftEstIdentity(f){
   const st = ftSt(f);
   return JSON.stringify([f.flt, st.date, st.dep, st.arr, f.std, st.etd]);
 }
-async function ftLoadEst(flights, btn){
+const ftEstAutoDone = new Set();
+let ftEstAutoTimer;
+function ftEstAutoLater(){
+  clearTimeout(ftEstAutoTimer);
+  ftEstAutoTimer = setTimeout(() => {
+    if(ftEstBusy) return ftEstAutoLater();
+    const todo = (ftRows || []).filter(f => f && !ftSt(f).est && !ftEstAutoDone.has(ftEstIdentity(f)));
+    if(!todo.length) return;
+    todo.forEach(f => ftEstAutoDone.add(ftEstIdentity(f)));
+    ftLoadEst(todo, null, true);
+  }, 1500);
+}
+async function ftLoadEst(flights, btn, auto){
   if(ftEstBusy) return;
+  btn = btn || {};
   if(!flights.length){ alert("Chưa tick chuyến nào để lấy EST Omni."); return; }
   const snapshots = flights.map(f => ({f, st:ftSt(f), identity:ftEstIdentity(f), pay:ftSt(f).pay}));
   const specs = snapshots.map(({f, st}) => ({id:f.id, flt:f.flt, date:st.date, dep:st.dep, arr:st.arr, std:f.std, etd:st.etd}));
@@ -167,12 +183,14 @@ async function ftLoadEst(flights, btn){
       }
       const row = (d.rows || []).find(r => String(r.id) === String(snap.f.id));
       if(!row || row.est == null || !Number.isFinite(Number(row.est)) || Number(row.est) <= 0){ notes.push((row && row.alert) || "VJ" + snap.f.flt + ": không có EST đúng ngày/chặng; giữ PLD hiện tại."); continue; }
-      snap.st.est = String(row.est); snap.st.pay = String(row.est); snap.st.payManual = false; count++;
+      snap.st.est = String(row.est);
+      if(!auto){ snap.st.pay = String(row.est); snap.st.payManual = false; }
+      count++;
     }
     ftRender(); ftKeepSave();
     $("#ftStat").textContent = "Đã lấy EST Omni cho " + count + " chuyến" + (notes.length ? " · " + notes.join(" · ") : "");
-    if(notes.length) alert(notes.join("\\n"));
-  }catch(err){ $("#ftStat").textContent = "EST Omni: " + err.message; alert("EST Omni: " + err.message); }
+    if(notes.length && !auto) alert(notes.join("\\n"));
+  }catch(err){ $("#ftStat").textContent = "EST Omni: " + err.message; if(!auto) alert("EST Omni: " + err.message); }
   finally{ ftEstBusy = false; btn.disabled = false; }
 }
 $("#ftEstLoad").onclick = function(){ ftLoadEst(ftRows.filter(f => f && ftSt(f).on), this); };
