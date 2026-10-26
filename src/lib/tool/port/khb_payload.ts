@@ -36,7 +36,7 @@ export function patchKhbPayloadPage(html: string): string {
   return html
     .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
     .replace('width:1760px;min-width:100%', 'width:2640px;min-width:100%')
-    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head">PLD<div style="display:flex;justify-content:space-around;font-size:10px;opacity:.85;border-top:1px solid currentColor;margin-top:2px;padding-top:2px"><span>OFP</span><span>EST</span></div></th><th>FL</th>')
+    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head">PLD<div class="ft-pld-grid ft-pld-sub"><span>OFP</span><span>EST</span></div></th><th>FL</th>')
     .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftValidationCell(null));\n      blank.appendChild(ftPldCell(null));')
     .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftValidationCell(f));\n    tr.appendChild(ftPldCell(f));')
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
@@ -139,14 +139,26 @@ function ftPayloadSector(f, requireReg = true){
 function ftPldCell(f){
   const td = document.createElement("td");
   td.className = "ft-pld-cell";
-  const value = document.createElement("span");
-  value.className = "ft-pld-value";
+  const value = document.createElement("div");
+  value.className = "ft-pld-value ft-pld-grid";
   value.title = "Payload OFP / EST Omni (kg)";
+  const ofpEl = document.createElement("span"), estEl = document.createElement("span");
+  value.append(ofpEl, estEl);
   td.appendChild(value);
-  if(!f){ value.textContent = ftPayloadPair(null,null); return td; }
+  const paint = (pld, est) => {
+    const [a, b] = ftPayloadPair(pld, est).split(" / ");
+    ofpEl.textContent = a; estEl.textContent = b;
+    estEl.className = ""; value.title = "Payload OFP / EST Omni (kg)";
+    if(a !== "—" && b !== "—"){
+      const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
+      estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
+      value.title = (v >= 0 ? "Còn dư " + v.toLocaleString("en-US") + " kg" : "VƯỢT: EST hơn PLD " + Math.abs(v).toLocaleString("en-US") + " kg") + (hi ? "\\n⚠ lệch hơn 2000 kg" : "");
+    }
+  };
+  if(!f){ paint(null,null); return td; }
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
-  const update = w => { value.textContent = ftPayloadPair(w && w.pld, st.est); };
+  const update = w => { paint(w && w.pld, st.est); };
   const cached = sector && W_CACHE[sector.id];
   update(cached && ofpFitsFlight(sector,cached) ? cached : null);
   if(sector && !cached && !ftOfpPending.has(sector.id)){
