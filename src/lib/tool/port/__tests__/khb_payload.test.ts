@@ -34,3 +34,18 @@ describe('KHB explicit EST download', () => {
     expect(rawOmniPay(rows, { ...flight, arr: 'SGN' })).toBeNull();
   });
 });
+import { khbUtcDay } from '../khb_payload';
+describe('KHB UTC day from local Crewlist time', () => {
+  it('CXR 00:05 local on 27/10 is 26/10 UTC (1705Z)', () => {
+    expect(khbUtcDay('27/10/26', '00:05', '1705')).toBe('20261026');
+  });
+  it('HND 03:00 local (+9) on 27/10 is 26/10 UTC (1800Z)', () => {
+    expect(khbUtcDay('27/10/26', '03:00', '1800')).toBe('20261026');
+  });
+  it('KIX 09:30 local on 27/10 is 27/10 UTC (0030Z)', () => {
+    expect(khbUtcDay('27/10/26', '09:30', '0030')).toBe('20261027');
+  });
+  it('gives no day when ETD UTC is missing', () => {
+    expect(khbUtcDay('27/10/26', '09:30', '')).toBe('');
+  });
+});
