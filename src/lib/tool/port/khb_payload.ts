@@ -54,7 +54,8 @@ function ftValidationSync(){
     const tr = marker && marker.closest("tr");
     let result;
     const details = [];
-    if(!r || !tr){ result = ftValidationResult([], ["So sánh đúng chuyến/ngày/chặng"]); }
+    if(!sector){ result = ftValidationResult([], ["không tìm thấy chuyến đúng ngày/chặng trên FliteBrief"]); }
+    else if(!r || !tr){ result = ftValidationResult([], ["chưa chạy So sánh (Cmp) cho chuyến này"]); }
     else {
       const alerts = [], pending = [];
       if(r.note){ alerts.push(r.note); details.push(r.note); }
@@ -77,7 +78,7 @@ function ftValidationSync(){
       if($("#cmpPld").checked){
         inspect(tr.querySelector('[data-w="est"]'),"EST",false);
         inspect(tr.querySelector('[data-w="delta"]'),"Δ EST–PLD",false);
-      }else pending.push("PLD / EST chưa bật");
+      }
       const w = W_CACHE[sector.id];
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
       result = ftValidationResult(alerts,pending);
@@ -91,23 +92,29 @@ new MutationObserver(ftValidationLater).observe($("#cmpBody"), {childList:true,s
 const ftOfpPending = new Set();
 function ftPayloadSector(f, requireReg = true){
   const st = ftSt(f);
-  const dateKey = value => {
-    const s = String(value || "");
-    const iso = /^(\\d{4})-(\\d{2})-(\\d{2})/.exec(s);
-    if(iso) return iso[1] + iso[2] + iso[3];
-    const local = /^(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{2}|\\d{4})\\b/.exec(s);
-    if(!local) return "";
-    const y = local[3].length === 2 ? "20" + local[3] : local[3];
-    return y + local[2].padStart(2,"0") + local[1].padStart(2,"0");
-  };
-  const day = dateKey(st.date);
+  const local = /^(\\d{1,2})[/.-](\\d{1,2})[/.-](\\d{2}|\\d{4})\\b/.exec(String(st.date || "").trim());
+  const iso = /^(\\d{4})-(\\d{2})-(\\d{2})/.exec(String(st.date || "").trim());
+  let day = "";
+  if(iso) day = iso[1] + iso[2] + iso[3];
+  else if(local) day = (local[3].length === 2 ? "20" + local[3] : local[3]) + local[2].padStart(2,"0") + local[1].padStart(2,"0");
   if(!day || !st.dep || !st.arr) return null;
-  const hits = (allFlights || []).filter(g => ftDigits(g.callsign || g.fltno) === ftDigits(f.flt)
-    && dateKey(g.std) === day && ftAptHit(st.dep, g.dep_icao || g.dep)
-    && ftAptHit(st.arr, g.dest_icao || g.arr || g.dest)
-    && (!requireReg || ftRegKey(st.reg) === ftRegKey(g.reg))
+  const shifted = (std, h) => {
+    const t = new Date(std).getTime();
+    if(!Number.isFinite(t)) return "";
+    const d = new Date(t + h * 3600000);
+    return d.getUTCFullYear() + String(d.getUTCMonth() + 1).padStart(2,"0") + String(d.getUTCDate()).padStart(2,"0");
+  };
+  const regKey = r => ftRegKey(r).replace(/^VN/, "");
+  const base = (allFlights || []).filter(g => ftDigits(g.callsign || g.fltno) === ftDigits(f.flt)
+    && ftAptHit(st.dep, g.dep_icao || g.dep_iata || g.dep)
+    && ftAptHit(st.arr, g.dest_icao || g.dest_iata || g.arr || g.dest)
+    && (!requireReg || !st.reg || !g.reg || regKey(st.reg) === regKey(g.reg))
     && inOpsWindow(g));
-  return hits.length === 1 ? hits[0] : null;
+  // KHB ghi ngày giờ VN; FliteBrief lưu STD UTC → ưu tiên ngày VN, rồi mới ngày UTC.
+  const vn = base.filter(g => shifted(g.std, 7) === day);
+  if(vn.length) return vn.length === 1 ? vn[0] : null;
+  const utc = base.filter(g => shifted(g.std, 0) === day);
+  return utc.length === 1 ? utc[0] : null;
 }
 function ftPldCell(f){
   const td = document.createElement("td");
