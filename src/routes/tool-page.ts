@@ -1857,7 +1857,7 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))
-    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.82$2')
+    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.83$2')
     .replace('</head>', '<style>#wrapFplText .fttbl th:nth-child(15),#wrapFplText .fttbl td:nth-child(15){width:220px!important}#wrapFplText .fttbl td.ft-validation-cell{white-space:normal!important;overflow-wrap:anywhere;line-height:1.4;font-weight:700}#wrapFplText .fttbl td.ft-validation-cell[data-status="good"]{background:var(--x-ok)!important;color:var(--x-card)!important;text-align:center}#wrapFplText .fttbl td.ft-validation-cell[data-status="warning"]{background:var(--x-warn-bg)!important;color:var(--x-warn)!important}#wrapFplText .fttbl td.ft-validation-cell[data-status="pending"]{color:var(--x-mute)!important}</style></head>')
     .replace('</head>', '<style>#wrapFplText .fttbl th:nth-child(16),#wrapFplText .fttbl td:nth-child(16){width:180px!important;min-width:180px}.ft-pld-cell{position:relative;padding-right:32px!important}.ft-pld-value{display:block;font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap;color:var(--x-khb-ink)}.ft-pld-cell .ft-est-arrow{position:absolute;right:5px;top:50%;transform:translateY(-50%);min-width:24px;padding:2px 5px!important;background:var(--x-red)!important;color:var(--x-card)!important;border-color:var(--x-red)!important}</style></head>')
     // The embedded source stays intact; account fixes belong in this shim.
