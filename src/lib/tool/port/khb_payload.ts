@@ -63,7 +63,8 @@ function ftValidationSync(){
         if(!cell){ pending.push(label); return; }
         const warning = cell.querySelector(".bad,.warn,.crit,.pcr-hot,.pcr-near,.fuel-tight,.alt-blink,.delta-hi,.cmp-reg-bang");
         if(warning){ alerts.push(label + ": " + (cell.textContent.trim() || "cảnh báo")); details.push(label + ": " + (cell.title || cell.textContent)); }
-        if(!warning && (!cell.textContent.trim() || /^[—….·]+$/.test(cell.textContent.trim())) && !(allowNil && cell.textContent.trim() === "nil")) pending.push(label);
+        if(!warning && (!cell.textContent.trim() || /^[—….·]+$/.test(cell.textContent.trim())) && !(allowNil && (cell.textContent.trim() === "nil" || label === "ALT"))) pending.push(label);
+        if(label === "FUEL" && /chưa/i.test(cell.title || "")) pending.push(label);
       };
       for(const [key,label] of [["crewSid","CREW"],["regSid","REG"]]){
         const cell = tr.querySelector('[data-' + (key === "crewSid" ? "crew-sid" : "reg-sid") + ']');
