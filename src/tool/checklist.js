@@ -5,11 +5,14 @@ const ckLicense = document.createElement('label');
 ckLicense.className = 'ftdsp';
 ckLicense.innerHTML = 'DSP License : <input type="text" id="ftLicInput" autocomplete="off" spellcheck="false" aria-label="DSP License">';
 $('#ftDspBox').closest('label').insertAdjacentElement('afterend', ckLicense);
-function ckRestoreLicense(){ try { $('#ftLicInput').value = localStorage.getItem(ckLicKey()) || ''; } catch(e) { $('#ftLicInput').value = ''; } }
+function ckRestoreLicense(){ try { $('#ftLicInput').value = localStorage.getItem(ckLicKey()) || localStorage.getItem('ck.license.last') || ''; } catch(e) { $('#ftLicInput').value = ''; } }
+try { if(!($('#ftDspBox').value || '').trim()) $('#ftDspBox').value = localStorage.getItem('ck.dsp.last') || ''; } catch(e) {}
 ckRestoreLicense();
-$('#ftDspBox').addEventListener('input', ckRestoreLicense);
-$('#ftDspBox').addEventListener('change', ckRestoreLicense);
+function ckSaveDsp(){ try { const v=($('#ftDspBox').value || '').trim(); if(v) localStorage.setItem('ck.dsp.last', v); } catch(e) {} }
+$('#ftDspBox').addEventListener('input', function(){ ckSaveDsp(); ckRestoreLicense(); });
+$('#ftDspBox').addEventListener('change', function(){ ckSaveDsp(); ckRestoreLicense(); });
 $('#ftLicInput').addEventListener('input', function(){
+  try { localStorage.setItem('ck.license.last', this.value.trim()); } catch(e) {}
   if(!($('#ftDspBox').value || '').trim()) return;
   try { localStorage.setItem(ckLicKey(), this.value.trim()); } catch(e) {}
 });
