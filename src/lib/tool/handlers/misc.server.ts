@@ -60,9 +60,7 @@ export const routes: Routes = {
       const envPass = k.pass.map((n) => process.env[n]).find(Boolean) ?? "";
       const prefill = kind === "flitebrief" || kind === "omni" || kind === "aviweb" || kind === "jetplan" || kind === "opscore";
       if (kind === "outlook") {
-        // Không bao giờ điền sẵn tài khoản Outlook — người dùng tự nhập mỗi lần.
-        const { OUTLOOK_TTL } = await import("../creds.server");
-        void OUTLOOK_TTL;
+        // Outlook: chỉ hiện tài khoản người dùng đã tự lưu.
         const live = Boolean(mine?.username && mine.password);
         accounts[kind] = { label: k.label, username: live ? mine!.username : "", mailbox: mine?.mailbox || process.env["OUTLOOK_MAILBOX"] || "omc@vietjetair.com",
           has_password: live, source: live ? "file" : "none", env_names: [] };
