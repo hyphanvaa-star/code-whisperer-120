@@ -12,6 +12,20 @@ export function payloadPair(ofp: unknown, est: unknown): string {
   return value(ofp) + ' / ' + value(est);
 }
 
+/** UTC day (YYYYMMDD) from the KHB local date + local ETD and the ETD UTC column (same instant). */
+export function khbUtcDay(date: unknown, etdLocal: unknown, etdUtc: unknown): string {
+  const d = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})\b/.exec(String(date || '').trim());
+  const clock = (v: unknown) => { const m = /^(\d{1,2}):?(\d{2})$/.exec(String(v || '').trim()); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+  const lt = clock(etdLocal), ut = clock(etdUtc);
+  if (!d || lt == null || ut == null) return '';
+  let off = lt - ut;
+  while (off > 14 * 60) off -= 1440;
+  while (off < -12 * 60) off += 1440;
+  const y = d[3]!.length === 2 ? 2000 + Number(d[3]) : Number(d[3]);
+  const t = new Date(Date.UTC(y, Number(d[2]) - 1, Number(d[1]), 0, lt - off));
+  return t.getUTCFullYear() + String(t.getUTCMonth() + 1).padStart(2, '0') + String(t.getUTCDate()).padStart(2, '0');
+}
+
 export function validationResult(alerts: string[], pending: string[]) {
   if (alerts.length) return { status: 'warning', text: [...new Set(alerts)].join(' · ') };
   if (pending.length) return { status: 'pending', text: 'Chưa đủ dữ liệu: ' + [...new Set(pending)].join(', ') };
@@ -31,6 +45,7 @@ export function patchKhbPayloadPage(html: string): string {
     .replace('function ftRender(){', `
 const ftPayloadPair = ${payloadPair.toString()};
 const ftValidationResult = ${validationResult.toString()};
+const ftKhbUtcDay = ${khbUtcDay.toString()};
 let ftValidationTimer;
 function ftValidationLater(){
   clearTimeout(ftValidationTimer);
@@ -110,7 +125,12 @@ function ftPayloadSector(f, requireReg = true){
     && ftAptHit(st.arr, g.dest_icao || g.dest_iata || g.arr || g.dest)
     && (!requireReg || !st.reg || !g.reg || regKey(st.reg) === regKey(g.reg))
     && inOpsWindow(g));
-  // KHB ghi ngày giờ VN; FliteBrief lưu STD UTC → ưu tiên ngày VN, rồi mới ngày UTC.
+  // Ngày KHB là giờ địa phương sân bay đi; tự tính ngày UTC từ ETD + ETD UTC rồi so với STD UTC của CFP.
+  const utcDay = ftKhbUtcDay(st.date, st.etd || f.std, st.utc || f.utc);
+  if(utcDay){
+    const hit = base.filter(g => shifted(g.std, 0) === utcDay);
+    return hit.length === 1 ? hit[0] : null;
+  }
   const vn = base.filter(g => shifted(g.std, 7) === day);
   if(vn.length) return vn.length === 1 ? vn[0] : null;
   const utc = base.filter(g => shifted(g.std, 0) === day);
