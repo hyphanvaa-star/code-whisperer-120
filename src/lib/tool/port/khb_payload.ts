@@ -12,20 +12,83 @@ export function payloadPair(ofp: unknown, est: unknown): string {
   return value(ofp) + ' / ' + value(est);
 }
 
+export function validationResult(alerts: string[], pending: string[]) {
+  if (alerts.length) return { status: 'warning', text: [...new Set(alerts)].join(' · ') };
+  if (pending.length) return { status: 'pending', text: 'Chưa đủ dữ liệu: ' + [...new Set(pending)].join(', ') };
+  return { status: 'good', text: 'Good' };
+}
+
 export function patchKhbPayloadPage(html: string): string {
   return html
     .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
     .replace('width:1760px;min-width:100%', 'width:2640px;min-width:100%')
     .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th>PLD</th><th>FL</th>')
-    .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftBox(pending, "etp_poa", true));\n      blank.appendChild(ftPldCell(null));')
-    .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftBox(st, "etp_poa", true));\n    tr.appendChild(ftPldCell(f));')
+    .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftValidationCell(null));\n      blank.appendChild(ftPldCell(null));')
+    .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftValidationCell(f));\n    tr.appendChild(ftPldCell(f));')
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
     .replace('<button type="button" class="btn small" id="ftPldRound"', '<button type="button" class="btn small" id="ftEstLoad" title="Lấy EST Omni cho các chuyến đã tick">↓ EST Omni</button><button type="button" class="btn small" id="ftPldRound"')
     .replace('      st.pay = String(row.pay);', '      st.est = row.est == null ? st.est : String(row.est);\n      st.pay = String(row.pay);')
     .replace('function ftRender(){', `
 const ftPayloadPair = ${payloadPair.toString()};
+const ftValidationResult = ${validationResult.toString()};
+let ftValidationTimer;
+function ftValidationLater(){
+  clearTimeout(ftValidationTimer);
+  ftValidationTimer = setTimeout(ftValidationSync, 80);
+}
+function ftValidationCell(f){
+  const td = document.createElement("td");
+  td.className = "ft-validation-cell";
+  td._flight = f;
+  td.textContent = f ? "Chưa so sánh" : "—";
+  ftValidationLater();
+  return td;
+}
+function ftValidationSync(){
+  for(const td of document.querySelectorAll("#ftBody .ft-validation-cell")){
+    const f = td._flight;
+    if(!f) continue;
+    const sector = ftPayloadSector(f, false);
+    const r = sector && cmpRowOf(sector.id);
+    const marker = sector && document.querySelector('#cmpBody td[data-sid="' + sector.id + '"]');
+    const tr = marker && marker.closest("tr");
+    let result;
+    const details = [];
+    if(!r || !tr){ result = ftValidationResult([], ["So sánh đúng chuyến/ngày/chặng"]); }
+    else {
+      const alerts = [], pending = [];
+      if(r.note){ alerts.push(r.note); details.push(r.note); }
+      if(!r.in_excel) pending.push("Crewlist");
+      const inspect = (cell, label, allowNil) => {
+        if(!cell){ pending.push(label); return; }
+        const warning = cell.querySelector(".bad,.warn,.crit,.pcr-hot,.pcr-near,.fuel-tight,.alt-blink,.delta-hi,.cmp-reg-bang");
+        if(warning){ alerts.push(label + ": " + (cell.textContent.trim() || "cảnh báo")); details.push(label + ": " + (cell.title || cell.textContent)); }
+        if(!warning && (!cell.textContent.trim() || /^[—….·]+$/.test(cell.textContent.trim())) && !(allowNil && cell.textContent.trim() === "nil")) pending.push(label);
+      };
+      for(const [key,label] of [["crewSid","CREW"],["regSid","REG"]]){
+        const cell = tr.querySelector('[data-' + (key === "crewSid" ? "crew-sid" : "reg-sid") + ']');
+        inspect(cell,label,false);
+        if(cell && !cell.querySelector(key === "crewSid" ? ".cmp-crew.ok,.cmp-crew.bad" : ".cmp-reg.ok,.cmp-reg.bad")) pending.push(label);
+      }
+      for(const [key,label] of [["fuel","FUEL"],["alt","ALT"],["pld","PLD"],["tow","TOW / MTOW"],["lwt","LWT / MLWT"],["ezfw","ZFW / MZFW"],["etp","ETP"],["rres","CONT FUEL / ERA"]]){
+        inspect(tr.querySelector('[data-w="' + key + '"]'),label,key === "etp" || key === "alt");
+      }
+      if($("#cmpPld").checked){
+        inspect(tr.querySelector('[data-w="est"]'),"EST",false);
+        inspect(tr.querySelector('[data-w="delta"]'),"Δ EST–PLD",false);
+      }else pending.push("PLD / EST chưa bật");
+      const w = W_CACHE[sector.id];
+      if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
+      result = ftValidationResult(alerts,pending);
+    }
+    td.dataset.status = result.status;
+    td.textContent = result.text;
+    td.title = details.length ? details.join("\\n\\n") : result.text;
+  }
+}
+new MutationObserver(ftValidationLater).observe($("#cmpBody"), {childList:true,subtree:true,attributes:true,characterData:true});
 const ftOfpPending = new Set();
-function ftPayloadSector(f){
+function ftPayloadSector(f, requireReg = true){
   const st = ftSt(f);
   const dateKey = value => {
     const s = String(value || "");
@@ -39,7 +102,7 @@ function ftPayloadSector(f){
   const hits = (allFlights || []).filter(g => ftDigits(g.callsign || g.fltno) === ftDigits(f.flt)
     && dateKey(g.std) === day && ftAptHit(st.dep, g.dep_icao || g.dep)
     && ftAptHit(st.arr, g.dest_icao || g.arr || g.dest)
-    && ftRegKey(st.reg) === ftRegKey(g.reg)
+    && (!requireReg || ftRegKey(st.reg) === ftRegKey(g.reg))
     && inOpsWindow(g));
   return hits.length === 1 ? hits[0] : null;
 }
