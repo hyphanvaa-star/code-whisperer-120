@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 2.78: Validation lấy cảnh báo đúng chuyến từ So sánh và tự cập nhật khi kết quả về; chỉ Good nền xanh khi dữ liệu đủ và kiểm tra đạt; 8 kiểm thử đạt.
+- [ ] V 2.78: xác nhận cảnh báo/Good với chuyến thật — chưa có phiên người yêu cầu; cần thử preview.
+
 - [x] V 2.77: hiện PLD sau Validation, tăng độ rộng bảng; hai nguồn riêng payload OFP / EST Omni (15000 / 16582); xác nhận tiêu đề và 4 kiểm thử đạt, build OK.
 - [ ] V 2.77: thử OFP / EST Omni với chuyến thật — chưa có phiên người yêu cầu; cần thử trên preview.
 
