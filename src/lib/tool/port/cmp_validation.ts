@@ -186,7 +186,7 @@ function renderCompareTable(d, opts){`)
       td.dataset.sid = r.sector_id;
       td.innerHTML = '<span class="v q">…</span>';
       tr.appendChild(td);
-    for(const k of ["ezfw", "etp", "rres", "val"]){
+    }`, `    for(const k of ["ezfw", "etp", "rres", "val"]){
       if(k === "val"){
         const noteCell = txtCell(r.note || "—", "q");
         noteCell.classList.add("cmp-note-cell");
