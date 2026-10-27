@@ -25205,14 +25205,76 @@ function ftApplyCrewDiff(src){
   }
   return total;
 }
+/* Nguồn thay đổi: "fpl" chỉ FPL VER (tím), "crew" chỉ Crewlist mới (cam),
+   "both" cả hai cùng đổi (đỏ). Khi FliteBrief đã khớp giá trị mới → xanh lá. */
+function ftChgClass(c, fbOk){
+  if(fbOk) return "ft-chg-ok";
+  return c.src === "fpl" ? "ft-chg-fpl" : c.src === "both" ? "ft-chg-both" : "ft-chg";
+}
+function ftChgTip(c, fbOk){
+  const src = c.src === "fpl" ? "theo FPL VER" : c.src === "both" ? "cả FPL VER lẫn Crewlist đều đổi" : "theo Crewlist mới";
+  return "Đổi từ " + (c.from || "(trống)") + " → " + (c.to || "(trống)") + " (" + src + ")"
+    + (fbOk ? " · Đã khớp FliteBrief ✓" : " · FliteBrief chưa đổi");
+}
 function ftMarkChg(td, st, key){
   const c = st && st.chg && st.chg[key];
   if(!c) return td;
   const inp = td.querySelector("input[type=text]");
-  (inp || td).classList.add("ft-chg");
-  const tip = "Đổi từ " + (c.from || "(trống)") + " (" + c.a + ") → " + (c.to || "(trống)") + " (" + c.b + ")";
-  (inp || td).title = tip; td.title = tip;
+  const el = inp || td;
+  el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+  el.classList.add(ftChgClass(c, st.chgFb === true));
+  const tip = ftChgTip(c, st.chgFb === true);
+  el.title = tip; td.title = tip;
+  c.el = el;
   return td;
+}
+// FPL VER đổi tàu/giờ: ghép vào dấu thay đổi của KHB (tím nếu chỉ FPL đổi,
+// đỏ nếu Crewlist cũng đổi cùng ô).
+function ftApplyVerDiff(){
+  const rows = (typeof vLast !== "undefined" && vLast && vLast.rows) || [];
+  if(!rows.length) return;
+  const dg = x => String(x || "").replace(/\D/g, "").replace(/^0+/, "");
+  const n3 = x => String(x || "").replace(/\D/g, "").slice(-3);
+  for(const f of ftRows){
+    if(!f) continue;
+    const st = ftSt(f);
+    const day = String(st.date || f.date || "").slice(0, 5);
+    const hit = rows.find(r =>
+      dg(r.flt) === dg(f.flt)
+      && (!r.route || r.route === (st.dep || f.dep) + "-" + (st.arr || f.arr))
+      && (!day || !r.day_new || String(r.day_new).slice(0, 5) === day));
+    if(!hit) continue;
+    st.chg = st.chg || {};
+    const add = (key, from, to) => {
+      const cur = st.chg[key];
+      if(cur){
+        if(cur.src === "crew"){ cur.src = "both"; }
+        return;
+      }
+      st.chg[key] = {from, to, a: "FPL VER", b: "FPL VER mới", src: "fpl"};
+    };
+    // Chỉ đánh dấu khi giá trị hiện trên bảng đã là giá trị mới của FPL VER.
+    if(hit.reg && hit.reg.changed && hit.reg.new
+      && n3(st.reg || f.reg) === n3(hit.reg.new) && n3(hit.reg.new) !== n3(hit.reg.old))
+      add("reg", hit.reg.old, hit.reg.new);
+    if(hit.delay && hit.delay.changed && hit.delay.to)
+      add("etd", hit.delay.from, hit.delay.to);
+  }
+}
+// Sau khi đối chiếu FliteBrief: ô thay đổi nào đã khớp thì chuyển xanh lá.
+function ftRepaintChg(){
+  for(const f of ftRows){
+    if(!f) continue;
+    const st = ftSt(f);
+    if(!st.chg) continue;
+    for(const key of Object.keys(st.chg)){
+      const c = st.chg[key];
+      if(!c || !c.el || !c.el.isConnected) continue;
+      c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+      c.el.classList.add(ftChgClass(c, st.chgFb === true));
+      c.el.title = ftChgTip(c, st.chgFb === true);
+    }
+  }
 }
 function ftItems(){
   const items = [];
