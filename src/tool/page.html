@@ -2666,6 +2666,7 @@ html.night .ft-msg-menu{background:#1b1f27;border-color:#3a4050}
 #wrapFplText .fttbl input.ft-chg-both{color:#DC2626;font-weight:700;background:#FEF2F2}
 #wrapFplText .fttbl input.ft-chg-ok{color:#16A34A;font-weight:700;background:#F0FDF4}
 #wrapFplText .fttbl .ft-bolt{position:absolute;top:1px;right:1px;border:0;background:transparent;cursor:pointer;font-size:20px;line-height:1;padding:1px 3px;font-weight:900}
+#wrapFplText .fttbl .ft-chgac{position:absolute;top:1px;left:1px;border:0;background:transparent;cursor:pointer;font-size:18px;line-height:1;padding:1px 3px;color:#0369A1}
 #wrapFplText .fttbl .ft-bolt.fpl{color:#7C3AED}#wrapFplText .fttbl .ft-bolt.crew{color:#EA580C}#wrapFplText .fttbl .ft-bolt.both{color:#DC2626}#wrapFplText .fttbl .ft-bolt.ok{color:#16A34A;cursor:default}
 #wrapFplText .fttbl input.ft-extra-auto{color:#d10000;font-weight:700}
 #wrapFplText .fttbl input.ft-lim-crit{color:#d10000;font-weight:700;background:#ffe4e4}
@@ -5896,7 +5897,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.00</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.01</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -25311,6 +25312,28 @@ function ftMarkChg(td, st, key, f){
     b.addEventListener("click", ev => { ev.stopPropagation(); ftBoltClick(f, st, key, c); });
     td.style.position = "relative";
     td.appendChild(b); c.bolt = b; ftBoltPaint(c, st);
+  }
+  if(f && key === "reg"){
+    const a = document.createElement("button");
+    a.type = "button"; a.className = "ft-chgac"; a.textContent = "✈";
+    a.title = "Xuất điện CHG A/C theo tàu hiện tại trên FliteBrief";
+    a.addEventListener("click", async ev => {
+      ev.stopPropagation();
+      if(a.disabled) return;
+      a.disabled = true; a.textContent = "…";
+      try{
+        const item = {flt: f.flt, date: st.date || f.date || "", dep: st.dep || f.dep || "", arr: st.arr || f.arr || "",
+          etd: st.etd || f.etd || "", utc: st.utc || f.utc || "", ac: st.ac || ""};
+        const d = await (await fetch("/api/fpltext/msg", {method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({items: [item], kind: "CHG A/C"})})).json();
+        if(d.error){ alert(d.error); return; }
+        ftOpenAtcReview(d);
+        if((d.missed || []).length) alert(d.missed.join("\n"));
+      }catch(e){ alert("Không gọi được: " + e.message); }
+      finally{ a.disabled = false; a.textContent = "✈"; }
+    });
+    td.style.position = "relative";
+    td.appendChild(a);
   }
   return td;
 }
