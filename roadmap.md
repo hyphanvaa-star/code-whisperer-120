@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.10: thêm NOTE giữa EST−PLD và Validation; Điện văn sau Validation, chọn CHG A/C, DLA hoặc CHG DLA để mở khung điện văn hiện có.
+
 - [x] V 3.09: REG FPL đọc REG trong ATC FPL và so FliteBrief, khớp chữ xanh lá; BF chỉ bật khi có bằng chứng đổi tàu, giữ xác nhận và đúng sector khai thác.
 
 - [x] V 3.08: thêm REG FPL (FliteBrief) trước REG AIMS (Crewlist/Excel); thêm Đổi Briefing và Verify cuối bảng so sánh, dùng thao tác hiện có trên đúng chuyến; 18 kiểm thử đạt, build OK.

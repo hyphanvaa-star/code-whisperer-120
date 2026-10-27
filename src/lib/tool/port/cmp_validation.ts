@@ -17,7 +17,7 @@ export function cmpRegState(fpl: unknown, flite: unknown, aims: unknown, version
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.09')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.10')
     .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
     .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
     .replace('    tr.appendChild(regCmpCell(r));', `    const fplCell = txtCell("…", "n");
@@ -51,7 +51,36 @@ export function patchCmpValidationPage(html: string): string {
       briefCell.title = verifyCell.title = "Chưa xác định được đúng chuyến trong khung khai thác";
     }
     briefCell.dataset.cmpBriefSid = r.sector_id;
-    tr.append(briefCell, verifyCell);
+    const messageCell = document.createElement("td");
+    if(actionFlight){
+      const menu = document.createElement("select");
+      menu.className = "cmp-message-select";
+      menu.setAttribute("aria-label", "Điện văn " + actionFlight.callsign);
+      for(const kind of ["", "CHG A/C", "DLA", "CHG DLA"]){
+        const option = document.createElement("option");
+        option.value = kind; option.textContent = kind || "Điện văn…";
+        menu.appendChild(option);
+      }
+      menu.onclick = ev => ev.stopPropagation();
+      menu.onchange = async () => {
+        const kind = menu.value; menu.value = "";
+        if(!kind) return;
+        const f = cmpActionFlight(r);
+        if(!f){ alert("Chưa xác định được đúng chuyến trong khung khai thác"); return; }
+        menu.disabled = true;
+        try{
+          const response = await fetch("/api/fpltext/msg", {method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({kind, items: [{sector_id: f.id, flt: f.callsign,
+              date: new Date(f.std).toISOString().slice(0,10), dep: r.dep, arr: r.arr}]})});
+          const d = await response.json();
+          if(!response.ok || d.error) throw new Error(d.error || "Không lấy được điện văn");
+          ftOpenAtcReview(d);
+        }catch(error){ alert(error.message || "Không lấy được điện văn"); }
+        finally{ menu.disabled = false; }
+      };
+      messageCell.appendChild(menu);
+    }else messageCell.textContent = "—";
+    tr.append(messageCell, briefCell, verifyCell);
     tr.onclick = () => {
       current = r.sector_id;`)
     .replace('function renderCompareTable(d, opts){', `
@@ -150,14 +179,19 @@ function renderCompareTable(d, opts){`)
     .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
     .replace('  cmpArmPick(td, td.dataset.regSid);\n  return td;\n}\n\nfunction crewCmpCell', '  cmpArmPick(td, td.dataset.regSid);\n  cmpRegRepaint();\n  return td;\n}\n\nfunction crewCmpCell')
-    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
+    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
     .replace(`    for(const k of ["ezfw", "etp", "rres"]){
       const td = document.createElement("td");
       td.dataset.w = k;
       td.dataset.sid = r.sector_id;
       td.innerHTML = '<span class="v q">…</span>';
       tr.appendChild(td);
-    }`, `    for(const k of ["ezfw", "etp", "rres", "val"]){
+    for(const k of ["ezfw", "etp", "rres", "val"]){
+      if(k === "val"){
+        const noteCell = txtCell(r.note || "—", "q");
+        noteCell.classList.add("cmp-note-cell");
+        tr.appendChild(noteCell);
+      }
       const td = document.createElement("td");
       td.dataset.w = k;
       td.dataset.sid = r.sector_id;
@@ -167,6 +201,8 @@ function renderCompareTable(d, opts){`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(10),.cmptbl :is(th,td):nth-child(n+14):nth-child(-n+18){display:none!important}
+.cmptbl .cmp-note-cell{min-width:100px;max-width:220px;white-space:normal;overflow-wrap:anywhere}
+.cmp-message-select{width:110px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px}
 .cmptbl td[data-w="val"]{min-width:150px;font-size:12px;line-height:1.35}
 .cmptbl .cmp-val-head{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;background:#e5e7eb;color:#374151}
 .cmptbl td[data-val="good"] .cmp-val-head{background:#16a34a;color:#fff}
