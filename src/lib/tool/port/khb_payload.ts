@@ -98,9 +98,9 @@ function ftValidationSync(){
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
       result = ftValidationResult(alerts,pending);
     }
-    const key = sector ? sector.id : "";
+    const key = "f" + f.id;
     window.__ftValLast = window.__ftValLast || {};
-    if(key && (!r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; continue; }
+    if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td.textContent !== o.t){ td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; } continue; }
     if(result.status === "pending"){
       const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
       const rest = result.text.replace(/^Chưa đủ dữ liệu: /, "").split(", ").filter(x => !(x === "CREW" && capt && fo));
@@ -229,7 +229,9 @@ async function ftLoadEst(flights, btn, auto){
       if(!auto){ snap.st.pay = String(row.est); snap.st.payManual = false; }
       count++;
     }
-    ftRender(); ftKeepSave();
+    if(auto){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); }
+    else ftRender();
+    ftKeepSave();
     $("#ftStat").textContent = "Đã lấy EST Omni cho " + count + " chuyến" + (notes.length ? " · " + notes.join(" · ") : "");
     if(notes.length && !auto) alert(notes.join("\\n"));
   }catch(err){ $("#ftStat").textContent = "EST Omni: " + err.message; if(!auto) alert("EST Omni: " + err.message); }
