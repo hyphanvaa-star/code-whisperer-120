@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.09: REG FPL đọc REG trong ATC FPL và so FliteBrief, khớp chữ xanh lá; BF chỉ bật khi có bằng chứng đổi tàu, giữ xác nhận và đúng sector khai thác.
+
 - [x] V 3.08: thêm REG FPL (FliteBrief) trước REG AIMS (Crewlist/Excel); thêm Đổi Briefing và Verify cuối bảng so sánh, dùng thao tác hiện có trên đúng chuyến; 18 kiểm thử đạt, build OK.
 - [ ] V 3.08: thử Đổi Briefing/Verify trên chuyến thật — cần người dùng xác nhận thao tác ghi trên chuyến đang khai thác.
 
