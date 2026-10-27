@@ -165,7 +165,8 @@ export const routes: Routes = {
     let currentCrew: cs.CrewRow[] = [];
     try {
       const d = await fbJson<unknown>(`/webapi/sectors/${f.id}/crews`);
-      if (Array.isArray(d)) currentCrew = (d as cs.CrewRow[]).filter((c) => !c.deleted_on);
+      if (!Array.isArray(d)) throw new Error('Danh sách crew không hợp lệ.');
+      currentCrew = (d as cs.CrewRow[]).filter((c) => !c.deleted_on);
     } catch (e) {
       return {error: `Không đọc được crew hiện tại — không đổi: ${(e as Error).message}`};
     }
@@ -444,7 +445,8 @@ export const jobs: Jobs = {
     let currentCrew: cs.CrewRow[] = [];
     try {
       const d = await fbJson<unknown>(`/webapi/sectors/${f.id}/crews`);
-      if (Array.isArray(d)) currentCrew = (d as cs.CrewRow[]).filter((c) => !c.deleted_on);
+      if (!Array.isArray(d)) throw new Error('Danh sách crew không hợp lệ.');
+      currentCrew = (d as cs.CrewRow[]).filter((c) => !c.deleted_on);
     } catch (e) {
       emit({type: 'line', text: `Không đọc được crew hiện tại — không đổi: ${(e as Error).message}`, cls: 'bad'});
       return end(1, {failed: 1});
