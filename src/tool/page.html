@@ -25227,16 +25227,89 @@ function ftChgTip(c, fbOk){
   return "Đổi từ " + (c.from || "(trống)") + " → " + (c.to || "(trống)") + " (" + src + ")"
     + (fbOk ? " · Đã khớp FliteBrief ✓" : " · FliteBrief chưa đổi");
 }
-function ftMarkChg(td, st, key){
+function ftChgOk(st, c){ return c.done === true || (st.chgFb === true && !(c.key === "cptText" || c.key === "foText")); }
+function ftBoltPaint(c, st){
+  if(!c.bolt) return;
+  const ok = ftChgOk(st, c);
+  c.bolt.className = "ft-bolt " + (ok ? "ok" : c.src === "fpl" ? "fpl" : c.src === "both" ? "both" : "crew");
+  c.bolt.title = ok ? "Đã khớp FliteBrief ✓" : "Bấm để cập nhật lên FliteBrief";
+}
+function ftStream(id){
+  return new Promise(resolve => {
+    const es = new EventSource("/api/stream?id=" + id);
+    es.onmessage = ev => { try{ const m = JSON.parse(ev.data);
+      if(m.type === "end"){ es.close(); resolve(!m.failed && !m.error); } }catch(e){} };
+    es.onerror = () => { es.close(); resolve(false); };
+  });
+}
+async function ftBoltClick(f, st, key, c){
+  if(ftChgOk(st, c) || c.busy) return;
+  const sid = f.id, flt = (f.callsign || f.flt || ""), route = (st.dep || f.dep) + "-" + (st.arr || f.arr);
+  const dg = x => (String(x || "").match(/\d{3,6}/) || [""])[0];
+  c.busy = true; c.bolt.textContent = "…";
+  try{
+    if(key === "reg"){
+      const p = new URLSearchParams({sector_id: sid, new_reg: c.to || st.reg, old_reg: c.from || "", days: 2});
+      const d = await (await fetch("/api/regswap/preview?" + p)).json();
+      if(d.error){ alert("Lỗi: " + d.error); return; }
+      const L = [flt + "  " + route, "Đổi tàu: " + (d.old_reg || c.from || "?") + " → " + d.new_reg, ""];
+      (d.delete || []).forEach(x => L.push("  − " + x.filename));
+      (d.add || []).forEach(x => L.push("  + " + x.title + (x.found ? "" : " (thiếu file)")));
+      if(!(d.delete || []).length && !(d.add || []).length){ c.done = true; return; }
+      L.push("", "Cập nhật lên FliteBrief ngay?");
+      if(!confirm(L.join("\n"))) return;
+      const r = await (await fetch("/api/regswap/run", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({sector_id: sid, new_reg: c.to || st.reg, old_reg: c.from || "", days: 2})})).json();
+      if(r.error){ alert("Lỗi: " + r.error); return; }
+      c.done = await ftStream(r.id);
+      if(!c.done) alert("Đổi tàu chưa xong — xem lại trên FliteBrief.");
+    }else{
+      const out = dg(c.from), inn = dg(c.to);
+      if(!inn){ alert("Không đọc được mã phi công mới."); return; }
+      const p = new URLSearchParams({sector_id: sid, days: 2, out: out, in: inn});
+      const d = await (await fetch("/api/crewswap/preview?" + p)).json();
+      if(d.error){ alert("Lỗi: " + d.error); return; }
+      const L = [flt + "  " + route, (key === "cptText" ? "CPT: " : "FO: ") + (c.from || "(trống)") + " → " + c.to, ""];
+      (d.remove || []).forEach(x => L.push("  − " + (x.label || x.username)));
+      (d.add || []).forEach(x => L.push("  + " + (x.label || x.username)));
+      (d.not_found || []).forEach(x => L.push("  ✗ " + x.username + ": " + x.note));
+      if(!(d.remove || []).length && !(d.add || []).length){ c.done = true; return; }
+      L.push("", "Cập nhật lên FliteBrief ngay?");
+      if(!confirm(L.join("\n"))) return;
+      const r = await (await fetch("/api/crewswap/run", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({sector_id: sid, days: 2, out: out ? [out] : [], in: [inn]})})).json();
+      if(r.error){ alert("Lỗi: " + r.error); return; }
+      c.done = await ftStream(r.id);
+      if(!c.done) alert("Đổi crew chưa xong — xem lại trên FliteBrief.");
+    }
+  }catch(e){ alert("Không gọi được: " + e.message); }
+  finally{
+    c.busy = false; if(c.bolt) c.bolt.textContent = "⚡";
+    if(c.el){ c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+      c.el.classList.add(ftChgOk(st, c) ? "ft-chg-ok" : ftChgClass(c, false)); }
+    ftBoltPaint(c, st);
+    if(c.done && key === "reg" && typeof ftFbSync === "function") ftFbSync(true);
+  }
+}
+function ftMarkChg(td, st, key, f){
   const c = st && st.chg && st.chg[key];
   if(!c) return td;
+  c.key = key;
   const inp = td.querySelector("input[type=text]");
   const el = inp || td;
+  const ok = ftChgOk(st, c);
   el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
-  el.classList.add(ftChgClass(c, st.chgFb === true));
-  const tip = ftChgTip(c, st.chgFb === true);
+  el.classList.add(ok ? "ft-chg-ok" : ftChgClass(c, false));
+  const tip = ftChgTip(c, ok);
   el.title = tip; td.title = tip;
   c.el = el;
+  if(f && (key === "reg" || key === "cptText" || key === "foText")){
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = "⚡";
+    b.addEventListener("click", ev => { ev.stopPropagation(); ftBoltClick(f, st, key, c); });
+    td.style.position = "relative";
+    td.appendChild(b); c.bolt = b; ftBoltPaint(c, st);
+  }
   return td;
 }
 // FPL VER đổi tàu/giờ: ghép vào dấu thay đổi của KHB (tím nếu chỉ FPL đổi,
