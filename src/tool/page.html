@@ -22023,6 +22023,7 @@ async function csQuickVerify(f, btn, onDone){
         write("■ verify " + cs + (ok ? " xong" : " lỗi"), ok ? "ok" : "fail");
         if(ok){ f.ofp_ack = false; btn.textContent = "✓"; btn.classList.add("done"); }
         else { btn.disabled = false; btn.textContent = "✔"; }
+        if(onDone) onDone(ok);
         vfCmpEs.close(); vfCmpEs = null; vfCmpJob = null;
       }
     }catch(_){}
