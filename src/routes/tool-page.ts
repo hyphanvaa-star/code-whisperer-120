@@ -1853,13 +1853,45 @@ const MOBILE = `<style id="mobile-skin">
 
 
 
+const KHB_RESULT_SKIN = `<style id="khb-result-skin">
+#wrapFplText .fttbl :is(th,td):nth-child(15){width:232px!important;min-width:232px}
+#wrapFplText .fttbl :is(th,td):nth-child(16){width:156px!important;min-width:156px}
+#wrapFplText .fttbl td.ft-validation-cell{padding:9px 12px!important;white-space:normal!important;overflow-wrap:anywhere;text-align:left!important;background:var(--atc-paper)!important;color:var(--atc-ink)!important;-webkit-text-fill-color:currentColor!important;vertical-align:middle;line-height:1.45;font-size:12px;font-weight:500;letter-spacing:0}
+#wrapFplText .fttbl td.ft-validation-cell[data-status="good"]{background:var(--atc-success)!important;color:var(--atc-on-color)!important}
+#wrapFplText .fttbl td.ft-validation-cell[data-status="warning"]{background:color-mix(in oklch,var(--atc-warning) 16%,var(--atc-paper))!important;color:var(--atc-warning-ink)!important;box-shadow:inset 3px 0 var(--atc-warning)}
+#wrapFplText .fttbl td.ft-validation-cell[data-status="pending"]{color:var(--atc-missing)!important}
+.ft-validation-heading{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:750;line-height:1.5}
+.ft-validation-heading:before{content:"·";font-size:20px;line-height:16px;width:16px;text-align:center;flex-shrink:0}
+[data-status="good"]>.ft-validation-heading:before{content:"✓";font-size:15px}
+[data-status="warning"]>.ft-validation-heading:before{content:"!";font-size:12px;border:1px solid currentColor;border-radius:50%;height:16px;line-height:14px}
+.ft-validation-details:empty{display:none}
+.ft-validation-details{margin-top:4px;font-variant-numeric:tabular-nums}
+.ft-validation-details>div+div{margin-top:3px;padding-top:3px;border-top:1px solid color-mix(in oklch,currentColor 15%,transparent)}
+.ft-validation-details strong{font-size:11px;margin-right:6px;font-weight:750}
+.ft-validation-details span{font-weight:500}
+#wrapFplText .fttbl td.ft-pld-cell{padding:8px 0!important;vertical-align:middle;background:var(--atc-paper)!important;letter-spacing:0}
+.ft-pld-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);text-align:center;align-items:center}
+.ft-pld-sub{font-size:11px;line-height:1.5;border-top:1px solid color-mix(in oklch,currentColor 25%,transparent);margin-top:4px;padding-top:4px;font-weight:600}
+.ft-pld-grid>span+span{border-left:1px solid color-mix(in oklch,currentColor 18%,transparent)}
+.ft-pld-value{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px;line-height:22px;font-weight:600;white-space:nowrap;color:var(--atc-ink)}
+.ft-pld-value>span{padding:2px 3px}
+.ft-pld-value>span[data-empty="true"]{color:var(--atc-missing)}
+.ft-pld-value .ft-pld-ok{color:var(--atc-success)!important;-webkit-text-fill-color:currentColor!important}
+.ft-pld-value .ft-pld-bad{color:var(--atc-danger)!important;-webkit-text-fill-color:currentColor!important}
+.ft-pld-difference{margin:5px 8px 0;text-align:center;font-size:10px;line-height:18px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--atc-neutral);border-top:1px solid var(--atc-line);padding-top:3px}
+.ft-pld-difference:empty{display:none}
+.ft-pld-difference[data-tone="good"]{color:var(--atc-success)}
+.ft-pld-difference[data-tone="bad"]{color:var(--atc-danger)}
+.ft-pld-hi{animation:khb-payload-alert .85s ease-in-out infinite;font-weight:800}
+@keyframes khb-payload-alert{50%{opacity:.5}}
+@media(prefers-reduced-motion:reduce){.ft-pld-hi{animation:none;text-decoration:underline;text-decoration-thickness:2px}}
+</style>`;
+
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))
-    .replace(/(<span id="appVersion"[^>]*>)V 2\.61(<\/span>)/, '$1V 2.84$2')
-    .replace('</head>', '<style>#wrapFplText .fttbl th:nth-child(15),#wrapFplText .fttbl td:nth-child(15){width:220px!important}#wrapFplText .fttbl td.ft-validation-cell{white-space:normal!important;overflow-wrap:anywhere;line-height:1.4;font-weight:700}#wrapFplText .fttbl td.ft-validation-cell[data-status="good"]{background:var(--x-ok)!important;color:var(--x-card)!important;text-align:center}#wrapFplText .fttbl td.ft-validation-cell[data-status="warning"]{background:var(--x-warn-bg)!important;color:var(--x-warn)!important}#wrapFplText .fttbl td.ft-validation-cell[data-status="pending"]{color:var(--x-mute)!important}</style></head>')
-    .replace('</head>', '<style>#wrapFplText .fttbl th:nth-child(16),#wrapFplText .fttbl td:nth-child(16){width:132px!important;min-width:132px}.ft-pld-grid{display:grid;grid-template-columns:1fr 1fr;text-align:center}.ft-pld-sub{font-size:10px;opacity:.85;border-top:1px solid currentColor;margin-top:2px;padding-top:2px}.ft-pld-value{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap;color:var(--x-khb-ink)}.ft-pld-value span{padding:1px 2px;border-radius:4px}.ft-pld-ok{color:#0E5C32}.ft-pld-bad{color:var(--x-red)}.ft-pld-hi{animation:extra-low-blink .85s ease-in-out infinite}.ft-pld-hi.ft-pld-ok{animation-name:delta-hi-ok}</style></head>')
+    .replace('</head>', KHB_RESULT_SKIN + '</head>')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
     .replace('id="acOmniPass" placeholder="(giữ nguyên nếu để trống)"', 'id="acOmniPass" value="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022" data-mask="1" placeholder="nhập mật khẩu"')
