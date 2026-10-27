@@ -143,7 +143,7 @@ function ftEstAutoLater(){
   clearTimeout(ftEstAutoTimer);
   ftEstAutoTimer = setTimeout(() => {
     if(ftEstBusy) return ftEstAutoLater();
-    const todo = (ftRows || []).filter(f => f && !ftSt(f).est && !ftEstAutoDone.has(ftEstIdentity(f)));
+    const todo = (ftRows || []).filter(f => f && !ftSt(f).est && !ftSt(f).pldManual && !ftEstAutoDone.has(ftEstIdentity(f)));
     if(!todo.length) return;
     todo.forEach(f => ftEstAutoDone.add(ftEstIdentity(f)));
     ftLoadEst(todo, null, true);
@@ -168,7 +168,7 @@ async function ftLoadEst(flights, btn, auto){
     if(!response.ok || d.error) throw new Error(d.error || "Không lấy được EST Omni");
     const notes = []; let count = 0;
     for(const snap of snapshots){
-      if(!ftRows.includes(snap.f) || ftSt(snap.f) !== snap.st || ftEstIdentity(snap.f) !== snap.identity || snap.st.pay !== snap.pay){
+      if(!ftRows.includes(snap.f) || ftSt(snap.f) !== snap.st || ftEstIdentity(snap.f) !== snap.identity || snap.st.pay !== snap.pay || snap.st.pldManual){
         notes.push("VJ" + snap.f.flt + ": đã đổi dữ liệu trong lúc tải; giữ ô PLD hiện tại."); continue;
       }
       const row = (d.rows || []).find(r => String(r.id) === String(snap.f.id));
