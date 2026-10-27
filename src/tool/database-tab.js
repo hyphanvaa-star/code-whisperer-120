@@ -8,7 +8,8 @@
     ["ftEraBtn","ERA","Sân dự bị ERA theo chặng","📍","#db2777"],
     ["ftPcrBtn","PCR","Giới hạn PCR cất cánh theo sân","🛤️","#0891b2"],
     ["ftConvBtn","Data Convert","FL, SID đặc biệt, không convert STAR","🔁","#ea580c"],
-    ["ftOfpRulesBtn","OFP check data","Điều kiện nút OFP kiểm tra (vd giờ tới KAPLI)","✅","#dc2626"]
+    ["ftOfpRulesBtn","OFP check data","Điều kiện nút OFP kiểm tra (vd giờ tới KAPLI)","✅","#dc2626"],
+    ["dbxAftnBook","AFTN Address","Danh bạ CODE → địa chỉ AFTN","📡","#0f766e"]
   ];
   function init(){
     var aftn = document.getElementById("mAftn"), ref = document.getElementById("wrapAftn");
@@ -29,10 +30,18 @@
         + '<span class="dbx-d">'+it[2]+'</span><span class="dbx-go">Mở bảng →</span></button>';
       var b = document.getElementById(it[0]); if(b) b.style.display = "none";
     });
-    wrap.innerHTML = h + '</div>';
+    wrap.innerHTML = h + '</div><div id="dbxBookPane" style="display:none;flex-direction:column;gap:8px;min-height:0;flex:1"><div><button type="button" class="btn small" id="dbxBookBack">← Danh mục</button></div></div>';
     ref.parentNode.insertBefore(wrap, ref.nextSibling);
+    var pane = wrap.querySelector("#dbxBookPane"), grid = wrap.querySelector(".dbx-grid");
+    var bookCol = document.getElementById("afBook"); bookCol = bookCol && bookCol.parentNode;
+    if(bookCol){
+      var g = bookCol.parentNode; pane.appendChild(bookCol);
+      if(g) g.style.gridTemplateColumns = "1fr";
+    }
+    wrap.querySelector("#dbxBookBack").onclick = function(){ pane.style.display = "none"; grid.style.display = ""; };
     wrap.addEventListener("click", function(e){
       var c = e.target.closest(".dbx-card"); if(!c) return;
+      if(c.getAttribute("data-btn") === "dbxAftnBook"){ grid.style.display = "none"; pane.style.display = "flex"; return; }
       var b = document.getElementById(c.getAttribute("data-btn")); if(b) b.click();
     });
     wrap.querySelector("#dbxFind").addEventListener("input", function(){
