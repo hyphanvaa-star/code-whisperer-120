@@ -322,7 +322,7 @@ function renderCompareTable(d, opts){`)
       tr.appendChild(td);
     }`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
-    .replace('<span id="cmpVerBar"', '<button id="cmpAtcBtn" type="button" class="btn" onclick="cmpReadAtc((lastCmp && lastCmp.table) || [])" title="Đọc trạng thái ATC trên AviWeb cho các chuyến trong bảng">ATC check</button> <span id="cmpVerBar"')
+    .replace('<span class="dim xls-bar-name crew-using" id="cmpVerBar"', '<button id="cmpAtcBtn" type="button" class="btn" onclick="cmpReadAtc((lastCmp && lastCmp.table) || [])" title="Đọc trạng thái ATC trên AviWeb cho các chuyến trong bảng">ATC check</button> <span class="dim xls-bar-name crew-using" id="cmpVerBar"')
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(11),.cmptbl :is(th,td):nth-child(n+15):nth-child(-n+19){display:none!important}
 .cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
