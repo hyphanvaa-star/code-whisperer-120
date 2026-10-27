@@ -2,9 +2,24 @@
 import { describe, expect, it } from "vitest";
 import { Flight } from "../../core/models";
 import type { Sheet } from "../excelcmp_reader";
-import { compare, matchedFlights } from "../excelcmp_compare";
+import { compare, matchedFlights, excelUtc } from "../excelcmp_compare";
 
 const HEADER = ["DATE", "FLT", "DEP", "ARR", "STD", "Crew", "REG"];
+
+describe("Vietnam airport local time", () => {
+  const mapping = { date: "DATE", std: "STD", dep: "DEP", etd: "ETD" };
+  for (const dep of ["THD", "VVTX", "VDO", "VVVD"]) {
+    it(`${dep}: 13:10 local is 06:10 UTC`, () => {
+      expect(excelUtc({ DATE: "27/10/2026", STD: "13:10", DEP: dep }, mapping)?.toISOString()).toBe("2026-10-27T06:10:00.000Z");
+    });
+  }
+  it("THD prioritizes ETD and rolls back the UTC date", () => {
+    expect(excelUtc({ DATE: "27/10/2026", STD: "00:30", ETD: "01:10", DEP: "THD" }, mapping, true)?.toISOString()).toBe("2026-10-26T18:10:00.000Z");
+  });
+  it("unknown airport does not invent a Vietnam offset", () => {
+    expect(excelUtc({ DATE: "27/10/2026", STD: "13:10", DEP: "ZZZZ" }, mapping)).toBeNull();
+  });
+});
 
 function sheet(...rows: unknown[][]): Sheet {
   return { name: "Roster", header: [...HEADER], rows: rows.map((r) => [...r]), header_row: 0 };
