@@ -13,6 +13,7 @@ import * as excelMod from "./excel.server";
 import { resolveCrewFlight } from '../port/fpl_flight_identity';
 import { exportPayloadItems } from '../port/fpl_payload';
 import { rawOmniPay } from '../port/khb_payload';
+import { crewChangeMatches } from '../port/khb_crew_sync';
 import { jobId } from '../jobs';
 import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
 import { parseOpsDate, sameOpsDay, selectOperationalFlight, validateOperationalAtc } from '../port/operational_flight';
@@ -434,15 +435,28 @@ export const routes: Routes = {
     const items = Array.isArray(body.items) ? (body.items as Raw[]) : [];
     const { loadFlights } = await import("../core/gantts.server");
     const flights = (await loadFlights(3, true)) as any[];
-    const out = items.map((it) => {
+    const out = await Promise.all(items.map(async (it) => {
       try {
         const hit = selectOperationalFlight(flights, it);
         const std = hit.std instanceof Date ? hit.std : (hit.std ? new Date(hit.std) : null);
         const stdUtc = std && !isNaN(std.getTime())
           ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "";
-        return { flt: it.flt, sector_id: hit.id, found: true, reg: String(hit.reg || ""), std_utc: stdUtc };
+        const changes = Array.isArray(it.crew_changes) ? it.crew_changes as Raw[] : [];
+        let crewChecked = false, crewError = '', crewChanges: Raw[] = [];
+        if(changes.length){
+          try {
+            const { fbJson } = await import('@/lib/flitebrief.server');
+            const rows = await fbJson<unknown>(`/webapi/sectors/${hit.id}/crews`);
+            if(!Array.isArray(rows)) throw new Error('Không đọc được danh sách crew hiện tại.');
+            crewChecked = true;
+            crewChanges = changes.map(c => ({key: c.key, from: c.from, to: c.to,
+              ok: crewChangeMatches(rows, c.key === 'cptText' ? 'Captain' : 'First Officer', c.from, c.to)}));
+          } catch(e){ crewError = (e as Error).message; }
+        }
+        return { flt: it.flt, sector_id: hit.id, found: true, reg: String(hit.reg || ""), std_utc: stdUtc,
+          crew_checked: crewChecked, crew_changes: crewChanges, crew_error: crewError };
       } catch (e) { return { flt: it.flt, found: false, reg: "", error: (e as Error).message }; }
-    });
+    }));
     return { ok: true, items: out };
   },
 

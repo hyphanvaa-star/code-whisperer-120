@@ -5,16 +5,15 @@ import { icaoAcType, defaultRuleData, type RuleRow } from "../port/notices";
 import * as rs from "../port/regswap";
 import * as cs from "../port/crewswap";
 import * as vf from "../port/verify";
+import { selectOperationalFlight } from '../port/operational_flight';
 
 // Port of web.py "/api/regswap/*", "/api/crewswap/*", "/api/verify/*".
 // briefswap / crew-plan-from-excel are owned by another agent in a separate file.
 
 async function findSector(sectorId: number, days: number): Promise<Flight> {
   const { loadFlights } = await import("../core/gantts.server");
-  const flights = await loadFlights(days);
-  const f = flights.find((x) => x.id === sectorId);
-  if (!f) throw new Error(`không thấy chuyến sector_id=${sectorId} trên FliteBrief`);
-  return f;
+  const flights = await loadFlights(days, true);
+  return selectOperationalFlight(flights, {sector_id: sectorId});
 }
 
 async function ruleData(ctx: Parameters<Routes[string]>[0]): Promise<RuleRow[]> {
@@ -167,8 +166,8 @@ export const routes: Routes = {
     try {
       const d = await fbJson<unknown>(`/webapi/sectors/${f.id}/crews`);
       if (Array.isArray(d)) currentCrew = (d as cs.CrewRow[]).filter((c) => !c.deleted_on);
-    } catch {
-      /* report via plan.note below is not available here; keep empty like a read failure */
+    } catch (e) {
+      return {error: `Không đọc được crew hiện tại — không đổi: ${(e as Error).message}`};
     }
     const userCache = new Map<string, cs.CrewRow | null>();
     const findUser = (username: string): cs.CrewRow | null => userCache.get(username) ?? null;
@@ -446,8 +445,9 @@ export const jobs: Jobs = {
     try {
       const d = await fbJson<unknown>(`/webapi/sectors/${f.id}/crews`);
       if (Array.isArray(d)) currentCrew = (d as cs.CrewRow[]).filter((c) => !c.deleted_on);
-    } catch {
-      /* treated as "no crew found" like web.py's own empty-list fallback */
+    } catch (e) {
+      emit({type: 'line', text: `Không đọc được crew hiện tại — không đổi: ${(e as Error).message}`, cls: 'bad'});
+      return end(1, {failed: 1});
     }
     const userCache = new Map<string, cs.CrewRow | null>();
     const wantIn = new Set(inIds.map(cs.staffDigits).filter(Boolean));
@@ -476,6 +476,10 @@ export const jobs: Jobs = {
       }),
     });
 
+    if(plan.not_found.length){
+      emit({type: 'line', text: 'Không tìm đủ phi công mới — giữ nguyên crew hiện tại.', cls: 'bad'});
+      return end(1, {failed: plan.not_found.length});
+    }
     const r = await cs.applySwap(plan, {
       post: async (payload) => {
         const res = await fbRequest("POST", `/webapi/sectors/${f.id}/crews`, {
