@@ -22,7 +22,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.15')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.16')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -132,14 +132,14 @@ function cmpAtcPaint(r){
   const td = document.querySelector('#cmpBody td[data-cmp-atc-sid="' + r.sector_id + '"]');
   if(!td) return;
   const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
-  const text = cached ? cached.status || "Chưa có" : f ? "…" : "—";
+  const text = cached ? cached.status || "Chưa có" : f ? (cmpAtcBusy ? "…" : "—") : "—";
   const tone = cached ? cmpAtcTone(cached.status) : "none";
   td.className = "cmp-atc-cell";
   let pill = td.firstElementChild;
   if(!pill || !pill.classList.contains("cmp-atc-pill")){ pill = document.createElement("span"); td.replaceChildren(pill); }
   if(pill.textContent !== text) pill.textContent = text;
   pill.className = "cmp-atc-pill t-" + tone;
-  td.title = cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Đang lấy trạng thái AviWeb";
+  td.title = cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
 }
 function cmpAtcPut(f, status, error){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
@@ -152,12 +152,14 @@ async function cmpReadAtc(rows){
   if(cmpAtcBusy) return;
   const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f);
   const todo = targets.filter(x => {
-    const c = cmpAtcCache.get(cmpAtcKey(x.f));
-    return (!c || Date.now() - c.time > 60000) && targets.filter(y => y.f.callsign === x.f.callsign).length === 1;
+        return targets.filter(y => y.f.callsign === x.f.callsign).length === 1;
   });
   if(!todo.length) return;
   cmpAtcBusy = true;
-  const finish = () => { cmpAtcBusy = false; cmpAtcRepaint(); };
+  const btn = document.getElementById("cmpAtcBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "Đang check…"; }
+  cmpAtcRepaint();
+  const finish = () => { cmpAtcBusy = false; if(btn){ btn.disabled = false; btn.textContent = "ATC check"; } cmpAtcRepaint(); };
   const fail = message => {
     for(const {f} of todo) cmpAtcPut(f, "", message);
     finish();
@@ -298,7 +300,7 @@ function cmpValPaint(sid){
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
 }
 function renderCompareTable(d, opts){`)
-    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  cmpReadAtc(rows);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
+    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  rows.forEach(cmpAtcPaint);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
     .replace('    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights', '    cmpOpsRepaint();\n    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights')
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
     .replace('  cmpArmPick(td, td.dataset.regSid);\n  return td;\n}\n\nfunction crewCmpCell', '  cmpArmPick(td, td.dataset.regSid);\n  cmpRegRepaint();\n  return td;\n}\n\nfunction crewCmpCell')
@@ -320,6 +322,7 @@ function renderCompareTable(d, opts){`)
       tr.appendChild(td);
     }`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
+    .replace('<span id="cmpVerBar"', '<button id="cmpAtcBtn" type="button" class="btn" onclick="cmpReadAtc((lastCmp && lastCmp.table) || [])" title="Đọc trạng thái ATC trên AviWeb cho các chuyến trong bảng">ATC check</button> <span id="cmpVerBar"')
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(11),.cmptbl :is(th,td):nth-child(n+15):nth-child(-n+19){display:none!important}
 .cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
