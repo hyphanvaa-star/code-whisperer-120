@@ -22,7 +22,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.13')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.15')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -178,7 +178,7 @@ async function cmpReadAtc(rows){
         const hits = (m.results || []).filter(result => String(result.callsign).toUpperCase() === f.callsign.toUpperCase());
         const result = hits.length === 1 ? hits[0] : null;
         const status = result ? cmpAtcStatus(result, f.callsign, acDofFromStd(f.std)) : "";
-        cmpAtcCache.set(cmpAtcKey(f), {status, error: status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", time: Date.now()});
+        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb");
       }
       finish();
     };
@@ -336,6 +336,17 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-val-line.warn{color:#a16207}.cmptbl .cmp-val-line.bad{color:#dc2626}
 .cmptbl td.cmp-fpl-match,.cmptbl td.cmp-fpl-match *{color:var(--green)!important;font-weight:800}
 .cmptbl td.cmp-fpl-mismatch,.cmptbl td.cmp-fpl-mismatch *{color:var(--red)!important}
+.cmptbl td.cmp-atc-cell{background:transparent!important;text-align:center;vertical-align:middle}
+.cmp-atc-pill{display:inline-flex;align-items:center;gap:5px;min-width:84px;justify-content:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}
+.cmp-atc-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.cmp-atc-pill.t-ok{background:#dcfce7;color:#15803d;border-color:#86efac}
+.cmp-atc-pill.t-air{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.cmp-atc-pill.t-done{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
+.cmp-atc-pill.t-warn{background:#fef3c7;color:#b45309;border-color:#fcd34d}
+.cmp-atc-pill.t-bad{background:#fee2e2;color:#b91c1c;border-color:#fca5a5}
+.cmp-atc-pill.t-info{background:#ede9fe;color:#6d28d9;border-color:#c4b5fd}
+.cmp-atc-pill.t-none{background:transparent;color:#94a3b8;border-color:#e2e8f0;border-style:dashed}
+.cmp-atc-pill.t-none::before{display:none}
 .cmptbl .briefbtn:disabled{opacity:.35;cursor:not-allowed}
 </style></head>`);
 }
