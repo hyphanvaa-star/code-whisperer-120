@@ -28,7 +28,7 @@ export function khbUtcDay(date: unknown, etdLocal: unknown, etdUtc: unknown): st
 
 export function patchKhbPayloadPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.05')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.06')
     .replace('width:1760px;min-width:100%', 'width:2400px;min-width:100%')
     .replace('<th>ETP POA</th><th>FL</th>', '<th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
     .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftPldCell(null));')
@@ -76,25 +76,44 @@ function ftPldCell(f){
   td.className = "ft-pld-cell";
   const value = document.createElement("div");
   value.className = "ft-pld-value ft-pld-grid";
-  value.title = "EST PLD Omni (kg)";
-  const estEl = document.createElement("span");
+  value.title = "EST PLD Omni (kg) — bấm để sửa, REQ xuất theo số đã sửa";
+  const estEl = document.createElement("input");
+  estEl.type = "text";
+  estEl.inputMode = "numeric";
+  estEl.className = "ft-pld-input";
   value.append(estEl);
   td.appendChild(value);
+  let lastPld = null;
   const paint = (pld, est) => {
+    lastPld = pld;
     const [a, b] = ftPayloadPair(pld, est).split(" / ");
-    estEl.textContent = b === "—" ? b : Number(b).toLocaleString("en-US");
+    if(document.activeElement !== estEl) estEl.value = b === "—" ? "" : Number(b).toLocaleString("en-US");
     estEl.dataset.empty = String(b === "—");
-    estEl.className = ""; value.title = "EST PLD Omni (kg)";
+    estEl.classList.remove("ft-pld-ok", "ft-pld-bad", "ft-pld-hi");
+    value.title = "EST PLD Omni (kg) — bấm để sửa, REQ xuất theo số đã sửa";
     if(a !== "—" && b !== "—"){
       const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
-      estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
+      estEl.classList.add(v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "x");
+      if(v === 0) estEl.classList.remove("x");
+      if(hi) estEl.classList.add("ft-pld-hi");
       const kg = (n) => Math.abs(n).toLocaleString("en-US") + " kg";
       value.title = "EST Omni " + Number(b).toLocaleString("en-US") + " kg · OFP " + Number(a).toLocaleString("en-US") + " kg · " + (v > 0 ? "còn dư " + kg(v) : v < 0 ? "vượt " + kg(v) : "khớp");
     }
   };
-  if(!f){ paint(null,null); return td; }
+  if(!f){ paint(null,null); estEl.disabled = true; return td; }
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
+  const commit = () => {
+    const raw = estEl.value.replace(/[^\d]/g, "");
+    if(!raw){ st.est = ""; st.pay = ""; st.pldManual = false; paint(lastPld, null); return; }
+    st.est = raw;
+    st.pay = raw;
+    st.payManual = true;
+    st.pldManual = true;
+    paint(lastPld, raw);
+  };
+  estEl.addEventListener("change", commit);
+  estEl.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); estEl.blur(); } });
   const update = w => { paint(w && w.pld, st.est); };
   td._repaint = () => { const s2 = ftPayloadSector(f); const w = s2 && W_CACHE[s2.id]; update(w && ofpFitsFlight(s2,w) ? w : null); };
   const cached = sector && W_CACHE[sector.id];
@@ -124,7 +143,7 @@ function ftEstAutoLater(){
   clearTimeout(ftEstAutoTimer);
   ftEstAutoTimer = setTimeout(() => {
     if(ftEstBusy) return ftEstAutoLater();
-    const todo = (ftRows || []).filter(f => f && !ftSt(f).est && !ftEstAutoDone.has(ftEstIdentity(f)));
+    const todo = (ftRows || []).filter(f => f && !ftSt(f).est && !ftSt(f).pldManual && !ftEstAutoDone.has(ftEstIdentity(f)));
     if(!todo.length) return;
     todo.forEach(f => ftEstAutoDone.add(ftEstIdentity(f)));
     ftLoadEst(todo, null, true);
@@ -149,7 +168,7 @@ async function ftLoadEst(flights, btn, auto){
     if(!response.ok || d.error) throw new Error(d.error || "Không lấy được EST Omni");
     const notes = []; let count = 0;
     for(const snap of snapshots){
-      if(!ftRows.includes(snap.f) || ftSt(snap.f) !== snap.st || ftEstIdentity(snap.f) !== snap.identity || snap.st.pay !== snap.pay){
+      if(!ftRows.includes(snap.f) || ftSt(snap.f) !== snap.st || ftEstIdentity(snap.f) !== snap.identity || snap.st.pay !== snap.pay || snap.st.pldManual){
         notes.push("VJ" + snap.f.flt + ": đã đổi dữ liệu trong lúc tải; giữ ô PLD hiện tại."); continue;
       }
       const row = (d.rows || []).find(r => String(r.id) === String(snap.f.id));
