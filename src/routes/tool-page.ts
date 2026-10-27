@@ -21,6 +21,7 @@ import { patchAccountMemoryPage } from '@/lib/tool/port/account_memory';
 import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
 import { patchKhbPayloadPage } from '@/lib/tool/port/khb_payload';
 import { patchKhbCrewSyncPage } from '@/lib/tool/port/khb_crew_sync';
+import { patchCmpValidationPage } from '@/lib/tool/port/cmp_validation';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -1878,7 +1879,7 @@ const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
-  cached = patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw)))))
+  cached = patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))
     .replace('</head>', KHB_RESULT_SKIN + '</head>')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
