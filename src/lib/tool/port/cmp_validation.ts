@@ -22,7 +22,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.18')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.19')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -60,6 +60,24 @@ export function patchCmpValidationPage(html: string): string {
       }else briefCell.textContent = "—";
       const existingVerify = vVerifyCell(actionRow);
       verifyCell.replaceChildren(...existingVerify.childNodes);
+      if(actionRow.ofp_ack){
+        const quick = document.createElement("button");
+        quick.type = "button";
+        quick.className = "cmp-vf";
+        quick.textContent = "✔";
+        quick.title = "Verify nhanh " + actionFlight.callsign
+          + " — acknowledge tam giác đỏ OFP rồi cho chuyến lên xanh";
+        quick.onclick = ev => {
+          ev.stopPropagation();
+          csQuickVerify(actionFlight, quick, ok => {
+            if(!ok) return;
+            r.ofp_ack = false; actionRow.ofp_ack = false;
+            vMarkDone("verify", actionRow, quick);
+          });
+        };
+        vPaintDone("verify", actionRow, quick);
+        verifyCell.prepend(quick);
+      }
     }else{
       briefCell.textContent = "—"; verifyCell.textContent = "—";
       briefCell.title = verifyCell.title = "Chưa xác định được đúng chuyến trong khung khai thác";
