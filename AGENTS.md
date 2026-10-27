@@ -13,6 +13,7 @@
 - Compare columns and row actions stay in the shim's `cmp_validation` patch: REG FPL reads the existing ATC endpoint's original REG and caches by sector/OFP stamp; BF requires aircraft-change evidence and reuses Briefing/Verify confirmations on a unique in-window FliteBrief sector, so presentation changes cannot bypass safeguards.
 - Editable Compare notes are browser-local and keyed by user plus sector identity; background redraws retain edits without sharing notes across users or flight dates.
 - Compare ATC status reuses the authenticated ATC check job with explicit sector/date/route, validates returned DOF, and caches only by full sector identity to prevent stale-day status reuse.
+- Compare callsign phase badges reuse the existing OpsCore OOOI renderer and flight refresh; repaint badges in place to preserve editable notes.
 - Operational catalogue reads are always clipped to −6/+24 hours at read time; ATC selection uses `port/operational_flight.ts` for unique sector/date/route matching and validates source DOF before using OFP or AviWeb EOBT, so missing identity never falls back to yesterday.
 - Both Outlook draft and KHB ATC/EZFW use `port/ofp_layout.ts` with the browser-safe `pdf-text-layout.ts` coordinate renderer; keep general weight extraction separate so fixed-width columns survive without changing other OFP parsers.
 - KHB ATC/EZFW exports validate both ICAO DOF/REG and PLAN date/route/REG against the uniquely selected in-window Crewlist/FliteBrief sector before queuing PC writes; completion requires the helper's returned file path.
