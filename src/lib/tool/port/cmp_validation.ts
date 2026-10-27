@@ -22,7 +22,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.13')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.15')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -118,13 +118,33 @@ const cmpAtcStatus = ${cmpAtcStatus.toString()};
 const cmpAtcCache = new Map();
 let cmpAtcBusy = false;
 function cmpAtcKey(f){ return JSON.stringify([f.id, f.callsign, f.std, f.dep_icao, f.dest_icao]); }
+function cmpAtcTone(s){
+  s = String(s || "").toUpperCase();
+  if(!s) return "none";
+  if(/REJ|CNL|CANCEL|ERR|FAIL/.test(s)) return "bad";
+  if(/CLOS|ARR|LAND|COMPLET/.test(s)) return "done";
+  if(/DEP|AIR|ACT/.test(s)) return "air";
+  if(/FILE|APPR|PROC|ACK|ACCEPT/.test(s)) return "ok";
+  if(/DLA|DELAY|CHG|UNPROC|PEND|WAIT/.test(s)) return "warn";
+  return "info";
+}
 function cmpAtcPaint(r){
   const td = document.querySelector('#cmpBody td[data-cmp-atc-sid="' + r.sector_id + '"]');
   if(!td) return;
   const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
-  td.textContent = cached ? cached.status || "Chưa có" : f ? "…" : "—";
-  td.className = "ac-status " + (cached ? acStatusCls(cached.status) : "q");
+  const text = cached ? cached.status || "Chưa có" : f ? "…" : "—";
+  const tone = cached ? cmpAtcTone(cached.status) : "none";
+  td.className = "cmp-atc-cell";
+  let pill = td.firstElementChild;
+  if(!pill || !pill.classList.contains("cmp-atc-pill")){ pill = document.createElement("span"); td.replaceChildren(pill); }
+  if(pill.textContent !== text) pill.textContent = text;
+  pill.className = "cmp-atc-pill t-" + tone;
   td.title = cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Đang lấy trạng thái AviWeb";
+}
+function cmpAtcPut(f, status, error){
+  const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
+  if(!status && prev && prev.status) cmpAtcCache.set(key, {...prev, time: Date.now(), error: ""});
+  else cmpAtcCache.set(key, {status, error, time: Date.now()});
 }
 function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
 async function cmpReadAtc(rows){
@@ -139,7 +159,7 @@ async function cmpReadAtc(rows){
   cmpAtcBusy = true;
   const finish = () => { cmpAtcBusy = false; cmpAtcRepaint(); };
   const fail = message => {
-    for(const {f} of todo) cmpAtcCache.set(cmpAtcKey(f), {status: "", error: message, time: Date.now()});
+    for(const {f} of todo) cmpAtcPut(f, "", message);
     finish();
   };
   try{
@@ -158,7 +178,7 @@ async function cmpReadAtc(rows){
         const hits = (m.results || []).filter(result => String(result.callsign).toUpperCase() === f.callsign.toUpperCase());
         const result = hits.length === 1 ? hits[0] : null;
         const status = result ? cmpAtcStatus(result, f.callsign, acDofFromStd(f.std)) : "";
-        cmpAtcCache.set(cmpAtcKey(f), {status, error: status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", time: Date.now()});
+        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb");
       }
       finish();
     };
@@ -316,6 +336,17 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-val-line.warn{color:#a16207}.cmptbl .cmp-val-line.bad{color:#dc2626}
 .cmptbl td.cmp-fpl-match,.cmptbl td.cmp-fpl-match *{color:var(--green)!important;font-weight:800}
 .cmptbl td.cmp-fpl-mismatch,.cmptbl td.cmp-fpl-mismatch *{color:var(--red)!important}
+.cmptbl td.cmp-atc-cell{background:transparent!important;text-align:center;vertical-align:middle}
+.cmp-atc-pill{display:inline-flex;align-items:center;gap:5px;min-width:84px;justify-content:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}
+.cmp-atc-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.cmp-atc-pill.t-ok{background:#dcfce7;color:#15803d;border-color:#86efac}
+.cmp-atc-pill.t-air{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+.cmp-atc-pill.t-done{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
+.cmp-atc-pill.t-warn{background:#fef3c7;color:#b45309;border-color:#fcd34d}
+.cmp-atc-pill.t-bad{background:#fee2e2;color:#b91c1c;border-color:#fca5a5}
+.cmp-atc-pill.t-info{background:#ede9fe;color:#6d28d9;border-color:#c4b5fd}
+.cmp-atc-pill.t-none{background:transparent;color:#94a3b8;border-color:#e2e8f0;border-style:dashed}
+.cmp-atc-pill.t-none::before{display:none}
 .cmptbl .briefbtn:disabled{opacity:.35;cursor:not-allowed}
 </style></head>`);
 }
