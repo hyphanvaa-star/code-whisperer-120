@@ -5891,7 +5891,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.93</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.94</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -6819,7 +6819,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
               <th><input type="checkbox" id="ftAll" title="Tick hết. Shift+click hoặc rê chuột để chọn dải."></th>
               <th>Số</th><th>A/C performance</th><th>Ngày</th><th>Tàu</th><th>Loại</th>
               <th>Đi</th><th>Đến</th><th>ETD</th><th>ETD UTC</th><th>ETA UTC</th><th>CPT</th><th>FO</th>
-              <th>Enroute ALT</th><th>ETP POA</th><th>FL</th><th>Route</th><th>TALT</th><th>ALT1</th><th>ALT2</th><th>Extra</th><th>RMK</th><th>PCR T/O</th>
+              <th>Enroute ALT</th><th>ETP POA</th><th>FL</th><th>Route</th><th>TALT</th><th>ALT1</th><th>ALT2</th><th>Extra</th><th>PCR T/O</th><th>RMK</th>
             </tr></thead>
             <tbody id="ftBody"></tbody>
           </table>
@@ -24984,8 +24984,8 @@ function ftRender(){
       blank.appendChild(ftBox(pending, "alt1", false));
       blank.appendChild(ftBox(pending, "alt2", false));
       blank.appendChild(ftBox(pending, "extra", false));
-      blank.appendChild(ftBox(pending, "rmk", false));
       blank.appendChild(ftBox(pending, "pcrTo", false));
+      blank.appendChild(ftBox(pending, "rmk", false));
       tb.appendChild(blank);
       continue;
     }
@@ -25054,8 +25054,8 @@ function ftRender(){
       });
     }
     tr.appendChild(extraCell);
-    tr.appendChild(ftBox(st, "rmk", false));
     tr.appendChild(ftPcrCell(f));
+    tr.appendChild(ftBox(st, "rmk", false));
     tb.appendChild(tr);
     ftPaintRowLim(tr, st);
   }

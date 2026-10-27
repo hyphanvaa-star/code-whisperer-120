@@ -168,3 +168,4 @@
 - [x] Tài khoản: đưa khung Outlook lên ngay trên InFlight Omni (FliteBrief → Outlook → Omni → AviWeb → OpsCore), badge V 2.21, Playwright xác nhận thứ tự + dấu mật khẩu, chưa publish
 - [x] Bão: khi navy.mil chặn máy chủ, nhờ trợ lý PC 5.6 tải hộ RSS/KMZ JTWC rồi mới rơi xuống JMA; badge V 2.23, chưa publish
 - [x] Bão: vẽ kiểu Google Earth JTWC (vòng gió hồng mờ, vùng nguy hiểm viền đỏ, biểu tượng xoáy đỏ, nhãn "giờ - knots"), V 2.24, chưa publish
+- [x] KHB: đưa cột PCR T/O lên trước, cột RMK xuống cuối (bảng tool + trang KHB), badge V 2.94, 18 kiểm thử đạt, build OK, chưa publish
