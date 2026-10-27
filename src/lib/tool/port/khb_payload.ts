@@ -32,6 +32,11 @@ export function validationResult(alerts: string[], pending: string[]) {
   return { status: 'good', text: 'Good' };
 }
 
+/** A partial background comparison must not replace a completed verdict. */
+export function stableValidation<T extends { s: string; t: string; h: string }>(previous: T | undefined, next: T, complete: boolean): T {
+  return !complete && previous && (previous.s === 'good' || previous.s === 'warning') ? previous : next;
+}
+
 export function patchKhbPayloadPage(html: string): string {
   return html
     .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
@@ -45,7 +50,12 @@ export function patchKhbPayloadPage(html: string): string {
     .replace('function ftRender(){', `
 const ftPayloadPair = ${payloadPair.toString()};
 const ftValidationResult = ${validationResult.toString()};
+const ftStableValidation = ${stableValidation.toString()};
 const ftKhbUtcDay = ${khbUtcDay.toString()};
+function ftValidationKey(f){
+  const st = ftSt(f);
+  return JSON.stringify([f.id, f.flt, st.date, st.dep, st.arr, st.reg, st.etd, st.utc]);
+}
 let ftValidationTimer;
 function ftValidationLater(){
   clearTimeout(ftValidationTimer);
@@ -81,7 +91,7 @@ function ftValidationCell(f){
   const td = document.createElement("td");
   td.className = "ft-validation-cell";
   td._flight = f;
-  const old = f && window.__ftValLast && window.__ftValLast["f" + f.id];
+  const old = f && window.__ftValLast && window.__ftValLast[ftValidationKey(f)];
   if(f) ftValidationPaint(td, old ? old.s : "pending", old ? old.t : "Chưa so sánh", old ? old.h : "");
   else td.textContent = "—";
   ftValidationLater();
@@ -96,6 +106,7 @@ function ftValidationSync(){
     const marker = sector && document.querySelector('#cmpBody td[data-sid="' + sector.id + '"]');
     const tr = marker && marker.closest("tr");
     let result;
+    let missing = [];
     const details = [];
     if(!sector){ result = ftValidationResult([], ["không tìm thấy chuyến đúng ngày/chặng trên FliteBrief"]); }
     else if(!r || !tr){ result = ftValidationResult([], ["chưa chạy So sánh (Cmp) cho chuyến này"]); }
@@ -124,9 +135,10 @@ function ftValidationSync(){
       }
       const w = W_CACHE[sector.id];
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
+      missing = pending;
       result = ftValidationResult(alerts,pending);
     }
-    const key = "f" + f.id;
+    const key = ftValidationKey(f);
     window.__ftValLast = window.__ftValLast || {};
     if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td._validationText !== o.t || td.dataset.status !== o.s) ftValidationPaint(td, o.s, o.t, o.h); continue; }
     if(result.status === "pending"){
@@ -135,8 +147,11 @@ function ftValidationSync(){
       result = rest.length ? ftValidationResult([], rest) : ftValidationResult([], []);
     }
     const hint = details.length ? details.join("\\n\\n") : result.text;
-    if(td._validationText !== result.text || td.dataset.status !== result.status || td.title !== hint) ftValidationPaint(td, result.status, result.text, hint);
-    if(key && r && tr) window.__ftValLast[key] = {s: result.status, t: result.text, h: hint};
+    const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
+    const complete = !!(sector && r && tr) && missing.filter(x => !(x === "CREW" && capt && fo)).length === 0;
+    const next = ftStableValidation(window.__ftValLast[key], {s: result.status, t: result.text, h: hint}, complete);
+    if(td._validationText !== next.t || td.dataset.status !== next.s || td.title !== next.h) ftValidationPaint(td, next.s, next.t, next.h);
+    if(complete) window.__ftValLast[key] = next;
   }
 }
 new MutationObserver(ftValidationLater).observe($("#cmpBody"), {childList:true,subtree:true,attributes:true,characterData:true});

@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 2.93: giữ Good/Cảnh báo khi lượt kiểm tra ngầm chưa đầy đủ; chỉ đổi ô khi kết quả hoàn chỉnh thay đổi, bộ nhớ tách đúng chuyến/ngày/chặng/tàu/giờ.
+
 - [x] V 2.91: Validation tách trạng thái/chi tiết, PLD căn hai nguồn và hiện dư/vượt kg; bổ sung múi giờ THD/VDO, 26 kiểm thử đạt và mẫu hiển thị đã kiểm tra; chưa publish.
 - [ ] V 2.91: xác nhận Cmp chuyến 243 và hai cột trên chuyến thật — cần phiên người dùng; mẫu hiển thị không thay cho chuyến thật.
 
