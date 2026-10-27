@@ -274,7 +274,7 @@ function Khb() {
           <thead className="sticky top-0 z-10 bg-primary text-left text-[11px] font-bold uppercase text-primary-foreground">
             <tr>
               <th className="px-2 py-2"><input type="checkbox" checked={allOn} onChange={(e) => setRows((p) => p.map((x) => (x ? { ...x, on: e.target.checked } : x)))} /></th>
-              {["Số", "A/C performance", "Ngày", "Tàu", "Loại", "Đi", "Đến", "ETD", "ETD UTC", "ETA UTC", "CPT", "FO", "ETP POD", "ETP POA", "FL", "Route", "TALT", "ALT1", "ALT2", "Extra", "RMK", "PCR T/O"].map((h) => (
+              {["Số", "A/C performance", "Ngày", "Tàu", "Loại", "Đi", "Đến", "ETD", "ETD UTC", "ETA UTC", "CPT", "FO", "Enroute ALT", "ETP POA", "FL", "Route", "TALT", "ALT1", "ALT2", "Extra", "RMK", "PCR T/O"].map((h) => (
                 <th key={h} className="whitespace-nowrap px-2 py-2">{h}</th>
               ))}
             </tr>
@@ -376,7 +376,7 @@ function Library({ db, kind, onClose }: { db: FplDb; kind: null | "ci" | "taxi" 
   if (kind === "ci") { head = ["Vùng", "A320", "A321CEO", "A321NEO", "A330", "Sân"]; body = db.ci.map((r) => [r.id, r.a320, r.a321ceo, r.a321neo, r.a330, r.airports.join(" ")]); }
   if (kind === "taxi") { head = ["Sân", "Loại", "Taxi"]; body = Object.entries(db.taxi).map(([k, v]) => [...k.split("|"), String(v)]); }
   if (kind === "route") { head = ["Chặng", "Hold ngày", "Hold đêm"]; body = Object.entries(db.etp).map(([k, v]) => [k, v[0], v[1]]); }
-  if (kind === "alt") { head = ["Chặng", "ETP POD", "ETP POA", "FL", "TALT", "ALT1", "ALT2"]; body = Object.entries(db.alt).map(([k, v]) => [k, v.etp_pod, v.etp_poa, v.fl, v.talt, v.alt1, v.alt2]); }
+  if (kind === "alt") { head = ["Chặng", "Enroute ALT", "ETP POA", "FL", "TALT", "ALT1", "ALT2"]; body = Object.entries(db.alt).map(([k, v]) => [k, v.etp_pod, v.etp_poa, v.fl, v.talt, v.alt1, v.alt2]); }
   if (kind === "era") { head = ["Chặng", "ERA"]; body = Object.entries(db.era).map(([k, v]) => [k, v]); }
   if (kind === "pcr") { head = ["Sân", ...db.pcrHead]; body = db.pcrDep.map((d, i) => [d, ...(db.pcrGrid[i] ?? []).map(String)]); }
   const k = q.trim().toUpperCase();
