@@ -1,7 +1,9 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.02: nút ✔ đỏ trước số hiệu chuyến đang có tam giác đỏ OFP mới — bấm xác nhận OK là verify → release, nút chuyển xanh ✓ khi xong; đã thêm kiểu hiển thị cho nút. 377 kiểm thử đạt.
+- [ ] V 3.02: xác nhận ✔ verify trên chuyến thật có tam giác đỏ — cần phiên người dùng; chưa thử chuyến thật.
+
 - [x] V 2.99: tia sét KHB tra sector FliteBrief mới thay số dòng Crewlist; kiểm tra crew theo mã/vai trò, chuyển xanh khi đã khớp và chặn ghi khi đọc lỗi.
-- [ ] V 2.99: xác nhận crew VJ642 thật — cần phiên người yêu cầu; chưa gửi thay đổi lên chuyến thật.
 
 - [x] V 2.93: giữ Good/Cảnh báo khi lượt kiểm tra ngầm chưa đầy đủ; chỉ đổi ô khi kết quả hoàn chỉnh thay đổi, bộ nhớ tách đúng chuyến/ngày/chặng/tàu/giờ.
 
