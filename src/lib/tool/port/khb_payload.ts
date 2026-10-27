@@ -137,6 +137,20 @@ function ftValidationSync(){
       }
       const w = W_CACHE[sector.id];
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
+      // Δ EST−PLD luôn tính từ chính 2 số đang hiện ở cột PLD (OFP payload / EST Omni),
+      // không lấy số cũ của bảng So sánh — tránh lệch khi EST/OFP vừa cập nhật.
+      const estNow = Number(ftSt(f).est);
+      const pldNow = w && ofpFitsFlight(sector,w) ? Number(w.pld) : NaN;
+      if(Number.isFinite(estNow) && estNow > 0 && Number.isFinite(pldNow) && pldNow > 0){
+        const drop = /^(EST|Δ EST)/;
+        for(let i = alerts.length - 1; i >= 0; i--) if(drop.test(alerts[i])){ alerts.splice(i,1); details.splice(i,1); }
+        for(let i = pending.length - 1; i >= 0; i--) if(drop.test(pending[i])) pending.splice(i,1);
+        const over = estNow - pldNow;
+        if(over > 0){
+          const msg = "Δ EST−PLD: vượt " + over.toLocaleString("en-US") + " kg (EST " + estNow.toLocaleString("en-US") + " > PLD " + pldNow.toLocaleString("en-US") + ")";
+          alerts.push(msg); details.push(msg);
+        }
+      }
       missing = pending;
       result = ftValidationResult(alerts,pending);
     }
