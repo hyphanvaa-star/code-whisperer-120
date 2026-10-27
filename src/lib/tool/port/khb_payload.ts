@@ -137,11 +137,33 @@ function ftValidationSync(){
       }
       const w = W_CACHE[sector.id];
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
+      // Δ EST−PLD luôn tính từ chính 2 số đang hiện ở cột PLD (OFP payload / EST Omni),
+      // không lấy số cũ của bảng So sánh — tránh lệch khi EST/OFP vừa cập nhật.
+      const estNow = Number(ftSt(f).est);
+      const pldNow = w && ofpFitsFlight(sector,w) ? Number(w.pld) : NaN;
+      if(Number.isFinite(estNow) && estNow > 0 && Number.isFinite(pldNow) && pldNow > 0){
+        const drop = /^(EST|Δ EST)/;
+        for(let i = alerts.length - 1; i >= 0; i--) if(drop.test(alerts[i])){ alerts.splice(i,1); details.splice(i,1); }
+        for(let i = pending.length - 1; i >= 0; i--) if(drop.test(pending[i])) pending.splice(i,1);
+        const over = estNow - pldNow;
+        if(over > 0){
+          const msg = "Δ EST−PLD: vượt " + over.toLocaleString("en-US") + " kg (EST " + estNow.toLocaleString("en-US") + " > PLD " + pldNow.toLocaleString("en-US") + ")";
+          alerts.push(msg); details.push(msg);
+        }
+      }
       missing = pending;
       result = ftValidationResult(alerts,pending);
     }
     const key = ftValidationKey(f);
     window.__ftValLast = window.__ftValLast || {};
+    // Số PLD/EST đổi thì bỏ kết quả đã lưu có chứa Δ EST cũ, tính lại theo số mới.
+    const live = window.__ftValLast[key];
+    if(live && /Δ EST/.test(live.t)){
+      const stv = ftSt(f), wv = sector && W_CACHE[sector.id];
+      const eN = Number(stv.est), pN = wv && ofpFitsFlight(sector, wv) ? Number(wv.pld) : NaN;
+      const hasOver = Number.isFinite(eN) && eN > 0 && Number.isFinite(pN) && pN > 0 && eN - pN > 0;
+      if(!hasOver) delete window.__ftValLast[key];
+    }
     if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td._validationText !== o.t || td.dataset.status !== o.s) ftValidationPaint(td, o.s, o.t, o.h); continue; }
     if(result.status === "pending"){
       const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
