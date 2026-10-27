@@ -22399,6 +22399,8 @@ function vRender(d){
   }
   vLast = d;
   vLast._pair = ($("#vOld").value || "") + "\0" + ($("#vNew").value || "");
+  // FPL VER mới: cập nhật lại dấu tím/đỏ trên bảng KHB mà không dựng lại bảng.
+  try{ ftApplyVerDiff(); ftRepaintChg(); }catch(e){}
   const warn = $("#vWarn");
   if(d.warn){ warn.textContent = "⚠ " + d.warn; warn.style.display = ""; }
   else warn.style.display = "none";
@@ -24965,6 +24967,7 @@ function ftTafBox(st, key){
   return td;
 }
 function ftRender(){
+  ftApplyVerDiff();
   const tb = $("#ftBody");
   const focusAt = ftFocusAt;
   ftFocusAt = -1;
