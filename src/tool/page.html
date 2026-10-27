@@ -28944,31 +28944,43 @@ function khbTplInit(){
   b.title="Xuất file TPL ATC cho các chuyến đã tick";ref.parentNode.insertBefore(b,ref);
   const m=document.createElement("div");m.className="modal";m.id="ftTplModal";
   m.innerHTML='<div class="sheet" style="max-width:640px"><div class="sheet-head"><h3>EXPORT TPL ATC</h3><button class="btn small x" type="button" id="ftTplX">✕</button></div>'
-    +'<div class="sheet-body"><p class="note" id="ftTplList"></p><label style="font-weight:700">Dán địa chỉ (CODE 8 ký tự, nhiều dòng/nhiều mã)</label>'
-    +'<textarea id="ftTplCodes" spellcheck="false" style="width:100%;height:180px;font-family:monospace" placeholder="ZGGGZQZX ZJSAZQZX&#10;VHHKZQZX"></textarea>'
-    +'<div class="note">Kèm DEFAULT ADDRESS; mã có trong danh bạ AFTN Address tự đổi sang địa chỉ đầy đủ.</div>'
-    +'<div class="crew-foot"><span class="status" id="ftTplMsg"></span><button class="btn primary small" type="button" id="ftTplGo">Xuất TPL</button></div></div></div>';
+    +'<div class="sheet-body"><div id="ftTplList" style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow:auto"></div>'
+    +'<div class="note">Mỗi chuyến một ô. Kèm DEFAULT ADDRESS; mã có trong danh bạ AFTN Address tự đổi sang địa chỉ đầy đủ, mã không có sẽ báo đỏ.</div>'
+    +'<div class="crew-foot"><span class="status" id="ftTplMsg" style="white-space:pre-line"></span><button class="btn primary small" type="button" id="ftTplGo">Xuất TPL</button></div></div></div>';
   document.body.appendChild(m);
   const close=()=>m.classList.remove("open");
   m.querySelector("#ftTplX").onclick=close;m.onclick=e=>{if(e.target===m)close();};
   let picked=[];
+  const codesOf=t=>[...new Set(t.toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length===8))];
+  const unknownOf=codes=>{const book=new Map(parse($("#afBook").value));return codes.filter(c=>!book.has(c));};
   b.onclick=()=>{
     picked=(typeof ftRows!=="undefined"?ftRows:[]).filter(f=>f&&ftSt(f).on);
     if(!picked.length){alert("Chưa tick chuyến nào trong KHB.");return;}
-    m.querySelector("#ftTplList").textContent="Chuyến đã tick: "+picked.map(f=>"VJ"+f.flt).join(", ");
+    const list=m.querySelector("#ftTplList");list.innerHTML="";
+    picked.forEach((f,i)=>{
+      const st=ftSt(f),box=document.createElement("div");
+      box.innerHTML='<label style="font-weight:800">VJ'+f.flt+' '+(st.dep||"")+'-'+(st.arr||"")+'</label>'
+        +'<textarea data-i="'+i+'" spellcheck="false" style="width:100%;height:90px;font-family:monospace" placeholder="ZGGGZQZX ZJSAZQZX"></textarea>'
+        +'<div class="ft-tpl-warn" style="color:#dc2626;font-weight:700;font-size:12px"></div>';
+      const ta=box.querySelector("textarea"),warn=box.querySelector(".ft-tpl-warn");
+      ta.addEventListener("input",()=>{const u=unknownOf(codesOf(ta.value));warn.textContent=u.length?"⚠ Không có trong danh bạ: "+u.join(", "):"";});
+      list.appendChild(box);});
     m.querySelector("#ftTplMsg").textContent="";m.classList.add("open");};
   m.querySelector("#ftTplGo").onclick=async function(){
-    const codes=[...new Set(m.querySelector("#ftTplCodes").value.toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length===8))];
+    const tas=[...m.querySelectorAll("#ftTplList textarea")];
+    const unk=[];picked.forEach((f,i)=>{const u=unknownOf(codesOf(tas[i].value));if(u.length)unk.push("VJ"+f.flt+": "+u.join(", "));});
+    if(unk.length&&!confirm("Các mã sau KHÔNG có trong danh bạ AFTN Address (sẽ ghi dạng /CN=mã/):\n"+unk.join("\n")+"\n\nVẫn xuất?"))return;
     const msg=m.querySelector("#ftTplMsg"),notes=[];let ok=0;this.disabled=true;
-    for(const f of picked){
+    for(let i=0;i<picked.length;i++){const f=picked[i],codes=codesOf(tas[i].value);
       const fl=String(parseInt(String(f.flt).replace(/\D/g,""),10));msg.textContent="Đang lấy FPL VJC"+fl+"…";
       try{const d=await (await fetch("/api/atc/fpl?flt="+encodeURIComponent(fl))).json();
         const got=fplNo(d.text);
-        if(!d.found||!got){notes.push("VJC"+fl+": "+(d.error||"không thấy FPL"));continue;}
+        if(!d.found||!got){notes.push("VJC"+fl+": "+(d.error||"không lấy được FPL"));continue;}
         if(got!==fl){notes.push("VJC"+fl+": điện văn là VJC"+got+", bỏ qua");continue;}
         tplFile(fl,d.text,codes);ok++;await new Promise(r=>setTimeout(r,400));
       }catch(e){notes.push("VJC"+fl+": "+(e&&e.message));}}
-    this.disabled=false;msg.textContent="Đã xuất "+ok+" file TPL"+(notes.length?" · "+notes.join(" · "):"");};
+    this.disabled=false;msg.textContent="Đã xuất "+ok+"/"+picked.length+" file TPL"+(notes.length?"\n⚠ "+notes.join("\n⚠ "):"");
+    if(notes.length) alert("Chưa xuất được:\n"+notes.join("\n"));};
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",khbTplInit); else khbTplInit();
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
