@@ -5901,7 +5901,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.03</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.14</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -6177,6 +6177,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <input type="file" id="estFile" accept=".xlsx,.xlsm" style="display:none">
           <span class="dim" id="estStat" style="font-size:11px" hidden></span>
           <span class="dim xls-bar-name crew-using" id="cmpFileBar" title="File Crewlist Aims đang dùng để đối chiếu"></span>
+          <span class="dim xls-bar-name crew-using" id="cmpVerBar" title="File FPL VER đang dùng (BẢN ĐANG DÙNG ở tab Dữ liệu thay đổi)"></span>
           <span class="cmpsum" id="estCrew" style="display:none"></span>
         </div>
         <div class="tbl-wrap" style="flex:1;min-height:0">
@@ -21357,6 +21358,10 @@ function vSetValue(which, name){
   lab.textContent = name || "— chọn file —";
   lab.title = name || "";
   if(which === "new") paintVerBang({new: name, new_ver: parseVerNo(name)});
+  if(which === "old"){
+    const vb = $("#cmpVerBar");
+    if(vb) vb.textContent = name ? ("FPL VER đang dùng: " + name) : "";
+  }
 }
 
 function vPaintMenus(){
