@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 2.91: trình bày Validation/PLD gọn, rõ trạng thái và chênh lệch; bổ sung múi giờ THD/VDO, kiểm thử đổi local sang UTC.
+
 - [x] V 2.78: Validation lấy cảnh báo đúng chuyến từ So sánh và tự cập nhật khi kết quả về; chỉ Good nền xanh khi dữ liệu đủ và kiểm tra đạt; 8 kiểm thử đạt.
 - [ ] V 2.78: xác nhận cảnh báo/Good với chuyến thật — chưa có phiên người yêu cầu; cần thử preview.
 
