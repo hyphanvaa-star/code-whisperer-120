@@ -41,8 +41,7 @@ function cmpValPaint(sid){
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
 }
 function renderCompareTable(d, opts){`)
-    .replace('  ["ZFW / MZFW", "Chỉ hiện TRUE', '  ["ZFW / MZFW", "Chỉ hiện TRUE')
-    .replace(/(\n\];\n\nfunction renderCompareTable)/, ',\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP. Xanh Good = tất cả đạt; vàng = tiệm cận; đỏ = sai. Rê chuột xem chi tiết."]$1')
+    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP. Xanh Good = tất cả đạt; vàng = tiệm cận; đỏ = sai. Rê chuột xem chi tiết."],')
     .replace(`    for(const k of ["ezfw", "etp", "rres"]){
       const td = document.createElement("td");
       td.dataset.w = k;
