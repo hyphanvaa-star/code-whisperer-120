@@ -247,6 +247,17 @@ describe("FplFormulaTests", () => {
     ]);
   });
 
+  it("poa is derived from the enroute alternates when left empty", () => {
+    const f = { flt: "900", dep: "SGN", arr: "PKX", reg: "VN-A648", ac: 321, etd: "13:00" };
+    const got = ft.render_fpl(db, f, { extra: 0, seq: 1, route_q: "/SGN/HKG/WUH", etp_poa: "", routeTable: routeDoc.rows });
+    expect(got).toContain("POD÷SGN/SGN/HKG/WUH");
+    expect(got).toContain("POA÷PKX/HKG/WUH/PKX");
+    const two = ft.render_fpl(db, f, { extra: 0, seq: 1, route_q: "/HAN/DAD", etp_poa: "", routeTable: routeDoc.rows });
+    expect(two).toContain("POA÷PKX/DAD/PKX");
+    const explicit = ft.render_fpl(db, f, { extra: 0, seq: 1, route_q: "/SGN/HKG/WUH", etp_poa: "/DAD/PKX", routeTable: routeDoc.rows });
+    expect(explicit).toContain("POA÷PKX/DAD/PKX");
+  });
+
   it("req file keeps the division sign as one byte", () => {
     const bytes = ft.req_bytes("*÷A\n\nB");
     expect(Array.from(bytes)).toEqual(Array.from(Buffer.from("*\xf7A\r\n\r\nB\r\n", "binary")));

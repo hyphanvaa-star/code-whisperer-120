@@ -756,6 +756,13 @@ export function render_fpl(db: Db, flight: Raw, opts: RenderOpts = {}): string {
   let etpPoa = opts.etp_poa == null ? defaults.etp_poa : opts.etp_poa;
   let fl = opts.fl == null ? defaults.fl : opts.fl;
   etpPoa = String(etpPoa || ""); fl = String(fl || "");
+  // Enroute ALT (ETP POD) có từ 2 điểm trở lên mà ETP POA trống: tự suy ra POA
+  // từ điểm thứ hai trở đi, kết thúc bằng sân bay đến. VD POD /SGN/HKG/WUH, ARR=PKX
+  // → POA÷PKX/HKG/WUH/PKX.
+  if (!etpPoa) {
+    const pts = routeQ.split("/").map((s) => s.trim().toUpperCase()).filter(Boolean);
+    if (pts.length >= 2) etpPoa = "/" + pts.slice(1).join("/") + "/" + arr;
+  }
   let talt = opts.talt == null ? defaults.talt : opts.talt;
   let alt1 = opts.alt1 == null ? defaults.alt1 : opts.alt1;
   let alt2 = opts.alt2 == null ? defaults.alt2 : opts.alt2;
