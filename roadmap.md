@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.12: thêm ATC status giữa CREW/REG FPL, đọc AviWeb khi chạy Cmp; chỉ nhận kết quả đúng DOF trên chuyến/chặng đã chọn.
+
 - [x] V 3.11: NOTE cho nhập trực tiếp, giữ khi cập nhật bảng và tải lại trên cùng trình duyệt; tách ghi chú theo tài khoản/chuyến.
 
 - [x] V 3.10: thêm NOTE giữa EST−PLD và Validation; Điện văn sau Validation, chọn CHG A/C, DLA hoặc CHG DLA để mở khung điện văn hiện có.
