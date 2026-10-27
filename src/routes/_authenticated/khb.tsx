@@ -274,7 +274,7 @@ function Khb() {
           <thead className="sticky top-0 z-10 bg-primary text-left text-[11px] font-bold uppercase text-primary-foreground">
             <tr>
               <th className="px-2 py-2"><input type="checkbox" checked={allOn} onChange={(e) => setRows((p) => p.map((x) => (x ? { ...x, on: e.target.checked } : x)))} /></th>
-              {["Số", "A/C performance", "Ngày", "Tàu", "Loại", "Đi", "Đến", "ETD", "ETD UTC", "ETA UTC", "CPT", "FO", "Enroute ALT", "ETP POA", "FL", "Route", "TALT", "ALT1", "ALT2", "Extra", "RMK", "PCR T/O"].map((h) => (
+              {["Số", "A/C performance", "Ngày", "Tàu", "Loại", "Đi", "Đến", "ETD", "ETD UTC", "ETA UTC", "CPT", "FO", "Enroute ALT", "ETP POA", "FL", "Route", "TALT", "ALT1", "ALT2", "Extra", "PCR T/O", "RMK"].map((h) => (
                 <th key={h} className="whitespace-nowrap px-2 py-2">{h}</th>
               ))}
             </tr>
@@ -334,8 +334,8 @@ function Khb() {
                   {cell("alt1", "w-14", "alt1")}
                   {cell("alt2", "w-14", "alt2")}
                   {cell("extra", "w-14")}
-                  {cell("rmk", "w-28")}
                   {cell("pcrTo", "w-16")}
+                  {cell("rmk", "w-28")}
                 </tr>
               );
             })}
