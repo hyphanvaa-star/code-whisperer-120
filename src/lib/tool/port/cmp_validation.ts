@@ -17,7 +17,7 @@ export function cmpRegState(fpl: unknown, flite: unknown, aims: unknown, version
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.10')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.11')
     .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
     .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
     .replace('    tr.appendChild(regCmpCell(r));', `    const fplCell = txtCell("…", "n");
@@ -90,6 +90,33 @@ function cmpActionFlight(r){
   return hits.length === 1 ? hits[0] : null;
 }
 const cmpRegState = ${cmpRegState.toString()};
+const cmpNotes = new Map();
+function cmpNoteCell(r){
+  const td = document.createElement("td");
+  td.className = "cmp-note-cell";
+  const input = document.createElement("textarea");
+  input.className = "cmp-note-input";
+  input.rows = 2;
+  input.setAttribute("aria-label", "NOTE " + r.callsign);
+  const f = cmpActionFlight(r);
+  let uid = "";
+  try { uid = window.parent.__fbUserId ? window.parent.__fbUserId() || "" : ""; } catch(_){}
+  const key = JSON.stringify([uid, r.sector_id, r.callsign, f ? f.std : r.std, r.dep, r.arr]);
+  const storageKey = "sohee:compare-note:v1:" + key;
+  let saved = cmpNotes.get(key);
+  if(saved === undefined && uid){
+    try { saved = localStorage.getItem(storageKey); } catch(_){}
+  }
+  input.value = saved == null ? "" : saved;
+  input.onclick = ev => ev.stopPropagation();
+  input.onkeydown = ev => ev.stopPropagation();
+  input.oninput = () => {
+    cmpNotes.set(key, input.value);
+    if(uid){ try { localStorage.setItem(storageKey, input.value); } catch(_){} }
+  };
+  td.appendChild(input);
+  return td;
+}
 let cmpRegReadSeq = 0;
 const cmpFplRegs = new Map();
 function cmpRegPaint(r){
@@ -188,9 +215,7 @@ function renderCompareTable(d, opts){`)
       tr.appendChild(td);
     }`, `    for(const k of ["ezfw", "etp", "rres", "val"]){
       if(k === "val"){
-        const noteCell = txtCell(r.note || "—", "q");
-        noteCell.classList.add("cmp-note-cell");
-        tr.appendChild(noteCell);
+        tr.appendChild(cmpNoteCell(r));
       }
       const td = document.createElement("td");
       td.dataset.w = k;
@@ -202,6 +227,7 @@ function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(10),.cmptbl :is(th,td):nth-child(n+14):nth-child(-n+18){display:none!important}
 .cmptbl .cmp-note-cell{min-width:100px;max-width:220px;white-space:normal;overflow-wrap:anywhere}
+.cmp-note-input{display:block;width:160px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
 .cmp-message-select{width:110px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px}
 .cmptbl td[data-w="val"]{min-width:150px;font-size:12px;line-height:1.35}
 .cmptbl .cmp-val-head{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;background:#e5e7eb;color:#374151}
