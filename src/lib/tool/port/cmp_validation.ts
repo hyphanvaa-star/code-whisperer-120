@@ -362,7 +362,7 @@ function renderCompareTable(d, opts){`)
 .cmptbl td.cmp-atc-cell{background:transparent!important;text-align:center;vertical-align:middle}
 .cmp-atc-pill{display:inline-flex;align-items:center;gap:5px;min-width:84px;justify-content:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}
 .cmp-atc-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.cmp-atc-pill.t-ok{background:#dcfce7;color:#15803d;border-color:#86efac}
+.cmp-atc-pill.t-ok{background:#86efac;color:#047857;border-color:#22c55e}
 .cmp-atc-pill.t-air{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
 .cmp-atc-pill.t-done{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
 .cmp-atc-pill.t-warn{background:#fef3c7;color:#b45309;border-color:#fcd34d}
