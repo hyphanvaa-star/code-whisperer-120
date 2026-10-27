@@ -103,6 +103,17 @@ function ftPldCell(f){
   if(!f){ paint(null,null); estEl.disabled = true; return td; }
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
+  const commit = () => {
+    const raw = estEl.value.replace(/[^\d]/g, "");
+    if(!raw){ st.est = ""; st.pay = ""; st.pldManual = false; paint(lastPld, null); return; }
+    st.est = raw;
+    st.pay = raw;
+    st.payManual = true;
+    st.pldManual = true;
+    paint(lastPld, raw);
+  };
+  estEl.addEventListener("change", commit);
+  estEl.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); estEl.blur(); } });
   const update = w => { paint(w && w.pld, st.est); };
   td._repaint = () => { const s2 = ftPayloadSector(f); const w = s2 && W_CACHE[s2.id]; update(w && ofpFitsFlight(s2,w) ? w : null); };
   const cached = sector && W_CACHE[sector.id];
