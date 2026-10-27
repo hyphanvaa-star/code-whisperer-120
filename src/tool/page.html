@@ -9008,6 +9008,13 @@ function render(){
       + '<td class="num extra-cell"></td><td class="dim dsp-cell"></td>';
     const td = tr.children;
     setTick(td[0], f.callsign);
+    if(f.ofp_ack && f.id != null){
+      const vb = document.createElement("button");
+      vb.className = "cs-vf"; vb.textContent = "✔";
+      vb.title = "Tam giác đỏ OFP mới — bấm để verify " + (f.callsign || "");
+      vb.onclick = ev => { ev.stopPropagation(); csQuickVerify(f, vb); };
+      td[0].prepend(vb);
+    }
     setTick(td[1], f.route);
     paintStdSta(td[2], f);
     paintOpsStatus(td[3], f);
@@ -21983,6 +21990,46 @@ async function bsRun(row, btn){
 }
 
 let vfCmpJob = null, vfCmpEs = null;
+
+async function csQuickVerify(f, btn){
+  if(vfCmpJob || vfJob){ alert("Đang có một lượt verify chạy — chờ xong đã."); return; }
+  const cs = f.callsign || "";
+  if(!confirm("Verify " + cs + " " + (f.route || "") + " (tam giác đỏ OFP mới)?\n\n"
+      + "Acknowledge OFP mới rồi verify → release xanh trên FliteBrief.")) return;
+  btn.disabled = true; btn.textContent = "…";
+  let d;
+  try{
+    d = await (await fetch("/api/verify/run", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({days: DAYS, callsigns: [cs], sector_ids: [f.id], green: true}),
+    })).json();
+  }catch(err){ d = {error: err.message}; }
+  if(!d || d.error){
+    write("✗ verify " + cs + ": " + ((d && d.error) || "lỗi"), "fail");
+    btn.disabled = false; btn.textContent = "✔"; return;
+  }
+  vfCmpJob = d.id;
+  vfCmpEs = new EventSource("/api/stream?id=" + vfCmpJob);
+  vfCmpEs.onmessage = ev => {
+    try{
+      const m = JSON.parse(ev.data);
+      if(m.type === "line"){
+        write(m.text, m.cls === "bad" ? "fail" : (m.text.startsWith("✓") ? "ok" : null));
+      }else if(m.type === "end"){
+        const ok = !m.failed;
+        write("■ verify " + cs + (ok ? " xong" : " lỗi"), ok ? "ok" : "fail");
+        if(ok){ f.ofp_ack = false; btn.textContent = "✓"; btn.classList.add("done"); }
+        else { btn.disabled = false; btn.textContent = "✔"; }
+        vfCmpEs.close(); vfCmpEs = null; vfCmpJob = null;
+      }
+    }catch(_){}
+  };
+  vfCmpEs.onerror = () => {
+    if(vfCmpJob){ write("✗ mất kết nối khi verify " + cs, "fail");
+      vfCmpEs.close(); vfCmpEs = null; vfCmpJob = null;
+      btn.disabled = false; btn.textContent = "✔"; }
+  };
+}
 
 async function vfCmpOpen(row, btn){
   if(vfCmpJob || vfJob){ alert("Đang có một lượt verify chạy — chờ xong đã."); return; }
