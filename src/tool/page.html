@@ -5891,7 +5891,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.87</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.88</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -6819,7 +6819,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
               <th><input type="checkbox" id="ftAll" title="Tick hết. Shift+click hoặc rê chuột để chọn dải."></th>
               <th>Số</th><th>A/C performance</th><th>Ngày</th><th>Tàu</th><th>Loại</th>
               <th>Đi</th><th>Đến</th><th>ETD</th><th>ETD UTC</th><th>ETA UTC</th><th>CPT</th><th>FO</th>
-              <th>ETP POD</th><th>ETP POA</th><th>FL</th><th>Route</th><th>TALT</th><th>ALT1</th><th>ALT2</th><th>Extra</th><th>RMK</th><th>PCR T/O</th>
+              <th>Enroute ALT</th><th>ETP POA</th><th>FL</th><th>Route</th><th>TALT</th><th>ALT1</th><th>ALT2</th><th>Extra</th><th>RMK</th><th>PCR T/O</th>
             </tr></thead>
             <tbody id="ftBody"></tbody>
           </table>
@@ -7337,7 +7337,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
       <button class="btn small x" id="ftAltClose" type="button">✕</button>
     </div>
     <div class="sheet-body">
-      <p class="note">PODPOA, ETP POD, TALT, FL, ETP POA, ALT1, ALT2. Sửa, thêm dòng, rồi Lưu.</p>
+      <p class="note">PODPOA, Enroute ALT, TALT, FL, ETP POA, ALT1, ALT2. Sửa, thêm dòng, rồi Lưu.</p>
       <input type="search" id="ftAltFind" placeholder="Tìm route…" style="margin-bottom:8px">
       <div class="fttx-wrap" id="ftAltBox"></div>
       <div class="crew-foot">
@@ -26956,11 +26956,11 @@ async function ftSaveSheet(url, rows, msg){
 $("#ftAltBtn").onclick = function(){
   ftOpenSheet("/api/fpltext/alt", "#ftAltModal", "#ftAltBox", "#ftAltMsg").then(rows => {
     ftAltRows = rows;
-    ftPaintBound("#ftAltBox", ["PODPOA", "ETP POD", "TALT", "FL", "ETP POA", "ALT1", "ALT2"], FT_ALT_KEYS, ftAltShown());
+    ftPaintBound("#ftAltBox", ["PODPOA", "Enroute ALT", "TALT", "FL", "ETP POA", "ALT1", "ALT2"], FT_ALT_KEYS, ftAltShown());
   }).catch(err => alert(err.message));
 };
 $("#ftAltFind").addEventListener("input", function(){
-  ftPaintBound("#ftAltBox", ["PODPOA", "ETP POD", "TALT", "FL", "ETP POA", "ALT1", "ALT2"], FT_ALT_KEYS, ftAltShown());
+  ftPaintBound("#ftAltBox", ["PODPOA", "Enroute ALT", "TALT", "FL", "ETP POA", "ALT1", "ALT2"], FT_ALT_KEYS, ftAltShown());
 });
 $("#ftAltAdd").onclick = function(){
   const rec = {podpoa: "", etp_pod: "", talt: "", fl: "", etp_poa: "", alt1: "", alt2: ""};
