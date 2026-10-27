@@ -10,11 +10,9 @@ export function patchCmpValidationPage(html: string): string {
   return html
     .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.08')
     .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
+    .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
     .replace('    tr.appendChild(regCmpCell(r));', `    tr.appendChild(txtCell(r.reg || "—", "n"));
     const aimsCell = regCmpCell(r);
-    const aimsReg = r.reg_cmp && r.reg_cmp.excel;
-    const aimsValue = aimsCell.querySelector(".cmp-reg,.v");
-    if(aimsValue) aimsValue.textContent = aimsReg || "—";
     tr.appendChild(aimsCell);`)
     .replace('    tr.onclick = () => {\n      current = r.sector_id;', `    const actionFlight = cmpActionFlight(r);
     const briefCell = document.createElement("td");
