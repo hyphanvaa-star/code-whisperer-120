@@ -22,7 +22,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.16')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.17')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -133,18 +133,20 @@ function cmpAtcPaint(r){
   if(!td) return;
   const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
   const text = cached ? cached.status || "Chưa có" : f ? (cmpAtcBusy ? "…" : "—") : "—";
-  const tone = cached ? cmpAtcTone(cached.status) : "none";
+  const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const wrongReg = !!(cached && cached.status && cached.reg && f && f.reg && norm(cached.reg) !== norm(f.reg));
+  const tone = cached ? (wrongReg ? "bad" : cmpAtcTone(cached.status)) : "none";
   td.className = "cmp-atc-cell";
   let pill = td.firstElementChild;
   if(!pill || !pill.classList.contains("cmp-atc-pill")){ pill = document.createElement("span"); td.replaceChildren(pill); }
   if(pill.textContent !== text) pill.textContent = text;
   pill.className = "cmp-atc-pill t-" + tone;
-  td.title = cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
+  td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ FliteBrief " + f.reg : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
 }
-function cmpAtcPut(f, status, error){
+function cmpAtcPut(f, status, error, reg){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
   if(!status && prev && prev.status) cmpAtcCache.set(key, {...prev, time: Date.now(), error: ""});
-  else cmpAtcCache.set(key, {status, error, time: Date.now()});
+  else cmpAtcCache.set(key, {status, error, reg: reg || "", time: Date.now()});
 }
 function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
 async function cmpReadAtc(rows){
@@ -180,7 +182,7 @@ async function cmpReadAtc(rows){
         const hits = (m.results || []).filter(result => String(result.callsign).toUpperCase() === f.callsign.toUpperCase());
         const result = hits.length === 1 ? hits[0] : null;
         const status = result ? cmpAtcStatus(result, f.callsign, acDofFromStd(f.std)) : "";
-        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb");
+        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", status && result ? result.reg : "");
       }
       finish();
     };
