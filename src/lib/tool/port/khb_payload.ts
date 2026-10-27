@@ -26,25 +26,13 @@ export function khbUtcDay(date: unknown, etdLocal: unknown, etdUtc: unknown): st
   return t.getUTCFullYear() + String(t.getUTCMonth() + 1).padStart(2, '0') + String(t.getUTCDate()).padStart(2, '0');
 }
 
-export function validationResult(alerts: string[], pending: string[]) {
-  if (alerts.length) return { status: 'warning', text: [...new Set(alerts)].join(' · ') };
-  if (pending.length) return { status: 'pending', text: 'Chưa đủ dữ liệu: ' + [...new Set(pending)].join(', ') };
-  return { status: 'good', text: 'Good' };
-}
-
-/** A partial background comparison must not replace a completed verdict. */
-export function stableValidation<T extends { s: string; t: string; h: string }>(previous: T | undefined, next: T, complete: boolean): T {
-  return !complete && previous && (previous.s === 'good' || previous.s === 'warning') ? previous : next;
-}
-
 export function patchKhbPayloadPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.04')
-    .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
-    .replace('width:1760px;min-width:100%', 'width:2640px;min-width:100%')
-    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
-    .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftValidationCell(null));\n      blank.appendChild(ftPldCell(null));')
-    .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftValidationCell(f));\n    tr.appendChild(ftPldCell(f));')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.05')
+    .replace('width:1760px;min-width:100%', 'width:2400px;min-width:100%')
+    .replace('<th>ETP POA</th><th>FL</th>', '<th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
+    .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftPldCell(null));')
+    .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftPldCell(f));')
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
     .replace('<button type="button" class="btn small" id="ftPldRound"', '<button type="button" class="btn small" id="ftEstLoad" title="Lấy EST Omni cho các chuyến đã tick">↓ EST Omni</button><button type="button" class="btn small" id="ftPldRound"')
     .replace('      st.pay = String(row.pay);', '      st.est = row.est == null ? st.est : String(row.est);\n      st.pay = String(row.pay);')
@@ -100,6 +88,8 @@ function ftPldCell(f){
     if(a !== "—" && b !== "—"){
       const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
       estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
+      const kg = (n) => Math.abs(n).toLocaleString("en-US") + " kg";
+      value.title = "EST Omni " + Number(b).toLocaleString("en-US") + " kg · OFP " + Number(a).toLocaleString("en-US") + " kg · " + (v > 0 ? "còn dư " + kg(v) : v < 0 ? "vượt " + kg(v) : "khớp");
     }
   };
   if(!f){ paint(null,null); return td; }
