@@ -2665,6 +2665,8 @@ html.night .ft-msg-menu{background:#1b1f27;border-color:#3a4050}
 #wrapFplText .fttbl input.ft-chg-fpl{color:#7C3AED;font-weight:700;background:#F5F3FF}
 #wrapFplText .fttbl input.ft-chg-both{color:#DC2626;font-weight:700;background:#FEF2F2}
 #wrapFplText .fttbl input.ft-chg-ok{color:#16A34A;font-weight:700;background:#F0FDF4}
+#wrapFplText .fttbl .ft-bolt{position:absolute;top:1px;right:1px;border:0;background:transparent;cursor:pointer;font-size:13px;line-height:1;padding:0 2px;font-weight:900}
+#wrapFplText .fttbl .ft-bolt.fpl{color:#7C3AED}#wrapFplText .fttbl .ft-bolt.crew{color:#EA580C}#wrapFplText .fttbl .ft-bolt.both{color:#DC2626}#wrapFplText .fttbl .ft-bolt.ok{color:#16A34A;cursor:default}
 #wrapFplText .fttbl input.ft-extra-auto{color:#d10000;font-weight:700}
 #wrapFplText .fttbl input.ft-lim-crit{color:#d10000;font-weight:700;background:#ffe4e4}
 #wrapFplText .fttbl input.ft-lim-warn{color:#b45309;font-weight:700;background:#fff4cc}
@@ -5894,7 +5896,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.97</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.98</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -25029,7 +25031,7 @@ function ftRender(){
     tr.appendChild(ftFltInput(f.flt, index, f));
     tr.appendChild(ftPerfCell(st.reg || f.reg));
     tr.appendChild(ftMarkChg(ftBox(st, "date", false), st, "date"));
-    tr.appendChild(ftMarkChg(ftBox(st, "reg", false), st, "reg"));
+    tr.appendChild(ftMarkChg(ftBox(st, "reg", false), st, "reg", f));
     tr.appendChild(ftMarkChg(ftBox(st, "ac", false), st, "ac"));
     const depCell = ftBox(st, "dep", false);
     ftWatchTaf(depCell, ftTafPlace(st, st.dep, "ETD"));
@@ -25040,8 +25042,8 @@ function ftRender(){
     tr.appendChild(ftMarkChg(ftBox(st, "etd", false), st, "etd"));
     tr.appendChild(ftMarkChg(ftBox(st, "utc", false), st, "utc"));
     tr.appendChild(ftMarkChg(ftBox(st, "etaUtc", false), st, "etaUtc"));
-    tr.appendChild(ftMarkChg(ftCrewCell(f, "cpt"), st, "cptText"));
-    tr.appendChild(ftMarkChg(ftCrewCell(f, "fo"), st, "foText"));
+    tr.appendChild(ftMarkChg(ftCrewCell(f, "cpt"), st, "cptText", f));
+    tr.appendChild(ftMarkChg(ftCrewCell(f, "fo"), st, "foText", f));
     tr.appendChild(ftBox(st, "route", true));
     tr.appendChild(ftBox(st, "etp_poa", true));
     tr.appendChild(ftBox(st, "fl", false));
@@ -25355,8 +25357,9 @@ function ftRepaintChg(){
       const c = st.chg[key];
       if(!c || !c.el || !c.el.isConnected) continue;
       c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
-      c.el.classList.add(ftChgClass(c, st.chgFb === true));
-      c.el.title = ftChgTip(c, st.chgFb === true);
+      c.el.classList.add(ftChgOk(st, c) ? "ft-chg-ok" : ftChgClass(c, false));
+      c.el.title = ftChgTip(c, ftChgOk(st, c));
+      ftBoltPaint(c, st);
     }
   }
 }
