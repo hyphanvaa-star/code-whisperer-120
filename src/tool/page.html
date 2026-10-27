@@ -5902,7 +5902,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.25</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.26</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -6379,7 +6379,9 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
             <div class="tg">
               <button class="btn small" id="tlClearFlt" title="Xoá cột FLT NO (giữ nguyên PIB/WX và vòng lặp)">Xoá FLT</button>
               <button class="btn small" id="tlClearPib" title="Xoá cột PIB/WX và reset trạng thái tải (dừng vòng lặp)">Xoá PIB/WX</button>
-              <button class="btn small" id="tlAddRow">+ dòng</button>
+              <button class="btn small" id="tlAddRow" style="display:none">+ dòng</button>
+              <button class="btn small" type="button" title="In GD (giống nút In GD ở Print GD)" onclick="document.getElementById('gdPrint').click()">🖨 In GD</button>
+              <button class="btn small" type="button" title="Tạo ATC + EZFW nháp Outlook (giống nút Soạn nháp)" onclick="document.getElementById('aeDraft').click()">✉ Tạo EZFW</button>
             </div>
           </div>
 
