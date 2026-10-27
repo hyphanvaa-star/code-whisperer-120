@@ -21358,6 +21358,10 @@ function vSetValue(which, name){
   lab.textContent = name || "— chọn file —";
   lab.title = name || "";
   if(which === "new") paintVerBang({new: name, new_ver: parseVerNo(name)});
+  if(which === "old"){
+    const vb = $("#cmpVerBar");
+    if(vb) vb.textContent = name ? ("FPL VER đang dùng: " + name) : "";
+  }
 }
 
 function vPaintMenus(){
