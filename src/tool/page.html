@@ -2665,6 +2665,8 @@ html.night .ft-msg-menu{background:#1b1f27;border-color:#3a4050}
 #wrapFplText .fttbl input.ft-chg-fpl{color:#7C3AED;font-weight:700;background:#F5F3FF}
 #wrapFplText .fttbl input.ft-chg-both{color:#DC2626;font-weight:700;background:#FEF2F2}
 #wrapFplText .fttbl input.ft-chg-ok{color:#16A34A;font-weight:700;background:#F0FDF4}
+#wrapFplText .fttbl .ft-bolt{position:absolute;top:1px;right:1px;border:0;background:transparent;cursor:pointer;font-size:13px;line-height:1;padding:0 2px;font-weight:900}
+#wrapFplText .fttbl .ft-bolt.fpl{color:#7C3AED}#wrapFplText .fttbl .ft-bolt.crew{color:#EA580C}#wrapFplText .fttbl .ft-bolt.both{color:#DC2626}#wrapFplText .fttbl .ft-bolt.ok{color:#16A34A;cursor:default}
 #wrapFplText .fttbl input.ft-extra-auto{color:#d10000;font-weight:700}
 #wrapFplText .fttbl input.ft-lim-crit{color:#d10000;font-weight:700;background:#ffe4e4}
 #wrapFplText .fttbl input.ft-lim-warn{color:#b45309;font-weight:700;background:#fff4cc}
@@ -5894,7 +5896,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.97</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.98</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -25029,7 +25031,7 @@ function ftRender(){
     tr.appendChild(ftFltInput(f.flt, index, f));
     tr.appendChild(ftPerfCell(st.reg || f.reg));
     tr.appendChild(ftMarkChg(ftBox(st, "date", false), st, "date"));
-    tr.appendChild(ftMarkChg(ftBox(st, "reg", false), st, "reg"));
+    tr.appendChild(ftMarkChg(ftBox(st, "reg", false), st, "reg", f));
     tr.appendChild(ftMarkChg(ftBox(st, "ac", false), st, "ac"));
     const depCell = ftBox(st, "dep", false);
     ftWatchTaf(depCell, ftTafPlace(st, st.dep, "ETD"));
@@ -25040,8 +25042,8 @@ function ftRender(){
     tr.appendChild(ftMarkChg(ftBox(st, "etd", false), st, "etd"));
     tr.appendChild(ftMarkChg(ftBox(st, "utc", false), st, "utc"));
     tr.appendChild(ftMarkChg(ftBox(st, "etaUtc", false), st, "etaUtc"));
-    tr.appendChild(ftMarkChg(ftCrewCell(f, "cpt"), st, "cptText"));
-    tr.appendChild(ftMarkChg(ftCrewCell(f, "fo"), st, "foText"));
+    tr.appendChild(ftMarkChg(ftCrewCell(f, "cpt"), st, "cptText", f));
+    tr.appendChild(ftMarkChg(ftCrewCell(f, "fo"), st, "foText", f));
     tr.appendChild(ftBox(st, "route", true));
     tr.appendChild(ftBox(st, "etp_poa", true));
     tr.appendChild(ftBox(st, "fl", false));
@@ -25227,16 +25229,89 @@ function ftChgTip(c, fbOk){
   return "Đổi từ " + (c.from || "(trống)") + " → " + (c.to || "(trống)") + " (" + src + ")"
     + (fbOk ? " · Đã khớp FliteBrief ✓" : " · FliteBrief chưa đổi");
 }
-function ftMarkChg(td, st, key){
+function ftChgOk(st, c){ return c.done === true || (st.chgFb === true && !(c.key === "cptText" || c.key === "foText")); }
+function ftBoltPaint(c, st){
+  if(!c.bolt) return;
+  const ok = ftChgOk(st, c);
+  c.bolt.className = "ft-bolt " + (ok ? "ok" : c.src === "fpl" ? "fpl" : c.src === "both" ? "both" : "crew");
+  c.bolt.title = ok ? "Đã khớp FliteBrief ✓" : "Bấm để cập nhật lên FliteBrief";
+}
+function ftStream(id){
+  return new Promise(resolve => {
+    const es = new EventSource("/api/stream?id=" + id);
+    es.onmessage = ev => { try{ const m = JSON.parse(ev.data);
+      if(m.type === "end"){ es.close(); resolve(!m.failed && !m.error); } }catch(e){} };
+    es.onerror = () => { es.close(); resolve(false); };
+  });
+}
+async function ftBoltClick(f, st, key, c){
+  if(ftChgOk(st, c) || c.busy) return;
+  const sid = f.id, flt = (f.callsign || f.flt || ""), route = (st.dep || f.dep) + "-" + (st.arr || f.arr);
+  const dg = x => (String(x || "").match(/\d{3,6}/) || [""])[0];
+  c.busy = true; c.bolt.textContent = "…";
+  try{
+    if(key === "reg"){
+      const p = new URLSearchParams({sector_id: sid, new_reg: c.to || st.reg, old_reg: c.from || "", days: 2});
+      const d = await (await fetch("/api/regswap/preview?" + p)).json();
+      if(d.error){ alert("Lỗi: " + d.error); return; }
+      const L = [flt + "  " + route, "Đổi tàu: " + (d.old_reg || c.from || "?") + " → " + d.new_reg, ""];
+      (d.delete || []).forEach(x => L.push("  − " + x.filename));
+      (d.add || []).forEach(x => L.push("  + " + x.title + (x.found ? "" : " (thiếu file)")));
+      if(!(d.delete || []).length && !(d.add || []).length){ c.done = true; return; }
+      L.push("", "Cập nhật lên FliteBrief ngay?");
+      if(!confirm(L.join("\n"))) return;
+      const r = await (await fetch("/api/regswap/run", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({sector_id: sid, new_reg: c.to || st.reg, old_reg: c.from || "", days: 2})})).json();
+      if(r.error){ alert("Lỗi: " + r.error); return; }
+      c.done = await ftStream(r.id);
+      if(!c.done) alert("Đổi tàu chưa xong — xem lại trên FliteBrief.");
+    }else{
+      const out = dg(c.from), inn = dg(c.to);
+      if(!inn){ alert("Không đọc được mã phi công mới."); return; }
+      const p = new URLSearchParams({sector_id: sid, days: 2, out: out, in: inn});
+      const d = await (await fetch("/api/crewswap/preview?" + p)).json();
+      if(d.error){ alert("Lỗi: " + d.error); return; }
+      const L = [flt + "  " + route, (key === "cptText" ? "CPT: " : "FO: ") + (c.from || "(trống)") + " → " + c.to, ""];
+      (d.remove || []).forEach(x => L.push("  − " + (x.label || x.username)));
+      (d.add || []).forEach(x => L.push("  + " + (x.label || x.username)));
+      (d.not_found || []).forEach(x => L.push("  ✗ " + x.username + ": " + x.note));
+      if(!(d.remove || []).length && !(d.add || []).length){ c.done = true; return; }
+      L.push("", "Cập nhật lên FliteBrief ngay?");
+      if(!confirm(L.join("\n"))) return;
+      const r = await (await fetch("/api/crewswap/run", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({sector_id: sid, days: 2, out: out ? [out] : [], in: [inn]})})).json();
+      if(r.error){ alert("Lỗi: " + r.error); return; }
+      c.done = await ftStream(r.id);
+      if(!c.done) alert("Đổi crew chưa xong — xem lại trên FliteBrief.");
+    }
+  }catch(e){ alert("Không gọi được: " + e.message); }
+  finally{
+    c.busy = false; if(c.bolt) c.bolt.textContent = "⚡";
+    if(c.el){ c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+      c.el.classList.add(ftChgOk(st, c) ? "ft-chg-ok" : ftChgClass(c, false)); }
+    ftBoltPaint(c, st);
+    if(c.done && key === "reg" && typeof ftFbSync === "function") ftFbSync(true);
+  }
+}
+function ftMarkChg(td, st, key, f){
   const c = st && st.chg && st.chg[key];
   if(!c) return td;
+  c.key = key;
   const inp = td.querySelector("input[type=text]");
   const el = inp || td;
+  const ok = ftChgOk(st, c);
   el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
-  el.classList.add(ftChgClass(c, st.chgFb === true));
-  const tip = ftChgTip(c, st.chgFb === true);
+  el.classList.add(ok ? "ft-chg-ok" : ftChgClass(c, false));
+  const tip = ftChgTip(c, ok);
   el.title = tip; td.title = tip;
   c.el = el;
+  if(f && (key === "reg" || key === "cptText" || key === "foText")){
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = "⚡";
+    b.addEventListener("click", ev => { ev.stopPropagation(); ftBoltClick(f, st, key, c); });
+    td.style.position = "relative";
+    td.appendChild(b); c.bolt = b; ftBoltPaint(c, st);
+  }
   return td;
 }
 // FPL VER đổi tàu/giờ: ghép vào dấu thay đổi của KHB (tím nếu chỉ FPL đổi,
@@ -25282,8 +25357,9 @@ function ftRepaintChg(){
       const c = st.chg[key];
       if(!c || !c.el || !c.el.isConnected) continue;
       c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
-      c.el.classList.add(ftChgClass(c, st.chgFb === true));
-      c.el.title = ftChgTip(c, st.chgFb === true);
+      c.el.classList.add(ftChgOk(st, c) ? "ft-chg-ok" : ftChgClass(c, false));
+      c.el.title = ftChgTip(c, ftChgOk(st, c));
+      ftBoltPaint(c, st);
     }
   }
 }
