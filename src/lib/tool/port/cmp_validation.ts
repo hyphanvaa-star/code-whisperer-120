@@ -118,13 +118,33 @@ const cmpAtcStatus = ${cmpAtcStatus.toString()};
 const cmpAtcCache = new Map();
 let cmpAtcBusy = false;
 function cmpAtcKey(f){ return JSON.stringify([f.id, f.callsign, f.std, f.dep_icao, f.dest_icao]); }
+function cmpAtcTone(s){
+  s = String(s || "").toUpperCase();
+  if(!s) return "none";
+  if(/REJ|CNL|CANCEL|ERR|FAIL/.test(s)) return "bad";
+  if(/CLOS|ARR|LAND|COMPLET/.test(s)) return "done";
+  if(/DEP|AIR|ACT/.test(s)) return "air";
+  if(/FILE|APPR|PROC|ACK|ACCEPT/.test(s)) return "ok";
+  if(/DLA|DELAY|CHG|UNPROC|PEND|WAIT/.test(s)) return "warn";
+  return "info";
+}
 function cmpAtcPaint(r){
   const td = document.querySelector('#cmpBody td[data-cmp-atc-sid="' + r.sector_id + '"]');
   if(!td) return;
   const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
-  td.textContent = cached ? cached.status || "Chưa có" : f ? "…" : "—";
-  td.className = "ac-status " + (cached ? acStatusCls(cached.status) : "q");
+  const text = cached ? cached.status || "Chưa có" : f ? "…" : "—";
+  const tone = cached ? cmpAtcTone(cached.status) : "none";
+  td.className = "cmp-atc-cell";
+  let pill = td.firstElementChild;
+  if(!pill || !pill.classList.contains("cmp-atc-pill")){ pill = document.createElement("span"); td.replaceChildren(pill); }
+  if(pill.textContent !== text) pill.textContent = text;
+  pill.className = "cmp-atc-pill t-" + tone;
   td.title = cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Đang lấy trạng thái AviWeb";
+}
+function cmpAtcPut(f, status, error){
+  const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
+  if(!status && prev && prev.status) cmpAtcCache.set(key, {...prev, time: Date.now(), error: ""});
+  else cmpAtcCache.set(key, {status, error, time: Date.now()});
 }
 function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
 async function cmpReadAtc(rows){
@@ -139,7 +159,7 @@ async function cmpReadAtc(rows){
   cmpAtcBusy = true;
   const finish = () => { cmpAtcBusy = false; cmpAtcRepaint(); };
   const fail = message => {
-    for(const {f} of todo) cmpAtcCache.set(cmpAtcKey(f), {status: "", error: message, time: Date.now()});
+    for(const {f} of todo) cmpAtcPut(f, "", message);
     finish();
   };
   try{
