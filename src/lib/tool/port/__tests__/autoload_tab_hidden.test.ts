@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 const page = readFileSync("src/tool/page.html", "utf8");
 
 describe("Auto-download tab hidden", () => {
-  it("hides the Tự động tải tab button", () => {
+  it("hides the Tự động tải and Check ATC avi tab buttons", () => {
     expect(page).toContain('id="mFpl"');
     expect(page).toContain('id="mFpl" role="tab" aria-selected="false" style="display:none"');
+    expect(page).toContain('id="mAtcCheck"');
+    expect(page).toContain('id="mAtcCheck" role="tab" aria-selected="false" style="display:none"');
   });
 
   it("keeps the FPL scan and Omni auto loops running from boot", () => {
