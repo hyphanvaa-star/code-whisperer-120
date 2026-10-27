@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.13: nhãn OpsCore OOOI nhỏ dưới CALLSIGN ở bảng so sánh; dùng màu/trạng thái hiện có và cập nhật theo lượt nền 30 giây.
+
 - [x] V 3.12: thêm ATC status giữa CREW/REG FPL, đọc AviWeb khi chạy Cmp; chỉ nhận kết quả đúng DOF trên chuyến/chặng đã chọn.
 
 - [x] V 3.11: NOTE cho nhập trực tiếp, giữ khi cập nhật bảng và tải lại trên cùng trình duyệt; tách ghi chú theo tài khoản/chuyến.

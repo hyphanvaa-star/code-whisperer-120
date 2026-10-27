@@ -22,7 +22,13 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.12')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.13')
+    .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
+    const opsStatus = document.createElement("div");
+    opsStatus.dataset.cmpOpsSid = r.sector_id;
+    cs.appendChild(opsStatus);
+    tr.appendChild(cs);
+    tr.appendChild(routeCmpCell(r));`)
     .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["ATC STATUS", "Trạng thái ATC trên AviWeb đúng ngày/chặng."],\n  ["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
     .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
     .replace('    tr.appendChild(regCmpCell(r));', `    const atcCell = txtCell("…", "q");
@@ -98,6 +104,16 @@ function cmpActionFlight(r){
   return hits.length === 1 ? hits[0] : null;
 }
 const cmpRegState = ${cmpRegState.toString()};
+function cmpOpsRepaint(rows){
+  for(const r of (rows || ((lastCmp && lastCmp.table) || []))){
+    const target = document.querySelector('#cmpBody [data-cmp-ops-sid="' + r.sector_id + '"]');
+    if(!target) continue;
+    const f = cmpActionFlight(r);
+    if(!f){ target.replaceChildren(); continue; }
+    paintOpsStatus(target, f);
+    target.classList.add("cmp-ops-status");
+  }
+}
 const cmpAtcStatus = ${cmpAtcStatus.toString()};
 const cmpAtcCache = new Map();
 let cmpAtcBusy = false;
@@ -262,7 +278,8 @@ function cmpValPaint(sid){
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
 }
 function renderCompareTable(d, opts){`)
-    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpReadAtc(rows);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
+    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  cmpReadAtc(rows);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
+    .replace('    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights', '    cmpOpsRepaint();\n    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights')
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
     .replace('  cmpArmPick(td, td.dataset.regSid);\n  return td;\n}\n\nfunction crewCmpCell', '  cmpArmPick(td, td.dataset.regSid);\n  cmpRegRepaint();\n  return td;\n}\n\nfunction crewCmpCell')
     .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
@@ -285,6 +302,8 @@ function renderCompareTable(d, opts){`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(11),.cmptbl :is(th,td):nth-child(n+15):nth-child(-n+19){display:none!important}
+.cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
+.cmptbl .cmp-ops-status .vd{font-size:10px;line-height:1.2;padding:2px 5px;white-space:nowrap}
 .cmptbl .cmp-note-cell{min-width:100px;max-width:220px;white-space:normal;overflow-wrap:anywhere}
 .cmp-note-input{display:block;width:160px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
 .cmp-message-select{width:110px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px}
