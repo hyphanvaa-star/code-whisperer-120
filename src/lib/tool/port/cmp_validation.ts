@@ -8,8 +8,44 @@ export function cmpValidationVerdict(items: { label: string; level: 'ok' | 'warn
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.07')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.08')
+    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
+    .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
+    .replace('    tr.appendChild(regCmpCell(r));', `    tr.appendChild(txtCell(r.reg || "—", "n"));
+    const aimsCell = regCmpCell(r);
+    tr.appendChild(aimsCell);`)
+    .replace('    tr.onclick = () => {\n      current = r.sector_id;', `    const actionFlight = cmpActionFlight(r);
+    const briefCell = document.createElement("td");
+    const verifyCell = document.createElement("td");
+    if(actionFlight){
+      const actionRow = {sector_id: actionFlight.id, fb_callsign: actionFlight.callsign,
+        flt: actionFlight.callsign, fb_std: actionFlight.std, ops_ok: true,
+        ofp_ack: !!actionFlight.ofp_ack,
+        reg: {old: (r.reg_cmp && r.reg_cmp.excel) || "", new: actionFlight.reg, changed: true}};
+      if(actionFlight.reg){
+        const briefButton = document.createElement("button");
+        briefButton.className = "briefbtn";
+        briefButton.textContent = "Đổi BF";
+        briefButton.title = "Đổi Briefing " + actionFlight.callsign + " · " + actionFlight.reg;
+        briefButton.onclick = ev => { ev.stopPropagation(); bsOpen(actionRow, briefButton); };
+        vPaintDone("brief", actionRow, briefButton);
+        briefCell.appendChild(briefButton);
+      }else briefCell.textContent = "—";
+      const existingVerify = vVerifyCell(actionRow);
+      verifyCell.replaceChildren(...existingVerify.childNodes);
+    }else{
+      briefCell.textContent = "—"; verifyCell.textContent = "—";
+      briefCell.title = verifyCell.title = "Chưa xác định được đúng chuyến trong khung khai thác";
+    }
+    tr.append(briefCell, verifyCell);
+    tr.onclick = () => {
+      current = r.sector_id;`)
     .replace('function renderCompareTable(d, opts){', `
+function cmpActionFlight(r){
+  const hits = (flights || []).filter(f => String(f.id) === String(r.sector_id)
+    && f.callsign === r.callsign && inOpsWindow(f));
+  return hits.length === 1 ? hits[0] : null;
+}
 const cmpValidationVerdict = ${cmpValidationVerdict.toString()};
 const CMP_VAL_KEYS = [["fuel","FUEL"],["tow","TOW"],["lwt","LWT"],["ezfw","ZFW"],["rres","CONT/ERA"],["etp","ETP"]];
 function cmpValPaint(sid){
@@ -41,7 +77,7 @@ function cmpValPaint(sid){
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
 }
 function renderCompareTable(d, opts){`)
-    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP. Xanh Good = tất cả đạt; vàng = tiệm cận; đỏ = sai. Rê chuột xem chi tiết."],')
+    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
     .replace(`    for(const k of ["ezfw", "etp", "rres"]){
       const td = document.createElement("td");
       td.dataset.w = k;
@@ -57,7 +93,7 @@ function renderCompareTable(d, opts){`)
     }`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('</head>', `<style>
-.cmptbl :is(th,td):nth-child(9),.cmptbl :is(th,td):nth-child(n+13):nth-child(-n+17){display:none!important}
+.cmptbl :is(th,td):nth-child(10),.cmptbl :is(th,td):nth-child(n+14):nth-child(-n+18){display:none!important}
 .cmptbl td[data-w="val"]{min-width:150px;font-size:12px;line-height:1.35}
 .cmptbl .cmp-val-head{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;background:#e5e7eb;color:#374151}
 .cmptbl td[data-val="good"] .cmp-val-head{background:#16a34a;color:#fff}

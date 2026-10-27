@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.08: thêm REG FPL (FliteBrief) trước REG AIMS (Crewlist/Excel); thêm Đổi Briefing và Verify cuối bảng so sánh, dùng thao tác hiện có trên đúng chuyến; 18 kiểm thử đạt, build OK.
+- [ ] V 3.08: thử Đổi Briefing/Verify trên chuyến thật — cần người dùng xác nhận thao tác ghi trên chuyến đang khai thác.
+
 - [x] V 3.06: thu nhỏ cột PLD (76px); ô PLD thành ô nhập — sửa tay ghi vào st.est/st.pay (pldManual) nên REQ xuất theo số đã sửa; tự động lấy EST bỏ qua ô đã sửa tay.
 
 - [x] V 3.05: bỏ hẳn cột Validation khỏi bảng KHB — bảng chỉ còn một cột PLD hiện EST Omni; gỡ toàn bộ mã đối chiếu So sánh, CSS và kiểm thử liên quan; ô PLD giữ màu xanh/đỏ và chú thích cho biết dư/vượt bao nhiêu kg.

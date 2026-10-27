@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Compare column additions and row actions stay in the tool-page shim's `cmp_validation` patch and reuse existing Briefing/Verify confirmations with a unique in-window FliteBrief sector, so presentation changes cannot bypass operational safeguards.
 - Operational catalogue reads are always clipped to −6/+24 hours at read time; ATC selection uses `port/operational_flight.ts` for unique sector/date/route matching and validates source DOF before using OFP or AviWeb EOBT, so missing identity never falls back to yesterday.
 - Both Outlook draft and KHB ATC/EZFW use `port/ofp_layout.ts` with the browser-safe `pdf-text-layout.ts` coordinate renderer; keep general weight extraction separate so fixed-width columns survive without changing other OFP parsers.
 - KHB ATC/EZFW exports validate both ICAO DOF/REG and PLAN date/route/REG against the uniquely selected in-window Crewlist/FliteBrief sector before queuing PC writes; completion requires the helper's returned file path.
