@@ -63,10 +63,12 @@ function ftValidationLater(){
 }
 function ftValidationPaint(td, status, text, hint){
   td.dataset.status = status || "pending";
+  const critical = /vượt|quá tải|quá giới hạn|thiếu|không tìm thấy chuyến|không khớp/i.test(String(text || ""));
+  td.dataset.severity = status === "warning" ? (critical ? "critical" : "warn") : "";
   td.title = hint || text;
   const heading = document.createElement("div");
   heading.className = "ft-validation-heading";
-  heading.textContent = status === "good" ? "Good" : status === "warning" ? "Cảnh báo" : "Chờ dữ liệu";
+  heading.textContent = status === "good" ? "Good" : status === "warning" ? (critical ? "Nghiêm trọng" : "Cảnh báo") : "Chờ dữ liệu";
   const body = document.createElement("div");
   body.className = "ft-validation-details";
   if(status !== "good"){
