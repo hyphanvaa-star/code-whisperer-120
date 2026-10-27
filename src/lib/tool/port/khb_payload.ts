@@ -291,5 +291,30 @@ async function ftLoadEst(flights, btn, auto){
   finally{ ftEstBusy = false; btn.disabled = false; }
 }
 $("#ftEstLoad").onclick = function(){ ftLoadEst(ftRows.filter(f => f && ftSt(f).on), this); };
+// EST Omni: tự lấy lại lặng lẽ mỗi 5 phút cho các chuyến trên bảng.
+setInterval(() => {
+  if(ftEstBusy || document.hidden) return;
+  const rows = (ftRows || []).filter(f => f && ftPayloadSector(f));
+  if(rows.length) ftLoadEst(rows, null, true);
+}, 5 * 60 * 1000);
+// OFP: kiểm tra mỗi 20 giây; chỉ cập nhật ô khi số CFP (hoặc payload) đổi.
+let ftOfpWatchBusy = false;
+setInterval(async () => {
+  if(ftOfpWatchBusy || document.hidden) return;
+  const ids = [...new Set((ftRows || []).map(f => f && ftPayloadSector(f)).filter(Boolean).map(s => s.id))];
+  if(!ids.length) return;
+  ftOfpWatchBusy = true;
+  try{
+    const d = await (await fetch("/api/weights?days=" + DAYS + "&ids=" + ids.join(","))).json();
+    let changed = false;
+    for(const id of ids){
+      const w = (d.weights || {})[String(id)], old = W_CACHE[id];
+      if(!w) continue;
+      if(!old || String(old.plan_no || "") !== String(w.plan_no || "") || old.pld !== w.pld){ W_CACHE[id] = w; changed = true; }
+    }
+    if(changed){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); ftValidationLater(); }
+  }catch(_){}
+  finally{ ftOfpWatchBusy = false; }
+}, 20000);
 function ftRender(){`);
 }
