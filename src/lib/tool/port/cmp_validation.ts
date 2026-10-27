@@ -22,7 +22,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.19')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.20')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -362,7 +362,8 @@ function renderCompareTable(d, opts){`)
 .cmptbl td.cmp-atc-cell{background:transparent!important;text-align:center;vertical-align:middle}
 .cmp-atc-pill{display:inline-flex;align-items:center;gap:5px;min-width:84px;justify-content:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}
 .cmp-atc-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.cmp-atc-pill.t-ok{background:#dcfce7;color:#15803d;border-color:#86efac}
+.cmp-atc-pill.t-ok{background:#86efac;color:#047857;border-color:#22c55e}
+html.night .cmp-atc-pill.t-ok{background:rgba(134,239,172,.18);color:#8ee4b0;border-color:rgba(134,239,172,.45)}
 .cmp-atc-pill.t-air{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
 .cmp-atc-pill.t-done{background:#f1f5f9;color:#475569;border-color:#cbd5e1}
 .cmp-atc-pill.t-warn{background:#fef3c7;color:#b45309;border-color:#fcd34d}
