@@ -5894,7 +5894,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.96</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.97</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -25120,8 +25120,16 @@ function ftFbSync(force){
         const st = ftSt(f);
         ftFbState[ftFbKey(st, f)] = {found: !!it.found, reg: it.reg || "",
           ok: !!it.found && !!it.reg && n3(it.reg) === n3(st.reg || f.reg)};
+        // Ô thay đổi chuyển xanh lá khi FliteBrief đã đúng tàu mới (và đúng giờ
+        // nếu ô giờ cũng nằm trong nhóm thay đổi).
+        const t4 = x => String(x || "").replace(/\D/g, "").slice(-4);
+        const regOk = !!it.found && !!it.reg && n3(it.reg) === n3(st.reg || f.reg);
+        const hasTimeChg = !!(st.chg && (st.chg.etd || st.chg.utc || st.chg.etaUtc));
+        const timeOk = !hasTimeChg || !it.std_utc || !st.utc || t4(it.std_utc) === t4(st.utc);
+        st.chgFb = regOk && timeOk;
       });
       ftFbPaint();
+      ftRepaintChg();
     }catch(e){}
   }, 400);
 }
