@@ -55,7 +55,9 @@ function ftValidationCell(f){
   const td = document.createElement("td");
   td.className = "ft-validation-cell";
   td._flight = f;
-  td.textContent = f ? "Chưa so sánh" : "—";
+  const old = f && window.__ftValLast && window.__ftValLast["f" + f.id];
+  td.textContent = old ? old.t : (f ? "Chưa so sánh" : "—");
+  if(old){ td.dataset.status = old.s; td.title = old.h; }
   ftValidationLater();
   return td;
 }
@@ -98,9 +100,9 @@ function ftValidationSync(){
       if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
       result = ftValidationResult(alerts,pending);
     }
-    const key = sector ? sector.id : "";
+    const key = "f" + f.id;
     window.__ftValLast = window.__ftValLast || {};
-    if(key && (!r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; continue; }
+    if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td.textContent !== o.t){ td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; } continue; }
     if(result.status === "pending"){
       const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
       const rest = result.text.replace(/^Chưa đủ dữ liệu: /, "").split(", ").filter(x => !(x === "CREW" && capt && fo));
@@ -168,6 +170,7 @@ function ftPldCell(f){
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
   const update = w => { paint(w && w.pld, st.est); };
+  td._repaint = () => { const s2 = ftPayloadSector(f); const w = s2 && W_CACHE[s2.id]; update(w && ofpFitsFlight(s2,w) ? w : null); };
   const cached = sector && W_CACHE[sector.id];
   update(cached && ofpFitsFlight(sector,cached) ? cached : null);
   if(sector && !cached && !ftOfpPending.has(sector.id)){
@@ -229,7 +232,9 @@ async function ftLoadEst(flights, btn, auto){
       if(!auto){ snap.st.pay = String(row.est); snap.st.payManual = false; }
       count++;
     }
-    ftRender(); ftKeepSave();
+    if(auto){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); }
+    else ftRender();
+    ftKeepSave();
     $("#ftStat").textContent = "Đã lấy EST Omni cho " + count + " chuyến" + (notes.length ? " · " + notes.join(" · ") : "");
     if(notes.length && !auto) alert(notes.join("\\n"));
   }catch(err){ $("#ftStat").textContent = "EST Omni: " + err.message; if(!auto) alert("EST Omni: " + err.message); }
