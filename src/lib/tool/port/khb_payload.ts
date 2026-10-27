@@ -50,8 +50,6 @@ export function patchKhbPayloadPage(html: string): string {
     .replace('      st.pay = String(row.pay);', '      st.est = row.est == null ? st.est : String(row.est);\n      st.pay = String(row.pay);')
     .replace('function ftRender(){', `
 const ftPayloadPair = ${payloadPair.toString()};
-const ftValidationResult = ${validationResult.toString()};
-const ftStableValidation = ${stableValidation.toString()};
 const ftKhbUtcDay = ${khbUtcDay.toString()};
 const ftOfpPending = new Set();
 function ftPayloadSector(f, requireReg = true){
@@ -200,7 +198,7 @@ setInterval(async () => {
       if(!w) continue;
       if(!old || String(old.plan_no || "") !== String(w.plan_no || "") || old.pld !== w.pld){ W_CACHE[id] = w; changed = true; }
     }
-    if(changed){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); ftValidationLater(); }
+    if(changed){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); }
   }catch(_){}
   finally{ ftOfpWatchBusy = false; }
 }, 20000);
