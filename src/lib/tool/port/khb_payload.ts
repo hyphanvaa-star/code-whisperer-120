@@ -26,160 +26,19 @@ export function khbUtcDay(date: unknown, etdLocal: unknown, etdUtc: unknown): st
   return t.getUTCFullYear() + String(t.getUTCMonth() + 1).padStart(2, '0') + String(t.getUTCDate()).padStart(2, '0');
 }
 
-export function validationResult(alerts: string[], pending: string[]) {
-  if (alerts.length) return { status: 'warning', text: [...new Set(alerts)].join(' · ') };
-  if (pending.length) return { status: 'pending', text: 'Chưa đủ dữ liệu: ' + [...new Set(pending)].join(', ') };
-  return { status: 'good', text: 'Good' };
-}
-
-/** A partial background comparison must not replace a completed verdict. */
-export function stableValidation<T extends { s: string; t: string; h: string }>(previous: T | undefined, next: T, complete: boolean): T {
-  return !complete && previous && (previous.s === 'good' || previous.s === 'warning') ? previous : next;
-}
-
 export function patchKhbPayloadPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.04')
-    .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
-    .replace('width:1760px;min-width:100%', 'width:2640px;min-width:100%')
-    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
-    .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftValidationCell(null));\n      blank.appendChild(ftPldCell(null));')
-    .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftValidationCell(f));\n    tr.appendChild(ftPldCell(f));')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.05')
+    .replace('width:1760px;min-width:100%', 'width:2400px;min-width:100%')
+    .replace('<th>ETP POA</th><th>FL</th>', '<th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
+    .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftPldCell(null));')
+    .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftPldCell(f));')
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
     .replace('<button type="button" class="btn small" id="ftPldRound"', '<button type="button" class="btn small" id="ftEstLoad" title="Lấy EST Omni cho các chuyến đã tick">↓ EST Omni</button><button type="button" class="btn small" id="ftPldRound"')
     .replace('      st.pay = String(row.pay);', '      st.est = row.est == null ? st.est : String(row.est);\n      st.pay = String(row.pay);')
     .replace('function ftRender(){', `
 const ftPayloadPair = ${payloadPair.toString()};
-const ftValidationResult = ${validationResult.toString()};
-const ftStableValidation = ${stableValidation.toString()};
 const ftKhbUtcDay = ${khbUtcDay.toString()};
-function ftValidationKey(f){
-  const st = ftSt(f);
-  return JSON.stringify([f.id, f.flt, st.date, st.dep, st.arr, st.reg, st.etd, st.utc]);
-}
-let ftValidationTimer;
-function ftValidationLater(){
-  clearTimeout(ftValidationTimer);
-  ftValidationTimer = setTimeout(ftValidationSync, 80);
-}
-function ftValidationPaint(td, status, text, hint){
-  td.dataset.status = status || "pending";
-  const critical = /vượt|quá tải|quá giới hạn|thiếu|không tìm thấy chuyến|không khớp/i.test(String(text || ""));
-  td.dataset.severity = status === "warning" ? (critical ? "critical" : "warn") : "";
-  td.title = hint || text;
-  const heading = document.createElement("div");
-  heading.className = "ft-validation-heading";
-  heading.textContent = status === "good" ? "Good" : status === "warning" ? (critical ? "Nghiêm trọng" : "Cảnh báo") : "Chờ dữ liệu";
-  const body = document.createElement("div");
-  body.className = "ft-validation-details";
-  if(status !== "good"){
-    const entries = text.replace(/^Chưa đủ dữ liệu: /, "").split(" · ");
-    for(const entry of entries){
-      const line = document.createElement("div");
-      const match = /^([^:]{1,24}):\\s*(.+)$/.exec(entry);
-      if(match){
-        const label = document.createElement("strong");
-        label.textContent = match[1];
-        const detail = document.createElement("span");
-        detail.textContent = match[2];
-        line.append(label, detail);
-      }else line.textContent = entry;
-      body.appendChild(line);
-    }
-  }
-  td.replaceChildren(heading, body);
-  td._validationText = text;
-}
-function ftValidationCell(f){
-  const td = document.createElement("td");
-  td.className = "ft-validation-cell";
-  td._flight = f;
-  const old = f && window.__ftValLast && window.__ftValLast[ftValidationKey(f)];
-  if(f) ftValidationPaint(td, old ? old.s : "pending", old ? old.t : "Chưa so sánh", old ? old.h : "");
-  else td.textContent = "—";
-  ftValidationLater();
-  return td;
-}
-function ftValidationSync(){
-  for(const td of document.querySelectorAll("#ftBody .ft-validation-cell")){
-    const f = td._flight;
-    if(!f) continue;
-    const sector = ftPayloadSector(f, false);
-    const r = sector && cmpRowOf(sector.id);
-    const marker = sector && document.querySelector('#cmpBody td[data-sid="' + sector.id + '"]');
-    const tr = marker && marker.closest("tr");
-    let result;
-    let missing = [];
-    const details = [];
-    if(!sector){ result = ftValidationResult([], ["không tìm thấy chuyến đúng ngày/chặng trên FliteBrief"]); }
-    else if(!r || !tr){ result = ftValidationResult([], ["chưa chạy So sánh (Cmp) cho chuyến này"]); }
-    else {
-      const alerts = [], pending = [];
-      if(r.note){ alerts.push(r.note); details.push(r.note); }
-      if(!r.in_excel) pending.push("Crewlist");
-      const inspect = (cell, label, allowNil) => {
-        if(!cell){ pending.push(label); return; }
-        const warning = cell.querySelector(".bad,.warn,.crit,.pcr-hot,.pcr-near,.fuel-tight,.alt-blink,.delta-hi,.cmp-reg-bang");
-        if(warning){ alerts.push(label + ": " + (cell.textContent.trim() || "cảnh báo")); details.push(label + ": " + (cell.title || cell.textContent)); }
-        if(!warning && (!cell.textContent.trim() || /^[—….·]+$/.test(cell.textContent.trim())) && !(allowNil && (cell.textContent.trim() === "nil" || label === "ALT"))) pending.push(label);
-        if(label === "FUEL" && /chưa/i.test(cell.title || "")) pending.push(label);
-      };
-      for(const [key,label] of [["crewSid","CREW"],["regSid","REG"]]){
-        const cell = tr.querySelector('[data-' + (key === "crewSid" ? "crew-sid" : "reg-sid") + ']');
-        inspect(cell,label,false);
-        if(cell && !cell.querySelector(key === "crewSid" ? ".cmp-crew.ok,.cmp-crew.bad" : ".cmp-reg.ok,.cmp-reg.bad")) pending.push(label);
-      }
-      for(const [key,label] of [["fuel","FUEL"],["alt","ALT"],["pld","PLD"],["tow","TOW / MTOW"],["lwt","LWT / MLWT"],["ezfw","ZFW / MZFW"],["etp","ETP"],["rres","CONT FUEL / ERA"]]){
-        inspect(tr.querySelector('[data-w="' + key + '"]'),label,key === "etp" || key === "alt");
-      }
-      if($("#cmpPld").checked){
-        inspect(tr.querySelector('[data-w="est"]'),"EST",false);
-        inspect(tr.querySelector('[data-w="delta"]'),"Δ EST–PLD",false);
-      }
-      const w = W_CACHE[sector.id];
-      if(!w || !ofpFitsFlight(sector,w)) pending.push("OFP hiện tại");
-      // Δ EST−PLD luôn tính từ chính 2 số đang hiện ở cột PLD (OFP payload / EST Omni),
-      // không lấy số cũ của bảng So sánh — tránh lệch khi EST/OFP vừa cập nhật.
-      const estNow = Number(ftSt(f).est);
-      const pldNow = w && ofpFitsFlight(sector,w) ? Number(w.pld) : NaN;
-      if(Number.isFinite(estNow) && estNow > 0 && Number.isFinite(pldNow) && pldNow > 0){
-        const drop = /^(EST|Δ EST)/;
-        for(let i = alerts.length - 1; i >= 0; i--) if(drop.test(alerts[i])){ alerts.splice(i,1); details.splice(i,1); }
-        for(let i = pending.length - 1; i >= 0; i--) if(drop.test(pending[i])) pending.splice(i,1);
-        const over = estNow - pldNow;
-        if(over > 0){
-          const msg = "Δ EST−PLD: vượt " + over.toLocaleString("en-US") + " kg (EST " + estNow.toLocaleString("en-US") + " > PLD " + pldNow.toLocaleString("en-US") + ")";
-          alerts.push(msg); details.push(msg);
-        }
-      }
-      missing = pending;
-      result = ftValidationResult(alerts,pending);
-    }
-    const key = ftValidationKey(f);
-    window.__ftValLast = window.__ftValLast || {};
-    // Số PLD/EST đổi thì bỏ kết quả đã lưu có chứa Δ EST cũ, tính lại theo số mới.
-    const live = window.__ftValLast[key];
-    if(live && /Δ EST/.test(live.t)){
-      const stv = ftSt(f), wv = sector && W_CACHE[sector.id];
-      const eN = Number(stv.est), pN = wv && ofpFitsFlight(sector, wv) ? Number(wv.pld) : NaN;
-      const hasOver = Number.isFinite(eN) && eN > 0 && Number.isFinite(pN) && pN > 0 && eN - pN > 0;
-      if(!hasOver) delete window.__ftValLast[key];
-    }
-    if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td._validationText !== o.t || td.dataset.status !== o.s) ftValidationPaint(td, o.s, o.t, o.h); continue; }
-    if(result.status === "pending"){
-      const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
-      const rest = result.text.replace(/^Chưa đủ dữ liệu: /, "").split(", ").filter(x => !(x === "CREW" && capt && fo));
-      result = rest.length ? ftValidationResult([], rest) : ftValidationResult([], []);
-    }
-    const hint = details.length ? details.join("\\n\\n") : result.text;
-    const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
-    const complete = !!(sector && r && tr) && missing.filter(x => !(x === "CREW" && capt && fo)).length === 0;
-    const next = ftStableValidation(window.__ftValLast[key], {s: result.status, t: result.text, h: hint}, complete);
-    if(td._validationText !== next.t || td.dataset.status !== next.s || td.title !== next.h) ftValidationPaint(td, next.s, next.t, next.h);
-    if(complete) window.__ftValLast[key] = next;
-  }
-}
-new MutationObserver(ftValidationLater).observe($("#cmpBody"), {childList:true,subtree:true,attributes:true,characterData:true});
 const ftOfpPending = new Set();
 function ftPayloadSector(f, requireReg = true){
   const st = ftSt(f);
@@ -229,6 +88,8 @@ function ftPldCell(f){
     if(a !== "—" && b !== "—"){
       const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
       estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
+      const kg = (n) => Math.abs(n).toLocaleString("en-US") + " kg";
+      value.title = "EST Omni " + Number(b).toLocaleString("en-US") + " kg · OFP " + Number(a).toLocaleString("en-US") + " kg · " + (v > 0 ? "còn dư " + kg(v) : v < 0 ? "vượt " + kg(v) : "khớp");
     }
   };
   if(!f){ paint(null,null); return td; }
@@ -327,7 +188,7 @@ setInterval(async () => {
       if(!w) continue;
       if(!old || String(old.plan_no || "") !== String(w.plan_no || "") || old.pld !== w.pld){ W_CACHE[id] = w; changed = true; }
     }
-    if(changed){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); ftValidationLater(); }
+    if(changed){ for(const c of document.querySelectorAll("#ftBody .ft-pld-cell")) if(c._repaint) c._repaint(); }
   }catch(_){}
   finally{ ftOfpWatchBusy = false; }
 }, 20000);
