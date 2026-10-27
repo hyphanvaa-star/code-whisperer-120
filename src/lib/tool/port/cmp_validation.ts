@@ -15,12 +15,20 @@ export function cmpRegState(fpl: unknown, flite: unknown, aims: unknown, version
   };
 }
 
+export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?: string; error?: string }, callsign: string, dof: string) {
+  if (result.callsign?.toUpperCase() !== callsign.toUpperCase() || result.dof !== dof) return '';
+  return result.error ? '' : result.status || '';
+}
+
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.11')
-    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.12')
+    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["ATC STATUS", "Trạng thái ATC trên AviWeb đúng ngày/chặng."],\n  ["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
     .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
-    .replace('    tr.appendChild(regCmpCell(r));', `    const fplCell = txtCell("…", "n");
+    .replace('    tr.appendChild(regCmpCell(r));', `    const atcCell = txtCell("…", "q");
+    atcCell.dataset.cmpAtcSid = r.sector_id;
+    tr.appendChild(atcCell);
+    const fplCell = txtCell("…", "n");
     fplCell.dataset.fplRegSid = r.sector_id;
     tr.appendChild(fplCell);
     const aimsCell = regCmpCell(r);
@@ -90,6 +98,57 @@ function cmpActionFlight(r){
   return hits.length === 1 ? hits[0] : null;
 }
 const cmpRegState = ${cmpRegState.toString()};
+const cmpAtcStatus = ${cmpAtcStatus.toString()};
+const cmpAtcCache = new Map();
+let cmpAtcBusy = false;
+function cmpAtcKey(f){ return JSON.stringify([f.id, f.callsign, f.std, f.dep_icao, f.dest_icao]); }
+function cmpAtcPaint(r){
+  const td = document.querySelector('#cmpBody td[data-cmp-atc-sid="' + r.sector_id + '"]');
+  if(!td) return;
+  const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
+  td.textContent = cached ? cached.status || "Chưa có" : f ? "…" : "—";
+  td.className = "ac-status " + (cached ? acStatusCls(cached.status) : "q");
+  td.title = cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Đang lấy trạng thái AviWeb";
+}
+function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
+async function cmpReadAtc(rows){
+  rows.forEach(cmpAtcPaint);
+  if(cmpAtcBusy) return;
+  const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f);
+  const todo = targets.filter(x => {
+    const c = cmpAtcCache.get(cmpAtcKey(x.f));
+    return (!c || Date.now() - c.time > 60000) && targets.filter(y => y.f.callsign === x.f.callsign).length === 1;
+  });
+  if(!todo.length) return;
+  cmpAtcBusy = true;
+  const finish = () => { cmpAtcBusy = false; cmpAtcRepaint(); };
+  const fail = message => {
+    for(const {f} of todo) cmpAtcCache.set(cmpAtcKey(f), {status: "", error: message, time: Date.now()});
+    finish();
+  };
+  try{
+    const response = await fetch("/api/atc/check", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({callsigns: todo.map(x => x.f.callsign), items: todo.map(({r,f}) => ({
+        sector_id: f.id, flt: f.callsign, date: new Date(f.std).toISOString().slice(0,10), dep: r.dep, arr: r.arr}))})});
+    const d = await response.json();
+    if(!response.ok || d.error || !d.id) throw new Error(d.error || "Không đọc được AviWeb");
+    const stream = new EventSource("/api/stream?id=" + encodeURIComponent(d.id));
+    const timeout = setTimeout(() => { stream.close(); fail("AviWeb chưa trả kết quả — bấm Cmp để thử lại"); }, 120000);
+    stream.onmessage = event => {
+      let m; try { m = JSON.parse(event.data); } catch(_){ return; }
+      if(m.type !== "end") return;
+      clearTimeout(timeout); stream.close();
+      for(const {f} of todo){
+        const hits = (m.results || []).filter(result => String(result.callsign).toUpperCase() === f.callsign.toUpperCase());
+        const result = hits.length === 1 ? hits[0] : null;
+        const status = result ? cmpAtcStatus(result, f.callsign, acDofFromStd(f.std)) : "";
+        cmpAtcCache.set(cmpAtcKey(f), {status, error: status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", time: Date.now()});
+      }
+      finish();
+    };
+    stream.onerror = () => { clearTimeout(timeout); stream.close(); fail("Không kết nối được AviWeb — bấm Cmp để thử lại"); };
+  }catch(error){ fail(error.message || "Không đọc được AviWeb"); }
+}
 const cmpNotes = new Map();
 function cmpNoteCell(r){
   const td = document.createElement("td");
@@ -203,7 +262,7 @@ function cmpValPaint(sid){
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
 }
 function renderCompareTable(d, opts){`)
-    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
+    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpReadAtc(rows);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
     .replace('  cmpArmPick(td, td.dataset.regSid);\n  return td;\n}\n\nfunction crewCmpCell', '  cmpArmPick(td, td.dataset.regSid);\n  cmpRegRepaint();\n  return td;\n}\n\nfunction crewCmpCell')
     .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
@@ -225,7 +284,7 @@ function renderCompareTable(d, opts){`)
     }`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('</head>', `<style>
-.cmptbl :is(th,td):nth-child(10),.cmptbl :is(th,td):nth-child(n+14):nth-child(-n+18){display:none!important}
+.cmptbl :is(th,td):nth-child(11),.cmptbl :is(th,td):nth-child(n+15):nth-child(-n+19){display:none!important}
 .cmptbl .cmp-note-cell{min-width:100px;max-width:220px;white-space:normal;overflow-wrap:anywhere}
 .cmp-note-input{display:block;width:160px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
 .cmp-message-select{width:110px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px}
