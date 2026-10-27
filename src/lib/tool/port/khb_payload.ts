@@ -55,7 +55,9 @@ function ftValidationCell(f){
   const td = document.createElement("td");
   td.className = "ft-validation-cell";
   td._flight = f;
-  td.textContent = f ? "Chưa so sánh" : "—";
+  const old = f && window.__ftValLast && window.__ftValLast["f" + f.id];
+  td.textContent = old ? old.t : (f ? "Chưa so sánh" : "—");
+  if(old){ td.dataset.status = old.s; td.title = old.h; }
   ftValidationLater();
   return td;
 }
@@ -168,6 +170,7 @@ function ftPldCell(f){
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
   const update = w => { paint(w && w.pld, st.est); };
+  td._repaint = () => { const s2 = ftPayloadSector(f); const w = s2 && W_CACHE[s2.id]; update(w && ofpFitsFlight(s2,w) ? w : null); };
   const cached = sector && W_CACHE[sector.id];
   update(cached && ofpFitsFlight(sector,cached) ? cached : null);
   if(sector && !cached && !ftOfpPending.has(sector.id)){
