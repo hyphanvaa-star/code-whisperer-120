@@ -76,23 +76,31 @@ function ftPldCell(f){
   td.className = "ft-pld-cell";
   const value = document.createElement("div");
   value.className = "ft-pld-value ft-pld-grid";
-  value.title = "EST PLD Omni (kg)";
-  const estEl = document.createElement("span");
+  value.title = "EST PLD Omni (kg) — bấm để sửa, REQ xuất theo số đã sửa";
+  const estEl = document.createElement("input");
+  estEl.type = "text";
+  estEl.inputMode = "numeric";
+  estEl.className = "ft-pld-input";
   value.append(estEl);
   td.appendChild(value);
+  let lastPld = null;
   const paint = (pld, est) => {
+    lastPld = pld;
     const [a, b] = ftPayloadPair(pld, est).split(" / ");
-    estEl.textContent = b === "—" ? b : Number(b).toLocaleString("en-US");
+    if(document.activeElement !== estEl) estEl.value = b === "—" ? "" : Number(b).toLocaleString("en-US");
     estEl.dataset.empty = String(b === "—");
-    estEl.className = ""; value.title = "EST PLD Omni (kg)";
+    estEl.classList.remove("ft-pld-ok", "ft-pld-bad", "ft-pld-hi");
+    value.title = "EST PLD Omni (kg) — bấm để sửa, REQ xuất theo số đã sửa";
     if(a !== "—" && b !== "—"){
       const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
-      estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
+      estEl.classList.add(v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "x");
+      if(v === 0) estEl.classList.remove("x");
+      if(hi) estEl.classList.add("ft-pld-hi");
       const kg = (n) => Math.abs(n).toLocaleString("en-US") + " kg";
       value.title = "EST Omni " + Number(b).toLocaleString("en-US") + " kg · OFP " + Number(a).toLocaleString("en-US") + " kg · " + (v > 0 ? "còn dư " + kg(v) : v < 0 ? "vượt " + kg(v) : "khớp");
     }
   };
-  if(!f){ paint(null,null); return td; }
+  if(!f){ paint(null,null); estEl.disabled = true; return td; }
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
   const update = w => { paint(w && w.pld, st.est); };
