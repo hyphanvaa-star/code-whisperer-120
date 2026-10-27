@@ -28949,14 +28949,14 @@ function khbTplInit(){
     +'<div class="note">Kèm DEFAULT ADDRESS; mã có trong danh bạ AFTN Address tự đổi sang địa chỉ đầy đủ.</div>'
     +'<div class="crew-foot"><span class="status" id="ftTplMsg"></span><button class="btn primary small" type="button" id="ftTplGo">Xuất TPL</button></div></div></div>';
   document.body.appendChild(m);
-  const close=()=>m.classList.remove("on");
+  const close=()=>m.classList.remove("open");
   m.querySelector("#ftTplX").onclick=close;m.onclick=e=>{if(e.target===m)close();};
   let picked=[];
   b.onclick=()=>{
     picked=(typeof ftRows!=="undefined"?ftRows:[]).filter(f=>f&&ftSt(f).on);
     if(!picked.length){alert("Chưa tick chuyến nào trong KHB.");return;}
     m.querySelector("#ftTplList").textContent="Chuyến đã tick: "+picked.map(f=>"VJ"+f.flt).join(", ");
-    m.querySelector("#ftTplMsg").textContent="";m.classList.add("on");m.style.display="";};
+    m.querySelector("#ftTplMsg").textContent="";m.classList.add("open");};
   m.querySelector("#ftTplGo").onclick=async function(){
     const codes=[...new Set(m.querySelector("#ftTplCodes").value.toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length===8))];
     const msg=m.querySelector("#ftTplMsg"),notes=[];let ok=0;this.disabled=true;
