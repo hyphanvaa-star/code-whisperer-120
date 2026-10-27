@@ -39,9 +39,10 @@ export function stableValidation<T extends { s: string; t: string; h: string }>(
 
 export function patchKhbPayloadPage(html: string): string {
   return html
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.04')
     .replace(/(#wrapFplText \.fttbl (?:th|td):nth-child\()(\d+)(\))/g, (match, before: string, index: string, after: string) => Number(index) >= 16 ? before + (Number(index) + 1) + after : match)
     .replace('width:1760px;min-width:100%', 'width:2640px;min-width:100%')
-    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head">PLD<div class="ft-pld-grid ft-pld-sub"><span>OFP</span><span>EST</span></div></th><th>FL</th>')
+    .replace('<th>ETP POA</th><th>FL</th>', '<th>Validation</th><th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
     .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftValidationCell(null));\n      blank.appendChild(ftPldCell(null));')
     .replace('tr.appendChild(ftBox(st, "etp_poa", true));', 'tr.appendChild(ftValidationCell(f));\n    tr.appendChild(ftPldCell(f));')
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
@@ -216,26 +217,18 @@ function ftPldCell(f){
   td.className = "ft-pld-cell";
   const value = document.createElement("div");
   value.className = "ft-pld-value ft-pld-grid";
-  value.title = "Payload OFP / EST Omni (kg)";
-  const ofpEl = document.createElement("span"), estEl = document.createElement("span");
-  value.append(ofpEl, estEl);
+  value.title = "EST PLD Omni (kg)";
+  const estEl = document.createElement("span");
+  value.append(estEl);
   td.appendChild(value);
-  const delta = document.createElement("div");
-  delta.className = "ft-pld-difference";
-  td.appendChild(delta);
   const paint = (pld, est) => {
     const [a, b] = ftPayloadPair(pld, est).split(" / ");
-    ofpEl.textContent = a === "—" ? a : Number(a).toLocaleString("en-US");
     estEl.textContent = b === "—" ? b : Number(b).toLocaleString("en-US");
-    ofpEl.dataset.empty = String(a === "—"); estEl.dataset.empty = String(b === "—");
-    delta.textContent = ""; delta.dataset.tone = "neutral";
-    estEl.className = ""; value.title = "Payload OFP / EST Omni (kg)";
+    estEl.dataset.empty = String(b === "—");
+    estEl.className = ""; value.title = "EST PLD Omni (kg)";
     if(a !== "—" && b !== "—"){
       const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
       estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
-      delta.dataset.tone = v > 0 ? "good" : v < 0 ? "bad" : "neutral";
-      delta.textContent = (v > 0 ? "Dư " : v < 0 ? "Vượt " : "Khớp · ") + Math.abs(v).toLocaleString("en-US") + " kg";
-      value.title = (v >= 0 ? "Còn dư " + v.toLocaleString("en-US") + " kg" : "VƯỢT: EST hơn PLD " + Math.abs(v).toLocaleString("en-US") + " kg") + (hi ? "\\n⚠ lệch hơn 2000 kg" : "");
     }
   };
   if(!f){ paint(null,null); return td; }
@@ -254,7 +247,7 @@ function ftPldCell(f){
         if(!w || !ofpFitsFlight(sector,w)) return;
         W_CACHE[sector.id] = w;
         if(td.isConnected && ftRows.includes(f) && ftEstIdentity(f) === identity) update(w);
-      }).catch(() => { value.title = "Chưa lấy được payload OFP / EST Omni (kg)"; })
+      }).catch(() => { value.title = "EST PLD Omni (kg)"; })
       .finally(() => ftOfpPending.delete(sector.id));
   }
   return td;

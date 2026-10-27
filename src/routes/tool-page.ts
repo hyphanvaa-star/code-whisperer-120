@@ -1856,7 +1856,7 @@ const MOBILE = `<style id="mobile-skin">
 
 const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 #wrapFplText .fttbl :is(th,td):nth-child(15){width:232px!important;min-width:232px}
-#wrapFplText .fttbl :is(th,td):nth-child(16){width:156px!important;min-width:156px}
+#wrapFplText .fttbl :is(th,td):nth-child(16){width:100px!important;min-width:100px}
 #wrapFplText .fttbl td.ft-validation-cell{padding:9px 12px!important;white-space:normal!important;overflow-wrap:anywhere;text-align:left!important;background:var(--atc-paper)!important;color:var(--atc-ink)!important;-webkit-text-fill-color:currentColor!important;vertical-align:middle;line-height:1.45;font-size:12px;font-weight:500;letter-spacing:0}
 #wrapFplText .fttbl td.ft-validation-cell[data-status="good"]{background:var(--atc-success)!important;color:var(--atc-on-color)!important}
 #wrapFplText .fttbl td.ft-validation-cell[data-status="warning"]{background:oklch(0.95 0.075 92)!important;color:oklch(0.34 0.085 62)!important;box-shadow:inset 4px 0 var(--atc-warning)}
@@ -1874,7 +1874,7 @@ const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 .ft-validation-details strong{font-size:11px;margin-right:6px;font-weight:750}
 .ft-validation-details span{font-weight:500}
 #wrapFplText .fttbl td.ft-pld-cell{padding:8px 0!important;vertical-align:middle;background:var(--atc-paper)!important;letter-spacing:0}
-.ft-pld-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);text-align:center;align-items:center}
+.ft-pld-grid{display:grid;grid-template-columns:minmax(0,1fr);text-align:center;align-items:center}
 .ft-pld-sub{font-size:11px;line-height:1.5;border-top:1px solid color-mix(in oklch,currentColor 25%,transparent);margin-top:4px;padding-top:4px;font-weight:600}
 .ft-pld-grid>span+span{border-left:1px solid color-mix(in oklch,currentColor 18%,transparent)}
 .ft-pld-value{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px;line-height:22px;font-weight:600;white-space:nowrap;color:var(--atc-ink)}
