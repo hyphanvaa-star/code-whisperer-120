@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 3.08: thêm REG FPL trước REG AIMS; thêm Đổi Briefing và Verify cuối bảng so sánh, dùng thao tác hiện có trên đúng chuyến.
+- [x] V 3.08: thêm REG FPL (FliteBrief) trước REG AIMS (Crewlist/Excel); thêm Đổi Briefing và Verify cuối bảng so sánh, dùng thao tác hiện có trên đúng chuyến; 18 kiểm thử đạt, build OK.
+- [ ] V 3.08: thử Đổi Briefing/Verify trên chuyến thật — cần người dùng xác nhận thao tác ghi trên chuyến đang khai thác.
 
 - [x] V 3.06: thu nhỏ cột PLD (76px); ô PLD thành ô nhập — sửa tay ghi vào st.est/st.pay (pldManual) nên REQ xuất theo số đã sửa; tự động lấy EST bỏ qua ô đã sửa tay.
 
