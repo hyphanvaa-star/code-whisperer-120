@@ -28924,6 +28924,53 @@ async function exportTpl(){
   for(let i=0;i<x.length;i++){const c=x.charCodeAt(i);buf[2+2*i]=c>>8;buf[3+2*i]=c&255;}
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([buf]));a.download=fl+".tpl";a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);}
+/* KHB: xuất TPL cho các chuyến đã tick, địa chỉ dán thêm trong popup (danh bạ + default như tab AFTN). */
+function tplFile(fl,content,codes){
+  const book=new Map(parse($("#afBook").value));const rs=[],seen=new Set();
+  for(const [,a] of parse($("#afDef").value)) if(!seen.has(a)){seen.add(a);rs.push(a);}
+  for(const c of codes){const a=book.get(c)||("/CN="+c+"/");if(!seen.has(a)){seen.add(a);rs.push(a);}}
+  let x='<?xml version="1.0" encoding="Unicode" standalone="yes"?>\r\n<Message>\r\n';
+  for(const a of rs) x+="    <Recipient>"+a+"</Recipient>\r\n";
+  x+="    <Subject></Subject>\r\n    <Priority>0</Priority>\r\n    <AtsPriority>FF</AtsPriority>\r\n    <OHI></OHI>\r\n";
+  x+="    <Content>"+content.replace(/\r?\n/g,"\r\n")+"\r\n\r\n    </Content>\r\n</Message>";
+  const buf=new Uint8Array(2+x.length*2);buf[0]=0xFE;buf[1]=0xFF;
+  for(let i=0;i<x.length;i++){const c=x.charCodeAt(i);buf[2+2*i]=c>>8;buf[3+2*i]=c&255;}
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([buf]));a.download=fl+".tpl";a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+function khbTplInit(){
+  const ref=document.getElementById("ftPldRound");if(!ref||document.getElementById("ftTplBtn"))return;
+  const b=document.createElement("button");b.type="button";b.id="ftTplBtn";b.className="btn small";
+  b.textContent="EXPORT TPL ATC";b.style.cssText="background:#e11d48;color:#fff;font-weight:800;border-color:#e11d48";
+  b.title="Xuất file TPL ATC cho các chuyến đã tick";ref.parentNode.insertBefore(b,ref);
+  const m=document.createElement("div");m.className="modal";m.id="ftTplModal";
+  m.innerHTML='<div class="sheet" style="max-width:640px"><div class="sheet-head"><h3>EXPORT TPL ATC</h3><button class="btn small x" type="button" id="ftTplX">✕</button></div>'
+    +'<div class="sheet-body"><p class="note" id="ftTplList"></p><label style="font-weight:700">Dán địa chỉ (CODE 8 ký tự, nhiều dòng/nhiều mã)</label>'
+    +'<textarea id="ftTplCodes" spellcheck="false" style="width:100%;height:180px;font-family:monospace" placeholder="ZGGGZQZX ZJSAZQZX&#10;VHHKZQZX"></textarea>'
+    +'<div class="note">Kèm DEFAULT ADDRESS; mã có trong danh bạ AFTN Address tự đổi sang địa chỉ đầy đủ.</div>'
+    +'<div class="crew-foot"><span class="status" id="ftTplMsg"></span><button class="btn primary small" type="button" id="ftTplGo">Xuất TPL</button></div></div></div>';
+  document.body.appendChild(m);
+  const close=()=>m.classList.remove("on");
+  m.querySelector("#ftTplX").onclick=close;m.onclick=e=>{if(e.target===m)close();};
+  let picked=[];
+  b.onclick=()=>{
+    picked=(typeof ftRows!=="undefined"?ftRows:[]).filter(f=>f&&ftSt(f).on);
+    if(!picked.length){alert("Chưa tick chuyến nào trong KHB.");return;}
+    m.querySelector("#ftTplList").textContent="Chuyến đã tick: "+picked.map(f=>"VJ"+f.flt).join(", ");
+    m.querySelector("#ftTplMsg").textContent="";m.classList.add("on");m.style.display="";};
+  m.querySelector("#ftTplGo").onclick=async function(){
+    const codes=[...new Set(m.querySelector("#ftTplCodes").value.toUpperCase().split(/[^A-Z0-9]+/).filter(x=>x.length===8))];
+    const msg=m.querySelector("#ftTplMsg"),notes=[];let ok=0;this.disabled=true;
+    for(const f of picked){
+      const fl=String(parseInt(String(f.flt).replace(/\D/g,""),10));msg.textContent="Đang lấy FPL VJC"+fl+"…";
+      try{const d=await (await fetch("/api/atc/fpl?flt="+encodeURIComponent(fl))).json();
+        const got=fplNo(d.text);
+        if(!d.found||!got){notes.push("VJC"+fl+": "+(d.error||"không thấy FPL"));continue;}
+        if(got!==fl){notes.push("VJC"+fl+": điện văn là VJC"+got+", bỏ qua");continue;}
+        tplFile(fl,d.text,codes);ok++;await new Promise(r=>setTimeout(r,400));
+      }catch(e){notes.push("VJC"+fl+": "+(e&&e.message));}}
+    this.disabled=false;msg.textContent="Đã xuất "+ok+" file TPL"+(notes.length?" · "+notes.join(" · "):"");};
+}
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",khbTplInit); else khbTplInit();
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
 </script>
