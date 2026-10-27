@@ -51,13 +51,39 @@ function ftValidationLater(){
   clearTimeout(ftValidationTimer);
   ftValidationTimer = setTimeout(ftValidationSync, 80);
 }
+function ftValidationPaint(td, status, text, hint){
+  td.dataset.status = status || "pending";
+  td.title = hint || text;
+  const heading = document.createElement("div");
+  heading.className = "ft-validation-heading";
+  heading.textContent = status === "good" ? "Good" : status === "warning" ? "Cảnh báo" : "Chờ dữ liệu";
+  const body = document.createElement("div");
+  body.className = "ft-validation-details";
+  if(status !== "good"){
+    const entries = text.replace(/^Chưa đủ dữ liệu: /, "").split(" · ");
+    for(const entry of entries){
+      const line = document.createElement("div");
+      const match = /^([^:]{1,24}):\\s*(.+)$/.exec(entry);
+      if(match){
+        const label = document.createElement("strong");
+        label.textContent = match[1];
+        const detail = document.createElement("span");
+        detail.textContent = match[2];
+        line.append(label, detail);
+      }else line.textContent = entry;
+      body.appendChild(line);
+    }
+  }
+  td.replaceChildren(heading, body);
+  td._validationText = text;
+}
 function ftValidationCell(f){
   const td = document.createElement("td");
   td.className = "ft-validation-cell";
   td._flight = f;
   const old = f && window.__ftValLast && window.__ftValLast["f" + f.id];
-  td.textContent = old ? old.t : (f ? "Chưa so sánh" : "—");
-  if(old){ td.dataset.status = old.s; td.title = old.h; }
+  if(f) ftValidationPaint(td, old ? old.s : "pending", old ? old.t : "Chưa so sánh", old ? old.h : "");
+  else td.textContent = "—";
   ftValidationLater();
   return td;
 }
@@ -102,16 +128,15 @@ function ftValidationSync(){
     }
     const key = "f" + f.id;
     window.__ftValLast = window.__ftValLast || {};
-    if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td.textContent !== o.t){ td.dataset.status = o.s; td.textContent = o.t; td.title = o.h; } continue; }
+    if((!sector || !r || !tr) && window.__ftValLast[key]){ const o = window.__ftValLast[key]; if(td._validationText !== o.t || td.dataset.status !== o.s) ftValidationPaint(td, o.s, o.t, o.h); continue; }
     if(result.status === "pending"){
       const stc = ftSt(f), capt = String(stc.cptText || f.cpt || "").trim(), fo = String(stc.foText || f.fo || "").trim();
       const rest = result.text.replace(/^Chưa đủ dữ liệu: /, "").split(", ").filter(x => !(x === "CREW" && capt && fo));
       result = rest.length ? ftValidationResult([], rest) : ftValidationResult([], []);
     }
-    td.dataset.status = result.status;
-    td.textContent = result.text;
-    td.title = details.length ? details.join("\\n\\n") : result.text;
-    if(key && r && tr) window.__ftValLast[key] = {s: td.dataset.status, t: td.textContent, h: td.title};
+    const hint = details.length ? details.join("\\n\\n") : result.text;
+    if(td._validationText !== result.text || td.dataset.status !== result.status || td.title !== hint) ftValidationPaint(td, result.status, result.text, hint);
+    if(key && r && tr) window.__ftValLast[key] = {s: result.status, t: result.text, h: hint};
   }
 }
 new MutationObserver(ftValidationLater).observe($("#cmpBody"), {childList:true,subtree:true,attributes:true,characterData:true});
@@ -156,13 +181,21 @@ function ftPldCell(f){
   const ofpEl = document.createElement("span"), estEl = document.createElement("span");
   value.append(ofpEl, estEl);
   td.appendChild(value);
+  const delta = document.createElement("div");
+  delta.className = "ft-pld-difference";
+  td.appendChild(delta);
   const paint = (pld, est) => {
     const [a, b] = ftPayloadPair(pld, est).split(" / ");
-    ofpEl.textContent = a; estEl.textContent = b;
+    ofpEl.textContent = a === "—" ? a : Number(a).toLocaleString("en-US");
+    estEl.textContent = b === "—" ? b : Number(b).toLocaleString("en-US");
+    ofpEl.dataset.empty = String(a === "—"); estEl.dataset.empty = String(b === "—");
+    delta.textContent = ""; delta.dataset.tone = "neutral";
     estEl.className = ""; value.title = "Payload OFP / EST Omni (kg)";
     if(a !== "—" && b !== "—"){
       const v = Number(a) - Number(b), hi = Math.abs(v) > 2000;
       estEl.className = (v > 0 ? "ft-pld-ok" : v < 0 ? "ft-pld-bad" : "") + (hi ? " ft-pld-hi" : "");
+      delta.dataset.tone = v > 0 ? "good" : v < 0 ? "bad" : "neutral";
+      delta.textContent = (v > 0 ? "Dư " : v < 0 ? "Vượt " : "Khớp · ") + Math.abs(v).toLocaleString("en-US") + " kg";
       value.title = (v >= 0 ? "Còn dư " + v.toLocaleString("en-US") + " kg" : "VƯỢT: EST hơn PLD " + Math.abs(v).toLocaleString("en-US") + " kg") + (hi ? "\\n⚠ lệch hơn 2000 kg" : "");
     }
   };
