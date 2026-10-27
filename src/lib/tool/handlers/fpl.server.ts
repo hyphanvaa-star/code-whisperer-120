@@ -437,7 +437,10 @@ export const routes: Routes = {
     const out = items.map((it) => {
       try {
         const hit = selectOperationalFlight(flights, it);
-        return { flt: it.flt, sector_id: hit.id, found: true, reg: String(hit.reg || "") };
+        const std = hit.std instanceof Date ? hit.std : (hit.std ? new Date(hit.std) : null);
+        const stdUtc = std && !isNaN(std.getTime())
+          ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "";
+        return { flt: it.flt, sector_id: hit.id, found: true, reg: String(hit.reg || ""), std_utc: stdUtc };
       } catch (e) { return { flt: it.flt, found: false, reg: "", error: (e as Error).message }; }
     });
     return { ok: true, items: out };

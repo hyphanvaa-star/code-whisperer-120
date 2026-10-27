@@ -2662,6 +2662,9 @@ html.night .ft-msg-menu{background:#1b1f27;border-color:#3a4050}
   padding:0 6px;font:14px/32px "JetBrains Mono",ui-monospace,Consolas,monospace;
   background:#fff;border:1px solid var(--line);border-radius:var(--radius);white-space:nowrap}
 #wrapFplText .fttbl input.ft-chg{color:#EA580C;font-weight:700;background:#FFF7ED}
+#wrapFplText .fttbl input.ft-chg-fpl{color:#7C3AED;font-weight:700;background:#F5F3FF}
+#wrapFplText .fttbl input.ft-chg-both{color:#DC2626;font-weight:700;background:#FEF2F2}
+#wrapFplText .fttbl input.ft-chg-ok{color:#16A34A;font-weight:700;background:#F0FDF4}
 #wrapFplText .fttbl input.ft-extra-auto{color:#d10000;font-weight:700}
 #wrapFplText .fttbl input.ft-lim-crit{color:#d10000;font-weight:700;background:#ffe4e4}
 #wrapFplText .fttbl input.ft-lim-warn{color:#b45309;font-weight:700;background:#fff4cc}
@@ -5891,7 +5894,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.96</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 2.97</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -22396,6 +22399,8 @@ function vRender(d){
   }
   vLast = d;
   vLast._pair = ($("#vOld").value || "") + "\0" + ($("#vNew").value || "");
+  // FPL VER mới: cập nhật lại dấu tím/đỏ trên bảng KHB mà không dựng lại bảng.
+  try{ ftApplyVerDiff(); ftRepaintChg(); }catch(e){}
   const warn = $("#vWarn");
   if(d.warn){ warn.textContent = "⚠ " + d.warn; warn.style.display = ""; }
   else warn.style.display = "none";
@@ -24962,6 +24967,7 @@ function ftTafBox(st, key){
   return td;
 }
 function ftRender(){
+  ftApplyVerDiff();
   const tb = $("#ftBody");
   const focusAt = ftFocusAt;
   ftFocusAt = -1;
@@ -25114,8 +25120,16 @@ function ftFbSync(force){
         const st = ftSt(f);
         ftFbState[ftFbKey(st, f)] = {found: !!it.found, reg: it.reg || "",
           ok: !!it.found && !!it.reg && n3(it.reg) === n3(st.reg || f.reg)};
+        // Ô thay đổi chuyển xanh lá khi FliteBrief đã đúng tàu mới (và đúng giờ
+        // nếu ô giờ cũng nằm trong nhóm thay đổi).
+        const t4 = x => String(x || "").replace(/\D/g, "").slice(-4);
+        const regOk = !!it.found && !!it.reg && n3(it.reg) === n3(st.reg || f.reg);
+        const hasTimeChg = !!(st.chg && (st.chg.etd || st.chg.utc || st.chg.etaUtc));
+        const timeOk = !hasTimeChg || !it.std_utc || !st.utc || t4(it.std_utc) === t4(st.utc);
+        st.chgFb = regOk && timeOk;
       });
       ftFbPaint();
+      ftRepaintChg();
     }catch(e){}
   }, 400);
 }
@@ -25188,7 +25202,7 @@ function ftApplyCrewDiff(src){
       ftRows[i] = nf;
       for(const [k] of FT_CHG_KEYS){
         const now = String(st[k] == null ? "" : st[k]).trim();
-        if(now !== old[k]){ chg[k] = {from: old[k], to: now, a: st.src, b: src}; total++; }
+        if(now !== old[k]){ chg[k] = {from: old[k], to: now, a: st.src, b: src, src: "crew"}; total++; }
       }
     }
     // Cùng một Crewlist được nạp lại (đồng bộ/quét lại) mà không có khác biệt mới
@@ -25202,14 +25216,76 @@ function ftApplyCrewDiff(src){
   }
   return total;
 }
+/* Nguồn thay đổi: "fpl" chỉ FPL VER (tím), "crew" chỉ Crewlist mới (cam),
+   "both" cả hai cùng đổi (đỏ). Khi FliteBrief đã khớp giá trị mới → xanh lá. */
+function ftChgClass(c, fbOk){
+  if(fbOk) return "ft-chg-ok";
+  return c.src === "fpl" ? "ft-chg-fpl" : c.src === "both" ? "ft-chg-both" : "ft-chg";
+}
+function ftChgTip(c, fbOk){
+  const src = c.src === "fpl" ? "theo FPL VER" : c.src === "both" ? "cả FPL VER lẫn Crewlist đều đổi" : "theo Crewlist mới";
+  return "Đổi từ " + (c.from || "(trống)") + " → " + (c.to || "(trống)") + " (" + src + ")"
+    + (fbOk ? " · Đã khớp FliteBrief ✓" : " · FliteBrief chưa đổi");
+}
 function ftMarkChg(td, st, key){
   const c = st && st.chg && st.chg[key];
   if(!c) return td;
   const inp = td.querySelector("input[type=text]");
-  (inp || td).classList.add("ft-chg");
-  const tip = "Đổi từ " + (c.from || "(trống)") + " (" + c.a + ") → " + (c.to || "(trống)") + " (" + c.b + ")";
-  (inp || td).title = tip; td.title = tip;
+  const el = inp || td;
+  el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+  el.classList.add(ftChgClass(c, st.chgFb === true));
+  const tip = ftChgTip(c, st.chgFb === true);
+  el.title = tip; td.title = tip;
+  c.el = el;
   return td;
+}
+// FPL VER đổi tàu/giờ: ghép vào dấu thay đổi của KHB (tím nếu chỉ FPL đổi,
+// đỏ nếu Crewlist cũng đổi cùng ô).
+function ftApplyVerDiff(){
+  const rows = (typeof vLast !== "undefined" && vLast && vLast.rows) || [];
+  if(!rows.length) return;
+  const dg = x => String(x || "").replace(/\D/g, "").replace(/^0+/, "");
+  const n3 = x => String(x || "").replace(/\D/g, "").slice(-3);
+  for(const f of ftRows){
+    if(!f) continue;
+    const st = ftSt(f);
+    const day = String(st.date || f.date || "").slice(0, 5);
+    const hit = rows.find(r =>
+      dg(r.flt) === dg(f.flt)
+      && (!r.route || r.route === (st.dep || f.dep) + "-" + (st.arr || f.arr))
+      && (!day || !r.day_new || String(r.day_new).slice(0, 5) === day));
+    if(!hit) continue;
+    st.chg = st.chg || {};
+    const add = (key, from, to) => {
+      const cur = st.chg[key];
+      if(cur){
+        if(cur.src === "crew"){ cur.src = "both"; }
+        return;
+      }
+      st.chg[key] = {from, to, a: "FPL VER", b: "FPL VER mới", src: "fpl"};
+    };
+    // Chỉ đánh dấu khi giá trị hiện trên bảng đã là giá trị mới của FPL VER.
+    if(hit.reg && hit.reg.changed && hit.reg.new
+      && n3(st.reg || f.reg) === n3(hit.reg.new) && n3(hit.reg.new) !== n3(hit.reg.old))
+      add("reg", hit.reg.old, hit.reg.new);
+    if(hit.delay && hit.delay.changed && hit.delay.to)
+      add("etd", hit.delay.from, hit.delay.to);
+  }
+}
+// Sau khi đối chiếu FliteBrief: ô thay đổi nào đã khớp thì chuyển xanh lá.
+function ftRepaintChg(){
+  for(const f of ftRows){
+    if(!f) continue;
+    const st = ftSt(f);
+    if(!st.chg) continue;
+    for(const key of Object.keys(st.chg)){
+      const c = st.chg[key];
+      if(!c || !c.el || !c.el.isConnected) continue;
+      c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+      c.el.classList.add(ftChgClass(c, st.chgFb === true));
+      c.el.title = ftChgTip(c, st.chgFb === true);
+    }
+  }
 }
 function ftItems(){
   const items = [];
