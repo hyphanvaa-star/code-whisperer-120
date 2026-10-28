@@ -44,9 +44,10 @@
       + '<input type="search" id="dbxFileQ" placeholder="Tìm tên file / thư mục…" style="flex:1;min-width:180px;padding:6px 10px">'
       + '<button type="button" class="btn small" id="dbxFileReload">↻ Tải lại</button><button type="button" class="btn small" id="dbxFileDel">🗑 Xoá đã chọn</button>'
       + '<span id="dbxFileInfo" style="font-size:12px;opacity:.75"></span></div>'
-      + '<div style="overflow:auto;flex:1;min-height:0;border:1px solid var(--line,#ccc);border-radius:10px"><table style="width:100%;border-collapse:collapse;font-size:13px">'
-      + '<thead><tr style="position:sticky;top:0;background:var(--panel,#fff)"><th style="width:28px"><input type="checkbox" id="dbxFileAll"></th><th style="text-align:left;padding:6px">File</th><th style="text-align:right;padding:6px">Dung lượng</th><th style="text-align:left;padding:6px">Cập nhật</th><th></th></tr></thead>'
-      + '<tbody id="dbxFileBody"></tbody></table></div></div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;flex:1;min-height:0">'
+      + '<div style="display:flex;flex-direction:column;min-height:0;min-width:0;border:1px solid var(--line,#ccc);border-radius:10px;overflow:hidden"><div style="padding:6px 10px;font-weight:700;background:var(--panel,#fff);border-bottom:1px solid var(--line,#ccc)">📊 Excel / MEL / FPL <span id="dbxFileBodyXN" style="opacity:.6;font-weight:400"></span></div><div style="overflow:auto;flex:1;min-height:0"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="position:sticky;top:0;background:var(--panel,#fff)"><th style="width:28px"><input type="checkbox" id="dbxFileAll"></th><th style="text-align:left;padding:6px">File</th><th style="text-align:right;padding:6px">Dung lượng</th><th style="text-align:left;padding:6px">Cập nhật</th><th></th></tr></thead><tbody id="dbxFileBodyX"></tbody></table></div></div>'
+      + '<div style="display:flex;flex-direction:column;min-height:0;min-width:0;border:1px solid var(--line,#ccc);border-radius:10px;overflow:hidden"><div style="padding:6px 10px;font-weight:700;background:var(--panel,#fff);border-bottom:1px solid var(--line,#ccc)">🗂️ File hệ thống (Notice, PIB/WX, Briefing…) <span id="dbxFileBodySN" style="opacity:.6;font-weight:400"></span></div><div style="overflow:auto;flex:1;min-height:0"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="position:sticky;top:0;background:var(--panel,#fff)"><th style="width:28px"></th><th style="text-align:left;padding:6px">File</th><th style="text-align:right;padding:6px">Dung lượng</th><th style="text-align:left;padding:6px">Cập nhật</th><th></th></tr></thead><tbody id="dbxFileBodyS"></tbody></table></div></div>'
+      + '</div></div>'
       + '<div id="dbxDefPane" style="display:none;flex-direction:column;gap:8px;min-height:0;flex:1">'
       + '<div><button type="button" class="btn small" id="dbxDefBack">← Danh mục</button></div></div>';
     ref.parentNode.insertBefore(wrap, ref.nextSibling);
@@ -71,7 +72,15 @@
       var q = wrap.querySelector("#dbxFileQ").value.toLowerCase();
       var list = files.filter(function(f){ return f.name.toLowerCase().indexOf(q) >= 0; });
       wrap.querySelector("#dbxFileInfo").textContent = list.length + " / " + files.length + " file";
-      wrap.querySelector("#dbxFileBody").innerHTML = list.slice(0, 1500).map(function(f){
+      function isX(f){ return /^excel\//i.test(f.path) || /\.(xlsx|xls|xlsm|csv)$/i.test(f.name); }
+      var lx = list.filter(isX), ls = list.filter(function(f){ return !isX(f); });
+      wrap.querySelector("#dbxFileBodyXN").textContent = "(" + lx.length + ")";
+      wrap.querySelector("#dbxFileBodySN").textContent = "(" + ls.length + ")";
+      wrap.querySelector("#dbxFileBodyX").innerHTML = rows(lx);
+      wrap.querySelector("#dbxFileBodyS").innerHTML = rows(ls);
+    }
+    function rows(list){
+      return list.slice(0, 1500).map(function(f){
         var d = f.updated ? new Date(f.updated).toLocaleString("vi-VN") : "";
         return '<tr style="border-top:1px solid var(--line,#eee)"><td style="text-align:center"><input type="checkbox" class="dbxFileCk" data-p="'+esc(f.path)+'"></td>'
           + '<td style="padding:5px 6px;word-break:break-all">'+esc(f.name)+'</td><td style="text-align:right;padding:5px 6px;white-space:nowrap">'+fmtSize(f.size)+'</td>'
