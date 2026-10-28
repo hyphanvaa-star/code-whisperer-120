@@ -304,6 +304,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      tool_file_owners: {
+        Args: never
+        Returns: {
+          name: string
+          owner_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "dispatcher"

@@ -16,7 +16,7 @@ export function shouldDelete(path: string, updated: number, now: number): boolea
 }
 /** Operational folders that only live for the current working session. */
 export const SESSION_TOPS = ["excel", "atc", "merged", "briefing", "regnotice", "notices-tmp"];
-/** On web open: drop operational files from earlier sessions (older than `graceMs`, default 30 min, so a colleague's in-use files survive). */
-export function staleOnOpen(path: string, updated: number, now: number, graceMs = 30 * 60_000): boolean {
+/** On web open: drop operational files from earlier sessions (older than `graceMs`, default 1 h offline). */
+export function staleOnOpen(path: string, updated: number, now: number, graceMs = 60 * 60_000): boolean {
   return SESSION_TOPS.includes(path.split("/")[0]) && now - updated > graceMs;
 }
