@@ -180,7 +180,14 @@ function cmpAtcPaint(r){
   const esc = v => String(v || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
   const fb = f && f.reg, av = cached && cached.reg;
   const row = (cls, label, v) => '<div class="cmp-tip-row ' + cls + '"><span class="k">' + label + '</span><b' + (v && norm(v) !== norm(fb) && fb ? ' class="diff"' : '') + '>' + (v ? esc(v) : '—') + '</b></div>';
+  const sd = f && f.std ? new Date(f.std) : null;
+  const p2 = n => String(n).padStart(2, "0");
+  const dateTxt = sd ? p2(sd.getUTCDate()) + "/" + p2(sd.getUTCMonth()+1) + "/" + sd.getUTCFullYear() : "";
+  const stdTxt = sd ? p2(sd.getUTCHours()) + p2(sd.getUTCMinutes()) + "Z" : "";
+  const eobt = cached && cached.eobt ? cached.eobt + "Z" : "";
+  const plain = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + (v ? esc(v) : '—') + '</b></div>';
   td.dataset.tip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
+    + '<div class="cmp-tip-h" style="margin-top:8px">🕒 Ngày · giờ (UTC)</div>' + plain("Ngày bay", dateTxt) + plain("STD FliteBrief", stdTxt) + plain("EOBT AviWeb", eobt)
     + '<div class="cmp-tip-f' + (wrongReg ? ' bad' : '') + '">' + (wrongReg ? "Sai tàu: AviWeb ≠ " + esc(regIssues.join(", ")) : cached ? esc(cached.error || "Khớp · " + new Date(cached.time).toISOString().slice(11,16) + "Z") : "Bấm ATC check để đọc AviWeb") + '</div>';
   if(!window.__cmpTip){
     const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
