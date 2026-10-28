@@ -252,7 +252,7 @@ export const jobs: Jobs = {
       if (!identities) throw new Error("Lệnh cũ thiếu ngày/chặng — bấm Check lại.");
       const current = await loadFlights(3, true);
       const okCs: string[] = [];
-      const skipped: { callsign: string; error: string; ok: boolean }[] = [];
+      const skipped: import("../port/aviweb").AtcCheckResult[] = [];
       for (const cs of callsigns) {
         const ident = identities[cs.toUpperCase()];
         if (!ident || !current.some(f => f.callsign.toUpperCase() === cs.toUpperCase() && f.std?.toISOString().slice(2, 10).replace(/-/g, '') === ident.dof && f.dep_icao === ident.dep && f.dest_icao === ident.arr)) skipped.push({ callsign: cs, error: "chuyến đã ngoài khung hoặc thay đổi — Check lại", ok: false });
