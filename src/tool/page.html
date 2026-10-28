@@ -17836,6 +17836,7 @@ function cwChoiceDetail(target, value){
   const candidate = (target.candidates || []).find(c => c.block_id === value);
   if(!candidate) return "Chưa chọn block crew.";
   return (candidate.recommended ? "<span class=\"rec\">Gợi ý · </span>" : "")
+    + escHtml(candidate.callsign || "") + (candidate.reg ? " · ✈ " + escHtml(candidate.reg) : "") + " · "
     + "Excel dòng " + candidate.row_no + " · "
     + escHtml(candidate.date || "không ngày") + " · "
     + escHtml(candidate.route || "không route") + " · STD "
@@ -17869,6 +17870,7 @@ function cwOpenModal(plan, dry, callsigns){
     const flight = document.createElement("div");
     flight.className = "crew-flight";
     flight.innerHTML = "<b>" + escHtml(target.callsign) + " · " + escHtml(target.route)
+      + (target.reg ? " · ✈ " + escHtml(target.reg) : "")
       + "</b><div class=\"meta\">sector " + target.sector_id + " · "
       + escHtml(fmtZ(target.std))
       + (target.route_iata ? " · " + escHtml(target.route_iata) : "") + "</div>";
@@ -17884,6 +17886,8 @@ function cwOpenModal(plan, dry, callsigns){
       const opt = document.createElement("option");
       opt.value = candidate.block_id;
       opt.textContent = (candidate.recommended ? "★ Gợi ý · " : "")
+        + escHtml(candidate.callsign || target.callsign) + " · "
+        + (candidate.reg ? "✈ " + candidate.reg + " · " : "")
         + "dòng " + candidate.row_no + " · " + (candidate.route || "? route")
         + " · " + (candidate.std || "? giờ") + " · " + candidate.pilot_count + " người";
       sel.appendChild(opt);
