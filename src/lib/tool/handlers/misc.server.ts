@@ -9,7 +9,53 @@ const MODEL = "google/gemini-3-flash-preview";
 
 type ChatMsg = { role: string; content: string };
 
+async function fileAdmin(ctx: Parameters<Routes[string]>[0]) {
+  const { assertDispatcher } = await import("@/lib/flights.server");
+  await assertDispatcher(ctx.supabase, ctx.userId);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin.storage.from("tool-files");
+}
+
 export const routes: Routes = {
+  // Quản lí file (tab Database): liệt kê đệ quy toàn bộ file trên máy chủ.
+  "GET /api/files/list": async (ctx) => {
+    const b = await fileAdmin(ctx);
+    const { decodeKeySegment } = await import("../store.server");
+    const out: Array<{ path: string; name: string; size: number; updated: string }> = [];
+    const queue = [""];
+    let guard = 0;
+    while (queue.length && guard++ < 400 && out.length < 5000) {
+      const dir = queue.shift()!;
+      const { data } = await b.list(dir, { limit: 1000, sortBy: { column: "updated_at", order: "desc" } });
+      for (const f of data ?? []) {
+        const p = dir ? `${dir}/${f.name}` : f.name;
+        if (!f.id) { queue.push(p); continue; }
+        const meta = (f.metadata ?? {}) as { size?: number };
+        out.push({ path: p, name: p.split("/").map(decodeKeySegment).join("/"), size: meta.size ?? 0, updated: f.updated_at ?? f.created_at ?? "" });
+      }
+    }
+    out.sort((a, b2) => (b2.updated || "").localeCompare(a.updated || ""));
+    return { files: out };
+  },
+  "GET /api/files/get": async (ctx) => {
+    const b = await fileAdmin(ctx);
+    const p = ctx.params.get("p") || "";
+    const { data, error } = await b.download(p);
+    if (error || !data) return { error: "Không tải được file" };
+    const name = p.split("/").pop() || "file";
+    const { decodeKeySegment } = await import("../store.server");
+    return new Response(data, { headers: { "Content-Type": data.type || "application/octet-stream", "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(decodeKeySegment(name))}`, "Cache-Control": "no-store" } });
+  },
+  "POST /api/files/delete": async (ctx) => {
+    const b = await fileAdmin(ctx);
+    const { data: isAdmin } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "admin" });
+    if (!isAdmin) return { error: "Chỉ quản trị viên được xoá file" };
+    const paths = ((await ctx.json()).paths as string[] | undefined)?.filter((x) => typeof x === "string") ?? [];
+    if (!paths.length) return { error: "Chưa chọn file" };
+    const { error } = await b.remove(paths);
+    return error ? { error: error.message } : { ok: true, removed: paths.length };
+  },
+
   "GET /api/chat/status": () => ({ configured: Boolean(process.env.LOVABLE_API_KEY) }),
 
   "POST /api/chat": async (ctx) => {
