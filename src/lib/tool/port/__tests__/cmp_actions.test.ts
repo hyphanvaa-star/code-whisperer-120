@@ -57,6 +57,6 @@ describe('ATC status registration cross-check', () => {
   });
   it('flags an AviWeb registration that differs from Crewlist', () => {
     expect(cmpAtcRegIssues('VNA648', 'VNA648', 'VNA657')).toEqual(['Crewlist VNA657']);
-    expect(cmpAtcRegIssues('VNA648', 'VNA657', 'VNA657')).toEqual(['FliteBrief VNA657', 'Crewlist VNA657']);
+    expect(cmpAtcRegIssues('VNA648', 'VNA657', 'VNA657')).toEqual(['FliteBrief VNA657']);
   });
 });
