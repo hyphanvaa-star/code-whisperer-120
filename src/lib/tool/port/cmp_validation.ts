@@ -32,7 +32,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.36')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.37')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -160,7 +160,11 @@ function cmpAtcTone(s){
 function cmpAtcPaint(r){
   const td = document.querySelector('#cmpBody td[data-cmp-atc-sid="' + r.sector_id + '"]');
   if(!td) return;
-  const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
+  const f = cmpActionFlight(r);
+  if(f && !/^VV/i.test(String(f.dep_icao || ""))){
+    td.className = "cmp-atc-cell"; td.removeAttribute("title"); td.textContent = "—"; return;
+  }
+  const cached = f && cmpAtcCache.get(cmpAtcKey(f));
   const text = cached ? cached.status || "Chưa có" : f ? (cmpAtcBusy ? "…" : "—") : "—";
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   const aims = ((cmpBind[String(r.sector_id)] && cmpBind[String(r.sector_id)].reg) || r.reg_cmp || {}).excel;
@@ -172,7 +176,24 @@ function cmpAtcPaint(r){
   if(!pill || !pill.classList.contains("cmp-atc-pill")){ pill = document.createElement("span"); td.replaceChildren(pill); }
   if(pill.textContent !== text) pill.textContent = text;
   pill.className = "cmp-atc-pill t-" + tone;
-  td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
+  td.removeAttribute("title");
+  const esc = v => String(v || "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+  const fb = f && f.reg, av = cached && cached.reg;
+  const row = (cls, label, v) => '<div class="cmp-tip-row ' + cls + '"><span class="k">' + label + '</span><b' + (v && norm(v) !== norm(fb) && fb ? ' class="diff"' : '') + '>' + (v ? esc(v) : '—') + '</b></div>';
+  td.dataset.tip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
+    + '<div class="cmp-tip-f' + (wrongReg ? ' bad' : '') + '">' + (wrongReg ? "Sai tàu: AviWeb ≠ " + esc(regIssues.join(", ")) : cached ? esc(cached.error || "Khớp · " + new Date(cached.time).toISOString().slice(11,16) + "Z") : "Bấm ATC check để đọc AviWeb") + '</div>';
+  if(!window.__cmpTip){
+    const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
+    document.addEventListener("mouseover", e => {
+      const c = e.target.closest && e.target.closest("td[data-tip]");
+      if(!c){ tip.classList.remove("on"); return; }
+      tip.innerHTML = c.dataset.tip; tip.classList.add("on");
+      const b = c.getBoundingClientRect();
+      tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
+      tip.style.top = (b.bottom + 6) + "px";
+    });
+  }
+  if(false) td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
 }
 function cmpAtcPut(f, status, error, reg){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
@@ -183,7 +204,7 @@ function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmp
 async function cmpReadAtc(rows){
   rows.forEach(cmpAtcPaint);
   if(cmpAtcBusy) return;
-  const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f);
+  const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f && /^VV/i.test(String(x.f.dep_icao || "")));
   const todo = targets.filter(x => {
         return targets.filter(y => y.f.callsign === x.f.callsign).length === 1;
   });
@@ -374,6 +395,15 @@ function renderCompareTable(d, opts){`)
 .cmptbl td.cmp-fpl-mismatch,.cmptbl td.cmp-fpl-mismatch *{color:var(--red)!important}
 .cmptbl td.cmp-atc-cell{background:transparent!important;text-align:center;vertical-align:middle}
 .cmp-atc-pill{display:inline-flex;align-items:center;gap:5px;min-width:84px;justify-content:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}
+.cmp-tip{position:fixed;z-index:9999;width:230px;padding:10px 12px;border-radius:12px;background:#0f172a;color:#e2e8f0;box-shadow:0 12px 32px rgba(15,23,42,.35);font-size:12px;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .12s,transform .12s}
+.cmp-tip.on{opacity:1;transform:none}
+.cmp-tip-h{font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin-bottom:6px}
+.cmp-tip-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;margin:3px 0;border-radius:8px;border-left:3px solid}
+.cmp-tip-row .k{color:#cbd5e1}.cmp-tip-row b{font-family:monospace;font-size:13px;color:#fff}.cmp-tip-row b.diff{color:#fca5a5}
+.cmp-tip-row.s-fb{background:rgba(59,130,246,.15);border-color:#3b82f6}
+.cmp-tip-row.s-av{background:rgba(168,85,247,.15);border-color:#a855f7}
+.cmp-tip-row.s-cl{background:rgba(249,115,22,.15);border-color:#f97316}
+.cmp-tip-f{margin-top:6px;font-size:11px;color:#86efac}.cmp-tip-f.bad{color:#fca5a5;font-weight:700}
 .cmp-atc-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .cmp-atc-pill.t-ok{background:#16a34a;color:#fff;border-color:#16a34a;font-weight:700}
 html.night .cmp-atc-pill.t-ok{background:rgba(134,239,172,.18);color:#8ee4b0;border-color:rgba(134,239,172,.45)}
