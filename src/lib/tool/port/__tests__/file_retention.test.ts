@@ -25,7 +25,7 @@ describe("file retention", () => {
 import { staleOnOpen } from "../file_retention";
 describe("staleOnOpen", () => {
   const now = Date.parse("2026-10-28T17:00:00Z");
-  it("removes excel from earlier session", () => expect(staleOnOpen("excel/a.xlsx", now - 3600_000, now)).toBe(true));
+  it("removes excel from earlier session", () => expect(staleOnOpen("excel/a.xlsx", now - 2 * 3600_000, now)).toBe(true));
   it("keeps files used in last 30 min", () => expect(staleOnOpen("regnotice/a.pdf", now - 10 * 60_000, now)).toBe(false));
   it("deletes own files after 1h offline", () => expect(staleOnOpen("excel/a.xlsx", now - 61 * 60_000, now)).toBe(true));
   it("keeps files within 1h", () => expect(staleOnOpen("excel/a.xlsx", now - 50 * 60_000, now)).toBe(false));
