@@ -67,6 +67,7 @@ export interface FlightCrew {
   dep: string;
   arr: string;
   std: string;
+  reg?: string;
 }
 
 export function flightCrewRoute(b: FlightCrew): string {
@@ -148,6 +149,7 @@ export async function readCrewBlocks(sheet: Sheet, sheetName: string): Promise<M
   const cDep = findCol(sheet.header, "DEP", "Departure", "From");
   const cArr = findCol(sheet.header, "ARR", "Arrival", "DEST", "To");
   const cStd = findCol(sheet.header, "STD", "Departure Time");
+  const cReg = findCol(sheet.header, "REG", "Registration", "Tail");
 
   const out = new Map<string, FlightCrew[]>();
   let cur: FlightCrew | null = null;
@@ -166,6 +168,7 @@ export async function readCrewBlocks(sheet: Sheet, sheetName: string): Promise<M
         dep: cellValue(row, cDep).toUpperCase(),
         arr: cellValue(row, cArr).toUpperCase(),
         std: cellValue(row, cStd),
+        reg: cellValue(row, cReg).toUpperCase(),
         pilots: [],
       };
       const arr = out.get(key) ?? [];
@@ -282,6 +285,7 @@ export interface CrewCandidate {
   arr: string;
   route: string;
   std: string;
+  reg: string;
   pilots: Array<{ username: string; name: string; flags: string; skipped: boolean }>;
   pilot_count: number;
   skipped_count: number;
@@ -298,6 +302,7 @@ export function crewCandidateDict(block: FlightCrew, recommended: boolean): Crew
     arr: block.arr,
     route: flightCrewRoute(block),
     std: block.std,
+    reg: block.reg || "",
     pilots: block.pilots.map((p) => ({
       username: pilotUsername(p),
       name: p.name || p.raw.trim(),
@@ -316,6 +321,7 @@ export interface CrewTarget {
   route: string;
   route_iata: string;
   std: string;
+  reg: string;
   requires_choice: boolean;
   missing: boolean;
   assignment: string;
@@ -374,6 +380,7 @@ export function buildCrewPlan(
         route: flight.route,
         route_iata: flight.dep_iata && flight.dest_iata ? `${flight.dep_iata}-${flight.dest_iata}` : "",
         std: flight.std ? flight.std.toISOString() : "",
+        reg: flight.reg || "",
         requires_choice: requiresChoice,
         missing: !candidates.length,
         assignment,
