@@ -18,11 +18,12 @@ export function patchKhbCrewSyncPage(html: string): string {
     .replace('return {flt: f.flt, dep: st.dep || f.dep || "", arr: st.arr || f.arr || "", date: st.date || f.date || ""};', `return {flt: f.flt, dep: st.dep || f.dep || "", arr: st.arr || f.arr || "", date: st.date || f.date || "",
         crew_changes: ["cptText", "foText"].filter(key => st.chg && st.chg[key]).map(key => ({key, from: st.chg[key].from, to: st.chg[key].to}))};`)
     .replace('        st.chgFb = regOk && timeOk;', `        st.chgFb = regOk && timeOk;
+        st.regFb = regOk;
         if(it.crew_checked && st.chg) (it.crew_changes || []).forEach(result => {
           const c = st.chg[result.key];
           if(c && c.from === result.from && c.to === result.to){ c.fbOk = result.ok; c.done = result.ok; }
         });`)
-    .replace('return c.done === true || (st.chgFb === true', 'return c.done === true || c.fbOk === true || (st.chgFb === true')
+    .replace('return c.done === true || (st.chgFb === true', 'return c.done === true || c.fbOk === true || (c.key === "reg" && st.regFb === true) || (st.chgFb === true')
     .replace('  const sid = f.id, flt =', '  let sid = 0; const flt =')
     .replace('  c.busy = true; c.bolt.textContent = "…";\n  try{', `  c.busy = true; c.bolt.textContent = "…";
   try{
