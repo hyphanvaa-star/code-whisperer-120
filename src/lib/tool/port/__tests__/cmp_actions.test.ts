@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { patchCmpValidationPage, cmpValidationVerdict, cmpRegState } from '../cmp_validation';
+import { patchCmpValidationPage, cmpValidationVerdict, cmpRegState, cmpAtcRegIssues } from '../cmp_validation';
 
 const patched = patchCmpValidationPage('function renderCompareTable(d, opts){');
 const start = patched.indexOf('function cmpActionFlight');
@@ -44,5 +44,19 @@ describe('Compare FPL registration and Briefing', () => {
     expect(cmpRegState('VNA648', 'VNA657', 'VNA657').changed).toBe(true);
     expect(cmpRegState('VNA657', 'VNA657', 'VNA648').changed).toBe(true);
     expect(cmpRegState('VNA657', 'VNA657', 'VNA657', true).changed).toBe(true);
+  });
+});
+
+describe('ATC status registration cross-check', () => {
+  it('passes when AviWeb matches both FliteBrief and Crewlist', () => {
+    expect(cmpAtcRegIssues('VN-A657', 'VNA657', 'VN-A657')).toEqual([]);
+    expect(cmpAtcRegIssues('VN-A657', '', '')).toEqual([]);
+  });
+  it('flags an AviWeb registration that differs from FliteBrief', () => {
+    expect(cmpAtcRegIssues('VNA648', 'VNA657', 'VNA648')).toEqual(['FliteBrief VNA657']);
+  });
+  it('flags an AviWeb registration that differs from Crewlist', () => {
+    expect(cmpAtcRegIssues('VNA648', 'VNA648', 'VNA657')).toEqual(['Crewlist VNA657']);
+    expect(cmpAtcRegIssues('VNA648', 'VNA657', 'VNA657')).toEqual(['FliteBrief VNA657']);
   });
 });
