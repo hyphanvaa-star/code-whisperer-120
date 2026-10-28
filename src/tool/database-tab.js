@@ -134,5 +134,6 @@
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
 
-;(function(){ try{ if(sessionStorage.getItem("filesCleaned"))return; sessionStorage.setItem("filesCleaned","1");
+;(function(){ try{ var K="filesAlive", last=+localStorage.getItem(K)||0, beat=function(){localStorage.setItem(K,String(Date.now()));};
+  beat(); setInterval(beat,30000); if(last && Date.now()-last<3600000)return;
   setTimeout(function(){ fetch("/api/files/session-cleanup",{method:"POST",cache:"no-store"}).catch(function(){}); },3000); }catch(e){} })();

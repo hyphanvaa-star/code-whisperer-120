@@ -15,6 +15,12 @@ async function fileAdmin(ctx: Parameters<Routes[string]>[0]) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin.storage.from("tool-files");
 }
+/** Operational files are private per user: map storage path -> uploader id. */
+async function fileOwners(): Promise<Map<string, string>> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.rpc("tool_file_owners");
+  return new Map(((data ?? []) as Array<{ name: string; owner_id: string | null }>).map((r) => [r.name, r.owner_id ?? ""]));
+}
 
 export const routes: Routes = {
   // Quản lí file (tab Database): liệt kê đệ quy toàn bộ file trên máy chủ.
@@ -22,6 +28,8 @@ export const routes: Routes = {
     const b = await fileAdmin(ctx);
     const { decodeKeySegment } = await import("../store.server");
     const out: Array<{ path: string; name: string; size: number; updated: string }> = [];
+    const owners = await fileOwners();
+    const { SESSION_TOPS: TOPS } = await import("../port/file_retention");
     const queue = [""];
     let guard = 0;
     while (queue.length && guard++ < 400 && out.length < 5000) {
@@ -30,6 +38,7 @@ export const routes: Routes = {
       for (const f of data ?? []) {
         const p = dir ? `${dir}/${f.name}` : f.name;
         if (!f.id) { queue.push(p); continue; }
+        if (TOPS.includes(p.split("/")[0]) && owners.get(p) !== ctx.userId) continue;
         const meta = (f.metadata ?? {}) as { size?: number };
         out.push({ path: p, name: p.split("/").map(decodeKeySegment).join("/"), size: meta.size ?? 0, updated: f.updated_at ?? f.created_at ?? "" });
       }
@@ -37,11 +46,12 @@ export const routes: Routes = {
     out.sort((a, b2) => (b2.updated || "").localeCompare(a.updated || ""));
     return { files: out };
   },
-  // Mở web: dọn file khai thác của các phiên trước (giữ file dùng trong 30 phút gần nhất).
+  // Mở web: dọn file khai thác của các phiên trước chỉ file của chính user, sau khi offline quá 1 giờ.
   "POST /api/files/session-cleanup": async (ctx) => {
     const b = await fileAdmin(ctx);
     const { staleOnOpen, SESSION_TOPS } = await import("../port/file_retention");
     const now = Date.now();
+    const owners = await fileOwners();
     const doomed: string[] = [];
     const queue = [...SESSION_TOPS];
     let guard = 0;
@@ -54,7 +64,7 @@ export const routes: Routes = {
           const p = `${dir}/${f.name}`;
           if (!f.id) { queue.push(p); continue; }
           const t = Date.parse(f.updated_at || f.created_at || "");
-          if (Number.isFinite(t) && staleOnOpen(p, t, now)) doomed.push(p);
+          if (Number.isFinite(t) && staleOnOpen(p, t, now) && owners.get(p) === ctx.userId) doomed.push(p);
         }
         if (data.length < 1000) break;
       }
