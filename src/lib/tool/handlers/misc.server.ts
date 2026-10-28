@@ -37,6 +37,31 @@ export const routes: Routes = {
     out.sort((a, b2) => (b2.updated || "").localeCompare(a.updated || ""));
     return { files: out };
   },
+  // Mở web: dọn file khai thác của các phiên trước (giữ file dùng trong 30 phút gần nhất).
+  "POST /api/files/session-cleanup": async (ctx) => {
+    const b = await fileAdmin(ctx);
+    const { staleOnOpen, SESSION_TOPS } = await import("../port/file_retention");
+    const now = Date.now();
+    const doomed: string[] = [];
+    const queue = [...SESSION_TOPS];
+    let guard = 0;
+    while (queue.length && guard++ < 400) {
+      const dir = queue.shift()!;
+      for (let off = 0; ; off += 1000) {
+        const { data } = await b.list(dir, { limit: 1000, offset: off });
+        if (!data?.length) break;
+        for (const f of data) {
+          const p = `${dir}/${f.name}`;
+          if (!f.id) { queue.push(p); continue; }
+          const t = Date.parse(f.updated_at || f.created_at || "");
+          if (Number.isFinite(t) && staleOnOpen(p, t, now)) doomed.push(p);
+        }
+        if (data.length < 1000) break;
+      }
+    }
+    for (let i = 0; i < doomed.length; i += 100) await b.remove(doomed.slice(i, i + 100));
+    return { ok: true, removed: doomed.length };
+  },
   "GET /api/files/get": async (ctx) => {
     const b = await fileAdmin(ctx);
     const p = ctx.params.get("p") || "";
