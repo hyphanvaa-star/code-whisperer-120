@@ -239,7 +239,7 @@ export const jobs: Jobs = {
 
   // Port of web.py start_atc_check(): đăng nhập AviWeb bằng tài khoản đã lưu,
   // đọc 3 danh sách Processed/Unprocessed/Rejected rồi ghép theo số hiệu.
-  atc_check: async (params, emit) => {
+  atc_check: async (params, emit, ctx) => {
     const t0 = Date.now();
     const callsigns = (params["callsigns"] as string[] | undefined) ?? [];
     if (!callsigns.length) {
@@ -258,7 +258,12 @@ export const jobs: Jobs = {
         if (!ident || !current.some(f => f.callsign.toUpperCase() === cs.toUpperCase() && f.std?.toISOString().slice(2, 10).replace(/-/g, '') === ident.dof && f.dep_icao === ident.dep && f.dest_icao === ident.arr)) skipped.push({ callsign: cs, error: "chuyến đã ngoài khung hoặc thay đổi — Check lại", ok: false });
         else okCs.push(cs);
       }
-      const results = [...(okCs.length ? await checkFlightsOnline(okCs, text => emit({ type: "line", text, cls: "sys" }), identities) : []), ...skipped];
+      const { getJson, setJson } = await import("../store.server");
+      const cache = await getJson<import("../port/aviweb").AtcDetailCache>(ctx, "atc.detail_cache", {});
+      const cutoff = Date.now() - 36 * 3600_000;
+      for (const k of Object.keys(cache)) if (!(cache[k]!.at > cutoff)) delete cache[k];
+      const results = [...(okCs.length ? await checkFlightsOnline(okCs, text => emit({ type: "line", text, cls: "sys" }), identities, cache) : []), ...skipped];
+      await setJson(ctx, "atc.detail_cache", cache).catch(() => {});
       for (const r of results) {
         if (r.ok) emit({ type: "line", text: `✓ ${r.callsign}: ${r.status ?? "?"} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"} · DOF ${r.dof ?? "?"}`, cls: "ok" });
         else emit({ type: "line", text: `✗ ${r.callsign}: ${r.error ?? "lỗi"}`, cls: "bad" });
