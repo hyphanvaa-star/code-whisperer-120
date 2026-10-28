@@ -15,6 +15,16 @@ export function cmpRegState(fpl: unknown, flite: unknown, aims: unknown, version
   };
 }
 
+export function cmpAtcRegIssues(atc: unknown, flite: unknown, aims: unknown) {
+  const norm = (v: unknown) => String(v ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const a = norm(atc);
+  if (!a) return [];
+  const issues: string[] = [];
+  if (flite && norm(flite) && norm(flite) !== a) issues.push('FliteBrief ' + flite);
+  if (aims && norm(aims) && norm(aims) !== a && norm(aims) !== norm(flite)) issues.push('Crewlist ' + aims);
+  return issues;
+}
+
 export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?: string; error?: string }, callsign: string, dof: string) {
   if (result.callsign?.toUpperCase() !== callsign.toUpperCase() || result.dof !== dof) return '';
   return result.error ? '' : result.status || '';
@@ -152,14 +162,16 @@ function cmpAtcPaint(r){
   const f = cmpActionFlight(r), cached = f && cmpAtcCache.get(cmpAtcKey(f));
   const text = cached ? cached.status || "Chưa có" : f ? (cmpAtcBusy ? "…" : "—") : "—";
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const wrongReg = !!(cached && cached.status && cached.reg && f && f.reg && norm(cached.reg) !== norm(f.reg));
+  const aims = ((cmpBind[String(r.sector_id)] && cmpBind[String(r.sector_id)].reg) || r.reg_cmp || {}).excel;
+  const regIssues = cached && cached.status && cached.reg ? cmpAtcRegIssues(cached.reg, f && f.reg, aims) : [];
+  const wrongReg = regIssues.length > 0;
   const tone = cached ? (wrongReg ? "bad" : cmpAtcTone(cached.status)) : "none";
   td.className = "cmp-atc-cell";
   let pill = td.firstElementChild;
   if(!pill || !pill.classList.contains("cmp-atc-pill")){ pill = document.createElement("span"); td.replaceChildren(pill); }
   if(pill.textContent !== text) pill.textContent = text;
   pill.className = "cmp-atc-pill t-" + tone;
-  td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ FliteBrief " + f.reg : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
+  td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
 }
 function cmpAtcPut(f, status, error, reg){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
