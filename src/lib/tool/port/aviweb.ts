@@ -234,6 +234,7 @@ export async function checkFlightsOnline(
   callsigns: string[],
   onProgress?: (text: string) => void,
   expected?: Record<string, { dof: string; dep: string; arr: string }>,
+  detailCache?: AtcDetailCache,
 ): Promise<AtcCheckResult[]> {
   const cred = getAviwebCredentials();
   if (!cred) throw new Error("Chưa có tài khoản AviWeb — mở tab Account để lưu.");
@@ -244,6 +245,7 @@ export async function checkFlightsOnline(
   onProgress?.("· đăng nhập xong — đang đọc danh sách FPL…");
   const isCancel = (st: string) => /cancel/i.test(st);
   const out = new Map<string, AtcCheckResult>();
+  let cached = 0;
   for (const view of ["manager-processed", "manager-unprocessed", "manager-rejected"]) {
     let rows: AviRow[] = [];
     try {
@@ -267,6 +269,18 @@ export async function checkFlightsOnline(
         status: row.status || view.replace("manager-", ""),
         ok: true,
       };
+      const identity0 = expected?.[cs];
+      const ckey = [cs, identity0?.dof ?? "", identity0?.dep ?? "", identity0?.arr ?? ""].join("|");
+      const stamp = row.cells.slice(1).join("|");
+      const hit = detailCache?.[ckey];
+      if (hit && hit.stamp === stamp && stamp.trim()) {
+        if (hit.reg) r.reg = hit.reg;
+        if (hit.dof) r.dof = hit.dof;
+        if (hit.eobt) r.flight_time = hit.eobt;
+        cached++;
+        out.set(cs, r);
+        continue;
+      }
       try {
         const text = await s.viewFpl(row);
         if (text && fplIsFor(text, cs)) {
@@ -281,6 +295,7 @@ export async function checkFlightsOnline(
         }
         const why = missingDetailReason(r, text);
         if (why) { r.ok = false; r.error = why; }
+        else if (detailCache && stamp.trim()) detailCache[ckey] = { stamp, reg: r.reg, dof: r.dof, eobt: r.flight_time, at: Date.now() };
       } catch (e) {
         r.ok = false;
         r.error = "bấm View lỗi: " + (e instanceof Error ? e.message : String(e));
@@ -290,11 +305,14 @@ export async function checkFlightsOnline(
     }
     if (out.size >= want.size) break;
   }
+  if (cached) onProgress?.(`· ${cached} chuyến chưa đổi giờ cập nhật — dùng lại REG/giờ đã đọc`);
   return callsigns.map((c) => {
     const r = out.get(c.trim().toUpperCase());
     return r ?? { callsign: c, error: "không thấy trên AviWeb", ok: false };
   });
 }
+
+export type AtcDetailCache = Record<string, { stamp: string; reg?: string; dof?: string; eobt?: string; at: number }>;
 
 // ---- atc_check.py ---------------------------------------------------------
 
