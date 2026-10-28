@@ -109,7 +109,6 @@ export function defaultRuleData(): RuleRow[] {
     { name: "Đến VVDB", condition: "dest", values: ["VVDB"], files: ["Technical Notice VVDB"], enabled: true },
     { name: "Từ WADD về VVNB", condition: "route", values: ["WADD", "VVNB"], files: ["TN-20022025 - AIRWAYS W27, W28 and Q9_1"], enabled: true },
     { name: "Tàu trong danh sách EGTM thấp", condition: "reg_in", values: [...TAU_LIST].sort(), files: ["TN-LOW EGTM A{REG3}"], enabled: true },
-    { name: "Tàu A21N", condition: "ac_type", values: ["A21N"], files: ["TN-2025-0049"], enabled: true },
     { name: "Đi/đến WMKK", condition: "touches", values: ["WMKK"], files: ["FAOC_1.20 AA 2025 (R)", "FAOC.20 VIETJET AVIATION JOINT STOCK COMPANY 2025 (R)"], enabled: true },
     { name: "Đi/đến VVPQ", condition: "touches", values: ["VVPQ"], files: ["vv-esup-31-26-approvedbycaav"], enabled: true },
     { name: "Đi/đến Trung Quốc / VMMC / VHHH", condition: "prefix_or_touches", values: [...CHINA_PREFIX].sort().concat(["VMMC", "VHHH"]), files: ["2026005函 关于汛期运行安全风险的警示"], enabled: true },
