@@ -32,7 +32,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.39')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.40')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -202,10 +202,10 @@ function cmpAtcPaint(r){
   }
   if(false) td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
 }
-function cmpAtcPut(f, status, error, reg){
+function cmpAtcPut(f, status, error, reg, eobt){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
   if(!status && prev && prev.status) cmpAtcCache.set(key, {...prev, time: Date.now(), error: ""});
-  else cmpAtcCache.set(key, {status, error, reg: reg || "", time: Date.now()});
+  else cmpAtcCache.set(key, {status, error, reg: reg || "", eobt: eobt || "", time: Date.now()});
 }
 function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
 async function cmpReadAtc(rows){
@@ -232,7 +232,7 @@ async function cmpReadAtc(rows){
     const d = await response.json();
     if(!response.ok || d.error || !d.id) throw new Error(d.error || "Không đọc được AviWeb");
     const stream = new EventSource("/api/stream?id=" + encodeURIComponent(d.id));
-    const timeout = setTimeout(() => { stream.close(); fail("AviWeb chưa trả kết quả — bấm Cmp để thử lại"); }, 120000);
+    const timeout = setTimeout(() => { stream.close(); fail("AviWeb chưa trả kết quả — bấm ATC check để thử lại"); }, 120000);
     stream.onmessage = event => {
       let m; try { m = JSON.parse(event.data); } catch(_){ return; }
       if(m.type !== "end") return;
@@ -241,11 +241,11 @@ async function cmpReadAtc(rows){
         const hits = (m.results || []).filter(result => String(result.callsign).toUpperCase() === f.callsign.toUpperCase());
         const result = hits.length === 1 ? hits[0] : null;
         const status = result ? cmpAtcStatus(result, f.callsign, acDofFromStd(f.std)) : "";
-        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", status && result ? result.reg : "");
+        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", status && result ? result.reg : "", status && result ? result.flight_time : "");
       }
       finish();
     };
-    stream.onerror = () => { clearTimeout(timeout); stream.close(); fail("Không kết nối được AviWeb — bấm Cmp để thử lại"); };
+    stream.onerror = () => { clearTimeout(timeout); stream.close(); fail("Không kết nối được AviWeb — bấm ATC check để thử lại"); };
   }catch(error){ fail(error.message || "Không đọc được AviWeb"); }
 }
 const cmpNotes = new Map();
@@ -409,6 +409,7 @@ function renderCompareTable(d, opts){`)
 .cmp-tip-row .k{color:#cbd5e1}.cmp-tip-row b{font-family:monospace;font-size:13px;color:#fff}.cmp-tip-row b.diff{color:#fca5a5}
 .cmp-tip-row.s-fb{background:rgba(59,130,246,.15);border-color:#3b82f6}
 .cmp-tip-row.s-av{background:rgba(168,85,247,.15);border-color:#a855f7}
+.cmp-tip-row.s-tm{background:rgba(148,163,184,.12);border-color:#64748b}
 .cmp-tip-row.s-cl{background:rgba(249,115,22,.15);border-color:#f97316}
 .cmp-tip-f{margin-top:6px;font-size:11px;color:#86efac}.cmp-tip-f.bad{color:#fca5a5;font-weight:700}
 .cmp-atc-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
