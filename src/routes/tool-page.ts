@@ -1928,6 +1928,13 @@ async function page(): Promise<string> {
     .replace('  const td = document.createElement("td");\n  td.className = "ftflt";\n  if(list.length >= 2){', '  st[key] = limitKhbPilotName(st[key]);\n  const td = document.createElement("td");\n  td.className = "ftflt";\n  if(list.length >= 2){')
     .replace('inp.addEventListener("input", function(){ st[key] = inp.value; });\n  td.appendChild(inp);\n  return ftPack(td);\n}\nfunction ftTafPlace', 'inp.addEventListener("input", function(){ st[key] = inp.value; });\n  inp.addEventListener("change", function(){ st[key] = limitKhbPilotName(inp.value); inp.value = st[key]; });\n  td.appendChild(inp);\n  return ftPack(td);\n}\nfunction ftTafPlace')
     .replace('    const typedCpt = String(st.cptText || "").trim().match', '    st.cptText = limitKhbPilotName(st.cptText);\n    st.foText = limitKhbPilotName(st.foText);\n    const typedCpt = String(st.cptText || "").trim().match')
+    // Keep a dispatcher-picked duplicate sector: same id, then full route+ETD; never fall back to the first duplicate.
+    .replace('    const nf = same.find(c => c.dep === f.dep) || same[0];', `    const nrm = v => String(v == null ? "" : v).trim().toUpperCase();
+    const nf = same.find(c => String(c.id) === String(f.id))
+      || same.find(c => nrm(c.dep) === nrm(f.dep) && nrm(c.arr) === nrm(f.arr) && nrm(c.etd) === nrm(f.etd))
+      || (same.filter(c => nrm(c.dep) === nrm(f.dep) && nrm(c.arr) === nrm(f.arr)).length === 1 ? same.find(c => nrm(c.dep) === nrm(f.dep) && nrm(c.arr) === nrm(f.arr)) : null)
+      || (same.length === 1 ? same[0] : null);`)
+    .replace('function ftPickMate(index, id){', 'function ftPickMate(index, id){\n  setTimeout(() => { try{ ftKeepSave(); }catch(_){} }, 0);')
     // A new workbook invalidates both the lookup catalogue and selected KHB rows.
     .replace('if(fplText && !ftCatalog.length) ftLoad();', 'if(fplText) ftLoad();')
     .replace('async function ftLoad(){', `let ftCrewRevision = 0;
