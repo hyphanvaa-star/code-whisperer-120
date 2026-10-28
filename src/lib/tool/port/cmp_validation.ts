@@ -146,7 +146,7 @@ const cmpAtcStatus = ${cmpAtcStatus.toString()};
 const cmpAtcRegIssues = ${cmpAtcRegIssues.toString()};
 const cmpAtcCache = new Map();
 let cmpAtcBusy = false;
-function cmpAtcKey(f){ return JSON.stringify([f.id, f.callsign, f.std, f.dep_icao, f.dest_icao]); }
+function cmpAtcKey(f){ return JSON.stringify([f.id, f.callsign, f.std, f.dep_icao || f.dep, f.dest_icao || f.dest]); }
 function cmpAtcTone(s){
   s = String(s || "").toUpperCase();
   if(!s) return "none";
@@ -161,7 +161,7 @@ function cmpAtcPaint(r){
   const td = document.querySelector('#cmpBody td[data-cmp-atc-sid="' + r.sector_id + '"]');
   if(!td) return;
   const f = cmpActionFlight(r);
-  if(f && !/^VV/i.test(String(f.dep_icao || ""))){
+  if(f && !/^VV/i.test(String(f.dep_icao || f.dep || r.dep || ""))){
     td.className = "cmp-atc-cell"; td.removeAttribute("title"); td.textContent = "—"; return;
   }
   const cached = f && cmpAtcCache.get(cmpAtcKey(f));
@@ -204,11 +204,11 @@ function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmp
 async function cmpReadAtc(rows){
   rows.forEach(cmpAtcPaint);
   if(cmpAtcBusy) return;
-  const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f && /^VV/i.test(String(x.f.dep_icao || "")));
+  const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f && /^VV/i.test(String(x.f.dep_icao || x.f.dep || x.r.dep || "")));
   const todo = targets.filter(x => {
         return targets.filter(y => y.f.callsign === x.f.callsign).length === 1;
   });
-  if(!todo.length) return;
+  if(!todo.length){ alert(rows.length ? "Không có chuyến cất cánh từ Việt Nam để check ATC (hoặc chuyến trùng số hiệu)." : "Bảng chưa có chuyến — bấm Cmp trước."); return; }
   cmpAtcBusy = true;
   const btn = document.getElementById("cmpAtcBtn");
   if(btn){ btn.disabled = true; btn.textContent = "Đang check…"; }
