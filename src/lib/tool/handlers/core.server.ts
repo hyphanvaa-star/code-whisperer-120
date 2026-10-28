@@ -636,6 +636,12 @@ export const routes: Routes = {
     const tafs = (tafCache?.tafs || {}) as Record<string, TafRec>;
     const rev = "0";
     const attchCtx: AttchCtx = attchContext();
+    // Dùng đúng bộ quy tắc đang lưu trong Notice Rule Studio, không dùng mẫu cũ.
+    const savedRules = await getJson<unknown>(ctx, "notice_rules", null);
+    const ruleRows = Array.isArray(savedRules) ? savedRules
+      : savedRules && typeof savedRules === "object" && Array.isArray((savedRules as { rules?: unknown }).rules)
+        ? (savedRules as { rules: unknown[] }).rules : null;
+    if (ruleRows) attchCtx.rule_data = ruleRows as AttchCtx["rule_data"];
     return {
       days,
       total: flights.length,
