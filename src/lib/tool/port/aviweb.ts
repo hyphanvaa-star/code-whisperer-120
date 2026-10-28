@@ -312,7 +312,7 @@ export async function checkFlightsOnline(
   });
 }
 
-export type AtcDetailCache = Record<string, { stamp: string; reg?: string; dof?: string; eobt?: string; at: number }>;
+export type AtcDetailCache = Record<string, { stamp: string; reg?: string | undefined; dof?: string | undefined; eobt?: string | undefined; at: number }>;
 
 // ---- atc_check.py ---------------------------------------------------------
 
