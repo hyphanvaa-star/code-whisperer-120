@@ -250,11 +250,14 @@ export const jobs: Jobs = {
       const identities = params.identities as Record<string, { dof: string; dep: string; arr: string }> | undefined;
       if (!identities) throw new Error("Lệnh cũ thiếu ngày/chặng — bấm Check lại.");
       const current = await loadFlights(3, true);
+      const okCs: string[] = [];
+      const skipped: { callsign: string; error: string; ok: boolean }[] = [];
       for (const cs of callsigns) {
         const ident = identities[cs.toUpperCase()];
-        if (!ident || !current.some(f => f.callsign.toUpperCase() === cs.toUpperCase() && f.std?.toISOString().slice(2, 10).replace(/-/g, '') === ident.dof && f.dep_icao === ident.dep && f.dest_icao === ident.arr)) throw new Error(`${cs}: chuyến đã ngoài khung hoặc thay đổi — Check lại.`);
+        if (!ident || !current.some(f => f.callsign.toUpperCase() === cs.toUpperCase() && f.std?.toISOString().slice(2, 10).replace(/-/g, '') === ident.dof && f.dep_icao === ident.dep && f.dest_icao === ident.arr)) skipped.push({ callsign: cs, error: "chuyến đã ngoài khung hoặc thay đổi — Check lại", ok: false });
+        else okCs.push(cs);
       }
-      const results = await checkFlightsOnline(callsigns, text => emit({ type: "line", text, cls: "sys" }), identities);
+      const results = [...(okCs.length ? await checkFlightsOnline(okCs, text => emit({ type: "line", text, cls: "sys" }), identities) : []), ...skipped];
       for (const r of results) {
         if (r.ok) emit({ type: "line", text: `✓ ${r.callsign}: ${r.status ?? "?"} · REG ${r.reg ?? "?"} · EOBT ${r.flight_time ?? "?"} · DOF ${r.dof ?? "?"}`, cls: "ok" });
         else emit({ type: "line", text: `✗ ${r.callsign}: ${r.error ?? "lỗi"}`, cls: "bad" });
