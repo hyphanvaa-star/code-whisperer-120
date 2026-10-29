@@ -34,7 +34,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return patchCmpHandoverPage(html)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.53')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.54')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -86,7 +86,7 @@ export function patchCmpValidationPage(html: string): string {
         const t = (v) => v ? new Date(v).toISOString().slice(11,16) + "Z" : "";
         const escT = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
         const tipRow = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + escT(v || "—") + '</b></div>';
-        verifyCell.dataset.tip = '<div class="cmp-tip-h">Verify</div>'
+        verifyCell.dataset.ctip = '<div class="cmp-tip-h">Verify</div>'
           + tipRow("OFP", loaded ? (st || "có") : "chưa tải")
           + tipRow("Verify", vf ? (af.verified_by || "đã verify") + (af.verified_on ? " · " + t(af.verified_on) : "") : "chưa")
           + tipRow("Order dầu", fo ? fo.amount + " " + (fo.units || "KG") : "chưa")
@@ -209,7 +209,7 @@ function cmpAtcPaint(r){
   const stdTxt = sd ? p2(sd.getUTCHours()) + p2(sd.getUTCMinutes()) + "Z" : "";
   const eobt = cached && cached.eobt ? cached.eobt + "Z" : "";
   const plain = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + (v ? esc(v) : '—') + '</b></div>';
-  td.dataset.tip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
+  td.dataset.ctip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
     + '<div class="cmp-tip-h" style="margin-top:8px">🕒 Ngày · giờ (UTC)</div>' + plain("Ngày bay", dateTxt) + plain("STD FliteBrief", stdTxt) + plain("EOBT AviWeb", eobt)
     + '<div class="cmp-tip-f' + (wrongReg ? ' bad' : '') + '">' + (wrongReg ? "Sai tàu: AviWeb ≠ " + esc(regIssues.join(", ")) : cached ? esc(cached.error || "Khớp · " + new Date(cached.time).toISOString().slice(11,16) + "Z") : "Bấm ATC check để đọc AviWeb") + '</div>';
   cmpTipEnsure();
@@ -219,9 +219,9 @@ function cmpTipEnsure(){
   if(window.__cmpTip) return;
   const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
   document.addEventListener("mouseover", e => {
-    const c = e.target.closest && e.target.closest("td[data-tip]");
+    const c = e.target.closest && e.target.closest("td[data-ctip]");
     if(!c){ tip.classList.remove("on"); return; }
-    tip.innerHTML = c.dataset.tip; tip.classList.add("on");
+    tip.innerHTML = c.dataset.ctip; tip.classList.add("on");
     const b = c.getBoundingClientRect();
     tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
     tip.style.top = (b.bottom + 6) + "px";
@@ -366,9 +366,13 @@ function cmpValPaint(sid){
     const t = c ? c.textContent.trim() : "";
     let level = "ok";
     if(!c || !t || /^[—….·]+$/.test(t)) level = k === "etp" ? "ok" : "pending";
+    else if(k === "tow" || k === "lwt"){
+      if(c.querySelector(".vd.bad")) level = "bad";
+      else if(c.querySelector(".warn,.pcr-near,.pcr-hot,.crit")) level = "warn";
+    }
     else if(c.querySelector(".bad,.crit,.pcr-hot,.fuel-tight")) level = "bad";
     else if(c.querySelector(".warn,.pcr-near")) level = "warn";
-    items.push({label, level, text: (c && c.title) || t});
+    items.push({label, level, text: (c && (c.title || c.getAttribute("data-tip"))) || t});
   }
   const v = cmpValidationVerdict(items);
   td.dataset.val = v;
@@ -380,7 +384,11 @@ function cmpValPaint(sid){
   for(const i of items) if(i.level === "bad" || i.level === "warn"){
     const line = document.createElement("div");
     line.className = "cmp-val-line " + i.level;
-    line.textContent = i.label + ": " + String(i.text).split("\\n")[0];
+    const parts = String(i.text).split("\\n");
+    let first = parts[0];
+    if(!first.toUpperCase().startsWith(i.label.split("/")[0])) first = i.label + ": " + first;
+    const room = /còn\\s+(-?[\\d,]+)/.exec(parts.slice(0, 3).join(" "));
+    line.textContent = first + (room ? " · còn " + room[1] : "");
     td.appendChild(line);
   }
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
