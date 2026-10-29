@@ -32,7 +32,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.49')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.52')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -82,10 +82,14 @@ export function patchCmpValidationPage(html: string): string {
         if(fo){ const i = document.createElement("span"); i.className = "cmp-vic fuel"; i.textContent = "⛽"; verifyCell.appendChild(i); }
         if(cap){ const i = document.createElement("span"); i.className = "cmp-vic sign"; i.textContent = "✍"; verifyCell.appendChild(i); }
         const t = (v) => v ? new Date(v).toISOString().slice(11,16) + "Z" : "";
-        verifyCell.title = ["OFP: " + (loaded ? (st || "có") : "chưa tải"),
-          "Verify: " + (vf ? (af.verified_by || "đã verify") + (af.verified_on ? " · " + t(af.verified_on) : "") : "chưa"),
-          "Order dầu: " + (fo ? fo.amount + " " + (fo.units || "KG") : "chưa"),
-          "Capt sign: " + (cap || "chưa")].join("\\n");
+        const escT = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+        const tipRow = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + escT(v || "—") + '</b></div>';
+        verifyCell.dataset.tip = '<div class="cmp-tip-h">Verify</div>'
+          + tipRow("OFP", loaded ? (st || "có") : "chưa tải")
+          + tipRow("Verify", vf ? (af.verified_by || "đã verify") + (af.verified_on ? " · " + t(af.verified_on) : "") : "chưa")
+          + tipRow("Order dầu", fo ? fo.amount + " " + (fo.units || "KG") : "chưa")
+          + tipRow("Capt sign", cap || "chưa");
+        cmpTipEnsure();
       }
       if(actionRow.ofp_ack){
         const quick = document.createElement("button");
@@ -206,18 +210,20 @@ function cmpAtcPaint(r){
   td.dataset.tip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
     + '<div class="cmp-tip-h" style="margin-top:8px">🕒 Ngày · giờ (UTC)</div>' + plain("Ngày bay", dateTxt) + plain("STD FliteBrief", stdTxt) + plain("EOBT AviWeb", eobt)
     + '<div class="cmp-tip-f' + (wrongReg ? ' bad' : '') + '">' + (wrongReg ? "Sai tàu: AviWeb ≠ " + esc(regIssues.join(", ")) : cached ? esc(cached.error || "Khớp · " + new Date(cached.time).toISOString().slice(11,16) + "Z") : "Bấm ATC check để đọc AviWeb") + '</div>';
-  if(!window.__cmpTip){
-    const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
-    document.addEventListener("mouseover", e => {
-      const c = e.target.closest && e.target.closest("td[data-tip]");
-      if(!c){ tip.classList.remove("on"); return; }
-      tip.innerHTML = c.dataset.tip; tip.classList.add("on");
-      const b = c.getBoundingClientRect();
-      tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
-      tip.style.top = (b.bottom + 6) + "px";
-    });
-  }
+  cmpTipEnsure();
   if(false) td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
+}
+function cmpTipEnsure(){
+  if(window.__cmpTip) return;
+  const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
+  document.addEventListener("mouseover", e => {
+    const c = e.target.closest && e.target.closest("td[data-tip]");
+    if(!c){ tip.classList.remove("on"); return; }
+    tip.innerHTML = c.dataset.tip; tip.classList.add("on");
+    const b = c.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
+    tip.style.top = (b.bottom + 6) + "px";
+  });
 }
 function cmpAtcPut(f, status, error, reg, eobt){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);

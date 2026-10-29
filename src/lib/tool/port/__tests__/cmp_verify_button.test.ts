@@ -26,7 +26,7 @@ describe("verify button placement", () => {
     expect(page).toContain("const existingVerify = vVerifyCell(actionRow);");
     expect(verifyCell).toContain('quick.className = "cmp-vf"');
     expect(verifyCell).toContain("csQuickVerify(actionFlight, quick");
-    expect(verifyCell.slice(0, 1200)).toContain("verifyCell.prepend(quick)");
+    expect(verifyCell.slice(0, 2500)).toContain("verifyCell.prepend(quick)");
   });
 
   it("marks the compare row verified only when the run finished successfully", () => {

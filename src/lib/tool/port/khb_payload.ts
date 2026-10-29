@@ -28,7 +28,7 @@ export function khbUtcDay(date: unknown, etdLocal: unknown, etdUtc: unknown): st
 
 export function patchKhbPayloadPage(html: string): string {
   return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.49')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.52')
     .replace('width:1760px;min-width:100%', 'width:2400px;min-width:100%')
     .replace('<th>ETP POA</th><th>FL</th>', '<th class="ft-pld-head" title="EST PLD Omni (kg)">PLD</th><th>FL</th>')
     .replace('blank.appendChild(ftBox(pending, "etp_poa", true));', 'blank.appendChild(ftPldCell(null));')
