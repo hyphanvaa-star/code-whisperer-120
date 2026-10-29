@@ -30,4 +30,6 @@ describe("staleOnOpen", () => {
   it("deletes own files after 1h offline", () => expect(staleOnOpen("excel/a.xlsx", now - 61 * 60_000, now)).toBe(true));
   it("keeps files within 1h", () => expect(staleOnOpen("excel/a.xlsx", now - 50 * 60_000, now)).toBe(false));
   it("never touches Notice library", () => expect(staleOnOpen("notices/a.pdf", 0, now)).toBe(false));
+  it("cleans own pibwx after 1h offline", () => expect(staleOnOpen("pibwx/a.pdf", now - 61 * 60_000, now)).toBe(true));
+  it("keeps pibwx within 1h", () => expect(staleOnOpen("pibwx/a.pdf", now - 30 * 60_000, now)).toBe(false));
 });

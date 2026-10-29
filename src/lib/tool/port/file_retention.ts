@@ -15,7 +15,7 @@ export function shouldDelete(path: string, updated: number, now: number): boolea
   return false; // pibwx has own cleanup; notices/ is the admin shared library
 }
 /** Operational folders that only live for the current working session. */
-export const SESSION_TOPS = ["excel", "atc", "merged", "briefing", "regnotice", "notices-tmp"];
+export const SESSION_TOPS = ["excel", "atc", "merged", "briefing", "regnotice", "notices-tmp", "pibwx"];
 /** On web open: drop operational files from earlier sessions (older than `graceMs`, default 1 h offline). */
 export function staleOnOpen(path: string, updated: number, now: number, graceMs = 60 * 60_000): boolean {
   return SESSION_TOPS.includes(path.split("/")[0]) && now - updated > graceMs;
