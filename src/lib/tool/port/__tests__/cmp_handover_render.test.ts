@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
-import { JSDOM } from 'jsdom';
 import { patchCmpHandoverPage } from '../cmp_handover';
 
 describe('Compare handover render', () => {
   const html = patchCmpHandoverPage(readFileSync('src/tool/page.html', 'utf8'));
   function render(rows: { sector_id: number; callsign: string; handover: boolean }[]) {
-    const document = new JSDOM('<table><thead id="cmpHead"></thead><tbody id="cmpBody"></tbody></table><div id="count"></div>').window.document;
+    const document = globalThis.document.implementation.createHTMLDocument();
+    document.body.innerHTML = '<table><thead id="cmpHead"></thead><tbody id="cmpBody"></tbody></table><div id="count"></div>';
     const td = () => document.createElement('td');
     const context = { document, $: (s: string) => document.querySelector(s),
       CMP_HEAD: [['CALLSIGN', '']], current: null, stopLoading() {}, paintEstBang() {},
