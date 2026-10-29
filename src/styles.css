@@ -71,7 +71,7 @@
   --login-input: oklch(0.995 0.002 350);
   --login-input-ink: oklch(0.4 0.018 260);
   --login-placeholder: oklch(0.7 0.017 260);
-  --login-glass: oklch(0.89 0.02 350 / 0.35);
+  --login-glass: linear-gradient(135deg, oklch(0.72 0.065 240 / 0.72), oklch(0.75 0.035 355 / 0.85) 65%, oklch(0.69 0.04 355 / 0.9));
   --login-glass-line: oklch(1 0 0 / 0.32);
   --login-glass-shadow: 0 10px 32px oklch(0.3 0.03 350 / 0.16);
   --login-scene-shadow: 0 24px 80px oklch(0.25 0.025 350 / 0.18);
