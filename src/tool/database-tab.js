@@ -44,13 +44,42 @@
       + '<input type="search" id="dbxFileQ" placeholder="Tìm tên file / thư mục…" style="flex:1;min-width:180px;padding:6px 10px">'
       + '<button type="button" class="btn small" id="dbxFileReload">↻ Tải lại</button><button type="button" class="btn small" id="dbxFileDel">🗑 Xoá đã chọn</button>'
       + '<span id="dbxFileInfo" style="font-size:12px;opacity:.75"></span></div>'
-      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;flex:1;min-height:0">'
-      + '<div style="display:flex;flex-direction:column;min-height:0;min-width:0;border:1px solid var(--line,#ccc);border-radius:10px;overflow:hidden"><div style="padding:6px 10px;font-weight:700;background:var(--panel,#fff);border-bottom:1px solid var(--line,#ccc)">📊 File khai thác (Excel, MEL, FPL, PIB/WX, Briefing…) <span id="dbxFileBodyXN" style="opacity:.6;font-weight:400"></span></div><div style="overflow:auto;flex:1;min-height:0"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="position:sticky;top:0;background:var(--panel,#fff)"><th style="width:28px"><input type="checkbox" id="dbxFileAll"></th><th style="text-align:left;padding:6px">File</th><th style="text-align:right;padding:6px">Dung lượng</th><th style="text-align:left;padding:6px">Cập nhật</th><th></th></tr></thead><tbody id="dbxFileBodyX"></tbody></table></div></div>'
-      + '<div style="display:flex;flex-direction:column;min-height:0;min-width:0;border:1px solid var(--line,#ccc);border-radius:10px;overflow:hidden"><div style="padding:6px 10px;font-weight:700;background:var(--panel,#fff);border-bottom:1px solid var(--line,#ccc)">📌 File Notice (Notice Rule Studio) <span id="dbxFileBodySN" style="opacity:.6;font-weight:400"></span></div><div style="overflow:auto;flex:1;min-height:0"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="position:sticky;top:0;background:var(--panel,#fff)"><th style="width:28px"></th><th style="text-align:left;padding:6px">File</th><th style="text-align:right;padding:6px">Dung lượng</th><th style="text-align:left;padding:6px">Cập nhật</th><th></th></tr></thead><tbody id="dbxFileBodyS"></tbody></table></div></div>'
+      + '<div class="dbx-file-columns">'
+      + '<section class="dbx-file-section"><div class="dbx-file-heading"><span class="dbx-file-symbol">▤</span><h3>File khai thác</h3><span id="dbxFileBodyXN" class="dbx-file-count"></span></div><div class="dbx-file-scroll"><table aria-label="File khai thác"><thead><tr><th class="dbx-check-col"><input type="checkbox" id="dbxFileAll" aria-label="Chọn tất cả file"></th><th>Tên file</th><th>Dung lượng</th><th>Cập nhật</th><th></th></tr></thead><tbody id="dbxFileBodyX"></tbody></table></div></section>'
+      + '<section class="dbx-file-section"><div class="dbx-file-heading"><span class="dbx-file-symbol">▧</span><h3>Thư viện tài liệu</h3><span id="dbxFileBodySN" class="dbx-file-count"></span></div><div class="dbx-file-scroll"><table aria-label="Thư viện tài liệu"><thead><tr><th class="dbx-check-col"></th><th>Tên file</th><th>Dung lượng</th><th>Cập nhật</th><th></th></tr></thead><tbody id="dbxFileBodyS"></tbody></table></div></section>'
       + '</div></div>'
       + '<div id="dbxDefPane" style="display:none;flex-direction:column;gap:8px;min-height:0;flex:1">'
       + '<div><button type="button" class="btn small" id="dbxDefBack">← Danh mục</button></div></div>';
     ref.parentNode.insertBefore(wrap, ref.nextSibling);
+    var fileStyle = document.createElement("style");
+    fileStyle.textContent = `
+      #dbxFilePane{font-size:16px;gap:14px!important;color:var(--x-ink)}
+      #dbxFilePane .btn{font-size:15px!important;min-height:36px;padding:7px 12px;border-radius:6px}
+      #dbxFileQ{font-size:16px!important;min-height:40px;border:1px solid var(--x-line);border-radius:6px;background:var(--x-card);color:var(--x-ink)}
+      #dbxFileInfo{font-size:14px!important;color:var(--x-ink2)}
+      .dbx-file-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;flex:1;min-height:0}
+      .dbx-file-section{display:flex;flex-direction:column;min-width:0;min-height:0;border-top:3px solid var(--x-red);background:var(--x-card)}
+      .dbx-file-heading{display:flex;align-items:center;gap:10px;padding:16px 10px;border-bottom:1px solid var(--x-line)}
+      .dbx-file-heading h3{margin:0;font-size:19px;font-weight:750;letter-spacing:0;color:var(--x-ink)}
+      .dbx-file-symbol{font-size:24px;color:var(--x-red)}
+      .dbx-file-count{font-size:14px;font-weight:600;color:var(--x-ink2);margin-left:auto}
+      .dbx-file-scroll{overflow:auto;flex:1;min-height:0}
+      #dbxFilePane table{width:100%;border-collapse:collapse;font-size:16px!important;line-height:1.45}
+      #dbxFilePane thead th{position:sticky;top:0;z-index:1;text-align:left;padding:12px 10px!important;background:var(--x-bg)!important;color:var(--x-ink2)!important;-webkit-text-fill-color:var(--x-ink2)!important;border-bottom:1px solid var(--x-line);font-size:13px!important;letter-spacing:0;font-weight:700;white-space:nowrap}
+      #dbxFilePane tbody td{padding:12px 10px!important;font-size:16px!important;border-bottom:1px solid var(--x-line2);background:var(--x-card)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;vertical-align:middle}
+      #dbxFilePane tbody tr:nth-child(even) td{background:var(--x-bg)!important}
+      #dbxFilePane tbody tr:hover td,#dbxFilePane tbody tr:has(input:checked) td{background:color-mix(in srgb,var(--x-red) 7%,var(--x-card))!important}
+      #dbxFilePane .dbx-file-name{min-width:170px;overflow-wrap:anywhere;font-weight:550}
+      #dbxFilePane .dbx-file-size,#dbxFilePane .dbx-file-date{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:14px!important}
+      #dbxFilePane .dbx-file-size{text-align:right}
+      #dbxFilePane .dbx-check-col{width:34px;text-align:center}
+      #dbxFilePane input[type=checkbox]{width:16px;height:16px;accent-color:var(--x-red);cursor:pointer}
+      #dbxFilePane .dbx-file-action{text-align:right;white-space:nowrap}
+      #dbxFilePane .dbx-file-action a{background:transparent!important;color:var(--x-red)!important;-webkit-text-fill-color:var(--x-red)!important;border:1px solid var(--x-line);text-decoration:none;font-weight:700}
+      #dbxFilePane .dbx-file-action a:hover{border-color:var(--x-red)}
+      @media(max-width:1000px){.dbx-file-columns{grid-template-columns:minmax(0,1fr);flex:none}.dbx-file-scroll{max-height:560px}}
+    `;
+    document.head.appendChild(fileStyle);
     var pane = wrap.querySelector("#dbxBookPane"), grid = wrap.querySelector(".dbx-grid");
     var defPane = wrap.querySelector("#dbxDefPane");
     var bookCol = document.getElementById("afBook"); bookCol = bookCol && bookCol.parentNode;
@@ -82,9 +111,10 @@
     function rows(list){
       return list.slice(0, 1500).map(function(f){
         var d = f.updated ? new Date(f.updated).toLocaleString("vi-VN") : "";
-        return '<tr style="border-top:1px solid var(--line,#eee)"><td style="text-align:center"><input type="checkbox" class="dbxFileCk" data-p="'+esc(f.path)+'"></td>'
-          + '<td style="padding:5px 6px;word-break:break-all">'+esc(f.name)+'</td><td style="text-align:right;padding:5px 6px;white-space:nowrap">'+fmtSize(f.size)+'</td>'
-          + '<td style="padding:5px 6px;white-space:nowrap">'+d+'</td><td><a class="btn small" href="/api/files/get?p='+encodeURIComponent(f.path)+'" target="_blank">⬇ Tải</a></td></tr>';
+        var name = /^notices\//i.test(f.path) ? String(f.name).replace(/^notices\//i, '') : f.name;
+        return '<tr><td class="dbx-check-col"><input type="checkbox" class="dbxFileCk" aria-label="Chọn '+esc(name)+'" data-p="'+esc(f.path)+'"></td>'
+          + '<td class="dbx-file-name">'+esc(name)+'</td><td class="dbx-file-size">'+fmtSize(f.size)+'</td>'
+          + '<td class="dbx-file-date">'+d+'</td><td class="dbx-file-action"><a class="btn small" aria-label="Tải '+esc(name)+'" href="/api/files/get?p='+encodeURIComponent(f.path)+'" target="_blank">↓ Tải</a></td></tr>';
       }).join("");
     }
     function loadFiles(){
