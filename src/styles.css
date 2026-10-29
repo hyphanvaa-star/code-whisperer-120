@@ -223,14 +223,21 @@
 .sakura-brand-rule { width: 44px; height: 2px; background: var(--login-ink); margin: 18px 0 12px; }
 .sakura-brand p { font-size: 20px; line-height: 1.25; margin: 0; }
 .sakura-glass { position: absolute; left: 5%; top: 50%; transform: translateY(-50%); width: 28%; max-width: 380px; padding: 30px 30px 26px; border: 2px solid var(--login-ink); border-radius: 30px; background: color-mix(in oklab, var(--login-ink) 30%, transparent); backdrop-filter: blur(6px) brightness(1.08); box-shadow: var(--login-glass-shadow); }
+.sakura-form-title { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.2; color: var(--login-ink); }
+.sakura-form-sub { margin: 6px 0 20px; font-size: 14px; line-height: 1.4; color: var(--login-ink); opacity: .85; }
 .sakura-field-group + .sakura-field-group { margin-top: 18px; }
 .sakura-field-group label { display: block; margin-bottom: 7px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--login-ink); }
-.sakura-input { width: 100%; height: 40px; border-radius: 5px; border: 1px solid var(--login-glass-line); background: var(--login-input); color: var(--login-input-ink); font-size: 14px; padding: 0 13px; box-shadow: none; }
+.sakura-input-wrap { position: relative; }
+.sakura-input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--login-placeholder); pointer-events: none; }
+.sakura-input { width: 100%; height: 44px; border-radius: 8px; border: 1px solid var(--login-glass-line); background: var(--login-input); color: var(--login-input-ink); font-size: 14px; padding: 0 13px 0 38px; box-shadow: none; }
+.sakura-note { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border: 1px solid var(--login-glass-line); border-radius: 10px; background: color-mix(in oklab, var(--login-ink) 14%, transparent); }
+.sakura-note-icon { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--login-ink); }
+.sakura-note p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--login-ink); }
 .sakura-input::placeholder { color: var(--login-placeholder); }
 .sakura-input:focus-visible { border-color: var(--login-ink); outline: 2px solid var(--login-glass-line); }
 .sakura-forgot { text-align: right; margin: 9px 0 17px; }
 .sakura-forgot button, .sakura-account button { height: auto; padding: 0; font-size: 14px; color: var(--login-ink); text-decoration: underline; font-weight: 400; opacity: 1; }
-.sakura-signin { width: 100%; height: 40px; background: var(--login-red); color: var(--login-ink); border-radius: 5px; font-size: 13px; font-weight: 600; box-shadow: none; }
+.sakura-signin { width: 100%; height: 46px; margin-top: 22px; background: var(--login-red); color: var(--login-ink); border-radius: 8px; font-size: 15px; font-weight: 700; box-shadow: none; }
 .sakura-signin:hover { background: var(--login-red-hover); }
 .sakura-divider { display: flex; align-items: center; justify-content: center; gap: 19px; margin: 16px 0 12px; font-size: 14px; }
 .sakura-divider span { height: 1px; width: 72px; background: var(--login-glass-line); }
