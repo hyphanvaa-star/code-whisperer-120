@@ -1595,6 +1595,18 @@ const ddScript = `
       var d=document.createElement('div');
       var on=rw.el.selected;
       d.className='dd-row'+(on?' on':'');d.setAttribute('role','option');
+      if(cur.id==='fDispatcher' && rw.val){
+        var plus=document.createElement('button');plus.type='button';plus.className='btn dd-handover';
+        var received=cmpHandoverHas(rw.val);
+        plus.textContent=received?'−':'+';plus.setAttribute('aria-pressed',String(received));
+        plus.setAttribute('aria-label',(received?'Bỏ giao ca ':'Nhận giao ca ')+rw.val);
+        plus.title=(received?'Bỏ giao ca ':'Nhận giao ca ')+rw.val;
+        plus.disabled=dspKey(rw.val)===dspKey(cur.value);
+        (function(name,button){button.addEventListener('click',function(ev){
+          ev.stopPropagation();cmpHandoverToggle(name);paint(qEl.value);
+        });})(rw.val,plus);
+        d.appendChild(plus);
+      }
       var ck=document.createElement('span');ck.className='dd-ck';d.appendChild(ck);
       var tx=document.createElement('span');tx.className='dd-tx';tx.textContent=rw.text||'—';d.appendChild(tx);
       if(!on){
@@ -2191,7 +2203,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.51')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.53')
     ;
   return cached;
 }

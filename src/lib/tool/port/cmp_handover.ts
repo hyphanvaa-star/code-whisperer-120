@@ -1,0 +1,65 @@
+/** Compare-only scope; the primary dispatcher and other tabs stay unchanged. */
+export function cmpHandoverRows<T extends { sector_id: unknown; dsp?: string }>(rows: T[], primary: string, handovers: string[]): (T & { handover: boolean })[] {
+  const key = (v: string) => String(v || '').toUpperCase().replace(/\s+/g, ' ').trim();
+  const main = key(primary);
+  const wanted = new Set(handovers.map(key).filter(v => v && v !== main));
+  const seen = new Set<unknown>();
+  const selected = rows.filter(r => {
+    if (seen.has(r.sector_id) || (main && key(r.dsp || '') !== main && !wanted.has(key(r.dsp || '')))) return false;
+    seen.add(r.sector_id);
+    return true;
+  }).map(r => ({ ...r, handover: wanted.has(key(r.dsp || '')) }));
+  return [...selected.filter(r => r.handover), ...selected.filter(r => !r.handover)];
+}
+
+export function patchCmpHandoverPage(html: string): string {
+  return html
+    .replace('async function runCompare(opts){', `
+const cmpHandoverRows = ${cmpHandoverRows.toString()};
+const cmpHandoverDsps = new Set();
+let cmpHandoverRevision = 0;
+function cmpHandoverHas(name){ return cmpHandoverDsps.has(dspKey(name)); }
+function cmpHandoverToggle(name){
+  const key = dspKey(name);
+  if(!key || key === dspKey($("#fDispatcher").value)) return;
+  if(cmpHandoverDsps.has(key)) cmpHandoverDsps.delete(key); else cmpHandoverDsps.add(key);
+  if(xls) runCompare();
+  else alert("Đã chọn DSP giao ca — chọn Crewlist để nạp bảng So sánh.");
+}
+function cmpFlightPool(){
+  const byId = new Map();
+  for(const f of (allFlights || [])) byId.set(String(f.id), f);
+  for(const f of (flights || [])) byId.set(String(f.id), f);
+  return [...byId.values()].filter(inOpsWindow);
+}
+async function runCompare(opts){
+  const handoverRevision = ++cmpHandoverRevision;
+  const primaryDsp = $("#fDispatcher").value;
+  const handoverDsps = [...cmpHandoverDsps];
+  const scopeQs = qs();`)
+    .replace('    const p = new URLSearchParams(qs());\n    p.set("file", xls.file);', '    const p = new URLSearchParams(scopeQs);\n    if(handoverDsps.length) p.delete("dispatcher");\n    p.set("file", xls.file);')
+    .replace('    cmpQs = qs();', '    cmpQs = scopeQs;')
+    .replace('    lastCmp = d;\n    paintCompare(d);', `    if(handoverRevision !== cmpHandoverRevision || scopeQs !== qs()) return;
+    d.table = cmpHandoverRows(d.table || [], primaryDsp, handoverDsps);
+    lastCmp = d;
+    paintCompare(d);`)
+    .replace('    btn.disabled = false; btn.textContent = "Cmp";', '    if(handoverRevision === cmpHandoverRevision){ btn.disabled = false; btn.textContent = "Cmp"; }')
+    .replace('    const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");', `    const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");
+    if(r.handover){
+      tr.classList.add("cmp-handover-row");
+      const handoverTag = document.createElement("span");
+      handoverTag.className = "cmp-handover-tag";
+      handoverTag.textContent = "HANDOVER";
+      cs.appendChild(handoverTag);
+    }`)
+    // These lookups must include handover flights to retain CFP/OFP safeguards.
+    .replaceAll('const f = flights.find(x => String(x.id) === String(id) || x.id === Number(id));', 'const f = cmpFlightPool().find(x => String(x.id) === String(id) || x.id === Number(id));')
+    .replaceAll('const f = flights.find(x => x.id === nid || String(x.id) === String(id));', 'const f = cmpFlightPool().find(x => x.id === nid || String(x.id) === String(id));')
+    .replace('</head>', `<style>
+.cmptbl .cmp-handover-tag{display:block;width:max-content;margin-top:4px;padding:2px 6px;border-radius:4px;font-size:10px;line-height:15px;font-weight:800;color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--panel));border:1px solid color-mix(in srgb,var(--amber) 40%,var(--border));letter-spacing:0}
+.cmptbl .cmp-handover-row td:first-child{border-left:3px solid var(--amber)}
+#ddPop .dd-handover{flex:0 0 30px;min-height:30px;width:30px;padding:0;border-radius:6px;border:1px solid var(--x-line);color:var(--x-red);background:var(--x-card);font-size:20px;font-weight:800;line-height:28px;cursor:pointer}
+#ddPop .dd-handover[aria-pressed="true"]{background:var(--x-red);color:var(--x-card);border-color:var(--x-red)}
+#ddPop .dd-handover:disabled{opacity:.3;cursor:default}
+</style></head>`);
+}
