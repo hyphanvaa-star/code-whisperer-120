@@ -236,10 +236,10 @@ const SHIM = `<script>
         var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
         var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
         var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
-        board.title='Tải gói trợ lý PC về máy — giải nén rồi chạy cai-tro-ly.bat';
+        board.title='Trợ lý 5.9 — giải nén, cài một lần rồi bấm Chay-Ngam.vbs; tắt bằng Tat-Tro-Ly.vbs';
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip'; a.download='tro-ly-pc.zip';
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=5.9'; a.download='tro-ly-pc-5.9.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -2203,7 +2203,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.58')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.60')
     ;
   return cached;
 }
