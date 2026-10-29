@@ -109,7 +109,7 @@ export function AuthScreen() {
             Are you new? <Button type="button" variant="link" disabled>Create an Account</Button>
           </div>
         </main>
-        <span className="sakura-version">V 3.79</span>
+        <span className="sakura-version">V 3.80</span>
       </div>
     </div>
   );
