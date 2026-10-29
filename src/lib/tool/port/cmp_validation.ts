@@ -1,4 +1,5 @@
 import { patchCmpHandoverPage } from './cmp_handover';
+import { patchCmpSyncPage } from './cmp_sync';
 
 /** Compare tab: one Validation column summarising FUEL/TOW/LWT/ZFW/ETP/CONT-ERA; source cells stay hidden for hover data. */
 export function cmpValidationVerdict(items: { label: string; level: 'ok' | 'warn' | 'bad' | 'pending' }[]) {
@@ -33,8 +34,8 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 }
 
 export function patchCmpValidationPage(html: string): string {
-  return patchCmpHandoverPage(html)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.56')
+  return patchCmpSyncPage(patchCmpHandoverPage(html)
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.57')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -470,5 +471,5 @@ html.night .cmp-atc-pill.t-ok{background:rgba(134,239,172,.18);color:#8ee4b0;bor
 .cmp-atc-pill.t-none{background:transparent;color:#94a3b8;border-color:#e2e8f0;border-style:dashed}
 .cmp-atc-pill.t-none::before{display:none}
 .cmptbl .briefbtn:disabled{opacity:.35;cursor:not-allowed}
-</style></head>`);
+</style></head>`));
 }
