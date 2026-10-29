@@ -70,6 +70,23 @@ export function patchCmpValidationPage(html: string): string {
       }else briefCell.textContent = "—";
       const existingVerify = vVerifyCell(actionRow);
       verifyCell.replaceChildren(...existingVerify.childNodes);
+      if(!actionRow.ofp_ack){
+        const af = actionFlight, st = String(af.ofp_status || "").toUpperCase();
+        const loaded = !!af.has_ofp || /^(REL|PEN|PRO)$/.test(st);
+        const vf = !!(af.verified_by || af.verified_on);
+        const fo = af.fuel_order, cap = af.capt_sign || "";
+        const tag = document.createElement("span");
+        tag.className = "cmp-vst " + (!loaded ? "none" : vf ? "ok" : "wait");
+        tag.textContent = !loaded ? "Chưa tải" : vf ? "Đã VF" : "Chưa VF";
+        verifyCell.replaceChildren(tag);
+        if(fo){ const i = document.createElement("span"); i.className = "cmp-vic fuel"; i.textContent = "⛽"; verifyCell.appendChild(i); }
+        if(cap){ const i = document.createElement("span"); i.className = "cmp-vic sign"; i.textContent = "✍"; verifyCell.appendChild(i); }
+        const t = (v) => v ? new Date(v).toISOString().slice(11,16) + "Z" : "";
+        verifyCell.title = ["OFP: " + (loaded ? (st || "có") : "chưa tải"),
+          "Verify: " + (vf ? (af.verified_by || "đã verify") + (af.verified_on ? " · " + t(af.verified_on) : "") : "chưa"),
+          "Order dầu: " + (fo ? fo.amount + " " + (fo.units || "KG") : "chưa"),
+          "Capt sign: " + (cap || "chưa")].join("\\n");
+      }
       if(actionRow.ofp_ack){
         const quick = document.createElement("button");
         quick.type = "button";
@@ -387,6 +404,11 @@ function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(11),.cmptbl :is(th,td):nth-child(n+15):nth-child(-n+19){display:none!important}
 .cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
+.cmptbl .cmp-vst{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+.cmptbl .cmp-vst.ok{background:#16a34a;color:#fff}
+.cmptbl .cmp-vst.wait{background:#f59e0b;color:#fff}
+.cmptbl .cmp-vst.none{background:#e5e7eb;color:#6b7280}
+.cmptbl .cmp-vic{margin-left:4px;font-size:14px;vertical-align:middle}
 .cmptbl .cmp-ops-status .vd{font-size:10px;line-height:1.2;padding:2px 5px;white-space:nowrap}
 .cmptbl .cmp-note-cell{min-width:100px;max-width:220px;white-space:normal;overflow-wrap:anywhere}
 .cmp-note-input{display:block;width:160px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
