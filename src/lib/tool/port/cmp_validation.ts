@@ -35,7 +35,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return patchCmpSyncPage(patchCmpHandoverPage(html)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.63')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.64')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -411,7 +411,7 @@ function cmpValPaint(sid){
   const tagTxt = {ok:"OK", warn:"Tiệm cận", bad:"Sai", pending:"Chưa có"};
   td.dataset.ctipW = "1";
   const symbols = {FUEL:"⛽",TOW:"↗",LWT:"↘",ZFW:"⚖","CONT/ERA":"⛨",ETP:"⌖"};
-  td.dataset.ctip = '<div class="cmp-tip-h">Validation</div><div class="cmp-vs-grid">' + items.map((i, index) => {
+  td.dataset.ctip = '<div class="cmp-validation-flight">' + escV(td.dataset.cmpValCallsign || "") + '</div><div class="cmp-tip-h">Validation</div><div class="cmp-vs-grid">' + items.map((i, index) => {
     const lines = String(i.text || "").split("\\n").map(x => x.trim()).filter(Boolean);
     return '<div class="cmp-vs metric-' + index + ' ' + i.level + '"><div class="cmp-vs-h"><span><b class="cmp-vs-icon" aria-hidden="true">' + symbols[i.label] + '</b>' + escV(i.label) + '</span><em>' + tagTxt[i.level] + '</em></div>'
       + lines.map(l => '<div class="cmp-vs-l">' + escV(l).replace(/(còn\\s+-?[\\d,]+\\s*kg?)/i, "<b>$1</b>") + '</div>').join("") + '</div>';
@@ -436,6 +436,7 @@ function renderCompareTable(d, opts){`)
       const td = document.createElement("td");
       td.dataset.w = k;
       td.dataset.sid = r.sector_id;
+      if(k === "val") td.dataset.cmpValCallsign = r.callsign;
       td.innerHTML = '<span class="v q">…</span>';
       tr.appendChild(td);
     }`)
@@ -468,6 +469,7 @@ function renderCompareTable(d, opts){`)
 .cmp-tip.on{opacity:1;transform:none}
 .cmp-tip.cmp-tip-validation{box-sizing:border-box;width:580px;padding:16px;border:1px solid var(--validation-line);border-radius:8px;background:var(--validation-paper);color:var(--validation-ink);box-shadow:var(--validation-shadow);font-size:16px;line-height:1.5;letter-spacing:0;pointer-events:auto;overflow:auto}
 .cmp-tip-validation .cmp-tip-h{font-size:18px;letter-spacing:0;color:var(--validation-ink);margin-bottom:12px;text-transform:none}
+.cmp-validation-flight{font-size:23px;line-height:1.3;font-weight:800;color:var(--validation-ink);margin-bottom:3px}
 .cmp-vs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .cmp-vs{--metric:var(--validation-fuel);padding:12px;border:1px solid var(--validation-line);border-left:4px solid var(--metric);border-radius:6px;background:color-mix(in oklab,var(--metric) 5%,var(--validation-paper));min-width:0}
 .cmp-vs.metric-1{--metric:var(--validation-tow)}.cmp-vs.metric-2{--metric:var(--validation-lwt)}.cmp-vs.metric-3{--metric:var(--validation-zfw)}.cmp-vs.metric-4{--metric:var(--validation-era)}.cmp-vs.metric-5{--metric:var(--validation-etp)}
@@ -477,6 +479,13 @@ function renderCompareTable(d, opts){`)
 .cmp-vs-h em{font-style:normal;font-size:12px;line-height:1.4;padding:3px 7px;border-radius:999px;white-space:nowrap;background:var(--validation-line);color:var(--validation-ink)}
 .cmp-vs.ok em{background:var(--validation-good);color:var(--validation-on-good)}.cmp-vs.warn em{background:var(--validation-warn);color:var(--validation-warn-ink)}.cmp-vs.bad em{background:var(--validation-bad);color:var(--validation-on-good)}
 .cmp-vs-l{color:var(--validation-ink);overflow-wrap:anywhere;margin-top:3px;font-weight:500}.cmp-vs-l b{display:inline-block;font-weight:800;color:var(--metric)}
+.cmp-vs.ok{--status-bg:var(--validation-good);--status-ink:var(--validation-on-good)}
+.cmp-vs.warn{--status-bg:var(--validation-warn);--status-ink:var(--validation-warn-ink)}
+.cmp-vs.bad{--status-bg:var(--validation-bad);--status-ink:var(--validation-on-good)}
+.cmp-vs:is(.ok,.warn,.bad){background:var(--status-bg);border-color:var(--status-bg);color:var(--status-ink)}
+.cmp-vs:is(.ok,.warn,.bad) :is(.cmp-vs-h,.cmp-vs-l,.cmp-vs-l b){color:var(--status-ink);-webkit-text-fill-color:var(--status-ink)}
+.cmp-vs:is(.ok,.warn,.bad) .cmp-vs-icon{background:color-mix(in oklab,var(--status-ink) 16%,transparent);color:var(--status-ink)}
+.cmp-vs:is(.ok,.warn,.bad) .cmp-vs-h em{background:color-mix(in oklab,var(--status-ink) 16%,transparent);color:var(--status-ink)}
 @media(max-width:600px){.cmp-vs-grid{grid-template-columns:minmax(0,1fr)}.cmp-tip.cmp-tip-validation{width:380px}}
 .cmp-tip-h{font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin-bottom:6px}
 .cmp-tip-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;margin:3px 0;border-radius:8px;border-left:3px solid}
