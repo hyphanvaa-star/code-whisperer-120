@@ -215,6 +215,11 @@ export const routes: Routes = {
       seen_ago: agent ? Math.round((Date.now() - agent.at) / 1000) : null,
     };
   },
+  "GET /api/pc/pair-token": async (ctx) => {
+    const { currentUserId } = await import("../creds.server");
+    const uid = ctx.userId || currentUserId();
+    return { token: uid ? await pc.makePairToken(uid) : "" };
+  },
   "GET /api/gd/printers": async (ctx) => {
     const agent = await pc.agentInfo(ctx);
     const saved = await getJson<string>(ctx, PRINTER_KEY, "");
