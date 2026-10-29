@@ -285,6 +285,10 @@ const SHIM = `<script>
         var name='--atc-'+key;
         acDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
       });
+      ['panel','panel-ink','panel-muted','panel-line','panel-accent','panel-on-accent','panel-shadow'].forEach(function(key){
+        var name='--ops-'+key;
+        acDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
+      });
       acTokens.textContent=':root{'+acDeclarations.join(';')+'}';
       document.head.prepend(acTokens);
     } catch(e){}
@@ -1281,6 +1285,26 @@ header#mdRoom::before{content:"";display:block !important;position:absolute;left
 .ops-clock-wrap{height:56px;display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,.5)}.ops-clock-icon{display:grid;place-items:center;width:28px;height:28px;color:#fff}.ops-clock-icon svg{width:100%;height:100%}.ops-clock{display:flex;flex-direction:column;align-items:center;min-width:96px}.ops-clock strong{font:800 22px/1 var(--x-mono);color:#fff}.ops-clock span{margin-top:6px;font:800 12px/1 var(--x-sans);letter-spacing:.02em;color:#fff}
 .ops-account{display:flex;align-items:center;gap:11px;padding-left:20px}.ops-avatar{width:36px;height:36px;display:grid;place-items:center;border:2px solid #fff;border-radius:50%;background:var(--x-red);box-shadow:0 3px 10px rgba(0,0,0,.3);color:#fff;font:800 11px var(--x-sans)}.ops-account-chevron{width:8px;height:8px;border-right:2px solid rgba(255,255,255,.9);border-bottom:2px solid rgba(255,255,255,.9);transform:rotate(45deg) translateY(-2px)}
 .ops-account-btn{display:flex;align-items:center;gap:11px;margin:0;padding:0;border:0;background:none;cursor:pointer;font:inherit}.ops-acct-menu{position:absolute;right:17px;top:70px;min-width:246px;z-index:90;display:flex;flex-direction:column;padding:10px;border:1px solid rgba(255,255,255,.28);border-radius:14px;background:linear-gradient(180deg,#16222e,#0d1722);box-shadow:0 18px 42px rgba(10,18,28,.45)}.ops-acct-menu[hidden]{display:none}.ops-acct-who{display:flex;flex-direction:column;gap:5px;padding:2px 4px 10px;border-bottom:1px solid rgba(255,255,255,.18)}.ops-acct-who small{font:700 10px/1 var(--x-sans);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7)}.ops-acct-who strong{font:700 13px/1.2 var(--x-mono);color:#fff;word-break:break-all}.ops-acct-out{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:0;border-radius:10px;background:var(--x-red);color:#fff;font:800 13px var(--x-sans);letter-spacing:.02em;cursor:pointer}.ops-acct-out:hover{filter:brightness(1.1)}
+/* Compact ivory-free utility strip; its bottom stays above both action rows. */
+header#mdRoom .ops-header-live{top:8px;right:12px;height:62px;padding:0 14px;border:1px solid var(--ops-panel-line);border-top:3px solid var(--ops-panel-accent);border-radius:8px;background:var(--ops-panel);color:var(--ops-panel-ink);box-shadow:var(--ops-panel-shadow);backdrop-filter:blur(12px)}
+header#mdRoom .ops-weather,header#mdRoom .ops-clock-wrap{height:40px;border-color:var(--ops-panel-line)}
+header#mdRoom .ops-weather{grid-template-columns:30px auto auto;gap:8px;padding-right:16px}
+header#mdRoom .ops-weather-icon{font-size:26px;filter:none}
+header#mdRoom .ops-weather>strong,header#mdRoom .ops-clock strong{font-size:22px;color:var(--ops-panel-ink)}
+header#mdRoom .ops-weather b,header#mdRoom .ops-clock span{color:var(--ops-panel-ink);letter-spacing:0}
+header#mdRoom .ops-weather small{color:var(--ops-panel-muted)}
+header#mdRoom .ops-clock-wrap{padding:0 16px;gap:8px}
+header#mdRoom .ops-clock-icon{width:24px;height:24px;color:var(--ops-panel-accent)}
+header#mdRoom .ops-account{padding-left:14px}
+header#mdRoom .ops-account-btn{min-height:40px;padding:2px 4px;border-radius:6px}
+header#mdRoom .ops-avatar{width:36px;height:36px;border-color:var(--ops-panel-accent);background:var(--ops-panel-accent);color:var(--ops-panel-on-accent);box-shadow:none}
+header#mdRoom .ops-account-chevron{border-color:var(--ops-panel-muted)}
+header#mdRoom .ops-account-btn:hover{background:var(--ops-panel-line)}
+header#mdRoom .ops-account-btn:focus-visible{outline:2px solid var(--ops-panel-accent);outline-offset:3px}
+header#mdRoom .ops-acct-menu{top:76px;right:12px;border-radius:8px;background:var(--ops-panel);border-color:var(--ops-panel-line);box-shadow:var(--ops-panel-shadow)}
+header#mdRoom .ops-acct-who{border-color:var(--ops-panel-line)}
+header#mdRoom .ops-acct-who small{color:var(--ops-panel-muted);letter-spacing:0}
+header#mdRoom .ops-acct-who strong{color:var(--ops-panel-ink)}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
   display:block !important;position:absolute !important;left:38px !important;top:58% !important;
@@ -1335,9 +1359,9 @@ header#mdRoom .md-denpyo .md-row:not(.line){height:100% !important}
 header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{display:none !important}
 /* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
-  position:absolute !important;top:60.66% !important;right:.68% !important;bottom:auto !important;left:auto !important;
+  position:absolute !important;top:120px !important;right:.68% !important;bottom:auto !important;left:auto !important;
   display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:7px !important;align-items:stretch !important;
-  width:16.6% !important;height:28.2% !important;flex:none !important;padding:7px !important;border:1px solid rgba(255,255,255,.76) !important;border-radius:14px !important;margin:0 !important;z-index:20 !important;background:rgba(244,247,249,.88) !important;box-shadow:0 10px 24px rgba(20,36,52,.22),inset 0 1px 0 rgba(255,255,255,.9) !important;backdrop-filter:blur(14px) saturate(1.15) !important;
+  width:16.6% !important;height:44px !important;flex:none !important;padding:4px !important;border:1px solid var(--ops-panel-line) !important;border-radius:8px !important;margin:0 !important;z-index:20 !important;background:var(--ops-panel) !important;box-shadow:var(--ops-panel-shadow) !important;backdrop-filter:blur(14px) saturate(1.15) !important;
 }
 header#mdRoom .filt-actions .btn{
   height:100% !important;min-width:0 !important;padding:3px 2px !important;border:1px solid rgba(255,255,255,.96) !important;border-radius:9px !important;
@@ -1372,7 +1396,7 @@ header#mdRoom .head-right{
 header#mdRoom .hstat,header#mdRoom .crew-jobs,header#mdRoom .live-ops,header#mdRoom #ofpCheckStat,header#mdRoom #btnQuit{display:none !important}
 header#mdRoom .head-ops,header#mdRoom .md-hang,header#mdRoom .quit-sohee{display:contents !important}
 header#mdRoom #btnOfpCheck,header#mdRoom #aiFab,header#mdRoom .hdr-switch,header#mdRoom .theme-switch{
-  position:absolute !important;top:39.34% !important;width:3.7% !important;height:21.64% !important;min-width:0 !important;
+  position:absolute !important;top:78px !important;width:3.7% !important;height:36px !important;min-width:0 !important;
   margin:0 !important;padding:3px 2px !important;border-radius:9px !important;box-shadow:0 5px 13px rgba(22,38,53,.15),inset 0 1px 0 rgba(255,255,255,.96) !important;
   display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;
   background:rgba(255,255,255,.96) !important;border:1px solid rgba(255,255,255,.96) !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;font:900 10px/1.05 var(--x-sans) !important;
@@ -2167,6 +2191,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.50')
     ;
   return cached;
 }
