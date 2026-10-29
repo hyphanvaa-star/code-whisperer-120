@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 3.61: sửa bảng So sánh trống vì biến đường phân cách HANDOVER đặt nhầm bảng; kiểm tra vẽ chuyến thường và giao ca.
+- [x] V 3.61: sửa bảng So sánh trống vì biến đường phân cách HANDOVER đặt nhầm bảng; tái hiện lỗi trước sửa, vẽ lại chuyến đạt, 7 kiểm thử đạt và build OK.
 
 - [x] V 3.60: trợ lý 5.9 chạy ngầm bằng Chay-Ngam.vbs, tắt bằng Tat-Tro-Ly.vbs, giữ ghép tài khoản và nhật ký; 20 kiểm thử đạt, tải đúng gói mới, trang không lỗi.
 - [ ] Trợ lý 5.9: thử chạy/tắt trên Windows công ty — môi trường hiện tại không có Windows; cần người dùng tải gói và thử.
