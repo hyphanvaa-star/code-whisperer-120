@@ -67,7 +67,7 @@ export const routes: Routes = {
     // the client supplies track points directly (same as web.py's body["track"]).
 
     try {
-      return tunePlaces(flight, places, { ofpText, trackPoints: points });
+      return tunePlaces(flight, places, { ofpText, trackPoints: points, cfg: body.cfg });
     } catch (exc) {
       return { error: String((exc as Error)?.message ?? exc) };
     }
