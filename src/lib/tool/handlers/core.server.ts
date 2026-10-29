@@ -124,6 +124,11 @@ export function row(f: Flight, limits: LimitsData | null = EMPTY_LIMITS, attch: 
     status: f.status,
     ofp_status: f.ofp_status,
     ofp_ack: ofpAckNeeded(f),
+    has_ofp: !!f.has_ofp,
+    verified_by: f.verified_by_name || "",
+    verified_on: f.verified_on ? f.verified_on.toISOString() : "",
+    fuel_order: fuelOrderOf(f),
+    capt_sign: f.sector_accepted_by_name || ((f.crews || []).find((c) => c.is_captain && c.is_sector_accepted)?.full_name ?? ""),
     alternates: destAltsForRow(f),
     extra_fuel: f.planned_extra_fuel || 0,
     // web.py ofp.extra_of(f.id)[1]: minutes only known after reading the OFP
