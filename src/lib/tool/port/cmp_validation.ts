@@ -86,7 +86,7 @@ export function patchCmpValidationPage(html: string): string {
         const t = (v) => v ? new Date(v).toISOString().slice(11,16) + "Z" : "";
         const escT = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
         const tipRow = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + escT(v || "—") + '</b></div>';
-        verifyCell.dataset.tip = '<div class="cmp-tip-h">Verify</div>'
+        verifyCell.dataset.ctip = '<div class="cmp-tip-h">Verify</div>'
           + tipRow("OFP", loaded ? (st || "có") : "chưa tải")
           + tipRow("Verify", vf ? (af.verified_by || "đã verify") + (af.verified_on ? " · " + t(af.verified_on) : "") : "chưa")
           + tipRow("Order dầu", fo ? fo.amount + " " + (fo.units || "KG") : "chưa")
@@ -209,7 +209,7 @@ function cmpAtcPaint(r){
   const stdTxt = sd ? p2(sd.getUTCHours()) + p2(sd.getUTCMinutes()) + "Z" : "";
   const eobt = cached && cached.eobt ? cached.eobt + "Z" : "";
   const plain = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + (v ? esc(v) : '—') + '</b></div>';
-  td.dataset.tip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
+  td.dataset.ctip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
     + '<div class="cmp-tip-h" style="margin-top:8px">🕒 Ngày · giờ (UTC)</div>' + plain("Ngày bay", dateTxt) + plain("STD FliteBrief", stdTxt) + plain("EOBT AviWeb", eobt)
     + '<div class="cmp-tip-f' + (wrongReg ? ' bad' : '') + '">' + (wrongReg ? "Sai tàu: AviWeb ≠ " + esc(regIssues.join(", ")) : cached ? esc(cached.error || "Khớp · " + new Date(cached.time).toISOString().slice(11,16) + "Z") : "Bấm ATC check để đọc AviWeb") + '</div>';
   cmpTipEnsure();
@@ -219,9 +219,9 @@ function cmpTipEnsure(){
   if(window.__cmpTip) return;
   const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
   document.addEventListener("mouseover", e => {
-    const c = e.target.closest && e.target.closest("td[data-tip]");
+    const c = e.target.closest && e.target.closest("td[data-ctip]");
     if(!c){ tip.classList.remove("on"); return; }
-    tip.innerHTML = c.dataset.tip; tip.classList.add("on");
+    tip.innerHTML = c.dataset.ctip; tip.classList.add("on");
     const b = c.getBoundingClientRect();
     tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
     tip.style.top = (b.bottom + 6) + "px";
