@@ -222,7 +222,7 @@
 .sakura-brand h1 { margin: 18px 0 0; font-size: 64px; line-height: .94; font-weight: 750; letter-spacing: 0; }
 .sakura-brand-rule { width: 52px; height: 2px; background: var(--login-ink); margin: 20px 0 14px; }
 .sakura-brand p { font-size: 22px; line-height: 1.25; margin: 0; }
-.sakura-glass { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 36%; max-width: 540px; padding: 46px 46px 38px; border: 2px solid var(--login-ink); border-radius: 30px; background: color-mix(in oklab, var(--login-ink) 30%, transparent); backdrop-filter: blur(6px) brightness(1.08); box-shadow: var(--login-glass-shadow); }
+.sakura-glass { position: absolute; left: 34%; top: 42%; transform: translate(-50%, -50%); width: 36%; max-width: 540px; padding: 46px 46px 38px; border: 2px solid var(--login-ink); border-radius: 30px; background: color-mix(in oklab, var(--login-ink) 30%, transparent); backdrop-filter: blur(6px) brightness(1.08); box-shadow: var(--login-glass-shadow); }
 .sakura-form-title { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.2; color: var(--login-ink); }
 .sakura-form-sub { margin: 6px 0 20px; font-size: 14px; line-height: 1.4; color: var(--login-ink); opacity: .85; }
 .sakura-field-group + .sakura-field-group { margin-top: 18px; }
