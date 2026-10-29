@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 3.57: ô CREW/REG AIMS/REG FPL có viền bấm đổi theo nguồn thay đổi, xác nhận và đối chiếu lại FliteBrief.
+- [x] V 3.57: ô CREW/REG AIMS/REG FPL có viền bấm theo nguồn thay đổi, xác nhận và đối chiếu lại FliteBrief; 26 kiểm thử đạt, trang V 3.57 và 12 đoạn chạy hợp lệ; thử crew bằng dữ liệu mô phỏng đạt.
+- [ ] V 3.57: thử chuyến thật — chưa có phiên khớp người yêu cầu; thao tác tàu hiện có chỉ đổi file đính kèm, không sửa REG/OFP trên FliteBrief.
 
 - [x] V 3.53: dấu + trong dropdown DSP thêm/bỏ nhóm HANDOVER trên bảng So sánh; DSP chính bình thường phía dưới; 23 kiểm thử đạt, nhãn trang V 3.53.
 - [ ] V 3.53: thử nhận giao ca với chuyến thật — chưa mở được phiên người yêu cầu; cần người dùng đăng nhập preview và thử dấu +.
