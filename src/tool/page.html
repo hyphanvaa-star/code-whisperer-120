@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.92</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.93</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -16770,7 +16770,7 @@ $("#nmTrack").onclick = async () => {
     const dw = $("#nmWpt");
     if(dw){ dw.classList.remove("on"); dw.setAttribute("aria-pressed", "false"); }
     nmGroup = NM_GROUP_TRACK;
-    nmPick = NM_HITS_TAB;
+    nmPick = "";
     nmScrollDots = true;
     nmShowDropped = false;
     nmSyncActiveMap._kind = "track";
@@ -16778,6 +16778,9 @@ $("#nmTrack").onclick = async () => {
     nmDrawTrack(d);
     setMode("notam");
     nmPick = "";
+    nmRender();
+    { const hl = $("#nmTrackHits"); if(hl) hl.hidden = true;
+      const ls = $("#nmList"); if(ls){ ls.hidden = false; ls.innerHTML = '<div class="nm-item miss" style="font-size:15px;padding:18px">⏳ Đang phân loại NOTAM của chuyến…</div>'; } }
     btn.textContent = "Đang phân loại NOTAM…";
     await nmRunTune("track", btn, "Đang phân loại NOTAM…");
   }catch(err){
