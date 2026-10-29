@@ -121,7 +121,7 @@ def _local_server() -> None:
             if self.path == "/pair":
                 tok = str(body.get("token") or "")
                 if re.fullmatch(r"p1\.[0-9a-f-]{36}\.\d+\.[0-9a-f]{64}", tok):
-                    if tok.split(".")[1] != PAIR[0].split(".")[1:2][0] if PAIR[0] else True:
+                    if tok.split(".")[1] != (PAIR[0].split(".")[1] if PAIR[0] else ""):
                         log("✓ đã nhận tài khoản đang ngồi máy từ trình duyệt")
                     PAIR[0] = tok
                 self.wfile.write(json.dumps({"ok": True, "version": VERSION}).encode())

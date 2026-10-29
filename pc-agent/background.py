@@ -92,20 +92,6 @@ def main():
 
         cfg_path = ROOT / "pc_agent_config.json"
         config = json.loads(cfg_path.read_text(encoding="utf-8")) if cfg_path.exists() else {}
-        if not account_name(config, os.environ):
-            # Hidden Python has no stdin: collect pairing identity once, never
-            # run an unidentified helper that could pair through office NAT.
-            import tkinter as tk
-            from tkinter import simpledialog
-            window = tk.Tk()
-            window.withdraw()
-            window.attributes("-topmost", True)
-            user = simpledialog.askstring("Trợ lý Sohee", "ID tài khoản đăng nhập Sohee của bạn:", parent=window)
-            window.destroy()
-            if not user or not user.strip():
-                return
-            config["user"] = user.strip()
-            cfg_path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
         os.chdir(ROOT)
         sys.path.insert(0, str(ROOT))
         main_file = ROOT / "pc_agent.pyc"

@@ -91,6 +91,10 @@ if exist "%~dp0app\background.py" (
 )
 if exist "%~dp0app" attrib +h "%~dp0app" >nul 2>&1
 
+rem --- Tu chay cung Windows: dat loi tat vao thu muc Startup cua nguoi dung ---
+"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut([Environment]::GetFolderPath('Startup')+'\Sohee-Agent.lnk'); $s.TargetPath='wscript.exe'; $s.Arguments='\"%~dp0Chay-Ngam.vbs\"'; $s.WorkingDirectory='%~dp0'; $s.Save()" >nul 2>&1
+echo [3/3] Da bat tu chay khi mo may.
+
 rem --- 3. Chay ngam, khong de lai cua so CMD ---
 echo [3/3] Dang mo tro ly chay ngam...
 wscript.exe "%~dp0Chay-Ngam.vbs"

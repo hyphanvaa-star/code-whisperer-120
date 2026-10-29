@@ -173,8 +173,8 @@ export async function waitResult(
 }
 
 /** Agent heartbeat, written by the public poll route (no user session). */
-export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid = ""): Promise<void> {
-  const value = { ...info, at: Date.now() } as never;
+export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid = "", offline = false): Promise<void> {
+  const value = { ...info, at: offline ? 0 : Date.now() } as never;
   const updated_at = new Date().toISOString();
   const rows = [{ key: ip ? `pc.agent:${ip}` : "pc.agent", value, updated_at }];
   if (uid) rows.push({ key: `pc.agent:u:${uid}`, value, updated_at });
