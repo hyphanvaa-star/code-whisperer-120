@@ -47,7 +47,9 @@ async function runCompare(opts){
     .replace('    const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");', `    const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");
     if(r.handover){
       tr.classList.add("cmp-handover-row");
-      const handoverTag = document.createElement("span");
+      cs.innerHTML = '<span class="cmp-handover-cs"></span>';
+      cs.firstChild.textContent = r.callsign + (r.note ? " ⚠" : "");
+       const handoverTag = document.createElement("span");
       handoverTag.className = "cmp-handover-tag";
       handoverTag.textContent = "HANDOVER";
       cs.appendChild(handoverTag);
@@ -56,7 +58,8 @@ async function runCompare(opts){
     .replaceAll('const f = flights.find(x => String(x.id) === String(id) || x.id === Number(id));', 'const f = cmpFlightPool().find(x => String(x.id) === String(id) || x.id === Number(id));')
     .replaceAll('const f = flights.find(x => x.id === nid || String(x.id) === String(id));', 'const f = cmpFlightPool().find(x => x.id === nid || String(x.id) === String(id));')
     .replace('</head>', `<style>
-.cmptbl .cmp-handover-tag{display:block;width:max-content;margin-top:4px;padding:2px 6px;border-radius:4px;font-size:10px;line-height:15px;font-weight:800;color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--panel));border:1px solid color-mix(in srgb,var(--amber) 40%,var(--border));letter-spacing:0}
+.cmptbl .cmp-handover-cs{display:inline-block;padding:2px 9px;border-radius:7px;font-weight:800;color:#713f12;background:linear-gradient(180deg,#fde047,#facc15);border:1px solid #eab308;box-shadow:0 1px 3px rgba(234,179,8,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+.cmptbl .cmp-handover-tag{display:block;width:max-content;margin-top:5px;padding:2px 8px;border-radius:999px;font-size:9.5px;line-height:14px;font-weight:800;letter-spacing:.4px;color:#b45309;background:color-mix(in srgb,var(--amber) 12%,var(--panel));border:1.5px solid var(--amber);box-shadow:0 1px 2px color-mix(in srgb,var(--amber) 25%,transparent)}
 .cmptbl .cmp-handover-row td:first-child{border-left:3px solid var(--amber)}
 #ddPop .dd-handover{flex:0 0 30px;min-height:30px;width:30px;padding:0;border-radius:6px;border:1px solid var(--x-line);color:var(--x-red);background:var(--x-card);font-size:20px;font-weight:800;line-height:28px;cursor:pointer}
 #ddPop .dd-handover[aria-pressed="true"]{background:var(--x-red);color:var(--x-card);border-color:var(--x-red)}
