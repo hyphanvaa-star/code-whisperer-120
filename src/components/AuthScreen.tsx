@@ -73,8 +73,8 @@ export function AuthScreen() {
       <img src={loginBg.url} alt="" className="sakura-backdrop" />
       <div className="sakura-scene">
         <img src={loginBg.url} alt="Thành phố bên sông giữa những cành hoa anh đào" className="sakura-city" />
+        <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
         <section className="sakura-brand">
-          <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
           <div className="sakura-wordmark">vietjet<span>AIR</span></div>
           <h1>Sohee<br />Dispatch Board</h1>
           <div className="sakura-brand-rule" />
@@ -109,7 +109,7 @@ export function AuthScreen() {
             Are you new? <Button type="button" variant="link" disabled>Create an Account</Button>
           </div>
         </main>
-        <span className="sakura-version">V 3.75</span>
+        <span className="sakura-version">V 3.79</span>
       </div>
     </div>
   );
