@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 3.62: bỏ cập nhật toàn bảng lặp theo từng dòng gây đứng So sánh; làm Validation sáng, chữ lớn, từng mục có biểu tượng và màu riêng.
+
 - [x] V 3.61: sửa bảng So sánh trống vì biến đường phân cách HANDOVER đặt nhầm bảng; tái hiện lỗi trước sửa, vẽ lại chuyến đạt, 7 kiểm thử đạt và build OK.
 
 - [x] V 3.60: trợ lý 5.9 chạy ngầm bằng Chay-Ngam.vbs, tắt bằng Tat-Tro-Ly.vbs, giữ ghép tài khoản và nhật ký; 20 kiểm thử đạt, tải đúng gói mới, trang không lỗi.
