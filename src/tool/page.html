@@ -14177,7 +14177,8 @@ function nmPaintList(place, q){
       el.onclick = (ev) => { ev.stopPropagation(); jump(); };
     });
     if(ident) item.onclick = jump;
-    list.appendChild(item);
+    target.appendChild(item);
+  }
   }
   if(nmFocusIdent){
     const on = [...list.querySelectorAll(".nm-item")].find(
