@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Lock, ShieldCheck, User } from "lucide-react";
 
 const schema = z.object({
   id: z
@@ -81,35 +82,35 @@ export function AuthScreen() {
           <p>Connecting People,<br />Flying Further Together</p>
         </section>
         <main className="sakura-glass">
+          <h2 className="sakura-form-title">Đăng nhập</h2>
+          <p className="sakura-form-sub">Dùng ID và mật khẩu do quản lý cấp.</p>
           <form onSubmit={submit}>
             <div className="sakura-field-group">
-              <Label htmlFor="id">ID</Label>
-              <Input id="id" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
-                placeholder="Enter your ID" className="sakura-input" value={id} onChange={(e) => setId(e.target.value)} />
+              <Label htmlFor="id">ID tài khoản</Label>
+              <div className="sakura-input-wrap">
+                <User className="sakura-input-icon" aria-hidden="true" />
+                <Input id="id" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
+                  placeholder="hyphan" className="sakura-input" value={id} onChange={(e) => setId(e.target.value)} />
+              </div>
             </div>
             <div className="sakura-field-group">
-              <Label htmlFor="pw">Password</Label>
-              <Input id="pw" type="password" autoComplete="current-password" placeholder="********"
-                className="sakura-input" value={password} onChange={(e) => setPassword(e.target.value)} />
-            </div>
-            <div className="sakura-forgot" title="Liên hệ người quản lý để đặt lại mật khẩu">
-              <Button type="button" variant="link" disabled>Forgot password?</Button>
+              <Label htmlFor="pw">Mật khẩu</Label>
+              <div className="sakura-input-wrap">
+                <Lock className="sakura-input-icon" aria-hidden="true" />
+                <Input id="pw" type="password" autoComplete="current-password" placeholder="********"
+                  className="sakura-input" value={password} onChange={(e) => setPassword(e.target.value)} />
+              </div>
             </div>
             <Button type="submit" disabled={busy} className="sakura-signin">
-              {busy ? "Đang đăng nhập…" : "SIGN IN"}
+              {busy ? "Đang đăng nhập…" : "Đăng nhập"}
             </Button>
           </form>
-          <div className="sakura-divider"><span />or<span /></div>
-          <div title="Đăng nhập Google chưa được thiết lập">
-            <Button type="button" variant="outline" disabled className="sakura-google">
-              <span className="sakura-google-mark" aria-hidden="true">G</span>Sign in with Google
-            </Button>
-          </div>
-          <div className="sakura-account" title="Liên hệ người quản lý để được cấp tài khoản">
-            Are you new? <Button type="button" variant="link" disabled>Create an Account</Button>
+          <div className="sakura-note">
+            <ShieldCheck className="sakura-note-icon" aria-hidden="true" />
+            <p>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
         </main>
-        <span className="sakura-version">V 3.82</span>
+        <span className="sakura-version">V 3.83</span>
       </div>
     </div>
   );
