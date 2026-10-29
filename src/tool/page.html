@@ -14051,79 +14051,88 @@ function nmPaintList(place, q){
     list.textContent = "Lỗi: " + place.error;
     return;
   }
-  if(dropped.length){
-    const bar = document.createElement("div");
-    bar.className = "nm-drop-bar";
-    bar.appendChild(document.createTextNode(
-      (place.code || "") + (place.kind === "FIR" ? " — FIR đã lọc " : " — SÂN đã lọc ")
-      + dropped.length));
-    if(seeDrop){
-      const back = document.createElement("button");
-      back.type = "button";
-      back.textContent = "Về danh sách còn lại";
-      back.onclick = () => { nmShowDropped = false; nmRender(); };
-      bar.appendChild(back);
-    }else{
-      const see = document.createElement("button");
-      see.type = "button";
-      see.textContent = "Xem đã lược";
-      see.onclick = () => { nmShowDropped = true; nmRender(); };
-      bar.appendChild(see);
-    }
-    list.appendChild(bar);
-  }
-  const src = seeDrop ? dropped : kept;
-  const rows = src.filter(n => nmMatchItem(n, q));
-  if(!rows.length){
-    const empty = document.createElement("div");
-    empty.className = "nm-item miss";
-    empty.textContent = q ? "Không khớp bộ lọc."
-      : (seeDrop ? "Không có NOTAM bị lược." : "Không có NOTAM trong cửa sổ 24H.");
-    list.appendChild(empty);
-    return;
-  }
+  const graded = kept.some(n => n.level) || dropped.some(n => n.level);
   const nmGrpOf = (n) => {
-    if(seeDrop) return "noimpact";
+    if(n._noimp) return "noimpact";
     const l = n.level || "";
     if(l === "CRITICAL" || l === "DELAY-ONLY") return "impact";
     if(l === "NEED MANUAL CHECK") return "manual";
     if(l === "BRIEFING INFO") return "brief";
     if(l === "NO IMPACT") return "noimpact";
-    return "";
+    return "brief";
   };
-  const nmGrpName = {impact:"🔴 CÓ ẢNH HƯỞNG (Critical / Delay-only)", manual:"🟡 CẦN KIỂM TRA TAY", brief:"🔵 THÔNG TIN BRIEFING", noimpact:"⚪ KHÔNG ẢNH HƯỞNG"};
-  const nmGrpRank = {impact:0, manual:1, brief:2, noimpact:3, "":4};
-  if(rows.some(n => n.level)){
-    rows.sort((a, b) => nmGrpRank[nmGrpOf(a)] - nmGrpRank[nmGrpOf(b)]);
-    const cnt = {};
-    rows.forEach(n => { const g = nmGrpOf(n); cnt[g] = (cnt[g] || 0) + 1; });
+  const nmGrpName = {impact:"🔴 CÓ ẢNH HƯỞNG", manual:"🟡 CẦN KIỂM TRA TAY", brief:"🔵 THÔNG TIN BRIEFING", noimpact:"⚪ KHÔNG ẢNH HƯỞNG"};
+  const nmGrpHint = {impact:"Critical / Delay-only — ảnh hưởng giờ bay hoặc khi trễ", manual:"Thiếu dữ liệu hoặc chưa xác định vùng", brief:"Tham khảo khi briefing", noimpact:"Ngoài giờ / ngoài hành lang / lệch cao độ"};
+  if(!graded && dropped.length){
+    const bar = document.createElement("div");
+    bar.className = "nm-drop-bar";
+    bar.appendChild(document.createTextNode(
+      (place.code || "") + (place.kind === "FIR" ? " — FIR đã lọc " : " — SÂN đã lọc ")
+      + dropped.length));
+    const see = document.createElement("button");
+    see.type = "button";
+    see.textContent = seeDrop ? "Về danh sách còn lại" : "Xem đã lược";
+    see.onclick = () => { nmShowDropped = !seeDrop; nmRender(); };
+    bar.appendChild(see);
+    list.appendChild(bar);
+  }
+  const src = graded
+    ? kept.concat(dropped.map(n => Object.assign({}, n, {_noimp: true, level: n.level || "NO IMPACT"})))
+    : (seeDrop ? dropped : kept);
+  const rows = src.filter(n => nmMatchItem(n, q));
+  if(!rows.length){
+    const empty = document.createElement("div");
+    empty.className = "nm-item miss";
+    empty.textContent = q ? "Không khớp bộ lọc." : "Không có NOTAM trong cửa sổ 24H.";
+    list.appendChild(empty);
+    return;
+  }
+  const order = graded ? ["impact","manual","brief","noimpact"] : [null];
+  if(graded){
     const sum = document.createElement("div");
     sum.className = "nm-grp-sum";
-    for(const g of ["impact","manual","brief"]){
+    for(const g of order){
       const s = document.createElement("span");
       s.className = "nm-grp-pill nm-grp-" + g;
-      s.textContent = nmGrpName[g].split(" (")[0] + ": " + (cnt[g] || 0);
+      s.textContent = nmGrpName[g] + ": " + rows.filter(x => nmGrpOf(x) === g).length;
       sum.appendChild(s);
     }
-    const s = document.createElement("span");
-    s.className = "nm-grp-pill nm-grp-noimpact";
-    s.textContent = "⚪ KHÔNG ẢNH HƯỞNG: " + dropped.length;
-    sum.appendChild(s);
     list.appendChild(sum);
   }
-  let nmCurGrp = null;
-  for(const n of rows){
-    const g = n.level || seeDrop ? nmGrpOf(n) : null;
-    if(g && g !== nmCurGrp){
-      nmCurGrp = g;
-      const h = document.createElement("div");
-      h.className = "nm-grp-head nm-grp-" + g;
-      h.textContent = nmGrpName[g] + " — " + rows.filter(x => nmGrpOf(x) === g).length;
-      list.appendChild(h);
+  if(typeof window.nmGrpClosed !== "object") window.nmGrpClosed = {noimpact: true};
+  for(const g of order){
+    const grpRows = g ? rows.filter(x => nmGrpOf(x) === g) : rows;
+    let target = list;
+    if(g){
+      const box = document.createElement("section");
+      box.className = "nm-grp-box nm-grp-" + g;
+      const h = document.createElement("button");
+      h.type = "button";
+      h.className = "nm-grp-head";
+      const closed = !!window.nmGrpClosed[g];
+      h.innerHTML = "<b></b><span></span><i></i>";
+      h.children[0].textContent = nmGrpName[g] + " (" + grpRows.length + ")";
+      h.children[1].textContent = nmGrpHint[g];
+      h.children[2].textContent = closed ? "▸ Mở" : "▾ Thu gọn";
+      h.onclick = () => { window.nmGrpClosed[g] = !closed; nmRender(); };
+      box.appendChild(h);
+      list.appendChild(box);
+      if(closed || !grpRows.length){
+        if(!grpRows.length){
+          const e = document.createElement("div");
+          e.className = "nm-grp-empty";
+          e.textContent = "Không có NOTAM";
+          box.appendChild(e);
+        }
+        continue;
+      }
+      target = box;
     }
+  for(const n of grpRows){
+    const isNo = !!n._noimp || n.level === "NO IMPACT";
     const item = document.createElement("div");
     item.className = "nm-item"
-      + (seeDrop ? " drop" : "")
+      + ((seeDrop || isNo) ? " drop" : "")
       + (nmHitIdents.has(n.ident) ? " hit" : "")
       + (nmFocusIdent && n.ident === nmFocusIdent ? " nm-item-on" : "");
     if(n.ident) item.dataset.ident = n.ident;
@@ -14142,14 +14151,14 @@ function nmPaintList(place, q){
       tag.textContent = n.level + (n.level === "DELAY-ONLY" && n.impact_delay != null ? " · trễ ≥" + n.impact_delay + "′" : "")
         + (n.level === "BRIEFING INFO" ? "" : (n.match_type ? " · " + n.match_type : ""));
       lv.appendChild(tag);
-      if(!seeDrop && (n.reasons || []).length){
+      const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || "");
+      if(why){
         const r = document.createElement("span");
-        r.textContent = n.reasons.join(" ");
+        r.textContent = why;
         lv.appendChild(r);
       }
       item.appendChild(lv);
-    }
-    if(seeDrop && n.skip_why){
+    }else if(seeDrop && n.skip_why){
       const why = document.createElement("span");
       why.className = "nm-drop-why";
       why.textContent = n.skip_why;
