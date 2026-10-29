@@ -17,11 +17,12 @@ export function cmpAircraftChange(reg: ChangeRow['reg']): boolean {
 export function cmpPilotChanges(oldRaw: unknown, newRaw: unknown) {
   const pilots = (raw: unknown) => {
     const out: Record<string, string> = {};
+    const seen = new Set<string>();
     for (const m of String(raw || '').matchAll(/\(([^)]*)\)\s*-?\s*(\d{3,6})/g)) {
       const role = String(m[1] || '').toUpperCase();
       if (/DHD/.test(role)) continue;
       const key = /\b(CPT|CAPT|CAPTAIN)\b/.test(role) ? 'cptText' : /\b(FO|F\/O|FIRST OFFICER)\b/.test(role) ? 'foText' : '';
-      if (key) out[key] = out[key] ? '' : String(m[2] || '').replace(/^0+/, '');
+      if (key) { out[key] = seen.has(key) ? '' : String(m[2] || '').replace(/^0+/, ''); seen.add(key); }
     }
     return out;
   };
@@ -39,6 +40,7 @@ const cmpSyncChecks = new Map();
 function cmpSyncEvidence(r, kind){
   const f = cmpActionFlight(r);
   if(!f) return null;
+  if(cmpSyncSources.current !== ((xls && xls.file) || cmpSyncSources.current)) return null;
   const row = cmpSourceChange(kind === "fpl" ? cmpSyncSources.fpl : cmpSyncSources.crew, f.id, f.std);
   if(!row || !(kind === "crew" ? row.crew && row.crew.changed : cmpAircraftChange(row.reg))) return null;
   const bound = cmpBind[String(r.sector_id)];
@@ -67,6 +69,7 @@ function cmpSyncPaint(r, kind){
   const td = document.querySelector('#cmpBody td[' + attr + '="' + r.sector_id + '"]');
   if(!td) return;
   td.querySelectorAll(".cmp-sync-action,.cmp-sync-pick").forEach(b => b.remove());
+  Array.from(td.children).forEach(el => {el.hidden = false;});
   const e = cmpSyncEvidence(r, kind);
   if(!e) return;
   const checked = cmpSyncChecks.get(cmpSyncKey(e));
@@ -80,6 +83,7 @@ function cmpSyncPaint(r, kind){
     + (ok ? " · Đã khớp FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
   b.onclick = ev => {ev.stopPropagation(); cmpSyncOpen(r, kind);};
   if(kind === "crew") td.prepend(b);
+  else if(kind === "fpl") td.replaceChildren(b);
   else { Array.from(td.children).forEach(el => {if(!el.classList.contains("cmp-sync-pick")) el.hidden = true;}); td.prepend(b); }
   if(kind !== "fpl" && xls && xls.file){
     const pick = document.createElement("button"); pick.type = "button"; pick.className = "cmp-sync-pick"; pick.textContent = "≡";
@@ -109,7 +113,7 @@ async function cmpSyncOpen(r, kind){
     if(!crew) L.push("Thao tác giống tab Dữ liệu thay đổi: cập nhật file đính kèm theo tàu mới; không sửa tàu của OFP.");
     if(!confirm(L.join("\\n") + "\\n\\nXác nhận cập nhật lên FliteBrief?")) return;
     if(!cmpSyncEvidence(r,kind) || cmpSyncKey(cmpSyncEvidence(r,kind)) !== cmpSyncKey(e)) throw new Error("Nguồn đã thay đổi — bấm Cmp rồi thử lại.");
-    await cmpSyncCheck(e);
+    if(await cmpSyncCheck(e)) return;
     const run = await fetch(base + "/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)});
     const job = await run.json(); if(!run.ok || job.error || !job.id) throw new Error(job.error || "Không gửi được thay đổi.");
     const complete = await ftStream(job.id); await cmpSyncCheck(e);
@@ -137,7 +141,7 @@ async function cmpReadSyncSources(){
         return diff.rows || [];
       }));
       if(seq!==cmpSyncSeq) return;
-      cmpSyncSources={stamp,crew:results[0],fpl:results[1]};
+      cmpSyncSources={stamp,current,crew:results[0],fpl:results[1]};
     }
     const targets = ((lastCmp && lastCmp.table) || []).flatMap(r=>["crew","aims","fpl"].map(kind=>cmpSyncEvidence(r,kind)).filter(Boolean));
     cmpSyncRepaint();
@@ -149,12 +153,16 @@ async function cmpReadSyncSources(){
   }catch(_){/* Source errors do not authorize a new action. */}
 }
 setInterval(()=>{if(!document.hidden && !cmpSyncBusy && document.querySelector("#cmpBody")?.offsetParent!==null) cmpReadSyncSources();},60000);
+const cmpSyncFillCrew = fillCrewCell;
+fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=((lastCmp && lastCmp.table)||[]).find(r=>String(r.sector_id)===String(td.dataset.crewSid));if(r)cmpSyncPaint(r,"crew");return td;};
+const cmpSyncFillReg = fillRegCell;
+fillRegCell = function(...args){const td=cmpSyncFillReg(...args);const r=((lastCmp && lastCmp.table)||[]).find(r=>String(r.sector_id)===String(td.dataset.regSid));if(r)cmpSyncPaint(r,"aims");return td;};
 function renderCompareTable(d, opts){`)
     .replace('  cmpOpsRepaint(rows);', '  cmpReadSyncSources();\n  cmpOpsRepaint(rows);')
     .replace('function cmpRegRepaint(){', 'function cmpRegRepaint(){\n  cmpSyncRepaint();')
     .replace('  td.title = "FPL: "', '  cmpSyncPaint(r, "fpl");\n  td.title = "FPL: "')
     .replace('</head>', `<style>
-.cmptbl .cmp-sync-action{display:inline-flex;align-items:center;justify-content:center;min-width:70px;min-height:30px;padding:4px 9px;border:2px solid var(--red)!important;border-radius:7px;background:var(--panel)!important;color:var(--red)!important;-webkit-text-fill-color:currentColor!important;font:800 12px/1.3 inherit;cursor:pointer;letter-spacing:0}
+.cmptbl .cmp-sync-action{display:inline-flex;align-items:center;justify-content:center;min-width:70px;min-height:30px;padding:4px 9px;border:2px solid var(--red)!important;border-radius:7px;background:var(--panel)!important;color:var(--red)!important;-webkit-text-fill-color:currentColor!important;font-family:inherit;font-weight:800;font-size:12px;line-height:1.3;cursor:pointer;letter-spacing:0}
 .cmptbl .cmp-sync-action.synced{border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
 .cmptbl .cmp-sync-action:disabled:not(.synced){opacity:.55;cursor:default}
 .cmptbl .cmp-sync-action:focus-visible,.cmptbl .cmp-sync-pick:focus-visible{outline:2px solid var(--red);outline-offset:3px}

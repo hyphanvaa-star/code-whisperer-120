@@ -18,5 +18,6 @@ describe('Compare source changes', () => {
     expect(cmpPilotChanges('(CPT) 1234; (FO) 5678','(CPT) 4321; (FO) 5678')).toEqual([{key:'cptText',from:'1234',to:'4321'}]);
     expect(cmpPilotChanges('(CPT) 1234','(DHD CPT) 4321')).toEqual([]);
     expect(cmpPilotChanges('unknown','unknown')).toEqual([]);
+    expect(cmpPilotChanges('(CPT) 1234','(CPT) 4321; (CPT) 5555; (CPT) 6666')).toEqual([]);
   });
 });
