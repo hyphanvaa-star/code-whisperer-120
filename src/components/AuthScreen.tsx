@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import loginBg from "@/assets/login-sakura-city.png.asset.json";
+import loginBgUrl from "@/assets/login-city-left-clear.jpg";
 import vietjetPlane from "@/assets/login-vietjet-plane.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -70,9 +70,9 @@ export function AuthScreen() {
 
   return (
     <div className="sakura-login">
-      <img src={loginBg.url} alt="" className="sakura-backdrop" />
+      <img src={loginBgUrl} alt="" className="sakura-backdrop" />
       <div className="sakura-scene">
-        <img src={loginBg.url} alt="Thành phố bên sông giữa những cành hoa anh đào" className="sakura-city" />
+        <img src={loginBgUrl} alt="Thành phố bên sông giữa những cành hoa anh đào" className="sakura-city" />
         <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
         <section className="sakura-brand">
           <div className="sakura-wordmark">vietjet<span>AIR</span></div>
@@ -109,7 +109,7 @@ export function AuthScreen() {
             Are you new? <Button type="button" variant="link" disabled>Create an Account</Button>
           </div>
         </main>
-        <span className="sakura-version">V 3.80</span>
+        <span className="sakura-version">V 3.81</span>
       </div>
     </div>
   );
