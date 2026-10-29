@@ -391,7 +391,16 @@ function cmpValPaint(sid){
     line.textContent = first + (room ? " · còn " + room[1] : "");
     td.appendChild(line);
   }
-  td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
+  td.removeAttribute("title");
+  const escV = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const tagTxt = {ok:"OK", warn:"Tiệm cận", bad:"Sai", pending:"Chưa có"};
+  td.dataset.ctipW = "1";
+  td.dataset.ctip = '<div class="cmp-tip-h">Validation</div>' + items.map(i => {
+    const lines = String(i.text || "").split("\\n").map(x => x.trim()).filter(Boolean);
+    return '<div class="cmp-vs ' + i.level + '"><div class="cmp-vs-h"><span>' + escV(i.label) + '</span><em>' + tagTxt[i.level] + '</em></div>'
+      + lines.map(l => '<div class="cmp-vs-l">' + escV(l).replace(/(còn\\s+-?[\\d,]+\\s*kg?)/i, "<b>$1</b>") + '</div>').join("") + '</div>';
+  }).join("");
+  cmpTipEnsure();
 }
 function renderCompareTable(d, opts){`)
     .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  rows.forEach(cmpAtcPaint);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
