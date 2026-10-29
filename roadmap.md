@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.53: dấu + trong dropdown DSP thêm/bỏ nhóm HANDOVER trên bảng So sánh; DSP chính bình thường phía dưới; 23 kiểm thử đạt, nhãn trang V 3.53.
+- [ ] V 3.53: thử nhận giao ca với chuyến thật — chưa mở được phiên người yêu cầu; cần người dùng đăng nhập preview và thử dấu +.
+
 - [x] V 3.13: nhãn OpsCore OOOI nhỏ dưới CALLSIGN ở bảng so sánh; dùng màu/trạng thái hiện có và cập nhật theo lượt nền 30 giây.
 
 - [x] V 3.12: thêm ATC status giữa CREW/REG FPL, đọc AviWeb khi chạy Cmp; chỉ nhận kết quả đúng DOF trên chuyến/chặng đã chọn.

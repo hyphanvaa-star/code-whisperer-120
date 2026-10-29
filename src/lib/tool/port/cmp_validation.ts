@@ -1,3 +1,5 @@
+import { patchCmpHandoverPage } from './cmp_handover';
+
 /** Compare tab: one Validation column summarising FUEL/TOW/LWT/ZFW/ETP/CONT-ERA; source cells stay hidden for hover data. */
 export function cmpValidationVerdict(items: { label: string; level: 'ok' | 'warn' | 'bad' | 'pending' }[]) {
   if (items.some((i) => i.level === 'bad')) return 'bad';
@@ -31,8 +33,8 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 }
 
 export function patchCmpValidationPage(html: string): string {
-  return html
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.52')
+  return patchCmpHandoverPage(html)
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.53')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -148,7 +150,7 @@ export function patchCmpValidationPage(html: string): string {
       current = r.sector_id;`)
     .replace('function renderCompareTable(d, opts){', `
 function cmpActionFlight(r){
-  const hits = (flights || []).filter(f => String(f.id) === String(r.sector_id)
+  const hits = cmpFlightPool().filter(f => String(f.id) === String(r.sector_id)
     && f.callsign === r.callsign && inOpsWindow(f));
   return hits.length === 1 ? hits[0] : null;
 }

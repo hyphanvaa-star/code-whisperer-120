@@ -4,7 +4,7 @@ import { patchCmpValidationPage, cmpValidationVerdict, cmpRegState, cmpAtcRegIss
 const patched = patchCmpValidationPage('function renderCompareTable(d, opts){');
 const start = patched.indexOf('function cmpActionFlight');
 const end = patched.indexOf('const cmpRegState', start);
-const select = new Function('flights', 'inOpsWindow', 'r', patched.slice(start, end) + '\nreturn cmpActionFlight(r);');
+const select = new Function('flights', 'inOpsWindow', 'r', 'function cmpFlightPool(){ return flights.filter(inOpsWindow); }\n' + patched.slice(start, end) + '\nreturn cmpActionFlight(r);');
 const flight = { id: 64200, callsign: 'VJC642', std: '2026-10-27T08:00:00Z', reg: 'VN-A642' };
 const row = { sector_id: 64200, callsign: 'VJC642' };
 
