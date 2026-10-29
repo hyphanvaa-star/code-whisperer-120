@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.67 / Trợ lý 6.2: bỏ hỏi thư mục tool, nhận công cụ đóng gói dạng .pyc; 25 kiểm thử đạt, gói tải trực tiếp đúng 6.2 và nhãn V 3.67.
+- [ ] Trợ lý 6.2: thử cài/chạy trên Windows công ty — môi trường hiện tại không có Windows.
+
 - [x] V 3.62: bỏ cập nhật toàn bảng trong từng ô REG, chỉ tô lại chuyến vừa check và lập chỉ mục dòng; Validation nền sáng, chữ 16–18px, sáu biểu tượng/màu riêng. 26 kiểm thử đạt, đã xem khung mẫu, trang không lỗi.
 - [ ] V 3.62: xác nhận độ mượt trên danh sách chuyến thật — chưa có phiên tài khoản để thử; người dùng bấm Cmp và rê Validation.
 
