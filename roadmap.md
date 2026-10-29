@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 3.62: bỏ cập nhật toàn bảng lặp theo từng dòng gây đứng So sánh; làm Validation sáng, chữ lớn, từng mục có biểu tượng và màu riêng.
+- [x] V 3.62: bỏ cập nhật toàn bảng trong từng ô REG, chỉ tô lại chuyến vừa check và lập chỉ mục dòng; Validation nền sáng, chữ 16–18px, sáu biểu tượng/màu riêng. 26 kiểm thử đạt, đã xem khung mẫu, trang không lỗi.
+- [ ] V 3.62: xác nhận độ mượt trên danh sách chuyến thật — chưa có phiên tài khoản để thử; người dùng bấm Cmp và rê Validation.
 
 - [x] V 3.61: sửa bảng So sánh trống vì biến đường phân cách HANDOVER đặt nhầm bảng; tái hiện lỗi trước sửa, vẽ lại chuyến đạt, 7 kiểm thử đạt và build OK.
 
