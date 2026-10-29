@@ -2,8 +2,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plane } from "lucide-react";
-import loginBg from "@/assets/login-bg-longthanh.jpg";
+import loginBg from "@/assets/login-sakura-city.png.asset.json";
+import vietjetPlane from "@/assets/login-vietjet-plane.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,80 +68,48 @@ export function AuthScreen() {
     }
   }
 
-  const field =
-    "h-12 rounded-lg border-white/25 bg-white/90 text-base text-neutral-900 placeholder:text-neutral-400 focus-visible:border-white focus-visible:ring-white/40";
-
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <img src={loginBg} alt="" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-black/35" />
-
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10 lg:flex-row lg:items-center lg:justify-between">
-        <section className="hidden max-w-xl text-white lg:block">
-          <div className="flex items-center gap-2 text-2xl font-black italic tracking-wide">
-            <Plane className="h-6 w-6" /> Vietjet Air
-          </div>
-          <h1 className="mt-10 text-6xl font-extrabold uppercase leading-[1.05] tracking-tight">
-            Sohee
-            <br />
-            Dispatch Board
-          </h1>
-          <p className="mt-6 text-lg font-medium text-white/90">
-            Kết nối bầu trời, vận hành mỗi ngày.
-          </p>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-white/70">
-            Dữ liệu thời gian thực, quyết định chính xác — mọi chuyến bay đều trong tầm tay bạn.
-          </p>
+    <div className="sakura-login">
+      <img src={loginBg.url} alt="" className="sakura-backdrop" />
+      <div className="sakura-scene">
+        <img src={loginBg.url} alt="Thành phố bên sông giữa những cành hoa anh đào" className="sakura-city" />
+        <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
+        <section className="sakura-brand">
+          <div className="sakura-wordmark">vietjet<span>AIR</span></div>
+          <h1>Sohee<br />Dispatch Board</h1>
+          <div className="sakura-brand-rule" />
+          <p>Connecting People,<br />Flying Further Together</p>
         </section>
-
-        <main className="mx-auto w-full max-w-md lg:mx-0">
-          <div className="rounded-2xl border border-white/20 bg-white/10 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
-            <form onSubmit={submit} className="space-y-5">
-              <div>
-                <Label htmlFor="id" className="mb-1.5 block text-sm font-medium text-white/90">
-                  ID tài khoản
-                </Label>
-                <Input
-                  id="id"
-                  type="text"
-                  autoComplete="username"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  placeholder="Nhập ID tài khoản"
-                  className={field}
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="pw" className="mb-1.5 block text-sm font-medium text-white/90">
-                  Mật khẩu
-                </Label>
-                <Input
-                  id="pw"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Nhập mật khẩu"
-                  className={field}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <Button
-                type="submit"
-                size="lg"
-                disabled={busy}
-                className="h-12 w-full rounded-lg text-base font-bold uppercase tracking-wide text-white shadow-lg transition hover:brightness-110"
-                style={{ background: "linear-gradient(90deg, var(--vj-red), var(--vj-red-deep))" }}
-              >
-                {busy ? "Đang đăng nhập…" : "Đăng nhập"}
-              </Button>
-            </form>
-            <p className="mt-6 text-center text-xs text-white/60">
-              Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.
-            </p>
+        <main className="sakura-glass">
+          <form onSubmit={submit}>
+            <div className="sakura-field-group">
+              <Label htmlFor="id">Email</Label>
+              <Input id="id" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
+                placeholder="Enter your email" className="sakura-input" value={id} onChange={(e) => setId(e.target.value)} />
+            </div>
+            <div className="sakura-field-group">
+              <Label htmlFor="pw">Password</Label>
+              <Input id="pw" type="password" autoComplete="current-password" placeholder="********"
+                className="sakura-input" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            <div className="sakura-forgot" title="Liên hệ người quản lý để đặt lại mật khẩu">
+              <Button type="button" variant="link" disabled>Forgot password?</Button>
+            </div>
+            <Button type="submit" disabled={busy} className="sakura-signin">
+              {busy ? "Đang đăng nhập…" : "SIGN IN"}
+            </Button>
+          </form>
+          <div className="sakura-divider"><span />or<span /></div>
+          <div title="Đăng nhập Google chưa được thiết lập">
+            <Button type="button" variant="outline" disabled className="sakura-google">
+              <span className="sakura-google-mark" aria-hidden="true">G</span>Sign in with Google
+            </Button>
+          </div>
+          <div className="sakura-account" title="Liên hệ người quản lý để được cấp tài khoản">
+            Are you new? <Button type="button" variant="link" disabled>Create an Account</Button>
           </div>
         </main>
+        <span className="sakura-version">V 3.75</span>
       </div>
     </div>
   );

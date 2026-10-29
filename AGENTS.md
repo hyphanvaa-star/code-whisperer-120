@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
+- Login reference styling lives in scoped sakura classes in global CSS; preserve the existing password sign-in flow and leave unconfigured alternative sign-in actions disabled to avoid presenting fake authentication.
 - Compare handover scope is browser-local and implemented through the `cmp_validation` shim: broaden only the existing Compare read, filter/deduplicate by sector and DSP, resolve actions through the live operational catalogue, and never change the primary filter or other tabs.
 - Compare columns and row actions stay in the shim's `cmp_validation` patch: REG FPL reads the existing ATC endpoint's original REG and caches by sector/OFP stamp; BF requires aircraft-change evidence and reuses Briefing/Verify confirmations on a unique in-window FliteBrief sector, so presentation changes cannot bypass safeguards.
 - Compare source-change borders use the browser-safe `cmp_sync` patch with separate Crewlist/FPL version diffs and fresh sector acknowledgement; reuse swap previews/jobs, preserve row picking, and never treat attachment completion as an aircraft/OFP update.
