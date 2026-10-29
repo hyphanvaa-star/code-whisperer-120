@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Plane } from "lucide-react";
-import loginBg from "@/assets/login-bg.jpg";
+import loginBg from "@/assets/login-bg-longthanh.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,12 +79,12 @@ export function AuthScreen() {
       <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10 lg:flex-row lg:items-center lg:justify-between">
         <section className="hidden max-w-xl text-white lg:block">
           <div className="flex items-center gap-2 text-2xl font-black italic tracking-wide">
-            <Plane className="h-6 w-6" /> Sohee
+            <Plane className="h-6 w-6" /> Vietjet Air
           </div>
           <h1 className="mt-10 text-6xl font-extrabold uppercase leading-[1.05] tracking-tight">
-            Dispatch
+            Sohee
             <br />
-            Board
+            Dispatch Board
           </h1>
           <p className="mt-6 text-lg font-medium text-white/90">
             Kết nối bầu trời, vận hành mỗi ngày.
