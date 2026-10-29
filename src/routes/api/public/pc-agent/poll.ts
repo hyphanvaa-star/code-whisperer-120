@@ -36,7 +36,8 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
         const { requestIp } = await import("@/lib/tool/creds.server");
         const ip = requestIp(request);
         const login = String(body["user"] || request.headers.get("x-pc-agent-user") || "");
-        const uid = login ? await pc.resolveAgentUser(login) : "";
+        const paired = typeof body["pair"] === "string" ? await pc.verifyPairToken(body["pair"] as string) : "";
+        const uid = paired || (login ? await pc.resolveAgentUser(login) : "");
         await pc.recordHeartbeat({
           version: String(body["version"] || ""),
           printers: printers as never,

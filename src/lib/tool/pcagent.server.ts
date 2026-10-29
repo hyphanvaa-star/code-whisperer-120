@@ -279,3 +279,31 @@ export async function jobStatus(id: string): Promise<string> {
   const { data } = await (await admin()).from("pc_jobs").select("status").eq("id", id).maybeSingle();
   return String((data as { status?: string } | null)?.status ?? "missing");
 }
+
+/** Signed short-lived pairing token: the browser hands it to the helper on the same PC. */
+async function pairSecret(): Promise<string> {
+  const env = process.env["PC_AGENT_TOKEN"];
+  if (env) return env;
+  const { data } = await (await admin()).from("app_settings").select("value").eq("key", "pc_agent.token").maybeSingle();
+  return (data?.value as { token?: string } | null)?.token ?? "";
+}
+
+export async function makePairToken(uid: string, ttlMs = 12 * 3600_000): Promise<string> {
+  const secret = await pairSecret();
+  if (!uid || !secret) return "";
+  const exp = Date.now() + ttlMs;
+  const { createHmac } = await import("crypto");
+  const sig = createHmac("sha256", secret).update(`p1.${uid}.${exp}`).digest("hex");
+  return `p1.${uid}.${exp}.${sig}`;
+}
+
+export async function verifyPairToken(token: string): Promise<string> {
+  const m = /^p1\.([0-9a-f-]{36})\.(\d+)\.([0-9a-f]{64})$/.exec(token || "");
+  if (!m || Number(m[2]) < Date.now()) return "";
+  const secret = await pairSecret();
+  if (!secret) return "";
+  const { createHmac, timingSafeEqual } = await import("crypto");
+  const want = Buffer.from(createHmac("sha256", secret).update(`p1.${m[1]}.${m[2]}`).digest("hex"));
+  const got = Buffer.from(m[3]!);
+  return want.length === got.length && timingSafeEqual(want, got) ? m[1]! : "";
+}
