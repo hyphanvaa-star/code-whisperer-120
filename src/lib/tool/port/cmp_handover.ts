@@ -54,7 +54,7 @@ async function runCompare(opts){
       handoverTag.textContent = "HANDOVER";
       cs.appendChild(handoverTag);
     }`)
-    .replace('  for(const r of rows){\n    const tr = document.createElement("tr");', '  let cmpPrevHandover = false;\n  for(const r of rows){\n    const tr = document.createElement("tr");')
+    .replace('  const crewLater = !!d.crew_pending;\n\n  for(const r of rows){', '  const crewLater = !!d.crew_pending;\n  let cmpPrevHandover = false;\n\n  for(const r of rows){')
     .replace('    };\n    tb.appendChild(tr);\n  }', `    };
     if(cmpPrevHandover && !r.handover){
       const sep = document.createElement("tr");
