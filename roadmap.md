@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 3.60: gói trợ lý chạy ngầm một lần bấm, có file tắt riêng, giữ ghép tài khoản và nhật ký; kiểm thử gói tải.
+
 - [x] V 3.57: ô CREW/REG AIMS/REG FPL có viền bấm theo nguồn thay đổi, xác nhận và đối chiếu lại FliteBrief; 26 kiểm thử đạt, trang V 3.57 và 12 đoạn chạy hợp lệ; thử crew bằng dữ liệu mô phỏng đạt.
 - [ ] V 3.57: thử chuyến thật — chưa có phiên khớp người yêu cầu; thao tác tàu hiện có chỉ đổi file đính kèm, không sửa REG/OFP trên FliteBrief.
 
