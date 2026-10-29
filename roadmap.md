@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 3.53: dấu + trong dropdown DSP để thêm/bỏ nhóm HANDOVER ở trên bảng So sánh; DSP chính giữ bình thường phía dưới.
+- [x] V 3.53: dấu + trong dropdown DSP thêm/bỏ nhóm HANDOVER trên bảng So sánh; DSP chính bình thường phía dưới; 23 kiểm thử đạt, nhãn trang V 3.53.
+- [ ] V 3.53: thử nhận giao ca với chuyến thật — chưa mở được phiên người yêu cầu; cần người dùng đăng nhập preview và thử dấu +.
 
 - [x] V 3.13: nhãn OpsCore OOOI nhỏ dưới CALLSIGN ở bảng so sánh; dùng màu/trạng thái hiện có và cập nhật theo lượt nền 30 giây.
 
