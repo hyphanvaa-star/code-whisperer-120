@@ -321,12 +321,13 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     if (!f.tokens.size && !f.points.length) return unk("ROUTE-SEGMENT", `Không có route của chuyến để so đoạn ${awy} ${a}-${b}.`);
     const names = f.points.map((p) => String(p.name ?? "").toUpperCase());
     const ia = names.indexOf(a), ib = names.indexOf(b);
-    if (f.tokens.has(awy) && (ia >= 0 || ib >= 0)) {
+    if ((f.tokens.has(awy) || (ia >= 0 && ib >= 0)) && (ia >= 0 || ib >= 0)) {
       const i0 = ia >= 0 && ib >= 0 ? Math.min(ia, ib) : Math.max(ia, ib);
       const i1 = ia >= 0 && ib >= 0 ? Math.max(ia, ib) : i0;
       const fls = f.points.slice(i0, i1 + 1).map((p) => Math.round(Number(p.fl_ft || 0) / 100));
       return { matched: true, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} trùng route FPL.`, flRange: [Math.min(...fls), Math.max(...fls)], expStart: pointTime(f, f.points[i0]), expEnd: pointTime(f, f.points[i1]) };
     }
+    if (!f.tokens.has(awy) && (ia >= 0 || ib >= 0)) return unk("ROUTE-SEGMENT", `Có điểm ${ia >= 0 ? a : b} trên route nhưng chưa xác nhận đường ${awy}.`);
     return no("ROUTE-SEGMENT", `Đoạn ${awy} ${a}-${b} không nằm trên route FPL.`);
   }
   // 8 advisory route

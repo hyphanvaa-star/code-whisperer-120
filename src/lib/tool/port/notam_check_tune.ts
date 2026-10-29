@@ -1645,7 +1645,7 @@ export function tunePlaces(
     etd: flight.etd || flight.std || null,
     eta: flight.eta || flight.sta || null,
     roles,
-    firs: ctx.fir_win as Record<string, [Date, Date]>,
+    firs: { ...(ctx.fir_win as Record<string, [Date, Date]>) },
     points: trackPoints as unknown as TrackPoint[],
     tokens,
     sid: procs[0] ?? null,
@@ -1659,7 +1659,13 @@ export function tunePlaces(
   for (const place of places) {
     const code = String(place.code ?? "").toUpperCase();
     const kind = String(place.kind ?? "").toUpperCase();
-    const inScope = air.has(code) || firs.has(code);
+    // Places were fetched for this flight's track, so FIRs crossed by the route are in scope
+    // even when the OFP EET list is unavailable.
+    if (kind === "FIR" && code && !af.firs[code]) {
+      const s0 = aware(af.etd), e0 = aware(af.eta) || s0;
+      if (s0) af.firs[code] = [s0, e0 || s0];
+    }
+    const inScope = air.has(code) || firs.has(code) || kind === "FIR";
     ((place.notams as N[] | undefined) || []).forEach((notam, i) => {
       if (!notam || typeof notam !== "object") return;
       const key = `${code}\t${String(notam.ident ?? "").trim() || `#${i}`}`;

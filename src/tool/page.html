@@ -5547,7 +5547,7 @@ html.night .aside-head .mode.on{
 }
 
 /* Check NOTAM toolbar: aviation dusk. Ẩn Lọc notam quốc nội. */
-#wrapNotam #nmTuneDom{display:none !important}
+#wrapNotam #nmTuneDom,#wrapNotam #nmCheck,#wrapNotam #nmGroups{display:none !important}
 html.night #wrapNotam .toolbar2,
 html.tint #wrapNotam .toolbar2,
 html.tint.night #wrapNotam .toolbar2,
@@ -5783,6 +5783,7 @@ html.night .nr-toggle input:checked+i,html.tint .nr-toggle input:checked+i{backg
 html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
   background:#fff !important;border:1px solid #e5e7eb !important;color:#64748b !important}
 
+.nm-grp-pill{cursor:pointer;font-size:14px;padding:6px 14px;border:2px solid transparent}.nm-grp-pill.on{border-color:currentColor;box-shadow:0 2px 8px rgba(0,0,0,.18);transform:scale(1.05)}
 </style>
 </head>
 <body>
@@ -5902,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.91</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.92</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -14088,19 +14089,22 @@ function nmPaintList(place, q){
     return;
   }
   const order = graded ? ["impact","manual","brief","noimpact"] : [null];
+  if(!window.nmGrpSel) window.nmGrpSel = "impact";
   if(graded){
     const sum = document.createElement("div");
     sum.className = "nm-grp-sum";
     for(const g of order){
-      const s = document.createElement("span");
-      s.className = "nm-grp-pill nm-grp-" + g;
+      const s = document.createElement("button");
+      s.type = "button";
+      s.className = "nm-grp-pill nm-grp-" + g + (window.nmGrpSel === g ? " on" : "");
       s.textContent = nmGrpName[g] + ": " + rows.filter(x => nmGrpOf(x) === g).length;
+      s.onclick = () => { window.nmGrpSel = g; nmRender(); };
       sum.appendChild(s);
     }
     list.appendChild(sum);
   }
-  if(typeof window.nmGrpClosed !== "object") window.nmGrpClosed = {noimpact: true};
-  for(const g of order){
+  window.nmGrpClosed = {};
+  for(const g of (graded ? [window.nmGrpSel] : order)){
     const grpRows = g ? rows.filter(x => nmGrpOf(x) === g) : rows;
     let target = list;
     if(g){
@@ -14113,8 +14117,7 @@ function nmPaintList(place, q){
       h.innerHTML = "<b></b><span></span><i></i>";
       h.children[0].textContent = nmGrpName[g] + " (" + grpRows.length + ")";
       h.children[1].textContent = nmGrpHint[g];
-      h.children[2].textContent = closed ? "▸ Mở" : "▾ Thu gọn";
-      h.onclick = () => { window.nmGrpClosed[g] = !closed; nmRender(); };
+      h.children[2].textContent = "";
       box.appendChild(h);
       list.appendChild(box);
       if(closed || !grpRows.length){
@@ -16834,7 +16837,11 @@ function nmApplyTune(pack, dropped, extra){
         patch.match_type = as.match_type;
         patch.reasons = as.reasons || [];
       }
-      if(why){ gone.push(Object.assign({}, row, patch, {skip_why: why})); n++; }
+      if(as && as.level === "NO IMPACT" && nmHitIdents.has(ident)){
+        patch.level = "CRITICAL"; patch.match_type = "TRACKING-HIT";
+        patch.reasons = ["Tracking route/sân của chuyến trúng NOTAM này trong giờ bay."];
+      }
+      if(why && patch.level !== "CRITICAL"){ gone.push(Object.assign({}, row, patch, {skip_why: why})); n++; }
       else kept.push(Object.keys(patch).length ? Object.assign({}, row, patch) : row);
     }
     if(extra && extra.assess){
