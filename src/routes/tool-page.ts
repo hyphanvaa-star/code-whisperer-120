@@ -236,23 +236,35 @@ const SHIM = `<script>
         var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
         var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
         var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
-        board.title='Trợ lý 6.0 — giải nén, cài một lần rồi bấm Chay-Ngam; tắt bằng Tat-Tro-Ly';
+        board.title='Trợ lý 6.1 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
         board.style.position='relative';
         var dot=document.createElement('span'); dot.className='agent-dot';
         dot.style.cssText='position:absolute;top:4px;right:5px;width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none';
         board.appendChild(dot);
+        var agentOn=false,pairTok='',pairAt=0,LOCAL='http://127.0.0.1:47321';
+        var agentPair=function(){
+          var send=function(){ if(pairTok) fetch(LOCAL+'/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:pairTok})}).catch(function(){}); };
+          if(pairTok && Date.now()-pairAt<3600000){ send(); return; }
+          fetch('/api/pc/pair-token',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){ if(d&&d.token){pairTok=d.token;pairAt=Date.now();send();} }).catch(function(){});
+        };
         var agentPoll=function(){
+          agentPair();
           fetch('/api/pc/status',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
-            var on=!!(d&&d.online);
+            var on=!!(d&&d.online); agentOn=on;
             dot.style.background=on?'#16a34a':'#9ca3af';
             dot.style.boxShadow=on?'0 0 0 1px rgba(0,0,0,.15),0 0 6px #16a34a':'0 0 0 1px rgba(0,0,0,.15)';
-            board.title=on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tải lại bộ cài.'):'Trợ lý PC chưa kết nối — bấm để tải bộ cài, giải nén, chạy cai-tro-ly một lần, sau đó bấm Chay-Ngam.';
+            board.title=on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm để tải bộ cài, giải nén và bấm cai-tro-ly một lần (sau đó tự chạy khi mở máy).';
           }).catch(function(){});
         };
         agentPoll(); setInterval(agentPoll,20000);
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.0'; a.download='tro-ly-pc-6.0.zip';
+          if(agentOn){
+            if(!confirm('Tắt trợ lý PC trên máy này?')) return;
+            fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
+            return;
+          }
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.1'; a.download='tro-ly-pc-6.1.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -2228,7 +2240,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.65')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.66')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
