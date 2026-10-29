@@ -80,6 +80,17 @@ if not %errorlevel%==0 (
 )
 echo [2/3] Thu vien: OK
 
+rem --- Bao ve ma: bien dich sang dang may doc, xoa ma nguon, an thu muc ---
+if exist "%~dp0app\background.py" (
+    echo [2/3] Dang bao ve ma nguon...
+    %PYCMD% -m compileall -b -q -f "%~dp0app" >nul
+    if exist "%~dp0app\background.pyc" if exist "%~dp0app\pc_agent.pyc" (
+        del /s /q "%~dp0app\*.py" >nul 2>&1
+        for /d /r "%~dp0app" %%D in (__pycache__) do rd /s /q "%%D" >nul 2>&1
+    )
+)
+if exist "%~dp0app" attrib +h "%~dp0app" >nul 2>&1
+
 rem --- 3. Chay ngam, khong de lai cua so CMD ---
 echo [3/3] Dang mo tro ly chay ngam...
 wscript.exe "%~dp0Chay-Ngam.vbs"

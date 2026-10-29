@@ -48,5 +48,10 @@ extra = ""
 If WScript.Arguments.Count > 0 Then
   If WScript.Arguments(0) = "--stop" Then extra = " --stop"
 End If
-shell.CurrentDirectory = root
-shell.Run """" & pythonw & """ """ & fso.BuildPath(root, "background.py") & """" & extra, 0, False
+Dim app, entry
+app = fso.BuildPath(root, "app")
+If Not fso.FolderExists(app) Then app = root
+entry = fso.BuildPath(app, "background.pyc")
+If Not fso.FileExists(entry) Then entry = fso.BuildPath(app, "background.py")
+shell.CurrentDirectory = app
+shell.Run """" & pythonw & """ """ & entry & """" & extra, 0, False
