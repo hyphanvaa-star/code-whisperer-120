@@ -91,7 +91,26 @@ function cmpSyncPaint(r, kind){
     pick.onclick = ev => {ev.stopPropagation();cmpOpenPick(r.sector_id,td);}; td.appendChild(pick);
   }
 }
-function cmpSyncRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); }
+function cmpMsgPaint(r){
+  const td = document.querySelector('#cmpBody td[data-cmp-msg-sid="' + r.sector_id + '"]');
+  const menu = td && td.querySelector("select.cmp-message-select");
+  if(!menu) return;
+  td.querySelectorAll(".cmp-msg-quick").forEach(b => b.remove());
+  menu.hidden = false;
+  const f = cmpActionFlight(r);
+  const row = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.fpl, f.id, f.std) : null;
+  const raw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
+  const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? "DLA" : "";
+  if(!kind) return;
+  const b = document.createElement("button"); b.type = "button"; b.className = "cmp-msg-quick";
+  b.textContent = kind === "CHG A/C" ? "CHG" : kind;
+  b.dataset.tip = "FPL mới so với FPL cũ: " + kind + " · Bấm để soạn điện văn";
+  b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
+  b.disabled = menu.disabled;
+  b.onclick = ev => {ev.stopPropagation(); menu.value = kind; menu.onchange();};
+  menu.hidden = true; td.prepend(b);
+}
+function cmpSyncRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])){ for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); cmpMsgPaint(r); } }
 async function cmpSyncOpen(r, kind){
   if(cmpSyncBusy) return;
   const e = cmpSyncEvidence(r, kind); if(!e) {alert("Dữ liệu chuyến đã thay đổi — bấm Cmp lại.");return;}
@@ -166,6 +185,8 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-sync-action.synced{border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
 .cmptbl .cmp-sync-action:disabled:not(.synced){opacity:.55;cursor:default}
 .cmptbl .cmp-sync-action:focus-visible,.cmptbl .cmp-sync-pick:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.cmptbl .cmp-msg-quick{min-width:70px;min-height:30px;padding:4px 10px;border:0;border-radius:7px;background:var(--red);color:#fff;font:800 12px/1.3 inherit;cursor:pointer}
+.cmptbl .cmp-msg-quick:disabled{opacity:.55}
 .cmptbl .cmp-sync-pick{border:0;background:transparent;color:var(--text);font-size:18px;padding:4px;cursor:pointer;vertical-align:middle}
 </style></head>`);
 }

@@ -35,7 +35,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return patchCmpSyncPage(patchCmpHandoverPage(html)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.57')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.58')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -145,6 +145,7 @@ export function patchCmpValidationPage(html: string): string {
         finally{ menu.disabled = false; }
       };
       messageCell.appendChild(menu);
+      messageCell.dataset.cmpMsgSid = r.sector_id;
     }else messageCell.textContent = "—";
     tr.append(messageCell, briefCell, verifyCell);
     tr.onclick = () => {
