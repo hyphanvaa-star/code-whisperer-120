@@ -1252,7 +1252,7 @@ table tbody tr.sel > td,table tbody tr.on > td,table tbody tr.active > td,table 
 /* ================= HEADER OPS — thành phần thật, bố cục theo ảnh tham chiếu ================= */
 header#mdRoom{
   position:relative !important;
-  min-height:229px !important;height:229px !important;padding:0 !important;box-sizing:border-box !important;
+  min-height:172px !important;height:172px !important;padding:0 !important;box-sizing:border-box !important;
   display:block !important;overflow:hidden !important;
   background-color:#fff !important;background-image:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.01)),var(--airport-clean) !important;
   background-size:cover !important;background-position:center 54% !important;background-repeat:no-repeat !important;
@@ -1271,9 +1271,9 @@ header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
 header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:15.2%;height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
-.ops-header-brand{display:block !important;position:absolute;left:1.25%;top:22px;width:12.4%;height:182px;z-index:16;color:#fff;text-transform:uppercase}
+.ops-header-brand{display:block !important;position:absolute;left:1.25%;top:12px;width:12.4%;height:150px;z-index:16;color:#fff;text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:center;gap:9px}.ops-vj-mark .ops-vj-logo{display:block;width:138px;height:41px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 11px/1.2 var(--x-sans);color:#fff;letter-spacing:.06em}
-.ops-sohee{display:flex;align-items:baseline;gap:8px;margin-top:22px;padding-top:12px;border-top:2px solid var(--x-yel);text-transform:none;white-space:nowrap}
+.ops-sohee{display:flex;align-items:baseline;gap:8px;margin-top:10px;padding-top:8px;border-top:2px solid var(--x-yel);text-transform:none;white-space:nowrap}
 .ops-sohee strong{color:#fff;font:900 26px/1 var(--x-sans);letter-spacing:.02em;text-shadow:0 1px 6px rgba(15,23,42,.45)}
 .ops-sohee span{color:rgba(255,255,255,.94);font:600 14px/1 var(--x-sans);letter-spacing:.04em;text-shadow:0 1px 5px rgba(15,23,42,.4)}
 .ops-header-live{position:absolute;right:0;top:0;height:78px;display:flex;align-items:center;gap:0;z-index:24;color:#fff;padding:0 17px 0 21px;border:0;border-radius:0 0 0 18px;background:linear-gradient(90deg,rgba(20,30,40,.68),rgba(12,22,32,.84));box-shadow:-10px 10px 28px rgba(20,36,52,.18);backdrop-filter:blur(10px) saturate(1.16)}
@@ -1393,7 +1393,7 @@ header#mdRoom .hdr-switch-lab.l,header#mdRoom .hdr-switch-ui,header#mdRoom .them
 header#mdRoom .hdr-switch::before,header#mdRoom .theme-switch::before{display:none !important}
 header#mdRoom .hdr-switch .ops-field-icon,header#mdRoom .theme-switch .ops-field-icon{width:17px !important;height:17px !important;flex:0 0 17px !important;color:currentColor !important}
 header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block !important;position:static !important;width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;clip:auto !important;clip-path:none !important;overflow:visible !important;white-space:nowrap !important;font-size:10.5px !important;font-weight:900 !important;line-height:1.05 !important;color:var(--x-ink) !important;-webkit-text-fill-color:var(--x-ink) !important;opacity:1 !important;text-transform:uppercase !important}
-.aside-head{top:237px !important}
+.aside-head{top:180px !important}
 /* ---------- PHỤ ---------- */
 .tag,.chk{border-radius:999px !important}
 .hint,.note{color:var(--x-mute) !important}
