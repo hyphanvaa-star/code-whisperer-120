@@ -2,7 +2,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plane, Lock, UserRound, ShieldCheck } from "lucide-react";
+import { Plane, Lock, UserRound, ShieldCheck, FileText, CloudSun, ArrowRight } from "lucide-react";
+import loginBg from "@/assets/login-bg.jpg";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,108 +69,84 @@ export function AuthScreen() {
   }
 
   const field =
-    "h-12 rounded-xl border-[color:var(--vj-line)] bg-[color:var(--vj-sky)] pl-10 text-base text-[color:var(--vj-ink)] placeholder:text-[color:var(--vj-muted)]/60 focus-visible:border-[color:var(--vj-red)] focus-visible:ring-[color:var(--vj-red)]/25";
+    "h-12 rounded-xl border-[color:var(--vj-line)] bg-card pl-10 text-base text-[color:var(--vj-ink)] placeholder:text-[color:var(--vj-muted)]/60 focus-visible:border-[color:var(--vj-red)] focus-visible:ring-[color:var(--vj-red)]/25";
 
   return (
-    <div className="flex min-h-screen bg-[color:var(--vj-sky)]">
-      <style>{`
-        @keyframes vj-fly { 0% { transform: translate(-10%, 30%) rotate(-12deg); opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(110%, -40%) rotate(-12deg); opacity: 0; } }
-        .vj-fly { animation: vj-fly 14s ease-in-out infinite; }
-      `}</style>
+    <div className="relative min-h-screen overflow-hidden bg-[color:var(--vj-ink)]">
+      <img src={loginBg} alt="" width={1920} height={1088} className="absolute inset-0 h-full w-full object-cover" />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, color-mix(in oklab, var(--vj-sky) 82%, transparent) 0%, color-mix(in oklab, var(--vj-sky) 35%, transparent) 38%, transparent 60%)" }} />
+      <svg aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-40 w-[60%]" viewBox="0 0 600 160" preserveAspectRatio="none">
+        <path d="M0 160 C 250 150, 420 90, 600 10 L600 160 Z" fill="var(--vj-red)" />
+        <path d="M0 160 C 250 140, 420 80, 600 0 L600 22 C 420 100, 260 150, 0 160 Z" fill="var(--vj-yellow)" />
+      </svg>
 
-      {/* Bảng thương hiệu bên trái: đỏ - vàng kiểu hãng bay */}
-      <aside
-        className="relative hidden w-[46%] overflow-hidden lg:flex lg:flex-col lg:justify-between p-12 text-[color:var(--vj-on-red)]"
-        style={{ background: "linear-gradient(150deg, var(--vj-red) 0%, var(--vj-red-deep) 100%)" }}
-      >
-        <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice" fill="none">
-          <path d="M-50 640 C 180 520, 380 560, 680 300" stroke="var(--vj-yellow)" strokeWidth="46" strokeLinecap="round" opacity="0.95" />
-          <path d="M-50 720 C 200 610, 420 640, 680 420" stroke="var(--vj-on-red)" strokeWidth="2" strokeDasharray="6 12" opacity="0.5" />
-          <circle cx="520" cy="120" r="180" stroke="var(--vj-on-red)" strokeOpacity="0.12" />
-          <circle cx="520" cy="120" r="260" stroke="var(--vj-on-red)" strokeOpacity="0.08" />
-        </svg>
-        <div className="vj-fly pointer-events-none absolute left-0 top-1/3">
-          <Plane className="h-10 w-10 rotate-45" />
-        </div>
-
-        <div className="relative flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--vj-on-red)] text-[color:var(--vj-red)] shadow-lg">
-            <Plane className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="text-lg font-extrabold tracking-wide">Sohee</div>
-            <div className="text-xs font-semibold uppercase tracking-[0.25em] opacity-80">Dispatch Board</div>
-          </div>
-        </div>
-
-        <div className="relative max-w-md">
-          <span className="inline-block rounded-full bg-[color:var(--vj-yellow)] px-3 py-1 text-xs font-bold uppercase tracking-wider text-[color:var(--vj-ink)]">
-            Flight Dispatch
-          </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight">
-            Điều phối chuyến bay
+      <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col gap-10 px-6 py-10 lg:flex-row lg:items-center lg:justify-between">
+        <section className="hidden max-w-xl lg:block">
+          <div className="text-3xl font-black italic text-[color:var(--vj-red)]">Sohee</div>
+          <div className="mt-1 h-1 w-56" style={{ background: "linear-gradient(90deg, var(--vj-red), var(--vj-yellow))" }} />
+          <div className="mt-2 text-sm font-semibold uppercase tracking-[0.5em] text-[color:var(--vj-muted)]">Dispatch Board</div>
+          <h1 className="mt-8 text-5xl font-extrabold leading-tight text-[color:var(--vj-ink)]">
+            Kết nối bầu trời
             <br />
-            nhanh, chính xác, an toàn.
+            <span className="text-[color:var(--vj-red)]">vận hành mỗi ngày.</span>
           </h1>
-          <p className="mt-4 text-base opacity-85">
-            Theo dõi Crewlist, FPL, NOTAM và thời tiết trên một màn hình duy nhất.
+          <p className="mt-5 text-lg text-[color:var(--vj-ink)]/80">
+            Dữ liệu thời gian thực • Quyết định chính xác • Chuyến bay an toàn • Hành trình trọn vẹn.
           </p>
-        </div>
-
-        <p className="relative text-xs opacity-70">Sohee - Dispatch Board</p>
-      </aside>
-
-      {/* Khung đăng nhập */}
-      <main className="flex flex-1 items-center justify-center px-5 py-10">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--vj-red)] text-[color:var(--vj-on-red)] shadow-lg">
-              <Plane className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="text-lg font-extrabold text-[color:var(--vj-ink)]">Sohee</div>
-              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-[color:var(--vj-red)]">Dispatch Board</div>
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-[color:var(--vj-line)] bg-card p-8 shadow-[0_24px_60px_-24px_color-mix(in_oklab,var(--vj-red)_35%,transparent)] sm:p-10">
-            <div className="mb-1 h-1.5 w-14 rounded-full" style={{ background: "linear-gradient(90deg, var(--vj-red), var(--vj-yellow))" }} />
-            <h2 className="mt-5 text-3xl font-extrabold text-[color:var(--vj-ink)]">Đăng nhập</h2>
-            <p className="mt-2 text-sm text-[color:var(--vj-muted)]">Dùng ID và mật khẩu do quản lý cấp.</p>
-
-            <form onSubmit={submit} className="mt-8 space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="id" className="text-sm font-semibold text-[color:var(--vj-ink)]">ID tài khoản</Label>
-                <div className="relative">
-                  <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--vj-muted)]" />
-                  <Input id="id" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
-                    placeholder="hyphan" className={field} value={id} onChange={(e) => setId(e.target.value)} />
-                </div>
+          <div className="mt-8 grid grid-cols-4 gap-3">
+            {[
+              { i: Plane, t: "Crewlist", s: "Real-time" },
+              { i: FileText, t: "FPL / NOTAM", s: "Up to date" },
+              { i: CloudSun, t: "Weather", s: "Global data" },
+              { i: ShieldCheck, t: "Operations", s: "Safer flights" },
+            ].map(({ i: Icon, t, s }) => (
+              <div key={t} className="rounded-2xl bg-card/70 p-3 text-center shadow-sm backdrop-blur">
+                <Icon className="mx-auto h-6 w-6 text-[color:var(--vj-red)]" />
+                <div className="mt-2 text-sm font-bold text-[color:var(--vj-ink)]">{t}</div>
+                <div className="text-xs text-[color:var(--vj-muted)]">{s}</div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="pw" className="text-sm font-semibold text-[color:var(--vj-ink)]">Mật khẩu</Label>
-                <div className="relative">
-                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--vj-muted)]" />
-                  <Input id="pw" type="password" autoComplete="current-password" placeholder="••••••••"
-                    className={field} value={password} onChange={(e) => setPassword(e.target.value)} />
-                </div>
+            ))}
+          </div>
+        </section>
+
+        <main className="mx-auto w-full max-w-md lg:mx-0">
+          <div className="rounded-3xl border border-card/60 bg-card/90 p-8 shadow-2xl backdrop-blur-md sm:p-10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[color:var(--vj-red)] text-[color:var(--vj-on-red)] shadow-lg">
+                <Plane className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-xl font-extrabold text-[color:var(--vj-ink)]">Sohee</div>
+                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--vj-muted)]">Dispatch Board</div>
+              </div>
+            </div>
+            <h2 className="mt-7 text-3xl font-extrabold text-[color:var(--vj-ink)]">Đăng nhập</h2>
+            <p className="mt-1 text-sm text-[color:var(--vj-muted)]">Truy cập hệ thống quản lý khai thác bay.</p>
+
+            <form onSubmit={submit} className="mt-7 space-y-4">
+              <div className="relative">
+                <Label htmlFor="id" className="sr-only">ID tài khoản</Label>
+                <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--vj-muted)]" />
+                <Input id="id" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
+                  placeholder="Nhập ID tài khoản" className={field} value={id} onChange={(e) => setId(e.target.value)} />
+              </div>
+              <div className="relative">
+                <Label htmlFor="pw" className="sr-only">Mật khẩu</Label>
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--vj-muted)]" />
+                <Input id="pw" type="password" autoComplete="current-password" placeholder="Nhập mật khẩu"
+                  className={field} value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <Button type="submit" size="lg" disabled={busy}
                 className="h-12 w-full rounded-xl text-base font-bold text-[color:var(--vj-on-red)] shadow-lg transition hover:brightness-110"
                 style={{ background: "linear-gradient(90deg, var(--vj-red), var(--vj-red-deep))" }}>
-                {busy ? "Đang đăng nhập…" : "Đăng nhập"}
+                {busy ? "Đang đăng nhập…" : "Đăng nhập"} <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
-
-            <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-[color:var(--vj-yellow)] bg-[color:var(--vj-yellow)]/15 px-3.5 py-3 text-xs text-[color:var(--vj-ink)]">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--vj-red)]" />
-              <span>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</span>
-            </div>
+            <p className="mt-6 text-center text-xs text-[color:var(--vj-muted)]">Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
-
-          <p className="mt-6 text-center text-xs text-[color:var(--vj-muted)] lg:hidden">Sohee - Dispatch Board</p>
-        </div>
-      </main>
+        </main>
+      </div>
+      <div className="absolute bottom-4 left-6 hidden text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--vj-on-red)] lg:block">Safer skies | Brighter journeys | Together</div>
     </div>
   );
 }
