@@ -35,7 +35,7 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
 
 export function patchCmpValidationPage(html: string): string {
   return patchCmpSyncPage(patchCmpHandoverPage(html)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.61')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.62')
     .replace('    tr.appendChild(cs);\n    tr.appendChild(routeCmpCell(r));', `    cs.dataset.cmpCallsignSid = r.sector_id;
     const opsStatus = document.createElement("div");
     opsStatus.dataset.cmpOpsSid = r.sector_id;
@@ -221,13 +221,26 @@ function cmpTipEnsure(){
   if(window.__cmpTip) return;
   const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
   document.addEventListener("mouseover", e => {
+    if(tip.contains(e.target)) return;
     const c = e.target.closest && e.target.closest("td[data-ctip]");
     if(!c){ tip.classList.remove("on"); return; }
-    tip.innerHTML = c.dataset.ctip; tip.classList.add("on");
+    if(typeof tipRelease === "function") tipRelease();
+    tip.innerHTML = c.dataset.ctip; tip.classList.toggle("cmp-tip-validation", !!c.dataset.ctipW); tip.classList.add("on");
+    const zoom = (parseFloat(document.documentElement.style.zoom) || 1) * (parseFloat(document.body.style.zoom) || 1);
+    tip.style.zoom = String(1 / zoom);
+    tip.style.maxWidth = Math.max(240, window.innerWidth - 24) + "px";
+    tip.style.maxHeight = Math.max(180, window.innerHeight - 24) + "px";
     const b = c.getBoundingClientRect();
-    tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
-    tip.style.top = (b.bottom + 6) + "px";
+    const rect = tip.getBoundingClientRect();
+    tip.style.left = Math.max(12, Math.min(window.innerWidth - rect.width - 12, b.left + b.width/2 - rect.width/2)) + "px";
+    tip.style.top = Math.max(12, Math.min(window.innerHeight - rect.height - 12, b.bottom + 8)) + "px";
   });
+  document.addEventListener("mouseout", e => {
+    const c = e.target.closest && e.target.closest("td[data-ctip]");
+    if(c && !(e.relatedTarget && (c.contains(e.relatedTarget) || tip.contains(e.relatedTarget)))) tip.classList.remove("on");
+  });
+  tip.addEventListener("mouseleave", () => tip.classList.remove("on"));
+  document.addEventListener("scroll", e => {if(!tip.contains(e.target)) tip.classList.remove("on");}, true);
 }
 function cmpAtcPut(f, status, error, reg, eobt){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
@@ -397,18 +410,18 @@ function cmpValPaint(sid){
   const escV = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const tagTxt = {ok:"OK", warn:"Tiệm cận", bad:"Sai", pending:"Chưa có"};
   td.dataset.ctipW = "1";
-  td.dataset.ctip = '<div class="cmp-tip-h">Validation</div>' + items.map(i => {
+  const symbols = {FUEL:"⛽",TOW:"↗",LWT:"↘",ZFW:"⚖","CONT/ERA":"⛨",ETP:"⌖"};
+  td.dataset.ctip = '<div class="cmp-tip-h">Validation</div><div class="cmp-vs-grid">' + items.map((i, index) => {
     const lines = String(i.text || "").split("\\n").map(x => x.trim()).filter(Boolean);
-    return '<div class="cmp-vs ' + i.level + '"><div class="cmp-vs-h"><span>' + escV(i.label) + '</span><em>' + tagTxt[i.level] + '</em></div>'
+    return '<div class="cmp-vs metric-' + index + ' ' + i.level + '"><div class="cmp-vs-h"><span><b class="cmp-vs-icon" aria-hidden="true">' + symbols[i.label] + '</b>' + escV(i.label) + '</span><em>' + tagTxt[i.level] + '</em></div>'
       + lines.map(l => '<div class="cmp-vs-l">' + escV(l).replace(/(còn\\s+-?[\\d,]+\\s*kg?)/i, "<b>$1</b>") + '</div>').join("") + '</div>';
-  }).join("");
+  }).join("") + '</div>';
   cmpTipEnsure();
 }
 function renderCompareTable(d, opts){`)
     .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  rows.forEach(cmpAtcPaint);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
     .replace('    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights', '    cmpOpsRepaint();\n    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights')
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
-    .replace('  cmpArmPick(td, td.dataset.regSid);\n  return td;\n}\n\nfunction crewCmpCell', '  cmpArmPick(td, td.dataset.regSid);\n  cmpRegRepaint();\n  return td;\n}\n\nfunction crewCmpCell')
     .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
     .replace(`    for(const k of ["ezfw", "etp", "rres"]){
       const td = document.createElement("td");
@@ -453,6 +466,18 @@ function renderCompareTable(d, opts){`)
 .cmp-atc-pill{display:inline-flex;align-items:center;gap:5px;min-width:84px;justify-content:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.02em;white-space:nowrap;border:1px solid transparent}
 .cmp-tip{position:fixed;z-index:9999;width:230px;padding:10px 12px;border-radius:12px;background:#0f172a;color:#e2e8f0;box-shadow:0 12px 32px rgba(15,23,42,.35);font-size:12px;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .12s,transform .12s}
 .cmp-tip.on{opacity:1;transform:none}
+.cmp-tip.cmp-tip-validation{box-sizing:border-box;width:580px;padding:16px;border:1px solid var(--validation-line);border-radius:8px;background:var(--validation-paper);color:var(--validation-ink);box-shadow:var(--validation-shadow);font-size:16px;line-height:1.5;letter-spacing:0;pointer-events:auto;overflow:auto}
+.cmp-tip-validation .cmp-tip-h{font-size:18px;letter-spacing:0;color:var(--validation-ink);margin-bottom:12px;text-transform:none}
+.cmp-vs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cmp-vs{--metric:var(--validation-fuel);padding:12px;border:1px solid var(--validation-line);border-left:4px solid var(--metric);border-radius:6px;background:color-mix(in oklab,var(--metric) 5%,var(--validation-paper));min-width:0}
+.cmp-vs.metric-1{--metric:var(--validation-tow)}.cmp-vs.metric-2{--metric:var(--validation-lwt)}.cmp-vs.metric-3{--metric:var(--validation-zfw)}.cmp-vs.metric-4{--metric:var(--validation-era)}.cmp-vs.metric-5{--metric:var(--validation-etp)}
+.cmp-vs-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-weight:800;font-size:17px;color:var(--metric);flex-wrap:wrap}
+.cmp-vs-h>span{display:inline-flex;align-items:center;gap:7px}
+.cmp-vs-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:color-mix(in oklab,var(--metric) 12%,var(--validation-paper));font-size:21px}
+.cmp-vs-h em{font-style:normal;font-size:12px;line-height:1.4;padding:3px 7px;border-radius:999px;white-space:nowrap;background:var(--validation-line);color:var(--validation-ink)}
+.cmp-vs.ok em{background:var(--validation-good);color:var(--validation-on-good)}.cmp-vs.warn em{background:var(--validation-warn);color:var(--validation-warn-ink)}.cmp-vs.bad em{background:var(--validation-bad);color:var(--validation-on-good)}
+.cmp-vs-l{color:var(--validation-ink);overflow-wrap:anywhere;margin-top:3px;font-weight:500}.cmp-vs-l b{display:inline-block;font-weight:800;color:var(--metric)}
+@media(max-width:600px){.cmp-vs-grid{grid-template-columns:minmax(0,1fr)}.cmp-tip.cmp-tip-validation{width:380px}}
 .cmp-tip-h{font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin-bottom:6px}
 .cmp-tip-row{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;margin:3px 0;border-radius:8px;border-left:3px solid}
 .cmp-tip-row .k{color:#cbd5e1}.cmp-tip-row b{font-family:monospace;font-size:13px;color:#fff}.cmp-tip-row b.diff{color:#fca5a5}
