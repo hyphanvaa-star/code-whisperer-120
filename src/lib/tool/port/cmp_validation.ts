@@ -213,6 +213,18 @@ function cmpAtcPaint(r){
   cmpTipEnsure();
   if(false) td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
 }
+function cmpTipEnsure(){
+  if(window.__cmpTip) return;
+  const tip = window.__cmpTip = document.createElement("div"); tip.className = "cmp-tip"; document.body.appendChild(tip);
+  document.addEventListener("mouseover", e => {
+    const c = e.target.closest && e.target.closest("td[data-tip]");
+    if(!c){ tip.classList.remove("on"); return; }
+    tip.innerHTML = c.dataset.tip; tip.classList.add("on");
+    const b = c.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - 240, Math.max(8, b.left + b.width/2 - 115)) + "px";
+    tip.style.top = (b.bottom + 6) + "px";
+  });
+}
 function cmpAtcPut(f, status, error, reg, eobt){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
   if(!status && prev && prev.status) cmpAtcCache.set(key, {...prev, time: Date.now(), error: ""});
