@@ -108,7 +108,10 @@ def main():
             cfg_path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
         os.chdir(ROOT)
         sys.path.insert(0, str(ROOT))
-        runpy.run_path(str(ROOT / "pc_agent.py"), run_name="__main__")
+        main_file = ROOT / "pc_agent.pyc"
+        if not main_file.exists():
+            main_file = ROOT / "pc_agent.py"
+        runpy.run_path(str(main_file), run_name="__main__")
     except SystemExit:
         raise
     except Exception:

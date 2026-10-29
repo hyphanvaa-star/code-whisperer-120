@@ -206,6 +206,15 @@ async function omniAutoRun(ctx: Ctx) {
 }
 
 export const routes: Routes = {
+  "GET /api/pc/status": async (ctx) => {
+    const agent = await pc.agentInfo(ctx);
+    return {
+      online: pc.agentOnline(agent),
+      version: agent?.version ?? "",
+      printers: (agent?.printers ?? []).map((p) => p.name),
+      seen_ago: agent ? Math.round((Date.now() - agent.at) / 1000) : null,
+    };
+  },
   "GET /api/gd/printers": async (ctx) => {
     const agent = await pc.agentInfo(ctx);
     const saved = await getJson<string>(ctx, PRINTER_KEY, "");
