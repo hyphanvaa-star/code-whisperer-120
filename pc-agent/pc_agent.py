@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "5.9"
+VERSION = "6.1"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -75,6 +75,72 @@ _CFG = _load_config()
 BASE_URL = _CFG["url"]
 TOKEN = _CFG["token"]
 USER = _CFG["user"]
+PAIR = [""]  # mã ghép do trình duyệt trên chính máy này gửi tới (tài khoản đang ngồi máy)
+LOCAL_PORT = 47321
+_ALLOWED_ORIGINS = ("https://soheedispatch.cloud", "http://localhost:8080")
+
+
+def _origin_ok(origin: str) -> bool:
+    o = (origin or "").rstrip("/")
+    return o in _ALLOWED_ORIGINS or bool(re.fullmatch(r"https://[a-z0-9-]+\.lovable\.app", o))
+
+
+def _local_server() -> None:
+    """Cổng nội bộ 127.0.0.1: web trên máy này báo ai đang đăng nhập, hoặc bấm tắt trợ lý."""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def _head(self, code: int) -> bool:
+            origin = self.headers.get("Origin") or ""
+            ok = _origin_ok(origin)
+            self.send_response(code if ok else 403)
+            if ok:
+                self.send_header("Access-Control-Allow-Origin", origin)
+                self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type")
+                self.send_header("Access-Control-Allow-Private-Network", "true")
+                self.send_header("Vary", "Origin")
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            return ok
+
+        def do_OPTIONS(self):
+            self._head(204)
+
+        def do_POST(self):
+            n = min(int(self.headers.get("Content-Length") or 0), 4096)
+            try:
+                body = json.loads(self.rfile.read(n) or b"{}")
+            except Exception:
+                body = {}
+            if not self._head(200):
+                return
+            if self.path == "/pair":
+                tok = str(body.get("token") or "")
+                if re.fullmatch(r"p1\.[0-9a-f-]{36}\.\d+\.[0-9a-f]{64}", tok):
+                    if tok.split(".")[1] != PAIR[0].split(".")[1:2][0] if PAIR[0] else True:
+                        log("✓ đã nhận tài khoản đang ngồi máy từ trình duyệt")
+                    PAIR[0] = tok
+                self.wfile.write(json.dumps({"ok": True, "version": VERSION}).encode())
+            elif self.path == "/stop":
+                self.wfile.write(b'{"ok": true}')
+                self.wfile.flush()
+                log("Trợ lý tắt theo lệnh từ web.")
+                try:
+                    post(POLL_URL, {"version": VERSION, "offline": True, "pair": PAIR[0], "user": USER})
+                except Exception:
+                    pass
+                os._exit(0)
+            else:
+                self.wfile.write(b'{"ok": false}')
+
+    try:
+        ThreadingHTTPServer(("127.0.0.1", LOCAL_PORT), H).serve_forever()
+    except OSError as exc:
+        log(f"⚠ không mở được cổng nội bộ {LOCAL_PORT}: {exc}")
 
 
 def _save_config(**kw) -> None:
@@ -1596,13 +1662,7 @@ def main() -> int:
         print("Thiếu PC_AGENT_URL hoặc PC_AGENT_TOKEN — xem README.md")
         return 2
     global USER
-    if not USER:
-        try:
-            USER = input("Nhập email (hoặc tên) đăng nhập Dispatch Board của anh/chị: ").strip()
-        except Exception:
-            USER = ""
-        if USER:
-            _save_config(user=USER)
+    threading.Thread(target=_local_server, name="local-pair", daemon=True).start()
     log(f"Trợ lý PC v{VERSION} — kết nối {BASE_URL}" + (f" · tài khoản {USER}" if USER else ""))
     warned = False
     check_paths: list[str] = []
@@ -1621,8 +1681,9 @@ def main() -> int:
                 "printers": list_printers(),
                 "paths_exist": paths_exist,
                 "user": USER,
+                "pair": PAIR[0],
             })
-            if USER and d.get("paired") is False and not warned:
+            if USER and not PAIR[0] and d.get("paired") is False and not warned:
                 warned = True
                 log(f"⚠ Không tìm thấy tài khoản '{USER}' — xoá dòng \"user\" trong pc_agent_config.json rồi mở lại trợ lý để nhập lại.")
             check_paths = [str(p) for p in d.get("check_paths") or []]
