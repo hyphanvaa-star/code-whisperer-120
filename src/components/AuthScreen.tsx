@@ -80,8 +80,10 @@ export function AuthScreen() {
           <h1>Sohee<br />Dispatch Board</h1>
           <div className="sakura-brand-rule" />
           <p>Connecting People,<br />Flying Further Together</p>
+          <div className="sakura-tags"><span>✈ Safety</span><span>⏱ On-time</span><span>🌸 Teamwork</span></div>
         </section>
         <main className="sakura-glass">
+          <div className="sakura-form-mark">✈ SOHEE · DISPATCH ✈</div>
           <h2 className="sakura-form-title">Đăng nhập</h2>
           <p className="sakura-form-sub">Dùng ID và mật khẩu do quản lý cấp.</p>
           <form onSubmit={submit}>
@@ -110,7 +112,7 @@ export function AuthScreen() {
             <p>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
         </main>
-        <span className="sakura-version">V 3.84</span>
+        <span className="sakura-version">V 3.85</span>
       </div>
     </div>
   );

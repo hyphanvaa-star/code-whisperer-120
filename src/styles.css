@@ -215,14 +215,14 @@
 .sakura-backdrop { display: none; }
 .sakura-scene { position: relative; width: 100%; height: 100svh; max-width: none; border-radius: 0; overflow: hidden; box-shadow: none; isolation: isolate; }
 .sakura-city { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-.sakura-plane { position: absolute; left: 26%; top: 4%; width: 28%; max-width: 460px; height: auto; z-index: 2; }
-.sakura-brand { position: absolute; left: 26%; right: auto; top: 32%; transform: none; width: 36%; padding: 0; background: transparent; border: 0; text-shadow: 0 2px 8px rgb(0 0 0 / .45); }
+.sakura-plane { position: absolute; left: 3%; top: 8%; width: 26%; max-width: 440px; height: auto; z-index: 2; }
+.sakura-brand { position: absolute; left: 4%; right: auto; top: 36%; transform: none; width: 28%; padding: 0; background: transparent; border: 0; text-shadow: 0 2px 8px rgb(0 0 0 / .45); }
 .sakura-wordmark { font-size: 44px; font-weight: 900; font-style: italic; line-height: 1; letter-spacing: -1px; text-transform: none; }
 .sakura-wordmark span { font-size: 44px; margin-left: 0; font-weight: 400; }
 .sakura-brand h1 { margin: 18px 0 0; font-size: 64px; line-height: .94; font-weight: 750; letter-spacing: 0; }
 .sakura-brand-rule { width: 52px; height: 2px; background: var(--login-ink); margin: 20px 0 14px; }
 .sakura-brand p { font-size: 22px; line-height: 1.25; margin: 0; }
-.sakura-glass { position: absolute; left: 5%; top: 50%; transform: translateY(-50%); width: 32%; max-width: 440px; padding: 38px 38px 32px; border: 2px solid var(--login-ink); border-radius: 30px; background: color-mix(in oklab, var(--login-ink) 30%, transparent); backdrop-filter: blur(6px) brightness(1.08); box-shadow: var(--login-glass-shadow); }
+.sakura-glass { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 36%; max-width: 540px; padding: 46px 46px 38px; border: 2px solid var(--login-ink); border-radius: 30px; background: color-mix(in oklab, var(--login-ink) 30%, transparent); backdrop-filter: blur(6px) brightness(1.08); box-shadow: var(--login-glass-shadow); }
 .sakura-form-title { margin: 0; font-size: 26px; font-weight: 800; line-height: 1.2; color: var(--login-ink); }
 .sakura-form-sub { margin: 6px 0 20px; font-size: 14px; line-height: 1.4; color: var(--login-ink); opacity: .85; }
 .sakura-field-group + .sakura-field-group { margin-top: 18px; }
@@ -244,6 +244,10 @@
 .sakura-google { width: 100%; height: 40px; border: 0; border-radius: 5px; background: var(--login-input); color: var(--login-input-ink); opacity: 1; font-size: 14px; font-weight: 600; gap: 11px; }
 .sakura-google-mark { font-size: 24px; font-weight: 800; background: conic-gradient(var(--login-google-blue) 0deg 110deg, var(--login-google-green) 110deg 190deg, var(--login-google-yellow) 190deg 240deg, var(--login-red) 240deg 300deg, var(--login-google-blue) 300deg); background-clip: text; color: transparent; }
 .sakura-account { margin-top: 20px; text-align: center; font-size: 14px; white-space: nowrap; }
+.sakura-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.sakura-tags span { padding: 5px 12px; border: 1px solid var(--login-glass-line); border-radius: 999px; font-size: 14px; font-weight: 700; text-shadow: none; background: color-mix(in oklab, var(--login-red) 70%, transparent); }
+.sakura-form-mark { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; font-weight: 700; letter-spacing: 3px; opacity: .9; }
+.sakura-form-mark::before, .sakura-form-mark::after { content: ""; flex: 1; height: 1px; background: var(--login-glass-line); }
 .sakura-version { position: absolute; bottom: 12px; right: 16px; font-size: 11px; color: var(--login-ink); }
 @media (max-width: 1100px) and (min-width: 761px) {
   .sakura-brand h1 { font-size: 44px; }
@@ -264,6 +268,6 @@
   .sakura-brand p { font-size: 16px; }
   .sakura-brand-rule { margin: 12px 0 10px; }
   .sakura-plane { width: 46%; top: auto; bottom: 470px; right: 8%; }
-  .sakura-glass { top: auto; transform: none; bottom: 46px; right: 7%; width: 86%; padding: 28px; border-radius: 24px; }
+  .sakura-glass { top: auto; transform: none; bottom: 46px; left: 7%; right: 7%; width: 86%; padding: 28px; border-radius: 24px; }
   .sakura-account, .sakura-account button { font-size: 13px; }
 }
