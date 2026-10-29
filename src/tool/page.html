@@ -14082,7 +14082,45 @@ function nmPaintList(place, q){
     list.appendChild(empty);
     return;
   }
+  const nmGrpOf = (n) => {
+    if(seeDrop) return "noimpact";
+    const l = n.level || "";
+    if(l === "CRITICAL" || l === "DELAY-ONLY") return "impact";
+    if(l === "NEED MANUAL CHECK") return "manual";
+    if(l === "BRIEFING INFO") return "brief";
+    if(l === "NO IMPACT") return "noimpact";
+    return "";
+  };
+  const nmGrpName = {impact:"🔴 CÓ ẢNH HƯỞNG (Critical / Delay-only)", manual:"🟡 CẦN KIỂM TRA TAY", brief:"🔵 THÔNG TIN BRIEFING", noimpact:"⚪ KHÔNG ẢNH HƯỞNG"};
+  const nmGrpRank = {impact:0, manual:1, brief:2, noimpact:3, "":4};
+  if(rows.some(n => n.level)){
+    rows.sort((a, b) => nmGrpRank[nmGrpOf(a)] - nmGrpRank[nmGrpOf(b)]);
+    const cnt = {};
+    rows.forEach(n => { const g = nmGrpOf(n); cnt[g] = (cnt[g] || 0) + 1; });
+    const sum = document.createElement("div");
+    sum.className = "nm-grp-sum";
+    for(const g of ["impact","manual","brief"]){
+      const s = document.createElement("span");
+      s.className = "nm-grp-pill nm-grp-" + g;
+      s.textContent = nmGrpName[g].split(" (")[0] + ": " + (cnt[g] || 0);
+      sum.appendChild(s);
+    }
+    const s = document.createElement("span");
+    s.className = "nm-grp-pill nm-grp-noimpact";
+    s.textContent = "⚪ KHÔNG ẢNH HƯỞNG: " + dropped.length;
+    sum.appendChild(s);
+    list.appendChild(sum);
+  }
+  let nmCurGrp = null;
   for(const n of rows){
+    const g = n.level || seeDrop ? nmGrpOf(n) : null;
+    if(g && g !== nmCurGrp){
+      nmCurGrp = g;
+      const h = document.createElement("div");
+      h.className = "nm-grp-head nm-grp-" + g;
+      h.textContent = nmGrpName[g] + " — " + rows.filter(x => nmGrpOf(x) === g).length;
+      list.appendChild(h);
+    }
     const item = document.createElement("div");
     item.className = "nm-item"
       + (seeDrop ? " drop" : "")
@@ -28920,6 +28958,13 @@ function boot(){
 .nm-lv-needmanualcheck b{background:#ca8a04}
 .nm-lv-briefinginfo b{background:#2563eb}
 .nm-lv-noimpact b{background:#6b7280}
+.nm-grp-sum{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.nm-grp-pill{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid currentColor}
+.nm-grp-head{margin:10px 0 6px;padding:7px 12px;border-radius:8px;font-weight:800;font-size:13px;letter-spacing:.02em;border-left:5px solid currentColor}
+.nm-grp-impact{color:#b91c1c;background:#fee2e2}
+.nm-grp-manual{color:#a16207;background:#fef9c3}
+.nm-grp-brief{color:#1d4ed8;background:#dbeafe}
+.nm-grp-noimpact{color:#4b5563;background:#f3f4f6}
 .nm-assess-pop{position:fixed;z-index:9999;top:12vh;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff;color:#111;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:18px 20px;font-size:15px}
 .nm-assess-pop[hidden]{display:none}
 .nm-assess-pop h4{margin:0 0 6px;font-size:18px}
