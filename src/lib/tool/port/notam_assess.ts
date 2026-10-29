@@ -69,6 +69,7 @@ const eOf = (n: Notam) => String(n.e_field || n.text || "").toUpperCase();
 const PROHIBIT = /\b(PROHIBITED|NOT AVBL|NOT AVAILABLE|U\/S|UNSERVICEABLE|CLSD|CLOSED|SUSPENDED|WITHDRAWN|NOT AUTH(?:ORI[SZ]ED)?|DO NOT USE|NOT USABLE|NOT TO BE USED|SHALL NOT|RESTRICTED TO)\b/;
 const RWY_CLSD = /\bRWY\s*\d{2}[LCR]?(?:\/\d{2}[LCR]?)?\s+(?:CLSD|CLOSED)\b/;
 const AD_CLSD = /\b(AD|AERODROME|AIRPORT)\s+(?:CLSD|CLOSED)\b/;
+const ALL_MOVE = /\b(ALL\s+(TWY|TAXIWAYS|STANDS|APRONS?)|NO\s+TAXI\s+ROUTE|APRON\s+CLSD|APRON\s+CLOSED)\b/;
 
 // --------------------------------------------------------------------------- //
 // Schedule (item D / E) — schedule_active_at
@@ -374,12 +375,12 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     return role ? brief("BRIEFING-INFO", "Radio check tại sân của chuyến.") : no("RADIO-CHECK", "Radio check tại sân khác.");
   // 16 airport briefing patterns
   if (isAirport && /\b(BIRD|BIRDS|WIP|WORK IN PROGRESS|WORKS|ATIS|FRICTION|LGT|LIGHTS?|LIGHTING|PAPI|APAPI|CRANE OPS|GRASS CUTTING)\b/.test(E)
-      && !RWY_CLSD.test(E) && !AD_CLSD.test(E) && !(role === "ALT" || role === "RALT" ? prohibit && /WIP|WORK/.test(E) : false)
+      && !RWY_CLSD.test(E) && !AD_CLSD.test(E) && !ALL_MOVE.test(E) && !(role === "ALT" || role === "RALT" ? prohibit && /WIP|WORK/.test(E) : false)
       && !/\b(OBST|OBSTACLE|CRANE)\b/.test(E))
     return brief("BRIEFING-INFO", "Chim/WIP/đèn/ATIS/friction không đóng đường băng — briefing.");
   // 17 stand / apron / taxiway
   if (isAirport && /\b(TWY|TAXIWAY|TAXILANE|TXL|STAND|STANDS|APRON|ACFT STANDS)\b/.test(E)) {
-    if (/\b(ALL\s+(TWY|TAXIWAYS|STANDS|APRONS?)|NO\s+TAXI\s+ROUTE|APRON\s+CLSD|APRON\s+CLOSED)\b/.test(E) || AD_CLSD.test(E))
+    if (ALL_MOVE.test(E) || AD_CLSD.test(E))
       return airportHit(code, f, "AIRPORT-MOVEMENT", "Đóng toàn bộ taxiway/apron/đường lăn — ảnh hưởng di chuyển trên sân.");
     if (!RWY_CLSD.test(E)) return brief("BRIEFING-INFO", "Đóng một phần stand/apron/taxiway, sân còn đường khác — briefing.");
   }
