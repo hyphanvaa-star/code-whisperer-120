@@ -6568,7 +6568,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <button class="btn t-go" id="nmTuneDom"
                   title="Lược TWY, đèn, apron/stand; flow control khác route OFP hoặc ngược hướng (westbound vs eastbound). Tracking Hit không đổi.">
             Lọc notam quốc nội</button>
-          <button class="btn t-go" id="nmTuneTrk"
+          <button class="btn t-go" id="nmTuneTrk" hidden style="display:none"
                   title="Đánh giá từng NOTAM của chuyến thành 5 mức: CRITICAL, DELAY-ONLY, NEED MANUAL CHECK, BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm trong nhóm đã loại kèm lý do.">
             Lọc notam tracking chuyến</button>
           <button class="btn t-undo" id="nmAssessCfg"
@@ -14325,6 +14325,23 @@ function nmRender(){
     }
     return;
   }
+  if(nmGroup === NM_GROUP_TRACK && d.tuned){
+    tabs.hidden = true;
+    if(hitsEl) hitsEl.hidden = true;
+    if(list) list.hidden = false;
+    const tagIt = (p, arr) => (arr || []).map(n => Object.assign({}, n, {icao: n.icao || p.code}));
+    const merged = {kind: "FLIGHT", code: "", name: "", notams: [], dropped: []};
+    for(const p of all){
+      merged.notams = merged.notams.concat(tagIt(p, p.notams));
+      merged.dropped = merged.dropped.concat(tagIt(p, p.dropped));
+    }
+    nmPaintList(merged, q);
+    if(head){
+      const f = (nmTrackData && nmTrackData.flight) || {};
+      head.textContent = "NOTAM CHUYẾN " + (f.callsign || f.flight || f.fn || "") + "  ·  phân loại theo mức ảnh hưởng";
+    }
+    return;
+  }
   const cur = has.find(p => p.code === nmPick) || has[0] || null;
   nmPaintList(cur, q);
 }
@@ -16757,6 +16774,9 @@ $("#nmTrack").onclick = async () => {
     nmSyncActiveMap._id = String(((d || {}).flight || {}).id || "");
     nmDrawTrack(d);
     setMode("notam");
+    nmPick = "";
+    btn.textContent = "Đang phân loại NOTAM…";
+    await nmRunTune("track", btn, "Đang phân loại NOTAM…");
   }catch(err){
     alert(err.name === "AbortError"
       ? nmTimeoutAlert("5 phút", stuck)
