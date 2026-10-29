@@ -26,6 +26,7 @@ import {
   type Notam,
   type TrackPoint,
 } from "./notam_track";
+import { assessNotam, normAssessCfg, type AssessFlight, type Assessment, type Role } from "./notam_assess";
 
 // --------------------------------------------------------------------------- //
 // api/ofp.py text parsers (minimal subset needed by tune_places)
@@ -1605,7 +1606,7 @@ function collectExtras(places: N[]) {
 export function tunePlaces(
   flight: Flight,
   places: N[],
-  opts: { ofpText?: string; trackPoints?: Array<Record<string, unknown>> } = {},
+  opts: { ofpText?: string; trackPoints?: Array<Record<string, unknown>>; cfg?: unknown } = {},
 ): Record<string, unknown> {
   const ofpText = opts.ofpText ?? "";
   const trackPoints = opts.trackPoints ?? [];
@@ -1636,7 +1637,41 @@ export function tunePlaces(
     tokens,
     used: (extra.used as Set<string>) || new Set(),
   };
-  const [dropped, keepN, dropN] = applyTune(places, ctx);
+  const cfg = normAssessCfg(opts.cfg);
+  const roles: Record<string, Role> = {};
+  for (const [code, role] of flightAirfields(flight, ofpText)) roles[code] = role as Role;
+  const procs = [...ofpSidStarProcs(ofpText)];
+  const af: AssessFlight = {
+    etd: flight.etd || flight.std || null,
+    eta: flight.eta || flight.sta || null,
+    roles,
+    firs: ctx.fir_win as Record<string, [Date, Date]>,
+    points: trackPoints as unknown as TrackPoint[],
+    tokens,
+    sid: procs[0] ?? null,
+    star: procs.length > 1 ? procs[procs.length - 1]! : null,
+    acType: String(flight.ac_type || flight.acft_type || "").trim(),
+  };
+  const dropped: Record<string, string> = {};
+  const assess: Record<string, Assessment> = {};
+  const counts: Record<string, number> = {};
+  let keepN = 0, dropN = 0;
+  for (const place of places) {
+    const code = String(place.code ?? "").toUpperCase();
+    const kind = String(place.kind ?? "").toUpperCase();
+    const inScope = air.has(code) || firs.has(code);
+    ((place.notams as N[] | undefined) || []).forEach((notam, i) => {
+      if (!notam || typeof notam !== "object") return;
+      const key = `${code}\t${String(notam.ident ?? "").trim() || `#${i}`}`;
+      const a: Assessment = inScope
+        ? assessNotam(notam, code, kind, af, cfg)
+        : { level: "NO IMPACT", earliest_impact_delay_minutes: null, match_type: "OUT-OF-SCOPE", reasons: [`${code} ngoài DEP/ARR/alternate/FIR của chuyến.`] };
+      assess[key] = a;
+      counts[a.level] = (counts[a.level] || 0) + 1;
+      if (a.level === "NO IMPACT") { dropped[key] = a.reasons.join(" "); dropN++; }
+      else keepN++;
+    });
+  }
   stampSidStarHits(places, [flight], { [flight.id]: ofpText });
   stampOfpHeads(places, tokens, trackPoints);
   const { heads, ofpMap, sidMap, sidProcs } = collectExtras(places);
@@ -1657,6 +1692,9 @@ export function tunePlaces(
     sid_star_hits: sidMap,
     sid_star: sidProcs,
     ofp_tokens: [...tokens].sort(),
+    assess,
+    level_counts: counts,
+    cfg,
   };
 }
 

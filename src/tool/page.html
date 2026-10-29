@@ -5902,7 +5902,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.87</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.88</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -6569,8 +6569,11 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
                   title="Lược TWY, đèn, apron/stand; flow control khác route OFP hoặc ngược hướng (westbound vs eastbound). Tracking Hit không đổi.">
             Lọc notam quốc nội</button>
           <button class="btn t-go" id="nmTuneTrk"
-                  title="Lọc NOTAM một chuyến theo OFP: DEP / DEST / TALT / RALT / dest alternate / EET + FIR sân đi. Sân: lược TWY, đèn, apron; cấm theo đăng ký/hãng (vd Pakistan); flow / ATS route khác OFP hoặc ngược hướng. FIR: tương tự + obstacle light; chướng ngại đã rút (QOBAW); chỉ VFR; B)/C)/D); vùng bắn / vùng cấm bay / drone >5 NM hoặc FL điểm gần nhất ngoài dải F/G ±5000 ft. ATS route dính OFP thì highlight điểm/đường trong NOTAM.">
+                  title="Đánh giá từng NOTAM của chuyến thành 5 mức: CRITICAL, DELAY-ONLY, NEED MANUAL CHECK, BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm trong nhóm đã loại kèm lý do.">
             Lọc notam tracking chuyến</button>
+          <button class="btn t-undo" id="nmAssessCfg"
+                  title="Cài đặt số phút trước/sau giờ chuyến cho sân đi, sân đến, sân dự bị và FIR khi lọc tracking chuyến.">
+            ⚙ Giờ sân bay</button>
           <button class="btn t-undo" id="nmPinClear"
                   title="Danh sách NOTAM đã ghim cloud hoặc theo chuyến. Xoá từng cái, hoặc xoá tất cả.">
             NOTAM library</button>
@@ -14094,6 +14097,20 @@ function nmPaintList(place, q){
       pin.textContent = ix >= 0 ? String(ix + 1) : "•";
       item.appendChild(pin);
     }
+    if(n.level){
+      const lv = document.createElement("div");
+      lv.className = "nm-lv nm-lv-" + n.level.replace(/[^A-Z]/g, "").toLowerCase();
+      const tag = document.createElement("b");
+      tag.textContent = n.level + (n.level === "DELAY-ONLY" && n.impact_delay != null ? " · trễ ≥" + n.impact_delay + "′" : "")
+        + (n.level === "BRIEFING INFO" ? "" : (n.match_type ? " · " + n.match_type : ""));
+      lv.appendChild(tag);
+      if(!seeDrop && (n.reasons || []).length){
+        const r = document.createElement("span");
+        r.textContent = n.reasons.join(" ");
+        lv.appendChild(r);
+      }
+      item.appendChild(lv);
+    }
     if(seeDrop && n.skip_why){
       const why = document.createElement("span");
       why.className = "nm-drop-why";
@@ -16742,8 +16759,20 @@ function nmApplyTune(pack, dropped, extra){
       if(ofpMap[key]) patch.ofp_hits = ofpMap[key];
       if(sidHitMap[key]) patch.sid_star_hits = sidHitMap[key];
       if(sidProcMap[key]) patch.sid_star = sidProcMap[key];
+      const as = ((extra && extra.assess) || {})[key];
+      if(as){
+        patch.level = as.level;
+        patch.impact_delay = as.earliest_impact_delay_minutes;
+        patch.match_type = as.match_type;
+        patch.reasons = as.reasons || [];
+      }
       if(why){ gone.push(Object.assign({}, row, patch, {skip_why: why})); n++; }
       else kept.push(Object.keys(patch).length ? Object.assign({}, row, patch) : row);
+    }
+    if(extra && extra.assess){
+      const pri = {"CRITICAL":0,"DELAY-ONLY":1,"NEED MANUAL CHECK":2,"BRIEFING INFO":3,"NO IMPACT":4};
+      kept.sort((a, b) => (pri[a.level] ?? 5) - (pri[b.level] ?? 5)
+        || (a.impact_delay ?? 1e9) - (b.impact_delay ?? 1e9));
     }
     place.notams = kept;
     place.dropped = gone;
@@ -16817,6 +16846,7 @@ async function nmRunTune(mode, btn, idleLabel){
     ahead: BOARD_AHEAD_H
   };
   if(mode === "track"){
+    body.cfg = nmAssessCfg();
     body.track = ((nmTrackData && nmTrackData.track) || []).map(p => ({
       lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name
     }));
@@ -16843,6 +16873,68 @@ async function nmRunTune(mode, btn, idleLabel){
     btn.disabled = false; btn.textContent = idleLabel;
   }
 }
+const NM_ASSESS_KEY = "nm.assess.cfg";
+const NM_ASSESS_DEF = {corridor_nm:5, max_delay_minutes:180, dep_before:60, dep_after:60,
+  arr_before:60, arr_after:60, talt_before:15, talt_after:60, enrt_alt_after:60,
+  dest_alt_before:60, dest_alt_after:60, fir_before:60, fir_after:60};
+function nmAssessCfg(){
+  let v = {};
+  try{ v = JSON.parse(localStorage.getItem(NM_ASSESS_KEY) || "{}") || {}; }catch(_){ v = {}; }
+  return Object.assign({}, NM_ASSESS_DEF, v);
+}
+function nmAssessOpen(){
+  let pop = $("#nmAssessPop");
+  if(!pop){
+    pop = document.createElement("div");
+    pop.id = "nmAssessPop";
+    pop.className = "nm-assess-pop";
+    const rows = [
+      ["Sân đi (DEP)", "dep_before", "dep_after", "ETD"],
+      ["Sân đến (ARR)", "arr_before", "arr_after", "ETA"],
+      ["Dự bị cất cánh (TALT)", "talt_before", "talt_after", "ETD"],
+      ["Dự bị đường bay (ENRT ALT)", "", "enrt_alt_after", "ETD → ETA"],
+      ["Dự bị sân đến (DEST ALT)", "dest_alt_before", "dest_alt_after", "ETA"],
+      ["FIR trên đường bay", "fir_before", "fir_after", "giờ vào → ra FIR"]
+    ];
+    let h = '<h4>Cài đặt giờ cho sân bay / FIR</h4><p>Số phút trước và sau mốc giờ của chuyến. NOTAM ngoài khoảng này (kể cả khi trễ tối đa) sẽ là NO IMPACT.</p><table><tr><th></th><th>Trước (phút)</th><th>Sau (phút)</th></tr>';
+    for(const [lab, a, b, ref] of rows){
+      h += '<tr><td>' + lab + '<small>' + ref + '</small></td><td>'
+        + (a ? '<input type="number" min="0" max="1440" data-k="' + a + '">' : '<span class="dim">ETD</span>')
+        + '</td><td><input type="number" min="0" max="1440" data-k="' + b + '"></td></tr>';
+    }
+    h += '</table><div class="nm-assess-more"><label>Trễ tối đa (phút) <input type="number" min="0" max="1440" data-k="max_delay_minutes"></label>'
+      + '<label>Hành lang route (NM) <input type="number" min="0" max="200" step="0.5" data-k="corridor_nm"></label></div>'
+      + '<div class="nm-assess-btns"><button type="button" class="btn t-undo" data-act="reset">Về mặc định</button>'
+      + '<button type="button" class="btn t-undo" data-act="close">Đóng</button>'
+      + '<button type="button" class="btn t-go" data-act="save">Lưu</button></div>';
+    pop.innerHTML = h;
+    document.body.appendChild(pop);
+    pop.addEventListener("click", ev => {
+      const act = ev.target && ev.target.dataset && ev.target.dataset.act;
+      if(act === "close") pop.hidden = true;
+      if(act === "reset"){
+        localStorage.removeItem(NM_ASSESS_KEY);
+        nmAssessFill(pop);
+      }
+      if(act === "save"){
+        const v = {};
+        pop.querySelectorAll("input[data-k]").forEach(inp => {
+          const n = Number(inp.value);
+          if(inp.value !== "" && isFinite(n) && n >= 0) v[inp.dataset.k] = n;
+        });
+        localStorage.setItem(NM_ASSESS_KEY, JSON.stringify(v));
+        pop.hidden = true;
+      }
+    });
+  }
+  nmAssessFill(pop);
+  pop.hidden = false;
+}
+function nmAssessFill(pop){
+  const cfg = nmAssessCfg();
+  pop.querySelectorAll("input[data-k]").forEach(inp => { inp.value = cfg[inp.dataset.k]; });
+}
+if($("#nmAssessCfg")) $("#nmAssessCfg").onclick = nmAssessOpen;
 $("#nmTuneDom").onclick = () => nmRunTune("domestic", $("#nmTuneDom"), "Lọc notam quốc nội");
 $("#nmTuneTrk").onclick = () => nmRunTune("track", $("#nmTuneTrk"), "Lọc notam tracking chuyến");
 $("#nmTuneUndo").onclick = nmRunUndoTune;
@@ -28795,28 +28887,51 @@ function boot(){
 /* boot() chỉ gọi một lần, từ unlockUI() khi trang sẵn sàng. */
 </script>
 <div class="nm-tune-pop" id="nmTunePop" hidden>
-  <h4>Logic và nguyên lý lược bỏ NOTAM</h4>
-  <p>Áp khi bấm <b>Lọc notam quốc nội</b> / <b>Lọc notam tracking chuyến</b>. NOTAM còn lại là cái có thể dính chuyến.</p>
-  <h5>NOTAM sân bay</h5>
+  <h4>Logic đánh giá NOTAM (Lọc notam tracking chuyến)</h4>
+  <p>Không xoá NOTAM nào. Mỗi NOTAM nhận đúng <b>một mức</b>, kèm lý do. <b>Lọc notam quốc nội</b> giữ cách lọc cũ.</p>
+  <h5>Năm mức</h5>
   <ul>
-    <li>Liên quan <b>TWY</b> (taxiway) — lược bỏ hết.</li>
-    <li>Liên quan <b>Light</b> (đèn sân) — lược bỏ hết.</li>
-    <li>Liên quan <b>Acft stands / Apron</b> — lược bỏ hết.</li>
-    <li><b>Flow control</b> không dính route OFP (ghi <b>RTE: M750</b> mà FPL không có M750; hoặc DEP FM sân khác; hoặc airway / waypoint không khớp), hoặc ngược hướng chuyến (westbound vs eastbound) — lược bỏ. Khớp airway OFP thì giữ và ghi trên tiêu đề <b>Y742-OFP cần xem lại</b>.</li>
+    <li><b>CRITICAL</b> — dính chuyến ngay giờ kế hoạch (trễ 0 phút).</li>
+    <li><b>DELAY-ONLY</b> — chỉ dính nếu chuyến trễ; ghi số phút trễ sớm nhất.</li>
+    <li><b>NEED MANUAL CHECK</b> — chưa đủ dữ liệu (thiếu B/C/E, vùng chưa có ranh giới, lịch D chưa hiểu, chỉ biết thuộc FIR…).</li>
+    <li><b>BRIEFING INFO</b> — dính chuyến nhưng chỉ để biết: 1 taxiway/stand đóng, chim, WIP, đèn, UAV/chướng ngại không cấm.</li>
+    <li><b>NO IMPACT</b> — chứng minh được là không dính; nằm trong nhóm "Xem đã lược", vẫn xem được lý do.</li>
   </ul>
-  <h5>NOTAM FIR</h5>
+  <h5>Thứ tự kiểm tra (dừng ở bước đã kết luận)</h5>
   <ul>
-    <li><b>Flow control</b> không dính route OFP (RTE: M750 mà FPL không có; DEP FM sân khác), hoặc ngược hướng chuyến (westbound vs eastbound) — lược bỏ.
-      <span class="ex">RTE: M750 + DEP FM RCTP/VHHH, OFP không M750 (hoặc đi VVTS) → bỏ. Flow nêu đúng airway FPL (Y742) → giữ, tiêu đề ghi Y742-OFP cần xem lại.</span></li>
-    <li>Vùng bắn / danger / <b>vùng cấm bay</b> / <b>drone</b> / <b>khinh khí cầu</b> / <b>bóng bay / diều</b> / <b>diễn tập</b> / <b>aerobatics</b> / <b>nhóm bay</b>: cách <b>route OFP &gt; 5 NM</b> — lược bỏ.</li>
-    <li>Tại <b>điểm OFP gần nhất</b> tới vùng: FL máy bay không giao dải F)/G) nới <b>±5000 ft</b> — lược bỏ.
-      <span class="ex">Ví dụ G) FL200 → dải FL150–FL250. Điểm IKELA FL300 → bỏ. G) 25000 ft + 5000 = trần hiệu dụng FL300; điểm FL280 → giữ. UAV sân RCTP SFC–1500 ft, waypoint FL340 → bỏ.</span></li>
-    <li>Khung giờ tới điểm OFP ± buffer <b>−1h / +2h</b>, đối chiếu B) C) D): ngoài khung — lược bỏ.
-      <span class="ex">Tới IKELA 1535 → cửa sổ 1435–1735. NOTAM 1600–2000 dính cận trên 1735; 1200–1500 dính cận dưới 1435; 1800–2000 thì bỏ.</span></li>
-    <li>Chuyến mình bay <b>IFR</b>: FIR chỉ VFR (Q-line <b>V</b>, hoặc E chỉ kêu <b>SMALL VFR ACFT</b> dù Q là IV) — lược bỏ.</li>
-    <li><b>Obstacle light</b> trên FIR: bộ lọc đã tắt sẵn, không xem nữa.</li>
+    <li><b>0. Đọc NOTAM</b> — thiếu B/C/E → NEED MANUAL CHECK.</li>
+    <li><b>1. Giờ theo vai trò sân/FIR</b> — DEP ETD−60/+60, ARR ETA−60/+60, TALT ETD−15/+60, dự bị đường bay ETD→ETA+60, dự bị sân đến ETA−60/+60, FIR vào−60/ra+60, cộng trễ tối đa 180′. Chỉnh ở nút <b>⚙ Giờ sân bay</b>.</li>
+    <li><b>2. Lịch D)</b> — quét từng phút cả chuyến: DAILY, thứ, ngày, EXC, SR/SS, HJ/HN. Không phút nào bật → NO IMPACT.</li>
+    <li><b>3. Không gian</b> — hành lang = bán kính NOTAM + 5 NM; SID/STAR, đoạn ATS route, navaid đúng FPL; RFFS theo CAT tàu (A321/A21N CAT 7, A333 CAT 9).</li>
+    <li><b>4. Cao độ</b> — FL tại điểm giao phải nằm trong dải NOTAM; chướng ngại lấy trần FT AMSL. Không nới ±5000 ft.</li>
+    <li><b>5. Phút trễ sớm nhất</b> — dịch giờ bay 0→180 phút: phút 0 là CRITICAL, sau đó là DELAY-ONLY.</li>
+  </ul>
+  <h5>Không còn dùng</h5>
+  <ul>
+    <li>Không lược hết TWY / đèn / apron; không lọc theo hướng eastbound/westbound; không cửa sổ −1h/+2h.</li>
   </ul>
 </div>
+<style>
+.nm-lv{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;margin:0 0 6px;font-size:12px}
+.nm-lv b{padding:2px 8px;border-radius:999px;color:#fff;font-weight:700;letter-spacing:.02em}
+.nm-lv span{opacity:.85}
+.nm-lv-critical b{background:#dc2626}
+.nm-lv-delayonly b{background:#ea580c}
+.nm-lv-needmanualcheck b{background:#ca8a04}
+.nm-lv-briefinginfo b{background:#2563eb}
+.nm-lv-noimpact b{background:#6b7280}
+.nm-assess-pop{position:fixed;z-index:9999;top:12vh;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff;color:#111;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:18px 20px;font-size:15px}
+.nm-assess-pop[hidden]{display:none}
+.nm-assess-pop h4{margin:0 0 6px;font-size:18px}
+.nm-assess-pop p{margin:0 0 10px;color:#444;font-size:13px}
+.nm-assess-pop table{width:100%;border-collapse:collapse}
+.nm-assess-pop td,.nm-assess-pop th{padding:5px 6px;border-bottom:1px solid #eee;text-align:left}
+.nm-assess-pop td small{display:block;color:#777;font-size:11px}
+.nm-assess-pop input{width:90px;padding:5px 8px;font-size:15px;border:1px solid #ccc;border-radius:6px}
+.nm-assess-more{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
+.nm-assess-more label{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.nm-assess-btns{display:flex;gap:8px;justify-content:flex-end}
+</style>
 <script>
 (function(){
 const $=q=>document.querySelector(q);
