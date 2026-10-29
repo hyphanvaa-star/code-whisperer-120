@@ -215,14 +215,14 @@
 .sakura-backdrop { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(20px); }
 .sakura-scene { position: relative; width: 88.8%; max-width: 1440px; aspect-ratio: 1088 / 688; border-radius: 16px; overflow: hidden; box-shadow: var(--login-scene-shadow); isolation: isolate; }
 .sakura-city { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-.sakura-plane { position: absolute; top: 25.5%; left: 26.4%; width: 20.5%; height: auto; }
-.sakura-brand { position: absolute; left: 9.7%; top: 33%; }
+.sakura-plane { display: block; width: 78%; max-width: 300px; height: auto; margin: 0 0 18px auto; }
+.sakura-brand { position: absolute; left: 5%; top: 50%; transform: translateY(-50%); width: 36%; padding: 30px 34px; border-radius: 28px; border: 2px solid var(--login-glass-line); background: color-mix(in oklab, var(--login-input-ink) 55%, transparent); backdrop-filter: blur(6px); box-shadow: var(--login-glass-shadow); }
 .sakura-wordmark { font-size: 34px; font-weight: 900; font-style: italic; line-height: 1; }
 .sakura-wordmark span { font-size: 28px; margin-left: 3px; }
 .sakura-brand h1 { margin: 16px 0 0; font-size: 56px; line-height: .94; font-weight: 750; letter-spacing: 0; }
 .sakura-brand-rule { width: 44px; height: 2px; background: var(--login-ink); margin: 18px 0 12px; }
 .sakura-brand p { font-size: 20px; line-height: 1.25; margin: 0; }
-.sakura-glass { position: absolute; right: 6%; top: 19.2%; width: 34%; padding: 36px 38px 30px; border: 1px solid var(--login-glass-line); border-radius: 28px; background: var(--login-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: var(--login-glass-shadow); }
+.sakura-glass { position: absolute; right: 5%; top: 50%; transform: translateY(-50%); width: 40%; padding: 44px 46px 36px; border: 2px solid var(--login-ink); border-radius: 30px; background: color-mix(in oklab, var(--login-ink) 30%, transparent); backdrop-filter: blur(6px) brightness(1.08); box-shadow: var(--login-glass-shadow); }
 .sakura-field-group + .sakura-field-group { margin-top: 18px; }
 .sakura-field-group label { display: block; margin-bottom: 7px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--login-ink); }
 .sakura-input { width: 100%; height: 40px; border-radius: 5px; border: 1px solid var(--login-glass-line); background: var(--login-input); color: var(--login-input-ink); font-size: 14px; padding: 0 13px; box-shadow: none; }
@@ -242,20 +242,21 @@
   .sakura-brand h1 { font-size: 44px; }
   .sakura-wordmark { font-size: 28px; }
   .sakura-brand p { font-size: 17px; }
-  .sakura-glass { top: 14%; width: 36%; padding: 26px; }
+  .sakura-glass { width: 42%; padding: 30px; }
+  .sakura-brand { width: 40%; padding: 22px; }
   .sakura-account, .sakura-account button { font-size: 12px; }
 }
 @media (max-width: 760px) {
   .sakura-login { padding: 20px 0; }
   .sakura-scene { width: calc(100% - 32px); min-height: 740px; aspect-ratio: auto; }
   .sakura-city { object-position: 57% center; }
-  .sakura-brand { left: 8%; top: 8%; }
+  .sakura-brand { left: 7%; top: 24px; transform: none; width: 86%; }
   .sakura-brand h1 { font-size: 38px; line-height: 1; }
   .sakura-wordmark { font-size: 27px; }
   .sakura-wordmark span { font-size: 23px; }
   .sakura-brand p { font-size: 16px; }
   .sakura-brand-rule { margin: 12px 0 10px; }
-  .sakura-plane { top: 8%; left: 62%; width: 32%; }
-  .sakura-glass { top: auto; bottom: 46px; right: 7%; width: 86%; padding: 28px; border-radius: 24px; }
+  .sakura-plane { width: 50%; margin-bottom: 10px; }
+  .sakura-glass { top: auto; transform: none; bottom: 46px; right: 7%; width: 86%; padding: 28px; border-radius: 24px; }
   .sakura-account, .sakura-account button { font-size: 13px; }
 }

@@ -73,8 +73,8 @@ export function AuthScreen() {
       <img src={loginBg.url} alt="" className="sakura-backdrop" />
       <div className="sakura-scene">
         <img src={loginBg.url} alt="Thành phố bên sông giữa những cành hoa anh đào" className="sakura-city" />
-        <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
         <section className="sakura-brand">
+          <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
           <div className="sakura-wordmark">vietjet<span>AIR</span></div>
           <h1>Sohee<br />Dispatch Board</h1>
           <div className="sakura-brand-rule" />
@@ -83,9 +83,9 @@ export function AuthScreen() {
         <main className="sakura-glass">
           <form onSubmit={submit}>
             <div className="sakura-field-group">
-              <Label htmlFor="id">Email</Label>
+              <Label htmlFor="id">ID</Label>
               <Input id="id" type="text" autoComplete="username" autoCapitalize="none" spellCheck={false}
-                placeholder="Enter your email" className="sakura-input" value={id} onChange={(e) => setId(e.target.value)} />
+                placeholder="Enter your ID" className="sakura-input" value={id} onChange={(e) => setId(e.target.value)} />
             </div>
             <div className="sakura-field-group">
               <Label htmlFor="pw">Password</Label>
