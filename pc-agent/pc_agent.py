@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.1"
+VERSION = "6.2"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -677,41 +677,27 @@ def do_pick_folder(payload: dict, say) -> dict:
 
 
 def _find_tool_dir() -> Path:
-    """Thư mục tool gốc (chứa atc_check.py, config.py) trên máy công ty.
-    Tự tìm; nếu không thấy thì hiện hộp thoại chọn thư mục MỘT lần rồi ghi nhớ."""
+    """Use bundled tools, including sourceless bytecode; never prompt on retries."""
+    def has_tools(directory: Path) -> bool:
+        return all(
+            any((directory / (name + suffix)).is_file() for suffix in (".py", ".pyc"))
+            for name in ("atc_check", "config")
+        )
+
     cfg_dir = str(_CFG.get("tool_dir") or "").strip()
     bundled = Path(__file__).resolve().parent / "tool"
-    cands = [bundled] if (bundled / "atc_check.py").is_file() else []
+    cands = [bundled]
     cands += [Path(cfg_dir)] if cfg_dir else []
     cands += [
         Path("C:/DispatchBoard"), Path("D:/DispatchBoard"),
         Path.home() / "DispatchBoard", Path.home() / "Desktop" / "DispatchBoard",
     ]
     for c in cands:
-        if (c / "atc_check.py").is_file():
+        if has_tools(c):
             return c
-    # Hỏi người dùng một lần bằng hộp thoại chọn thư mục, rồi ghi nhớ.
-    try:
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
-        root = tk.Tk(); root.withdraw(); root.attributes("-topmost", True)
-        messagebox.showinfo(
-            "Trợ lý Dispatch Board",
-            "Chọn thư mục tool gốc (thư mục chứa file atc_check.py / config.py).\n"
-            "Chỉ phải chọn MỘT lần — trợ lý sẽ ghi nhớ.",
-            parent=root,
-        )
-        chosen = filedialog.askdirectory(title="Chọn thư mục tool gốc (DispatchBoard)", parent=root)
-        root.destroy()
-        if chosen and (Path(chosen) / "atc_check.py").is_file():
-            _save_config(tool_dir=chosen)
-            _CFG["tool_dir"] = chosen
-            return Path(chosen)
-    except Exception:
-        pass
     raise RuntimeError(
-        "không tìm thấy thư mục tool gốc (atc_check.py) — sửa \"tool_dir\" trong "
-        "file pc_agent_config.json cạnh script trỏ tới thư mục DispatchBoard"
+        "Bộ công cụ trong Trợ lý bị thiếu. Tải lại bộ cài mới, giải nén toàn bộ "
+        "và bấm cai-tro-ly; không cần chọn thư mục tool bên ngoài."
     )
 
 

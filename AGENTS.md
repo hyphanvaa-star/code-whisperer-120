@@ -26,6 +26,7 @@
 - FliteBrief access lives only in `src/lib/flitebrief.server.ts`; cookies persist in service-role-only `fb_session` so workers share one login. PDFs download via `/api/fb/file` with a bearer token so external credentials never reach the browser.
 - Every server fn / route touching flight data must call `assertDispatcher` — route guards are UX only.
 - PC helper pairs by login (`_uid` tag); IP match is only a fallback — office NAT splits IPs.
+- PC helper tool discovery prefers bundled `app/tool` and accepts both source `.py` and sourceless `.pyc` for required modules; discovery errors stay noninteractive so background retries cannot open folder prompts.
 - PC helper hidden startup uses `pc-agent/background.py` via pythonw/VBS with a Windows-session mutex and stop event; the ZIP keeps only launchers at root and code under `app/`, which `cai-tro-ly.bat` compiles to sourceless .pyc and hides on the user PC (bytecode must match their Python). Header AGENT dot polls `GET /api/pc/status` (heartbeat <90s). Repackage `public/agent/tro-ly-pc.zip` from an explicit source allowlist whenever helper files change.
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via `handle_new_user`.
 - Port groups follow `roadmap.md`: handlers in `src/lib/tool/handlers/<group>.server.ts` preserve web.py JSON; `router.server.ts` owns bearer/GET-cookie auth and `{error, not_ported}`. Pure ports and tests live in `port/` and `port/__tests__/`.
