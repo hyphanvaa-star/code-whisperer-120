@@ -2203,7 +2203,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.55')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.57')
     ;
   return cached;
 }
