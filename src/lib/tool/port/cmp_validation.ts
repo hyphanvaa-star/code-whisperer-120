@@ -366,9 +366,13 @@ function cmpValPaint(sid){
     const t = c ? c.textContent.trim() : "";
     let level = "ok";
     if(!c || !t || /^[—….·]+$/.test(t)) level = k === "etp" ? "ok" : "pending";
+    else if(k === "tow" || k === "lwt"){
+      if(c.querySelector(".vd.bad")) level = "bad";
+      else if(c.querySelector(".warn,.pcr-near,.pcr-hot,.crit")) level = "warn";
+    }
     else if(c.querySelector(".bad,.crit,.pcr-hot,.fuel-tight")) level = "bad";
     else if(c.querySelector(".warn,.pcr-near")) level = "warn";
-    items.push({label, level, text: (c && c.title) || t});
+    items.push({label, level, text: (c && (c.title || c.getAttribute("data-tip"))) || t});
   }
   const v = cmpValidationVerdict(items);
   td.dataset.val = v;
@@ -380,7 +384,11 @@ function cmpValPaint(sid){
   for(const i of items) if(i.level === "bad" || i.level === "warn"){
     const line = document.createElement("div");
     line.className = "cmp-val-line " + i.level;
-    line.textContent = i.label + ": " + String(i.text).split("\\n")[0];
+    const parts = String(i.text).split("\\n");
+    let first = parts[0];
+    if(!first.toUpperCase().startsWith(i.label.split("/")[0])) first = i.label + ": " + first;
+    const room = /còn\\s+(-?[\\d,]+)/.exec(parts.slice(0, 3).join(" "));
+    line.textContent = first + (room ? " · còn " + room[1] : "");
     td.appendChild(line);
   }
   td.title = items.map(i => i.label + " — " + (i.level === "ok" ? "OK" : i.level === "pending" ? "chưa có" : i.level === "warn" ? "tiệm cận" : "sai") + (i.text ? "\\n  " + String(i.text).replace(/\\n/g, "\\n  ") : "")).join("\\n");
