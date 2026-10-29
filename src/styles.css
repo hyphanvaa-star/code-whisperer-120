@@ -67,6 +67,13 @@
 }
 
 :root {
+  --ops-panel: oklch(0.99 0.004 240 / 0.96);
+  --ops-panel-ink: oklch(0.25 0.015 250);
+  --ops-panel-muted: oklch(0.5 0.015 250);
+  --ops-panel-line: oklch(0.89 0.012 250);
+  --ops-panel-accent: oklch(0.53 0.2 20);
+  --ops-panel-on-accent: oklch(1 0 0);
+  --ops-panel-shadow: 0 6px 18px oklch(0.25 0.015 250 / 0.14);
   /* Chat nội bộ — phong cách WeChat */
   --chat-bg: oklch(0.94 0.004 260);
   --chat-panel: oklch(1 0 0);
