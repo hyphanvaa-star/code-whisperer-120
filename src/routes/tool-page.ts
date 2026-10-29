@@ -290,6 +290,12 @@ const SHIM = `<script>
         acDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
       });
       acTokens.textContent=':root{'+acDeclarations.join(';')+'}';
+      var validationDeclarations=[];
+      ['paper','ink','line','shadow','fuel','tow','lwt','zfw','era','etp','good','on-good','warn','warn-ink','bad'].forEach(function(key){
+        var name='--validation-'+key;
+        validationDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
+      });
+      acTokens.textContent+=':root{'+validationDeclarations.join(';')+'}';
       document.head.prepend(acTokens);
     } catch(e){}
     var acBody=document.getElementById('acBody');
@@ -2203,7 +2209,8 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.61')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.62')
+    .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
 }

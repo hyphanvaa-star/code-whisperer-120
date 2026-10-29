@@ -37,6 +37,12 @@ const cmpAircraftChange = ${cmpAircraftChange.toString()};
 const cmpPilotChanges = ${cmpPilotChanges.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
 const cmpSyncChecks = new Map();
+let cmpSyncRowSource = null, cmpSyncRowIndex = new Map();
+function cmpSyncRow(sid){
+  const rows = (lastCmp && lastCmp.table) || [];
+  if(rows !== cmpSyncRowSource){cmpSyncRowSource=rows;cmpSyncRowIndex=new Map(rows.map(r=>[String(r.sector_id),r]));}
+  return cmpSyncRowIndex.get(String(sid));
+}
 function cmpSyncEvidence(r, kind){
   const f = cmpActionFlight(r);
   if(!f) return null;
@@ -110,7 +116,7 @@ function cmpMsgPaint(r){
   b.onclick = ev => {ev.stopPropagation(); menu.value = kind; menu.onchange();};
   menu.hidden = true; td.prepend(b);
 }
-function cmpSyncRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])){ for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); cmpMsgPaint(r); } }
+function cmpSyncRepaint(rows){ for(const r of (rows || ((lastCmp && lastCmp.table) || []))){ for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); cmpMsgPaint(r); } }
 async function cmpSyncOpen(r, kind){
   if(cmpSyncBusy) return;
   const e = cmpSyncEvidence(r, kind); if(!e) {alert("Dữ liệu chuyến đã thay đổi — bấm Cmp lại.");return;}
@@ -166,16 +172,18 @@ async function cmpReadSyncSources(){
     cmpSyncRepaint();
     for(let i=0;i<targets.length;i+=4){
       if(seq!==cmpSyncSeq) return;
-      await Promise.all(targets.slice(i,i+4).map(async e=>{try{await cmpSyncCheck(e);}catch(_){/* unreadable never means matched */}}));
-      cmpSyncRepaint();
+      const batch = targets.slice(i,i+4);
+      await Promise.all(batch.map(async e=>{try{await cmpSyncCheck(e);}catch(_){/* unreadable never means matched */}}));
+      if(seq!==cmpSyncSeq) return;
+      cmpSyncRepaint([...new Set(batch.map(e=>cmpSyncRow(e.f.id)).filter(Boolean))]);
     }
   }catch(_){/* Source errors do not authorize a new action. */}
 }
 setInterval(()=>{if(!document.hidden && !cmpSyncBusy && document.querySelector("#cmpBody")?.offsetParent!==null) cmpReadSyncSources();},60000);
 const cmpSyncFillCrew = fillCrewCell;
-fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=((lastCmp && lastCmp.table)||[]).find(r=>String(r.sector_id)===String(td.dataset.crewSid));if(r)cmpSyncPaint(r,"crew");return td;};
+fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=cmpSyncRow(td.dataset.crewSid);if(r)cmpSyncPaint(r,"crew");return td;};
 const cmpSyncFillReg = fillRegCell;
-fillRegCell = function(...args){const td=cmpSyncFillReg(...args);const r=((lastCmp && lastCmp.table)||[]).find(r=>String(r.sector_id)===String(td.dataset.regSid));if(r)cmpSyncPaint(r,"aims");return td;};
+fillRegCell = function(...args){const td=cmpSyncFillReg(...args);const r=cmpSyncRow(td.dataset.regSid);if(r){cmpRegPaint(r);cmpSyncPaint(r,"aims");}return td;};
 function renderCompareTable(d, opts){`)
     .replace('  cmpOpsRepaint(rows);', '  cmpReadSyncSources();\n  cmpOpsRepaint(rows);')
     .replace('function cmpRegRepaint(){', 'function cmpRegRepaint(){\n  cmpSyncRepaint();')

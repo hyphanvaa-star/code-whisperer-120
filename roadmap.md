@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 3.62: bỏ cập nhật toàn bảng trong từng ô REG, chỉ tô lại chuyến vừa check và lập chỉ mục dòng; Validation nền sáng, chữ 16–18px, sáu biểu tượng/màu riêng. 26 kiểm thử đạt, đã xem khung mẫu, trang không lỗi.
+- [ ] V 3.62: xác nhận độ mượt trên danh sách chuyến thật — chưa có phiên tài khoản để thử; người dùng bấm Cmp và rê Validation.
+
 - [x] V 3.61: sửa bảng So sánh trống vì biến đường phân cách HANDOVER đặt nhầm bảng; tái hiện lỗi trước sửa, vẽ lại chuyến đạt, 7 kiểm thử đạt và build OK.
 
 - [x] V 3.60: trợ lý 5.9 chạy ngầm bằng Chay-Ngam.vbs, tắt bằng Tat-Tro-Ly.vbs, giữ ghép tài khoản và nhật ký; 20 kiểm thử đạt, tải đúng gói mới, trang không lỗi.
