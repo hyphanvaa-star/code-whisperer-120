@@ -67,6 +67,10 @@
 }
 
 :root {
+  --handover-pink: oklch(0.62 0.2 355);
+  --handover-on-pink: oklch(1 0 0);
+  --handover-flower: oklch(0.8 0.12 355);
+  --handover-halo: oklch(0.95 0.035 355);
   --validation-paper: oklch(1 0 0);
   --validation-ink: oklch(0.29 0.018 250);
   --validation-line: oklch(0.9 0.012 250);

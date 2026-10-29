@@ -47,12 +47,13 @@ async function runCompare(opts){
     .replace('    const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");', `    const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");
     if(r.handover){
       tr.classList.add("cmp-handover-row");
-      cs.innerHTML = '<span class="cmp-handover-cs"></span>';
-      cs.firstChild.textContent = r.callsign + (r.note ? " ⚠" : "");
+      cs.innerHTML = '<span class="cmp-handover-top"><span class="cmp-handover-cs"></span></span>';
+      cs.querySelector(".cmp-handover-cs").textContent = r.callsign + (r.note ? " ⚠" : "");
        const handoverTag = document.createElement("span");
       handoverTag.className = "cmp-handover-tag";
-      handoverTag.textContent = "HANDOVER";
-      cs.appendChild(handoverTag);
+      handoverTag.textContent = "HO";
+      handoverTag.setAttribute("aria-label", "Chuyến giao ca");
+      cs.firstChild.appendChild(handoverTag);
     }`)
     .replace('  const crewLater = !!d.crew_pending;\n\n  for(const r of rows){', '  const crewLater = !!d.crew_pending;\n  let cmpPrevHandover = false;\n\n  for(const r of rows){')
     .replace('    };\n    tb.appendChild(tr);\n  }', `    };
@@ -73,7 +74,10 @@ async function runCompare(opts){
     .replaceAll('const f = flights.find(x => x.id === nid || String(x.id) === String(id));', 'const f = cmpFlightPool().find(x => x.id === nid || String(x.id) === String(id));')
     .replace('</head>', `<style>
 .cmptbl .cmp-handover-cs{display:inline-block;padding:2px 9px;border-radius:7px;font-weight:800;color:#713f12;background:linear-gradient(180deg,#fde047,#facc15);border:1px solid #eab308;box-shadow:0 1px 3px rgba(234,179,8,.45),inset 0 1px 0 rgba(255,255,255,.5)}
-.cmptbl .cmp-handover-tag{display:block;width:max-content;margin-top:5px;padding:2px 8px;border-radius:999px;font-size:9.5px;line-height:14px;font-weight:800;letter-spacing:.4px;color:#b45309;background:color-mix(in srgb,var(--amber) 12%,var(--panel));border:1.5px solid var(--amber);box-shadow:0 1px 2px color-mix(in srgb,var(--amber) 25%,transparent)}
+.cmptbl .cmp-handover-top{display:inline-flex;align-items:center;gap:9px;white-space:nowrap;padding-right:5px}
+.cmptbl .cmp-handover-tag{position:relative;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:36px;height:24px;padding:2px 7px;border-radius:6px;font-size:12px;line-height:18px;font-weight:800;letter-spacing:0;color:var(--handover-on-pink)!important;-webkit-text-fill-color:var(--handover-on-pink)!important;background:var(--handover-pink);border:1.5px solid var(--handover-flower);box-shadow:0 0 0 2px var(--handover-halo)}
+.cmptbl .cmp-handover-tag::before,.cmptbl .cmp-handover-tag::after{content:"🌸";position:absolute;width:13px;height:13px;font-size:12px;line-height:13px;pointer-events:none}
+.cmptbl .cmp-handover-tag::before{top:-7px;left:-6px}.cmptbl .cmp-handover-tag::after{bottom:-6px;right:-6px}
 .cmptbl .cmp-handover-row td:first-child{border-left:3px solid var(--amber)}
 .cmptbl tr.cmp-sep td{padding:0;border:none;height:16px;position:relative;background:transparent}
 .cmptbl tr.cmp-sep td::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:linear-gradient(90deg,transparent,var(--x-red) 6%,var(--x-red) 94%,transparent)}

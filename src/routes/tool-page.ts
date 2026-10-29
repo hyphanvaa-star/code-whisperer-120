@@ -296,6 +296,12 @@ const SHIM = `<script>
         validationDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
       });
       acTokens.textContent+=':root{'+validationDeclarations.join(';')+'}';
+      var handoverDeclarations=[];
+      ['pink','on-pink','flower','halo'].forEach(function(key){
+        var name='--handover-'+key;
+        handoverDeclarations.push(name+':'+parentTheme.getPropertyValue(name));
+      });
+      acTokens.textContent+=':root{'+handoverDeclarations.join(';')+'}';
       document.head.prepend(acTokens);
     } catch(e){}
     var acBody=document.getElementById('acBody');
@@ -2209,7 +2215,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.62')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.63')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
