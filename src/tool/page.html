@@ -5902,7 +5902,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.88</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 3.90</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -14051,79 +14051,88 @@ function nmPaintList(place, q){
     list.textContent = "Lỗi: " + place.error;
     return;
   }
-  if(dropped.length){
-    const bar = document.createElement("div");
-    bar.className = "nm-drop-bar";
-    bar.appendChild(document.createTextNode(
-      (place.code || "") + (place.kind === "FIR" ? " — FIR đã lọc " : " — SÂN đã lọc ")
-      + dropped.length));
-    if(seeDrop){
-      const back = document.createElement("button");
-      back.type = "button";
-      back.textContent = "Về danh sách còn lại";
-      back.onclick = () => { nmShowDropped = false; nmRender(); };
-      bar.appendChild(back);
-    }else{
-      const see = document.createElement("button");
-      see.type = "button";
-      see.textContent = "Xem đã lược";
-      see.onclick = () => { nmShowDropped = true; nmRender(); };
-      bar.appendChild(see);
-    }
-    list.appendChild(bar);
-  }
-  const src = seeDrop ? dropped : kept;
-  const rows = src.filter(n => nmMatchItem(n, q));
-  if(!rows.length){
-    const empty = document.createElement("div");
-    empty.className = "nm-item miss";
-    empty.textContent = q ? "Không khớp bộ lọc."
-      : (seeDrop ? "Không có NOTAM bị lược." : "Không có NOTAM trong cửa sổ 24H.");
-    list.appendChild(empty);
-    return;
-  }
+  const graded = kept.some(n => n.level) || dropped.some(n => n.level);
   const nmGrpOf = (n) => {
-    if(seeDrop) return "noimpact";
+    if(n._noimp) return "noimpact";
     const l = n.level || "";
     if(l === "CRITICAL" || l === "DELAY-ONLY") return "impact";
     if(l === "NEED MANUAL CHECK") return "manual";
     if(l === "BRIEFING INFO") return "brief";
     if(l === "NO IMPACT") return "noimpact";
-    return "";
+    return "brief";
   };
-  const nmGrpName = {impact:"🔴 CÓ ẢNH HƯỞNG (Critical / Delay-only)", manual:"🟡 CẦN KIỂM TRA TAY", brief:"🔵 THÔNG TIN BRIEFING", noimpact:"⚪ KHÔNG ẢNH HƯỞNG"};
-  const nmGrpRank = {impact:0, manual:1, brief:2, noimpact:3, "":4};
-  if(rows.some(n => n.level)){
-    rows.sort((a, b) => nmGrpRank[nmGrpOf(a)] - nmGrpRank[nmGrpOf(b)]);
-    const cnt = {};
-    rows.forEach(n => { const g = nmGrpOf(n); cnt[g] = (cnt[g] || 0) + 1; });
+  const nmGrpName = {impact:"🔴 CÓ ẢNH HƯỞNG", manual:"🟡 CẦN KIỂM TRA TAY", brief:"🔵 THÔNG TIN BRIEFING", noimpact:"⚪ KHÔNG ẢNH HƯỞNG"};
+  const nmGrpHint = {impact:"Critical / Delay-only — ảnh hưởng giờ bay hoặc khi trễ", manual:"Thiếu dữ liệu hoặc chưa xác định vùng", brief:"Tham khảo khi briefing", noimpact:"Ngoài giờ / ngoài hành lang / lệch cao độ"};
+  if(!graded && dropped.length){
+    const bar = document.createElement("div");
+    bar.className = "nm-drop-bar";
+    bar.appendChild(document.createTextNode(
+      (place.code || "") + (place.kind === "FIR" ? " — FIR đã lọc " : " — SÂN đã lọc ")
+      + dropped.length));
+    const see = document.createElement("button");
+    see.type = "button";
+    see.textContent = seeDrop ? "Về danh sách còn lại" : "Xem đã lược";
+    see.onclick = () => { nmShowDropped = !seeDrop; nmRender(); };
+    bar.appendChild(see);
+    list.appendChild(bar);
+  }
+  const src = graded
+    ? kept.concat(dropped.map(n => Object.assign({}, n, {_noimp: true, level: n.level || "NO IMPACT"})))
+    : (seeDrop ? dropped : kept);
+  const rows = src.filter(n => nmMatchItem(n, q));
+  if(!rows.length){
+    const empty = document.createElement("div");
+    empty.className = "nm-item miss";
+    empty.textContent = q ? "Không khớp bộ lọc." : "Không có NOTAM trong cửa sổ 24H.";
+    list.appendChild(empty);
+    return;
+  }
+  const order = graded ? ["impact","manual","brief","noimpact"] : [null];
+  if(graded){
     const sum = document.createElement("div");
     sum.className = "nm-grp-sum";
-    for(const g of ["impact","manual","brief"]){
+    for(const g of order){
       const s = document.createElement("span");
       s.className = "nm-grp-pill nm-grp-" + g;
-      s.textContent = nmGrpName[g].split(" (")[0] + ": " + (cnt[g] || 0);
+      s.textContent = nmGrpName[g] + ": " + rows.filter(x => nmGrpOf(x) === g).length;
       sum.appendChild(s);
     }
-    const s = document.createElement("span");
-    s.className = "nm-grp-pill nm-grp-noimpact";
-    s.textContent = "⚪ KHÔNG ẢNH HƯỞNG: " + dropped.length;
-    sum.appendChild(s);
     list.appendChild(sum);
   }
-  let nmCurGrp = null;
-  for(const n of rows){
-    const g = n.level || seeDrop ? nmGrpOf(n) : null;
-    if(g && g !== nmCurGrp){
-      nmCurGrp = g;
-      const h = document.createElement("div");
-      h.className = "nm-grp-head nm-grp-" + g;
-      h.textContent = nmGrpName[g] + " — " + rows.filter(x => nmGrpOf(x) === g).length;
-      list.appendChild(h);
+  if(typeof window.nmGrpClosed !== "object") window.nmGrpClosed = {noimpact: true};
+  for(const g of order){
+    const grpRows = g ? rows.filter(x => nmGrpOf(x) === g) : rows;
+    let target = list;
+    if(g){
+      const box = document.createElement("section");
+      box.className = "nm-grp-box nm-grp-" + g;
+      const h = document.createElement("button");
+      h.type = "button";
+      h.className = "nm-grp-head";
+      const closed = !!window.nmGrpClosed[g];
+      h.innerHTML = "<b></b><span></span><i></i>";
+      h.children[0].textContent = nmGrpName[g] + " (" + grpRows.length + ")";
+      h.children[1].textContent = nmGrpHint[g];
+      h.children[2].textContent = closed ? "▸ Mở" : "▾ Thu gọn";
+      h.onclick = () => { window.nmGrpClosed[g] = !closed; nmRender(); };
+      box.appendChild(h);
+      list.appendChild(box);
+      if(closed || !grpRows.length){
+        if(!grpRows.length){
+          const e = document.createElement("div");
+          e.className = "nm-grp-empty";
+          e.textContent = "Không có NOTAM";
+          box.appendChild(e);
+        }
+        continue;
+      }
+      target = box;
     }
+  for(const n of grpRows){
+    const isNo = !!n._noimp || n.level === "NO IMPACT";
     const item = document.createElement("div");
     item.className = "nm-item"
-      + (seeDrop ? " drop" : "")
+      + ((seeDrop || isNo) ? " drop" : "")
       + (nmHitIdents.has(n.ident) ? " hit" : "")
       + (nmFocusIdent && n.ident === nmFocusIdent ? " nm-item-on" : "");
     if(n.ident) item.dataset.ident = n.ident;
@@ -14142,14 +14151,14 @@ function nmPaintList(place, q){
       tag.textContent = n.level + (n.level === "DELAY-ONLY" && n.impact_delay != null ? " · trễ ≥" + n.impact_delay + "′" : "")
         + (n.level === "BRIEFING INFO" ? "" : (n.match_type ? " · " + n.match_type : ""));
       lv.appendChild(tag);
-      if(!seeDrop && (n.reasons || []).length){
+      const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || "");
+      if(why){
         const r = document.createElement("span");
-        r.textContent = n.reasons.join(" ");
+        r.textContent = why;
         lv.appendChild(r);
       }
       item.appendChild(lv);
-    }
-    if(seeDrop && n.skip_why){
+    }else if(seeDrop && n.skip_why){
       const why = document.createElement("span");
       why.className = "nm-drop-why";
       why.textContent = n.skip_why;
@@ -14168,7 +14177,8 @@ function nmPaintList(place, q){
       el.onclick = (ev) => { ev.stopPropagation(); jump(); };
     });
     if(ident) item.onclick = jump;
-    list.appendChild(item);
+    target.appendChild(item);
+  }
   }
   if(nmFocusIdent){
     const on = [...list.querySelectorAll(".nm-item")].find(
@@ -28960,11 +28970,20 @@ function boot(){
 .nm-lv-noimpact b{background:#6b7280}
 .nm-grp-sum{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
 .nm-grp-pill{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid currentColor}
-.nm-grp-head{margin:10px 0 6px;padding:7px 12px;border-radius:8px;font-weight:800;font-size:13px;letter-spacing:.02em;border-left:5px solid currentColor}
-.nm-grp-impact{color:#b91c1c;background:#fee2e2}
-.nm-grp-manual{color:#a16207;background:#fef9c3}
-.nm-grp-brief{color:#1d4ed8;background:#dbeafe}
-.nm-grp-noimpact{color:#4b5563;background:#f3f4f6}
+.nm-grp-box{margin:10px 0;border:1px solid;border-left-width:6px;border-radius:10px;padding:0 8px 8px;overflow:hidden}
+.nm-grp-head{display:flex;gap:10px;align-items:center;width:calc(100% + 16px);margin:0 -8px 8px;padding:9px 12px;border:0;font:inherit;cursor:pointer;text-align:left}
+.nm-grp-head b{font-size:14px;font-weight:800}
+.nm-grp-head span{flex:1;font-size:12px;opacity:.8}
+.nm-grp-head i{font-style:normal;font-size:12px;font-weight:700}
+.nm-grp-empty{font-size:12px;opacity:.6;padding:4px 6px}
+.nm-grp-box.nm-grp-impact{border-color:#b91c1c}
+.nm-grp-box.nm-grp-manual{border-color:#a16207}
+.nm-grp-box.nm-grp-brief{border-color:#1d4ed8}
+.nm-grp-box.nm-grp-noimpact{border-color:#6b7280}
+.nm-grp-impact .nm-grp-head,.nm-grp-pill.nm-grp-impact{color:#b91c1c;background:#fee2e2}
+.nm-grp-manual .nm-grp-head,.nm-grp-pill.nm-grp-manual{color:#a16207;background:#fef9c3}
+.nm-grp-brief .nm-grp-head,.nm-grp-pill.nm-grp-brief{color:#1d4ed8;background:#dbeafe}
+.nm-grp-noimpact .nm-grp-head,.nm-grp-pill.nm-grp-noimpact{color:#4b5563;background:#f3f4f6}
 .nm-assess-pop{position:fixed;z-index:9999;top:12vh;left:50%;transform:translateX(-50%);width:min(560px,94vw);background:#fff;color:#111;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:18px 20px;font-size:15px}
 .nm-assess-pop[hidden]{display:none}
 .nm-assess-pop h4{margin:0 0 6px;font-size:18px}
