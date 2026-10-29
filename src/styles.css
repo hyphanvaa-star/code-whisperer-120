@@ -67,6 +67,19 @@
 }
 
 :root {
+  --login-ink: oklch(1 0 0);
+  --login-input: oklch(0.995 0.002 350);
+  --login-input-ink: oklch(0.4 0.018 260);
+  --login-placeholder: oklch(0.7 0.017 260);
+  --login-glass: linear-gradient(135deg, oklch(0.72 0.065 240 / 0.72), oklch(0.75 0.035 355 / 0.85) 65%, oklch(0.69 0.04 355 / 0.9));
+  --login-glass-line: oklch(1 0 0 / 0.32);
+  --login-glass-shadow: 0 10px 32px oklch(0.3 0.03 350 / 0.16);
+  --login-scene-shadow: 0 24px 80px oklch(0.25 0.025 350 / 0.18);
+  --login-red: oklch(0.59 0.24 23);
+  --login-red-hover: oklch(0.54 0.23 23);
+  --login-google-blue: oklch(0.6 0.2 260);
+  --login-google-green: oklch(0.6 0.17 150);
+  --login-google-yellow: oklch(0.83 0.17 85);
   --vj-red: oklch(0.58 0.22 25);
   --vj-red-deep: oklch(0.45 0.19 22);
   --vj-yellow: oklch(0.86 0.17 92);
@@ -196,4 +209,53 @@
 
 @utility bg-header-soft {
   background-image: linear-gradient(100deg, oklch(0.96 0.03 0), oklch(0.985 0.012 350));
+}
+
+.sakura-login { min-height: 100svh; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 40px 0; font-family: Arial, Helvetica, sans-serif; color: var(--login-ink); letter-spacing: 0; }
+.sakura-backdrop { position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); object-fit: cover; filter: blur(20px); }
+.sakura-scene { position: relative; width: 88.8%; max-width: 1440px; aspect-ratio: 1088 / 688; border-radius: 16px; overflow: hidden; box-shadow: var(--login-scene-shadow); isolation: isolate; }
+.sakura-city { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+.sakura-plane { position: absolute; top: 25.5%; left: 26.4%; width: 20.5%; height: auto; }
+.sakura-brand { position: absolute; left: 9.7%; top: 33%; }
+.sakura-wordmark { font-size: 34px; font-weight: 900; font-style: italic; line-height: 1; }
+.sakura-wordmark span { font-size: 28px; margin-left: 3px; }
+.sakura-brand h1 { margin: 16px 0 0; font-size: 56px; line-height: .94; font-weight: 750; letter-spacing: 0; }
+.sakura-brand-rule { width: 44px; height: 2px; background: var(--login-ink); margin: 18px 0 12px; }
+.sakura-brand p { font-size: 20px; line-height: 1.25; margin: 0; }
+.sakura-glass { position: absolute; right: 6%; top: 19.2%; width: 34%; padding: 36px 38px 30px; border: 1px solid var(--login-glass-line); border-radius: 28px; background: var(--login-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: var(--login-glass-shadow); }
+.sakura-field-group + .sakura-field-group { margin-top: 18px; }
+.sakura-field-group label { display: block; margin-bottom: 7px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--login-ink); }
+.sakura-input { width: 100%; height: 40px; border-radius: 5px; border: 1px solid var(--login-glass-line); background: var(--login-input); color: var(--login-input-ink); font-size: 14px; padding: 0 13px; box-shadow: none; }
+.sakura-input::placeholder { color: var(--login-placeholder); }
+.sakura-input:focus-visible { border-color: var(--login-ink); outline: 2px solid var(--login-glass-line); }
+.sakura-forgot { text-align: right; margin: 9px 0 17px; }
+.sakura-forgot button, .sakura-account button { height: auto; padding: 0; font-size: 14px; color: var(--login-ink); text-decoration: underline; font-weight: 400; opacity: 1; }
+.sakura-signin { width: 100%; height: 40px; background: var(--login-red); color: var(--login-ink); border-radius: 5px; font-size: 13px; font-weight: 600; box-shadow: none; }
+.sakura-signin:hover { background: var(--login-red-hover); }
+.sakura-divider { display: flex; align-items: center; justify-content: center; gap: 19px; margin: 16px 0 12px; font-size: 14px; }
+.sakura-divider span { height: 1px; width: 72px; background: var(--login-glass-line); }
+.sakura-google { width: 100%; height: 40px; border: 0; border-radius: 5px; background: var(--login-input); color: var(--login-input-ink); opacity: 1; font-size: 14px; font-weight: 600; gap: 11px; }
+.sakura-google-mark { font-size: 24px; font-weight: 800; background: conic-gradient(var(--login-google-blue) 0deg 110deg, var(--login-google-green) 110deg 190deg, var(--login-google-yellow) 190deg 240deg, var(--login-red) 240deg 300deg, var(--login-google-blue) 300deg); background-clip: text; color: transparent; }
+.sakura-account { margin-top: 20px; text-align: center; font-size: 14px; white-space: nowrap; }
+.sakura-version { position: absolute; bottom: 12px; right: 16px; font-size: 11px; color: var(--login-ink); }
+@media (max-width: 1100px) and (min-width: 761px) {
+  .sakura-brand h1 { font-size: 44px; }
+  .sakura-wordmark { font-size: 28px; }
+  .sakura-brand p { font-size: 17px; }
+  .sakura-glass { top: 14%; width: 36%; padding: 26px; }
+  .sakura-account, .sakura-account button { font-size: 12px; }
+}
+@media (max-width: 760px) {
+  .sakura-login { padding: 20px 0; }
+  .sakura-scene { width: calc(100% - 32px); min-height: 740px; aspect-ratio: auto; }
+  .sakura-city { object-position: 57% center; }
+  .sakura-brand { left: 8%; top: 8%; }
+  .sakura-brand h1 { font-size: 38px; line-height: 1; }
+  .sakura-wordmark { font-size: 27px; }
+  .sakura-wordmark span { font-size: 23px; }
+  .sakura-brand p { font-size: 16px; }
+  .sakura-brand-rule { margin: 12px 0 10px; }
+  .sakura-plane { top: 8%; left: 62%; width: 32%; }
+  .sakura-glass { top: auto; bottom: 46px; right: 7%; width: 86%; padding: 28px; border-radius: 24px; }
+  .sakura-account, .sakura-account button { font-size: 13px; }
 }
