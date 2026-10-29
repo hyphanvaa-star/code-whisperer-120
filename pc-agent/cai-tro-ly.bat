@@ -7,7 +7,7 @@ cd /d "%~dp0"
 
 echo ============================================================
 echo   TRO LY DISPATCH BOARD - cai dat va chay tu dong
-echo   Cua so nay phai MO trong luc lam viec. Dong = tro ly tat.
+echo   Chi cai lan dau. Xong se chay ngam, khong can giu CMD.
 echo ============================================================
 echo.
 
@@ -80,11 +80,7 @@ if not %errorlevel%==0 (
 )
 echo [2/3] Thu vien: OK
 
-rem --- 3. Chay tro ly (tu chay lai neu bi rot) ---
-echo [3/3] Dang chay tro ly...
-:run_loop
-%PYCMD% "%~dp0pc_agent.py"
-echo.
-echo Tro ly vua dung - tu chay lai sau 10 giay. (Dong cua so nay de tat han.)
-timeout /t 10 /nobreak >nul
-goto :run_loop
+rem --- 3. Chay ngam, khong de lai cua so CMD ---
+echo [3/3] Dang mo tro ly chay ngam...
+wscript.exe "%~dp0Chay-Ngam.vbs"
+exit /b 0
