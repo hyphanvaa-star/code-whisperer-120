@@ -6,13 +6,13 @@ describe('NOTAM overview counts', () => {
     expect(notamCounts({ places: [{ notams: [
       {ident:'A',level:'CRITICAL'}, {ident:'B',level:'DELAY-ONLY'},
       {ident:'C',level:'NEED MANUAL CHECK'}, {ident:'D',level:'BRIEFING INFO'},
-    ], dropped:[{ident:'E',level:'NO IMPACT'}] }] })).toEqual({total:5,impact:2,noimpact:1});
+    ], dropped:[{ident:'E',level:'NO IMPACT'}] }] })).toEqual({total:5,impact:2,manual:1,brief:1,noimpact:1});
   });
   it('does not double count a row in both displayed and filtered arrays', () => {
     const row = {ident:'A',level:'NO IMPACT'};
-    expect(notamCounts({places:[{notams:[row],dropped:[row]}]})).toEqual({total:1,impact:0,noimpact:1});
+    expect(notamCounts({places:[{notams:[row],dropped:[row]}]})).toEqual({total:1,impact:0,manual:0,brief:0,noimpact:1});
   });
   it('counts an empty flight as zero', () => {
-    expect(notamCounts(null)).toEqual({total:0,impact:0,noimpact:0});
+    expect(notamCounts(null)).toEqual({total:0,impact:0,manual:0,brief:0,noimpact:0});
   });
 });
