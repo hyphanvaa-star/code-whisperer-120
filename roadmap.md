@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 4.15: đưa kho vùng có tên vào Database, liệt kê theo quốc gia, tìm mã/tên vùng và xem ranh giới/nguồn đang dùng.
+- [x] V 4.15: Database → Named Airspace liệt kê cùng kho 701 vùng theo 11 quốc gia/vùng lãnh thổ; tìm mã/tên/FIR, xem tọa độ/nguồn có sẵn. 22 kiểm thử đạt; thao tác chọn Philippines/tìm RP-R72/xem tọa độ đạt trên màn hình riêng, chưa thử phiên đăng nhập thật vì không có tài khoản khớp.
 - [x] V 4.14: bổ sung 78 vùng xác minh từ AIP Nhật/Philippines/Đài Loan (đa giác và vòng tròn), tổng 701 vùng cùng kho cũ; tra ranh giới ngay trước tải SUP, đúng FIR, không thay vùng có hậu tố bằng vùng gốc.
 - [ ] Kho vùng quốc tế: chưa có ranh giới AIP đầy đủ của Trung Quốc/Lào/Indonesia; các vùng có cung/bờ biển/lỗ loại trừ chưa đủ cách dựng hình vẫn kiểm tra tay, không đoán tọa độ.
 - [x] V 4.12: nhận diện RP-R72/RPR72 và W-181/RJW-181 theo FIR; bổ sung tham chiếu P51-1 vào tra Nhật, giữ cách xét giờ/hành lang/độ cao; 34 kiểm thử đạt, trang phục vụ V 4.12.
