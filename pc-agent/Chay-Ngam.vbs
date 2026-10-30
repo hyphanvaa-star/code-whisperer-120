@@ -4,7 +4,18 @@ Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 root = fso.GetParentFolderName(WScript.ScriptFullName)
 pythonw = ""
+Dim saved
+saved = fso.BuildPath(fso.BuildPath(root, "app"), "python-path.txt")
+If fso.FileExists(saved) Then
+  Set file = fso.OpenTextFile(saved, 1)
+  If Not file.AtEndOfStream Then candidate = Trim(file.ReadLine)
+  file.Close
+  If candidate <> "" Then
+    If fso.FileExists(candidate) Then pythonw = candidate
+  End If
+End If
 For Each version In Array("3.14", "3.13", "3.12", "3.11", "3.10")
+  If pythonw <> "" Then Exit For
   For Each base In Array("HKCU\Software\Python\PythonCore\", "HKLM\Software\Python\PythonCore\")
     On Error Resume Next
     candidate = shell.RegRead(base & version & "\InstallPath\") & "pythonw.exe"

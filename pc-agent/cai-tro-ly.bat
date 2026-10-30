@@ -89,6 +89,8 @@ if exist "%~dp0app\background.py" (
         for /d /r "%~dp0app" %%D in (__pycache__) do rd /s /q "%%D" >nul 2>&1
     )
 )
+rem Ghi lai dung Python vua dung de Chay-Ngam.vbs chay ngam bang chinh Python nay (ke ca ban Microsoft Store)
+%PYCMD% -c "import sys,os;e=sys.executable;w=os.path.join(os.path.dirname(e),'pythonw.exe');open(r'%~dp0app\python-path.txt','w').write(w if os.path.exists(w) else e)" >nul 2>&1
 if exist "%~dp0app" attrib +h "%~dp0app" >nul 2>&1
 
 rem --- Tu chay cung Windows: dat loi tat vao thu muc Startup cua nguoi dung ---
