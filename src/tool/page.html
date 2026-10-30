@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.04</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.05</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -16795,7 +16795,27 @@ function nmSlimPlaces(places){
     }))
   }));
 }
+function nmCritIdents(pack){
+  const out = new Set();
+  const f = (pack && pack.flight) || {};
+  const dep = String(f.dep_icao || f.dep || "").toUpperCase(), arr = String(f.dest_icao || f.arr_icao || f.dest || "").toUpperCase();
+  const termFir = new Set();
+  for(const p of (pack && pack.places) || []){
+    const c = String(p.code || "").toUpperCase();
+    if(p.kind === "A" && (c === dep || c === arr) && p.fir) termFir.add(String(p.fir).toUpperCase());
+  }
+  for(const h of (pack && pack.hits) || []){
+    if(!h.ident || h.dist_nm == null || h.dist_nm > 15) continue;
+    if(h.impact === "ref") continue;
+    if(h.kind === "FIR" && !termFir.has(String(h.icao || "").toUpperCase())){
+      if(!(Number(h.fl_hi) >= 10000)) continue;
+    }
+    out.add(h.ident);
+  }
+  return out;
+}
 function nmApplyTune(pack, dropped, extra){
+  const critIds = nmCritIdents(pack);
   if(!pack || !pack.places) return 0;
   const heads = (extra && extra.heads) || {};
   const ofpMap = (extra && extra.ofp_hits) || {};
@@ -16823,7 +16843,7 @@ function nmApplyTune(pack, dropped, extra){
         patch.match_type = as.match_type;
         patch.reasons = as.reasons || [];
       }
-      if(as && as.level === "NO IMPACT" && nmHitIdents.has(ident)){
+      if(as && as.level === "NO IMPACT" && critIds.has(ident)){
         patch.level = "CRITICAL"; patch.match_type = "TRACKING-HIT";
         patch.reasons = ["Tracking route/sân của chuyến trúng NOTAM này trong giờ bay."];
       }
