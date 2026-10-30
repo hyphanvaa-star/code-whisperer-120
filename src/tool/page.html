@@ -5806,7 +5806,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
 
 .nm-grp-pill{cursor:pointer;font-size:14px;padding:6px 14px;border:2px solid transparent}.nm-grp-pill.on{border-color:currentColor;box-shadow:0 2px 8px rgba(0,0,0,.18);transform:scale(1.05)}
 </style>
-<style id="nmDragFix">#nmMap .leaflet-container,.leaflet-container{cursor:grab!important;touch-action:none!important}.leaflet-container.leaflet-dragging,.leaflet-dragging .leaflet-container{cursor:grabbing!important}.leaflet-container .leaflet-interactive{cursor:pointer!important}.leaflet-tile{will-change:transform}</style></head>
+</head>
 <body>
 <div id="matchaShop" aria-hidden="true">
   <button type="button" class="hy-close" id="matchaClose" aria-label="Đóng">×</button>
@@ -5924,7 +5924,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.27</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.28</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -16102,7 +16102,7 @@ function nmEnsureMap(){
     return nmMap;
   }
   el.textContent = "";
-  nmMap = L.map(el, {zoomControl: true, scrollWheelZoom: true, dragging: true, tap: false, preferCanvas: true, inertia: true, zoomAnimation: true, fadeAnimation: false, markerZoomAnimation: false, wheelPxPerZoomLevel: 120});
+  nmMap = L.map(el, {zoomControl: true, scrollWheelZoom: true});
   const streets = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
     {maxZoom: 19, attribution: "Tiles &copy; Esri"});
