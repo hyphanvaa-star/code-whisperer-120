@@ -625,7 +625,7 @@ export const routes: Routes = {
   },
   "GET /api/dispatchers": async ({ params }) => {
     const days = parseInt(params.get("days") || "1", 10) || 1;
-    const flights = await loadFlights(days);
+    const flights = await loadFlights(days, params.get("refresh") === "1");
     const scoped = applyFilters(flights, params, true);
     return { dispatchers: listDispatchers(scoped), total: scoped.length };
   },
