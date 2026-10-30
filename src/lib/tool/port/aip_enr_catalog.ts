@@ -3,14 +3,29 @@
 // "WS(D)-44" or "WMR 226" draw without a live AIP download.
 import DATA from "../data/aip_enr_rings.json";
 import VERIFIED from "../data/aip_named_verified.json";
+import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
+type VerifiedArea = { name: string; fir: string; ring: Pt[]; circle?: { center: Pt; radiusNm: number } };
+const AREAS = VERIFIED.areas as unknown as Record<string, VerifiedArea>;
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
-  ...Object.fromEntries(Object.entries(VERIFIED.areas).map(([key, area]) => [key, area.ring as Pt[]])),
+  ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
 };
 
-const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ)\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
+const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
+const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key)).map(([key, area]) => ({
+  key, country: area.fir.slice(0, 2),
+  pattern: new RegExp(`(?<![A-Z0-9])${area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![A-Z0-9])`),
+}));
+
+function matchesFir(country: string, region: string): boolean {
+  if (!region) return true;
+  if (country === "RJ") return /^(RJ|RO)/.test(region);
+  if (/^W[ABIM]$/.test(country)) return /^(WI|WA)/.test(country) ? /^(WI|WA)/.test(region) : /^(WM|WB)/.test(region);
+  if (/^V[AEIO]$/.test(country)) return /^(VA|VE|VI|VO)/.test(region);
+  return region.startsWith(country);
+}
 
 /** Resolve spelling separately from boundary availability; unknown areas stay unresolved. */
 export function namedEnrIds(text: string, fir = ""): string[] {
@@ -20,8 +35,7 @@ export function namedEnrIds(text: string, fir = ""): string[] {
   for (const m of blob.matchAll(ID_RE)) {
     const country = m[1], kind = m[2];
     if (kind === "W" && country !== "RJ") continue;
-    if (country === "RP" && region && !region.startsWith("RP")) continue;
-    if (country === "RJ" && region && !/^(RJ|RO)/.test(region)) continue;
+    if (!matchesFir(country, region)) continue;
     out.add(`${country}${kind}${m[3]}`);
   }
   // Bare W-/R-/D-/P- codes are country-local: never resolve them outside Japan.
@@ -30,6 +44,10 @@ export function namedEnrIds(text: string, fir = ""): string[] {
       out.add(`RJ${m[1]}${m[2]}`);
     }
   }
+  // Published names without numeric IDs also require an explicit country scope.
+  for (const {key, country, pattern} of NAMED) {
+    if (region && matchesFir(country, region) && pattern.test(blob)) out.add(key);
+  }
   return [...out];
 }
 
@@ -37,12 +55,21 @@ export function namedEnrIds(text: string, fir = ""): string[] {
 export function enrIdsInText(text: string, fir = ""): string[] {
   const out: string[] = [];
   for (const key of namedEnrIds(text, fir)) {
-    const cand = RINGS[key] ? key : RINGS[key.replace(/[A-Z]$/, "")] ? key.replace(/[A-Z]$/, "") : "";
+    // A suffix can identify a different boundary; never fall back to its parent.
+    const cand = RINGS[key] || AREAS[key]?.circle ? key : "";
     if (cand && !out.includes(cand)) out.push(cand);
   }
   return out;
 }
 
 export function enrRing(key: string): Pt[] {
-  return [...(RINGS[key] || [])];
+  return (RINGS[key] || []).map(([lat, lon]) => [lat, lon]);
+}
+
+/** Keep published circles as circles, not fabricated straight-edge polygons. */
+export function enrGeoms(key: string): Geom[] {
+  const circle = AREAS[key]?.circle;
+  if (circle) return [{ name: key, shape: "circle", ring: [], lat: circle.center[0], lon: circle.center[1], radius_nm: circle.radiusNm, source: "aip" }];
+  const ring = enrRing(key);
+  return ring.length >= 3 ? [{ name: key, shape: "polygon", ring, source: "aip" }] : [];
 }

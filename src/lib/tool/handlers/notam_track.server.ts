@@ -26,7 +26,7 @@ import { supKeys, namedAreaIds, notamGeoms, type Geom } from "../port/notam_trac
 import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText, koreaRestrictedRings } from "../aip_sup.server";
 import { expand_au_area_ids } from '../port/aip_sup';
 import AIP_CATALOG from '../port/aip_catalog.json';
-import { enrIdsInText, enrRing } from '../port/aip_enr_catalog';
+import { enrIdsInText, enrGeoms } from '../port/aip_enr_catalog';
 import type { Ctx } from "../types";
 import { getJson } from '../store.server';
 import type { Chart } from '../port/aip_vn_chart';
@@ -56,6 +56,15 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA|WARNING AREA|\b[WRDP]\s*-\s*\d/i.test(blob);
       const krIds = /^RK/i.test(fir) ? namedAreaIds(blob).filter(id => /^RK[DRP]/.test(id)) : [];
       const enrIds = enrIdsInText(blob, fir);
+      // Resolve the offline catalogue immediately for every NOTAM, independently
+      // of live SUP timeouts or task ordering. All known named areas can draw.
+      if (enrIds.length) {
+        const geoms = [...((n.sup_geoms as Geom[] | undefined) ?? [])];
+        for (const name of enrIds) {
+          if (!geoms.some(g => g.name === name)) geoms.push(...enrGeoms(name));
+        }
+        n.sup_geoms = geoms;
+      }
       if (!keys.length && !au && !jp && !krIds.length && !enrIds.length) continue;
       // Bundled AU DAH names (e.g. "WILLIAMTOWN CTA C9") resolve offline — do it now so slow SUP downloads cannot starve them past the deadline.
       if (au) {
@@ -74,14 +83,10 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
             if (ring.length >= 3) { pre.push({ name, shape: "polygon", ring, source: "DAH" }); break; }
           }
         }
-        if (pre.length) n.sup_geoms = pre;
+        if (pre.length) n.sup_geoms = [...((n.sup_geoms as Geom[] | undefined) ?? []), ...pre];
       }
       const task = async () => {
         const geoms: Geom[] = [...(((n.sup_geoms as Geom[] | undefined) ?? []))];
-        for (const name of enrIds) {
-          const ring = enrRing(name);
-          if (ring.length >= 3 && !geoms.some(g => g.name === name)) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
-        }
         if (krIds.length) {
           koreaCatalog ??= koreaRestrictedRings(ctx);
           const table = await koreaCatalog;

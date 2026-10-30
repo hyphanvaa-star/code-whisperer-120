@@ -5,11 +5,33 @@
       "fir": "RJJJ",
       "effective": "2026-10-29",
       "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
-      "publishedCoordinates": ["254115N/1304452E", "252615N/1314152E", "242315N/1304752E", "245315N/1300352E"],
+      "publishedCoordinates": [
+        "254115N/1304452E",
+        "252615N/1314152E",
+        "242315N/1304752E",
+        "245315N/1300352E"
+      ],
       "lower": "SFC",
       "upperFt": 4000,
       "activation": "by NOTAM",
-      "ring": [[25.6875, 130.74777777777777], [25.4375, 131.6977777777778], [24.3875, 130.79777777777778], [24.8875, 130.06444444444446]]
+      "ring": [
+        [
+          25.6875,
+          130.74777777777777
+        ],
+        [
+          25.4375,
+          131.6977777777778
+        ],
+        [
+          24.3875,
+          130.79777777777778
+        ],
+        [
+          24.8875,
+          130.06444444444446
+        ]
+      ]
     },
     "RPR72": {
       "name": "RP-R72 LIPA",
@@ -18,11 +40,2978 @@
       "libraryEffective": "2025-10-30",
       "source": "https://www.ead.eurocontrol.int/",
       "document": "RP_ENR_5_1_en.pdf, ENR 5.1-1, AIRAC AIP AMDT 083/23; EAD AIP Library > Philippines > Civil > EN > AIP > ENR",
-      "publishedCoordinates": ["135124N 1205915E", "135722N 1210308E", "140341N 1210728E", "140341N 1211400E", "135722N 1211400E", "134314N 1211400E", "134314N 1210728E", "135124N 1205915E"],
+      "publishedCoordinates": [
+        "135124N 1205915E",
+        "135722N 1210308E",
+        "140341N 1210728E",
+        "140341N 1211400E",
+        "135722N 1211400E",
+        "134314N 1211400E",
+        "134314N 1210728E",
+        "135124N 1205915E"
+      ],
       "lower": "SFC",
       "upperFt": 8000,
       "activation": "SUN to SAT - HJ; operational activation subject to NOTAM",
-      "ring": [[13.856666666666666, 120.9875], [13.95611111111111, 121.05222222222221], [14.061388888888889, 121.12444444444444], [14.061388888888889, 121.23333333333333], [13.95611111111111, 121.23333333333333], [13.720555555555556, 121.23333333333333], [13.720555555555556, 121.12444444444444], [13.856666666666666, 120.9875]]
+      "ring": [
+        [
+          13.856666666666666,
+          120.9875
+        ],
+        [
+          13.95611111111111,
+          121.05222222222221
+        ],
+        [
+          14.061388888888889,
+          121.12444444444444
+        ],
+        [
+          14.061388888888889,
+          121.23333333333333
+        ],
+        [
+          13.95611111111111,
+          121.23333333333333
+        ],
+        [
+          13.720555555555556,
+          121.23333333333333
+        ],
+        [
+          13.720555555555556,
+          121.12444444444444
+        ],
+        [
+          13.856666666666666,
+          120.9875
+        ]
+      ]
+    },
+    "RPR71": {
+      "name": "RP-R71 ANTENNA FARM (BUSAY)",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 700,
+      "publishedCoordinates": [
+        "102044N 1235147E",
+        "102144N 1235305E",
+        "102044N 1235353E",
+        "101944N 1235229E",
+        "102044N 1235147E"
+      ],
+      "ring": [
+        [
+          10.345555555555556,
+          123.86305555555555
+        ],
+        [
+          10.362222222222222,
+          123.88472222222222
+        ],
+        [
+          10.345555555555556,
+          123.89805555555556
+        ],
+        [
+          10.328888888888889,
+          123.87472222222222
+        ],
+        [
+          10.345555555555556,
+          123.86305555555555
+        ]
+      ]
+    },
+    "RPR73": {
+      "name": "RP-R73 BARRADAS AIRSTRIP",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 5000,
+      "publishedCoordinates": [
+        "141037N 1210347E",
+        "141037N 1211417E",
+        "140237N 1211417E",
+        "140237N 1210347E",
+        "141037N 1210347E"
+      ],
+      "ring": [
+        [
+          14.176944444444445,
+          121.06305555555555
+        ],
+        [
+          14.176944444444445,
+          121.23805555555556
+        ],
+        [
+          14.043611111111112,
+          121.23805555555556
+        ],
+        [
+          14.043611111111112,
+          121.06305555555555
+        ],
+        [
+          14.176944444444445,
+          121.06305555555555
+        ]
+      ]
+    },
+    "RPR74": {
+      "name": "RP-R74",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 2000,
+      "publishedCoordinates": [
+        "144013N 1210223E",
+        "143819N 1210341E",
+        "143519N 1210347E",
+        "143501N 1210253E",
+        "143501N 1210129E",
+        "143807N 1205923E",
+        "144013N 1210123E",
+        "144013N 1210223E"
+      ],
+      "ring": [
+        [
+          14.670277777777777,
+          121.03972222222222
+        ],
+        [
+          14.63861111111111,
+          121.06138888888889
+        ],
+        [
+          14.588611111111112,
+          121.06305555555555
+        ],
+        [
+          14.58361111111111,
+          121.04805555555555
+        ],
+        [
+          14.58361111111111,
+          121.02472222222222
+        ],
+        [
+          14.635277777777777,
+          120.98972222222223
+        ],
+        [
+          14.670277777777777,
+          121.02305555555556
+        ],
+        [
+          14.670277777777777,
+          121.03972222222222
+        ]
+      ]
+    },
+    "RPR75": {
+      "name": "RP-R75 MAKATI",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 1600,
+      "publishedCoordinates": [
+        "143331N 1210223E",
+        "143249N 1210135E",
+        "143301N 1210041E",
+        "143331N 1210029E",
+        "143355N 1210105E",
+        "143331N 1210223E"
+      ],
+      "ring": [
+        [
+          14.558611111111112,
+          121.03972222222222
+        ],
+        [
+          14.546944444444444,
+          121.02638888888889
+        ],
+        [
+          14.550277777777778,
+          121.01138888888889
+        ],
+        [
+          14.558611111111112,
+          121.00805555555556
+        ],
+        [
+          14.565277777777778,
+          121.01805555555555
+        ],
+        [
+          14.558611111111112,
+          121.03972222222222
+        ]
+      ]
+    },
+    "RPR78": {
+      "name": "RP-R78 HELICOPTER TESTING AREA",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 4000,
+      "publishedCoordinates": [
+        "145414N 1210232E",
+        "145414N 1210913E",
+        "144536N 1210913E",
+        "144536N 1210232E",
+        "145414N 1210232E"
+      ],
+      "ring": [
+        [
+          14.90388888888889,
+          121.04222222222222
+        ],
+        [
+          14.90388888888889,
+          121.15361111111112
+        ],
+        [
+          14.76,
+          121.15361111111112
+        ],
+        [
+          14.76,
+          121.04222222222222
+        ],
+        [
+          14.90388888888889,
+          121.04222222222222
+        ]
+      ]
+    },
+    "RPD30": {
+      "name": "RP-D30",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 10000,
+      "publishedCoordinates": [
+        "153454N 1202505E",
+        "151754N 1203005E",
+        "150655N 1202305E",
+        "151254N 1201205E",
+        "153454N 1202505E"
+      ],
+      "ring": [
+        [
+          15.581666666666667,
+          120.41805555555555
+        ],
+        [
+          15.298333333333334,
+          120.50138888888888
+        ],
+        [
+          15.115277777777777,
+          120.38472222222222
+        ],
+        [
+          15.215,
+          120.20138888888889
+        ],
+        [
+          15.581666666666667,
+          120.41805555555555
+        ]
+      ]
+    },
+    "RPD31": {
+      "name": "RP-D31",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 10000,
+      "publishedCoordinates": [
+        "145255N 1200805E",
+        "144655N 1200805E",
+        "144655N 1200123E",
+        "145255N 1200329E",
+        "145255N 1200805E"
+      ],
+      "ring": [
+        [
+          14.881944444444445,
+          120.13472222222222
+        ],
+        [
+          14.781944444444445,
+          120.13472222222222
+        ],
+        [
+          14.781944444444445,
+          120.02305555555556
+        ],
+        [
+          14.881944444444445,
+          120.05805555555555
+        ],
+        [
+          14.881944444444445,
+          120.13472222222222
+        ]
+      ]
+    },
+    "RPD32": {
+      "name": "RP-D32",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 10000,
+      "publishedCoordinates": [
+        "093801N 1183411E",
+        "093149N 1184317E",
+        "092443N 1183617E",
+        "093228N 1182838E",
+        "093801N 1183411E"
+      ],
+      "ring": [
+        [
+          9.63361111111111,
+          118.56972222222223
+        ],
+        [
+          9.530277777777778,
+          118.7213888888889
+        ],
+        [
+          9.411944444444444,
+          118.60472222222222
+        ],
+        [
+          9.54111111111111,
+          118.47722222222222
+        ],
+        [
+          9.63361111111111,
+          118.56972222222223
+        ]
+      ]
+    },
+    "RPD33": {
+      "name": "RP-D33 MALAMPAYA",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 1700,
+      "publishedCoordinates": [
+        "114133N 1185058E",
+        "114107N 1185809E",
+        "113229N 1190905E",
+        "112825N 1190916E",
+        "113306N 1185054E",
+        "114133N 1185058E"
+      ],
+      "ring": [
+        [
+          11.6925,
+          118.84944444444444
+        ],
+        [
+          11.685277777777777,
+          118.96916666666667
+        ],
+        [
+          11.54138888888889,
+          119.15138888888889
+        ],
+        [
+          11.473611111111111,
+          119.15444444444445
+        ],
+        [
+          11.551666666666668,
+          118.84833333333333
+        ],
+        [
+          11.6925,
+          118.84944444444444
+        ]
+      ]
+    },
+    "RPD36": {
+      "name": "RP-D36",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 5000,
+      "publishedCoordinates": [
+        "145906N 1202353E",
+        "145709N 1202633E",
+        "145524N 1203131E",
+        "145118N 1203127E",
+        "145058N 1202353E",
+        "145906N 1202353E"
+      ],
+      "ring": [
+        [
+          14.985,
+          120.39805555555556
+        ],
+        [
+          14.952499999999999,
+          120.44250000000001
+        ],
+        [
+          14.923333333333332,
+          120.52527777777777
+        ],
+        [
+          14.855,
+          120.52416666666666
+        ],
+        [
+          14.849444444444446,
+          120.39805555555556
+        ],
+        [
+          14.985,
+          120.39805555555556
+        ]
+      ]
+    },
+    "RJYAUSUBETSU": {
+      "name": "YAUSUBETSU",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 36000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "432029N 1444225E",
+        "431941N 1445405E",
+        "431809N 1450150E",
+        "431349N 1450157E",
+        "431318N 1445215E",
+        "431734N 1444010E"
+      ],
+      "ring": [
+        [
+          43.34138888888889,
+          144.70694444444445
+        ],
+        [
+          43.32805555555556,
+          144.9013888888889
+        ],
+        [
+          43.302499999999995,
+          145.03055555555557
+        ],
+        [
+          43.23027777777778,
+          145.03250000000003
+        ],
+        [
+          43.22166666666667,
+          144.87083333333334
+        ],
+        [
+          43.29277777777778,
+          144.66944444444442
+        ]
+      ]
+    },
+    "RJR91": {
+      "name": "R-91 HIJUDAI",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 12000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "332010N 1311316E",
+        "332003N 1312103E",
+        "331624N 1312056E",
+        "331614N 1311316E"
+      ],
+      "ring": [
+        [
+          33.336111111111116,
+          131.2211111111111
+        ],
+        [
+          33.33416666666667,
+          131.35083333333333
+        ],
+        [
+          33.27333333333333,
+          131.3488888888889
+        ],
+        [
+          33.27055555555555,
+          131.2211111111111
+        ]
+      ]
+    },
+    "RJR92": {
+      "name": "R-92 JUMONJI",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 6000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "331940N 1312506E",
+        "331940N 1312643E",
+        "332156N 1312643E",
+        "332156N 1312506E"
+      ],
+      "ring": [
+        [
+          33.32777777777778,
+          131.41833333333332
+        ],
+        [
+          33.32777777777778,
+          131.4452777777778
+        ],
+        [
+          33.36555555555556,
+          131.4452777777778
+        ],
+        [
+          33.36555555555556,
+          131.41833333333332
+        ]
+      ]
+    },
+    "RJR96": {
+      "name": "R-96 NIPPON-BARA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 12000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "351015N 1340940E",
+        "350853N 1341205E",
+        "350539N 1340923E",
+        "350657N 1340702E"
+      ],
+      "ring": [
+        [
+          35.170833333333334,
+          134.16111111111113
+        ],
+        [
+          35.14805555555556,
+          134.20138888888889
+        ],
+        [
+          35.094166666666666,
+          134.1563888888889
+        ],
+        [
+          35.115833333333335,
+          134.11722222222224
+        ]
+      ]
+    },
+    "RJR101": {
+      "name": "R-101 AEBANO",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 12000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "352431N 1355556E",
+        "352427N 1360152E",
+        "352145N 1360149E",
+        "352149N 1355555E"
+      ],
+      "ring": [
+        [
+          35.40861111111111,
+          135.9322222222222
+        ],
+        [
+          35.4075,
+          136.03111111111113
+        ],
+        [
+          35.362500000000004,
+          136.0302777777778
+        ],
+        [
+          35.36361111111111,
+          135.93194444444444
+        ]
+      ]
+    },
+    "RJR104": {
+      "name": "R-104 Area Golf",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upperFt": 20000,
+      "activation": "continuous",
+      "publishedCoordinates": [
+        "333512N 1282452E",
+        "332112N 1283852E",
+        "334212N 1290952E",
+        "335612N 1285552E"
+      ],
+      "ring": [
+        [
+          33.586666666666666,
+          128.41444444444446
+        ],
+        [
+          33.35333333333333,
+          128.64777777777778
+        ],
+        [
+          33.70333333333333,
+          129.16444444444446
+        ],
+        [
+          33.93666666666666,
+          128.9311111111111
+        ]
+      ]
+    },
+    "RJR105": {
+      "name": "R-105 Area FOXTROT",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "publishedCoordinates": [
+        "322012N 1284552E",
+        "322012N 1290952E",
+        "314712N 1290952E",
+        "314712N 1284552E"
+      ],
+      "ring": [
+        [
+          32.336666666666666,
+          128.76444444444445
+        ],
+        [
+          32.336666666666666,
+          129.16444444444446
+        ],
+        [
+          31.78666666666667,
+          129.16444444444446
+        ],
+        [
+          31.78666666666667,
+          128.76444444444445
+        ]
+      ]
+    },
+    "RJR108": {
+      "name": "R-108 OYANOHARA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 12000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "324755N 1310002E",
+        "324440N 1310002E",
+        "324339N 1305428E",
+        "324623N 1305432E"
+      ],
+      "ring": [
+        [
+          32.79861111111111,
+          131.00055555555556
+        ],
+        [
+          32.74444444444445,
+          131.00055555555556
+        ],
+        [
+          32.7275,
+          130.9077777777778
+        ],
+        [
+          32.77305555555555,
+          130.9088888888889
+        ]
+      ]
+    },
+    "RJR109": {
+      "name": "R-109 Area LIMA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "publishedCoordinates": [
+        "320143N 1323751E",
+        "320913N 1325951E",
+        "314813N 1325951E",
+        "320213N 1332951E",
+        "314213N 1332951E",
+        "310413N 1320751E",
+        "312513N 1320751E",
+        "313813N 1323751E"
+      ],
+      "ring": [
+        [
+          32.02861111111111,
+          132.63083333333333
+        ],
+        [
+          32.15361111111111,
+          132.99749999999997
+        ],
+        [
+          31.803611111111113,
+          132.99749999999997
+        ],
+        [
+          32.036944444444444,
+          133.49749999999997
+        ],
+        [
+          31.703611111111112,
+          133.49749999999997
+        ],
+        [
+          31.07027777777778,
+          132.13083333333333
+        ],
+        [
+          31.42027777777778,
+          132.13083333333333
+        ],
+        [
+          31.636944444444445,
+          132.63083333333333
+        ]
+      ]
+    },
+    "RJR114": {
+      "name": "R-114 FUJI MCNAIR",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 14000,
+      "activation": "Continuous",
+      "publishedCoordinates": [
+        "352704N 1384544E",
+        "352710N 1385300E",
+        "351658N 1385310E",
+        "351658N 1385519E",
+        "351304N 1385527E",
+        "351314N 1384608E"
+      ],
+      "ring": [
+        [
+          35.45111111111111,
+          138.76222222222222
+        ],
+        [
+          35.45277777777778,
+          138.88333333333333
+        ],
+        [
+          35.282777777777774,
+          138.8861111111111
+        ],
+        [
+          35.282777777777774,
+          138.92194444444445
+        ],
+        [
+          35.217777777777776,
+          138.92416666666665
+        ],
+        [
+          35.220555555555556,
+          138.7688888888889
+        ]
+      ]
+    },
+    "RJR116": {
+      "name": "R-116 Area CHARLIE",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "activation": "continuous",
+      "verticalLimitsNote": "Variable ceilings; see separately extracted subareas.",
+      "publishedCoordinates": [
+        "343512N 1401648E",
+        "341823N 1403306E",
+        "340818N 1404651E",
+        "340159N 1405701E",
+        "335707N 1410514E",
+        "333429N 1402547E",
+        "343112N 1400748E"
+      ],
+      "ring": [
+        [
+          34.586666666666666,
+          140.28
+        ],
+        [
+          34.30638888888888,
+          140.55166666666668
+        ],
+        [
+          34.138333333333335,
+          140.78083333333333
+        ],
+        [
+          34.033055555555556,
+          140.95027777777776
+        ],
+        [
+          33.95194444444445,
+          141.08722222222224
+        ],
+        [
+          33.57472222222223,
+          140.4297222222222
+        ],
+        [
+          34.519999999999996,
+          140.13
+        ]
+      ]
+    },
+    "RJR119": {
+      "name": "R-119 SOMAGAHARA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 6000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "362511N 1385608E",
+        "362626N 1385708E",
+        "362726N 1385518E",
+        "362641N 1385458E"
+      ],
+      "ring": [
+        [
+          36.41972222222222,
+          138.93555555555557
+        ],
+        [
+          36.440555555555555,
+          138.95222222222222
+        ],
+        [
+          36.45722222222223,
+          138.92166666666665
+        ],
+        [
+          36.44472222222222,
+          138.91611111111112
+        ]
+      ]
+    },
+    "RJR121": {
+      "name": "R-121 CENTRAL HONSHU",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "verticalLimitsNote": "Variable ceilings; see separately extracted subareas.",
+      "publishedCoordinates": [
+        "364011N 1410448E",
+        "364011N 1412048E",
+        "360012N 1412048E",
+        "360012N 1410448E"
+      ],
+      "ring": [
+        [
+          36.66972222222222,
+          141.07999999999998
+        ],
+        [
+          36.66972222222222,
+          141.34666666666666
+        ],
+        [
+          36.00333333333333,
+          141.34666666666666
+        ],
+        [
+          36.00333333333333,
+          141.07999999999998
+        ]
+      ]
+    },
+    "RJR127": {
+      "name": "R-127 OJOJI-HARA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 25000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "383110N 1404047E",
+        "383110N 1405147E",
+        "382810N 1405147E",
+        "382810N 1404047E"
+      ],
+      "ring": [
+        [
+          38.519444444444446,
+          140.6797222222222
+        ],
+        [
+          38.519444444444446,
+          140.86305555555555
+        ],
+        [
+          38.46944444444445,
+          140.86305555555555
+        ],
+        [
+          38.46944444444445,
+          140.6797222222222
+        ]
+      ]
+    },
+    "RJR129": {
+      "name": "R-129 NORTHERN HONSHU",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upperFt": 35000,
+      "publishedCoordinates": [
+        "405010N 1421047E",
+        "405010N 1425946E",
+        "404410N 1425946E",
+        "402410N 1423247E",
+        "402410N 1421347E"
+      ],
+      "ring": [
+        [
+          40.836111111111116,
+          142.1797222222222
+        ],
+        [
+          40.836111111111116,
+          142.9961111111111
+        ],
+        [
+          40.736111111111114,
+          142.9961111111111
+        ],
+        [
+          40.40277777777778,
+          142.54638888888888
+        ],
+        [
+          40.40277777777778,
+          142.22972222222222
+        ]
+      ]
+    },
+    "RJR131": {
+      "name": "R-131 HIDAKAOKI",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "publishedCoordinates": [
+        "420409N 1421646E",
+        "414409N 1425746E",
+        "412710N 1424246E",
+        "414539N 1420517E",
+        "415909N 1420347E"
+      ],
+      "ring": [
+        [
+          42.06916666666667,
+          142.27944444444447
+        ],
+        [
+          41.73583333333333,
+          142.96277777777777
+        ],
+        [
+          41.45277777777778,
+          142.71277777777777
+        ],
+        [
+          41.76083333333333,
+          142.08805555555557
+        ],
+        [
+          41.98583333333333,
+          142.06305555555556
+        ]
+      ]
+    },
+    "RJR134": {
+      "name": "R-134 KYUSHU",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upperFt": 35000,
+      "publishedCoordinates": [
+        "345111N 1303506E",
+        "344331N 1305201E",
+        "340852N 1302901E",
+        "341657N 1301237E"
+      ],
+      "ring": [
+        [
+          34.85305555555556,
+          130.585
+        ],
+        [
+          34.72527777777778,
+          130.86694444444444
+        ],
+        [
+          34.147777777777776,
+          130.4836111111111
+        ],
+        [
+          34.2825,
+          130.21027777777778
+        ]
+      ]
+    },
+    "RJR138": {
+      "name": "R-138 SHIMAMATSU",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 9000,
+      "activation": "by NOTAM",
+      "publishedCoordinates": [
+        "425401N 1412707E",
+        "425401N 1412733E",
+        "425351N 1412813E",
+        "425357N 1412915E",
+        "425504N 1413229E",
+        "425200N 1413201E",
+        "425134N 1413059E",
+        "425115N 1412927E",
+        "425116N 1412613E",
+        "425405N 1412552E",
+        "425348N 1412636E"
+      ],
+      "ring": [
+        [
+          42.900277777777774,
+          141.45194444444442
+        ],
+        [
+          42.900277777777774,
+          141.45916666666665
+        ],
+        [
+          42.8975,
+          141.47027777777777
+        ],
+        [
+          42.899166666666666,
+          141.48749999999998
+        ],
+        [
+          42.91777777777777,
+          141.5413888888889
+        ],
+        [
+          42.86666666666667,
+          141.5336111111111
+        ],
+        [
+          42.85944444444445,
+          141.51638888888888
+        ],
+        [
+          42.85416666666667,
+          141.4908333333333
+        ],
+        [
+          42.85444444444445,
+          141.43694444444444
+        ],
+        [
+          42.90138888888889,
+          141.4311111111111
+        ],
+        [
+          42.89666666666667,
+          141.44333333333333
+        ]
+      ]
+    },
+    "RJR532": {
+      "name": "R-532",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upperFt": 39370,
+      "activation": "by AIP SUP",
+      "publishedCoordinates": [
+        "385111N 1422147E",
+        "384411N 1423147E",
+        "382111N 1420947E",
+        "382811N 1415947E"
+      ],
+      "ring": [
+        [
+          38.85305555555556,
+          142.36305555555555
+        ],
+        [
+          38.73638888888889,
+          142.52972222222223
+        ],
+        [
+          38.35305555555556,
+          142.16305555555556
+        ],
+        [
+          38.469722222222224,
+          141.99638888888887
+        ]
+      ]
+    },
+    "RJR533": {
+      "name": "R-533",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "activation": "by AIP SUP",
+      "publishedCoordinates": [
+        "320013N 1323451E",
+        "320313N 1323751E",
+        "313813N 1323751E",
+        "312513N 1320751E",
+        "313043N 1320921E"
+      ],
+      "ring": [
+        [
+          32.00361111111111,
+          132.58083333333332
+        ],
+        [
+          32.05361111111111,
+          132.63083333333333
+        ],
+        [
+          31.636944444444445,
+          132.63083333333333
+        ],
+        [
+          31.42027777777778,
+          132.13083333333333
+        ],
+        [
+          31.511944444444445,
+          132.15583333333333
+        ]
+      ]
+    },
+    "RJR144": {
+      "name": "R-144 ENSHUNADA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upperFt": 49213,
+      "activation": "by AIP SUP",
+      "publishedCoordinates": [
+        "341255N 1372226E",
+        "340346N 1374115E",
+        "335650N 1374537E",
+        "335024N 1371028E",
+        "341132N 1370510E"
+      ],
+      "ring": [
+        [
+          34.21527777777778,
+          137.3738888888889
+        ],
+        [
+          34.062777777777775,
+          137.6875
+        ],
+        [
+          33.947222222222216,
+          137.7602777777778
+        ],
+        [
+          33.84,
+          137.17444444444445
+        ],
+        [
+          34.19222222222222,
+          137.0861111111111
+        ]
+      ]
+    },
+    "RJW172": {
+      "name": "W-172 SOUTH RANGE",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "activation": "Continuous",
+      "publishedCoordinates": [
+        "251415N 1273453E",
+        "241645N 1273453E",
+        "241645N 1283953E",
+        "250445N 1283953E",
+        "251415N 1282953E"
+      ],
+      "ring": [
+        [
+          25.2375,
+          127.58138888888888
+        ],
+        [
+          24.279166666666665,
+          127.58138888888888
+        ],
+        [
+          24.279166666666665,
+          128.66472222222222
+        ],
+        [
+          25.079166666666666,
+          128.66472222222222
+        ],
+        [
+          25.2375,
+          128.49805555555554
+        ]
+      ]
+    },
+    "RJW173": {
+      "name": "W-173 HOTEL HOTEL",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "publishedCoordinates": [
+        "262314N 1281953E",
+        "270614N 1290952E",
+        "270614N 1305952E",
+        "261015N 1305952E"
+      ],
+      "ring": [
+        [
+          26.38722222222222,
+          128.33138888888888
+        ],
+        [
+          27.10388888888889,
+          129.16444444444446
+        ],
+        [
+          27.10388888888889,
+          130.99777777777777
+        ],
+        [
+          26.170833333333334,
+          130.99777777777777
+        ]
+      ]
+    },
+    "RJW173A": {
+      "name": "W-173A AREA ALFA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "3000",
+      "upper": "FL600",
+      "publishedCoordinates": [
+        "265314N 1285453E",
+        "272414N 1291452E",
+        "272914N 1293452E",
+        "273314N 1295952E",
+        "270614N 1301452E",
+        "270614N 1290952E"
+      ],
+      "ring": [
+        [
+          26.88722222222222,
+          128.91472222222222
+        ],
+        [
+          27.403888888888886,
+          129.24777777777777
+        ],
+        [
+          27.487222222222222,
+          129.5811111111111
+        ],
+        [
+          27.55388888888889,
+          129.99777777777777
+        ],
+        [
+          27.10388888888889,
+          130.24777777777777
+        ],
+        [
+          27.10388888888889,
+          129.16444444444446
+        ]
+      ]
+    },
+    "RJW174A": {
+      "name": "W-174A KUME JIMA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "FL150",
+      "publishedCoordinates": [
+        "262713.9N 1264753.5E",
+        "262714.1N 1265553.3E",
+        "261214.4N 1265553.2E",
+        "261214.0N 1264753.5E",
+        "261900N 1265200E"
+      ],
+      "ring": [
+        [
+          26.45386111111111,
+          126.79819444444445
+        ],
+        [
+          26.453916666666665,
+          126.93147222222223
+        ],
+        [
+          26.204,
+          126.93144444444445
+        ],
+        [
+          26.203888888888887,
+          126.79819444444445
+        ],
+        [
+          26.316666666666666,
+          126.86666666666666
+        ]
+      ]
+    },
+    "RJR177": {
+      "name": "R-177 CAMP HANSEN/EASILY GUNNERY",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 3000,
+      "activation": "Continuous",
+      "publishedCoordinates": [
+        "262714.0N 1275353.2E",
+        "263014.0N 1275753.1E",
+        "263114.0N 1275853.1E",
+        "263214.0N 1275853.1E",
+        "262914.0N 1275153.2E"
+      ],
+      "ring": [
+        [
+          26.453888888888887,
+          127.89811111111112
+        ],
+        [
+          26.503888888888888,
+          127.96475000000001
+        ],
+        [
+          26.520555555555553,
+          127.98141666666668
+        ],
+        [
+          26.537222222222223,
+          127.98141666666668
+        ],
+        [
+          26.487222222222222,
+          127.86477777777777
+        ]
+      ]
+    },
+    "RJW184": {
+      "name": "W-184 INDIA INDIA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "publishedCoordinates": [
+        "242315N 1304752E",
+        "252615N 1314152E",
+        "251315N 1323052E",
+        "240016N 1325952E",
+        "240015N 1312238E",
+        "240733N 1311025E"
+      ],
+      "ring": [
+        [
+          24.3875,
+          130.79777777777778
+        ],
+        [
+          25.4375,
+          131.6977777777778
+        ],
+        [
+          25.22083333333333,
+          132.51444444444445
+        ],
+        [
+          24.004444444444445,
+          132.99777777777777
+        ],
+        [
+          24.004166666666666,
+          131.37722222222223
+        ],
+        [
+          24.125833333333333,
+          131.17361111111111
+        ]
+      ]
+    },
+    "RJW185": {
+      "name": "W-185 MIKE MIKE",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upper": "UNL",
+      "publishedCoordinates": [
+        "254115N 1285153E",
+        "254837N 1290219E",
+        "254415N 1292552E",
+        "254415N 1301052E",
+        "254324N 1303552E",
+        "254115N 1304452E",
+        "245315N 1300352E"
+      ],
+      "ring": [
+        [
+          25.6875,
+          128.8647222222222
+        ],
+        [
+          25.810277777777777,
+          129.03861111111112
+        ],
+        [
+          25.7375,
+          129.4311111111111
+        ],
+        [
+          25.7375,
+          130.1811111111111
+        ],
+        [
+          25.723333333333333,
+          130.5977777777778
+        ],
+        [
+          25.6875,
+          130.74777777777777
+        ],
+        [
+          24.8875,
+          130.06444444444446
+        ]
+      ]
+    },
+    "RJNORTHERNTRAININGAREA": {
+      "name": "NORTHERN TRAINING AREA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 2000,
+      "activation": "Continuous",
+      "publishedCoordinates": [
+        "264636N 1281730E",
+        "264524N 1281533E",
+        "264158N 1281413E",
+        "263931N 1281055E",
+        "263758N 1281400E",
+        "264034N 1281442E",
+        "264002N 1281609E",
+        "264107N 1281642E",
+        "264107N 1281513E",
+        "264347N 1281742E",
+        "264514N 1281702E",
+        "264534N 1281756E",
+        "264518N 1281858E",
+        "264551N 1281912E"
+      ],
+      "ring": [
+        [
+          26.776666666666667,
+          128.29166666666666
+        ],
+        [
+          26.756666666666668,
+          128.25916666666666
+        ],
+        [
+          26.699444444444445,
+          128.23694444444442
+        ],
+        [
+          26.65861111111111,
+          128.18194444444444
+        ],
+        [
+          26.63277777777778,
+          128.23333333333332
+        ],
+        [
+          26.676111111111112,
+          128.24499999999998
+        ],
+        [
+          26.66722222222222,
+          128.26916666666668
+        ],
+        [
+          26.685277777777777,
+          128.27833333333334
+        ],
+        [
+          26.685277777777777,
+          128.2536111111111
+        ],
+        [
+          26.72972222222222,
+          128.295
+        ],
+        [
+          26.753888888888888,
+          128.2838888888889
+        ],
+        [
+          26.759444444444444,
+          128.29888888888888
+        ],
+        [
+          26.755,
+          128.31611111111113
+        ],
+        [
+          26.764166666666668,
+          128.32
+        ]
+      ]
+    },
+    "RJCAMPSCHWAB": {
+      "name": "CAMP SCHWAB",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 2000,
+      "publishedCoordinates": [
+        "263146N 1275939E",
+        "263347N 1280209E",
+        "263252N 1280302E",
+        "263059N 1280331E",
+        "263028N 1280115E",
+        "263049N 1280029E"
+      ],
+      "ring": [
+        [
+          26.529444444444444,
+          127.99416666666667
+        ],
+        [
+          26.563055555555557,
+          128.03583333333333
+        ],
+        [
+          26.547777777777778,
+          128.05055555555558
+        ],
+        [
+          26.51638888888889,
+          128.05861111111113
+        ],
+        [
+          26.50777777777778,
+          128.02083333333334
+        ],
+        [
+          26.51361111111111,
+          128.00805555555556
+        ]
+      ]
+    },
+    "RJCAMPCOURTNEYAREA": {
+      "name": "CAMP COURTNEY AREA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 1000,
+      "activation": "Continuous",
+      "publishedCoordinates": [
+        "262348N 1275134E",
+        "262305N 1275101E",
+        "262300N 1275111E",
+        "262318N 1275128E",
+        "262317N 1275140E",
+        "262249N 1275144E",
+        "262244N 1275200E",
+        "262316N 1275206E"
+      ],
+      "ring": [
+        [
+          26.396666666666665,
+          127.85944444444443
+        ],
+        [
+          26.384722222222223,
+          127.85027777777778
+        ],
+        [
+          26.383333333333333,
+          127.85305555555556
+        ],
+        [
+          26.388333333333332,
+          127.85777777777777
+        ],
+        [
+          26.388055555555557,
+          127.8611111111111
+        ],
+        [
+          26.380277777777778,
+          127.86222222222221
+        ],
+        [
+          26.378888888888888,
+          127.86666666666666
+        ],
+        [
+          26.387777777777778,
+          127.86833333333333
+        ]
+      ]
+    },
+    "RJWHITEBEACHAREA": {
+      "name": "WHITE BEACH AREA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "GND",
+      "upperFt": 1000,
+      "activation": "Continuous",
+      "publishedCoordinates": [
+        "261813N 1275436E",
+        "261730N 1275424E",
+        "261727N 1275519E",
+        "261744N 1275526E",
+        "261752N 1275507E",
+        "261809N 1275456E"
+      ],
+      "ring": [
+        [
+          26.303611111111113,
+          127.91000000000001
+        ],
+        [
+          26.291666666666668,
+          127.90666666666667
+        ],
+        [
+          26.290833333333335,
+          127.92194444444445
+        ],
+        [
+          26.295555555555556,
+          127.9238888888889
+        ],
+        [
+          26.297777777777778,
+          127.91861111111112
+        ],
+        [
+          26.302500000000002,
+          127.91555555555556
+        ]
+      ]
+    },
+    "RJW174": {
+      "name": "W-174 IDESUNA JIMA",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "document": "Japan AIP ENR 5.1, section 4 AIRSPACE RESTRICTIONS; saved official portal text",
+      "lower": "SFC",
+      "upperFt": 15000,
+      "publishedCoordinates": [
+        "262714.1N 1265553.3E",
+        "262714.0N 1270653.4E",
+        "261214.0N 1270653.4E",
+        "261214.4N 1265553.2E"
+      ],
+      "ring": [
+        [
+          26.453916666666665,
+          126.93147222222223
+        ],
+        [
+          26.453888888888887,
+          127.11483333333332
+        ],
+        [
+          26.203888888888887,
+          127.11483333333332
+        ],
+        [
+          26.204,
+          126.93144444444445
+        ]
+      ],
+      "boundaryNote": "Published outer polygon only. Target description contains 1279600E (invalid minutes); target coordinate not used or corrected."
+    },
+    "RPP1": {
+      "name": "RP-P1 MALACAÑANG",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 5500,
+      "boundary": {
+        "type": "circle",
+        "radius": 2.0,
+        "unit": "NM",
+        "centerPublished": "143537N 1205929E",
+        "center": [
+          14.593611111111112,
+          120.99138888888889
+        ]
+      },
+      "boundaryText": "A circle radius 2 NM centered on\n 143537N 1205929E",
+      "ring": [],
+      "circle": {
+        "center": [
+          14.593611111111112,
+          120.99138888888889
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RPP2": {
+      "name": "RP-P2 MALACAÑANG OF THE SOUTH",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 4000,
+      "boundary": {
+        "type": "circle",
+        "radius": 1.5,
+        "unit": "NM",
+        "centerPublished": "101709N 1235421E",
+        "center": [
+          10.285833333333333,
+          123.90583333333333
+        ]
+      },
+      "boundaryText": "A circle radius 1.5 NM centered on\n 101709N 1235421E",
+      "ring": [],
+      "circle": {
+        "center": [
+          10.285833333333333,
+          123.90583333333333
+        ],
+        "radiusNm": 1.5
+      }
+    },
+    "RPR76": {
+      "name": "RP-R76 LIMAY",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upper": "UNL",
+      "boundary": {
+        "type": "circle",
+        "radius": 3.0,
+        "unit": "NM",
+        "centerPublished": "143125N 1203617E",
+        "center": [
+          14.523611111111112,
+          120.60472222222222
+        ]
+      },
+      "boundaryText": "A circle radius 3 NM centered on\n 143125N 1203617E",
+      "ring": [],
+      "circle": {
+        "center": [
+          14.523611111111112,
+          120.60472222222222
+        ],
+        "radiusNm": 3.0
+      }
+    },
+    "RPR77": {
+      "name": "RP-R77 MORONG",
+      "fir": "RPHI",
+      "effective": "2023-11-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 083/23",
+      "lower": "SFC",
+      "upperFt": 3000,
+      "boundary": {
+        "type": "circle",
+        "radius": 3.0,
+        "unit": "NM",
+        "centerPublished": "143743N 1201853E",
+        "center": [
+          14.62861111111111,
+          120.31472222222222
+        ]
+      },
+      "boundaryText": "A circle radius 3 NM centered on\n 143743N 1201853E",
+      "ring": [],
+      "circle": {
+        "center": [
+          14.62861111111111,
+          120.31472222222222
+        ],
+        "radiusNm": 3.0
+      }
+    },
+    "RPD27": {
+      "name": "RP-D27 RADIATION",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upper": "UNL",
+      "boundary": {
+        "type": "circle",
+        "radius": 2.0,
+        "unit": "NM",
+        "centerPublished": "145955N 1200405E",
+        "center": [
+          14.99861111111111,
+          120.06805555555555
+        ]
+      },
+      "boundaryText": "A circle radius 2 NM centered on\n 145955N 1200405E",
+      "ring": [],
+      "circle": {
+        "center": [
+          14.99861111111111,
+          120.06805555555555
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RPD28": {
+      "name": "RP-D28 FORT MAGSAYSAY",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 6000,
+      "boundary": {
+        "type": "circle",
+        "radius": 5.0,
+        "unit": "NM",
+        "centerPublished": "152605N 1210528E",
+        "center": [
+          15.434722222222222,
+          121.0911111111111
+        ]
+      },
+      "boundaryText": "A circle radius 5 NM centered on\n 152605N 1210528E",
+      "ring": [],
+      "circle": {
+        "center": [
+          15.434722222222222,
+          121.0911111111111
+        ],
+        "radiusNm": 5.0
+      }
+    },
+    "RPD29": {
+      "name": "RP-D29 ENGINE TEST CELL",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 300,
+      "boundary": {
+        "type": "circle",
+        "radius": 60.0,
+        "unit": "M",
+        "centerPublished": "143054N 1210133E",
+        "center": [
+          14.515,
+          121.02583333333334
+        ]
+      },
+      "boundaryText": "A circle radius 60 M centered on\n 143054N 1210133E",
+      "ring": [],
+      "circle": {
+        "center": [
+          14.515,
+          121.02583333333334
+        ],
+        "radiusNm": 0.032397408207343416
+      }
+    },
+    "RPD34": {
+      "name": "RP-D34 CAMP O’DONNELL",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 3000,
+      "boundary": {
+        "type": "circle",
+        "radius": 2.0,
+        "unit": "NM",
+        "centerPublished": "152231N 1203041E",
+        "center": [
+          15.375277777777779,
+          120.51138888888889
+        ]
+      },
+      "boundaryText": "A circle radius 2 NM centered on\n 152231N 1203041E",
+      "ring": [],
+      "circle": {
+        "center": [
+          15.375277777777779,
+          120.51138888888889
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RPD35": {
+      "name": "RP-D35 BASA AIR BASE",
+      "fir": "RPHI",
+      "effective": "2025-10-30",
+      "libraryEffective": "2025-10-30",
+      "source": "https://www.ead.eurocontrol.int/",
+      "document": "RP_ENR_5_1_en.pdf, ENR 5.1; CAAP; AIRAC AIP AMDT 003/25",
+      "lower": "SFC",
+      "upperFt": 2000,
+      "boundary": {
+        "type": "circle",
+        "radius": 3.0,
+        "unit": "NM",
+        "centerPublished": "145911N 1202933E",
+        "center": [
+          14.986388888888888,
+          120.4925
+        ]
+      },
+      "boundaryText": "A circle radius 3 NM centered on\n 145911N 1202933E",
+      "ring": [],
+      "circle": {
+        "center": [
+          14.986388888888888,
+          120.4925
+        ],
+        "radiusNm": 3.0
+      }
+    },
+    "RCR5": {
+      "name": "RCR5",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 15",
+      "publishedCoordinates": [
+        "235100N 1185400E",
+        "233400N 1191500E",
+        "230400N 1182300E",
+        "230800N 1181300E",
+        "235100N 1185400E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          23.85,
+          118.9
+        ],
+        [
+          23.566666666666666,
+          119.25
+        ],
+        [
+          23.066666666666666,
+          118.38333333333334
+        ],
+        [
+          23.133333333333333,
+          118.21666666666667
+        ],
+        [
+          23.85,
+          118.9
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR8": {
+      "name": "RCR8",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 20",
+      "publishedCoordinates": [
+        "272000N 1222000E",
+        "272000N 1224300E",
+        "261800N 1215200E",
+        "261800N 1212200E",
+        "272000N 1222000E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          27.333333333333332,
+          122.33333333333333
+        ],
+        [
+          27.333333333333332,
+          122.71666666666667
+        ],
+        [
+          26.3,
+          121.86666666666666
+        ],
+        [
+          26.3,
+          121.36666666666666
+        ],
+        [
+          27.333333333333332,
+          122.33333333333333
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR9": {
+      "name": "RCR9",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 21",
+      "publishedCoordinates": [
+        "254800N 1204800E",
+        "254800N 1212000E",
+        "245200N 1202300E",
+        "245200N 1195500E",
+        "254800N 1204800E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          25.8,
+          120.8
+        ],
+        [
+          25.8,
+          121.33333333333333
+        ],
+        [
+          24.866666666666667,
+          120.38333333333334
+        ],
+        [
+          24.866666666666667,
+          119.91666666666667
+        ],
+        [
+          25.8,
+          120.8
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR11": {
+      "name": "RCR11",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 22",
+      "publishedCoordinates": [
+        "244800N 1195000E",
+        "244800N 1202000E",
+        "235500N 1192700E",
+        "241000N 1190800E",
+        "244800N 1195000E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24 Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          24.8,
+          119.83333333333333
+        ],
+        [
+          24.8,
+          120.33333333333333
+        ],
+        [
+          23.916666666666668,
+          119.45
+        ],
+        [
+          24.166666666666668,
+          119.13333333333334
+        ],
+        [
+          24.8,
+          119.83333333333333
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR12": {
+      "name": "RCR12",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 23",
+      "publishedCoordinates": [
+        "223400N 1185500E",
+        "225900N 1193900E",
+        "221600N 1193700E",
+        "222100N 1185500E",
+        "223400N 1185500E"
+      ],
+      "lower": "SFC",
+      "upper": "FL290",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          22.566666666666666,
+          118.91666666666667
+        ],
+        [
+          22.983333333333334,
+          119.65
+        ],
+        [
+          22.266666666666666,
+          119.61666666666666
+        ],
+        [
+          22.35,
+          118.91666666666667
+        ],
+        [
+          22.566666666666666,
+          118.91666666666667
+        ]
+      ],
+      "upperFt": 29000
+    },
+    "RCR16": {
+      "name": "RCR16 陽明山/Yangmingshan",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 24",
+      "publishedCoordinates": [
+        "250954N 1213130E",
+        "250954N 1213500E",
+        "250434N 1213500E",
+        "250434N 1213301E",
+        "250502N 1213130E",
+        "250954N 1213130E"
+      ],
+      "lower": "SFC",
+      "upper": "4000 FT AMSL",
+      "activation": "空軍作戰指揮部(886-2-27321594) 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          25.165,
+          121.525
+        ],
+        [
+          25.165,
+          121.58333333333333
+        ],
+        [
+          25.07611111111111,
+          121.58333333333333
+        ],
+        [
+          25.07611111111111,
+          121.55027777777778
+        ],
+        [
+          25.083888888888886,
+          121.525
+        ],
+        [
+          25.165,
+          121.525
+        ]
+      ],
+      "upperFt": 4000
+    },
+    "RCR17": {
+      "name": "RCR17",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 25",
+      "publishedCoordinates": [
+        "234300N 1220500E",
+        "234300N 1223800E",
+        "232000N 1223800E",
+        "230000N 1220500E",
+        "234300N 1220500E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍第五戰術混合聯隊(886-3-8232069) 空軍作戰指揮部(886-2-27321594) 日出至日沒限航。 天氣能見度5KM，雲幕高1500FT(含)或以上。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 5th tactical fighter tactical of ROCAF (886-3-8232069) Air Force Combatant Command (886-2-27321594) Sunrise to sunset. Weather at or above visibility 5KM, and ceiling 1500FT. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          23.716666666666665,
+          122.08333333333333
+        ],
+        [
+          23.716666666666665,
+          122.63333333333334
+        ],
+        [
+          23.333333333333332,
+          122.63333333333334
+        ],
+        [
+          23.0,
+          122.08333333333333
+        ],
+        [
+          23.716666666666665,
+          122.08333333333333
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR18A": {
+      "name": "RCR18A",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 26",
+      "publishedCoordinates": [
+        "223454N 1192529E",
+        "225454N 1192529E",
+        "225454N 1194529E",
+        "223454N 1194529E",
+        "223454N 1192529E"
+      ],
+      "lower": "SFC",
+      "upper": "FL180",
+      "activation": "海軍教育訓練暨準則發展指揮部(886-7-5883753) 限航時段：週一至週五實施，時段為0000-0900UTC。 限航時段內，申請單位事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Naval Education, Training And Doctrine Development Command (886-7-5883753) MON-FRI, 0000-0900UTC. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          22.581666666666667,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.42472222222223
+        ]
+      ],
+      "upperFt": 18000
+    },
+    "RCR18B": {
+      "name": "RCR18B",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 27",
+      "publishedCoordinates": [
+        "223454N 1192529E",
+        "225454N 1192529E",
+        "225454N 1194529E",
+        "223454N 1194529E",
+        "223454N 1192529E"
+      ],
+      "lower": "FL181",
+      "upper": "FL400",
+      "activation": "海軍教育訓練暨準則發展指揮部(886-7-5883753) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Naval Education, Training And Doctrine Development Command (886-7-5883753) Activated by NOTAM. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          22.581666666666667,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.42472222222223
+        ]
+      ],
+      "upperFt": 40000
+    },
+    "RCR22": {
+      "name": "RCR22",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 28",
+      "publishedCoordinates": [
+        "245600N 1205400E",
+        "245600N 1205600E",
+        "245210N 1205810E",
+        "245230N 1205500E",
+        "245230N 1205300E",
+        "245600N 1205400E"
+      ],
+      "lower": "SFC",
+      "upper": "2000 FT AMSL",
+      "activation": "陸軍裝甲兵訓練指揮部(886-3-5973902) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Army Armor Training Command (886-3-5973902) Activated by NOTAM. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          24.933333333333334,
+          120.9
+        ],
+        [
+          24.933333333333334,
+          120.93333333333334
+        ],
+        [
+          24.869444444444444,
+          120.96944444444445
+        ],
+        [
+          24.875,
+          120.91666666666667
+        ],
+        [
+          24.875,
+          120.88333333333334
+        ],
+        [
+          24.933333333333334,
+          120.9
+        ]
+      ],
+      "upperFt": 2000
+    },
+    "RCR25": {
+      "name": "RCR25",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 29",
+      "publishedCoordinates": [
+        "252754N 1220030E",
+        "251954N 1220030E",
+        "251954N 1221230E",
+        "252754N 1221230E",
+        "252754N 1220030E"
+      ],
+      "lower": "SFC",
+      "upper": "4000 FT AMSL",
+      "activation": "海軍131艦隊(886-2-24260951) 限航時段：週一至週五實施，時段為0000-0900UTC。 限航時段內，申請單位事先徵得管理單位同意後，得許可航空器於限航時段飛航。申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Navy 131st Fleet (886-2-24260951) MON-FRI, 0000-0900UTC. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          25.465,
+          122.00833333333334
+        ],
+        [
+          25.331666666666667,
+          122.00833333333334
+        ],
+        [
+          25.331666666666667,
+          122.20833333333334
+        ],
+        [
+          25.465,
+          122.20833333333334
+        ],
+        [
+          25.465,
+          122.00833333333334
+        ]
+      ],
+      "upperFt": 4000
+    },
+    "RCR27": {
+      "name": "RCR27",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 30",
+      "publishedCoordinates": [
+        "223854N 1201629E",
+        "224254N 1200529E",
+        "224254N 1201529E",
+        "223854N 1201629E"
+      ],
+      "lower": "SFC",
+      "upper": "1000 FT AMSL",
+      "activation": "海軍教育訓練暨準則發展指揮部(886-7-5883753) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Naval Education, Training And Doctrine Development Command (886-7-5883753) Activated by NOTAM. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          22.648333333333333,
+          120.27472222222222
+        ],
+        [
+          22.715,
+          120.09138888888889
+        ],
+        [
+          22.715,
+          120.25805555555556
+        ],
+        [
+          22.648333333333333,
+          120.27472222222222
+        ]
+      ],
+      "upperFt": 1000
+    },
+    "RCR30": {
+      "name": "RCR30 大福/Dafu",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 31",
+      "publishedCoordinates": [
+        "244800N 1214900E",
+        "245000N 1215000E",
+        "245000N 1215500E",
+        "244000N 1215500E",
+        "244200N 1215000E",
+        "244400N 1214900E",
+        "244800N 1214900E"
+      ],
+      "lower": "SFC",
+      "upper": "5000 FT AMSL",
+      "activation": "軍備局規格鑑測中心兵器試驗場(886-3-9306873) 週二至週五實施4月至9月， 時段為0100-0400, 0600-1000UTC。 10月至隔年3月， 時段為0100-0400, 0500-0900UTC。 航管單位事先徵得兵器試驗場同意後，得許可軍用、民用及公務用航空器於限航時段飛航。 限航時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 DAFU Proving Ground (886-3-9306873) Activated TUE through FRI. Time scheduled from APR through SEP: 0100-0400, 0600-1000UTC Time scheduled from OCT to next MAR: 0100-0400, 0500-0900UTC. ATC unit shall obtain prior approval from DAFU proving ground for military/civil/public aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          24.8,
+          121.81666666666666
+        ],
+        [
+          24.833333333333332,
+          121.83333333333333
+        ],
+        [
+          24.833333333333332,
+          121.91666666666667
+        ],
+        [
+          24.666666666666668,
+          121.91666666666667
+        ],
+        [
+          24.7,
+          121.83333333333333
+        ],
+        [
+          24.733333333333334,
+          121.81666666666666
+        ],
+        [
+          24.8,
+          121.81666666666666
+        ]
+      ],
+      "upperFt": 5000
+    },
+    "RCR39": {
+      "name": "RCR39",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 34",
+      "publishedCoordinates": [
+        "232954N 1191529E",
+        "233954N 1191529E",
+        "233954N 1190529E",
+        "232954N 1190529E",
+        "232954N 1191529E"
+      ],
+      "lower": "SFC",
+      "upper": "FL400",
+      "activation": "海軍146艦隊(886-6-9212765) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Navy 146th Fleet (886-6-9212765) Activated by NOTAM. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          23.498333333333335,
+          119.25805555555556
+        ],
+        [
+          23.665,
+          119.25805555555556
+        ],
+        [
+          23.665,
+          119.09138888888889
+        ],
+        [
+          23.498333333333335,
+          119.09138888888889
+        ],
+        [
+          23.498333333333335,
+          119.25805555555556
+        ]
+      ],
+      "upperFt": 40000
+    },
+    "RCR42": {
+      "name": "RCR42 恆春A區/Hengchun A",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 37",
+      "publishedCoordinates": [
+        "222653N 1220029E",
+        "213253N 1220029E",
+        "214153N 1214029E",
+        "221453N 1214029E",
+        "222653N 1220029E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。日出至日沒限航(不影響管制空域內民航機之正常活動)。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 限航時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. Sunrise to sunset (normal operation of civil aircraft within controlled airspace will not be affected). Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          22.448055555555555,
+          122.00805555555556
+        ],
+        [
+          21.548055555555557,
+          122.00805555555556
+        ],
+        [
+          21.698055555555555,
+          121.67472222222223
+        ],
+        [
+          22.248055555555556,
+          121.67472222222223
+        ],
+        [
+          22.448055555555555,
+          122.00805555555556
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR43": {
+      "name": "RCR43 恆春B區/Hengchun B",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 38",
+      "publishedCoordinates": [
+        "213553N 1210129E",
+        "211653N 1213829E",
+        "210453N 1212729E",
+        "210453N 1205929E",
+        "213553N 1210129E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上,日出至日沒限航(不影響管制空域內民航機之正常活動)。 限航時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. Sunrise to sunset (normal operation of civil aircraft within controlled airspace will not be affected). Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          21.598055555555554,
+          121.02472222222222
+        ],
+        [
+          21.281388888888888,
+          121.6413888888889
+        ],
+        [
+          21.08138888888889,
+          121.45805555555556
+        ],
+        [
+          21.08138888888889,
+          120.99138888888889
+        ],
+        [
+          21.598055555555554,
+          121.02472222222222
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR48": {
+      "name": "RCR48",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 42",
+      "publishedCoordinates": [
+        "250255N 1213108E",
+        "250235N 1213009E",
+        "250150N 1213034E",
+        "250207N 1213126E",
+        "250255N 1213108E"
+      ],
+      "lower": "SFC",
+      "upper": "4000 FT AMSL",
+      "activation": "總統府侍衛室 (886-2-23206851) 晝夜連續限航。 本區係由臺北車站、中興橋東側橋頭、植物園及中正紀念堂4個目視參考點所圍成之區域，任何航空器未經核准前不得進入。 為執行遙控無人機管理規則第33條災害應變或緊急情況，申請者可優先執行任務並於作業前後通報管理單位。 Presidential Guard Office (886-2-23206851) H24. Area encircled successively by Taipei Main Station, the east end of Jhongsing Bridge, Botanical Garden and National Taiwan Democracy Memorial Hall. No aircraft may enter this area without prior permission from administration unit. For enacting Article 33 of Regulations of Drone regarding the disaster or emergency, applicant can conduct mission first, then report to administration unit before/after mission.",
+      "ring": [
+        [
+          25.048611111111114,
+          121.51888888888888
+        ],
+        [
+          25.043055555555558,
+          121.5025
+        ],
+        [
+          25.030555555555555,
+          121.50944444444444
+        ],
+        [
+          25.03527777777778,
+          121.52388888888889
+        ],
+        [
+          25.048611111111114,
+          121.51888888888888
+        ]
+      ],
+      "upperFt": 4000
+    },
+    "RCDONGSHA": {
+      "name": "DONGSHA",
+      "fir": "VHHK",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 13",
+      "publishedCoordinates": [
+        "204200N 1164300E"
+      ],
+      "publishedBoundary": "DONGSHA 東沙群島/Dongsha (Pratas) Island Circle, radius 10NM, centre 204200N 1164300E.",
+      "publishedVerticalLimits": "5000 FT AMSL / SFC",
+      "activation": "晝夜連續限航。 不定期舉行地對空炮火射擊，航機需先申請獲准方可進入。 (依據：1965年1月14日發布之第二類飛航公告3/65及1965年4月27日發布之第二類飛航公告8/65) 位於香港飛航情報區內。 H24. Non-scheduled ground to air gun firing practice will take place, prior authorization for entering this area is mandatory. (According to NOTAM Class II 3/65 dated 14 Jan 1965 and 8/65 dated 27 Apr 1965) Located within Hong Kong FIR.",
+      "ring": [],
+      "circle": {
+        "center": [
+          20.7,
+          116.71666666666667
+        ],
+        "radiusNm": 10.0
+      }
+    },
+    "RCNANSHA": {
+      "name": "NANSHA",
+      "fir": "RPHI",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 14",
+      "publishedCoordinates": [
+        "102300N 1142300E"
+      ],
+      "publishedBoundary": "NANSHA 南沙群島/Nansha Island Circle, radius 10NM, centre 102300N 1142300E.",
+      "publishedVerticalLimits": "6000 FT AMSL / SFC",
+      "activation": "晝夜連續限航。 不定期舉行地對空炮火射擊，航機需先申請獲准方可進入。 (依據：1965年1月14日發布之第二類飛航公告3/65及1965年4月27日發布之第二類飛航公告8/65) 位於馬尼拉飛航情報區內。 H24. Non-scheduled ground to air gun firing practice will take place, prior authorization for entering this area is mandatory. (According to NOTAM Class II 3/65 dated 14 Jan 1965 and 8/65 dated 27 Apr 1965) Located within Manila FIR.",
+      "ring": [],
+      "circle": {
+        "center": [
+          10.383333333333333,
+          114.38333333333334
+        ],
+        "radiusNm": 10.0
+      }
+    },
+    "RCR6": {
+      "name": "RCR6",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 16",
+      "publishedCoordinates": [
+        "222654N 1203529E"
+      ],
+      "publishedBoundary": "RCR6 佳冬/Jiadong Circle, radius 5NM, centre 222654N 1203529E.",
+      "publishedVerticalLimits": "12000 FT AMSL / SFC",
+      "activation": "空軍第六混合聯隊(886-8-7654632) 空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 限航時段：每日2300-0200, 0600-0900UTC。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 6th combined wing of ROCAF (886-8-7654632) Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. Daily from 2300-0200, 0600-0900UTC. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [],
+      "circle": {
+        "center": [
+          22.448333333333334,
+          120.59138888888889
+        ],
+        "radiusNm": 5.0
+      }
+    },
+    "RCR40": {
+      "name": "RCR40",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 35",
+      "publishedCoordinates": [
+        "215653N 1213629E"
+      ],
+      "publishedBoundary": "RCR40 小蘭嶼/Hsiao Lanyu Circle, radius 1600M, centre 215653N 1213629E.",
+      "publishedVerticalLimits": "FL140 / SFC",
+      "activation": "空軍第七戰術戰鬥機聯隊(886-89-228411) 空軍作戰指揮部(886-2-27321594) 晝夜連續限航。從每月15日1600UTC至月底，但除去3月及4月。 天氣能見度5KM，雲幕高1500FT(含)或以上。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 7th tactical fighter wing of ROCAF (886-89-228411) Air Force Combatant Command (886-2-27321594) H24 daily. From the 15th 1600UTC to the end of the month, except MAR and APR. Weather at or above visibility 5KM, and ceiling 1500FT. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [],
+      "circle": {
+        "center": [
+          21.948055555555555,
+          121.60805555555555
+        ],
+        "radiusNm": 0.8639308855291578
+      }
+    },
+    "RCR41": {
+      "name": "RCR41",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 36",
+      "publishedCoordinates": [
+        "223554N 1210029E"
+      ],
+      "publishedBoundary": "RCR41 太麻里/Taimali Circle, radius 5NM, centre 223554N 1210029E.",
+      "publishedVerticalLimits": "FL140 / SFC",
+      "activation": "空軍第七戰術戰鬥機聯隊(886-89-228411) 空軍作戰指揮部(886-2-27321594) 限航時段：每天2230-0400, 0530-0900UTC 唯每週六自0400UTC至週日1600UTC除外,天氣能見度5KM﹐雲幕高1500FT(含)或以上限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 7th tactical fighter wing of ROCAF (886-89-228411) Air Force Combatant Command (886-2-27321594) 2230-0400UTC and 0530-0900UTC daily except from 0400UTC SAT to 1600UTC SUN. Weather at or above visibility 5KM, and ceiling 1500FT. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [],
+      "circle": {
+        "center": [
+          22.598333333333333,
+          121.00805555555556
+        ],
+        "radiusNm": 5.0
+      }
+    },
+    "RCR45": {
+      "name": "RCR45",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 39",
+      "publishedCoordinates": [
+        "215700N 1204500E"
+      ],
+      "publishedBoundary": "RCR45 Circle, radius 2NM, centre 215700N 1204500E.",
+      "publishedVerticalLimits": "3000 FT AMSL / SFC",
+      "activation": "臺電 (886-8-8881685)（第三核能發電廠） 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Taiwan Power Company (886-8-8881685) (Nuclear Power Plant NR 3) H24. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          21.95,
+          120.75
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RCR46": {
+      "name": "RCR46",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 40",
+      "publishedCoordinates": [
+        "251700N 1213500E"
+      ],
+      "publishedBoundary": "RCR46 Circle, radius 2NM, centre 251700N 1213500E.",
+      "publishedVerticalLimits": "3000 FT AMSL / SFC",
+      "activation": "臺電 (886-2-26383520)（第一核能發電廠） 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Taiwan Power Company (886-2-26383520) (Nuclear Power Plant NR 1) H24. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          25.283333333333335,
+          121.58333333333333
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RCR47": {
+      "name": "RCR47",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 41",
+      "publishedCoordinates": [
+        "251200N 1213900E"
+      ],
+      "publishedBoundary": "RCR47 Circle, radius 2NM, centre 251200N 1213900E.",
+      "publishedVerticalLimits": "3000 FT AMSL / SFC",
+      "activation": "臺電 (886-2-24082546)（第二核能發電廠） 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Taiwan Power Company (886-2-24082546) (Nuclear Power Plant NR 2) H24. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          25.2,
+          121.65
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RCR50": {
+      "name": "RCR50",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 43",
+      "publishedCoordinates": [
+        "242953N 1210417E"
+      ],
+      "publishedBoundary": "RCR50 Circle, radius 5KM, centre 242953N 1210417E.",
+      "publishedVerticalLimits": "FL200 / SFC",
+      "activation": "空軍作戰指揮部(886-2-27321594) 晝夜連續限航。 任何航空器未經核准前不得進入。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) H24, prior permission is required. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          24.498055555555556,
+          121.07138888888889
+        ],
+        "radiusNm": 2.6997840172786174
+      }
     }
   }
 }

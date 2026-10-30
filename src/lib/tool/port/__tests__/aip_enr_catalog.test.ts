@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enrIdsInText, enrRing, namedEnrIds } from "../aip_enr_catalog";
+import { enrIdsInText, enrRing, namedEnrIds, enrGeoms } from "../aip_enr_catalog";
 import { notamGeoms } from "../notam_track";
 
 describe("bundled ENR catalog", () => {
@@ -63,5 +63,54 @@ describe("bundled ENR catalog", () => {
   it("does not create a boundary for an unknown named area", () => {
     expect(enrIdsInText("RP-R9999 W-9999", "RPHI")).toEqual([]);
     expect(enrRing("RPR9999")).toEqual([]);
+  });
+  it("recognizes Taiwan, Laos and Indonesian country-qualified names only in their FIRs", () => {
+    expect(namedEnrIds("RC-R7 RCR7 ACT", "RCAA")).toEqual(["RCR7"]);
+    expect(namedEnrIds("VL-D3 ACT", "VLVT")).toEqual(["VLD3"]);
+    expect(namedEnrIds("WI-R12 WA-D4 ACT", "WAAF")).toEqual(["WIR12", "WAD4"]);
+    expect(namedEnrIds("RC-R7 VL-D3 WI-R12 ACT", "RPHI")).toEqual([]);
+  });
+  it("never substitutes a parent boundary for an unknown suffixed area", () => {
+    expect(enrIdsInText("RP-R72A ACT", "RPHI")).toEqual([]);
+    expect(enrIdsInText("W-181A ACT", "RJJJ")).toEqual([]);
+  });
+  it("protects stored boundaries from mutations by callers", () => {
+    const ring = enrRing("RJW181");
+    ring[0][0] = 0;
+    expect(enrRing("RJW181")[0][0]).toBe(25.6875);
+  });
+  it("draws the published Philippine 2 NM circle even without NOTAM coordinates", () => {
+    expect(enrIdsInText("RP-P1 ACTIVE", "RPHI")).toEqual(["RPP1"]);
+    const geoms = enrGeoms("RPP1");
+    expect(geoms).toEqual([{ name: "RPP1", shape: "circle", ring: [], lat: 14.593611111111112, lon: 120.99138888888889, radius_nm: 2, source: "aip" }]);
+    expect(notamGeoms({ text: "RP-P1 ACTIVE", qfir: "RPHI", sup_geoms: geoms })).toEqual(geoms);
+  });
+  it("converts the published 60 metre radius without enlarging it to 60 NM", () => {
+    expect(enrGeoms("RPD29")[0].radius_nm).toBeCloseTo(60 / 1852, 10);
+  });
+  it("resolves published Japanese names without numeric codes only in Japan", () => {
+    expect(enrIdsInText("CAMP SCHWAB ACT", "RJJJ")).toEqual(["RJCAMPSCHWAB"]);
+    expect(enrGeoms("RJCAMPSCHWAB")[0].ring[0]).toEqual([26 + 31/60 + 46/3600, 127 + 59/60 + 39/3600]);
+    expect(enrIdsInText("CAMP SCHWAB ACT", "RPHI")).toEqual([]);
+  });
+  it("keeps W-173A distinct from W-173 and draws its exact published ring", () => {
+    expect(enrIdsInText("WARNING AREA W-173A ACT", "RJJJ")).toEqual(["RJW173A"]);
+    expect(enrRing("RJW173A").length).toBe(6);
+    expect(enrRing("RJW173A")).not.toEqual(enrRing("RJW173"));
+  });
+  it("draws Taiwan RCR5 directly from the published ENR polygon", () => {
+    expect(enrIdsInText("RC-R5 ACTIVE", "RCAA")).toEqual(["RCR5"]);
+    expect(enrGeoms("RCR5")[0].ring[0]).toEqual([23.85, 118.9]);
+    expect(enrIdsInText("RC-R5 ACTIVE", "RPHI")).toEqual([]);
+  });
+  it("keeps Dongsha and Nansha within their published Hong Kong and Manila FIRs", () => {
+    expect(enrIdsInText("DONGSHA ACT", "VHHK")).toEqual(["RCDONGSHA"]);
+    expect(enrIdsInText("NANSHA ACT", "RPHI")).toEqual(["RCNANSHA"]);
+    expect(enrIdsInText("DONGSHA NANSHA ACT", "RCAA")).toEqual([]);
+    expect(enrGeoms("RCNANSHA")[0].radius_nm).toBe(10);
+  });
+  it("converts the published Taiwan 5 KM circle and leaves incomplete multi-part RCR7 unresolved", () => {
+    expect(enrGeoms("RCR50")[0].radius_nm).toBeCloseTo(5000/1852, 10);
+    expect(enrIdsInText("RCR7 ACT", "RCAA")).toEqual([]);
   });
 });

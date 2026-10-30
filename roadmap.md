@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 4.14: bổ sung 78 vùng xác minh từ AIP Nhật/Philippines/Đài Loan (đa giác và vòng tròn), tổng 701 vùng cùng kho cũ; tra ranh giới ngay trước tải SUP, đúng FIR, không thay vùng có hậu tố bằng vùng gốc.
+- [ ] Kho vùng quốc tế: chưa có ranh giới AIP đầy đủ của Trung Quốc/Lào/Indonesia; các vùng có cung/bờ biển/lỗ loại trừ chưa đủ cách dựng hình vẫn kiểm tra tay, không đoán tọa độ.
 - [x] V 4.12: nhận diện RP-R72/RPR72 và W-181/RJW-181 theo FIR; bổ sung tham chiếu P51-1 vào tra Nhật, giữ cách xét giờ/hành lang/độ cao; 34 kiểm thử đạt, trang phục vụ V 4.12.
 - [x] V 4.13: đăng nhập Japan SWIM/EAD bằng tài khoản cung cấp; bổ sung W-181 theo AIP Nhật 29/10/2026 và RP-R72 theo PDF Philippines ENR 5.1-1 (trang 30/11/2023, thư viện liệt kê 30/10/2025). Lưu nguồn và tọa độ gốc, không lưu tài khoản vào mã ứng dụng; giữ quy tắc giờ/hành lang/độ cao.
 - [ ] V 4.13: xác nhận hai đa giác trong Check NOTAM của chuyến thật — cần người dùng check lại chuyến có W-181/RP-R72; đã kiểm tra đường bao và bộ dựng hình bằng dữ liệu AIP.
