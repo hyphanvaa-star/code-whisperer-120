@@ -2247,8 +2247,11 @@ function nmMakeVjBrand(){
   box.className = "nm-overview-counts";
   const pack = nmGroup === NM_GROUP_TRACK ? nmTrackBundle() : nmData;
   const counts = nmOverviewCounts(pack);
-  for(const [label, key] of [["NOTAM tổng", "total"], ["IMPACT", "impact"], ["NO IMPACT", "noimpact"]]){
-    const item = document.createElement("span");
+  for(const [label, key] of [["NOTAM tổng", "total"], ["IMPACT", "impact"], ["MANUAL CHECK", "manual"], ["BRIEFING INFO", "brief"], ["NO IMPACT", "noimpact"]]){
+    const item = document.createElement("button");
+    item.type = "button";
+    item.title = "Xem toàn bộ NOTAM " + label;
+    item.onclick = () => nmOverviewOpen(key, label, pack);
     item.className = "nm-overview-count nm-overview-" + key;
     item.appendChild(document.createTextNode(label + " "));
     const num = document.createElement("b");
@@ -2257,6 +2260,42 @@ function nmMakeVjBrand(){
     box.appendChild(item);
   }
   return box;
+}
+function nmOverviewOpen(key, label, pack){
+  const lv = { impact: ["CRITICAL", "DELAY-ONLY"], manual: ["NEED MANUAL CHECK"], brief: ["BRIEFING INFO"], noimpact: ["NO IMPACT"] }[key];
+  const rows = [];
+  for(const p of (pack && pack.places) || []){
+    const seen = new Set();
+    for(const n of [...(p.notams || []), ...(p.dropped || [])]){
+      if(n.ident && seen.has(n.ident)) continue;
+      if(n.ident) seen.add(n.ident);
+      if(!lv || lv.includes(n.level)) rows.push([p, n]);
+    }
+  }
+  document.getElementById("nmOvPop")?.remove();
+  const ov = document.createElement("div");
+  ov.id = "nmOvPop"; ov.className = "nm-ov-back nm-ov-" + key;
+  ov.onclick = (e) => { if(e.target === ov) ov.remove(); };
+  const card = document.createElement("div"); card.className = "nm-ov-card";
+  const hd = document.createElement("div"); hd.className = "nm-ov-head";
+  const t = document.createElement("b"); t.textContent = label + " · " + rows.length + " NOTAM";
+  const x = document.createElement("button"); x.type = "button"; x.textContent = "✕"; x.onclick = () => ov.remove();
+  hd.append(t, x); card.appendChild(hd);
+  const list = document.createElement("div"); list.className = "nm-ov-list";
+  if(!rows.length) list.textContent = "Không có NOTAM nào trong mục này.";
+  for(const [p, n] of rows){
+    const it = document.createElement("div"); it.className = "nm-ov-item";
+    const h = document.createElement("div"); h.className = "nm-ov-ih";
+    const id = document.createElement("b"); id.textContent = n.ident || "—";
+    const pl = document.createElement("span"); pl.textContent = (p.kind === "FIR" ? "FIR " : "") + (p.code || "");
+    const lvl = document.createElement("em"); lvl.textContent = (n.level || "") + (n.type ? " · " + n.type : "");
+    h.append(id, pl, lvl);
+    const tx = document.createElement("pre"); tx.textContent = n.text || n.e_field || "";
+    it.append(h, tx);
+    if(n.reason){ const r = document.createElement("div"); r.className = "nm-ov-why"; r.textContent = n.reason; it.appendChild(r); }
+    list.appendChild(it);
+  }
+  card.appendChild(list); ov.appendChild(card); document.body.appendChild(ov);
 }`)
     .replace('</head>', `<style>
       #nmTabs .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
@@ -2264,6 +2303,21 @@ function nmMakeVjBrand(){
       #nmTabs .nm-overview-count b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-ink)}
       #nmTabs .nm-overview-impact{border-color:var(--x-red);color:var(--x-red)}
       #nmTabs .nm-overview-impact b{color:var(--x-red)}
+      #nmTabs button.nm-overview-count{cursor:pointer;font:inherit;font-weight:650}
+      #nmTabs button.nm-overview-count:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+      #nmTabs .nm-overview-manual{border-color:#d97706;color:#b45309}
+      #nmTabs .nm-overview-brief{border-color:#2563eb;color:#1d4ed8}
+      .nm-ov-back{position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center}
+      .nm-ov-card{background:var(--x-bg,#fff);color:var(--x-ink,#111);width:min(920px,94vw);height:min(82vh,900px);border-radius:12px;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden}
+      .nm-ov-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:3px solid var(--x-red,#dc2626);font-size:17px}
+      .nm-ov-head button{border:0;background:none;font-size:20px;cursor:pointer;color:inherit}
+      .nm-ov-manual .nm-ov-head{border-color:#d97706}.nm-ov-brief .nm-ov-head{border-color:#2563eb}.nm-ov-noimpact .nm-ov-head{border-color:#16a34a}
+      .nm-ov-list{flex:1;overflow-y:auto;padding:12px 18px}
+      .nm-ov-item{border:1px solid var(--x-line,#e5e7eb);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+      .nm-ov-ih{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+      .nm-ov-ih b{font-family:monospace;font-size:15px}.nm-ov-ih span{font-weight:700}.nm-ov-ih em{font-style:normal;font-size:12px;opacity:.75}
+      .nm-ov-item pre{white-space:pre-wrap;font-size:13px;margin:0;user-select:text}
+      .nm-ov-why{margin-top:6px;font-size:12px;opacity:.8}
     </style></head>`)
     .replace('  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);', `  const areaHit = nmFindHit(ident);
   const hasBoundary = areaHit && ((areaHit.ring || []).length >= 3 || Number(areaHit.radius_nm) > 0 || ((areaHit.shape === "line" || areaHit.shape === "linestring") && (areaHit.ring || []).length >= 2));
@@ -2271,7 +2325,7 @@ function nmMakeVjBrand(){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.20')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.21')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
