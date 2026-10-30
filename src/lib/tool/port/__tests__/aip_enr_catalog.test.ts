@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { enrIdsInText, enrRing, namedEnrIds } from "../aip_enr_catalog";
+import { enrIdsInText, enrRing, namedEnrIds, enrGeoms } from "../aip_enr_catalog";
 import { notamGeoms } from "../notam_track";
 
 describe("bundled ENR catalog", () => {
@@ -78,5 +78,24 @@ describe("bundled ENR catalog", () => {
     const ring = enrRing("RJW181");
     ring[0][0] = 0;
     expect(enrRing("RJW181")[0][0]).toBe(25.6875);
+  });
+  it("draws the published Philippine 2 NM circle even without NOTAM coordinates", () => {
+    expect(enrIdsInText("RP-P1 ACTIVE", "RPHI")).toEqual(["RPP1"]);
+    const geoms = enrGeoms("RPP1");
+    expect(geoms).toEqual([{ name: "RPP1", shape: "circle", ring: [], lat: 14.593611111111112, lon: 120.99138888888889, radius_nm: 2, source: "aip" }]);
+    expect(notamGeoms({ text: "RP-P1 ACTIVE", qfir: "RPHI", sup_geoms: geoms })).toEqual(geoms);
+  });
+  it("converts the published 60 metre radius without enlarging it to 60 NM", () => {
+    expect(enrGeoms("RPD29")[0].radius_nm).toBeCloseTo(60 / 1852, 10);
+  });
+  it("resolves published Japanese names without numeric codes only in Japan", () => {
+    expect(enrIdsInText("CAMP SCHWAB ACT", "RJJJ")).toEqual(["RJCAMPSCHWAB"]);
+    expect(enrGeoms("RJCAMPSCHWAB")[0].ring[0]).toEqual([26.563333333333333, 128.06055555555557]);
+    expect(enrIdsInText("CAMP SCHWAB ACT", "RPHI")).toEqual([]);
+  });
+  it("keeps W-173A distinct from W-173 and draws its exact published ring", () => {
+    expect(enrIdsInText("WARNING AREA W-173A ACT", "RJJJ")).toEqual(["RJW173A"]);
+    expect(enrRing("RJW173A").length).toBe(6);
+    expect(enrRing("RJW173A")).not.toEqual(enrRing("RJW173"));
   });
 });

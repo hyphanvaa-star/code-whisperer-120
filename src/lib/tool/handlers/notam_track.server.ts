@@ -26,7 +26,7 @@ import { supKeys, namedAreaIds, notamGeoms, type Geom } from "../port/notam_trac
 import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText, koreaRestrictedRings } from "../aip_sup.server";
 import { expand_au_area_ids } from '../port/aip_sup';
 import AIP_CATALOG from '../port/aip_catalog.json';
-import { enrIdsInText, enrRing } from '../port/aip_enr_catalog';
+import { enrIdsInText, enrGeoms } from '../port/aip_enr_catalog';
 import type { Ctx } from "../types";
 import { getJson } from '../store.server';
 import type { Chart } from '../port/aip_vn_chart';
@@ -61,10 +61,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       if (enrIds.length) {
         const geoms = [...((n.sup_geoms as Geom[] | undefined) ?? [])];
         for (const name of enrIds) {
-          const ring = enrRing(name);
-          if (ring.length >= 3 && !geoms.some(g => g.name === name)) {
-            geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
-          }
+          if (!geoms.some(g => g.name === name)) geoms.push(...enrGeoms(name));
         }
         n.sup_geoms = geoms;
       }
