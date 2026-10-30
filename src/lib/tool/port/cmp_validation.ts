@@ -232,8 +232,14 @@ function cmpTipEnsure(){
     tip.style.maxHeight = Math.max(180, window.innerHeight - 24) + "px";
     const b = c.getBoundingClientRect();
     const rect = tip.getBoundingClientRect();
-    tip.style.left = Math.max(12, Math.min(window.innerWidth - rect.width - 12, b.left + b.width/2 - rect.width/2)) + "px";
-    tip.style.top = Math.max(12, Math.min(window.innerHeight - rect.height - 12, b.bottom + 8)) + "px";
+    if(c.dataset.ctipW){
+      const lx = b.left - rect.width - 12;
+      tip.style.left = Math.max(12, lx >= 12 ? lx : b.right + 12) + "px";
+      tip.style.top = Math.max(12, Math.min(window.innerHeight - rect.height - 12, b.top - 8)) + "px";
+    }else{
+      tip.style.left = Math.max(12, Math.min(window.innerWidth - rect.width - 12, b.left + b.width/2 - rect.width/2)) + "px";
+      tip.style.top = Math.max(12, Math.min(window.innerHeight - rect.height - 12, b.bottom + 8)) + "px";
+    }
   });
   document.addEventListener("mouseout", e => {
     const c = e.target.closest && e.target.closest("td[data-ctip]");
