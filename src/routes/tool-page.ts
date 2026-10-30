@@ -2251,8 +2251,8 @@ function nmMakeVjBrand(){
     const item = document.createElement("button");
     item.type = "button";
     item.title = "Xem toàn bộ NOTAM " + label;
-    item.onclick = () => nmOverviewOpen(key, label, pack);
-    item.className = "nm-overview-count nm-overview-" + key;
+    item.onclick = () => { window.nmOvGroup = (window.nmOvGroup === key) ? "" : key; nmRender(); };
+    item.className = "nm-overview-count nm-overview-" + key + (window.nmOvGroup === key ? " on" : "");
     item.appendChild(document.createTextNode(label + " "));
     const num = document.createElement("b");
     num.textContent = String(counts[key]);
@@ -2261,42 +2261,94 @@ function nmMakeVjBrand(){
   }
   return box;
 }
-function nmOverviewOpen(key, label, pack){
-  const lv = { impact: ["CRITICAL", "DELAY-ONLY"], manual: ["NEED MANUAL CHECK"], brief: ["BRIEFING INFO"], noimpact: ["NO IMPACT"] }[key];
-  const rows = [];
-  for(const p of (pack && pack.places) || []){
+`)
+    .replace('function nmPaintList(place, q){', `
+function nmPaintList(place, q){
+  if(window.nmOvGroup){ try{ if(nmPaintListAll(place, q)) return; }catch(e){} window.nmOvGroup = ""; }
+  nmPaintListBase(place, q);
+}
+function nmPaintListAll(place, q){
+  const list = $("#nmList"), head = $("#nmPlaceHead");
+  if(!list) return false;
+  const d = nmGroup === NM_GROUP_TRACK ? nmTrackBundle() : nmData;
+  if(!d) return false;
+  const key = window.nmOvGroup;
+  const names = {total:"NOTAM TỔNG", impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};
+  const grpOf = (n) => {
+    if(n._noimp) return "noimpact";
+    const l = n.level || "";
+    if(l === "CRITICAL" || l === "DELAY-ONLY") return "impact";
+    if(l === "NEED MANUAL CHECK") return "manual";
+    if(l === "BRIEFING INFO") return "brief";
+    return "brief";
+  };
+  const allRows = [];
+  for(const p of (d.places || [])){
     const seen = new Set();
-    for(const n of [...(p.notams || []), ...(p.dropped || [])]){
+    for(const n of [...(p.notams || []), ...(p.dropped || []).map(x => Object.assign({}, x, {_noimp: true, level: x.level || "NO IMPACT"}))]){
       if(n.ident && seen.has(n.ident)) continue;
       if(n.ident) seen.add(n.ident);
-      if(!lv || lv.includes(n.level)) rows.push([p, n]);
+      if(q && !nmMatchItem(n, q)) continue;
+      allRows.push([p, n]);
     }
   }
-  document.getElementById("nmOvPop")?.remove();
-  const ov = document.createElement("div");
-  ov.id = "nmOvPop"; ov.className = "nm-ov-back nm-ov-" + key;
-  ov.onclick = (e) => { if(e.target === ov) ov.remove(); };
-  const card = document.createElement("div"); card.className = "nm-ov-card";
-  const hd = document.createElement("div"); hd.className = "nm-ov-head";
-  const t = document.createElement("b"); t.textContent = label + " · " + rows.length + " NOTAM";
-  const x = document.createElement("button"); x.type = "button"; x.textContent = "✕"; x.onclick = () => ov.remove();
-  hd.append(t, x); card.appendChild(hd);
-  const list = document.createElement("div"); list.className = "nm-ov-list";
-  if(!rows.length) list.textContent = "Không có NOTAM nào trong mục này.";
-  for(const [p, n] of rows){
-    const it = document.createElement("div"); it.className = "nm-ov-item";
-    const h = document.createElement("div"); h.className = "nm-ov-ih";
-    const id = document.createElement("b"); id.textContent = n.ident || "—";
-    const pl = document.createElement("span"); pl.textContent = (p.kind === "FIR" ? "FIR " : "") + (p.code || "");
-    const lvl = document.createElement("em"); lvl.textContent = (n.level || "") + (n.type ? " · " + n.type : "");
-    h.append(id, pl, lvl);
-    const tx = document.createElement("pre"); tx.textContent = n.text || n.e_field || "";
-    it.append(h, tx);
-    if(n.reason){ const r = document.createElement("div"); r.className = "nm-ov-why"; r.textContent = n.reason; it.appendChild(r); }
-    list.appendChild(it);
+  const rows = key === "total" ? allRows : allRows.filter(([, n]) => grpOf(n) === key);
+  list.innerHTML = "";
+  if(head) head.textContent = "TOÀN CHUYẾN  ·  " + names[key] + "  ·  " + rows.length + " NOTAM";
+  const sum = document.createElement("div");
+  sum.className = "nm-grp-sum";
+  for(const k of ["total", "impact", "manual", "brief", "noimpact"]){
+    const s = document.createElement("button");
+    s.type = "button";
+    s.className = "nm-grp-pill nm-grp-" + k + (key === k ? " on" : "");
+    s.innerHTML = '<i class="nm-gp-dot"></i><span class="nm-gp-lb"></span><b class="nm-gp-n"></b>';
+    s.children[1].textContent = names[k];
+    s.children[2].textContent = String(k === "total" ? allRows.length : allRows.filter(([, n]) => grpOf(n) === k).length);
+    s.onclick = () => { window.nmOvGroup = k === key ? "" : k; nmRender(); };
+    sum.appendChild(s);
   }
-  card.appendChild(list); ov.appendChild(card); document.body.appendChild(ov);
-}`)
+  list.appendChild(sum);
+  if(!rows.length){
+    const empty = document.createElement("div");
+    empty.className = "nm-item miss";
+    empty.textContent = "Không có NOTAM nào trong mục này.";
+    list.appendChild(empty);
+    return true;
+  }
+  for(const [p, n] of rows){
+    const item = document.createElement("div");
+    item.className = "nm-item" + (n._noimp || n.level === "NO IMPACT" ? " drop" : "");
+    if(n.ident) item.dataset.ident = n.ident;
+    const lv = document.createElement("div");
+    lv.className = "nm-lv nm-lv-" + String(n.level || "NO IMPACT").replace(/[^A-Z]/g, "").toLowerCase();
+    const tag = document.createElement("b");
+    tag.textContent = (n.level || "NO IMPACT")
+      + (n.level === "DELAY-ONLY" && n.impact_delay != null ? " · trễ ≥" + n.impact_delay + "′" : "")
+      + (n.match_type ? " · " + n.match_type : "")
+      + "  ·  " + (p.kind === "FIR" ? "FIR " : "") + (p.code || "");
+    lv.appendChild(tag);
+    const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || n.reason || "");
+    if(why){ const r = document.createElement("span"); r.textContent = why; lv.appendChild(r); }
+    item.appendChild(lv);
+    const body = document.createElement("div");
+    body.className = "nm-item-body";
+    body.appendChild(nmPaintFliteText(n.text || n.e_field || "", n.ident || "", n, p));
+    item.appendChild(body);
+    const icao = (p && p.code) || n.icao || "";
+    const ident = n.ident || "";
+    item.onclick = () => { window.nmOvGroup = ""; nmJumpNotam(icao, ident); };
+    list.appendChild(item);
+  }
+  if(nmFocusIdent){
+    const on = [...list.querySelectorAll(".nm-item")].find(el => el.dataset.ident === nmFocusIdent);
+    if(on) on.scrollIntoView({block: "nearest", behavior: "smooth"});
+  }
+  return true;
+}
+function nmPaintListBase(place, q){`)
+    .replace('    nmPick = place.code;\n    nmShowDropped = false;\n    nmFocusIdent = "";\n    nmRender();', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;\n    nmFocusIdent = "";\n    nmRender();')
+    .replace('    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;', '    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;\n    window.nmOvGroup = "";')
+    .replace('  btn.onclick = () => {\n    nmGroup = id;', '  btn.onclick = () => {\n    nmGroup = id;\n    window.nmOvGroup = "";')
     .replace('</head>', `<style>
       #nmTabs .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
       #nmTabs .nm-overview-count{display:inline-flex;gap:7px;align-items:center;padding:5px 8px;border-radius:6px;background:var(--x-bg);color:var(--x-ink2);border:1px solid var(--x-line);white-space:nowrap;font-weight:650}
@@ -2307,17 +2359,9 @@ function nmOverviewOpen(key, label, pack){
       #nmTabs button.nm-overview-count:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.12)}
       #nmTabs .nm-overview-manual{border-color:#d97706;color:#b45309}
       #nmTabs .nm-overview-brief{border-color:#2563eb;color:#1d4ed8}
-      .nm-ov-back{position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center}
-      .nm-ov-card{background:var(--x-bg,#fff);color:var(--x-ink,#111);width:min(920px,94vw);height:min(82vh,900px);border-radius:12px;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden}
-      .nm-ov-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:3px solid var(--x-red,#dc2626);font-size:17px}
-      .nm-ov-head button{border:0;background:none;font-size:20px;cursor:pointer;color:inherit}
-      .nm-ov-manual .nm-ov-head{border-color:#d97706}.nm-ov-brief .nm-ov-head{border-color:#2563eb}.nm-ov-noimpact .nm-ov-head{border-color:#16a34a}
-      .nm-ov-list{flex:1;overflow-y:auto;padding:12px 18px}
-      .nm-ov-item{border:1px solid var(--x-line,#e5e7eb);border-radius:8px;padding:10px 12px;margin-bottom:10px}
-      .nm-ov-ih{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
-      .nm-ov-ih b{font-family:monospace;font-size:15px}.nm-ov-ih span{font-weight:700}.nm-ov-ih em{font-style:normal;font-size:12px;opacity:.75}
-      .nm-ov-item pre{white-space:pre-wrap;font-size:13px;margin:0;user-select:text}
-      .nm-ov-why{margin-top:6px;font-size:12px;opacity:.8}
+      #nmTabs .nm-overview-count{transition:transform .15s ease, box-shadow .15s ease}
+      #nmTabs .nm-overview-count.on{outline:2px solid currentColor;outline-offset:-1px}
+      #nmTabs .nm-overview-noimpact{border-color:#16a34a;color:#15803d}
     </style></head>`)
     .replace('  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);', `  const areaHit = nmFindHit(ident);
   const hasBoundary = areaHit && ((areaHit.ring || []).length >= 3 || Number(areaHit.radius_nm) > 0 || ((areaHit.shape === "line" || areaHit.shape === "linestring") && (areaHit.ring || []).length >= 2));
@@ -2325,7 +2369,7 @@ function nmOverviewOpen(key, label, pack){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.21')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.22')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
