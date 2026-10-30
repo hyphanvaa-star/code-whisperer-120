@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 4.12: nhận diện vùng chỉ có tên RP-R72/W-181; bổ sung ranh giới có nguồn AIP chính thức, giữ quy tắc giờ/hành lang/độ cao; không vẽ tọa độ suy đoán.
+
 - [x] V 3.67 / Trợ lý 6.2: bỏ hỏi thư mục tool, nhận công cụ đóng gói dạng .pyc; 25 kiểm thử đạt, gói tải trực tiếp đúng 6.2 và nhãn V 3.67.
 - [ ] Trợ lý 6.2: thử cài/chạy trên Windows công ty — môi trường hiện tại không có Windows.
 
