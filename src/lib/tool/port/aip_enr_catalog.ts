@@ -2,9 +2,13 @@
 // (Malaysia/Singapore, Vietnam, Korea, India, Thailand…), so named areas such as
 // "WS(D)-44" or "WMR 226" draw without a live AIP download.
 import DATA from "../data/aip_enr_rings.json";
+import VERIFIED from "../data/aip_named_verified.json";
 
 type Pt = [number, number];
-const RINGS = (DATA as unknown as { rings: Record<string, Pt[]> }).rings;
+const RINGS: Record<string, Pt[]> = {
+  ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
+  ...Object.fromEntries(Object.entries(VERIFIED.areas).map(([key, area]) => [key, area.ring as Pt[]])),
+};
 
 const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ)\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
 

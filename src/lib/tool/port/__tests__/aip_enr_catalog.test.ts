@@ -19,6 +19,17 @@ describe("bundled ENR catalog", () => {
     expect(namedEnrIds("WARNING AREA W-181 (GOLF GOLF) RJW-181", "RJJJ")).toEqual(["RJW181"]);
     expect(namedEnrIds("W-1810 ACT", "RJJJ")).toEqual(["RJW1810"]);
   });
+  it("resolves W-181 to the four vertices published in Japan ENR 5.1", () => {
+    expect(enrIdsInText("WARNING AREA W-181 (GOLF GOLF) ACT", "RJJJ")).toEqual(["RJW181"]);
+    expect(enrRing("RJW181")).toEqual([
+      [25.6875, 130.74777777777777],
+      [25.4375, 131.6977777777778],
+      [24.3875, 130.79777777777778],
+      [24.8875, 130.06444444444446],
+    ]);
+    expect(enrIdsInText("WARNING AREA W-181 ACT", "RPHI")).toEqual([]);
+    expect(enrIdsInText("W-1810 ACT", "RJJJ")).toEqual([]);
+  });
   it("does not use Japanese or Philippine aliases in another FIR", () => {
     expect(namedEnrIds("W-181 RJW-181 RP-R72", "VVHM")).toEqual([]);
     expect(namedEnrIds("W-181 ACT")).toEqual([]);

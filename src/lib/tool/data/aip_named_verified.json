@@ -1,0 +1,15 @@
+{
+  "areas": {
+    "RJW181": {
+      "name": "W-181 GOLF GOLF",
+      "fir": "RJJJ",
+      "effective": "2026-10-29",
+      "source": "https://web.swim.mlit.go.jp/f2eapr/AIP/html/20261029/eAIP/20261029/JP-ENR-5.1-en-JP.html",
+      "publishedCoordinates": ["254115N/1304452E", "252615N/1314152E", "242315N/1304752E", "245315N/1300352E"],
+      "lower": "SFC",
+      "upperFt": 4000,
+      "activation": "by NOTAM",
+      "ring": [[25.6875, 130.74777777777777], [25.4375, 131.6977777777778], [24.3875, 130.79777777777778], [24.8875, 130.06444444444446]]
+    }
+  }
+}
