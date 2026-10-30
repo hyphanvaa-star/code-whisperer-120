@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 4.16: Layer bật toàn bộ vùng NOTAM của chuyến, gồm vùng NO IMPACT; chỉ đổi bản đồ, giữ chấm giờ/hành lang. Thu gọn khoảng trống thanh đen.
 - [x] V 4.15: Database → Named Airspace liệt kê cùng kho 701 vùng theo 11 quốc gia/vùng lãnh thổ; tìm mã/tên/FIR, xem tọa độ/nguồn có sẵn. 22 kiểm thử đạt; thao tác chọn Philippines/tìm RP-R72/xem tọa độ đạt trên màn hình riêng, chưa thử phiên đăng nhập thật vì không có tài khoản khớp.
 - [x] V 4.14: bổ sung 78 vùng xác minh từ AIP Nhật/Philippines/Đài Loan (đa giác và vòng tròn), tổng 701 vùng cùng kho cũ; tra ranh giới ngay trước tải SUP, đúng FIR, không thay vùng có hậu tố bằng vùng gốc.
 - [ ] Kho vùng quốc tế: chưa có ranh giới AIP đầy đủ của Trung Quốc/Lào/Indonesia; các vùng có cung/bờ biển/lỗ loại trừ chưa đủ cách dựng hình vẫn kiểm tra tay, không đoán tọa độ.

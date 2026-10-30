@@ -21,9 +21,48 @@
   };
   const originalFind = nmFindHit;
   const originalPlot = nmPlotHits;
+  let allAreasLayer = null;
+  const originalEnsureMap = nmEnsureMap;
+  nmEnsureMap = function () {
+    const map = originalEnsureMap.apply(this, arguments);
+    if (map && nmLayerCtl && !allAreasLayer) {
+      allAreasLayer = L.layerGroup();
+      nmLayerCtl.addOverlay(allAreasLayer, 'Bật vùng ảnh hưởng toàn bộ');
+      const redraw = function (event) {
+        if (event.layer !== allAreasLayer) return;
+        if (nmMapIsTrack() && nmTrackData) nmDrawTrack(nmTrackData, true);
+        else if (nmFleetSum && nmData && nmData.fleet && nmGroup !== NM_GROUP_TRACK) {
+          nmDrawFleetRoutes._sig = '';
+          nmDrawFleetRoutes();
+        } else if (nmTrackData) nmDrawTrack(nmTrackData, true);
+      };
+      map.on('overlayadd overlayremove', redraw);
+    }
+    return map;
+  };
   nmPlotHits = function (hits, bounds) {
     // Both shape and dot passes must see the upgraded geometry, not raw hits.
-    return originalPlot((hits || []).map(nmRefreshHitGeom).filter(Boolean), bounds);
+    let visible = (hits || []).slice();
+    if (allAreasLayer && nmMap && nmMap.hasLayer(allAreasLayer)) {
+      const packs = nmMapIsTrack() ? [nmTrackData]
+        : nmFleetSum && nmData && nmData.fleet && nmGroup !== NM_GROUP_TRACK
+          ? Object.entries(nmData.tracks || {}).filter(([id]) => nmFleetTicked(id)).map(([, pack]) => pack)
+          : [nmTrackData];
+      // Restore only actual boundaries from this flight's checked source, not
+      // the worldwide catalogue or centre-only pins. Never change verdict data.
+      const keys = new Set(visible.map(h => [h.icao, h.ident, nmGeomKey(h)].join('|')));
+      for (const pack of packs) for (const raw of (pack && pack.hits) || []) {
+        const hit = nmRefreshHitGeom(raw);
+        if (!hit || !((hit.ring || []).length >= 3
+          || ((hit.shape === 'line' || hit.shape === 'linestring') && (hit.ring || []).length >= 2)
+          || Number(hit.radius_nm) > 0)) continue;
+        const key = [hit.icao, hit.ident, nmGeomKey(hit)].join('|');
+        if (keys.has(key)) continue;
+        keys.add(key);
+        visible.push(hit);
+      }
+    }
+    return originalPlot(visible.map(nmRefreshHitGeom).filter(Boolean), bounds);
   };
   nmFindHit = function (ident) {
     const want = String(ident || '').toUpperCase();
