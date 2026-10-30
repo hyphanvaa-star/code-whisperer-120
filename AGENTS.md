@@ -39,10 +39,10 @@
 - Mail/upload PDFs share `defect-limits.server.ts`: replace exact old-report rows, preserve manual/edited/LOW EGT rows, return merged limits to the editor.
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py`: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with `PC_AGENT_TOKEN` — a Worker cannot reach LAN devices.
 - Server-side Excel reading uses SheetJS (`xlsx` CDN tarball) — ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, via `src/lib/exceljs-load.ts`.
-- Airport flags use bundled ICAO-country data; no external requests.
+- Airport flags use bundled ICAO-country data, no requests.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
 - Account dialog metadata is remembered through the HTML shim in a user-ID-scoped browser cache containing only usernames, mailboxes and saved-password flags; never cache passwords, and reject stale or cross-user reads to avoid leaking another user's account or overwriting edits.
-- Each publish bumps page.html #appVersion.
+- Publish bumps #appVersion.
 - KHB caches completed Validation verdicts by sector identity (flight/date/route/registration/time), preserving them during partial background reads and repainting only changed results to avoid stale cross-sector verdicts.
 - Flight catalogue refreshes use the HTML shim's flight_refresh patch: force fresh unfiltered reads, reject out-of-order/error responses, and preserve selected options as disabled when absent, so background updates cannot silently switch DSP scope.
 - Passive FPL watcher status must not change Outlook login state; active Outlook Web login/PIB operations verify and refresh tokens, while real authentication failures remain visible.
@@ -51,7 +51,7 @@
 - Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer. KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
 - NOTAM pins use `notam.pins:<userId>` to isolate libraries.
 - Chat uses `chat_rooms`/`chat_messages`, dispatcher RLS, admin-only delete and 4s polling. Root's single auth subscriber passes identity to user-keyed ChatWidget: show on login, clear on logout/account change.
-- Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs.
+- Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs. Mount account menu on body to avoid header clipping.
 - Ver tab crew changes come from diffing the two newest non-VER crewlists (`port/crewlist_diff.ts`) — FPL VER files have no crew column.
 - KHB lightning actions resolve fresh FliteBrief sector identity through version/fbreg, never spreadsheet row IDs; crew acknowledgement checks active staff IDs and roles with the old pilot absent, and unreadable crew blocks writes to preserve the existing roster.
 - Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others.
