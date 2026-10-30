@@ -60,6 +60,27 @@ If pythonw = "" Then
     fso.DeleteFile probe, True
   End If
 End If
+Dim useCmd
+useCmd = False
+If pythonw = "" Or InStr(LCase(pythonw), "windowsapps") > 0 Then useCmd = True
+If useCmd Then
+  probe = fso.BuildPath(fso.GetSpecialFolder(2), fso.GetTempName)
+  shell.Run "cmd.exe /d /c ""python --version > """ & probe & """ 2>&1""", 0, True
+  candidate = ""
+  If fso.FileExists(probe) Then
+    Set file = fso.OpenTextFile(probe, 1)
+    If Not file.AtEndOfStream Then candidate = Trim(file.ReadLine)
+    file.Close
+    fso.DeleteFile probe, True
+  End If
+  If InStr(candidate, "Python 3") = 1 Then
+    pythonw = "python"
+  ElseIf pythonw = "" Then
+    pythonw = ""
+  Else
+    useCmd = False
+  End If
+End If
 If pythonw = "" Then
   MsgBox "Chua co Python. Chay cai-tro-ly.bat mot lan, sau do bam Chay-Ngam.vbs.", 48, "Tro ly Sohee"
   WScript.Quit 1
@@ -74,4 +95,8 @@ If Not fso.FolderExists(app) Then app = root
 entry = fso.BuildPath(app, "background.pyc")
 If Not fso.FileExists(entry) Then entry = fso.BuildPath(app, "background.py")
 shell.CurrentDirectory = app
-shell.Run """" & pythonw & """ """ & entry & """" & extra, 0, False
+If useCmd Then
+  shell.Run "cmd.exe /d /c python """ & entry & """" & extra, 0, False
+Else
+  shell.Run """" & pythonw & """ """ & entry & """" & extra, 0, False
+End If
