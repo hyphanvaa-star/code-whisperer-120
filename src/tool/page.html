@@ -14328,23 +14328,6 @@ function nmRender(){
     }
     return;
   }
-  if(nmGroup === NM_GROUP_TRACK && d.tuned){
-    tabs.hidden = true;
-    if(hitsEl) hitsEl.hidden = true;
-    if(list) list.hidden = false;
-    const tagIt = (p, arr) => (arr || []).map(n => Object.assign({}, n, {icao: n.icao || p.code}));
-    const merged = {kind: "FLIGHT", code: "", name: "", notams: [], dropped: []};
-    for(const p of all){
-      merged.notams = merged.notams.concat(tagIt(p, p.notams));
-      merged.dropped = merged.dropped.concat(tagIt(p, p.dropped));
-    }
-    nmPaintList(merged, q);
-    if(head){
-      const f = (nmTrackData && nmTrackData.flight) || {};
-      head.textContent = "NOTAM CHUYẾN " + (f.callsign || f.flight || f.fn || "") + "  ·  phân loại theo mức ảnh hưởng";
-    }
-    return;
-  }
   const cur = has.find(p => p.code === nmPick) || has[0] || null;
   nmPaintList(cur, q);
 }
