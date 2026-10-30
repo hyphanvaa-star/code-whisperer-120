@@ -66,6 +66,9 @@
       .dbx-file-count{font-size:14px;font-weight:600;color:var(--x-ink2);margin-left:auto}
       .dbx-file-scroll{overflow:auto;flex:1;min-height:0}
       #dbxFilePane table{width:100%;border-collapse:collapse;font-size:16px!important;line-height:1.45}
+      #dbxAirspacePane thead th,.dbx-air-scroll thead th{color:var(--x-ink2)!important;-webkit-text-fill-color:var(--x-ink2)!important;background:var(--x-bg)!important;font-weight:700}
+      .dbx-air-copy{margin-left:8px;padding:2px 8px;border:1px solid var(--x-line);border-radius:6px;background:var(--x-bg);color:var(--x-ink2);font-size:12px;cursor:pointer}
+      .dbx-air-copy:hover{border-color:var(--x-red);color:var(--x-red)}
       #dbxFilePane thead th{position:sticky;top:0;z-index:1;text-align:left;padding:12px 10px!important;background:var(--x-bg)!important;color:var(--x-ink2)!important;-webkit-text-fill-color:var(--x-ink2)!important;border-bottom:1px solid var(--x-line);font-size:13px!important;letter-spacing:0;font-weight:700;white-space:nowrap}
       #dbxFilePane tbody td{padding:12px 10px!important;font-size:16px!important;border-bottom:1px solid var(--x-line2);background:var(--x-card)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;vertical-align:middle}
       #dbxFilePane tbody tr:nth-child(even) td{background:var(--x-bg)!important}
@@ -139,18 +142,20 @@
       wrap.querySelector("#dbxAirCount").textContent = list.length + " vùng";
       wrap.querySelector("#dbxAirDetail").hidden = true;
       wrap.querySelector("#dbxAirRows").innerHTML = list.length ? list.map(function(a){
-        return '<tr><td><button type="button" class="dbx-air-id" data-area="'+esc(a.id)+'">'+esc(a.id)+'</button>'+(a.name!==a.id?'<span class="dbx-air-name">'+esc(a.name)+'</span>':'')+'</td><td>'+esc(a.fir||'—')+'</td><td>'+esc(a.lower||'—')+' / '+(a.upperFt===null?'—':esc(a.upperFt)+' FT')+'</td><td>'+(a.geometry.shape==='circle'?'Vòng tròn · '+a.geometry.radius_nm.toFixed(2)+' NM':'Đa giác · '+a.geometry.ring.length+' điểm')+'</td><td>'+(a.source?'<a target="_blank" rel="noopener noreferrer" href="'+esc(a.source)+'">Nguồn AIP ↗</a>':'Kho ENR gốc')+(a.effective?'<span class="dbx-air-name">'+esc(a.effective)+'</span>':'')+'</td></tr>';
+        return '<tr><td><button type="button" class="dbx-air-id" data-area="'+esc(a.id)+'">'+esc(a.id)+'</button>'+(a.name!==a.id?'<span class="dbx-air-name">'+esc(a.name)+'</span>':'')+'</td><td>'+esc(a.fir||'—')+'</td><td>'+esc(a.lower||'—')+' / '+(a.upperFt===null?'—':esc(a.upperFt)+' FT')+'</td><td>'+(a.geometry.shape==='circle'?'Vòng tròn · '+a.geometry.radius_nm.toFixed(2)+' NM':'Đa giác · '+a.geometry.ring.length+' điểm')+' <button type="button" class="dbx-air-copy" data-copy="'+esc(a.id)+'" title="Copy toạ độ">⧉ Copy</button></td><td>'+(a.source?'<a target="_blank" rel="noopener noreferrer" href="'+esc(a.source)+'">Nguồn AIP ↗</a>':'Kho ENR gốc')+(a.effective?'<span class="dbx-air-name">'+esc(a.effective)+'</span>':'')+'</td></tr>';
       }).join("") : '<tr><td colspan="5">Không tìm thấy vùng.</td></tr>';
       wrap.querySelectorAll("[data-country]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.country===airCountry));});
     }
     wrap.querySelector("#dbxAirCountries").onclick = function(e){var b=e.target.closest("[data-country]");if(!b)return;airCountry=b.dataset.country;drawAir();};
     wrap.querySelector("#dbxAirQ").addEventListener("input",drawAir);
     wrap.querySelector("#dbxAirRows").onclick = function(e){
+      var cp=e.target.closest("[data-copy]");
+      if(cp){var ca=airRows.find(function(r){return r.id===cp.dataset.copy;});if(!ca)return;var cg=ca.geometry;var txt=ca.name+'\n'+(cg.shape==='circle'?'Tâm: '+cg.lat.toFixed(6)+', '+cg.lon.toFixed(6)+' · Bán kính: '+cg.radius_nm.toFixed(4)+' NM':cg.ring.map(function(p){return p[0].toFixed(6)+', '+p[1].toFixed(6);}).join('\n'));var done=function(){var o=cp.textContent;cp.textContent='✓ Đã copy';setTimeout(function(){cp.textContent=o;},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fb();});}else fb();function fb(){var t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy');}catch(_){}t.remove();done();}return;}
       var b=e.target.closest("[data-area]");if(!b)return;
       var a=airRows.find(function(r){return r.id===b.dataset.area;});if(!a)return;
       var detail=wrap.querySelector("#dbxAirDetail"), g=a.geometry;
       var coords=g.shape==='circle'?'Tâm: '+g.lat.toFixed(6)+', '+g.lon.toFixed(6)+' · Bán kính: '+g.radius_nm.toFixed(4)+' NM':g.ring.map(function(p){return p[0].toFixed(6)+', '+p[1].toFixed(6);}).join('\n');
-      detail.innerHTML='<h4>'+esc(a.name)+'</h4><div>'+esc(a.country)+' · '+esc(a.fir||'FIR chưa có thông tin')+'</div>'+(a.document?'<p>'+esc(a.document)+'</p>':'')+(a.activation?'<p>'+esc(a.activation)+'</p>':'')+'<pre>'+esc(coords)+'</pre>';
+      detail.innerHTML='<h4>'+esc(a.name)+'</h4><div>'+esc(a.country)+' · '+esc(a.fir||'FIR chưa có thông tin')+'</div>'+(a.document?'<p>'+esc(a.document)+'</p>':'')+(a.activation?'<p>'+esc(a.activation)+'</p>':'')+'<button type="button" class="dbx-air-copy" data-copy="'+esc(a.id)+'">⧉ Copy toạ độ</button><pre style="user-select:text">'+esc(coords)+'</pre>';
       detail.hidden=false;detail.scrollIntoView({block:'nearest'});
     };
     wrap.querySelector("#dbxAirBack").onclick=function(){closePanes();};
