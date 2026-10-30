@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.07</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.08</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -14090,6 +14090,13 @@ function nmPaintList(place, q){
   }
   const order = graded ? ["impact","manual","brief","noimpact"] : [null];
   if(!window.nmGrpSel) window.nmGrpSel = "impact";
+  if(graded){
+    const pk = (place && (place.kind + ":" + place.code)) || "";
+    if(window.nmGrpPlace !== pk){
+      window.nmGrpPlace = pk;
+      window.nmGrpSel = order.find(g => rows.some(x => nmGrpOf(x) === g)) || "impact";
+    }
+  }
   if(graded){
     const sum = document.createElement("div");
     sum.className = "nm-grp-sum";
