@@ -2393,7 +2393,19 @@ function nmPaintListBase(place, q){`)
     .replace('    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;', '    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;\n    window.nmOvGroup = "";')
     .replace('  btn.onclick = () => {\n    nmGroup = id;', '  btn.onclick = () => {\n    nmGroup = id;\n    window.nmOvGroup = "";')
     .replace('  close.title = "Đóng";', '  close.title = "Đóng NOTAM";\n  close.setAttribute("aria-label", "Đóng NOTAM");')
+    // Keep checkboxes outside flight buttons so button styling/default actions
+    // cannot hide or cancel the multi-selection control.
+    .replace('    b.prepend(ck);', `    ck.setAttribute("aria-label", "Chọn " + opt.textContent);
+    const row = document.createElement("div");
+    row.className = "nm-flt-choice";
+    row.appendChild(ck);
+    row.appendChild(b);`)
+    .replace('    box.appendChild(b);\n  });\n}\nfunction nmFltPlaceMenu', '    box.appendChild(row);\n  });\n}\nfunction nmFltPlaceMenu')
     .replace('</head>', `<style>
+      #nmFltItems .nm-flt-choice{display:flex;align-items:center;gap:8px;padding-left:10px;min-height:42px}
+      #nmFltItems .nm-flt-choice:has(input:checked){background:var(--x-red-50)}
+      #wrapNotam #nmFltItems .nm-flt-choice>button{flex:1;min-width:0;text-align:left;width:auto}
+      #nmFltItems .nm-flt-choice>.nm-flt-ck{display:block!important;visibility:visible!important;opacity:1!important;appearance:auto!important;position:static!important;flex:0 0 20px;width:20px!important;height:20px!important;margin:0!important;padding:0!important;accent-color:var(--x-red);cursor:pointer}
       #nmTrackMap .nm-side-pop{box-sizing:border-box;width:440px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);padding:54px 20px 20px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line);border-top:4px solid var(--x-red);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--x-ink) 20%,transparent);font:16px/1.6 Arial,Helvetica,sans-serif;overflow:auto;overflow-wrap:anywhere;scrollbar-gutter:stable}
       #nmTrackMap .nm-side-pop::before{content:"NOTAM";position:absolute;top:14px;left:20px;font:800 14px/24px Arial,Helvetica,sans-serif;color:var(--x-red)}
       #nmTrackMap .nm-side-pop b{font-size:17px;line-height:1.5;color:var(--x-ink)}
@@ -2446,7 +2458,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.36')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.37')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
