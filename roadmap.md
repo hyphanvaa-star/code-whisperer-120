@@ -1,7 +1,8 @@
 # Roadmap — Dispatch Board web app
 
 - [x] V 4.12: nhận diện RP-R72/RPR72 và W-181/RJW-181 theo FIR; bổ sung tham chiếu P51-1 vào tra Nhật, giữ cách xét giờ/hành lang/độ cao; 34 kiểm thử đạt, trang phục vụ V 4.12.
-- [ ] V 4.12: nạp ranh giới RP-R72/W-181 — chưa lấy được tọa độ AIP hiện hành; CAAP yêu cầu quyền truy cập AIP, cấu hình tài khoản Nhật hiện không đọc được. Cần trang ENR 5.1 chính thức, không dùng hình suy đoán; chưa thử chuyến thật.
+- [x] V 4.13: đăng nhập Japan SWIM/EAD bằng tài khoản cung cấp; bổ sung W-181 theo AIP Nhật 29/10/2026 và RP-R72 theo PDF Philippines ENR 5.1-1 (trang 30/11/2023, thư viện liệt kê 30/10/2025). Lưu nguồn và tọa độ gốc, không lưu tài khoản vào mã ứng dụng; giữ quy tắc giờ/hành lang/độ cao.
+- [ ] V 4.13: xác nhận hai đa giác trong Check NOTAM của chuyến thật — cần người dùng check lại chuyến có W-181/RP-R72; đã kiểm tra đường bao và bộ dựng hình bằng dữ liệu AIP.
 
 - [x] V 3.67 / Trợ lý 6.2: bỏ hỏi thư mục tool, nhận công cụ đóng gói dạng .pyc; 25 kiểm thử đạt, gói tải trực tiếp đúng 6.2 và nhãn V 3.67.
 - [ ] Trợ lý 6.2: thử cài/chạy trên Windows công ty — môi trường hiện tại không có Windows.
