@@ -236,7 +236,7 @@ const SHIM = `<script>
         var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
         var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
         var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
-        board.title='Trợ lý 6.2 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
+        board.title='Trợ lý 6.3 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
         board.style.position='relative';
         var dot=document.createElement('span'); dot.className='agent-dot';
         dot.style.cssText='position:absolute;top:4px;right:5px;width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none';
@@ -264,7 +264,7 @@ const SHIM = `<script>
             fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
             return;
           }
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.2'; a.download='tro-ly-pc-6.2.zip';
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.3'; a.download='tro-ly-pc-6.3.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -2240,7 +2240,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.94')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.95')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;

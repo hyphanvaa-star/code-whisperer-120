@@ -90,6 +90,19 @@ export async function resolveAgentUser(login: string): Promise<string> {
     if (u) id = u.id;
     if (data.users.length < 200) break;
   }
+  if (!id) {
+    // Fallback: helper configured with the display name (e.g. "MiuHP" for login hienpham).
+    const { data: rows } = await a.from("profiles").select("id, display_name, original_username");
+    const hits = (rows ?? []).filter((p) =>
+      [p.display_name, p.original_username].some((v) => String(v ?? "").trim().toLowerCase() === k));
+    if (hits.length === 1) id = hits[0]!.id;
+    const { data: list } = await a.auth.admin.listUsers({ page: 1, perPage: 200 });
+    if (!id) {
+      const metaHits = (list?.users ?? []).filter((x) =>
+        String((x.user_metadata as Record<string, unknown> | null)?.["full_name"] ?? "").trim().toLowerCase() === k);
+      if (metaHits.length === 1) id = metaHits[0]!.id;
+    }
+  }
   uidCache.set(k, { id, at: Date.now() });
   return id;
 }
