@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.06</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.07</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -7003,14 +7003,14 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
         <div class="nm-track-head">
           <span id="nmTrackHead"></span>
           <div class="nm-th-tools">
+          <button type="button" class="nm-sky" id="nmWpt" aria-pressed="false"
+                  title="Hiện waypoint / điểm OFP trên bản đồ">Waypoint OFP</button>
           <button type="button" class="nm-sky" id="nmTuneHelp"
                   title="Logic lược bỏ NOTAM khi bấm Lọc notam tracking chuyến">
             Chú thích bộ lọc</button>
           <span id="nmAltBar" hidden></span>
           <a class="nm-sky" id="nmSky" href="https://skyvector.com/" target="_blank" rel="noopener"
              title="Mở đúng route trên SkyVector (hải đồ IFR)">SkyVector</a>
-          <button type="button" class="nm-sky" id="nmWpt" aria-pressed="false"
-                  title="Hiện waypoint / điểm OFP trên bản đồ">Waypoint OFP</button>
           <button type="button" class="nm-sky" id="nmRadar" aria-pressed="false"
                   title="Radar mưa RainViewer. Viên màu = tuổi frame (~10 phút/lần).">Radar</button>
           <span id="nmRadarAge" class="nm-radar-age bad" hidden>radar…</span>
@@ -29046,6 +29046,7 @@ function boot(){
 html.night #wrapNotam .nm-grp-sum{background:rgba(255,255,255,.05)}
 html.night #wrapNotam .nm-grp-pill{color:#cbd5e1}
 html.night #wrapNotam .nm-grp-pill:hover,html.night #wrapNotam .nm-grp-pill.on{background:rgba(255,255,255,.08)}
+#nmTuneUndo,#nmSky{display:none !important}
 </style>
 <script>
 (function(){
