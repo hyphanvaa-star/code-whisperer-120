@@ -2532,6 +2532,27 @@ main.nm-track #wrapXls,main.nm-track #xlsbar{display:none !important}
   padding:5px 4px;border-top:1px dashed #e5e7eb;cursor:pointer;color:#111;font:inherit}
 .nm-track-hits button:first-child{border-top:0}
 .nm-track-hits button:hover{background:#f3f4f6}
+.nm-ua-head{display:flex;align-items:center;gap:12px;margin:4px 0 10px;padding:12px 14px;border-radius:12px;
+  background:linear-gradient(135deg,#fff7ed,#fff);border:1px solid #fed7aa;box-shadow:0 2px 8px rgba(234,88,12,.08)}
+.nm-ua-head b{display:block;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:#9a3412}
+.nm-ua-head small{display:block;font-size:12.5px;color:#78716c;font-weight:500}
+.nm-ua-head div{flex:1}
+.nm-ua-ico{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;background:#ea580c;flex:none}
+.nm-ua-n{min-width:34px;padding:4px 10px;border-radius:999px;background:#ea580c;color:#fff;font-weight:800;text-align:center}
+.nm-ua-empty{padding:14px;border-radius:10px;background:#f0fdf4;color:#166534;font-weight:700;border:1px solid #bbf7d0}
+.nm-track-hits button.nm-ua-card{margin:0 0 8px;padding:10px 12px;border:1px solid #e7e5e4;border-left:4px solid #ea580c;
+  border-radius:10px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .12s,box-shadow .12s;white-space:normal}
+.nm-track-hits button.nm-ua-card:hover{background:#fffbf5;transform:translateY(-1px);box-shadow:0 4px 12px rgba(234,88,12,.12)}
+.nm-ua-top{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:4px}
+.nm-ua-id{font:800 14px/1.2 ui-monospace,monospace;color:#111}
+.nm-ua-tag{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#f5f5f4;color:#44403c}
+.nm-ua-tag.fl{background:#ffedd5;color:#9a3412}
+.nm-ua-area{font-size:12px;font-weight:700;color:#c2410c}
+.nm-ua-sum{font-size:14px;font-weight:600;color:#1c1917}
+.nm-ua-why{margin-top:3px;font-size:12px;color:#78716c}
+html.night .nm-ua-head{background:#2a1a10;border-color:#7c2d12}
+html.night .nm-track-hits button.nm-ua-card{background:#1f1f1f;border-color:#3f3f46;border-left-color:#ea580c}
+html.night .nm-ua-id,html.night .nm-ua-sum{color:#eee}
 .nm-hit-cam-h{padding:8px 6px 4px;font-size:14px;font-weight:800;color:#c05612}
 .nm-hit-pt-h{padding:8px 6px 4px;font-size:14px;font-weight:800;color:#c62828}
 .nm-track-hits button.nm-hit-hot{border-left:3px solid #c62828;color:#111}
@@ -5903,7 +5924,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.10</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.11</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -11898,7 +11919,7 @@ function nmMakeHitsTab(hitRows, on){
   const main = document.createElement("span");
   main.className = "nm-tab-main";
   const lab = document.createElement("span");
-  lab.textContent = "Tracking Hit";
+  lab.textContent = "Unidentified Area";
   main.appendChild(lab);
   if(miss){
     const bang = document.createElement("span");
@@ -14341,9 +14362,8 @@ function nmRender(){
   if(onHits){
     const miss = hitRows.filter(nmIsMissDot).length;
     const pts = hitRows.filter(nmIsPointDot).length;
-    if(head) head.textContent = "TRACKING HIT  ·  " + hitRows.length + " vùng cấm / UAV / diễn tập"
-      + (miss ? ("  ·  " + miss + " chấm cam") : "")
-      + (pts ? ("  ·  " + pts + " chấm đỏ") : "");
+    if(head) head.textContent = "UNIDENTIFIED AREA  ·  " + miss + " NOTAM chưa vẽ được vùng"
+      + "  ·  " + (hitRows.length - miss) + " vùng đã vẽ trên bản đồ";
     if(hitsEl && q){
       for(const btn of hitsEl.querySelectorAll("button")){
         btn.hidden = !btn.textContent.toLowerCase().includes(q);
@@ -16708,26 +16728,22 @@ function nmDrawTrack(d, keepView){
     nmRender();
     return;
   }
-  const listed = hits.slice().sort((a, b) => {
-    const rank = h => nmIsMissDot(h) ? 2 : (nmIsPointDot(h) ? 1 : 0);
-    return rank(b) - rank(a);
-  });
-  let camHead = false, ptHead = false;
+  const listed = hits.filter(nmIsMissDot);
+  {
+    const h = document.createElement("div");
+    h.className = "nm-ua-head";
+    h.innerHTML = '<span class="nm-ua-ico">?</span><div><b>Unidentified Area</b>'
+      + '<small>NOTAM có tên vùng nhưng chưa có toạ độ để vẽ — bấm thẻ để đọc NOTAM gốc</small></div>'
+      + '<span class="nm-ua-n">' + listed.length + '</span>';
+    box.appendChild(h);
+  }
+  if(!listed.length){
+    const p = document.createElement("div");
+    p.className = "nm-ua-empty";
+    p.textContent = "✓ Tất cả vùng ảnh hưởng đã được vẽ trên bản đồ.";
+    box.appendChild(p);
+  }
   for(const hit of listed){
-    if(nmIsMissDot(hit) && !camHead){
-      const h = document.createElement("div");
-      h.className = "nm-hit-cam-h";
-      h.textContent = "Chấm cam — không vẽ được vùng, bấm dòng để đọc NOTAM";
-      box.appendChild(h);
-      camHead = true;
-    }
-    if(nmIsPointDot(hit) && !ptHead){
-      const h = document.createElement("div");
-      h.className = "nm-hit-pt-h";
-      h.textContent = "Chấm đỏ — một điểm, không nhấp nháy";
-      box.appendChild(h);
-      ptHead = true;
-    }
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = nmIsMissDot(hit) ? "nm-hit-dot"
@@ -16739,10 +16755,16 @@ function nmDrawTrack(d, keepView){
       ? (hit.fl_lo <= 0 ? "SFC" : ("FL" + Math.round(hit.fl_lo / 100)))
         + "–" + (hit.fl_hi >= 99900 ? "UNL" : ("FL" + Math.round(hit.fl_hi / 100)))
       : "";
-    btn.textContent = [(hit.area || ""), (hit.ident || ""),
-      (hit.kind === "FIR" ? "FIR " : "") + (hit.icao || ""), fl].filter(Boolean).join("  ")
-      + "\n" + (hit.reasons || []).join("  ·  ")
-      + (hit.summary ? "\n" + hit.summary : "");
+    btn.classList.add("nm-ua-card");
+    const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const why = (hit.reasons || []).filter(r => !/chấm cam|không vẽ được/i.test(r));
+    btn.innerHTML = '<div class="nm-ua-top"><span class="nm-ua-id">' + esc(hit.ident || "—") + '</span>'
+      + '<span class="nm-ua-tag">' + esc((hit.kind === "FIR" ? "FIR " : "") + (hit.icao || "")) + '</span>'
+      + (fl ? '<span class="nm-ua-tag fl">' + esc(fl) + '</span>' : '')
+      + (hit.dist_nm != null ? '<span class="nm-ua-tag">' + esc(Math.round(hit.dist_nm)) + ' NM</span>' : '')
+      + (hit.area ? '<span class="nm-ua-area">' + esc(hit.area) + '</span>' : '') + '</div>'
+      + (hit.summary ? '<div class="nm-ua-sum">' + esc(hit.summary) + '</div>' : '')
+      + (why.length ? '<div class="nm-ua-why">' + esc(why.join("  ·  ")) + '</div>' : '');
     btn.onclick = () => {
       nmJumpNotam(hit.icao, hit.ident);
     };
