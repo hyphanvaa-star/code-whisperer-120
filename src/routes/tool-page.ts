@@ -17,6 +17,7 @@ import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
+import { notamCounts } from '@/lib/tool/port/notam_counts';
 import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
 import { patchAccountMemoryPage } from '@/lib/tool/port/account_memory';
 import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
@@ -2240,9 +2241,33 @@ function ftRender(){
       "    limData.aircraft = limPad(d.aircraft || [], LIM_ROWS, limBlankAc);",
       "    limData.aircraft = limPad(d.limits_aircraft || d.aircraft || [], LIM_ROWS, limBlankAc);",
     )
+    .replace(/function nmMakeVjBrand\(\)\{[\s\S]*?\n\}/, `const nmOverviewCounts = ${notamCounts.toString()};
+function nmMakeVjBrand(){
+  const box = document.createElement("div");
+  box.className = "nm-overview-counts";
+  const pack = nmGroup === NM_GROUP_TRACK ? nmTrackBundle() : nmData;
+  const counts = nmOverviewCounts(pack);
+  for(const [label, key] of [["NOTAM tổng", "total"], ["IMPACT", "impact"], ["NO IMPACT", "noimpact"]]){
+    const item = document.createElement("span");
+    item.className = "nm-overview-count nm-overview-" + key;
+    item.appendChild(document.createTextNode(label + " "));
+    const num = document.createElement("b");
+    num.textContent = String(counts[key]);
+    item.appendChild(num);
+    box.appendChild(item);
+  }
+  return box;
+}`)
+    .replace('</head>', `<style>
+      #nmTabs .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
+      #nmTabs .nm-overview-count{display:inline-flex;gap:7px;align-items:center;padding:5px 8px;border-radius:6px;background:var(--x-bg);color:var(--x-ink2);border:1px solid var(--x-line);white-space:nowrap;font-weight:650}
+      #nmTabs .nm-overview-count b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-ink)}
+      #nmTabs .nm-overview-impact{border-color:var(--x-red);color:var(--x-red)}
+      #nmTabs .nm-overview-impact b{color:var(--x-red)}
+    </style></head>`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.16')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.17')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
