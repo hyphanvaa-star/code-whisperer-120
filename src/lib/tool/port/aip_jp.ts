@@ -30,7 +30,10 @@ export function parseEnr53Text(text: string): Record<string, Pt[]> {
 export function idsInText(table: Record<string, Pt[]>, text: string): string[] {
   const blob = text.toUpperCase();
   return Object.keys(table).filter((key) => {
-    const escaped = key.toUpperCase().split('-').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*-?\\s*');
+    const local = /^(?:RJ)?([WRDP])-?(\d{1,4}[A-Z]?)$/i.exec(key);
+    const escaped = local
+      ? `(?:RJ\\s*[-/]?\\s*)?${local[1].toUpperCase()}\\s*-?\\s*${local[2].toUpperCase()}`
+      : key.toUpperCase().split('-').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*-?\\s*');
     return new RegExp(`(?<![A-Z0-9])${escaped}(?![A-Z0-9-])`).test(blob);
   });
 }

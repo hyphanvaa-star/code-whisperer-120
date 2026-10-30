@@ -90,6 +90,13 @@ describe('Japanese ENR 5.3 original fixture', () => {
     expect(idsInText(rings, 'CIVIL TRAINING AREA KS5-1-30 AND KS5-1-50 REF AIP ENR5.3')).toEqual(['KS5-1-30', 'KS5-1-50']);
     expect(idsInText(rings, 'KS5-1-300')).toEqual([]);
   });
+  it('matches Japanese W-181 and RJW-181 to the same published boundary', () => {
+    // Synthetic fixture only: these vertices are not production W-181 coordinates.
+    const table = { 'W-181': [[30, 130], [30, 131], [31, 131]] as [number, number][] };
+    expect(idsInText(table, 'WARNING AREA RJW-181 (GOLF GOLF)')).toEqual(['W-181']);
+    expect(idsInText(table, 'WARNING AREA W-181 ACT REF AIP P51-1')).toEqual(['W-181']);
+    expect(idsInText(table, 'W-1810 ACT')).toEqual([]);
+  });
   it('resolved ENR references replace Q-line fallback', () => {
     const ring = parseEnr53Text(text)['KS5-1-30'];
     expect(ring).toBeDefined();
