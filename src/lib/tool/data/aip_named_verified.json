@@ -2128,6 +2128,890 @@
         ],
         "radiusNm": 3.0
       }
+    },
+    "RCR5": {
+      "name": "RCR5",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 15",
+      "publishedCoordinates": [
+        "235100N 1185400E",
+        "233400N 1191500E",
+        "230400N 1182300E",
+        "230800N 1181300E",
+        "235100N 1185400E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          23.85,
+          118.9
+        ],
+        [
+          23.566666666666666,
+          119.25
+        ],
+        [
+          23.066666666666666,
+          118.38333333333334
+        ],
+        [
+          23.133333333333333,
+          118.21666666666667
+        ],
+        [
+          23.85,
+          118.9
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR8": {
+      "name": "RCR8",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 20",
+      "publishedCoordinates": [
+        "272000N 1222000E",
+        "272000N 1224300E",
+        "261800N 1215200E",
+        "261800N 1212200E",
+        "272000N 1222000E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          27.333333333333332,
+          122.33333333333333
+        ],
+        [
+          27.333333333333332,
+          122.71666666666667
+        ],
+        [
+          26.3,
+          121.86666666666666
+        ],
+        [
+          26.3,
+          121.36666666666666
+        ],
+        [
+          27.333333333333332,
+          122.33333333333333
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR9": {
+      "name": "RCR9",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 21",
+      "publishedCoordinates": [
+        "254800N 1204800E",
+        "254800N 1212000E",
+        "245200N 1202300E",
+        "245200N 1195500E",
+        "254800N 1204800E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          25.8,
+          120.8
+        ],
+        [
+          25.8,
+          121.33333333333333
+        ],
+        [
+          24.866666666666667,
+          120.38333333333334
+        ],
+        [
+          24.866666666666667,
+          119.91666666666667
+        ],
+        [
+          25.8,
+          120.8
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR11": {
+      "name": "RCR11",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 22",
+      "publishedCoordinates": [
+        "244800N 1195000E",
+        "244800N 1202000E",
+        "235500N 1192700E",
+        "241000N 1190800E",
+        "244800N 1195000E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24 Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          24.8,
+          119.83333333333333
+        ],
+        [
+          24.8,
+          120.33333333333333
+        ],
+        [
+          23.916666666666668,
+          119.45
+        ],
+        [
+          24.166666666666668,
+          119.13333333333334
+        ],
+        [
+          24.8,
+          119.83333333333333
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR12": {
+      "name": "RCR12",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 23",
+      "publishedCoordinates": [
+        "223400N 1185500E",
+        "225900N 1193900E",
+        "221600N 1193700E",
+        "222100N 1185500E",
+        "223400N 1185500E"
+      ],
+      "lower": "SFC",
+      "upper": "FL290",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          22.566666666666666,
+          118.91666666666667
+        ],
+        [
+          22.983333333333334,
+          119.65
+        ],
+        [
+          22.266666666666666,
+          119.61666666666666
+        ],
+        [
+          22.35,
+          118.91666666666667
+        ],
+        [
+          22.566666666666666,
+          118.91666666666667
+        ]
+      ],
+      "upperFt": 29000
+    },
+    "RCR16": {
+      "name": "RCR16 陽明山/Yangmingshan",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 24",
+      "publishedCoordinates": [
+        "250954N 1213130E",
+        "250954N 1213500E",
+        "250434N 1213500E",
+        "250434N 1213301E",
+        "250502N 1213130E",
+        "250954N 1213130E"
+      ],
+      "lower": "SFC",
+      "upper": "4000 FT AMSL",
+      "activation": "空軍作戰指揮部(886-2-27321594) 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) H24. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          25.165,
+          121.525
+        ],
+        [
+          25.165,
+          121.58333333333333
+        ],
+        [
+          25.07611111111111,
+          121.58333333333333
+        ],
+        [
+          25.07611111111111,
+          121.55027777777778
+        ],
+        [
+          25.083888888888886,
+          121.525
+        ],
+        [
+          25.165,
+          121.525
+        ]
+      ],
+      "upperFt": 4000
+    },
+    "RCR17": {
+      "name": "RCR17",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 25",
+      "publishedCoordinates": [
+        "234300N 1220500E",
+        "234300N 1223800E",
+        "232000N 1223800E",
+        "230000N 1220500E",
+        "234300N 1220500E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍第五戰術混合聯隊(886-3-8232069) 空軍作戰指揮部(886-2-27321594) 日出至日沒限航。 天氣能見度5KM，雲幕高1500FT(含)或以上。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 5th tactical fighter tactical of ROCAF (886-3-8232069) Air Force Combatant Command (886-2-27321594) Sunrise to sunset. Weather at or above visibility 5KM, and ceiling 1500FT. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          23.716666666666665,
+          122.08333333333333
+        ],
+        [
+          23.716666666666665,
+          122.63333333333334
+        ],
+        [
+          23.333333333333332,
+          122.63333333333334
+        ],
+        [
+          23.0,
+          122.08333333333333
+        ],
+        [
+          23.716666666666665,
+          122.08333333333333
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR18A": {
+      "name": "RCR18A",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 26",
+      "publishedCoordinates": [
+        "223454N 1192529E",
+        "225454N 1192529E",
+        "225454N 1194529E",
+        "223454N 1194529E",
+        "223454N 1192529E"
+      ],
+      "lower": "SFC",
+      "upper": "FL180",
+      "activation": "海軍教育訓練暨準則發展指揮部(886-7-5883753) 限航時段：週一至週五實施，時段為0000-0900UTC。 限航時段內，申請單位事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Naval Education, Training And Doctrine Development Command (886-7-5883753) MON-FRI, 0000-0900UTC. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          22.581666666666667,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.42472222222223
+        ]
+      ],
+      "upperFt": 18000
+    },
+    "RCR18B": {
+      "name": "RCR18B",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 27",
+      "publishedCoordinates": [
+        "223454N 1192529E",
+        "225454N 1192529E",
+        "225454N 1194529E",
+        "223454N 1194529E",
+        "223454N 1192529E"
+      ],
+      "lower": "FL181",
+      "upper": "FL400",
+      "activation": "海軍教育訓練暨準則發展指揮部(886-7-5883753) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Naval Education, Training And Doctrine Development Command (886-7-5883753) Activated by NOTAM. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          22.581666666666667,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.42472222222223
+        ],
+        [
+          22.915,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.75805555555556
+        ],
+        [
+          22.581666666666667,
+          119.42472222222223
+        ]
+      ],
+      "upperFt": 40000
+    },
+    "RCR22": {
+      "name": "RCR22",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 28",
+      "publishedCoordinates": [
+        "245600N 1205400E",
+        "245600N 1205600E",
+        "245210N 1205810E",
+        "245230N 1205500E",
+        "245230N 1205300E",
+        "245600N 1205400E"
+      ],
+      "lower": "SFC",
+      "upper": "2000 FT AMSL",
+      "activation": "陸軍裝甲兵訓練指揮部(886-3-5973902) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Army Armor Training Command (886-3-5973902) Activated by NOTAM. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          24.933333333333334,
+          120.9
+        ],
+        [
+          24.933333333333334,
+          120.93333333333334
+        ],
+        [
+          24.869444444444444,
+          120.96944444444445
+        ],
+        [
+          24.875,
+          120.91666666666667
+        ],
+        [
+          24.875,
+          120.88333333333334
+        ],
+        [
+          24.933333333333334,
+          120.9
+        ]
+      ],
+      "upperFt": 2000
+    },
+    "RCR25": {
+      "name": "RCR25",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 29",
+      "publishedCoordinates": [
+        "252754N 1220030E",
+        "251954N 1220030E",
+        "251954N 1221230E",
+        "252754N 1221230E",
+        "252754N 1220030E"
+      ],
+      "lower": "SFC",
+      "upper": "4000 FT AMSL",
+      "activation": "海軍131艦隊(886-2-24260951) 限航時段：週一至週五實施，時段為0000-0900UTC。 限航時段內，申請單位事先徵得管理單位同意後，得許可航空器於限航時段飛航。申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Navy 131st Fleet (886-2-24260951) MON-FRI, 0000-0900UTC. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [
+        [
+          25.465,
+          122.00833333333334
+        ],
+        [
+          25.331666666666667,
+          122.00833333333334
+        ],
+        [
+          25.331666666666667,
+          122.20833333333334
+        ],
+        [
+          25.465,
+          122.20833333333334
+        ],
+        [
+          25.465,
+          122.00833333333334
+        ]
+      ],
+      "upperFt": 4000
+    },
+    "RCR27": {
+      "name": "RCR27",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 30",
+      "publishedCoordinates": [
+        "223854N 1201629E",
+        "224254N 1200529E",
+        "224254N 1201529E",
+        "223854N 1201629E"
+      ],
+      "lower": "SFC",
+      "upper": "1000 FT AMSL",
+      "activation": "海軍教育訓練暨準則發展指揮部(886-7-5883753) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Naval Education, Training And Doctrine Development Command (886-7-5883753) Activated by NOTAM. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          22.648333333333333,
+          120.27472222222222
+        ],
+        [
+          22.715,
+          120.09138888888889
+        ],
+        [
+          22.715,
+          120.25805555555556
+        ],
+        [
+          22.648333333333333,
+          120.27472222222222
+        ]
+      ],
+      "upperFt": 1000
+    },
+    "RCR30": {
+      "name": "RCR30 大福/Dafu",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 31",
+      "publishedCoordinates": [
+        "244800N 1214900E",
+        "245000N 1215000E",
+        "245000N 1215500E",
+        "244000N 1215500E",
+        "244200N 1215000E",
+        "244400N 1214900E",
+        "244800N 1214900E"
+      ],
+      "lower": "SFC",
+      "upper": "5000 FT AMSL",
+      "activation": "軍備局規格鑑測中心兵器試驗場(886-3-9306873) 週二至週五實施4月至9月， 時段為0100-0400, 0600-1000UTC。 10月至隔年3月， 時段為0100-0400, 0500-0900UTC。 航管單位事先徵得兵器試驗場同意後，得許可軍用、民用及公務用航空器於限航時段飛航。 限航時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 DAFU Proving Ground (886-3-9306873) Activated TUE through FRI. Time scheduled from APR through SEP: 0100-0400, 0600-1000UTC Time scheduled from OCT to next MAR: 0100-0400, 0500-0900UTC. ATC unit shall obtain prior approval from DAFU proving ground for military/civil/public aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          24.8,
+          121.81666666666666
+        ],
+        [
+          24.833333333333332,
+          121.83333333333333
+        ],
+        [
+          24.833333333333332,
+          121.91666666666667
+        ],
+        [
+          24.666666666666668,
+          121.91666666666667
+        ],
+        [
+          24.7,
+          121.83333333333333
+        ],
+        [
+          24.733333333333334,
+          121.81666666666666
+        ],
+        [
+          24.8,
+          121.81666666666666
+        ]
+      ],
+      "upperFt": 5000
+    },
+    "RCR39": {
+      "name": "RCR39",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 34",
+      "publishedCoordinates": [
+        "232954N 1191529E",
+        "233954N 1191529E",
+        "233954N 1190529E",
+        "232954N 1190529E",
+        "232954N 1191529E"
+      ],
+      "lower": "SFC",
+      "upper": "FL400",
+      "activation": "海軍146艦隊(886-6-9212765) 發布飛航公告後實施。 發布飛航公告時段內，申請單位應事先徵得艦隊指揮部作戰中心(886-7-5813141轉784950)同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Navy 146th Fleet (886-6-9212765) Activated by NOTAM. Application unit shall obtain prior approval from Naval Fleet Command Operations Center (886-7-5813141 extension 784950) for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during NOTAM periods.",
+      "ring": [
+        [
+          23.498333333333335,
+          119.25805555555556
+        ],
+        [
+          23.665,
+          119.25805555555556
+        ],
+        [
+          23.665,
+          119.09138888888889
+        ],
+        [
+          23.498333333333335,
+          119.09138888888889
+        ],
+        [
+          23.498333333333335,
+          119.25805555555556
+        ]
+      ],
+      "upperFt": 40000
+    },
+    "RCR42": {
+      "name": "RCR42 恆春A區/Hengchun A",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 37",
+      "publishedCoordinates": [
+        "222653N 1220029E",
+        "213253N 1220029E",
+        "214153N 1214029E",
+        "221453N 1214029E",
+        "222653N 1220029E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。日出至日沒限航(不影響管制空域內民航機之正常活動)。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 限航時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. Sunrise to sunset (normal operation of civil aircraft within controlled airspace will not be affected). Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          22.448055555555555,
+          122.00805555555556
+        ],
+        [
+          21.548055555555557,
+          122.00805555555556
+        ],
+        [
+          21.698055555555555,
+          121.67472222222223
+        ],
+        [
+          22.248055555555556,
+          121.67472222222223
+        ],
+        [
+          22.448055555555555,
+          122.00805555555556
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR43": {
+      "name": "RCR43 恆春B區/Hengchun B",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 38",
+      "publishedCoordinates": [
+        "213553N 1210129E",
+        "211653N 1213829E",
+        "210453N 1212729E",
+        "210453N 1205929E",
+        "213553N 1210129E"
+      ],
+      "lower": "SFC",
+      "upper": "FL370",
+      "activation": "空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上,日出至日沒限航(不影響管制空域內民航機之正常活動)。 限航時段內，申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. Sunrise to sunset (normal operation of civil aircraft within controlled airspace will not be affected). Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [
+        [
+          21.598055555555554,
+          121.02472222222222
+        ],
+        [
+          21.281388888888888,
+          121.6413888888889
+        ],
+        [
+          21.08138888888889,
+          121.45805555555556
+        ],
+        [
+          21.08138888888889,
+          120.99138888888889
+        ],
+        [
+          21.598055555555554,
+          121.02472222222222
+        ]
+      ],
+      "upperFt": 37000
+    },
+    "RCR48": {
+      "name": "RCR48",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan CAA eAIP ENR 5.1, AIRAC AIP AMDT 05/26; HTML table row 42",
+      "publishedCoordinates": [
+        "250255N 1213108E",
+        "250235N 1213009E",
+        "250150N 1213034E",
+        "250207N 1213126E",
+        "250255N 1213108E"
+      ],
+      "lower": "SFC",
+      "upper": "4000 FT AMSL",
+      "activation": "總統府侍衛室 (886-2-23206851) 晝夜連續限航。 本區係由臺北車站、中興橋東側橋頭、植物園及中正紀念堂4個目視參考點所圍成之區域，任何航空器未經核准前不得進入。 為執行遙控無人機管理規則第33條災害應變或緊急情況，申請者可優先執行任務並於作業前後通報管理單位。 Presidential Guard Office (886-2-23206851) H24. Area encircled successively by Taipei Main Station, the east end of Jhongsing Bridge, Botanical Garden and National Taiwan Democracy Memorial Hall. No aircraft may enter this area without prior permission from administration unit. For enacting Article 33 of Regulations of Drone regarding the disaster or emergency, applicant can conduct mission first, then report to administration unit before/after mission.",
+      "ring": [
+        [
+          25.048611111111114,
+          121.51888888888888
+        ],
+        [
+          25.043055555555558,
+          121.5025
+        ],
+        [
+          25.030555555555555,
+          121.50944444444444
+        ],
+        [
+          25.03527777777778,
+          121.52388888888889
+        ],
+        [
+          25.048611111111114,
+          121.51888888888888
+        ]
+      ],
+      "upperFt": 4000
+    },
+    "RCDONGSHA": {
+      "name": "DONGSHA",
+      "fir": "VHHK",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 13",
+      "publishedCoordinates": [
+        "204200N 1164300E"
+      ],
+      "publishedBoundary": "DONGSHA 東沙群島/Dongsha (Pratas) Island Circle, radius 10NM, centre 204200N 1164300E.",
+      "publishedVerticalLimits": "5000 FT AMSL / SFC",
+      "activation": "晝夜連續限航。 不定期舉行地對空炮火射擊，航機需先申請獲准方可進入。 (依據：1965年1月14日發布之第二類飛航公告3/65及1965年4月27日發布之第二類飛航公告8/65) 位於香港飛航情報區內。 H24. Non-scheduled ground to air gun firing practice will take place, prior authorization for entering this area is mandatory. (According to NOTAM Class II 3/65 dated 14 Jan 1965 and 8/65 dated 27 Apr 1965) Located within Hong Kong FIR.",
+      "ring": [],
+      "circle": {
+        "center": [
+          20.7,
+          116.71666666666667
+        ],
+        "radiusNm": 10.0
+      }
+    },
+    "RCNANSHA": {
+      "name": "NANSHA",
+      "fir": "RPHI",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 14",
+      "publishedCoordinates": [
+        "102300N 1142300E"
+      ],
+      "publishedBoundary": "NANSHA 南沙群島/Nansha Island Circle, radius 10NM, centre 102300N 1142300E.",
+      "publishedVerticalLimits": "6000 FT AMSL / SFC",
+      "activation": "晝夜連續限航。 不定期舉行地對空炮火射擊，航機需先申請獲准方可進入。 (依據：1965年1月14日發布之第二類飛航公告3/65及1965年4月27日發布之第二類飛航公告8/65) 位於馬尼拉飛航情報區內。 H24. Non-scheduled ground to air gun firing practice will take place, prior authorization for entering this area is mandatory. (According to NOTAM Class II 3/65 dated 14 Jan 1965 and 8/65 dated 27 Apr 1965) Located within Manila FIR.",
+      "ring": [],
+      "circle": {
+        "center": [
+          10.383333333333333,
+          114.38333333333334
+        ],
+        "radiusNm": 10.0
+      }
+    },
+    "RCR6": {
+      "name": "RCR6",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 16",
+      "publishedCoordinates": [
+        "222654N 1203529E"
+      ],
+      "publishedBoundary": "RCR6 佳冬/Jiadong Circle, radius 5NM, centre 222654N 1203529E.",
+      "publishedVerticalLimits": "12000 FT AMSL / SFC",
+      "activation": "空軍第六混合聯隊(886-8-7654632) 空軍作戰指揮部(886-2-27321594) 天氣能見度5KM，雲幕高1500FT(含)或以上。 限航時段：每日2300-0200, 0600-0900UTC。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 6th combined wing of ROCAF (886-8-7654632) Air Force Combatant Command (886-2-27321594) Weather at or above visibility 5KM, and ceiling 1500FT. Daily from 2300-0200, 0600-0900UTC. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [],
+      "circle": {
+        "center": [
+          22.448333333333334,
+          120.59138888888889
+        ],
+        "radiusNm": 5.0
+      }
+    },
+    "RCR40": {
+      "name": "RCR40",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 35",
+      "publishedCoordinates": [
+        "215653N 1213629E"
+      ],
+      "publishedBoundary": "RCR40 小蘭嶼/Hsiao Lanyu Circle, radius 1600M, centre 215653N 1213629E.",
+      "publishedVerticalLimits": "FL140 / SFC",
+      "activation": "空軍第七戰術戰鬥機聯隊(886-89-228411) 空軍作戰指揮部(886-2-27321594) 晝夜連續限航。從每月15日1600UTC至月底，但除去3月及4月。 天氣能見度5KM，雲幕高1500FT(含)或以上。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 7th tactical fighter wing of ROCAF (886-89-228411) Air Force Combatant Command (886-2-27321594) H24 daily. From the 15th 1600UTC to the end of the month, except MAR and APR. Weather at or above visibility 5KM, and ceiling 1500FT. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [],
+      "circle": {
+        "center": [
+          21.948055555555555,
+          121.60805555555555
+        ],
+        "radiusNm": 0.8639308855291578
+      }
+    },
+    "RCR41": {
+      "name": "RCR41",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 36",
+      "publishedCoordinates": [
+        "223554N 1210029E"
+      ],
+      "publishedBoundary": "RCR41 太麻里/Taimali Circle, radius 5NM, centre 223554N 1210029E.",
+      "publishedVerticalLimits": "FL140 / SFC",
+      "activation": "空軍第七戰術戰鬥機聯隊(886-89-228411) 空軍作戰指揮部(886-2-27321594) 限航時段：每天2230-0400, 0530-0900UTC 唯每週六自0400UTC至週日1600UTC除外,天氣能見度5KM﹐雲幕高1500FT(含)或以上限航。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 空軍作戰指揮部為遙控無人機活動申請窗口；限航時段內，申請單位應事先徵得空軍作戰指揮部同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 The 7th tactical fighter wing of ROCAF (886-89-228411) Air Force Combatant Command (886-2-27321594) 2230-0400UTC and 0530-0900UTC daily except from 0400UTC SAT to 1600UTC SUN. Weather at or above visibility 5KM, and ceiling 1500FT. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Air Force Combatant Command serves as point of contact for drone activity application. Application unit shall obtain prior approval from Air Force Combatant Command for enacting Article 33 of Regulations of Drone regarding the disaster or emergency during active hours.",
+      "ring": [],
+      "circle": {
+        "center": [
+          22.598333333333333,
+          121.00805555555556
+        ],
+        "radiusNm": 5.0
+      }
+    },
+    "RCR45": {
+      "name": "RCR45",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 39",
+      "publishedCoordinates": [
+        "215700N 1204500E"
+      ],
+      "publishedBoundary": "RCR45 Circle, radius 2NM, centre 215700N 1204500E.",
+      "publishedVerticalLimits": "3000 FT AMSL / SFC",
+      "activation": "臺電 (886-8-8881685)（第三核能發電廠） 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Taiwan Power Company (886-8-8881685) (Nuclear Power Plant NR 3) H24. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          21.95,
+          120.75
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RCR46": {
+      "name": "RCR46",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 40",
+      "publishedCoordinates": [
+        "251700N 1213500E"
+      ],
+      "publishedBoundary": "RCR46 Circle, radius 2NM, centre 251700N 1213500E.",
+      "publishedVerticalLimits": "3000 FT AMSL / SFC",
+      "activation": "臺電 (886-2-26383520)（第一核能發電廠） 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Taiwan Power Company (886-2-26383520) (Nuclear Power Plant NR 1) H24. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          25.283333333333335,
+          121.58333333333333
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RCR47": {
+      "name": "RCR47",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 41",
+      "publishedCoordinates": [
+        "251200N 1213900E"
+      ],
+      "publishedBoundary": "RCR47 Circle, radius 2NM, centre 251200N 1213900E.",
+      "publishedVerticalLimits": "3000 FT AMSL / SFC",
+      "activation": "臺電 (886-2-24082546)（第二核能發電廠） 晝夜連續限航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Taiwan Power Company (886-2-24082546) (Nuclear Power Plant NR 2) H24. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          25.2,
+          121.65
+        ],
+        "radiusNm": 2.0
+      }
+    },
+    "RCR50": {
+      "name": "RCR50",
+      "fir": "RCAA",
+      "effective": "2026-10-29",
+      "source": "https://ais.caa.gov.tw/eaip/AIRAC%20AIP%20AMDT%2005-26_2026_10_29/eAIP/RC-ENR%205.1-zh-TW.html",
+      "document": "Taiwan AIP ENR 5.1, row 43",
+      "publishedCoordinates": [
+        "242953N 1210417E"
+      ],
+      "publishedBoundary": "RCR50 Circle, radius 5KM, centre 242953N 1210417E.",
+      "publishedVerticalLimits": "FL200 / SFC",
+      "activation": "空軍作戰指揮部(886-2-27321594) 晝夜連續限航。 任何航空器未經核准前不得進入。 申請單位應事先徵得管理單位同意後，得許可航空器於限航時段飛航。 申請單位應事先徵得管理單位同意後，得執行遙控無人機管理規則第33條災害應變或緊急情況。 Air Force Combatant Command (886-2-27321594) H24, prior permission is required. Application unit shall obtain prior approval from administration unit for aircraft operating during active hours. Application unit shall obtain prior approval from administration unit for enacting Article 33 of Regulations of Drone regarding the disaster or emergency.",
+      "ring": [],
+      "circle": {
+        "center": [
+          24.498055555555556,
+          121.07138888888889
+        ],
+        "radiusNm": 2.6997840172786174
+      }
     }
   }
 }
