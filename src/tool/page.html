@@ -5938,7 +5938,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.33</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.38</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -13047,6 +13047,33 @@ function nmStackPopup(stack){
   }
   return box;
 }
+function nmFindNotamRow(icao, ident){
+  const packs = [((nmTrackData || {}).places) || [], ((nmData || {}).places) || []];
+  for(const places of packs) for(const p of places){
+    if(icao && p.code !== icao) continue;
+    const n = (p.notams || []).find(x => x.ident === ident) || (p.dropped || []).find(x => x.ident === ident);
+    if(n) return [n, p];
+  }
+  return null;
+}
+function nmSidePopPin(hit){
+  try{
+    const f = hit && hit.ident && nmFindNotamRow(hit.icao, hit.ident);
+    const box = document.querySelector("#nmTrackMap .nm-side-pop");
+    if(f && box) box.appendChild(nmPaintPinBar(f[0], f[1]));
+  }catch(e){}
+}
+function nmFocusLayers(lys){
+  try{
+    if(!nmMap || !lys || !lys.length) return;
+    let b = null;
+    for(const l of lys){
+      const lb = l.getBounds ? l.getBounds() : (l.getLatLng ? L.latLng(l.getLatLng()).toBounds(60000) : null);
+      if(lb) b = b ? b.extend(lb) : L.latLngBounds(lb.getSouthWest(), lb.getNorthEast());
+    }
+    if(b && b.isValid()) nmMap.flyToBounds(b, {padding:[40,40], maxZoom:8, duration:0.6});
+  }catch(e){}
+}
 function nmShowSidePop(content){
   const el = $("#nmTrackMap");
   if(!el) return;
@@ -13124,6 +13151,7 @@ function nmPlotHits(hits, bounds){
           nmShowSidePop("<b>" + title + "</b><br>"
             + (hit.reasons || []).join(" · ")
             + (hit.summary ? "<br>" + hit.summary : ""));
+          nmSidePopPin(hit);
           nmJumpNotam(hit.icao, hit.ident);
         });
         layer.addTo(nmDrawGroup);
@@ -13163,7 +13191,7 @@ function nmPlotHits(hits, bounds){
           : ("<b>" + title + "</b><br>"
             + (hit.reasons || []).join(" · ")
             + (hit.summary ? "<br>" + hit.summary : "")));
-        if(stack.length < 2) nmJumpNotam(hit.icao, hit.ident);
+        if(stack.length < 2){ nmSidePopPin(hit); nmJumpNotam(hit.icao, hit.ident); }
       });
     }
     layer.addTo(nmDrawGroup);
@@ -13214,6 +13242,7 @@ function nmPlotHits(hits, bounds){
       nmShowSidePop("<b>" + title + "</b><br>"
         + (hit.reasons || []).join(" · ")
         + (hit.summary ? "<br>" + hit.summary : ""));
+      nmSidePopPin(hit);
       nmJumpNotam(hit.icao, hit.ident);
     });
     layer.addTo(nmDrawGroup);

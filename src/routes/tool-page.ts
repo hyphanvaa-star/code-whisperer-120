@@ -2367,6 +2367,7 @@ function nmPaintListAll(place, q){
     body.className = "nm-item-body";
     body.appendChild(nmPaintFliteText(n.text || n.e_field || "", n.ident || "", n, p));
     item.appendChild(body);
+    if(selected){ try{ item.appendChild(nmPaintPinBar(n, p)); }catch(e){} }
     const icao = (p && p.code) || n.icao || "";
     const ident = n.ident || "";
     item.onclick = () => {
@@ -2375,7 +2376,7 @@ function nmPaintListAll(place, q){
       nmFocusIdent = ident;
       nmRender();
       const lys = (nmHitLayers[ident] || nmHitLayers[String(ident).toUpperCase()] || []).filter(Boolean);
-      if(lys.length) nmBlinkLayers(lys);
+      if(lys.length){ nmFocusLayers(lys); nmBlinkLayers(lys); }
     };
     list.appendChild(item);
   }
@@ -2458,7 +2459,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.37')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.38')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
