@@ -29157,17 +29157,19 @@ function boot(){
 #wrapNotam .nm-grp-sum{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px;padding:6px;border-radius:14px;background:rgba(15,23,42,.04)}
 #wrapNotam .nm-grp-pill{--c:#64748b;--bg:#f1f5f9;display:inline-flex;align-items:center;gap:8px;padding:7px 8px 7px 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:#475569;font:700 12.5px/1 system-ui,sans-serif;letter-spacing:.06em;transform:none;box-shadow:none;transition:background .18s,color .18s,box-shadow .18s,transform .18s}
 #wrapNotam .nm-grp-pill:hover{background:#fff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(15,23,42,.08)}
-#wrapNotam .nm-grp-pill.on{background:#fff;color:var(--c);border-color:color-mix(in srgb,var(--c) 35%,transparent);box-shadow:0 4px 14px color-mix(in srgb,var(--c) 22%,transparent);transform:none}
+#wrapNotam .nm-grp-pill.on{background:var(--c);color:#fff;border-color:var(--c);box-shadow:0 4px 14px color-mix(in srgb,var(--c) 45%,transparent);transform:none}
+#wrapNotam .nm-grp-pill.on .nm-gp-dot{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
 #wrapNotam .nm-gp-dot{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 20%,transparent)}
 #wrapNotam .nm-gp-n{min-width:24px;padding:4px 7px;border-radius:7px;background:var(--bg);color:var(--c);text-align:center;font-variant-numeric:tabular-nums;letter-spacing:0}
-#wrapNotam .nm-grp-pill.on .nm-gp-n{background:var(--c);color:#fff}
+#wrapNotam .nm-grp-pill.on .nm-gp-n{background:#fff;color:var(--c)}
 #wrapNotam .nm-grp-pill.nm-grp-impact{--c:#dc2626;--bg:#fee2e2}
 #wrapNotam .nm-grp-pill.nm-grp-manual{--c:#d97706;--bg:#fef3c7}
 #wrapNotam .nm-grp-pill.nm-grp-brief{--c:#2563eb;--bg:#dbeafe}
 #wrapNotam .nm-grp-pill.nm-grp-noimpact{--c:#64748b;--bg:#e2e8f0}
 html.night #wrapNotam .nm-grp-sum{background:rgba(255,255,255,.05)}
 html.night #wrapNotam .nm-grp-pill{color:#cbd5e1}
-html.night #wrapNotam .nm-grp-pill:hover,html.night #wrapNotam .nm-grp-pill.on{background:rgba(255,255,255,.08)}
+html.night #wrapNotam .nm-grp-pill:hover{background:rgba(255,255,255,.08)}
+html.night #wrapNotam .nm-grp-pill.on{background:var(--c);color:#fff}
 #nmTuneUndo,#nmSky{display:none !important}
 </style>
 <script>
