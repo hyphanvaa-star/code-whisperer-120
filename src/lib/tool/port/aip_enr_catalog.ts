@@ -14,6 +14,10 @@ const RINGS: Record<string, Pt[]> = {
 };
 
 const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
+const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key)).map(([key, area]) => ({
+  key, country: area.fir.slice(0, 2),
+  pattern: new RegExp(`(?<![A-Z0-9])${area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![A-Z0-9])`),
+}));
 
 function matchesFir(country: string, region: string): boolean {
   if (!region) return true;
@@ -41,10 +45,8 @@ export function namedEnrIds(text: string, fir = ""): string[] {
     }
   }
   // Published names without numeric IDs also require an explicit country scope.
-  for (const [key, area] of Object.entries(AREAS)) {
-    if (!region || !matchesFir(area.fir.slice(0, 2), region) || /^\w{2}[DRPW]\d/.test(key)) continue;
-    const name = area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
-    if (new RegExp(`(?<![A-Z0-9])${name}(?![A-Z0-9])`).test(blob)) out.add(key);
+  for (const {key, country, pattern} of NAMED) {
+    if (region && matchesFir(country, region) && pattern.test(blob)) out.add(key);
   }
   return [...out];
 }

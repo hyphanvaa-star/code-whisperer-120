@@ -90,12 +90,27 @@ describe("bundled ENR catalog", () => {
   });
   it("resolves published Japanese names without numeric codes only in Japan", () => {
     expect(enrIdsInText("CAMP SCHWAB ACT", "RJJJ")).toEqual(["RJCAMPSCHWAB"]);
-    expect(enrGeoms("RJCAMPSCHWAB")[0].ring[0]).toEqual([26.563333333333333, 128.06055555555557]);
+    expect(enrGeoms("RJCAMPSCHWAB")[0].ring[0]).toEqual([26 + 31/60 + 46/3600, 127 + 59/60 + 39/3600]);
     expect(enrIdsInText("CAMP SCHWAB ACT", "RPHI")).toEqual([]);
   });
   it("keeps W-173A distinct from W-173 and draws its exact published ring", () => {
     expect(enrIdsInText("WARNING AREA W-173A ACT", "RJJJ")).toEqual(["RJW173A"]);
     expect(enrRing("RJW173A").length).toBe(6);
     expect(enrRing("RJW173A")).not.toEqual(enrRing("RJW173"));
+  });
+  it("draws Taiwan RCR5 directly from the published ENR polygon", () => {
+    expect(enrIdsInText("RC-R5 ACTIVE", "RCAA")).toEqual(["RCR5"]);
+    expect(enrGeoms("RCR5")[0].ring[0]).toEqual([23.85, 118.9]);
+    expect(enrIdsInText("RC-R5 ACTIVE", "RPHI")).toEqual([]);
+  });
+  it("keeps Dongsha and Nansha within their published Hong Kong and Manila FIRs", () => {
+    expect(enrIdsInText("DONGSHA ACT", "VHHK")).toEqual(["RCDONGSHA"]);
+    expect(enrIdsInText("NANSHA ACT", "RPHI")).toEqual(["RCNANSHA"]);
+    expect(enrIdsInText("DONGSHA NANSHA ACT", "RCAA")).toEqual([]);
+    expect(enrGeoms("RCNANSHA")[0].radius_nm).toBe(10);
+  });
+  it("converts the published Taiwan 5 KM circle and leaves incomplete multi-part RCR7 unresolved", () => {
+    expect(enrGeoms("RCR50")[0].radius_nm).toBeCloseTo(5000/1852, 10);
+    expect(enrIdsInText("RCR7 ACT", "RCAA")).toEqual([]);
   });
 });
