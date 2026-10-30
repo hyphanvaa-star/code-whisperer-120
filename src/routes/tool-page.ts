@@ -2392,7 +2392,33 @@ function nmPaintListBase(place, q){`)
     .replace('    nmPick = place.code;\n    nmShowDropped = false;\n    nmFocusIdent = "";\n    nmRender();', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;\n    nmFocusIdent = "";\n    nmRender();')
     .replace('    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;', '    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;\n    window.nmOvGroup = "";')
     .replace('  btn.onclick = () => {\n    nmGroup = id;', '  btn.onclick = () => {\n    nmGroup = id;\n    window.nmOvGroup = "";')
+    .replace('  close.title = "Đóng";', '  close.title = "Đóng NOTAM";\n  close.setAttribute("aria-label", "Đóng NOTAM");')
     .replace('</head>', `<style>
+      #nmTrackMap .nm-side-pop{box-sizing:border-box;width:440px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);padding:54px 20px 20px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line);border-top:4px solid var(--x-red);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--x-ink) 20%,transparent);font:16px/1.6 Arial,Helvetica,sans-serif;overflow:auto;overflow-wrap:anywhere;scrollbar-gutter:stable}
+      #nmTrackMap .nm-side-pop::before{content:"NOTAM";position:absolute;top:14px;left:20px;font:800 14px/24px Arial,Helvetica,sans-serif;color:var(--x-red)}
+      #nmTrackMap .nm-side-pop b{font-size:17px;line-height:1.5;color:var(--x-ink)}
+      #nmTrackMap .nm-side-pop-x{top:8px;right:8px;width:40px;height:40px;display:grid;place-items:center;background:var(--x-bg);color:var(--x-ink2);border:1px solid var(--x-line);border-radius:6px;font:400 30px/1 Arial,sans-serif;cursor:pointer}
+      #nmTrackMap .nm-side-pop-x:hover,#nmTrackMap .nm-side-pop-x:focus-visible{background:var(--x-red-50);color:var(--x-red);border-color:var(--x-red);outline:2px solid var(--x-red);outline-offset:2px}
+      #nmTrackMap .nm-stack-pop{max-width:none}
+      #nmTrackMap .nm-stack-item{padding:12px 8px;font:inherit;color:var(--x-ink);border-radius:6px}
+      #nmTrackMap .nm-stack-item:hover{background:var(--x-red-50)}
+      #nmTrackMap .nm-stack-pop hr{border-color:var(--x-line)}
+      #nmTrackMap .nm-stack-n{font-size:14px;color:var(--x-ink2)}
+      #nmTrackMap .leaflet-control-layers{background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line);border-radius:8px;box-shadow:0 4px 16px color-mix(in srgb,var(--x-ink) 16%,transparent);font:15px/1.4 Arial,Helvetica,sans-serif}
+      #nmTrackMap .leaflet-control-layers-toggle{width:44px;height:44px}
+      #nmTrackMap .leaflet-control-layers-expanded{box-sizing:border-box;width:280px;max-width:calc(100vw - 48px);padding:14px 12px}
+      #nmTrackMap .leaflet-control-layers-list{max-height:min(580px,65vh);overflow-y:auto;scrollbar-gutter:stable;padding-right:4px}
+      #nmTrackMap .leaflet-control-layers-base::before,#nmTrackMap .leaflet-control-layers-overlays::before{display:block;padding:4px 8px 10px;font:800 12px/1.4 Arial,sans-serif;color:var(--x-mute)}
+      #nmTrackMap .leaflet-control-layers-base::before{content:"BẢN ĐỒ NỀN"}
+      #nmTrackMap .leaflet-control-layers-overlays::before{content:"LỚP HIỂN THỊ";padding-top:8px}
+      #nmTrackMap .leaflet-control-layers-list label{display:block;margin:2px 0;border-radius:6px;cursor:pointer}
+      #nmTrackMap .leaflet-control-layers-list label>span{display:flex;align-items:center;gap:10px;min-height:38px;padding:6px 8px;box-sizing:border-box}
+      #nmTrackMap .leaflet-control-layers-list label>span>span{flex:1;white-space:normal}
+      #nmTrackMap .leaflet-control-layers-list label:hover{background:var(--x-bg)}
+      #nmTrackMap .leaflet-control-layers-list label:has(input:checked){background:var(--x-red-50);color:var(--x-red-d);font-weight:700}
+      #nmTrackMap .leaflet-control-layers-selector{position:static;flex:0 0 18px;width:18px;height:18px;margin:0;accent-color:var(--x-red);cursor:pointer}
+      #nmTrackMap .leaflet-control-layers-separator{border-color:var(--x-line);margin:10px 0}
+      @media(max-width:600px){#nmTrackMap .nm-side-pop{top:8px;right:8px;max-width:calc(100% - 16px);padding-left:16px;padding-right:16px}}
       #wrapNotam #nmList .nm-item.nm-item-on{background:color-mix(in srgb,var(--x-red) 10%,var(--x-bg));color:var(--x-ink);outline:2px solid var(--x-red);outline-offset:-2px;border-left:5px solid var(--x-red);border-radius:6px;padding:12px 12px 12px 38px;margin:6px 2px;position:relative}
       #wrapNotam #nmList .nm-item.nm-item-on .nm-map-pin{background:var(--x-red);color:var(--x-bg);left:10px;top:12px}
       #nmTabs .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
@@ -2420,7 +2446,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.34')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.35')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
