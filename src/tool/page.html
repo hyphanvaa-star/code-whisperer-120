@@ -14091,6 +14091,13 @@ function nmPaintList(place, q){
   const order = graded ? ["impact","manual","brief","noimpact"] : [null];
   if(!window.nmGrpSel) window.nmGrpSel = "impact";
   if(graded){
+    const pk = (place && (place.kind + ":" + place.code)) || "";
+    if(window.nmGrpPlace !== pk){
+      window.nmGrpPlace = pk;
+      window.nmGrpSel = order.find(g => rows.some(x => nmGrpOf(x) === g)) || "impact";
+    }
+  }
+  if(graded){
     const sum = document.createElement("div");
     sum.className = "nm-grp-sum";
     for(const g of order){
