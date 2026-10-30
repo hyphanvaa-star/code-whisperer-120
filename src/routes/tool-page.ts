@@ -1357,15 +1357,16 @@ header#mdRoom .ops-account-btn:focus-visible{outline:2px solid var(--ops-panel-a
 #opsAcctMenu .ops-acct-who{padding:12px 12px 16px;margin-bottom:6px;border-color:var(--ops-panel-line);gap:7px}
 #opsAcctMenu .ops-acct-who small{color:var(--ops-panel-muted);font:600 12px/1.3 var(--x-sans);letter-spacing:0}
 #opsAcctMenu .ops-acct-who strong{color:var(--ops-panel-ink);font:700 15px/1.5 var(--x-sans);overflow-wrap:anywhere}
-#opsAcctMenu .ops-acct-action{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:58px;gap:12px;margin:0;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--ops-panel-ink);-webkit-text-fill-color:currentColor;text-align:left;box-shadow:none;white-space:normal;letter-spacing:0}
-#opsAcctMenu .ops-acct-action:hover{background:color-mix(in oklch,var(--ops-panel-line) 45%,var(--ops-panel))}
+#opsAcctMenu .ops-acct-action{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:58px;gap:12px;margin:0;padding:10px 12px;border:0 !important;border-radius:6px;background:transparent !important;color:var(--ops-panel-ink) !important;-webkit-text-fill-color:currentColor !important;text-align:left;box-shadow:none !important;white-space:normal;letter-spacing:0}
+#opsAcctMenu .ops-acct-action *{-webkit-text-fill-color:currentColor !important}
+#opsAcctMenu .ops-acct-action:hover{background:color-mix(in oklch,var(--ops-panel-line) 45%,var(--ops-panel)) !important}
 #opsAcctMenu .ops-acct-action:focus-visible{outline:2px solid var(--ops-panel-accent);outline-offset:-2px}
 #opsAcctMenu .ops-acct-action b{display:block;font:700 15px/1.4 var(--x-sans)}
 #opsAcctMenu .ops-acct-action small{display:block;margin-top:2px;color:var(--ops-panel-muted);font:500 13px/1.4 var(--x-sans)}
 #opsAcctMenu .ops-acct-icon{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:6px;color:var(--ops-panel-accent);background:color-mix(in oklch,var(--ops-panel-accent) 8%,var(--ops-panel))}
 #opsAcctMenu .ops-acct-icon svg{width:20px;height:20px}
 #opsAcctMenu .ops-acct-arrow{margin-left:auto;font-size:24px;color:var(--ops-panel-muted)}
-#opsAcctMenu .ops-acct-logout{margin-top:6px;border-top:1px solid var(--ops-panel-line);border-radius:0 0 6px 6px;color:var(--ops-panel-accent)}
+#opsAcctMenu .ops-acct-logout{margin-top:6px;border-top:1px solid var(--ops-panel-line) !important;border-radius:0 0 6px 6px;color:var(--ops-panel-accent) !important}
 @keyframes ops-account-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){#opsAcctMenu{animation:none}}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
