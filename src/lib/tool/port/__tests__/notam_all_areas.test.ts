@@ -8,7 +8,7 @@ function screen() {
   const unresolved = { ident: 'C3', icao: 'RPHI', shape: 'dot', lat: 14, lon: 121 };
   let plotted: unknown[] = [], overlay: unknown, change: (event: {layer: unknown}) => void = () => {};
   let on = false, redraws = 0;
-  const pack = { hits: [impact, dropped, unresolved], places: [{ dropped: [{ ident: 'B2', level: 'NO IMPACT' }] }] };
+  const pack = { hits: [impact, dropped, unresolved], places: [{kind:'FIR',code:'RPHI', dropped: [{ ident: 'B2', level: 'NO IMPACT' }] }] };
   const original = JSON.stringify(pack);
   const map = { hasLayer: () => on, on: (_events: string, fn: typeof change) => { change = fn; } };
   const context = {
@@ -26,6 +26,10 @@ function screen() {
     nmDrawTrack: () => { redraws++; },
     nmHitsOf: () => [impact],
     nmFleetHits: () => [],
+    nmShowNotam: () => {},
+    nmGroup: 'track', NM_GROUP_TRACK: 'track', NM_GROUP_ALL: 'all',
+    nmData: null,
+    window: {nmGrpPlace:'',nmGrpSel:'impact'},
   };
   runInNewContext(readFileSync('src/tool/notam-geometry.js', 'utf8'), context);
   context.nmEnsureMap();
@@ -34,6 +38,13 @@ function screen() {
 }
 
 describe('all NOTAM areas map layer', () => {
+  it('opens the NO IMPACT group and resolves its hidden published circle on click', () => {
+    const s = screen();
+    s.context.nmShowNotam('RPHI', 'B2', '');
+    expect(s.context.window.nmGrpSel).toBe('noimpact');
+    expect(s.context.window.nmGrpPlace).toBe('FIR:RPHI');
+    expect(s.context.nmFindHit('B2')?.shape).toBe('circle');
+  });
   it('keeps NO IMPACT areas hidden by default', () => {
     const s = screen();
     s.context.nmPlotHits([s.impact]);
