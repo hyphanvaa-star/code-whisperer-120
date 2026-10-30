@@ -5924,7 +5924,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.25</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.26</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -10105,7 +10105,8 @@ function tipLeave(ev){
 
 document.addEventListener("mouseover", tipHover);
 document.addEventListener("mouseout", tipLeave);
-document.addEventListener("mousemove", ev => { if(_tipHost) moveTafTip(ev); });
+let _tipMoveEv = null;
+document.addEventListener("mousemove", ev => { if(!_tipHost) return; const first = !_tipMoveEv; _tipMoveEv = ev; if(first) requestAnimationFrame(() => { const e = _tipMoveEv; _tipMoveEv = null; if(e && _tipHost) moveTafTip(e); }); }, {passive:true});
 document.addEventListener("scroll", tipRelease, true);
 document.addEventListener("click", tipRelease, true);
 
@@ -10127,11 +10128,16 @@ function showTafTip(ev, meta, segs, raw){
 function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
-  const pad = 14;
-  let x = ev.clientX + pad, y = ev.clientY + pad;
+  const pad = 18;
+  let z = 1;
+  try{ z = (parseFloat(getComputedStyle(document.documentElement).zoom)||1) * (parseFloat(getComputedStyle(document.body).zoom)||1); }catch(e){}
+  if(!(z > 0)) z = 1;
+  const cx = ev.clientX / z, cy = ev.clientY / z, vw = window.innerWidth / z, vh = window.innerHeight / z;
+  el.style.pointerEvents = "none";
+  let x = cx + pad, y = cy + pad;
   const w = el.offsetWidth || 320, h = el.offsetHeight || 80;
-  if(x + w > window.innerWidth - 8) x = ev.clientX - w - pad;
-  if(y + h > window.innerHeight - 8) y = ev.clientY - h - pad;
+  if(x + w > vw - 8) x = cx - w - pad;
+  if(y + h > vh - 8) y = cy - h - pad;
   el.style.left = Math.max(8, x) + "px";
   el.style.top = Math.max(8, y) + "px";
 }

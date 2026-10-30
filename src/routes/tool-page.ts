@@ -298,7 +298,7 @@ const SHIM = `<script>
         });
         var hoTb=document.getElementById('hoBody');
         if(hoTb)new MutationObserver(function(){ hoGuardBlanks(); }).observe(hoTb,{childList:true});
-        setInterval(hoGuardBlanks,1500);
+        setInterval(hoGuardBlanks,5000);
       }
       if(theme)theme.insertAdjacentHTML('afterbegin',iconSvg('<path d="M12 3a9 9 0 1 0 9 9c0-1.1-.2-2.1-.5-3A7 7 0 0 1 12 3Z"/>'));
     }
@@ -343,7 +343,7 @@ const SHIM = `<script>
       acMarkRows();
       acBody.addEventListener('input',acMarkRows);
       new MutationObserver(acMarkRows).observe(acBody,{childList:true,subtree:true});
-      setInterval(acMarkRows,750);
+      setInterval(acMarkRows,4000);
     }
     if(room && !document.getElementById('opsHeaderBrand')){
       var brand=document.createElement('div');
@@ -2394,7 +2394,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.25')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.26')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
