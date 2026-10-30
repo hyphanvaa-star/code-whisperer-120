@@ -14674,15 +14674,19 @@ function nmShowNotam(icao, ident, flightId){
       || (p.dropped || []).some(n => n.ident === ident)));
   const onTrack = nmGroup === NM_GROUP_TRACK;
   const here = inPack(onTrack ? trackPlaces : allPlaces);
-  if(here) nmPick = here.code || icao || nmPick;
-  else if(icao) nmPick = icao;
-  nmFocusIdent = ident || "";
+  /* Chế độ tracking (toàn chuyến): giữ nguyên tab sân/FIR đang xem và khung
+     nhìn bản đồ — chỉ nhấp nháy vùng NOTAM, không tự nhảy tab hay zoom. */
+  if(!onTrack){
+    if(here) nmPick = here.code || icao || nmPick;
+    else if(icao) nmPick = icao;
+  }
   const qel = $("#nmSearch");
   const q = ((qel || {}).value || "").trim().toLowerCase();
-  const pack = nmGroup === NM_GROUP_TRACK ? trackPlaces : allPlaces;
+  const pack = onTrack ? trackPlaces : allPlaces;
   const place = pack.find(p => p.code === nmPick);
   const row = ((place || {}).notams || []).find(n => n.ident === ident)
     || ((place || {}).dropped || []).find(n => n.ident === ident);
+  nmFocusIdent = (onTrack && !row) ? "" : (ident || "");
   nmShowDropped = !!(row && row.skip_why);
   if(qel && ident && q && row && !nmMatchItem(row, q)){
     qel.value = "";
@@ -14691,9 +14695,15 @@ function nmShowNotam(icao, ident, flightId){
   nmDrawTrack._skipFit = true;
   nmRender();
   let onSeg = false;
-  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);
+  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row, onTrack);
   else if(nmData && nmData.fleet && (row || flightId)) onSeg = !!nmFlashFleetNotam(row || {text:""}, flightId || "");
-  if(!onSeg) nmFocusMap(ident);
+  if(!onSeg){
+    if(onTrack){
+      const lys = (nmHitLayers[ident] || nmHitLayers[String(ident || "").toUpperCase()] || []).filter(Boolean);
+      if(lys.length) nmBlinkLayers(lys);
+      else nmFocusMap(ident);
+    }else nmFocusMap(ident);
+  }
   setTimeout(function(){ nmDrawTrack._skipFit = false; }, 250);
 }
 function nmJumpNotam(icao, ident, flightId){
