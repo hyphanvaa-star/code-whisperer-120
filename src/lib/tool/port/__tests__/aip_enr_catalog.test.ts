@@ -64,4 +64,19 @@ describe("bundled ENR catalog", () => {
     expect(enrIdsInText("RP-R9999 W-9999", "RPHI")).toEqual([]);
     expect(enrRing("RPR9999")).toEqual([]);
   });
+  it("recognizes Taiwan, Laos and Indonesian country-qualified names only in their FIRs", () => {
+    expect(namedEnrIds("RC-R7 RCR7 ACT", "RCAA")).toEqual(["RCR7"]);
+    expect(namedEnrIds("VL-D3 ACT", "VLVT")).toEqual(["VLD3"]);
+    expect(namedEnrIds("WI-R12 WA-D4 ACT", "WAAF")).toEqual(["WIR12", "WAD4"]);
+    expect(namedEnrIds("RC-R7 VL-D3 WI-R12 ACT", "RPHI")).toEqual([]);
+  });
+  it("never substitutes a parent boundary for an unknown suffixed area", () => {
+    expect(enrIdsInText("RP-R72A ACT", "RPHI")).toEqual([]);
+    expect(enrIdsInText("W-181A ACT", "RJJJ")).toEqual([]);
+  });
+  it("protects stored boundaries from mutations by callers", () => {
+    const ring = enrRing("RJW181");
+    ring[0][0] = 0;
+    expect(enrRing("RJW181")[0][0]).toBe(25.6875);
+  });
 });
