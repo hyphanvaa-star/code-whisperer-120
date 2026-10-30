@@ -2361,7 +2361,14 @@ function nmPaintListAll(place, q){
     item.appendChild(body);
     const icao = (p && p.code) || n.icao || "";
     const ident = n.ident || "";
-    item.onclick = () => { window.nmOvGroup = ""; nmJumpNotam(icao, ident); };
+    item.onclick = () => {
+      /* Đang xem toàn chuyến thì giữ nguyên: chỉ tô sáng dòng và nhấp nháy
+         vùng trên bản đồ, không nhảy về tab sân/FIR của NOTAM. */
+      nmFocusIdent = ident;
+      nmRender();
+      const lys = (nmHitLayers[ident] || nmHitLayers[String(ident).toUpperCase()] || []).filter(Boolean);
+      if(lys.length) nmBlinkLayers(lys);
+    };
     list.appendChild(item);
   }
   if(nmFocusIdent){
@@ -2385,7 +2392,13 @@ function nmPaintListBase(place, q){`)
       #nmTabs .nm-overview-manual{border-color:#d97706;color:#b45309}
       #nmTabs .nm-overview-brief{border-color:#2563eb;color:#1d4ed8}
       #nmTabs .nm-overview-count{transition:transform .15s ease, box-shadow .15s ease}
-      #nmTabs .nm-overview-count.on{outline:2px solid currentColor;outline-offset:-1px}
+      #nmTabs .nm-overview-count.on{outline:none;box-shadow:0 3px 10px rgba(0,0,0,.22)}
+      #nmTabs .nm-overview-total.on{background:#334155;border-color:#334155;color:#fff}
+      #nmTabs .nm-overview-impact.on{background:#dc2626;border-color:#dc2626;color:#fff}
+      #nmTabs .nm-overview-manual.on{background:#d97706;border-color:#d97706;color:#fff}
+      #nmTabs .nm-overview-brief.on{background:#2563eb;border-color:#2563eb;color:#fff}
+      #nmTabs .nm-overview-noimpact.on{background:#16a34a;border-color:#16a34a;color:#fff}
+      #nmTabs .nm-overview-count.on b{color:#fff}
       #nmTabs .nm-overview-noimpact{border-color:#16a34a;color:#15803d}
     </style></head>`)
     .replace('  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);', `  const areaHit = nmFindHit(ident);
@@ -2394,7 +2407,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.32')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.33')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
