@@ -20,6 +20,7 @@
     return originalRefresh(hit);
   };
   const originalFind = nmFindHit;
+  let focusIcao = '';
   const originalPlot = nmPlotHits;
   let allAreasLayer = null;
   const originalEnsureMap = nmEnsureMap;
@@ -66,9 +67,31 @@
   };
   nmFindHit = function (ident) {
     const want = String(ident || '').toUpperCase();
-    const resolved = (nmTrackData ? nmHitsOf(nmTrackData) : []).concat(nmFleetHits());
-    const hit = resolved.find(h => String(h.ident || '').toUpperCase() === want && h.shape !== 'dot');
+    const resolved = (nmTrackData ? nmTrackData.hits || [] : []).concat(nmFleetHits());
+    const hit = resolved.find(h => String(h.ident || '').toUpperCase() === want
+      && (!focusIcao || String(h.icao || '').toUpperCase() === focusIcao) && h.shape !== 'dot');
     return hit ? nmRefreshHitGeom(hit) : originalFind(ident);
+  };
+  const originalShow = nmShowNotam;
+  nmShowNotam = function (icao, ident, flightId) {
+    focusIcao = String(icao || '').toUpperCase();
+    const owns = pack => ((pack && pack.places) || []).some(p =>
+      (!icao || p.code === icao) && (p.notams || []).concat(p.dropped || []).some(n => n.ident === ident));
+    let pack = nmGroup === NM_GROUP_TRACK ? nmTrackData : nmData;
+    if (!owns(pack)) {
+      if (owns(nmTrackData)) { nmGroup = NM_GROUP_TRACK; pack = nmTrackData; }
+      else if (owns(nmData)) { nmGroup = NM_GROUP_ALL; pack = nmData; }
+    }
+    const place = ((pack && pack.places) || []).find(p =>
+      (!icao || p.code === icao) && (p.notams || []).concat(p.dropped || []).some(n => n.ident === ident));
+    const row = place && (place.notams || []).concat(place.dropped || []).find(n => n.ident === ident);
+    if (row) {
+      window.nmGrpPlace = place.kind + ':' + place.code;
+      window.nmGrpSel = row.level === 'CRITICAL' || row.level === 'DELAY-ONLY' ? 'impact'
+        : row.level === 'NEED MANUAL CHECK' ? 'manual'
+          : row.level === 'NO IMPACT' || row.skip_why ? 'noimpact' : 'brief';
+    }
+    return originalShow(icao, ident, flightId);
   };
   const originalRadius = nmParseRadiusNm;
   nmParseRadiusNm = function (text) {
