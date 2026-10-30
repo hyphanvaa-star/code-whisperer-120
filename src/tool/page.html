@@ -14618,7 +14618,7 @@ function nmTrackHitTokens(n, track){
   });
   return want;
 }
-function nmFlashTrackNotam(n){
+function nmFlashTrackNotam(n, keepView){
   if(!nmMap || !n || !nmTrackData || nmTrackData.fleet_src) return false;
   const track = nmTrackData.track || [];
   const want = nmTrackHitTokens(n, track);
@@ -14657,7 +14657,7 @@ function nmFlashTrackNotam(n){
     nmNotamFlash = null;
     return false;
   }
-  if(bounds.length){
+  if(bounds.length && !keepView){
     let box = bounds[0];
     for(let i = 1; i < bounds.length; i++) box = box.extend(bounds[i]);
     nmMap.fitBounds(box.pad(0.35), {maxZoom: 9});
