@@ -851,7 +851,7 @@ function hitsFor(
   let obstacle = false;
   // Any NOTAM with a real drawn area (polygon/circle/line) is plotted, whatever its name.
   const ownArea = notamGeoms(notam).some((g) => g.source !== "pin"
-    && (g.shape === "polygon" || g.shape === "line" || g.shape === "linestring"
+    && (g.shape === "polygon" || g.shape === "line"
       || (g.shape === "circle" && (g.radius_nm || 0) > 0 && (g.radius_nm || 0) < Q_FIR_RADIUS_NM)));
   if (!isNoFly(notam) && !ownArea) {
     if (!isObstacleErected(notam)) return [];
