@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.08</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.09</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -13981,6 +13981,7 @@ function nmFltPick(id){
   if(q) q.value = "";
   if(menu) menu.hidden = true;
   nmPaintVerdict();
+  if(typeof nmTrackShow === "function" && !nmBatch) nmTrackShow(id);
 }
 function nmFltFillItems(raw){
   const box = $("#nmFltItems");
@@ -14002,6 +14003,7 @@ function nmFltFillItems(raw){
     b.textContent = opt.textContent;
     if(opt.className) b.className = opt.className;
     if(opt.value === cur) b.classList.add("on");
+    if(typeof nmTrackCache !== "undefined" && nmTrackCache[opt.value]) b.textContent = "✓ " + b.textContent;
     b.onmousedown = ev => ev.preventDefault();
     b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); nmFltPick(opt.value); };
     box.appendChild(b);
@@ -15375,7 +15377,7 @@ $("#nmCheck").onclick = async () => {
   }
 };
 if($("#nmSearch")) $("#nmSearch").oninput = nmRender;
-if($("#nmDsp")) $("#nmDsp").onchange = () => { markDspSelect(); nmRefreshFltList(); };
+if($("#nmDsp")) $("#nmDsp").onchange = () => { markDspSelect(); if($("#nmFlt")) $("#nmFlt").value = ""; nmRefreshFltList(); };
 if($("#nmFlt")) $("#nmFlt").onchange = () => {
   if(!(nmData && nmData.fleet)) nmFleetSum = false;
   nmFltSyncQ(); nmPaintVerdict();
@@ -16729,12 +16731,44 @@ function nmDrawTrack(d, keepView){
   }
   nmRender();
 }
+let nmBatch = false;
+const nmTrackCache = {};
+async function nmTrackAll(dsp){
+  const ids = [...($("#nmFlt") || {options:[]}).options].map(o => o.value).filter(Boolean);
+  if(!ids.length){ alert("DSP " + dsp + " không có chuyến nào trong khung giờ."); return; }
+  const btn = $("#nmTrack"), errs = [];
+  nmBatch = true;
+  try{
+    for(let i = 0; i < ids.length; i++){
+      $("#nmFlt").value = ids[i]; nmFltSyncQ();
+      nmBatchLbl = "(" + (i + 1) + "/" + ids.length + ") ";
+      try{ await nmTrackOne(); }catch(e){ errs.push(e.message); }
+    }
+  }finally{ nmBatch = false; nmBatchLbl = ""; }
+  $("#nmFlt").value = ids[0]; nmFltSyncQ(); nmTrackShow(ids[0]);
+  if(errs.length) alert("Có " + errs.length + " chuyến lỗi khi check:\n\n" + errs.slice(0, 8).join("\n"));
+}
+let nmBatchLbl = "";
+function nmTrackShow(id){
+  const d = nmTrackCache[String(id)];
+  if(!d) return false;
+  nmGroup = NM_GROUP_TRACK; nmPick = ""; nmShowDropped = false;
+  nmSyncActiveMap._kind = "track"; nmSyncActiveMap._id = String(id);
+  nmDrawTrack(d); setMode("notam"); nmRender();
+  return true;
+}
 $("#nmTrack").onclick = async () => {
   const id = (($("#nmFlt") || {}).value || "").trim();
   if(!id){
-    alert("Chọn chuyến của DSP rồi bấm Check NOTAM tracking.");
+    const dsp = (($("#nmDsp") || {}).value || "").trim();
+    if(dsp) return nmTrackAll(dsp);
+    alert("Chọn DSP (check cả ca) hoặc gõ một chuyến rồi bấm Check NOTAM tracking.");
     return;
   }
+  return nmTrackOne();
+};
+async function nmTrackOne(){
+  const id = (($("#nmFlt") || {}).value || "").trim();
   nmGetShow(false);
   const btn = $("#nmTrack");
   const trackTitle = btn.title;
@@ -16747,7 +16781,7 @@ $("#nmTrack").onclick = async () => {
     try{
       const s = await fetch("/api/notam/track/progress?tid=" + encodeURIComponent(tid));
       const j = await s.json();
-      if(j && j.text){ stuck = j.text; btn.textContent = j.text; btn.title = j.text; }
+      if(j && j.text){ stuck = j.text; btn.textContent = nmBatchLbl + j.text; btn.title = j.text; }
     }catch(_e){}
   }, 450);
   try{
@@ -16757,7 +16791,7 @@ $("#nmTrack").onclick = async () => {
     p.set("tid", tid);
     const r = await fetch("/api/notam/track?" + p.toString(), {signal: controller.signal});
     const d = await r.json();
-    if(d.error){ alert("Check NOTAM tracking lỗi:\n\n" + d.error); return; }
+    if(d.error){ if(nmBatch) throw new Error(id + ": " + d.error); alert("Check NOTAM tracking lỗi:\n\n" + d.error); return; }
     nmWptOn = false;
     const dw = $("#nmWpt");
     if(dw){ dw.classList.remove("on"); dw.setAttribute("aria-pressed", "false"); }
@@ -16775,10 +16809,11 @@ $("#nmTrack").onclick = async () => {
       const ls = $("#nmList"); if(ls){ ls.hidden = false; ls.innerHTML = '<div class="nm-item miss" style="font-size:15px;padding:18px">⏳ Đang phân loại NOTAM của chuyến…</div>'; } }
     btn.textContent = "Đang phân loại NOTAM…";
     await nmRunTune("track", btn, "Đang phân loại NOTAM…");
+    if(nmTrackData) nmTrackCache[id] = nmTrackData;
+    nmFltFillItems("");
   }catch(err){
-    alert(err.name === "AbortError"
-      ? nmTimeoutAlert("5 phút", stuck)
-      : "Check NOTAM tracking lỗi: " + err.message);
+    const m = err.name === "AbortError" ? nmTimeoutAlert("5 phút", stuck) : "Check NOTAM tracking lỗi: " + err.message;
+    if(nmBatch) throw new Error(m); else alert(m);
   }finally{
     clearInterval(poll);
     clearTimeout(hardStop);
@@ -16787,7 +16822,7 @@ $("#nmTrack").onclick = async () => {
     btn.textContent = "Check NOTAM tracking";
     btn.title = trackTitle;
   }
-};
+}
 function nmSlimPlaces(places){
   return (places || []).map(p => ({
     code: p.code, kind: p.kind, fir: p.fir || "",
