@@ -2261,7 +2261,7 @@ function nmMakeVjBrand(){
   }
   return box;
 }
-}`)
+`)
     .replace('function nmPaintList(place, q){', `
 function nmPaintList(place, q){
   if(window.nmOvGroup){ try{ if(nmPaintListAll(place, q)) return; }catch(e){} window.nmOvGroup = ""; }
