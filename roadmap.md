@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 4.18: sửa liên kết NOTAM ↔ bản đồ: mở đúng nhóm theo NOTAM bấm; ưu tiên ranh giới đã xác minh trước điểm route, tìm cả vùng NO IMPACT đã ẩn.
+- [x] V 4.18: NOTAM ↔ bản đồ mở đúng nhóm Impact/Manual/Brief/No Impact và đúng nguồn đang có; ưu tiên ranh giới thật trước điểm route, tìm cả vùng đã ẩn. 4 kiểm thử đạt, trang V 4.18 không lỗi; chưa thử chuyến thật vì không có phiên đăng nhập.
 - [x] V 4.17: thay logo VJ trong thanh sân bay/FIR bằng NOTAM tổng / IMPACT / NO IMPACT của toàn chuyến; tổng gồm manual/briefing, IMPACT gồm Critical/Delay-only, NO IMPACT gồm dòng bị lọc. 3 kiểm thử đạt, trang V 4.17 và không lỗi; chưa thử phiên chuyến thật.
 - [x] V 4.16: Layer có “Bật vùng ảnh hưởng toàn bộ”, khôi phục ranh giới đã lọc của chuyến đang xem; không thêm chấm thiếu tọa độ hay đổi kết quả giờ/hành lang. Thu gọn khoảng trống thanh đen; 25 kiểm thử đạt, trang phục vụ V 4.16. Chưa thử chuyến thật do chưa có phiên đăng nhập.
 - [x] V 4.15: Database → Named Airspace liệt kê cùng kho 701 vùng theo 11 quốc gia/vùng lãnh thổ; tìm mã/tên/FIR, xem tọa độ/nguồn có sẵn. 22 kiểm thử đạt; thao tác chọn Philippines/tìm RP-R72/xem tọa độ đạt trên màn hình riêng, chưa thử phiên đăng nhập thật vì không có tài khoản khớp.
