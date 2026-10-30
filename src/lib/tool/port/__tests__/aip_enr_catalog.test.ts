@@ -5,9 +5,9 @@ import { notamGeoms } from "../notam_track";
 describe("bundled ENR catalog", () => {
   it("lists the same drawable areas by country without losing cross-FIR ownership", () => {
     const rows = enrCatalogue();
-    expect(rows).toHaveLength(700);
-    expect(new Set(rows.map(row => row.id)).size).toBe(700);
-    expect(rows.find(row => row.id === "RPR72")).toBeUndefined();
+    expect(rows).toHaveLength(701);
+    expect(new Set(rows.map(row => row.id)).size).toBe(701);
+    expect(rows.find(row => row.id === "RPR72")?.countryCode).toBe("PH");
     expect(rows.find(row => row.id === "RJW181")?.countryCode).toBe("JP");
     expect(rows.find(row => row.id === "RCDONGSHA")?.countryCode).toBe("TW");
     expect(rows.find(row => row.id === "RCDONGSHA")?.fir).toBe("VHHK");
@@ -45,8 +45,9 @@ describe("bundled ENR catalog", () => {
     expect(namedEnrIds("W-181 RJW-181 RP-R72", "VVHM")).toEqual([]);
     expect(namedEnrIds("W-181 ACT")).toEqual([]);
   });
-  it("leaves RP-R72 unresolved until its own boundary is verified (old ring was RP-R73's)", () => {
-    expect(enrIdsInText("RP-R72 RPR72 ACT", "RPHI")).toEqual([]);
+  it("resolves RP-R72 LIPA to its own 2025 AIP ring up to 8000 FT", () => {
+    expect(enrIdsInText("RP-R72 RPR72 ACT", "RPHI")).toEqual(["RPR72"]);
+    expect(enrRing("RPR72")?.[0][0]).toBeCloseTo(13.8567, 3);
   });
   it.each([
     ["RJJJ", "WARNING AREA W-181 (GOLF GOLF) ACT", "RJW181"],
