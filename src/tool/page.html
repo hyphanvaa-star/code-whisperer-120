@@ -2851,6 +2851,7 @@ html.night .ho-tbl input[type=text]{color:#e8edf4}
 #ftAtcTabs button.chg.on{background:#16a34a!important;border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,.25),0 6px 16px rgba(22,163,74,.3)}
 #ftAtcTabs button.on .cfp{color:rgba(255,255,255,.85)!important;-webkit-text-fill-color:rgba(255,255,255,.85)!important}
 #ftAtcTabs button.on .vtags i{background:rgba(255,255,255,.95)!important}
+#nmFltItems .nm-flt-ck{width:16px;height:16px;margin:0 8px 0 0;vertical-align:-3px;accent-color:#dc2626;cursor:pointer}
 #ftAtcMiss{font-size:12px;color:#8d1a52;min-height:1.2em}
 .ftci,.fttx{border-collapse:collapse;width:100%;font-size:13px}
 .ftci th,.fttx th{background:#f5c542;color:#1a1a1a;padding:6px 8px;border:1px solid #c9a227;text-align:center}
@@ -5937,7 +5938,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.30</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.31</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -14042,6 +14043,11 @@ function nmFltPick(id){
   nmPaintVerdict();
   if(typeof nmTrackShow === "function" && !nmBatch) nmTrackShow(id);
 }
+const nmMulti = new Set();
+function nmMultiLabel(){
+  const t = $("#nmTrack"); if(!t || t.disabled) return;
+  t.textContent = nmMulti.size ? "Check NOTAM tracking (" + nmMulti.size + " chuyến)" : "Check NOTAM tracking";
+}
 function nmFltFillItems(raw){
   const box = $("#nmFltItems");
   if(!box) return;
@@ -14063,6 +14069,12 @@ function nmFltFillItems(raw){
     if(opt.className) b.className = opt.className;
     if(opt.value === cur) b.classList.add("on");
     if(typeof nmTrackCache !== "undefined" && nmTrackCache[opt.value]) b.textContent = "✓ " + b.textContent;
+    const ck = document.createElement("input");
+    ck.type = "checkbox"; ck.className = "nm-flt-ck"; ck.checked = nmMulti.has(opt.value);
+    ck.title = "Tick nhiều chuyến rồi bấm Check NOTAM tracking để check cùng lúc";
+    ck.onmousedown = ev => ev.stopPropagation();
+    ck.onclick = ev => { ev.stopPropagation(); if(ck.checked) nmMulti.add(opt.value); else nmMulti.delete(opt.value); nmMultiLabel(); };
+    b.prepend(ck);
     b.onmousedown = ev => ev.preventDefault();
     b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); nmFltPick(opt.value); };
     box.appendChild(b);
@@ -16793,8 +16805,8 @@ function nmDrawTrack(d, keepView){
 }
 let nmBatch = false;
 const nmTrackCache = {};
-async function nmTrackAll(dsp){
-  const ids = [...($("#nmFlt") || {options:[]}).options].map(o => o.value).filter(Boolean);
+async function nmTrackAll(dsp, pick){
+  const ids = pick && pick.length ? pick : [...($("#nmFlt") || {options:[]}).options].map(o => o.value).filter(Boolean);
   if(!ids.length){ alert("DSP " + dsp + " không có chuyến nào trong khung giờ."); return; }
   const btn = $("#nmTrack"), errs = [];
   nmBatch = true;
@@ -16818,6 +16830,11 @@ function nmTrackShow(id){
   return true;
 }
 $("#nmTrack").onclick = async () => {
+  if(nmMulti.size){
+    const all = [...($("#nmFlt") || {options:[]}).options].map(o => o.value);
+    const pick = [...nmMulti].filter(v => all.indexOf(v) >= 0);
+    if(pick.length){ await nmTrackAll("", pick); nmMulti.clear(); nmMultiLabel(); nmFltFillItems(""); return; }
+  }
   const id = (($("#nmFlt") || {}).value || "").trim();
   if(!id){
     const dsp = (($("#nmDsp") || {}).value || "").trim();
@@ -16881,6 +16898,7 @@ async function nmTrackOne(){
     btn.classList.remove("nm-busy");
     btn.textContent = "Check NOTAM tracking";
     btn.title = trackTitle;
+    if(!nmBatch) nmMultiLabel();
   }
 }
 function nmSlimPlaces(places){
