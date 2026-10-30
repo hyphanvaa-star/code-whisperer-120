@@ -6,7 +6,7 @@ import VERIFIED from "../data/aip_named_verified.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
-type VerifiedArea = { name: string; fir: string; ring: Pt[]; circle?: { center: Pt; radiusNm: number } };
+type VerifiedArea = { name: string; fir: string; ring: Pt[]; circle?: { center: Pt; radiusNm: number }; source?: string; document?: string; effective?: string; lower?: string; upperFt?: number; activation?: string };
 const AREAS = VERIFIED.areas as unknown as Record<string, VerifiedArea>;
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
@@ -72,4 +72,26 @@ export function enrGeoms(key: string): Geom[] {
   if (circle) return [{ name: key, shape: "circle", ring: [], lat: circle.center[0], lon: circle.center[1], radius_nm: circle.radiusNm, source: "aip" }];
   const ring = enrRing(key);
   return ring.length >= 3 ? [{ name: key, shape: "polygon", ring, source: "aip" }] : [];
+}
+
+/** Database reads the same catalogue as NOTAM matching; no independent inventory. */
+export function enrCatalogue() {
+  const countries: Record<string, [string, string]> = {
+    VV: ["VN", "Việt Nam"], RK: ["KR", "Hàn Quốc"], VT: ["TH", "Thái Lan"],
+    WM: ["MY", "Malaysia"], WB: ["MY", "Malaysia"], WS: ["SG", "Singapore"],
+    VI: ["IN", "Ấn Độ"], VA: ["IN", "Ấn Độ"], VE: ["IN", "Ấn Độ"], VO: ["IN", "Ấn Độ"],
+    CA: ["KH", "Campuchia"], MO: ["MO", "Macau"], RP: ["PH", "Philippines"],
+    RJ: ["JP", "Nhật Bản"], RC: ["TW", "Đài Loan"], VL: ["LA", "Lào"],
+    WI: ["ID", "Indonesia"], WA: ["ID", "Indonesia"],
+  };
+  return [...new Set([...Object.keys(RINGS), ...Object.keys(AREAS)])].sort().flatMap(id => {
+    const geoms = enrGeoms(id);
+    if (!geoms.length) return [];
+    const area = AREAS[id];
+    const country = countries[id.slice(0, 2)] || [/^Z/.test(id) ? "CN" : "OTHER", /^Z/.test(id) ? "Trung Quốc" : "Khác"];
+    return [{ id, countryCode: country[0], country: country[1], name: area?.name || id,
+      fir: area?.fir || "", source: area?.source || "", document: area?.document || "",
+      effective: area?.effective || "", lower: area?.lower || "", upperFt: area?.upperFt ?? null,
+      activation: area?.activation || "", geometry: geoms[0] }];
+  });
 }

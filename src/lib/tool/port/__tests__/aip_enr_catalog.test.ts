@@ -1,8 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { enrIdsInText, enrRing, namedEnrIds, enrGeoms } from "../aip_enr_catalog";
+import { enrIdsInText, enrRing, namedEnrIds, enrGeoms, enrCatalogue } from "../aip_enr_catalog";
 import { notamGeoms } from "../notam_track";
 
 describe("bundled ENR catalog", () => {
+  it("lists the same drawable areas by country without losing cross-FIR ownership", () => {
+    const rows = enrCatalogue();
+    expect(rows).toHaveLength(701);
+    expect(new Set(rows.map(row => row.id)).size).toBe(701);
+    expect(rows.find(row => row.id === "RPR72")?.countryCode).toBe("PH");
+    expect(rows.find(row => row.id === "RJW181")?.countryCode).toBe("JP");
+    expect(rows.find(row => row.id === "RCDONGSHA")?.countryCode).toBe("TW");
+    expect(rows.find(row => row.id === "RCDONGSHA")?.fir).toBe("VHHK");
+    for (const row of rows) expect(row.geometry).toEqual(enrGeoms(row.id)[0]);
+  });
   it("resolves Singapore danger areas written as WS(D)-44", () => {
     expect(enrIdsInText("E)DANGER AREA WS(D)-44 ACT")).toEqual(["WSD44"]);
     expect(enrRing("WSD44").length).toBeGreaterThanOrEqual(3);
