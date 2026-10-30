@@ -11,7 +11,8 @@
     ["ftOfpRulesBtn","OFP check data","Điều kiện nút OFP kiểm tra (vd giờ tới KAPLI)","✅","#dc2626"],
     ["dbxAftnBook","AFTN Address","Danh bạ CODE → địa chỉ AFTN","📡","#0f766e"],
     ["dbxAftnDef","DEFAULT ADDRESS","Địa chỉ AFTN gửi mặc định cho mọi chuyến (dùng khi xuất TPL)","📮","#b45309"],
-    ["dbxFiles","Quản lí file","Các file đang lưu trên máy chủ: xem, tìm, tải về, xoá (admin)","🗂️","#4f46e5"]
+    ["dbxFiles","Quản lí file","Các file đang lưu trên máy chủ: xem, tìm, tải về, xoá (admin)","🗂️","#4f46e5"],
+    ["dbxAirspace","Named Airspace","Danh mục vùng theo quốc gia · AIP ENR","🌐","var(--x-red)"]
   ];
   function init(){
     var aftn = document.getElementById("mAftn"), ref = document.getElementById("wrapAftn");
@@ -95,6 +96,64 @@
       def.style.height = "220px";
     }
     var filePane = wrap.querySelector("#dbxFilePane"), files = [];
+    var airPane = document.createElement("section");
+    airPane.id = "dbxAirPane";
+    airPane.style.display = "none";
+    airPane.innerHTML = '<div class="dbx-air-toolbar"><button class="btn small" type="button" id="dbxAirBack">← Danh mục</button><h3>Named Airspace</h3><span id="dbxAirTotal"></span><input type="search" id="dbxAirQ" aria-label="Tìm vùng" placeholder="Tìm mã vùng / tên / FIR…"></div><div class="dbx-air-layout"><nav id="dbxAirCountries" aria-label="Quốc gia"></nav><div class="dbx-air-content"><div class="dbx-air-heading"><h3 id="dbxAirCountry"></h3><span id="dbxAirCount"></span></div><div class="dbx-air-scroll"><table aria-label="Danh mục vùng có tên"><thead><tr><th>Mã vùng / Tên</th><th>FIR</th><th>Giới hạn cao</th><th>Ranh giới</th><th>AIP</th></tr></thead><tbody id="dbxAirRows"></tbody></table></div><div id="dbxAirDetail" hidden></div></div></div>';
+    wrap.appendChild(airPane);
+    var airStyle = document.createElement("style");
+    airStyle.textContent = `
+      #dbxAirPane{color:var(--x-ink);font-size:16px;min-height:0;flex:1;flex-direction:column;gap:18px}
+      .dbx-air-toolbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+      .dbx-air-toolbar h3,.dbx-air-heading h3{margin:0;font-size:22px;letter-spacing:0}
+      #dbxAirTotal,#dbxAirCount{color:var(--x-ink2);font-size:15px}
+      #dbxAirQ{margin-left:auto;min-width:220px;flex:0 1 340px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line);border-radius:6px;padding:10px 12px;font-size:16px}
+      .dbx-air-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:24px;min-height:0;flex:1}
+      #dbxAirCountries{display:flex;flex-direction:column;gap:5px;overflow:auto;align-self:start;max-height:600px}
+      #dbxAirCountries .btn{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:16px;text-align:left;border-radius:6px;padding:12px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line)}
+      #dbxAirCountries .btn[aria-pressed=true]{background:var(--x-red);color:var(--x-card);border-color:var(--x-red);font-weight:750}
+      .dbx-air-content{min-width:0;display:flex;flex-direction:column;min-height:0}
+      .dbx-air-heading{display:flex;align-items:center;justify-content:space-between;padding:4px 0 16px;gap:10px;border-bottom:2px solid var(--x-red)}
+      .dbx-air-scroll{overflow:auto;max-height:600px;min-height:220px}
+      #dbxAirPane table{width:100%;border-collapse:collapse;font-size:16px}
+      #dbxAirPane th{position:sticky;top:0;background:var(--x-bg)!important;color:var(--x-ink2)!important;text-align:left;padding:12px!important;font-size:13px!important;white-space:nowrap;z-index:1}
+      #dbxAirPane td{padding:12px!important;border-bottom:1px solid var(--x-line2);background:var(--x-card)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;font-size:16px!important;vertical-align:top}
+      #dbxAirPane .dbx-air-name{display:block;color:var(--x-ink2);font-size:14px;margin-top:4px}
+      #dbxAirPane .dbx-air-id{border:0;padding:0;background:transparent;color:var(--x-red);font:750 16px var(--x-mono);cursor:pointer;text-align:left}
+      #dbxAirPane a{color:var(--x-red);text-decoration:underline}
+      #dbxAirDetail{border-top:2px solid var(--x-red);padding:16px 0;overflow-wrap:anywhere}
+      #dbxAirDetail h4{font-size:19px;margin:0 0 10px}
+      #dbxAirDetail pre{max-height:160px;overflow:auto;background:var(--x-bg);padding:12px;font-size:14px}
+      @media(max-width:760px){.dbx-air-layout{grid-template-columns:minmax(0,1fr)}#dbxAirCountries{flex-direction:row;max-width:100%;align-self:stretch}#dbxAirCountries .btn{flex-shrink:0}#dbxAirQ{flex:1;min-width:180px}.dbx-air-scroll{max-height:500px}}
+    `;
+    document.head.appendChild(airStyle);
+    var airRows = window.__namedAirspaceCatalogue || [], airCountry = "ALL";
+    var groups = {};
+    airRows.forEach(function(a){if(!groups[a.countryCode])groups[a.countryCode]={name:a.country,n:0};groups[a.countryCode].n++;});
+    wrap.querySelector("#dbxAirTotal").textContent = airRows.length + " vùng · " + Object.keys(groups).length + " quốc gia / vùng lãnh thổ";
+    wrap.querySelector("#dbxAirCountries").innerHTML = '<button class="btn" type="button" data-country="ALL" aria-pressed="true">Tất cả <span>'+airRows.length+'</span></button>' + Object.keys(groups).sort(function(a,b){return groups[a].name.localeCompare(groups[b].name,"vi");}).map(function(k){return '<button class="btn" type="button" data-country="'+k+'" aria-pressed="false">'+esc(groups[k].name)+' <span>'+groups[k].n+'</span></button>';}).join("");
+    function drawAir(){
+      var q = wrap.querySelector("#dbxAirQ").value.trim().toLowerCase();
+      var list = airRows.filter(function(a){return (airCountry === "ALL" || a.countryCode === airCountry) && [a.id,a.name,a.fir,a.country].join(" ").toLowerCase().indexOf(q)>=0;});
+      wrap.querySelector("#dbxAirCountry").textContent = airCountry === "ALL" ? "Tất cả quốc gia" : groups[airCountry].name;
+      wrap.querySelector("#dbxAirCount").textContent = list.length + " vùng";
+      wrap.querySelector("#dbxAirDetail").hidden = true;
+      wrap.querySelector("#dbxAirRows").innerHTML = list.length ? list.map(function(a){
+        return '<tr><td><button type="button" class="dbx-air-id" data-area="'+esc(a.id)+'">'+esc(a.id)+'</button>'+(a.name!==a.id?'<span class="dbx-air-name">'+esc(a.name)+'</span>':'')+'</td><td>'+esc(a.fir||'—')+'</td><td>'+esc(a.lower||'—')+' / '+(a.upperFt===null?'—':esc(a.upperFt)+' FT')+'</td><td>'+(a.geometry.shape==='circle'?'Vòng tròn · '+a.geometry.radius_nm.toFixed(2)+' NM':'Đa giác · '+a.geometry.ring.length+' điểm')+'</td><td>'+(a.source?'<a target="_blank" rel="noopener noreferrer" href="'+esc(a.source)+'">Nguồn AIP ↗</a>':'Kho ENR gốc')+(a.effective?'<span class="dbx-air-name">'+esc(a.effective)+'</span>':'')+'</td></tr>';
+      }).join("") : '<tr><td colspan="5">Không tìm thấy vùng.</td></tr>';
+      wrap.querySelectorAll("[data-country]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.country===airCountry));});
+    }
+    wrap.querySelector("#dbxAirCountries").onclick = function(e){var b=e.target.closest("[data-country]");if(!b)return;airCountry=b.dataset.country;drawAir();};
+    wrap.querySelector("#dbxAirQ").addEventListener("input",drawAir);
+    wrap.querySelector("#dbxAirRows").onclick = function(e){
+      var b=e.target.closest("[data-area]");if(!b)return;
+      var a=airRows.find(function(r){return r.id===b.dataset.area;});if(!a)return;
+      var detail=wrap.querySelector("#dbxAirDetail"), g=a.geometry;
+      var coords=g.shape==='circle'?'Tâm: '+g.lat.toFixed(6)+', '+g.lon.toFixed(6)+' · Bán kính: '+g.radius_nm.toFixed(4)+' NM':g.ring.map(function(p){return p[0].toFixed(6)+', '+p[1].toFixed(6);}).join('\n');
+      detail.innerHTML='<h4>'+esc(a.name)+'</h4><div>'+esc(a.country)+' · '+esc(a.fir||'FIR chưa có thông tin')+'</div>'+(a.document?'<p>'+esc(a.document)+'</p>':'')+(a.activation?'<p>'+esc(a.activation)+'</p>':'')+'<pre>'+esc(coords)+'</pre>';
+      detail.hidden=false;detail.scrollIntoView({block:'nearest'});
+    };
+    wrap.querySelector("#dbxAirBack").onclick=function(){closePanes();};
     function fmtSize(n){ return n > 1048576 ? (n/1048576).toFixed(1)+" MB" : n > 1024 ? Math.round(n/1024)+" KB" : n+" B"; }
     function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
     function drawFiles(){
@@ -135,12 +194,13 @@
         .then(function(r){ return r.json(); }).then(function(d){ if(d && d.error) alert(d.error); loadFiles(); });
     };
     wrap.querySelector("#dbxFileBack").onclick = function(){ closePanes(); };
-    function closePanes(){ pane.style.display = "none"; defPane.style.display = "none"; filePane.style.display = "none"; grid.style.display = ""; }
+    function closePanes(){ pane.style.display = "none"; defPane.style.display = "none"; filePane.style.display = "none"; airPane.style.display = "none"; grid.style.display = ""; }
     wrap.querySelector("#dbxBookBack").onclick = closePanes;
     wrap.querySelector("#dbxDefBack").onclick = closePanes;
     wrap.addEventListener("click", function(e){
       var c = e.target.closest(".dbx-card"); if(!c) return;
       var id = c.getAttribute("data-btn");
+      if(id === "dbxAirspace"){ closePanes(); grid.style.display="none"; airPane.style.display="flex"; drawAir(); return; }
       if(id === "dbxFiles"){ grid.style.display = "none"; pane.style.display = "none"; defPane.style.display = "none"; filePane.style.display = "flex"; loadFiles(); return; }
       if(id === "dbxAftnBook"){ grid.style.display = "none"; defPane.style.display = "none"; pane.style.display = "flex"; return; }
       if(id === "dbxAftnDef"){ grid.style.display = "none"; pane.style.display = "none"; defPane.style.display = "flex"; return; }
