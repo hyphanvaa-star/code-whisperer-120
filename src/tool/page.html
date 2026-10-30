@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.05</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.06</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -14062,7 +14062,7 @@ function nmPaintList(place, q){
     if(l === "NO IMPACT") return "noimpact";
     return "brief";
   };
-  const nmGrpName = {impact:"🔴 CÓ ẢNH HƯỞNG", manual:"🟡 CẦN KIỂM TRA TAY", brief:"🔵 THÔNG TIN BRIEFING", noimpact:"⚪ KHÔNG ẢNH HƯỞNG"};
+  const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};
   const nmGrpHint = {impact:"Critical / Delay-only — ảnh hưởng giờ bay hoặc khi trễ", manual:"Thiếu dữ liệu hoặc chưa xác định vùng", brief:"Tham khảo khi briefing", noimpact:"Ngoài giờ / ngoài hành lang / lệch cao độ"};
   if(!graded && dropped.length){
     const bar = document.createElement("div");
@@ -14097,7 +14097,9 @@ function nmPaintList(place, q){
       const s = document.createElement("button");
       s.type = "button";
       s.className = "nm-grp-pill nm-grp-" + g + (window.nmGrpSel === g ? " on" : "");
-      s.textContent = nmGrpName[g] + ": " + rows.filter(x => nmGrpOf(x) === g).length;
+      s.innerHTML = '<i class="nm-gp-dot"></i><span class="nm-gp-lb"></span><b class="nm-gp-n"></b>';
+      s.children[1].textContent = nmGrpName[g];
+      s.children[2].textContent = rows.filter(x => nmGrpOf(x) === g).length;
       s.onclick = () => { window.nmGrpSel = g; nmRender(); };
       sum.appendChild(s);
     }
@@ -29029,6 +29031,21 @@ function boot(){
 .nm-assess-more{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
 .nm-assess-more label{display:flex;flex-direction:column;gap:4px;font-size:13px}
 .nm-assess-btns{display:flex;gap:8px;justify-content:flex-end}
+
+#wrapNotam .nm-grp-sum{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 12px;padding:6px;border-radius:14px;background:rgba(15,23,42,.04)}
+#wrapNotam .nm-grp-pill{--c:#64748b;--bg:#f1f5f9;display:inline-flex;align-items:center;gap:8px;padding:7px 8px 7px 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:#475569;font:700 12.5px/1 system-ui,sans-serif;letter-spacing:.06em;transform:none;box-shadow:none;transition:background .18s,color .18s,box-shadow .18s,transform .18s}
+#wrapNotam .nm-grp-pill:hover{background:#fff;transform:translateY(-1px);box-shadow:0 2px 8px rgba(15,23,42,.08)}
+#wrapNotam .nm-grp-pill.on{background:#fff;color:var(--c);border-color:color-mix(in srgb,var(--c) 35%,transparent);box-shadow:0 4px 14px color-mix(in srgb,var(--c) 22%,transparent);transform:none}
+#wrapNotam .nm-gp-dot{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 20%,transparent)}
+#wrapNotam .nm-gp-n{min-width:24px;padding:4px 7px;border-radius:7px;background:var(--bg);color:var(--c);text-align:center;font-variant-numeric:tabular-nums;letter-spacing:0}
+#wrapNotam .nm-grp-pill.on .nm-gp-n{background:var(--c);color:#fff}
+#wrapNotam .nm-grp-pill.nm-grp-impact{--c:#dc2626;--bg:#fee2e2}
+#wrapNotam .nm-grp-pill.nm-grp-manual{--c:#d97706;--bg:#fef3c7}
+#wrapNotam .nm-grp-pill.nm-grp-brief{--c:#2563eb;--bg:#dbeafe}
+#wrapNotam .nm-grp-pill.nm-grp-noimpact{--c:#64748b;--bg:#e2e8f0}
+html.night #wrapNotam .nm-grp-sum{background:rgba(255,255,255,.05)}
+html.night #wrapNotam .nm-grp-pill{color:#cbd5e1}
+html.night #wrapNotam .nm-grp-pill:hover,html.night #wrapNotam .nm-grp-pill.on{background:rgba(255,255,255,.08)}
 </style>
 <script>
 (function(){
