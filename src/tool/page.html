@@ -2838,6 +2838,19 @@ html.night .ho-tbl input[type=text]{color:#e8edf4}
 .ftatc-col.msg #ftAtcConv{display:none}
 .ftatc-col.msg #ftAtcEdit{display:block}
 #ftAtcEdit.need-13{box-shadow:inset 4px 0 0 #ff2d2d}
+#ftAtcTabs{gap:8px!important}
+#ftAtcTabs button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-width:150px;padding:7px 10px 7px 12px;border-radius:10px;background:#fff!important;border:1px solid #e5e7eb!important;border-left:4px solid #dc2626!important;box-shadow:0 1px 2px rgba(15,23,42,.06);font:700 13px/1.2 "Segoe UI",Arial,sans-serif;color:#991b1b!important;-webkit-text-fill-color:#991b1b!important;transition:box-shadow .15s,transform .15s,background .15s;text-shadow:none!important;-webkit-font-smoothing:antialiased}
+#ftAtcTabs button.chg{border-left-color:#16a34a!important;color:#166534!important;-webkit-text-fill-color:#166534!important}
+#ftAtcTabs button:hover{box-shadow:0 4px 12px rgba(15,23,42,.12);transform:translateY(-1px)}
+#ftAtcTabs button .cfp{display:block;font:600 11px/1.2 "Segoe UI",Arial,sans-serif;color:#64748b!important;-webkit-text-fill-color:#64748b!important;opacity:1}
+#ftAtcTabs .vtags{display:flex;gap:4px;margin-top:2px}
+#ftAtcTabs .vtags i{font:700 10.5px/1.5 "Segoe UI",Arial,sans-serif;font-style:normal;padding:0 6px;border-radius:999px;background:#f1f5f9!important;-webkit-text-fill-color:#475569!important;color:#475569!important}
+#ftAtcTabs .vtags i[data-ok="1"]{background:#dcfce7!important;-webkit-text-fill-color:#15803d!important;color:#15803d!important}
+#ftAtcTabs .vtags i[data-ok="0"]{background:#fee2e2!important;-webkit-text-fill-color:#b91c1c!important;color:#b91c1c!important}
+#ftAtcTabs button.on{background:#dc2626!important;border-color:#dc2626!important;color:#fff!important;-webkit-text-fill-color:#fff!important;box-shadow:0 0 0 3px rgba(220,38,38,.25),0 6px 16px rgba(220,38,38,.3);transform:translateY(-1px)}
+#ftAtcTabs button.chg.on{background:#16a34a!important;border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,.25),0 6px 16px rgba(22,163,74,.3)}
+#ftAtcTabs button.on .cfp{color:rgba(255,255,255,.85)!important;-webkit-text-fill-color:rgba(255,255,255,.85)!important}
+#ftAtcTabs button.on .vtags i{background:rgba(255,255,255,.95)!important}
 #ftAtcMiss{font-size:12px;color:#8d1a52;min-height:1.2em}
 .ftci,.fttx{border-collapse:collapse;width:100%;font-size:13px}
 .ftci th,.fttx th{background:#f5c542;color:#1a1a1a;padding:6px 8px;border:1px solid #c9a227;text-align:center}
@@ -5924,7 +5937,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.29</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.30</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -26936,14 +26949,6 @@ function ftAtcPaintTabs(){
     const chg = ftAtcChanged(ftAtcRows[n]);
     b.classList.toggle("on", n === ftAtcIx);
     b.classList.toggle("chg", chg);
-    // Inline !important: skin rules (color + -webkit-text-fill-color) must not override the text colour.
-    const ink = chg ? "#16a34a" : "#e8112d";
-    [b, ...b.querySelectorAll("*:not(.vtags):not(.vtags i)")].forEach((el) => {
-      el.style.setProperty("color", ink, "important");
-      el.style.setProperty("-webkit-text-fill-color", ink, "important");
-    });
-    b.style.setProperty("background", "#fff", "important");
-    b.style.setProperty("border", "1px solid #e8112d", "important");
   });
 }
 function ftAtcBanner(row){
