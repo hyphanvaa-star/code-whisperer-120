@@ -158,6 +158,7 @@
       detail.innerHTML='<h4>'+esc(a.name)+'</h4><div>'+esc(a.country)+' · '+esc(a.fir||'FIR chưa có thông tin')+'</div>'+(a.document?'<p>'+esc(a.document)+'</p>':'')+(a.activation?'<p>'+esc(a.activation)+'</p>':'')+'<button type="button" class="dbx-air-copy" data-copy="'+esc(a.id)+'">⧉ Copy toạ độ</button><pre style="user-select:text">'+esc(coords)+'</pre>';
       detail.hidden=false;detail.scrollIntoView({block:'nearest'});
     };
+    wrap.querySelector("#dbxAirDetail").onclick = function(e){ if(e.target.closest("[data-copy]")) wrap.querySelector("#dbxAirRows").onclick(e); };
     wrap.querySelector("#dbxAirBack").onclick=function(){closePanes();};
     function fmtSize(n){ return n > 1048576 ? (n/1048576).toFixed(1)+" MB" : n > 1024 ? Math.round(n/1024)+" KB" : n+" B"; }
     function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
