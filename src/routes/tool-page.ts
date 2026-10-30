@@ -2342,7 +2342,15 @@ function nmPaintListAll(place, q){
   }
   for(const [p, n] of rows){
     const item = document.createElement("div");
-    item.className = "nm-item" + (n._noimp || n.level === "NO IMPACT" ? " drop" : "");
+    const selected = !!nmFocusIdent && n.ident === nmFocusIdent;
+    item.className = "nm-item" + (n._noimp || n.level === "NO IMPACT" ? " drop" : "") + (selected ? " nm-item-on" : "");
+    if(selected){
+      const pin = document.createElement("span");
+      pin.className = "nm-map-pin";
+      pin.textContent = "•";
+      item.appendChild(pin);
+      item.setAttribute("aria-current", "true");
+    }
     if(n.ident) item.dataset.ident = n.ident;
     const lv = document.createElement("div");
     lv.className = "nm-lv nm-lv-" + String(n.level || "NO IMPACT").replace(/[^A-Z]/g, "").toLowerCase();
@@ -2378,10 +2386,15 @@ function nmPaintListAll(place, q){
   return true;
 }
 function nmPaintListBase(place, q){`)
+    // Overview selection must resolve the clicked row across all places, not
+    // only nmPick; otherwise map clicks clear the selected NOTAM identity.
+    .replace('  const place = pack.find(p => p.code === nmPick);', '  const place = window.nmOvGroup ? here : pack.find(p => p.code === nmPick);')
     .replace('    nmPick = place.code;\n    nmShowDropped = false;\n    nmFocusIdent = "";\n    nmRender();', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;\n    nmFocusIdent = "";\n    nmRender();')
     .replace('    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;', '    nmGroup = NM_GROUP_TRACK;\n    nmPick = NM_HITS_TAB;\n    window.nmOvGroup = "";')
     .replace('  btn.onclick = () => {\n    nmGroup = id;', '  btn.onclick = () => {\n    nmGroup = id;\n    window.nmOvGroup = "";')
     .replace('</head>', `<style>
+      #wrapNotam #nmList .nm-item.nm-item-on{background:color-mix(in srgb,var(--x-red) 10%,var(--x-bg));color:var(--x-ink);outline:2px solid var(--x-red);outline-offset:-2px;border-left:5px solid var(--x-red);border-radius:6px;padding:12px 12px 12px 38px;margin:6px 2px;position:relative}
+      #wrapNotam #nmList .nm-item.nm-item-on .nm-map-pin{background:var(--x-red);color:var(--x-bg);left:10px;top:12px}
       #nmTabs .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
       #nmTabs .nm-overview-count{display:inline-flex;gap:7px;align-items:center;padding:5px 8px;border-radius:6px;background:var(--x-bg);color:var(--x-ink2);border:1px solid var(--x-line);white-space:nowrap;font-weight:650}
       #nmTabs .nm-overview-count b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-ink)}
@@ -2407,7 +2420,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.33')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.34')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
