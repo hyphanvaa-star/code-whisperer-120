@@ -5903,7 +5903,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
     </label>
     <div class="brand" id="classicBrand">
       <div class="brand-txt">
-        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.09</span></h1>
+        <h1>Dispatch <span class="brand-board">Board</span> <span id="appVersion" title="Phiên bản tool" style="font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#E31937;color:#fff;vertical-align:middle">V 4.10</span></h1>
         <span class="sig">Sohee - Dispatch Board</span>
         <span class="brand-vj" aria-label="Vietjet Air">Vietjet Air</span>
       </div>
@@ -13725,7 +13725,26 @@ function nmPaintVerdict(){
     + (v.tracked ? "  ·  đã tracking" : "  ·  sau Check NOTAM"));
   const body = document.createElement("div");
   body.className = "nm-vd-body";
-  for(const sec of (v.sections || [])){
+  const noImp = new Set(), graded = new Set();
+  if(v.tracked && nmTrackData && nmTrackData.tuned){
+    for(const pl of nmTrackData.places || []){
+      for(const n of [...(pl.notams || []), ...(pl.dropped || [])]){
+        if(!n.ident || !n.level) continue;
+        graded.add(n.ident);
+        if(n.level === "NO IMPACT") noImp.add(n.ident);
+      }
+    }
+  }
+  const idsOf = r => { const t = String((r && r.ident) || "") + " " + String((r && r.value) || ""); return t.match(/\b[A-Z]{1,2}\d{3,5}\/\d{2}\b/g) || []; };
+  for(const sec0 of (v.sections || [])){
+    let sec = sec0;
+    if(graded.size){
+      const rows = (sec0.rows || []).filter(r => { const ids = idsOf(r); return !ids.length || ids.some(i => !noImp.has(i)); });
+      if(rows.length !== (sec0.rows || []).length){
+        sec = Object.assign({}, sec0, {rows, hit: !!rows.length,
+          answer: rows.length ? sec0.answer : (sec0.key === "ad" ? "không có đóng cửa sân bay" : (sec0.key === "rwy" ? "không có đóng cửa rwy" : "không ảnh hưởng"))});
+      }
+    }
     body.appendChild(nmPaintVerdictSection(sec, v.items || []));
   }
   box.appendChild(body);
