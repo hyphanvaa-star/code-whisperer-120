@@ -271,3 +271,15 @@
   .sakura-glass { top: auto; transform: none; bottom: 46px; left: 7%; right: 7%; width: 86%; padding: 28px; border-radius: 24px; }
   .sakura-account, .sakura-account button { font-size: 13px; }
 }
+
+/* Login card motion */
+@keyframes sakura-glass-in { from { opacity: 0; margin-top: 28px; filter: blur(6px); } to { opacity: 1; margin-top: 0; filter: none; } }
+@keyframes sakura-glass-float { 0%,100% { margin-top: 0; } 50% { margin-top: -8px; } }
+@keyframes sakura-glass-glow { 0%,100% { box-shadow: var(--login-glass-shadow); } 50% { box-shadow: var(--login-glass-shadow), 0 0 36px color-mix(in oklab, var(--login-ink) 45%, transparent); } }
+@keyframes sakura-glass-sheen { 0% { left: -60%; } 55%,100% { left: 130%; } }
+.sakura-glass { overflow: hidden; animation: sakura-glass-in .9s cubic-bezier(.2,.8,.2,1) both, sakura-glass-float 6s ease-in-out 1s infinite, sakura-glass-glow 4s ease-in-out 1s infinite; }
+.sakura-glass::before { content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--login-ink) 35%, transparent), transparent); transform: skewX(-18deg); pointer-events: none; animation: sakura-glass-sheen 5s ease-in-out 1.2s infinite; }
+.sakura-glass > * { position: relative; }
+.sakura-glass .sakura-input { transition: transform .2s, box-shadow .2s; }
+.sakura-glass .sakura-input:focus { transform: translateY(-1px); box-shadow: 0 6px 18px color-mix(in oklab, var(--login-ink) 30%, transparent); }
+@media (prefers-reduced-motion: reduce) { .sakura-glass, .sakura-glass::before { animation: none; } }
