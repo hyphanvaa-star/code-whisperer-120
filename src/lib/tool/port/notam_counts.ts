@@ -2,7 +2,7 @@ type NotamPack = { places?: { code?: string; notams?: { ident?: string; level?: 
 
 /** Count the displayed assessment, including filtered rows, once per place/ID. */
 export function notamCounts(pack: NotamPack | null) {
-  let total = 0, impact = 0, noimpact = 0;
+  let total = 0, impact = 0, manual = 0, brief = 0, noimpact = 0;
   for (const place of pack?.places || []) {
     const seen = new Set<string>();
     for (const row of [...(place.notams || []), ...(place.dropped || [])]) {
@@ -10,8 +10,10 @@ export function notamCounts(pack: NotamPack | null) {
       if (row.ident) seen.add(row.ident);
       total++;
       if (row.level === 'CRITICAL' || row.level === 'DELAY-ONLY') impact++;
+      if (row.level === 'NEED MANUAL CHECK') manual++;
+      if (row.level === 'BRIEFING INFO') brief++;
       if (row.level === 'NO IMPACT') noimpact++;
     }
   }
-  return { total, impact, noimpact };
+  return { total, impact, manual, brief, noimpact };
 }
