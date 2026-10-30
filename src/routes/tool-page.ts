@@ -2373,10 +2373,7 @@ function nmPaintListAll(place, q){
     item.onclick = () => {
       /* Đang xem toàn chuyến thì giữ nguyên: chỉ tô sáng dòng và nhấp nháy
          vùng trên bản đồ, không nhảy về tab sân/FIR của NOTAM. */
-      nmFocusIdent = ident;
-      nmRender();
-      const lys = (nmHitLayers[ident] || nmHitLayers[String(ident).toUpperCase()] || []).filter(Boolean);
-      if(lys.length){ nmFocusLayers(lys); nmBlinkLayers(lys); }
+      nmShowNotam(icao, ident, "");
     };
     list.appendChild(item);
   }
