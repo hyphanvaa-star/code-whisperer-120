@@ -356,14 +356,27 @@ const SHIM = `<script>
       room.appendChild(brand); room.appendChild(live);
       var acctMenu=document.createElement('div');
       acctMenu.id='opsAcctMenu'; acctMenu.className='ops-acct-menu'; acctMenu.hidden=true;
-      acctMenu.innerHTML='<div class="ops-acct-who"><small>Đang đăng nhập</small><strong id="opsAcctMail">…</strong></div><button type="button" class="ops-acct-out" id="opsAcctEdit" style="margin-bottom:6px;background:#fff;color:#E31937;border:1px solid #E31937">Tài khoản / mật khẩu / ảnh đại diện</button><button type="button" class="ops-acct-out" id="opsSignOut">Đăng xuất</button>';
-      room.appendChild(acctMenu);
+      acctMenu.innerHTML='<div class="ops-acct-who"><small>Đang đăng nhập</small><strong id="opsAcctMail">…</strong></div><button type="button" class="btn ops-acct-action" id="opsAcctEdit"><span class="ops-acct-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span><b>Tài khoản</b><small>Mật khẩu &amp; ảnh đại diện</small></span><span class="ops-acct-arrow" aria-hidden="true">›</span></button><button type="button" class="btn ops-acct-action ops-acct-logout" id="opsSignOut"><span class="ops-acct-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4H4v16h5M14 8l4 4-4 4M8 12h12"/></svg></span><span><b>Đăng xuất</b></span></button>';
+      // Outside the clipped header: keep both account actions above all panels.
+      document.body.appendChild(acctMenu);
       var acctBtn=document.getElementById('opsAccountBtn'),acctMail=document.getElementById('opsAcctMail'),acctAvatar=document.getElementById('opsAvatar'),acctOut=document.getElementById('opsSignOut');
       var setAcctMail=function(mail,avatarUrl,displayName){ if(!acctMail||!mail)return; acctMail.textContent=displayName?displayName+' · '+mail:mail; if(acctAvatar){var nm=String(displayName||mail).split('@')[0].replace(/[^a-z0-9]/gi,''); acctAvatar.textContent=nm.slice(0,2).toUpperCase()||'••'; if(avatarUrl){var img=document.createElement('img');img.src=avatarUrl;img.alt='Ảnh đại diện';img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:50%';img.onerror=function(){acctAvatar.textContent=nm.slice(0,2).toUpperCase()||'••';};acctAvatar.replaceChildren(img);} } };
-      var setAcctOpen=function(on){ if(!acctMenu||!acctBtn)return; acctMenu.hidden=!on; acctBtn.setAttribute('aria-expanded',on?'true':'false'); };
+      var placeAcctMenu=function(){
+        if(acctMenu.hidden||!acctBtn)return;
+        var anchor=acctBtn.getBoundingClientRect();
+        var scale=acctMenu.getBoundingClientRect().width/acctMenu.offsetWidth||1;
+        var viewport=window.innerWidth/scale;
+        acctMenu.style.left=Math.max(8,Math.min((anchor.right+window.scrollX)/scale-acctMenu.offsetWidth,viewport-acctMenu.offsetWidth-8))+'px';
+        acctMenu.style.top=((anchor.bottom+window.scrollY)/scale+10)+'px';
+        acctMenu.style.maxHeight=Math.max(120,(window.innerHeight-anchor.bottom)/scale-18)+'px';
+      };
+      var setAcctOpen=function(on){ if(!acctMenu||!acctBtn)return; acctMenu.hidden=!on; acctBtn.setAttribute('aria-expanded',on?'true':'false'); if(on)placeAcctMenu(); };
       if(acctBtn)acctBtn.addEventListener('click',function(e){ e.stopPropagation(); setAcctOpen(acctMenu.hidden); });
       if(acctMenu)acctMenu.addEventListener('click',function(e){ e.stopPropagation(); });
       document.addEventListener('click',function(){ setAcctOpen(false); });
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!acctMenu.hidden){setAcctOpen(false);acctBtn.focus();}});
+      window.addEventListener('resize',placeAcctMenu);
+      window.addEventListener('scroll',placeAcctMenu);
       var acctEd=document.getElementById('opsAcctEdit'); if(acctEd)acctEd.addEventListener('click',function(){ setAcctOpen(false); try{ window.parent.postMessage({type:'sohee-account-edit'},window.location.origin); }catch(e){} });
       var aftnTab=document.getElementById('mAftn');
       if(aftnTab&&!document.getElementById('opsAcctManage')){ var acctMg=document.createElement('button'); acctMg.type='button'; acctMg.className='mode'; acctMg.id='opsAcctManage'; acctMg.hidden=true; acctMg.title='Chỉ hyphan thấy mục này'; acctMg.textContent='Quản lí tài khoản'; aftnTab.insertAdjacentElement('afterend',acctMg); acctMg.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); try{ window.parent.postMessage({type:'sohee-accounts-manage'},window.location.origin); }catch(err){} },true); }
@@ -1340,10 +1353,21 @@ header#mdRoom .ops-avatar{width:36px;height:36px;border-color:var(--ops-panel-ac
 header#mdRoom .ops-account-chevron{border-color:var(--ops-panel-muted)}
 header#mdRoom .ops-account-btn:hover{background:var(--ops-panel-line)}
 header#mdRoom .ops-account-btn:focus-visible{outline:2px solid var(--ops-panel-accent);outline-offset:3px}
-header#mdRoom .ops-acct-menu{top:76px;right:12px;border-radius:8px;background:var(--ops-panel);border-color:var(--ops-panel-line);box-shadow:var(--ops-panel-shadow)}
-header#mdRoom .ops-acct-who{border-color:var(--ops-panel-line)}
-header#mdRoom .ops-acct-who small{color:var(--ops-panel-muted);letter-spacing:0}
-header#mdRoom .ops-acct-who strong{color:var(--ops-panel-ink)}
+#opsAcctMenu{position:absolute;right:auto;top:0;z-index:10000;width:310px;min-width:0;max-width:calc(100vw - 16px);box-sizing:border-box;padding:8px;border-radius:8px;background:var(--ops-panel);border:1px solid var(--ops-panel-line);box-shadow:var(--ops-panel-shadow);overflow-y:auto;letter-spacing:0;animation:ops-account-in .16s ease-out}
+#opsAcctMenu .ops-acct-who{padding:12px 12px 16px;margin-bottom:6px;border-color:var(--ops-panel-line);gap:7px}
+#opsAcctMenu .ops-acct-who small{color:var(--ops-panel-muted);font:600 12px/1.3 var(--x-sans);letter-spacing:0}
+#opsAcctMenu .ops-acct-who strong{color:var(--ops-panel-ink);font:700 15px/1.5 var(--x-sans);overflow-wrap:anywhere}
+#opsAcctMenu .ops-acct-action{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:58px;gap:12px;margin:0;padding:10px 12px;border:0;border-radius:6px;background:transparent;color:var(--ops-panel-ink);-webkit-text-fill-color:currentColor;text-align:left;box-shadow:none;white-space:normal;letter-spacing:0}
+#opsAcctMenu .ops-acct-action:hover{background:color-mix(in oklch,var(--ops-panel-line) 45%,var(--ops-panel))}
+#opsAcctMenu .ops-acct-action:focus-visible{outline:2px solid var(--ops-panel-accent);outline-offset:-2px}
+#opsAcctMenu .ops-acct-action b{display:block;font:700 15px/1.4 var(--x-sans)}
+#opsAcctMenu .ops-acct-action small{display:block;margin-top:2px;color:var(--ops-panel-muted);font:500 13px/1.4 var(--x-sans)}
+#opsAcctMenu .ops-acct-icon{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:6px;color:var(--ops-panel-accent);background:color-mix(in oklch,var(--ops-panel-accent) 8%,var(--ops-panel))}
+#opsAcctMenu .ops-acct-icon svg{width:20px;height:20px}
+#opsAcctMenu .ops-acct-arrow{margin-left:auto;font-size:24px;color:var(--ops-panel-muted)}
+#opsAcctMenu .ops-acct-logout{margin-top:6px;border-top:1px solid var(--ops-panel-line);border-radius:0 0 6px 6px;color:var(--ops-panel-accent)}
+@keyframes ops-account-in{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#opsAcctMenu{animation:none}}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
   display:block !important;position:absolute !important;left:38px !important;top:58% !important;
@@ -2369,7 +2393,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.22')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.23')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
