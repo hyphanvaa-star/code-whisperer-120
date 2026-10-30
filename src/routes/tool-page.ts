@@ -2154,9 +2154,10 @@ function ftRender(){
       #wrapAftn #afFl{box-sizing:border-box!important;width:240px!important;min-height:68px!important;font-size:34px!important;font-weight:800!important;line-height:1;text-align:center!important;padding:8px 12px!important;border:2px solid var(--x-line)!important;border-radius:12px!important;background:var(--x-card)!important;color:#c00!important;-webkit-text-fill-color:#c00!important}
       #wrapAftn #afFl:focus{outline:3px solid var(--x-red);outline-offset:2px}
       #wrapNmTrack .nm-track-head{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;scrollbar-color:var(--x-ink2) var(--x-line);max-width:100%;min-width:0}
-      #wrapNmTrack .nm-track-head #nmTrackHead{flex:0 0 auto;min-width:320px}
+      #wrapNmTrack .nm-track-head #nmTrackHead{flex:0 0 auto;min-width:0;width:max-content}
       #wrapNmTrack .nm-track-head #nmTrackHead:empty{min-width:0;display:none}
-      #wrapNmTrack .nm-th-tools{flex-wrap:nowrap;white-space:nowrap;flex:0 0 auto}
+      #wrapNmTrack .nm-th-tools{flex-wrap:nowrap;white-space:nowrap;flex:0 0 auto;margin-left:0}
+      #wrapNmTrack .nm-th-meta{flex:0 0 auto;padding:0 8px}
       .nm-storm-lbl{background:rgba(17,24,39,.85);color:#fff;border:0;font:700 11px/1.2 sans-serif;padding:2px 5px;box-shadow:none}
       #wrapNmTrack .nm-th-arrow{position:sticky;z-index:3;flex:0 0 auto;align-self:stretch;min-width:28px;border:0;background:var(--x-red);color:#fff;font-size:13px;cursor:pointer;padding:0 6px}
       #wrapNmTrack .nm-th-arrow[hidden]{display:none}
@@ -2241,7 +2242,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.15')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.16')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;

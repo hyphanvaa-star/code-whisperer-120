@@ -57,4 +57,4 @@
 - Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others.
 - Storm warning identities and modern JMA forecast parsing live in browser-safe `port/storms.ts`; retain JTWC RSS names when overlays fail and distinguish unavailable data from confirmed empty feeds. Toolbar changes load through the tool-page shim to preserve the original HTML.
 - tool-files retention lives in pure `port/file_retention.ts`, run hourly by cron route `/api/public/cron/cleanup-files` (admin client, cron secret) — workers cannot clean up after a session ends.
-- Named ENR resolves exact FIR-scoped IDs from cited AIP boundaries before SUP tasks; unknowns stay manual. Database groups the same catalogue by country to prevent inventory drift.
+- Named ENR resolves exact FIR-scoped AIP IDs before SUP; unknowns stay manual. Database groups this catalogue by country. All-area Layer restores checked boundaries in the plot shim only, never verdicts.
