@@ -53,9 +53,9 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       const fir = String(n.qfir ?? (place as Record<string, unknown>).fir ?? place.code ?? "");
       const keys = supKeys(blob);
       const au = fir.toUpperCase().startsWith("Y");
-      const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA/i.test(blob);
+      const jp = /^(RJ|RO)/i.test(fir) && /\bAIP\b|CIVIL TRAINING|TRAINING AND TESTING AREA|WARNING AREA|\b[WRDP]\s*-\s*\d/i.test(blob);
       const krIds = /^RK/i.test(fir) ? namedAreaIds(blob).filter(id => /^RK[DRP]/.test(id)) : [];
-      const enrIds = enrIdsInText(blob);
+      const enrIds = enrIdsInText(blob, fir);
       if (!keys.length && !au && !jp && !krIds.length && !enrIds.length) continue;
       // Bundled AU DAH names (e.g. "WILLIAMTOWN CTA C9") resolve offline — do it now so slow SUP downloads cannot starve them past the deadline.
       if (au) {
@@ -98,7 +98,7 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
             if (ring && ring.length >= 3) geoms.push({ name, shape: 'polygon', ring, source: 'aip' });
           }
         }
-        if (jp && /ENR\s*5\.1|WARNING AREA/i.test(blob)) {
+        if (jp && /ENR\s*5\.1|P\s*51\s*-\s*1|WARNING AREA|\b[WRDP]\s*-\s*\d/i.test(blob)) {
           japanWarnings ??= japanTrainingRings(ctx, '5.1');
           const table = await japanWarnings;
           for (const name of japanIdsInText(table, blob)) {
