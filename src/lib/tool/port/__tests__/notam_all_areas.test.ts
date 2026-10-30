@@ -13,7 +13,7 @@ function screen() {
   const map = { hasLayer: () => on, on: (_events: string, fn: typeof change) => { change = fn; } };
   const context = {
     nmRefreshHitGeom: (h: unknown) => h,
-    nmFindHit: () => null,
+    nmFindHit: (_ident: string): {shape: string} | null => null,
     nmPlotHits: (hits: unknown[]) => { plotted = hits; },
     nmParseRadiusNm: () => 0,
     nmEnsureMap: () => map,
@@ -26,7 +26,7 @@ function screen() {
     nmDrawTrack: () => { redraws++; },
     nmHitsOf: () => [impact],
     nmFleetHits: () => [],
-    nmShowNotam: () => {},
+    nmShowNotam: (_icao: string, _ident: string, _flightId: string) => {},
     nmGroup: 'track', NM_GROUP_TRACK: 'track', NM_GROUP_ALL: 'all',
     nmData: null,
     window: {nmGrpPlace:'',nmGrpSel:'impact'},
