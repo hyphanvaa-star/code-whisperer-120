@@ -29,13 +29,22 @@ If pythonw = "" Then
   shell.Run command, 0, True
   If fso.FileExists(probe) Then
     Set file = fso.OpenTextFile(probe, 1)
+    Dim storePy
+    storePy = ""
     Do Until file.AtEndOfStream
       candidate = Trim(file.ReadLine)
-      If fso.FileExists(candidate) And InStr(LCase(candidate), "windowsapps") = 0 Then
-        pythonw = candidate
-        Exit Do
+      If candidate <> "" Then
+        If InStr(LCase(candidate), "windowsapps") = 0 Then
+          If fso.FileExists(candidate) Then
+            pythonw = candidate
+            Exit Do
+          End If
+        ElseIf storePy = "" Then
+          storePy = candidate
+        End If
       End If
     Loop
+    If pythonw = "" Then pythonw = storePy
     file.Close
     fso.DeleteFile probe, True
   End If
