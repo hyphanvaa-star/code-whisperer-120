@@ -2265,9 +2265,13 @@ function nmMakeVjBrand(){
       #nmTabs .nm-overview-impact{border-color:var(--x-red);color:var(--x-red)}
       #nmTabs .nm-overview-impact b{color:var(--x-red)}
     </style></head>`)
+    .replace('  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);', `  const areaHit = nmFindHit(ident);
+  const hasBoundary = areaHit && ((areaHit.ring || []).length >= 3 || Number(areaHit.radius_nm) > 0 || ((areaHit.shape === "line" || areaHit.shape === "linestring") && (areaHit.ring || []).length >= 2));
+  if(hasBoundary){ nmFocusMap(ident); onSeg = true; }
+  else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.17')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.18')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
