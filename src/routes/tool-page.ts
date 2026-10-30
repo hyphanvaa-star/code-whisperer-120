@@ -16,6 +16,7 @@ import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
+import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
 import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
 import { patchAccountMemoryPage } from '@/lib/tool/port/account_memory';
 import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
@@ -2174,7 +2175,7 @@ function ftRender(){
 .dbx-t{font-size:17px;font-weight:800;color:#0f172a}
 .dbx-d{font-size:13px;color:#64748b;line-height:1.4;flex:1}
 .dbx-go{font-size:12px;font-weight:700;color:var(--c);margin-top:4px}
-</style><script>${databaseTabScript}</script></body>`)
+</style><script>window.__namedAirspaceCatalogue=${JSON.stringify(enrCatalogue()).replace(/</g, '\\u003c')};</script><script>${databaseTabScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
@@ -2240,7 +2241,7 @@ function ftRender(){
     )
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.14')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.15')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
