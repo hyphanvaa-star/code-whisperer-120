@@ -255,7 +255,7 @@ const SHIM = `<script>
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
           if(agentOn){
-            if(confirm('Tắt trợ lý PC trên máy này?\n(Bấm Cancel để tải bộ cài mới)')){
+            if(confirm('Tắt trợ lý PC trên máy này?\\n(Bấm Cancel để tải bộ cài mới)')){
               fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
               return;
             }
@@ -2450,7 +2450,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.43')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.44')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
