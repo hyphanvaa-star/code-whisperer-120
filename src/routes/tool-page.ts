@@ -255,7 +255,7 @@ const SHIM = `<script>
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
           if(agentOn){
-            if(confirm('Tắt trợ lý PC trên máy này?\n(Bấm Cancel để tải bộ cài mới)')){
+            if(confirm('Tắt trợ lý PC trên máy này?\\n(Bấm Cancel để tải bộ cài mới)')){
               fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
               return;
             }
