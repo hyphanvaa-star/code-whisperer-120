@@ -172,25 +172,18 @@ const SHIM = `<script>
         efbField.appendChild(efbBtn);
         // Hook cho page.html gọi sau khi đăng nhập OWA thành công:
         // tự lấy mã EFB qua trợ lý PC nếu ô còn trống.
-        window.__efbAutoFill=function(){
-          if(efbInput.value) return;
-          fetch('/api/efb/latest?pc=1').then(function(r){return r.json();}).then(function(d){
-            if(d && d.value && !efbInput.value){
-              efbInput.value=d.value;
-              try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
-            }
-          }).catch(function(){});
+        // Luôn lấy mã EFB mới nhất (qua phiên Outlook Web của trợ lý) và điền đè khi khác mã đang có.
+        var efbApply=function(d){
+          if(d && d.value && d.value!==efbInput.value){
+            efbInput.value=d.value;
+            try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
+          }
         };
-        // Tự lấy mã EFB mới nhất khi ô còn trống — CHỈ thử từ máy chủ,
-        // không bật Outlook trên máy công ty (tránh popup đăng nhập).
-        if(!efbInput.value){
-          fetch('/api/efb/latest').then(function(r){return r.json();}).then(function(d){
-            if(d && d.value && !efbInput.value){
-              efbInput.value=d.value;
-              try{ localStorage.setItem('fb_efb', d.value); }catch(e){}
-            }
-          }).catch(function(){});
-        }
+        window.__efbAutoFill=function(){
+          fetch('/api/efb/latest?pc=1').then(function(r){return r.json();}).then(efbApply).catch(function(){});
+        };
+        window.__efbAutoFill();
+        setInterval(window.__efbAutoFill, 30*60*1000);
       }
     }
     // Cảnh báo thiếu mã EFB giống cảnh báo thiếu tên DSP khi Tạo KHB.
@@ -2456,7 +2449,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.38')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.40')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;

@@ -14,7 +14,7 @@ function ckRestoreLicense(){ $('#ftLicInput').value = ckGet(ckLicKey()) || ckGet
 function ckRestoreDsp(){ $('#ftDspBox').value = ckGet(ckK('ck.dsp.last')); ckRestoreLicense(); }
 try { localStorage.removeItem('ck.dsp.last'); localStorage.removeItem('ck.license.last'); } catch(e) {}
 ckRestoreDsp();
-setTimeout(ckRestoreDsp, 1500);
+setTimeout(function(){ if(!($('#ftDspBox').value || '').trim()) ckRestoreDsp(); }, 1500);
 function ckSaveDsp(){ const v=($('#ftDspBox').value || '').trim(); if(v) ckSet(ckK('ck.dsp.last'), v); }
 $('#ftDspBox').addEventListener('input', function(){ ckSaveDsp(); ckRestoreLicense(); });
 $('#ftDspBox').addEventListener('change', function(){ ckSaveDsp(); ckRestoreLicense(); });
