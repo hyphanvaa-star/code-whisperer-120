@@ -765,7 +765,7 @@ def ensure_session(
         if cancel is not None and cancel.is_set():
             raise OwaCancelled("Đã huỷ làm mới phiên Outlook Web.")
         user, password = creds if creds is not None else config.get_owa_credentials()
-        driver = _make_driver(headless=False, profile_dir=profile_dir)
+        driver = _make_driver(headless=True, profile_dir=profile_dir)
         if cancel is not None and hasattr(cancel, "add_abort"):
             cancel.add_abort(driver.quit)
         done: dict[str, Any] = {}
