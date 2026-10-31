@@ -35,7 +35,11 @@ export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T>
   return (r.value as T) ?? fallback;
 }
 
+/** File-add rules are one team copy: only admin may save them. */
+export const ADMIN_ONLY_KEYS = new Set(["notice_rules"]);
+
 export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<void> {
+  if (ADMIN_ONLY_KEYS.has(key) && !(await isAdmin(ctx))) throw new Error("Chỉ Admin được lưu thiết lập file add");
   const target = LAYERED_KEYS.has(key) && !(await isAdmin(ctx)) ? userKey(ctx, key) : key;
   const track = !/^(ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|chg:|.*token|.*session|.*cookie)/i.test(target);
   const prev = track ? (await rawGet(ctx, target).catch(() => ({ value: null }))).value : null;
