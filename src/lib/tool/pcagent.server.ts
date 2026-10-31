@@ -198,10 +198,9 @@ export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid 
 export async function agentInfo(ctx: Ctx): Promise<AgentInfo | null> {
   const ip = await myIp();
   const uid = ctx.userId || (await myUid());
-  const byUser = uid ? await getJson<AgentInfo | null>(ctx, `pc.agent:u:${uid}`, null) : null;
-  const byIp = await getJson<AgentInfo | null>(ctx, ip ? `pc.agent:${ip}` : "pc.agent", null);
-  if (byUser && (!byIp || byUser.at >= byIp.at - 60_000)) return byUser;
-  return byIp ?? byUser;
+  // Signed-in users only see their own paired machine — never a colleague's on the same office IP.
+  if (uid) return await getJson<AgentInfo | null>(ctx, `pc.agent:u:${uid}`, null);
+  return await getJson<AgentInfo | null>(ctx, ip ? `pc.agent:${ip}` : "pc.agent", null);
 }
 
 /** Agent is considered online if it polled within the last 90 seconds. */

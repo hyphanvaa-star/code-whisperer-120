@@ -255,9 +255,10 @@ const SHIM = `<script>
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
           if(agentOn){
-            if(!confirm('Tắt trợ lý PC trên máy này?')) return;
-            fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
-            return;
+            if(confirm('Tắt trợ lý PC trên máy này?\n(Bấm Cancel để tải bộ cài mới)')){
+              fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
+              return;
+            }
           }
           var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.6'; a.download='tro-ly-pc-6.6.zip';
           document.body.appendChild(a); a.click(); a.remove();
@@ -2449,7 +2450,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.41')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.42')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
