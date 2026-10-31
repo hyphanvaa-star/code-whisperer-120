@@ -1,20 +1,27 @@
 /* Browser-only F-017/F-018 PDF overlays, injected in the original tool scope. */
 const CK_VN = new Set('SGN HAN DAD CXR PQC HPH VII HUI VCA DLI UIH VCL PXU THD BMV VKG CAH TBB VDH VCS DIN VDO'.split(' '));
-function ckLicKey(){ return 'ck.license.' + ($('#ftDspBox').value || '').trim().toUpperCase(); }
+// Dispatcher/License nhớ riêng theo tài khoản đăng nhập — không lấy tên của người dùng trước trên cùng máy.
+function ckUid(){ try { const f = window.parent && window.parent.__fbUserId; return (f && f()) || ''; } catch(e) { return ''; } }
+function ckK(k){ const u = ckUid(); return u ? k + '@u:' + u : ''; }
+function ckLicKey(){ return ckK('ck.license.' + ($('#ftDspBox').value || '').trim().toUpperCase()); }
 const ckLicense = document.createElement('label');
 ckLicense.className = 'ftdsp';
 ckLicense.innerHTML = 'DSP License : <input type="text" id="ftLicInput" autocomplete="off" spellcheck="false" aria-label="DSP License">';
 $('#ftDspBox').closest('label').insertAdjacentElement('afterend', ckLicense);
-function ckRestoreLicense(){ try { $('#ftLicInput').value = localStorage.getItem(ckLicKey()) || localStorage.getItem('ck.license.last') || ''; } catch(e) { $('#ftLicInput').value = ''; } }
-try { if(!($('#ftDspBox').value || '').trim()) $('#ftDspBox').value = localStorage.getItem('ck.dsp.last') || ''; } catch(e) {}
-ckRestoreLicense();
-function ckSaveDsp(){ try { const v=($('#ftDspBox').value || '').trim(); if(v) localStorage.setItem('ck.dsp.last', v); } catch(e) {} }
+function ckGet(k){ try { return k ? localStorage.getItem(k) || '' : ''; } catch(e) { return ''; } }
+function ckSet(k, v){ try { if(k) localStorage.setItem(k, v); } catch(e) {} }
+function ckRestoreLicense(){ $('#ftLicInput').value = ckGet(ckLicKey()) || ckGet(ckK('ck.license.last')); }
+function ckRestoreDsp(){ $('#ftDspBox').value = ckGet(ckK('ck.dsp.last')); ckRestoreLicense(); }
+try { localStorage.removeItem('ck.dsp.last'); localStorage.removeItem('ck.license.last'); } catch(e) {}
+ckRestoreDsp();
+setTimeout(function(){ if(!($('#ftDspBox').value || '').trim()) ckRestoreDsp(); }, 1500);
+function ckSaveDsp(){ const v=($('#ftDspBox').value || '').trim(); if(v) ckSet(ckK('ck.dsp.last'), v); }
 $('#ftDspBox').addEventListener('input', function(){ ckSaveDsp(); ckRestoreLicense(); });
 $('#ftDspBox').addEventListener('change', function(){ ckSaveDsp(); ckRestoreLicense(); });
 $('#ftLicInput').addEventListener('input', function(){
-  try { localStorage.setItem('ck.license.last', this.value.trim()); } catch(e) {}
+  ckSet(ckK('ck.license.last'), this.value.trim());
   if(!($('#ftDspBox').value || '').trim()) return;
-  try { localStorage.setItem(ckLicKey(), this.value.trim()); } catch(e) {}
+  ckSet(ckLicKey(), this.value.trim());
 });
 let ckResources;
 function ckScript(url, global){
