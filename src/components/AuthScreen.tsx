@@ -74,6 +74,24 @@ export function AuthScreen() {
       <img src={loginBgUrl} alt="" className="sakura-backdrop" />
       <div className="sakura-scene">
         <img src={loginBgUrl} alt="Thành phố bên sông giữa những cành hoa anh đào" className="sakura-city" />
+        <svg className="sakura-atc" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <g className="atc-routes">
+            <path d="M-20 120 L380 260 L760 180 L1180 300 L1620 210" />
+            <path d="M120 -20 L380 260 L520 520" />
+            <path d="M760 180 L900 -20" />
+            <path d="M760 180 L980 420 L1180 300 L1400 -20" />
+            <path d="M-20 420 L240 380 L520 520 L980 420 L1620 470" />
+            <path d="M240 380 L380 260" />
+            <path d="M1180 300 L1350 520" />
+          </g>
+          <g className="atc-pts">
+            {[[380,260],[760,180],[1180,300],[240,380],[520,520],[980,420],[1350,520]].map(([x,y]) => (
+              <g key={`${x}-${y}`}><circle cx={x} cy={y} r="5" /><path d={`M${x} ${y-11} L${x+10} ${y+7} L${x-10} ${y+7} Z`} /></g>
+            ))}
+          </g>
+          <circle className="atc-ring" cx="760" cy="180" r="120" />
+          <circle className="atc-ring" cx="760" cy="180" r="220" />
+        </svg>
         <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
         <section className="sakura-brand">
           <div className="sakura-wordmark">VietJet<span>Air.com</span></div>
