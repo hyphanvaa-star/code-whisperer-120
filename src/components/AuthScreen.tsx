@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import loginBgUrl from "@/assets/login-shanghai-day.jpg";
+import loginBgUrl from "@/assets/login-shanghai-day2.jpg";
 import vietjetPlane from "@/assets/login-vietjet-plane.png";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -130,7 +130,7 @@ export function AuthScreen() {
             <p>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
         </main>
-        <span className="sakura-version">V 4.48</span>
+        <span className="sakura-version">V 4.49</span>
       </div>
     </div>
   );
