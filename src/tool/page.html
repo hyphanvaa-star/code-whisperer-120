@@ -13832,6 +13832,15 @@ function nmVerdictHead(box, subText){
   h.textContent = "Tóm tắt notam ảnh hưởng";
   top.appendChild(h);
   box.appendChild(top);
+  try{
+    const tb = document.getElementById("nmTabs");
+    if(tb && !tb.hidden && typeof nmMakeVjBrand === "function"){
+      const wrap = document.createElement("div");
+      wrap.className = "nm-vd-counts";
+      wrap.appendChild(nmMakeVjBrand());
+      box.appendChild(wrap);
+    }
+  }catch(e){}
   if(subText){
   const sub = document.createElement("div");
   sub.className = "nm-vd-sub";

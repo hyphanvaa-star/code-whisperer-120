@@ -2449,24 +2449,26 @@ function nmPaintListBase(place, q){`)
       @media(max-width:600px){#nmTrackMap .nm-side-pop{top:8px;right:8px;max-width:calc(100% - 16px);padding-left:16px;padding-right:16px}}
       #wrapNotam #nmList .nm-item.nm-item-on{background:color-mix(in srgb,var(--x-red) 10%,var(--x-bg));color:var(--x-ink);outline:2px solid var(--x-red);outline-offset:-2px;border-left:5px solid var(--x-red);border-radius:6px;padding:12px 12px 12px 38px;margin:6px 2px;position:relative}
       #wrapNotam #nmList .nm-item.nm-item-on .nm-map-pin{background:var(--x-red);color:var(--x-bg);left:10px;top:12px}
-      #nmTabs .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
-      #nmTabs .nm-overview-count{display:inline-flex;gap:7px;align-items:center;padding:5px 8px;border-radius:6px;background:var(--x-bg);color:var(--x-ink2);border:1px solid var(--x-line);white-space:nowrap;font-weight:650}
-      #nmTabs .nm-overview-count b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-ink)}
-      #nmTabs .nm-overview-impact{border-color:var(--x-red);color:var(--x-red)}
-      #nmTabs .nm-overview-impact b{color:var(--x-red)}
-      #nmTabs button.nm-overview-count{cursor:pointer;font:inherit;font-weight:650}
-      #nmTabs button.nm-overview-count:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.12)}
-      #nmTabs .nm-overview-manual{border-color:#d97706;color:#b45309}
-      #nmTabs .nm-overview-brief{border-color:#2563eb;color:#1d4ed8}
-      #nmTabs .nm-overview-count{transition:transform .15s ease, box-shadow .15s ease}
-      #nmTabs .nm-overview-count.on{outline:none;box-shadow:0 3px 10px rgba(0,0,0,.22)}
-      #nmTabs .nm-overview-total.on{background:#334155;border-color:#334155;color:#fff}
-      #nmTabs .nm-overview-impact.on{background:#dc2626;border-color:#dc2626;color:#fff}
-      #nmTabs .nm-overview-manual.on{background:#d97706;border-color:#d97706;color:#fff}
-      #nmTabs .nm-overview-brief.on{background:#2563eb;border-color:#2563eb;color:#fff}
-      #nmTabs .nm-overview-noimpact.on{background:#16a34a;border-color:#16a34a;color:#fff}
-      #nmTabs .nm-overview-count.on b{color:#fff}
-      #nmTabs .nm-overview-noimpact{border-color:#16a34a;color:#15803d}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-counts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:8px;max-width:100%;font-size:13px}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-count{display:inline-flex;gap:7px;align-items:center;padding:5px 8px;border-radius:6px;background:var(--x-bg);color:var(--x-ink2);border:1px solid var(--x-line);white-space:nowrap;font-weight:650}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-count b{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--x-ink)}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-impact{border-color:var(--x-red);color:var(--x-red)}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-impact b{color:var(--x-red)}
+      :is(#nmTabs,.nm-vd-counts) button.nm-overview-count{cursor:pointer;font:inherit;font-weight:650}
+      :is(#nmTabs,.nm-vd-counts) button.nm-overview-count:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-manual{border-color:#d97706;color:#b45309}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-brief{border-color:#2563eb;color:#1d4ed8}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-count{transition:transform .15s ease, box-shadow .15s ease}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-count.on{outline:none;box-shadow:0 3px 10px rgba(0,0,0,.22)}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-total.on{background:#334155;border-color:#334155;color:#fff}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-impact.on{background:#dc2626;border-color:#dc2626;color:#fff}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-manual.on{background:#d97706;border-color:#d97706;color:#fff}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-brief.on{background:#2563eb;border-color:#2563eb;color:#fff}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-noimpact.on{background:#16a34a;border-color:#16a34a;color:#fff}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-count.on b{color:#fff}
+      :is(#nmTabs,.nm-vd-counts) .nm-overview-noimpact{border-color:#16a34a;color:#15803d}
+      .nm-vd-counts{margin:8px 12px 2px;padding:10px;border:1px solid #e4eaf3;border-radius:12px;background:#f8fafc}
+      .nm-vd-counts .nm-overview-counts{display:flex;flex-wrap:wrap;gap:6px;margin:0}
     </style></head>`)
     .replace('  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);', `  const areaHit = nmFindHit(ident);
   const hasBoundary = areaHit && ((areaHit.ring || []).length >= 3 || Number(areaHit.radius_nm) > 0 || ((areaHit.shape === "line" || areaHit.shape === "linestring") && (areaHit.ring || []).length >= 2));
@@ -2474,7 +2476,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.52')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.53')
     // General-table weather belongs to the whole cell, not just its small icon.
     // Read current flight data on entry and distinguish missing TAF from good WX.
     .replace(`  if(!segs && !raw && !t.tip) return;
