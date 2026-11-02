@@ -32,7 +32,7 @@
 - Roles live in `user_roles` (`admin`, `dispatcher`); first signup becomes admin via `handle_new_user`.
 - Port groups follow `roadmap.md`: handlers in `src/lib/tool/handlers/<group>.server.ts` preserve web.py JSON; `router.server.ts` owns bearer/GET-cookie auth and `{error, not_ported}`. Pure ports and tests live in `port/` and `port/__tests__/`.
 - KHB labels/REQ share browser-safe `khb-pilot-name` via the HTML shim and FPL port; preserve full source names for identity matching.
-- Original `src/tool/page.html` runs via `/tool-page` iframe at `/tool`; only the `src/routes/tool-page.ts` shim may alter it. ATC uses global CSS tokens and CSS-only empty marks to preserve operational data. The iframe uses a per-load URL nonce plus no-store headers so revisions never reuse a stale document. AFTN book/default-address edits use this shim and the shared two-column editor; cells keep local storage and lookup for TPL compatibility.
+- Original `src/tool/page.html` runs in `/tool` via `/tool-page`; alter it only through the tool-page shim. Preserve per-load nonce/no-store caching. ATC uses global tokens and CSS-only empty marks; keep its review above hover panels and disable background Compare tips while open, preserving Send/Copy handlers for scaled desktops. AFTN edits use the shim/shared two-column editor; retain cell storage and TPL lookup.
 - Jobs encode kind+params in id; run via `/api/stream` (`jobs.ts`); no shared memory.
 - State: `app_settings`; files: private `tool-files` via `store.server.ts`.
 - PIB/WX attachment validation is centralized in `port/pibwx_time.ts` and receives only first-page text plus document kind, so body timestamps cannot authorize a stale file.
