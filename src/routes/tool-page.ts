@@ -1837,7 +1837,7 @@ let cached: string | null = null;
 
 const ATC_SKIN = `<style id="atc-result-skin">
 /* The original review was z-index 50, below the 9999 hover/dropdown panels. */
-#ftAtcModal{z-index:10020!important;isolation:isolate;box-sizing:border-box;pointer-events:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#ftAtcModal{z-index:10080!important;isolation:isolate;box-sizing:border-box;pointer-events:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 #ftAtcModal:not(.open){display:none!important;visibility:hidden!important}
 #ftAtcModal.open{display:flex!important;visibility:visible!important;pointer-events:auto!important}
 #ftAtcModal>.sheet{position:relative;pointer-events:auto!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
