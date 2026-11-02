@@ -92,8 +92,11 @@ async function cmpSyncCheck(e){
   if(e.kind === "crew"){
     if(!e.changes.length || !it.crew_checked) throw new Error(it.crew_error || "Chưa đọc được mã/vai trò phi công — không gửi thay đổi.");
     ok = e.changes.every(c => (it.crew_changes || []).some(x => x.key === c.key && x.from === c.from && x.to === c.to && x.ok));
-  }else ok = !!it.reg && norm(it.reg) === norm(e.row.reg.new);
-  cmpSyncChecks.set(cmpSyncKey(e), {ok});
+  }else{
+    const want = (norm(e.row.reg.new).match(/(\\d{3})$/) || [])[1] || "";
+    ok = !!it.reg && norm(it.reg) === norm(e.row.reg.new) && !!want && String(it.reg_atch || "") === want;
+  }
+  cmpSyncChecks.set(cmpSyncKey(e), {ok, file: String(it.reg_atch_file || "")});
   return ok;
 }
 function cmpSyncPaint(r, kind){
@@ -108,11 +111,12 @@ function cmpSyncPaint(r, kind){
   const b = document.createElement("button"); b.type = "button";
   const ok = checked && checked.ok;
   b.className = "regbtn cmp-sync-action" + (ok ? " synced" : "");
-  b.textContent = kind === "crew" ? (ok ? "✓ Crew" : "↻ Crew") : e.row.reg.new;
+  b.textContent = kind === "crew" ? (ok ? "✓ Crew" : "↻ Crew") : (ok ? "✓ " : "⚠ ") + e.row.reg.new;
+  if(!ok && kind !== "crew") b.classList.add("cmp-wrong-ac");
   b.disabled = !!ok || cmpSyncBusy || (kind === "crew" && !e.changes.length);
   b.setAttribute("aria-label", (kind === "crew" ? "Đổi crew " : "Đổi tàu ") + e.f.callsign + " theo " + (kind === "fpl" ? "FPL mới" : "Crewlist mới"));
   b.dataset.tip = (kind === "crew" ? String(e.row.crew.raw_old || "") + " → " + String(e.row.crew.raw_new || "") : e.row.reg.old + " → " + e.row.reg.new)
-    + (ok ? " · Đã khớp FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
+    + (kind !== "crew" && checked && !ok ? " · File tàu trên FliteBrief: " + (checked.file || "chưa có") + " — chưa khớp tàu mới" : "") + (ok ? " · Đã khớp file tàu FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
   b.onclick = ev => {ev.stopPropagation(); cmpSyncOpen(r, kind);};
   if(kind === "crew") td.prepend(b);
   else if(kind === "fpl") td.replaceChildren(b);
@@ -216,7 +220,11 @@ function renderCompareTable(d, opts){`)
     .replace('  td.title = "FPL: "', '  cmpSyncPaint(r, "fpl");\n  td.title = "FPL: "')
     .replace('</head>', `<style>
 .cmptbl .cmp-sync-action{display:inline-flex;align-items:center;justify-content:center;min-width:70px;min-height:30px;padding:4px 9px;border:2px solid var(--red)!important;border-radius:7px;background:var(--panel)!important;color:var(--red)!important;-webkit-text-fill-color:currentColor!important;font-family:inherit;font-weight:800;font-size:12px;line-height:1.3;cursor:pointer;letter-spacing:0}
-.cmptbl .cmp-sync-action.synced{border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
+.cmptbl .cmp-sync-action.cmp-wrong-ac{gap:5px;min-width:96px;min-height:32px;padding:5px 12px;border:0!important;border-radius:999px;background:linear-gradient(135deg,#ef4444,#b91c1c)!important;color:#fff!important;font-size:13px;letter-spacing:.3px;box-shadow:0 0 0 3px rgba(239,68,68,.22),0 4px 12px rgba(185,28,28,.35);animation:cmpWrongAc 1.8s ease-in-out infinite}
+.cmptbl .cmp-sync-action.cmp-wrong-ac:hover{transform:translateY(-1px);box-shadow:0 0 0 4px rgba(239,68,68,.3),0 6px 16px rgba(185,28,28,.45)}
+@keyframes cmpWrongAc{0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,.22),0 4px 12px rgba(185,28,28,.35)}50%{box-shadow:0 0 0 7px rgba(239,68,68,.08),0 4px 12px rgba(185,28,28,.35)}}
+@media (prefers-reduced-motion:reduce){.cmptbl .cmp-sync-action.cmp-wrong-ac{animation:none}}
+.cmptbl .cmp-sync-action.synced{border-radius:999px!important;border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
 .cmptbl .cmp-sync-action:disabled:not(.synced){opacity:.55;cursor:default}
 .cmptbl .cmp-sync-action:focus-visible,.cmptbl .cmp-sync-pick:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 .cmptbl .cmp-msg-quick{min-width:70px;min-height:30px;padding:4px 10px;border:0;border-radius:7px;background:var(--red);color:#fff;font:800 12px/1.3 inherit;cursor:pointer}

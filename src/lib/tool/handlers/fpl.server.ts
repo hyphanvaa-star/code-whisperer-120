@@ -453,7 +453,9 @@ export const routes: Routes = {
               ok: crewChangeMatches(rows, c.key === 'cptText' ? 'Captain' : 'First Officer', c.from, c.to)}));
           } catch(e){ crewError = (e as Error).message; }
         }
+        const att = (hit as any).reg_attachment;
         return { flt: it.flt, sector_id: hit.id, found: true, reg: String(hit.reg || ""), std_utc: stdUtc,
+          reg_atch: att ? String(att.reg_code || "") : "", reg_atch_file: att ? String(att.original_filename || att.title || "") : "",
           crew_checked: crewChecked, crew_changes: crewChanges, crew_error: crewError };
       } catch (e) { return { flt: it.flt, found: false, reg: "", error: (e as Error).message }; }
     }));
