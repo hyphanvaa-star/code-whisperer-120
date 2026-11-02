@@ -1,8 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { cmpAircraftChange, cmpFplPair, cmpPilotChanges, cmpSourceChange } from '../cmp_sync';
+import vm from 'node:vm';
+import { cmpAircraftChange, cmpFplPair, cmpPilotChanges, cmpSourceChange, patchCmpSyncPage } from '../cmp_sync';
 
 describe('Compare source changes', () => {
   const now = Date.parse('2026-11-02T08:53:00Z');
+  it('sends VER 09/10 through the Compare diff flow and preserves Crewlist order', async () => {
+    const files = [
+      {name:'FLIGHT PLAN ON 02NOV - VER 01.xlsx',modified:300},
+      {name:'crew-new.xlsx'},
+      {name:'FLIGHT PLAN ON 02NOV - VER 10.xlsx',modified:200},
+      {name:'FLIGHT PLAN ON 02NOV - VER 09.xlsx',modified:100},
+      {name:'crew-old.xlsx'},
+    ];
+    const calls: string[] = [];
+    const context = {
+      cmpSyncSeq:0, cmpSyncSources:{stamp:''}, xls:{file:'crew-new.xlsx'}, lastCmp:{table:[]},
+      cmpFplPair:(rows: typeof files) => cmpFplPair(rows,now), URLSearchParams,
+      cmpSyncRepaint() {}, cmpSyncEvidence() {},
+      fetch:async (url: string) => {
+        calls.push(url);
+        return {ok:true,json:async () => url === '/api/version/files' ? {files} : {rows:[]}};
+      },
+    };
+    const html = patchCmpSyncPage('function renderCompareTable(d, opts){');
+    const start = html.indexOf('async function cmpReadSyncSources()');
+    const end = html.indexOf('setInterval(',start);
+    vm.createContext(context);
+    await vm.runInContext(html.slice(start,end) + '\ncmpReadSyncSources()',context);
+    const pairs = calls.filter(url => url.startsWith('/api/version/diff?')).map(url => {
+      const params = new URLSearchParams(url.split('?')[1]);
+      return [params.get('old'),params.get('new')];
+    });
+    expect(pairs).toEqual([
+      ['crew-old.xlsx','crew-new.xlsx'],
+      ['FLIGHT PLAN ON 02NOV - VER 09.xlsx','FLIGHT PLAN ON 02NOV - VER 10.xlsx'],
+    ]);
+  });
   it('uses VER 10 versus VER 09 even when VER 01 is uploaded last', () => {
     const old = {name:'FLIGHT PLAN ON 02NOV - VER 09.xlsx',modified:100};
     const latest = {name:'FLIGHT PLAN ON 02NOV - VER 10.xlsx',modified:200};
