@@ -2416,10 +2416,32 @@ function nmPaintListBase(place, q){`)
     row.className = "nm-flt-choice";
     row.appendChild(ck);
     row.appendChild(b);`)
+    .replace('  const cur = (($("#nmFlt") || {}).value || "");\n  hits.forEach(opt => {', `  const cur = (($("#nmFlt") || {}).value || "");
+  {
+    const allRow = document.createElement("label");
+    allRow.className = "nm-flt-choice nm-flt-all";
+    const allCk = document.createElement("input");
+    allCk.type = "checkbox"; allCk.className = "nm-flt-ck";
+    allCk.checked = hits.length > 0 && hits.every(o => nmMulti.has(o.value));
+    allCk.setAttribute("aria-label", "Chọn tất cả chuyến");
+    allCk.onmousedown = ev => ev.stopPropagation();
+    allCk.onclick = ev => {
+      ev.stopPropagation();
+      hits.forEach(o => { if(allCk.checked) nmMulti.add(o.value); else nmMulti.delete(o.value); });
+      box.querySelectorAll(".nm-flt-choice:not(.nm-flt-all) .nm-flt-ck").forEach(c => { c.checked = allCk.checked; });
+      nmMultiLabel();
+    };
+    const t = document.createElement("span");
+    t.textContent = "Tất cả (" + hits.length + " chuyến)";
+    allRow.appendChild(allCk); allRow.appendChild(t);
+    box.appendChild(allRow);
+  }
+  hits.forEach(opt => {`)
     .replace('    box.appendChild(b);\n  });\n}\nfunction nmFltPlaceMenu', '    box.appendChild(row);\n  });\n}\nfunction nmFltPlaceMenu')
     .replace('</head>', `<style>
       #nmFltItems .nm-flt-choice{display:flex;align-items:center;gap:8px;padding-left:10px;min-height:42px}
       #nmFltItems .nm-flt-choice:has(input:checked){background:var(--x-red-50)}
+      #nmFltItems .nm-flt-all{font:800 15px/1.3 Arial,sans-serif;color:var(--x-red);border-bottom:1px solid var(--x-line);cursor:pointer;padding-right:10px}
       #wrapNotam #nmFltItems .nm-flt-choice>button{flex:1;min-width:0;text-align:left;width:auto}
       #nmFltItems .nm-flt-choice>.nm-flt-ck{display:block!important;visibility:visible!important;opacity:1!important;appearance:auto!important;position:static!important;flex:0 0 20px;width:20px!important;height:20px!important;margin:0!important;padding:0!important;accent-color:var(--x-red);cursor:pointer}
       #nmTrackMap .nm-side-pop{box-sizing:border-box;width:440px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);padding:54px 20px 20px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line);border-top:4px solid var(--x-red);border-radius:8px;box-shadow:0 8px 24px color-mix(in srgb,var(--x-ink) 20%,transparent);font:16px/1.6 Arial,Helvetica,sans-serif;overflow:auto;overflow-wrap:anywhere;scrollbar-gutter:stable}
@@ -2476,7 +2498,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.53')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.54')
     // General-table weather belongs to the whole cell, not just its small icon.
     // Read current flight data on entry and distinguish missing TAF from good WX.
     .replace(`  if(!segs && !raw && !t.tip) return;
