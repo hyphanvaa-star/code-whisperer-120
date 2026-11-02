@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 4.51: khung thông tin ẩn không chặn chuột; toàn ô TAF ở Hiển thị chung hiện dữ liệu hiện tại hoặc thông báo thiếu TAF. Cần người dùng thử lại trên máy công ty.
+
 - [x] V 4.18: NOTAM ↔ bản đồ mở đúng nhóm Impact/Manual/Brief/No Impact và đúng nguồn đang có; ưu tiên ranh giới thật trước điểm route, tìm cả vùng đã ẩn. 4 kiểm thử đạt, trang V 4.18 không lỗi; chưa thử chuyến thật vì không có phiên đăng nhập.
 - [x] V 4.17: thay logo VJ trong thanh sân bay/FIR bằng NOTAM tổng / IMPACT / NO IMPACT của toàn chuyến; tổng gồm manual/briefing, IMPACT gồm Critical/Delay-only, NO IMPACT gồm dòng bị lọc. 3 kiểm thử đạt, trang V 4.17 và không lỗi; chưa thử phiên chuyến thật.
 - [x] V 4.16: Layer có “Bật vùng ảnh hưởng toàn bộ”, khôi phục ranh giới đã lọc của chuyến đang xem; không thêm chấm thiếu tọa độ hay đổi kết quả giờ/hành lang. Thu gọn khoảng trống thanh đen; 25 kiểm thử đạt, trang phục vụ V 4.16. Chưa thử chuyến thật do chưa có phiên đăng nhập.

@@ -1078,6 +1078,7 @@ td .dim,.dim{color:var(--x-mute) !important}
 #detailWrap .pane{background:#12161d !important}
 /* High-contrast text on the shared dark hover surface, including Defect/Limit. */
 .taf-tip{
+  pointer-events:none!important;
   --hover-text:var(--vj-dark-ink);--hover-muted:#c5cddb;
   --hover-danger:#ffb4ac;--hover-success:#9af0bf;--hover-warning:#ffe099;
   color:var(--hover-text) !important;
@@ -1845,6 +1846,10 @@ const ATC_SKIN = `<style id="atc-result-skin">
 #ftAtcModal .crew-foot button,#ftAtcClose{pointer-events:auto!important;touch-action:manipulation}
 #ftAtcModal::before,#ftAtcModal::after,#ftAtcModal .sheet::before,#ftAtcModal .sheet::after{pointer-events:none!important}
 html.atc-review-open .cmp-tip{visibility:hidden!important;pointer-events:none!important}
+.cmp-tip:not(.on){display:none!important;visibility:hidden!important;pointer-events:none!important}
+.cmp-tip.on{visibility:visible}
+.taf-tip:not(.show){display:none!important;visibility:hidden!important;pointer-events:none!important}
+html.atc-review-open .taf-tip{display:none!important;pointer-events:none!important}
 html.night{--atc-paper:var(--atc-night-paper);--atc-stripe:var(--atc-night-stripe);--atc-hover:var(--atc-night-hover);--atc-ink:var(--atc-night-ink);--atc-line:var(--atc-night-line);--atc-missing:var(--atc-night-missing)}
 #wrapAtcCheck #acTbl{border-collapse:separate;border-spacing:0;color:var(--atc-ink) !important}
 #wrapAtcCheck #acTbl thead th{background:var(--atc-header) !important;color:var(--atc-on-color) !important;-webkit-text-fill-color:var(--atc-on-color) !important;border-color:var(--atc-header) !important;font-weight:800}
@@ -2469,7 +2474,22 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.50')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.51')
+    // General-table weather belongs to the whole cell, not just its small icon.
+    // Read current flight data on entry and distinguish missing TAF from good WX.
+    .replace(`  if(!segs && !raw && !t.tip) return;
+  s.onmouseenter = ev => showTafTip(ev, "", segs, raw);
+  s.onmousemove = moveTafTip;
+  s.onmouseleave = hideTafTip;`, `  td.onmouseenter = ev => {
+    const wx = f.taf_wx || {};
+    const parts = Array.isArray(wx.segments) ? wx.segments : [];
+    const text = wx.raw || wx.snippet || wx.tip || wx.why || wx.label || "Chưa có dữ liệu TAF cho sân đáp; bấm TAF để cập nhật.";
+    const destination = f.dest_icao || f.arr_icao || f.dest || f.arr || String(f.route || "").split(/[-/ ]+/).pop();
+    showTafTip(ev, [f.callsign, destination, "TAF sân đáp"].filter(Boolean).join(" · "), parts, text);
+  };
+  td.onmousemove = moveTafTip;
+  td.onmouseleave = hideTafTip;`)
+    .replace('  if(!t || !t.closest) return;\n  if(_tipHost', '  if(!t || !t.closest) return;\n  if(t.closest("#wrapGeneral td.taf-cell")) return;\n  if(_tipHost')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
