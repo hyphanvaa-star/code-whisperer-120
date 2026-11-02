@@ -130,7 +130,7 @@ export function AuthScreen() {
             <p>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
         </main>
-        <span className="sakura-version">V 4.49</span>
+        <span className="sakura-version">V 4.50</span>
       </div>
     </div>
   );
