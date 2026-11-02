@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 4.55: sửa thứ tự FPL mới/cũ theo ngày và số VER thực tế để REG FPL không lấy bản cũ tải lên muộn.
+
 - [x] V 4.51: khung thông tin ẩn không chặn chuột; toàn ô TAF ở Hiển thị chung hiện dữ liệu hiện tại hoặc thông báo thiếu TAF. Cần người dùng thử lại trên máy công ty.
 
 - [x] V 4.18: NOTAM ↔ bản đồ mở đúng nhóm Impact/Manual/Brief/No Impact và đúng nguồn đang có; ưu tiên ranh giới thật trước điểm route, tìm cả vùng đã ẩn. 4 kiểm thử đạt, trang V 4.18 không lỗi; chưa thử chuyến thật vì không có phiên đăng nhập.
