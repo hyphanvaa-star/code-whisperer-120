@@ -2023,7 +2023,7 @@ html.night .nm-get-place h5{color:#ff8ab8}
   grid-template-rows:auto minmax(0,1fr);column-gap:8px;row-gap:4px;
   margin:4px 14px 10px}
 .nm-main:has(#nmVerdict:not([hidden])){
-  grid-template-columns:minmax(0,1fr) minmax(260px,340px)}
+  grid-template-columns:minmax(0,1fr) minmax(300px,455px)}
 .nm-main > .nm-tabs{grid-column:1;grid-row:1;margin:0}
 .nm-main > .nm-split{grid-column:1;grid-row:2;margin:0;min-height:0}
 .nm-main > .nm-verdict{grid-column:2;grid-row:1 / -1;min-height:0;align-self:stretch;
@@ -13832,6 +13832,15 @@ function nmVerdictHead(box, subText){
   h.textContent = "Tóm tắt notam ảnh hưởng";
   top.appendChild(h);
   box.appendChild(top);
+  try{
+    const tb = document.getElementById("nmTabs");
+    if(tb && !tb.hidden && typeof nmMakeVjBrand === "function"){
+      const wrap = document.createElement("div");
+      wrap.className = "nm-vd-counts";
+      wrap.appendChild(nmMakeVjBrand());
+      box.appendChild(wrap);
+    }
+  }catch(e){}
   if(subText){
   const sub = document.createElement("div");
   sub.className = "nm-vd-sub";
@@ -14414,8 +14423,15 @@ function nmRender(){
     tabs.appendChild(row);
   }
   if(!tabs.hidden){
-    const rows = tabs.querySelectorAll(".nm-rail-row");
-    (rows[rows.length - 1] || tabs).appendChild(nmMakeVjBrand());
+    const vb = document.getElementById("nmVerdict");
+    if(vb && !vb.hidden){
+      const old = vb.querySelector(".nm-vd-counts");
+      const wrap = document.createElement("div");
+      wrap.className = "nm-vd-counts";
+      wrap.appendChild(nmMakeVjBrand());
+      if(old) old.replaceWith(wrap);
+      else { const top = vb.querySelector(".nm-vd-top"); if(top) top.after(wrap); else vb.prepend(wrap); }
+    }
   }
   if(hitsEl) hitsEl.hidden = !onHits;
   if(list) list.hidden = onHits;
