@@ -137,6 +137,16 @@ const SHIM = `<script>
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
   window.addEventListener('load', function(){
+    // Keep the review above hover panels, including on zoom-fitted desktops.
+    // Observe only its open state; never replace existing Send/Copy handlers.
+    var atcReview=document.getElementById('ftAtcModal');
+    if(atcReview){
+      var syncAtcReview=function(){
+        document.documentElement.classList.toggle('atc-review-open',atcReview.classList.contains('open'));
+      };
+      syncAtcReview();
+      new MutationObserver(syncAtcReview).observe(atcReview,{attributes:true,attributeFilter:['class']});
+    }
     var room=document.getElementById('mdRoom'), actions=document.querySelector('.filt-actions');
     if(room && actions && actions.parentElement!==room) room.appendChild(actions);
     // EFB field lives in the Tạo KHB tab, right next to the Dispatcher box.
@@ -1826,6 +1836,15 @@ const ddScript = `
 let cached: string | null = null;
 
 const ATC_SKIN = `<style id="atc-result-skin">
+/* The original review was z-index 50, below the 9999 hover/dropdown panels. */
+#ftAtcModal{z-index:10020!important;isolation:isolate;box-sizing:border-box;pointer-events:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#ftAtcModal:not(.open){display:none!important;visibility:hidden!important}
+#ftAtcModal.open{display:flex!important;visibility:visible!important;pointer-events:auto!important}
+#ftAtcModal>.sheet{position:relative;pointer-events:auto!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#ftAtcModal .crew-foot{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;pointer-events:auto!important}
+#ftAtcModal .crew-foot button,#ftAtcClose{pointer-events:auto!important;touch-action:manipulation}
+#ftAtcModal::before,#ftAtcModal::after,#ftAtcModal .sheet::before,#ftAtcModal .sheet::after{pointer-events:none!important}
+html.atc-review-open .cmp-tip{visibility:hidden!important;pointer-events:none!important}
 html.night{--atc-paper:var(--atc-night-paper);--atc-stripe:var(--atc-night-stripe);--atc-hover:var(--atc-night-hover);--atc-ink:var(--atc-night-ink);--atc-line:var(--atc-night-line);--atc-missing:var(--atc-night-missing)}
 #wrapAtcCheck #acTbl{border-collapse:separate;border-spacing:0;color:var(--atc-ink) !important}
 #wrapAtcCheck #acTbl thead th{background:var(--atc-header) !important;color:var(--atc-on-color) !important;-webkit-text-fill-color:var(--atc-on-color) !important;border-color:var(--atc-header) !important;font-weight:800}
@@ -2450,7 +2469,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.49')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.50')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
   return cached;
