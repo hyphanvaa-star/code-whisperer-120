@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 4.55: Compare chọn hai số VER khác nhau của cùng ngày, không lấy bản cũ tải lên muộn; giữ thứ tự Crewlist và xác nhận đổi tàu. Kiểm thử VER 10/09, khác ngày, bản trùng và giao năm; cần người dùng thử lại VJ155 trên chuyến thật.
+
 - [x] V 4.51: khung thông tin ẩn không chặn chuột; toàn ô TAF ở Hiển thị chung hiện dữ liệu hiện tại hoặc thông báo thiếu TAF. Cần người dùng thử lại trên máy công ty.
 
 - [x] V 4.18: NOTAM ↔ bản đồ mở đúng nhóm Impact/Manual/Brief/No Impact và đúng nguồn đang có; ưu tiên ranh giới thật trước điểm route, tìm cả vùng đã ẩn. 4 kiểm thử đạt, trang V 4.18 không lỗi; chưa thử chuyến thật vì không có phiên đăng nhập.

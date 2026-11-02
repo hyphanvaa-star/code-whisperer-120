@@ -30,11 +30,37 @@ export function cmpPilotChanges(oldRaw: unknown, newRaw: unknown) {
   return ['cptText', 'foText'].filter(key => next[key] && old[key] !== next[key]).map(key => ({key, from: old[key] || '', to: next[key]}));
 }
 
+/** Pick distinct numeric revisions from one operating date, never upload order. */
+export function cmpFplPair<T extends { name: string; modified?: number }>(files: T[], now = Date.now()): T[] {
+  const reference = new Date(now);
+  const year = reference.getUTCFullYear();
+  const candidates = files.flatMap(file => {
+    const ver = /\bVER\D{0,3}(\d+)/i.exec(file.name);
+    const date = /\bON\s*(\d{1,2})\s*([A-Z]{3})(?:\s+(20\d{2}))?/i.exec(file.name);
+    if (!ver || !date) return [];
+    const month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(String(date[2]).toUpperCase());
+    const day = Number(date[1]);
+    if (month < 0 || day < 1 || day > 31) return [];
+    const years = date[3] ? [Number(date[3])] : [year - 1, year, year + 1];
+    const dates = years.map(y => Date.UTC(y, month, day)).filter(t => new Date(t).getUTCMonth() === month);
+    dates.sort((a,b) => Math.abs(a - now) - Math.abs(b - now));
+    const stamp = dates[0];
+    if (stamp === undefined) return [];
+    return [{file, stamp, revision: Number(ver[1])}];
+  });
+  candidates.sort((a,b) => b.stamp - a.stamp || b.revision - a.revision || Number(b.file.modified || 0) - Number(a.file.modified || 0));
+  const latest = candidates[0];
+  if (!latest) return [];
+  const previous = candidates.find(c => c.stamp === latest.stamp && c.revision < latest.revision);
+  return previous ? [previous.file, latest.file] : [];
+}
+
 export function patchCmpSyncPage(html: string): string {
   return html.replace('function renderCompareTable(d, opts){', `
 const cmpSourceChange = ${cmpSourceChange.toString()};
 const cmpAircraftChange = ${cmpAircraftChange.toString()};
 const cmpPilotChanges = ${cmpPilotChanges.toString()};
+const cmpFplPair = ${cmpFplPair.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
 const cmpSyncChecks = new Map();
 let cmpSyncRowSource = null, cmpSyncRowIndex = new Map();
@@ -153,9 +179,9 @@ async function cmpReadSyncSources(){
     const response = await fetch("/api/version/files"), d = await response.json();
     if(!response.ok || d.error || seq !== cmpSyncSeq) return;
     const files = d.files || [], current = (xls && xls.file) || d.current;
-    const crews = files.filter(f=>!(/\\bVER\\s*\\d+/i.test(f.name))), fpls = files.filter(f=>/\\bVER\\s*\\d+/i.test(f.name));
+    const crews = files.filter(f=>!(/\\bVER\\s*\\d+/i.test(f.name)));
     const ix = crews.findIndex(f=>f.name===current);
-    const pairs = {crew: ix>=0 && crews[ix+1] ? [crews[ix+1],crews[ix]] : [], fpl:fpls.length>=2 ? [fpls[1],fpls[0]] : []};
+    const pairs = {crew: ix>=0 && crews[ix+1] ? [crews[ix+1],crews[ix]] : [], fpl:cmpFplPair(files)};
     const stamp = JSON.stringify([current,pairs]);
     if(cmpSyncSources.stamp !== stamp){
       const results = await Promise.all(["crew","fpl"].map(async kind=>{
