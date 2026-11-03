@@ -463,6 +463,49 @@ function renderCompareTable(d, opts){`)
     }`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('<span class="dim xls-bar-name crew-using" id="cmpVerBar"', '<button id="cmpAtcBtn" type="button" class="btn" onclick="cmpReadAtc((lastCmp && lastCmp.table) || [])" title="Đọc trạng thái ATC trên AviWeb cho các chuyến trong bảng">ATC check</button> <span class="dim xls-bar-name crew-using" id="cmpVerBar"')
+    .replace('<button id="cmpAtcBtn"', '<button id="cmpHoBtn" type="button" class="btn" onclick="cmpToHandover()" title="Tạo bảng giao ca từ các chuyến của DSP trong bảng So sánh (kèm NOTE)">Giao ca</button> <button id="cmpAtcBtn"')
+    .replace('function renderCompareTable(d, opts){', `function cmpToHandover(){
+  const all = (lastCmp && lastCmp.table) || [];
+  if(!all.length){ alert("Bảng So sánh chưa có chuyến — bấm Cmp trước."); return; }
+  const names = [...new Set(all.map(r => String(r.dsp || "").trim()).filter(Boolean))];
+  let name = ($("#fDispatcher") && $("#fDispatcher").value) || "";
+  if(!name){
+    const pick = prompt("Chọn người giao ca (gõ số):\\n" + names.map((n,i) => (i+1) + ". " + n).join("\\n"), "1");
+    if(pick == null) return;
+    name = names[Number(pick) - 1] || names.find(n => dspKey(n) === dspKey(pick)) || "";
+    if(!name){ alert("Không thấy DSP đó trong bảng So sánh."); return; }
+  }
+  const rows = all.filter(r => dspKey(r.dsp || "") === dspKey(name));
+  if(!rows.length){ alert("DSP " + name + " không có chuyến trong bảng So sánh."); return; }
+  const out = rows.map(r => {
+    const f = cmpActionFlight(r) || {callsign: r.callsign, std: "", sta: "", dep: r.dep, dest: r.arr, reg: r.reg};
+    const row = hoFromFlight(f, {});
+    const tr = (document.querySelector('#cmpBody td[data-sid="' + r.sector_id + '"]') || {}).closest ? document.querySelector('#cmpBody td[data-sid="' + r.sector_id + '"]').closest("tr") : null;
+    const note = tr && tr.querySelector(".cmp-note-input");
+    row.note = (note && note.value.trim()) || "";
+    const regTd = document.querySelector('#cmpBody td[data-fpl-reg-sid="' + r.sector_id + '"]');
+    const reg = regTd && (regTd.textContent.match(/[A-Z]{2,3}-?[A-Z0-9]{3,5}/) || [])[0];
+    if(reg) row.ac = reg.replace("-", "");
+    const pld = tr && tr.querySelector('td[data-w="pld"]');
+    const pt = pld && pld.textContent.trim();
+    if(!row.payload && pt && /\\d/.test(pt)) row.payload = pt;
+    if(!row.std && r.std) row.std = String(r.std).slice(-5).replace(":", "") + "Z";
+    if(!row.sta && r.sta) row.sta = String(r.sta).replace(":", "") + "Z";
+    return row;
+  }).sort((a,b) => String(a.std).localeCompare(String(b.std)));
+  setMode("handover");
+  Promise.resolve(hoShow()).then(() => {
+    hoFillDspList();
+    if($("#hoDsp")) $("#hoDsp").value = name;
+    if($("#hoFrom")) $("#hoFrom").value = name;
+    const tb = $("#hoBody"); tb.innerHTML = "";
+    out.forEach(hoAddRow);
+    while(tb.children.length < Math.max(HO_BLANK, out.length + 3)) hoAddRow({});
+    hoSay(out.length + " chuyến lấy từ bảng So sánh");
+    hoSyncAllColTicks(); hoPaintMeta(); hoMarkDirty();
+  });
+}
+function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(12),.cmptbl :is(th,td):nth-child(n+16):nth-child(-n+20){display:none!important}
 .cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
