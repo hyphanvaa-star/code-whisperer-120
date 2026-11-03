@@ -2498,7 +2498,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.67')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.68')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
     .replace('  ["CREW", "So theo mã nhân viên.', '  ["STD/ETD", "Giờ local theo Crewlist. Chỉ có STD thì hiện STD; có ETD mới thì hiện cả STD và ETD, ETD màu xanh lá."],\n  ["CREW", "So theo mã nhân viên.')
