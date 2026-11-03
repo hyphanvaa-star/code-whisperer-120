@@ -36,7 +36,7 @@ export function cmpFplPair<T extends { name: string; modified?: number }>(files:
   const year = reference.getUTCFullYear();
   const candidates = files.flatMap(file => {
     const ver = /\bVER\D{0,3}(\d+)/i.exec(file.name);
-    const date = /\bON\s*(\d{1,2})\s*([A-Z]{3})(?:\s+(20\d{2}))?/i.exec(file.name);
+    const date = /(?:^|[^0-9])(\d{1,2})\s*[-_ ]?\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?![A-Z])(?:\s*[-_ ]?\s*(20\d{2}))?/i.exec(file.name);
     if (!ver || !date) return [];
     const month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(String(date[2]).toUpperCase());
     const day = Number(date[1]);
@@ -136,7 +136,9 @@ function cmpMsgPaint(r){
   const f = cmpActionFlight(r);
   const row = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.fpl, f.id, f.std) : null;
   const raw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
-  const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? "DLA" : "";
+  const crewRow = f ? cmpSourceChange(cmpSyncSources.crew, f.id, f.std) : null;
+  const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg));
+  const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? (acChg ? "CHG DLA" : "DLA") : acChg ? "CHG A/C" : "";
   if(!kind) return;
   const b = document.createElement("button"); b.type = "button"; b.className = "cmp-msg-quick";
   b.textContent = kind === "CHG A/C" ? "CHG" : kind;
@@ -144,7 +146,7 @@ function cmpMsgPaint(r){
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
   b.onclick = ev => {ev.stopPropagation(); menu.value = kind; menu.onchange();};
-  menu.hidden = true; td.prepend(b);
+  td.prepend(b);
 }
 function cmpSyncRepaint(rows){ for(const r of (rows || ((lastCmp && lastCmp.table) || []))){ for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); cmpMsgPaint(r); } }
 async function cmpSyncOpen(r, kind){
@@ -227,7 +229,7 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-sync-action.synced{border-radius:999px!important;border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
 .cmptbl .cmp-sync-action:disabled:not(.synced){opacity:.55;cursor:default}
 .cmptbl .cmp-sync-action:focus-visible,.cmptbl .cmp-sync-pick:focus-visible{outline:2px solid var(--red);outline-offset:3px}
-.cmptbl .cmp-msg-quick{min-width:70px;min-height:30px;padding:4px 10px;border:0;border-radius:7px;background:var(--red);color:#fff;font:800 12px/1.3 inherit;cursor:pointer}
+.cmptbl .cmp-msg-quick{display:block;margin:0 auto 4px;min-width:70px;min-height:30px;padding:4px 10px;border:0;border-radius:7px;background:var(--red);color:#fff;font:800 12px/1.3 inherit;cursor:pointer}
 .cmptbl .cmp-msg-quick:disabled{opacity:.55}
 .cmptbl .cmp-sync-pick{border:0;background:transparent;color:var(--text);font-size:18px;padding:4px;cursor:pointer;vertical-align:middle}
 </style></head>`);
