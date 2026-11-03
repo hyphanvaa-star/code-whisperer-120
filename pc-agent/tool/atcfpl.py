@@ -1162,7 +1162,10 @@ def submit_fpl(
                 if cancel is not None and cancel.is_set():
                     say("— đã huỷ hoàn toàn —")
                     break
-                it.reason = _why(exc)
+                avi = _aviweb_error_text(driver)
+                it.reason = (f"AviWeb báo lỗi: {avi}" if avi else _why(exc))
+                if avi:
+                    final_clicked = True  # đã có lỗi hệ thống — không tự gửi lại
                 res.failed.append(name)
                 res.errors.append(f"{it.label}: {it.reason}")
                 say(f"✗ {it.label} — {it.reason}", name)
