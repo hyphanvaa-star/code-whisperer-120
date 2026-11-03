@@ -114,11 +114,22 @@ async function cmpSyncCheck(e){
   cmpSyncChecks.set(cmpSyncKey(e), {ok, file: String(it.reg_atch_file || "")});
   return ok;
 }
+function cmpSyncWrapText(td){
+  Array.from(td.childNodes).forEach(n => {
+    if(n.nodeType === 3 && n.textContent.trim()){
+      const s = document.createElement("span");
+      s.className = "cmp-sync-orig";
+      s.textContent = n.textContent;
+      td.replaceChild(s, n);
+    }
+  });
+}
 function cmpSyncPaint(r, kind){
   const attr = kind === "crew" ? "data-crew-sid" : kind === "aims" ? "data-reg-sid" : "data-fpl-reg-sid";
   const td = document.querySelector('#cmpBody td[' + attr + '="' + r.sector_id + '"]');
   if(!td) return;
   td.querySelectorAll(".cmp-sync-action,.cmp-sync-pick").forEach(b => b.remove());
+  cmpSyncWrapText(td);
   Array.from(td.children).forEach(el => {el.hidden = false;});
   const e = cmpSyncEvidence(r, kind);
   if(!e) return;
