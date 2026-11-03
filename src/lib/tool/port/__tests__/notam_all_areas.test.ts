@@ -45,25 +45,26 @@ describe('all NOTAM areas map layer', () => {
     expect(s.context.window.nmGrpPlace).toBe('FIR:RPHI');
     expect(s.context.nmFindHit('B2')?.shape).toBe('circle');
   });
-  it('keeps NO IMPACT areas hidden by default', () => {
+  it('hides MINOR areas when the hide box is ticked', () => {
     const s = screen();
+    s.toggle(true);
     s.context.nmPlotHits([s.impact]);
     expect(s.plotted().map(h => h.ident)).toEqual(['A1']);
   });
-  it('restores excluded boundaries only, without duplicate shapes or changing assessment', () => {
+  it('shows excluded boundaries by default, without duplicate shapes or changing assessment', () => {
     const s = screen();
-    s.toggle(true);
+    s.toggle(false);
     s.context.nmPlotHits([s.impact]);
     expect(s.plotted().map(h => h.ident)).toEqual(['A1', 'B2']);
     expect(JSON.stringify(s.pack)).toBe(s.original);
     expect(s.redraws()).toBe(1);
   });
-  it('hides restored areas again when the layer is switched off', () => {
+  it('shows MINOR areas again when the hide box is unticked', () => {
     const s = screen();
     s.toggle(true);
     s.toggle(false);
     s.context.nmPlotHits([s.impact]);
-    expect(s.plotted().map(h => h.ident)).toEqual(['A1']);
+    expect(s.plotted().map(h => h.ident)).toEqual(['A1', 'B2']);
     expect(s.redraws()).toBe(2);
   });
 });
