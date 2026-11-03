@@ -543,8 +543,8 @@ export const routes: Routes = {
     if (efb) (db as { tlk: string }).tlk = efb;
     const routeDoc = await loadRouteDoc(ctx);
     const extra = ft.extraMinutesText(w.extra_time);
-    const oldDsp = ft.ofpDispatcher(txt) || dsp;
-    if (!oldDsp) return { error: "OFP cũ không ghi tên DSP và chưa điền tên DSP." };
+    const oldDsp = ft.ofpDispatcher(txt);
+    if (!oldDsp) return { error: "OFP cũ không ghi tên DSP — không soạn REQ (không lấy tên từ ô DSP trên web)." };
     const item: Raw = { id: flight.row, seq: String(body.seq || ""), pay: String(Math.trunc(w.pld)), extra };
     const text = ft.build_req(db, [item], oldDsp, routeDoc.rows || []);
     if (!text.trim()) return { error: "Không soạn được REQ." };
