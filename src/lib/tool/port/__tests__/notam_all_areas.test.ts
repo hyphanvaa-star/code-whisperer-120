@@ -59,12 +59,12 @@ describe('all NOTAM areas map layer', () => {
     expect(JSON.stringify(s.pack)).toBe(s.original);
     expect(s.redraws()).toBe(1);
   });
-  it('hides restored areas again when the layer is switched off', () => {
+  it('shows MINOR areas again when the hide box is unticked', () => {
     const s = screen();
     s.toggle(true);
     s.toggle(false);
     s.context.nmPlotHits([s.impact]);
-    expect(s.plotted().map(h => h.ident)).toEqual(['A1']);
+    expect(s.plotted().map(h => h.ident)).toEqual(['A1', 'B2']);
     expect(s.redraws()).toBe(2);
   });
 });
