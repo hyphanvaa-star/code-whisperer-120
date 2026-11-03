@@ -17239,29 +17239,62 @@ async function nmClearBriefPins(){
 function nmPinAttr(el, name){
   return el.getAttribute(name) || "";
 }
+let nmPinQ = "";
 function nmPaintPinClear(){
   const box = $("#nmPinList");
   if(!box) return;
   const cloud = (nmPins && nmPins.cloud) || [];
   const flights = (nmPins && nmPins.flights) || {};
-  const keys = Object.keys(flights).sort();
-  const rows = [];
-  if(!cloud.length && !keys.length){
-    box.innerHTML = '<div class="nm-pin-empty">Không còn NOTAM ghim.</div>';
+  const keys = Object.keys(flights).filter(k => (flights[k] || []).length).sort();
+  const all = cloud.concat(...keys.map(k => flights[k]));
+  const uniq = new Set(all.map(x => String(x.ident || "").toUpperCase()));
+  const fir = all.filter(x => String(x.kind).toUpperCase() === "FIR").length;
+  const note = all.filter(x => !/^[A-Z]\d{3,5}\/\d{2}$/.test(String(x.ident || "").toUpperCase())).length;
+  const codes = {};
+  for(const x of all){ const c = String(x.code || "").toUpperCase(); if(c) codes[c] = (codes[c] || 0) + 1; }
+  const topCodes = Object.entries(codes).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  let newest = 0;
+  for(const x of all){ const t = Date.parse(x.added_at || ""); if(t > newest) newest = t; }
+  const p = n => String(n).padStart(2, "0");
+  const nw = newest ? (p(new Date(newest).getHours()) + ":" + p(new Date(newest).getMinutes())) : "—";
+  const stat = (n, l, c) => '<div class="nmL-st ' + c + '"><b>' + n + '</b><span>' + l + '</span></div>';
+  const head = '<div class="nmL-stats">'
+    + stat(uniq.size, "NOTAM khác nhau", "a") + stat(all.length, "Tổng lượt ghim", "b")
+    + stat(cloud.length, "Cloud", "c") + stat(keys.length, "Chuyến có ghim", "d")
+    + stat(all.length - fir, "Sân bay", "e") + stat(fir, "FIR", "f")
+    + stat(note, "Ghi chú", "g") + stat(nw, "Ghim mới nhất", "h") + '</div>'
+    + (topCodes.length ? '<div class="nmL-codes">' + topCodes.map(([c, n]) => '<span>' + esc(c) + ' <b>' + n + '</b></span>').join("") + '</div>' : '')
+    + '<div class="nmL-auto">Tự xoá toàn bộ ghim khi bạn offline quá 2 giờ.</div>'
+    + '<input class="nmL-q" id="nmPinQ" type="search" placeholder="Tìm số NOTAM, sân bay, chuyến, nội dung…" value="' + esc(nmPinQ) + '">';
+  if(!all.length){
+    box.innerHTML = head + '<div class="nm-pin-empty">Không còn NOTAM ghim.</div>';
     return;
   }
-  if(cloud.length){
-    rows.push('<div class="nm-pin-sec">Cloud</div>');
-    for(const item of cloud) rows.push(nmPinRow(item, "cloud", ""));
-  }
-  for(const cs of keys){
-    const list = flights[cs] || [];
-    if(!list.length) continue;
-    rows.push('<div class="nm-pin-sec">Chuyến ' + esc(cs) + '</div>');
-    for(const item of list) rows.push(nmPinRow(item, "flight", cs));
-  }
+  const q = nmPinQ.trim().toUpperCase();
+  const hit = (x, extra) => !q || (String(x.ident) + " " + x.code + " " + x.brief + " " + extra).toUpperCase().includes(q);
+  const rows = [head];
+  const sec = (title, list, scope, cs) => {
+    const shown = list.filter(x => hit(x, cs || "CLOUD"));
+    if(!shown.length) return;
+    rows.push('<div class="nm-pin-sec"><span>' + title + '</span><i>' + shown.length + '</i></div>');
+    for(const item of shown) rows.push(nmPinRow(item, scope, cs));
+  };
+  if(cloud.length) sec("Cloud", cloud, "cloud", "");
+  for(const cs of keys) sec("Chuyến " + esc(cs), flights[cs], "flight", cs);
+  if(rows.length === 1) rows.push('<div class="nm-pin-empty">Không có kết quả.</div>');
   box.innerHTML = rows.join("");
+  const qi = $("#nmPinQ");
+  if(qi){ qi.oninput = () => { nmPinQ = qi.value; const pos = qi.selectionStart; nmPaintPinClear(); const n = $("#nmPinQ"); n.focus(); n.setSelectionRange(pos, pos); }; }
 }
+(function(){ try{
+  const K = "nmPinsAlive:" + ((window.parent && window.parent.__fbUserId && window.parent.__fbUserId()) || "u");
+  const last = +localStorage.getItem(K) || 0;
+  const beat = () => localStorage.setItem(K, String(Date.now()));
+  if(last && Date.now() - last > 2 * 3600000){
+    setTimeout(() => { fetch("/api/notam/pins/clear", {method: "POST", cache: "no-store"}).then(() => { if(typeof nmLoadPins === "function") nmLoadPins(); }).catch(() => {}); }, 2500);
+  }
+  beat(); setInterval(beat, 30000);
+}catch(e){} })();
 function nmPinRow(item, scope, flight){
   const ident = String((item && item.ident) || "");
   const brief = String((item && item.brief) || "");
