@@ -23030,10 +23030,6 @@ let lastCmp = null;       // kết quả đối chiếu gần nhất, để vẽ
 let cmpQs = "";           // bộ lọc mà lastCmp được tính với — xem setMode("compare")
 
 function setMode(m){
-  if(m === "compare" && !xls){
-    alert("Chưa có file Crewlist.\n\nBấm \"Crewlist Aims\" trên thanh lọc để chọn file trước.");
-    return;
-  }
   mode = m;
   const cmp = m === "compare", tool = m === "tool", ver = m === "version";
   const fpl = m === "fpl";
@@ -23147,6 +23143,9 @@ function setMode(m){
       renderCompareTable(lastCmp);
     }else if(xls){
       runCompare();
+    }else if(!$("#cmpBody").querySelector("tr")){
+      $("#cmpBody").innerHTML = '<tr><td colspan="99" class="empty">'
+        + 'Chưa có file Crewlist Aims để so sánh. Bấm nút CREW để nạp file.</td></tr>';
     }
     if(xlsData) renderExcel();
     else if(xls) loadExcelRows();
