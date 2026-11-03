@@ -1,25 +1,31 @@
-// Browser-session marker: a cookie with no expiry is shared by all tabs and
-// dropped when the browser closes, so reopening requires the password again.
-const NAME = "sh_alive";
-const attrs = () =>
-  `path=/; SameSite=${location.protocol === "https:" ? "None; Secure" : "Lax"}`;
+// Browser-session heartbeat: every open tab refreshes a shared timestamp.
+// A new tab joins while another tab is alive; once all tabs/the browser are
+// closed the heartbeat goes stale, so reopening requires the password again.
+// (Session cookies/sessionStorage are restored by "continue where you left off".)
+const KEY = "sh_alive_hb";
+const STALE_MS = 20_000;
+let timer: ReturnType<typeof setInterval> | null = null;
+
+function beat() { try { localStorage.setItem(KEY, String(Date.now())); } catch { /* ignore */ } }
 
 export function markBrowserSession() {
-  try { document.cookie = `${NAME}=1; ${attrs()}`; } catch { /* ignore */ }
+  beat();
+  if (!timer && typeof window !== "undefined") {
+    timer = setInterval(beat, 5_000);
+    window.addEventListener("pagehide", beat);
+  }
 }
 
 export function clearBrowserSession() {
-  try { document.cookie = `${NAME}=; max-age=0; ${attrs()}`; } catch { /* ignore */ }
+  if (timer) { clearInterval(timer); timer = null; }
+  try { localStorage.removeItem(KEY); } catch { /* ignore */ }
 }
 
-/** true = browser was closed since login (cookie gone) and cookies work. */
+/** true = no tab has been alive recently (all tabs/browser were closed). */
 export function browserSessionExpired(): boolean {
   try {
-    if (document.cookie.split("; ").some((c) => c === `${NAME}=1`)) return false;
-    document.cookie = `sh_probe=1; ${attrs()}`;
-    const ok = document.cookie.includes("sh_probe=1");
-    document.cookie = `sh_probe=; max-age=0; ${attrs()}`;
-    return ok; // if cookies are blocked, never force a sign-out
+    const t = Number(localStorage.getItem(KEY) || 0);
+    return !t || Date.now() - t > STALE_MS;
   } catch {
     return false;
   }
