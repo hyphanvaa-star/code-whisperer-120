@@ -1,3 +1,4 @@
+import { markBrowserSession } from "@/lib/browser-session";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
