@@ -53,6 +53,7 @@ export function AuthScreen() {
       if (error) {
         toast.error("Sai ID hoặc mật khẩu");
       } else {
+        markBrowserSession();
         navigate({ to: "/tool", replace: true });
       }
     } finally {

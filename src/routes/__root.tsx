@@ -131,9 +131,16 @@ function RootComponent() {
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
-    void supabase.auth.getUser().then(({ data }) => {
+    void (async () => {
+      const { data: s } = await supabase.auth.getSession();
+      if (s.session && browserSessionExpired()) {
+        await supabase.auth.signOut({ scope: "local" });
+        return;
+      }
+      if (s.session) markBrowserSession();
+      const { data } = await supabase.auth.getUser();
       if (alive && !identityChanged) setChatUserId(data.user?.id ?? null);
-    }).catch(() => {});
+    })().catch(() => {});
     return () => { alive = false; data.subscription.unsubscribe(); };
   }, [router, queryClient]);
 
