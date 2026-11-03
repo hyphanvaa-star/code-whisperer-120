@@ -503,7 +503,6 @@ export const routes: Routes = {
     if (!db) return { error: NO_CREWLIST };
     const sectorId = Number(body.sector_id) || 0;
     if (!sectorId) return { error: "Không tra được chuyến trên FliteBrief." };
-    const dsp = String(body.dsp || "").trim();
     const dg = (v: unknown) => String(v ?? "").replace(/\D/g, "").replace(/^0+/, "");
     const up = (v: unknown) => String(v ?? "").trim().toUpperCase();
     const [dep, arr] = String(body.route || "").split("-").map(up);
