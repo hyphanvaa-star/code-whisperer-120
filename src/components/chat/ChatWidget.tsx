@@ -10,6 +10,31 @@ type Profile = { id: string; email: string | null; display_name: string | null }
 
 const GROUP_NAME = "Phòng chung";
 
+let audioCtx: AudioContext | null = null;
+/** Tiếng "ting" hai nốt kiểu Messenger */
+function playMessengerPing() {
+  try {
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    audioCtx = audioCtx || new AC();
+    const ctx = audioCtx;
+    if (ctx.state === "suspended") void ctx.resume();
+    const t0 = ctx.currentTime;
+    [[880, 0], [1320, 0.11]].forEach(([f, d]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f, t0 + d);
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(0.35, t0 + d + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.22);
+      o.connect(g).connect(ctx.destination);
+      o.start(t0 + d);
+      o.stop(t0 + d + 0.25);
+    });
+    navigator.vibrate?.([120, 60, 120]);
+  } catch { /* trình duyệt chặn âm thanh */ }
+}
+
 function nameOf(p: Profile | undefined, fallback: string) {
   return (p?.display_name || p?.email || fallback).toString();
 }
@@ -170,10 +195,15 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     if (active && open) markRead(active.id);
   }, [active, open, messages.length, markRead]);
 
+  const totalUnread = Object.entries(unread).reduce((s, [id, n]) => (active && open && id === active.id ? s : s + n), 0);
+  const prevUnread = useRef(0);
+  useEffect(() => {
+    if (totalUnread > prevUnread.current) playMessengerPing();
+    prevUnread.current = totalUnread;
+  }, [totalUnread]);
+
   if (!me) return null;
   void readKey;
-
-  const totalUnread = Object.entries(unread).reduce((s, [id, n]) => (active && open && id === active.id ? s : s + n), 0);
   const badge = (n: number, cls = "") =>
     n > 0 ? (
       <span className={`flex min-w-5 h-5 items-center justify-center rounded-full border-2 border-[var(--chat-panel)] bg-[var(--chat-danger)] px-1 text-[11px] font-bold leading-none text-white ${cls}`}>
@@ -236,9 +266,11 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
 
   return (
     <>
+      <style>{`@keyframes chatShake{0%,60%,100%{transform:rotate(0)}65%{transform:rotate(-14deg)}70%{transform:rotate(12deg)}75%{transform:rotate(-10deg)}80%{transform:rotate(8deg)}85%{transform:rotate(-4deg)}90%{transform:rotate(0)}}`}</style>
       <button
         aria-label="Chat nội bộ"
         onClick={() => setOpen((v) => !v)}
+        style={totalUnread > 0 && !open ? { animation: "chatShake 1.6s ease-in-out infinite" } : undefined}
         className="fixed bottom-5 right-5 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--chat-accent)] p-3.5 text-[var(--chat-accent-ink)] shadow-[0_6px_20px_-4px_oklch(0.66_0.19_150/0.6)] transition-transform hover:scale-105 active:scale-95"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
