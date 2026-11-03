@@ -254,14 +254,22 @@ function cmpAtcPut(f, status, error, reg, eobt){
   else cmpAtcCache.set(key, {status, error, reg: reg || "", eobt: eobt || "", time: Date.now()});
 }
 function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
-async function cmpReadAtc(rows){
+let cmpAtcAutoPending = false;
+function cmpAtcAutoRun(rows){
+  if(!cmpAtcAutoPending || cmpAtcBusy) return;
+  const sel = document.getElementById("fDispatcher");
+  if(!sel || !sel.value || !rows || !rows.length) return;
+  cmpAtcAutoPending = false;
+  cmpReadAtc(rows, true);
+}
+async function cmpReadAtc(rows, quiet){
   rows.forEach(cmpAtcPaint);
   if(cmpAtcBusy) return;
   const targets = rows.map(r => ({r, f: cmpActionFlight(r)})).filter(x => x.f && /^VV/i.test(String(x.f.dep_icao || x.f.dep || x.r.dep || "")));
   const todo = targets.filter(x => {
         return targets.filter(y => y.f.callsign === x.f.callsign).length === 1;
   });
-  if(!todo.length){ alert(rows.length ? "Không có chuyến cất cánh từ Việt Nam để check ATC (hoặc chuyến trùng số hiệu)." : "Bảng chưa có chuyến — bấm Cmp trước."); return; }
+  if(!todo.length){ if(quiet) return; alert(rows.length ? "Không có chuyến cất cánh từ Việt Nam để check ATC (hoặc chuyến trùng số hiệu)." : "Bảng chưa có chuyến — bấm Cmp trước."); return; }
   cmpAtcBusy = true;
   const btn = document.getElementById("cmpAtcBtn");
   if(btn){ btn.disabled = true; btn.textContent = "Đang check…"; }
@@ -427,9 +435,11 @@ function cmpValPaint(sid){
   cmpTipEnsure();
 }
 function renderCompareTable(d, opts){`)
-    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  rows.forEach(cmpAtcPaint);\n  cmpReadFplRegs(rows);\n  fillWeights(rows, !!opts.refreshWeights);')
+    .replace('  fillWeights(rows, !!opts.refreshWeights);', '  cmpOpsRepaint(rows);\n  rows.forEach(cmpAtcPaint);\n  cmpReadFplRegs(rows);\n  setTimeout(() => cmpAtcAutoRun(rows), 0);\n  fillWeights(rows, !!opts.refreshWeights);')
     .replace('    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights', '    cmpOpsRepaint();\n    if(changed) render();\n  }catch(_){}\n}\nasync function loadFlights')
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
+    .replace('    xls = d;\n', '    xls = d;\n    cmpAtcAutoPending = true;\n')
+    .replace('  fplVerApplied = {old: $("#vOld").value, new: $("#vNew").value};', '  fplVerApplied = {old: $("#vOld").value, new: $("#vNew").value};\n  cmpAtcAutoPending = true;\n  if(lastCmp && lastCmp.table) cmpAtcAutoRun(lastCmp.table);')
     .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
     .replace(`    for(const k of ["ezfw", "etp", "rres"]){
       const td = document.createElement("td");
