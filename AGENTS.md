@@ -10,7 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
-- Login uses scoped sakura CSS and password sign-in; disable unconfigured alternatives. Preserve saved sessions on page/tab opens; the managed gate validates users, and explicit sign-out clears sessions to avoid cross-tab logout.
+- Login uses scoped sakura CSS and password sign-in; disable unconfigured alternatives. Preserve sessions across tabs but drop them after a browser restart via the session-cookie marker in `src/lib/browser-session.ts`; the managed gate validates users, and explicit sign-out clears sessions to avoid cross-tab logout.
 - Compare handover scope is browser-local and implemented through the `cmp_validation` shim: broaden only the existing Compare read, filter/deduplicate by sector and DSP, resolve actions through the live operational catalogue, and never change the primary filter or other tabs.
 - Compare actions stay in `cmp_validation`/`cmp_sync`: REG FPL prefers Excel revisions; BF requires aircraft-change evidence and unique in-window sectors. CFP REQ reuses `vReqCell`/chgreq, activates only for exact Crewlist changes, and acknowledges successful downloads by user/sector/change so failures and later changes remain visible.
 - Compare source borders use browser-safe `cmp_sync`: FPL pairs use `cmpFplPair` for same-date numeric VER order, Crewlist order stays intact; keep fresh sector checks, swap confirmations and row picking; attachment completion never proves an aircraft/OFP update.

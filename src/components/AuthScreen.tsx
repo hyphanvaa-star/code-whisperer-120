@@ -1,3 +1,4 @@
+import { markBrowserSession } from "@/lib/browser-session";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -53,6 +54,7 @@ export function AuthScreen() {
       if (error) {
         toast.error("Sai ID hoặc mật khẩu");
       } else {
+        markBrowserSession();
         navigate({ to: "/tool", replace: true });
       }
     } finally {

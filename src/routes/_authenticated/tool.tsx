@@ -1,3 +1,4 @@
+import { clearBrowserSession } from "@/lib/browser-session";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,6 +98,7 @@ function ToolPage() {
     await ctx.queryClient.cancelQueries();
     ctx.queryClient.clear();
     await logAuthEvent({ data: { event: "sign_out" } }).catch(() => {});
+    clearBrowserSession();
     await supabase.auth.signOut({ scope: "local" });
     navigate({ to: "/auth", replace: true });
   }, [ctx.queryClient, navigate]);

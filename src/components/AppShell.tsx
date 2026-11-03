@@ -1,3 +1,4 @@
+import { clearBrowserSession } from "@/lib/browser-session";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -64,6 +65,7 @@ function useSignOut() {
     await qc.cancelQueries();
     qc.clear();
     await logAuthEvent({ data: { event: "sign_out" } }).catch(() => {});
+    clearBrowserSession();
     await supabase.auth.signOut({ scope: "local" });
     navigate({ to: "/auth", replace: true });
   };
