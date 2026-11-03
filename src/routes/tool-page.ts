@@ -385,7 +385,7 @@ const SHIM = `<script>
       var aftnTab=document.getElementById('mAftn');
       if(aftnTab&&!document.getElementById('opsAcctManage')){ var acctMg=document.createElement('button'); acctMg.type='button'; acctMg.className='mode'; acctMg.id='opsAcctManage'; acctMg.hidden=true; acctMg.title='Chỉ hyphan thấy mục này'; acctMg.textContent='Quản lí tài khoản'; aftnTab.insertAdjacentElement('afterend',acctMg); acctMg.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); try{ window.parent.postMessage({type:'sohee-accounts-manage'},window.location.origin); }catch(err){} },true); }
       if(acctOut)acctOut.addEventListener('click',function(){ try{ window.parent.postMessage({type:'sohee-signout'},window.location.origin); }catch(e){} });
-      window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} if(d.type==='sohee-live-count'){ var mg2=document.getElementById('opsAcctManage'); if(!mg2)return; var lb=document.getElementById('opsLiveCount'); if(!lb){ lb=document.createElement('span'); lb.id='opsLiveCount'; lb.className='ops-live'; mg2.appendChild(lb);} var n=Number(d.count)||0; lb.title=n+' người đang online'; lb.classList.toggle('off',n<=0); lb.innerHTML='<b class="ops-live-n">'+n+'</b><i class="ops-live-d"></i>'; } });
+      window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} if(d.type==='sohee-live-count'){ var mg2=document.getElementById('opsAcctManage'); if(!mg2)return; var lb=document.getElementById('opsLiveCount'); if(!lb){ lb=document.createElement('span'); lb.id='opsLiveCount'; lb.className='ops-live'; mg2.appendChild(lb);} var n=Number(d.count)||0; lb.title=n+' người đang online'; lb.classList.toggle('off',n<=0); lb.innerHTML='<i class="ops-live-d"></i><b class="ops-live-n">'+n+'</b><span class="ops-live-t">online</span>'; } });
       try{ window.parent.postMessage({type:'sohee-account-request'},window.location.origin); }catch(e){}
       var tick=function(){
         var now=new Date();
@@ -1233,27 +1233,15 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
    Số đứng trước, chấm xanh nhấp nháy phía sau — pill xanh lá rõ, chữ to dễ đọc. */
 .aside-head .modes .mode#opsAcctManage .ops-live{
   position:static !important;display:inline-flex !important;visibility:visible !important;opacity:1 !important;
-  align-items:center;justify-content:center;gap:8px;margin-left:auto !important;flex:0 0 auto !important;
-  padding:4px 11px 4px 13px;border-radius:999px;
-  background:linear-gradient(135deg,#E9FBF0,#BBF3D0) !important;
-  border:1.5px solid #6EE7A7 !important;
-  box-shadow:0 2px 7px rgba(21,128,61,.20),inset 0 1px 0 #fff !important;
-  animation:none !important;
-}
-.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-n{
-  font:800 17px/1 var(--x-sans) !important;color:#15803D !important;-webkit-text-fill-color:#15803D !important;
-  font-variant-numeric:tabular-nums;letter-spacing:.01em;
-}
-.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-d{
-  width:11px;height:11px;border-radius:50%;background:#16A34A !important;
-  box-shadow:0 0 0 3px rgba(22,163,74,.26),0 0 9px rgba(22,163,74,.55);
-  animation:ops-live-pulse 1.7s ease-out infinite;
-}
-.aside-head .modes .mode#opsAcctManage .ops-live.off{
-  background:#F1F3F6 !important;border-color:#D7DDE6 !important;box-shadow:none !important;
-}
-.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-n{color:#8A94A3 !important;-webkit-text-fill-color:#8A94A3 !important}
-.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-d{background:#B6BFCC !important;box-shadow:0 0 0 3px rgba(150,160,175,.18) !important;animation:none !important}
+  align-items:center;gap:6px;margin-left:auto !important;flex:0 0 auto !important;
+  padding:3px 9px 3px 8px;border-radius:999px;background:#fff !important;
+  border:1px solid #D1FAE5 !important;box-shadow:0 1px 2px rgba(15,23,42,.08),0 0 0 3px rgba(22,163,74,.06) !important;animation:none !important}
+.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-n{font:800 13px/1 var(--x-sans) !important;color:#0F172A !important;-webkit-text-fill-color:#0F172A !important;font-variant-numeric:tabular-nums}
+.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-t{font:600 10px/1 var(--x-sans) !important;color:#16A34A !important;-webkit-text-fill-color:#16A34A !important;text-transform:uppercase;letter-spacing:.06em}
+.aside-head .modes .mode#opsAcctManage .ops-live .ops-live-d{width:8px;height:8px;border-radius:50%;background:#22C55E !important;animation:ops-live-pulse 1.7s ease-out infinite}
+.aside-head .modes .mode#opsAcctManage .ops-live.off{border-color:#E2E8F0 !important;box-shadow:none !important}
+.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-n,.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-t{color:#94A3B8 !important;-webkit-text-fill-color:#94A3B8 !important}
+.aside-head .modes .mode#opsAcctManage .ops-live.off .ops-live-d{background:#CBD5E1 !important;animation:none !important}
 @keyframes ops-live-pulse{
   0%{box-shadow:0 0 0 2px rgba(22,163,74,.34),0 0 8px rgba(22,163,74,.5)}
   65%{box-shadow:0 0 0 8px rgba(22,163,74,0),0 0 12px rgba(22,163,74,.32)}
@@ -1271,13 +1259,13 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
   padding:0 9px !important;font-size:12.5px !important;font-weight:800 !important;
 }
 .aside-head .modes .mode-bang#verBang.on{
-  right:44px !important;min-width:0 !important;height:22px !important;padding:0 3px 0 7px !important;gap:5px !important;
+  top:-7px !important;right:4px !important;transform:none !important;min-width:0 !important;height:18px !important;padding:0 2px 0 6px !important;gap:4px !important;z-index:25 !important;
   background:#fff !important;color:#0F172A !important;-webkit-text-fill-color:#0F172A !important;
   border:1px solid #CBD5E1 !important;box-shadow:0 1px 3px rgba(15,23,42,.12) !important;
   font-size:11px !important;letter-spacing:.3px !important;animation:none !important;opacity:1 !important}
 .aside-head .modes .mode-bang#verBang .vb-dot{width:7px;height:7px;border-radius:50%;background:#16a34a;display:inline-block}
 .aside-head .modes .mode-bang#verBang .vb-lab{font-weight:700;color:#64748B;-webkit-text-fill-color:#64748B}
-.aside-head .modes .mode-bang#verBang .vb-no{background:#16a34a;color:#fff;-webkit-text-fill-color:#fff;border-radius:999px;padding:2px 7px;font-weight:800}
+.aside-head .modes .mode-bang#verBang .vb-no{background:#16a34a;color:#fff;-webkit-text-fill-color:#fff;border-radius:999px;padding:1px 6px;font-size:10.5px;font-weight:800}
 .aside-head .modes .mode-bang#verBang.flash{border-color:#FCA5A5 !important;background:#FEF2F2 !important;animation:vbGlow 1.4s ease-in-out infinite !important}
 .aside-head .modes .mode-bang#verBang.flash .vb-dot{background:#DC2626;animation:vbDot 1.4s ease-out infinite}
 .aside-head .modes .mode-bang#verBang.flash .vb-no{background:#DC2626}
@@ -2511,7 +2499,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.74')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.75')
     .replace('  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");', '  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");\n  $("#ftAtcMiss").style.cssText = /KHÔNG có giờ AviWeb/.test($("#ftAtcMiss").textContent) ? "color:#d10000;font-weight:800;font-size:14px" : "";')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
