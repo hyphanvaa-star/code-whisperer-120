@@ -316,6 +316,7 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-cfp-req{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:38px;padding:0 8px;box-sizing:border-box;border:2px solid var(--red)!important;border-radius:999px;background:var(--panel)!important;color:var(--text)!important;-webkit-text-fill-color:currentColor!important;font:inherit;font-weight:800;letter-spacing:0;cursor:pointer;animation:cmpReqPulse 1.4s ease-in-out infinite}
 .cmptbl .cmp-cfp-req:focus-visible{outline:2px solid var(--red);outline-offset:4px}
 .cmptbl .cmp-cfp-req:disabled{cursor:wait;animation:none;opacity:.65}
+.cmptbl td [hidden]{display:none!important}
 @keyframes cmpReqPulse{0%,100%{box-shadow:0 0 0 1px color-mix(in srgb,var(--red) 25%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--red) 45%,transparent)}}
 @media(prefers-reduced-motion:reduce){.cmptbl .cmp-cfp-req{animation:none}}
 .cmptbl .cmp-sync-action{display:inline-flex;align-items:center;justify-content:center;min-width:70px;min-height:30px;padding:4px 9px;border:2px solid var(--red)!important;border-radius:7px;background:var(--panel)!important;color:var(--red)!important;-webkit-text-fill-color:currentColor!important;font-family:inherit;font-weight:800;font-size:12px;line-height:1.3;cursor:pointer;letter-spacing:0}
