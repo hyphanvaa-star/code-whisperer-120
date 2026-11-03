@@ -142,6 +142,8 @@ function buildTable(flights: Flight[], resRows: Array<Record<string, unknown>>) 
       sta: f.sta ? `${pad2(f.sta.getUTCHours())}:${pad2(f.sta.getUTCMinutes())}` : "",
       std_excel: stdExcel,
       std_excel_src: stdExcelSrc,
+      crew_std: stdOnly,
+      crew_etd: etdExcel,
       dsp: f.dispatcher.split(/\s+/).filter(Boolean).join(" "),
       alt: [f.dest_alt1, f.dest_alt2, String((f.raw as Record<string, unknown>)?.["dest_alt3"] ?? "")].filter(Boolean).join(" / ") || "—",
       alt1: f.dest_alt1 || "",
