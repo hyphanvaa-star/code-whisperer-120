@@ -28,7 +28,8 @@
     const map = originalEnsureMap.apply(this, arguments);
     if (map && nmLayerCtl && !allAreasLayer) {
       allAreasLayer = L.layerGroup();
-      nmLayerCtl.addOverlay(allAreasLayer, 'Bật vùng ảnh hưởng toàn bộ');
+      // Ticked = hide MINOR areas; unticked (default) shows every boundary.
+      nmLayerCtl.addOverlay(allAreasLayer, 'Ẩn vùng không ảnh hưởng (MINOR)');
       const redraw = function (event) {
         if (event.layer !== allAreasLayer) return;
         if (nmMapIsTrack() && nmTrackData) nmDrawTrack(nmTrackData, true);
@@ -44,7 +45,7 @@
   nmPlotHits = function (hits, bounds) {
     // Both shape and dot passes must see the upgraded geometry, not raw hits.
     let visible = (hits || []).slice();
-    if (allAreasLayer && nmMap && nmMap.hasLayer(allAreasLayer)) {
+    if (!(allAreasLayer && nmMap && nmMap.hasLayer(allAreasLayer))) {
       const packs = nmMapIsTrack() ? [nmTrackData]
         : nmFleetSum && nmData && nmData.fleet && nmGroup !== NM_GROUP_TRACK
           ? Object.entries(nmData.tracks || {}).filter(([id]) => nmFleetTicked(id)).map(([, pack]) => pack)
