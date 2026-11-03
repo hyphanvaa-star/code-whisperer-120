@@ -201,6 +201,7 @@ async function cmpReadSyncSources(){
       cmpSyncSources={stamp,current,crew:results[0],fpl:results[1]};
     }
     const targets = ((lastCmp && lastCmp.table) || []).flatMap(r=>["crew","aims","fpl"].map(kind=>cmpSyncEvidence(r,kind)).filter(Boolean));
+    if(typeof cmpRegRepaint === "function") cmpRegRepaint();
     cmpSyncRepaint();
     for(let i=0;i<targets.length;i+=4){
       if(seq!==cmpSyncSeq) return;
