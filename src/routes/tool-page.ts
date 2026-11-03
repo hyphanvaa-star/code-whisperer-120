@@ -2498,17 +2498,29 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.66')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.67')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
-    .replace('  ["CREW", "So theo mã nhân viên.', '  ["STD/ETD", "Giờ local theo Crewlist. Chỉ có STD thì hiện STD; có ETD mới thì hiện ETD màu xanh lá."],\n  ["CREW", "So theo mã nhân viên.')
+    .replace('  ["CREW", "So theo mã nhân viên.', '  ["STD/ETD", "Giờ local theo Crewlist. Chỉ có STD thì hiện STD; có ETD mới thì hiện cả STD và ETD, ETD màu xanh lá."],\n  ["CREW", "So theo mã nhân viên.')
     .replace('    tr.appendChild(timeCell(r));\n', `    tr.appendChild(timeCell(r));
     { const sx = document.createElement("td");
-      const v = document.createElement("span");
-      if(r.crew_etd){ v.className = "v"; v.style.cssText = "color:#16a34a;font-weight:700"; v.textContent = r.crew_etd;
-        sx.title = "ETD mới (Crewlist)" + (r.crew_std ? "\\nSTD: " + r.crew_std : ""); }
-      else { v.className = "v n"; v.textContent = r.crew_std || "—"; if(r.crew_std) sx.title = "STD (Crewlist)"; }
-      sx.appendChild(v); tr.appendChild(sx); }
+      if(r.crew_etd && r.crew_std && r.crew_etd !== r.crew_std){
+        const s0 = document.createElement("span");
+        s0.className = "v n"; s0.textContent = r.crew_std;
+        s0.style.cssText = "text-decoration:line-through;opacity:.75";
+        const ar = document.createElement("span");
+        ar.textContent = " → "; ar.style.cssText = "opacity:.6";
+        const v = document.createElement("span");
+        v.className = "v"; v.style.cssText = "color:#16a34a;font-weight:700"; v.textContent = r.crew_etd;
+        sx.title = "ETD mới (Crewlist)\\nSTD: " + r.crew_std;
+        sx.appendChild(s0); sx.appendChild(ar); sx.appendChild(v);
+      } else {
+        const v = document.createElement("span");
+        v.className = "v n"; v.textContent = r.crew_etd || r.crew_std || "—";
+        if(r.crew_std || r.crew_etd) sx.title = (r.crew_etd ? "ETD" : "STD") + " (Crewlist)";
+        sx.appendChild(v);
+      }
+      tr.appendChild(sx); }
 `)
     // General-table weather belongs to the whole cell, not just its small icon.
     // Read current flight data on entry and distinguish missing TAF from good WX.
