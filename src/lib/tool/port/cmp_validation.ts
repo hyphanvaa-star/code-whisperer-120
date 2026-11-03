@@ -451,7 +451,7 @@ function renderCompareTable(d, opts){`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('<span class="dim xls-bar-name crew-using" id="cmpVerBar"', '<button id="cmpAtcBtn" type="button" class="btn" onclick="cmpReadAtc((lastCmp && lastCmp.table) || [])" title="Đọc trạng thái ATC trên AviWeb cho các chuyến trong bảng">ATC check</button> <span class="dim xls-bar-name crew-using" id="cmpVerBar"')
     .replace('</head>', `<style>
-.cmptbl :is(th,td):nth-child(11),.cmptbl :is(th,td):nth-child(n+15):nth-child(-n+19){display:none!important}
+.cmptbl :is(th,td):nth-child(12),.cmptbl :is(th,td):nth-child(n+16):nth-child(-n+20){display:none!important}
 .cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
 .cmptbl .cmp-vst{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
 .cmptbl .cmp-vst.ok{background:#16a34a;color:#fff}
