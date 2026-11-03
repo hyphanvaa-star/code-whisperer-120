@@ -805,6 +805,40 @@ _WHY = {
 }
 
 
+def _aviweb_error_text(driver) -> str:
+    """Đọc nguyên văn khung lỗi đỏ AviWeb đang hiện (vd 'Point X do not belong to star Y')."""
+    try:
+        txt = driver.execute_script(
+            """
+            const out = [];
+            const sel = '.v-Notification, .v-Notification-error, .v-errorindicator + *, '
+              + '.v-window [class*=error], .v-tooltip';
+            document.querySelectorAll(sel).forEach(e => {
+              const r = e.getBoundingClientRect();
+              const t = (e.innerText || '').trim();
+              if (r.width > 2 && r.height > 2 && t) out.push(t);
+            });
+            return out.join(' | ');
+            """
+        ) or ""
+    except Exception:
+        txt = ""
+    if not txt:
+        try:
+            from selenium.webdriver.common.by import By
+            for e in driver.find_elements(By.XPATH, XP["error"]):
+                if e.is_displayed() and (e.text or "").strip():
+                    txt = e.text
+                    break
+        except Exception:
+            pass
+    txt = " ".join(str(txt).split())
+    txt = re.sub(r"Error#\d+", "", txt).strip()
+    if txt.lower().startswith("error "):
+        txt = txt[6:].strip()
+    return txt[:300]
+
+
 def _why(exc: Exception) -> str:
     """Đổi tên exception của Selenium thành câu người đọc hiểu được."""
     kind = type(exc).__name__
