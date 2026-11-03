@@ -2291,7 +2291,7 @@ function nmMakeVjBrand(){
   box.className = "nm-overview-counts";
   const pack = nmGroup === NM_GROUP_TRACK ? nmTrackBundle() : nmData;
   const counts = nmOverviewCounts(pack);
-  for(const [label, key] of [["NOTAM tổng", "total"], ["IMPACT", "impact"], ["MANUAL CHECK", "manual"], ["BRIEFING INFO", "brief"], ["NO IMPACT", "noimpact"]]){
+  for(const [label, key] of [["NOTAM tổng", "total"], ["CRUCIAL", "impact"], ["MANUAL CHECK", "manual"], ["BRIEFING INFO", "brief"], ["MINOR", "noimpact"]]){
     const item = document.createElement("button");
     item.type = "button";
     item.title = "Xem toàn bộ NOTAM " + label;
@@ -2317,7 +2317,7 @@ function nmPaintListAll(place, q){
   const d = nmGroup === NM_GROUP_TRACK ? nmTrackBundle() : nmData;
   if(!d) return false;
   const key = window.nmOvGroup;
-  const names = {total:"NOTAM TỔNG", impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};
+  const names = {total:"NOTAM TỔNG", impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};
   const grpOf = (n) => {
     if(n._noimp) return "noimpact";
     const l = n.level || "";
@@ -2374,7 +2374,7 @@ function nmPaintListAll(place, q){
     const lv = document.createElement("div");
     lv.className = "nm-lv nm-lv-" + String(n.level || "NO IMPACT").replace(/[^A-Z]/g, "").toLowerCase();
     const tag = document.createElement("b");
-    tag.textContent = (n.level || "NO IMPACT")
+    tag.textContent = (n.level === "NO IMPACT" || !n.level ? "MINOR" : n.level)
       + (n.level === "DELAY-ONLY" && n.impact_delay != null ? " · trễ ≥" + n.impact_delay + "′" : "")
       + (n.match_type ? " · " + n.match_type : "")
       + "  ·  " + (p.kind === "FIR" ? "FIR " : "") + (p.code || "");
@@ -2469,6 +2469,12 @@ function nmPaintListBase(place, q){`)
       #nmTrackMap .leaflet-control-layers-list label:has(input:checked){background:var(--x-red-50);color:var(--x-red-d);font-weight:700}
       #nmTrackMap .leaflet-control-layers-selector{position:static;flex:0 0 18px;width:18px;height:18px;margin:0;accent-color:var(--x-red);cursor:pointer}
       #nmTrackMap .leaflet-control-layers-separator{border-color:var(--x-line);margin:10px 0}
+      #nmTrackMap .nm-ats-all{display:none!important}
+      #nmTrackMap .leaflet-control-layers-expanded{border:0;border-radius:16px;padding:16px 14px;background:color-mix(in srgb,var(--x-card) 92%,transparent);backdrop-filter:blur(10px);box-shadow:0 12px 32px color-mix(in srgb,var(--x-ink) 22%,transparent)}
+      #nmTrackMap .leaflet-control-layers-base::before,#nmTrackMap .leaflet-control-layers-overlays::before{font:800 11px/1.4 Arial,sans-serif;letter-spacing:.12em}
+      #nmTrackMap .leaflet-control-layers-list label{margin:4px 0;border-radius:10px;border:1px solid transparent;transition:background .15s,border-color .15s}
+      #nmTrackMap .leaflet-control-layers-list label:has(input:checked){border-color:var(--x-red)}
+      #nmTrackMap .leaflet-control-layers-separator{margin:12px 4px}
       @media(max-width:600px){#nmTrackMap .nm-side-pop{top:8px;right:8px;max-width:calc(100% - 16px);padding-left:16px;padding-right:16px}}
       #wrapNotam #nmList .nm-item.nm-item-on{background:color-mix(in srgb,var(--x-red) 10%,var(--x-bg));color:var(--x-ink);outline:2px solid var(--x-red);outline-offset:-2px;border-left:5px solid var(--x-red);border-radius:6px;padding:12px 12px 12px 38px;margin:6px 2px;position:relative}
       #wrapNotam #nmList .nm-item.nm-item-on .nm-map-pin{background:var(--x-red);color:var(--x-bg);left:10px;top:12px}
@@ -2499,7 +2505,10 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.75')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.76')
+    .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
+    .replaceAll('if(nmLayerCtl) nmLayerCtl.addOverlay(nmAtsGroups[cc], nmAtsLabel(cc));', '')
+    .replace('{"Sân bay": nmAdGroup, "Đài": nmNavGroup},', '{"Sân bay": nmAdGroup},')
     .replace('  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");', '  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");\n  $("#ftAtcMiss").style.cssText = /KHÔNG có giờ AviWeb/.test($("#ftAtcMiss").textContent) ? "color:#d10000;font-weight:800;font-size:14px" : "";')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
