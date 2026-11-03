@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 4.64: CFP NO nháy đỏ theo đổi tàu/crew Crewlist, dùng lại xuất REQ và chỉ hết nháy sau khi tải thành công; giữ REQ tab Dữ liệu thay đổi.
+
 - [x] V 4.55: Compare chọn hai số VER khác nhau của cùng ngày, không lấy bản cũ tải lên muộn; giữ thứ tự Crewlist và xác nhận đổi tàu. Kiểm thử VER 10/09, khác ngày, bản trùng và giao năm; cần người dùng thử lại VJ155 trên chuyến thật.
 
 - [x] V 4.51: khung thông tin ẩn không chặn chuột; toàn ô TAF ở Hiển thị chung hiện dữ liệu hiện tại hoặc thông báo thiếu TAF. Cần người dùng thử lại trên máy công ty.
