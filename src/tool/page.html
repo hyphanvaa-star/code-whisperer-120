@@ -23143,9 +23143,30 @@ function setMode(m){
       renderCompareTable(lastCmp);
     }else if(xls){
       runCompare();
-    }else if(!$("#cmpBody").querySelector("tr")){
-      $("#cmpBody").innerHTML = '<tr><td colspan="99" class="empty">'
-        + 'Chưa có file Crewlist Aims để so sánh. Bấm nút CREW để nạp file.</td></tr>';
+    }else{
+      // Chưa có Crewlist: vẫn hiện đầy đủ chuyến từ FliteBrief, chỉ không chấm đúng/sai CREW/REG.
+      const p2 = n => String(n).padStart(2, "0");
+      const table = (flights || []).map(f => {
+        const d = f.std ? new Date(f.std) : null;
+        const ok = d && !isNaN(d);
+        return {
+          sector_id: f.id, callsign: f.callsign, route: f.route,
+          dep: f.dep_icao, arr: f.dest_icao,
+          std: ok ? p2(d.getUTCDate()) + "/" + p2(d.getUTCMonth() + 1) + " "
+            + p2(d.getUTCHours()) + ":" + p2(d.getUTCMinutes()) : "",
+          sta: "", std_excel: "", std_excel_src: "",
+          dsp: String(f.dispatcher || "").split(/\s+/).filter(Boolean).join(" "),
+          alt: [f.dest_alt1, f.dest_alt2].filter(Boolean).join(" / ") || "—",
+          alt1: f.dest_alt1 || "", alt2: f.dest_alt2 || "", alt3: "",
+          cfp_no: f.plan_no || "—",
+          fuel: f.planned_fuel_total || f.planned_fuel,
+          fuel_units: f.fuel_units, crew_count: f.crew_count,
+          in_excel: false, no_crewlist: true, excel_row: null, note: "",
+          crew: null, reg_cmp: null, reg: f.reg || "—", pld_est: {},
+        };
+      });
+      renderCompareTable({table: table, crew_pending: false});
+      $("#count").textContent = table.length + " chuyến · chưa có Crewlist để so CREW/REG";
     }
     if(xlsData) renderExcel();
     else if(xls) loadExcelRows();
@@ -23242,7 +23263,7 @@ function renderCompareTable(d, opts){
 
   for(const r of rows){
     const tr = document.createElement("tr");
-    tr.className = r.in_excel ? "" : "noxls";
+    tr.className = (r.in_excel || r.no_crewlist) ? "" : "noxls";
     tr.setAttribute("aria-selected", current === r.sector_id);
 
     const cs = txtCell(r.callsign + (r.note ? " ⚠" : ""), "n");
