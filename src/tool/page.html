@@ -1948,6 +1948,30 @@ html.night .nm-pin-row .br{color:#ccc}
 #wrapNotam .nm-flt-menu button:hover,#wrapNotam .nm-flt-menu button.on{background:#ffe9f3}
 #wrapNotam .nm-pin-box{position:relative}
 #wrapNotam .nm-pin-box .nm-flt-menu{min-width:220px}
+#nmPinModal .sheet{border-radius:18px;overflow:hidden}
+.nmL-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.nmL-st{border-radius:12px;padding:10px 12px;background:#f6f7fb;border:1px solid #e6e8f0;display:flex;flex-direction:column;gap:2px}
+.nmL-st b{font-size:20px;font-weight:800;line-height:1.1;color:#1f2433}
+.nmL-st span{font-size:11px;font-weight:700;color:#6b7180;text-transform:uppercase;letter-spacing:.04em}
+.nmL-st.a{background:#fff1f3;border-color:#ffd0d8}.nmL-st.a b{color:#d0103a}
+.nmL-st.c{background:#eef5ff;border-color:#cfe1ff}.nmL-st.c b{color:#1d5fd1}
+.nmL-st.d{background:#f1fbf4;border-color:#c9efd5}.nmL-st.d b{color:#16a34a}
+.nmL-st.f{background:#fff7ea;border-color:#ffe2b0}.nmL-st.f b{color:#c46a00}
+.nmL-st.g{background:#f5f0ff;border-color:#e0d2ff}.nmL-st.g b{color:#6b3fd1}
+.nmL-codes{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+.nmL-codes span{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#fff;border:1px solid #e3e5ec;color:#333}
+.nmL-codes b{color:#d0103a;margin-left:2px}
+.nmL-auto{font-size:11px;color:#6b7180;margin:2px 0 8px}
+.nmL-q{width:100%;padding:9px 12px;border-radius:10px;border:1px solid #dfe2ea;font:inherit;font-size:13px;margin-bottom:4px;box-sizing:border-box}
+#nmPinModal .nm-pin-sec{display:flex;align-items:center;gap:8px;margin:12px 0 4px;color:#d0103a}
+#nmPinModal .nm-pin-sec i{font-style:normal;font-size:11px;background:#d0103a;color:#fff;border-radius:999px;padding:1px 8px}
+#nmPinModal .nm-pin-row{background:#fff;border:1px solid #eceef3;border-left:4px solid #d0103a;border-radius:12px;padding:10px 12px;box-shadow:0 1px 3px rgba(20,25,40,.05);transition:box-shadow .15s}
+#nmPinModal .nm-pin-row:hover{box-shadow:0 4px 14px rgba(20,25,40,.1)}
+#nmPinModal .nm-pin-row.fir{border-left-color:#c46a00}
+#nmPinModal .nm-pin-row .br{color:#444;font-size:13px}
+#nmPinModal .nm-pin-row .id{font-size:14px}
+.nmL-k{display:inline-block;font-size:10px;font-weight:800;padding:1px 7px;border-radius:6px;background:#eef1f6;color:#3b4252;margin-left:6px}
+@media(max-width:640px){.nmL-stats{grid-template-columns:repeat(2,1fr)}}
 html.night #wrapNotam .toolbar2 #nmFltBtn{background-color:#161416;color:#eee;border-color:#5a3a48}
 html.night #wrapNotam .toolbar2 #nmFltQ{background:#2a1c22;color:#eee;border-color:#5a3a48}
 html.night #wrapNotam .nm-flt-menu{background:#1c1c20;border-color:#5a3a48}
@@ -17305,8 +17329,9 @@ function nmPinRow(item, scope, flight){
     const p = n => String(n).padStart(2, "0");
     when = p(at.getDate()) + "/" + p(at.getMonth() + 1) + "/" + at.getFullYear() + " " + p(at.getHours()) + ":" + p(at.getMinutes());
   }
-  return '<div class="nm-pin-row">'
-    + '<div class="txt"><div class="id">' + esc(ident)
+  const kd = String(item && item.kind || "").toUpperCase() === "FIR" ? "FIR" : "APT";
+  return '<div class="nm-pin-row' + (kd === "FIR" ? " fir" : "") + '">'
+    + '<div class="txt"><div class="id">' + esc(ident) + '<span class="nmL-k">' + kd + ' ' + esc(item && item.code || "") + '</span>'
     + (when ? ' <span class="nm-pin-at" title="Thời điểm thêm vào thư viện">Added ' + esc(when) + '</span>' : '') + '</div>'
     + '<div class="br" title="' + esc(brief) + '">' + esc(brief) + '</div></div>'
     + '<span class="tag">' + esc(tag) + '</span>'
