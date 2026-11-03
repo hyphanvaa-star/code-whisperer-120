@@ -63,6 +63,9 @@ const cmpPilotChanges = ${cmpPilotChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
 const cmpSyncChecks = new Map();
+const cmpAckStore = (()=>{ try{return new Set(JSON.parse(localStorage.getItem("cmp_ack_v1")||"[]"));}catch(_){return new Set();} })();
+function cmpAckHas(k){ return cmpAckStore.has(k); }
+function cmpAckAdd(k){ cmpAckStore.add(k); try{localStorage.setItem("cmp_ack_v1", JSON.stringify([...cmpAckStore].slice(-500)));}catch(_){} }
 let cmpSyncRowSource = null, cmpSyncRowIndex = new Map();
 function cmpSyncRow(sid){
   const rows = (lastCmp && lastCmp.table) || [];
@@ -110,16 +113,19 @@ function cmpSyncPaint(r, kind){
   const checked = cmpSyncChecks.get(cmpSyncKey(e));
   const b = document.createElement("button"); b.type = "button";
   const ok = checked && checked.ok;
+  if(ok && cmpAckHas("s|" + cmpSyncKey(e))) return;
   b.className = "regbtn cmp-sync-action" + (ok ? " synced" : "");
   b.textContent = kind === "crew" ? (ok ? "✓ Crew" : "↻ Crew") : (ok ? "✓ " : "⚠ ") + e.row.reg.new;
   if(!ok && kind !== "crew") b.classList.add("cmp-wrong-ac");
-  b.disabled = !!ok || cmpSyncBusy || (kind === "crew" && !e.changes.length);
+  b.disabled = (!ok && cmpSyncBusy) || (kind === "crew" && !e.changes.length);
   b.setAttribute("aria-label", (kind === "crew" ? "Đổi crew " : "Đổi tàu ") + e.f.callsign + " theo " + (kind === "fpl" ? "FPL mới" : "Crewlist mới"));
   b.dataset.tip = (kind === "crew" ? String(e.row.crew.raw_old || "") + " → " + String(e.row.crew.raw_new || "") : e.row.reg.old + " → " + e.row.reg.new)
     + (kind !== "crew" && checked && !ok ? " · File tàu trên FliteBrief: " + (checked.file || "chưa có") + " — chưa khớp tàu mới" : "") + (ok ? " · Đã khớp file tàu FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
-  b.onclick = ev => {ev.stopPropagation(); cmpSyncOpen(r, kind);};
+  if(ok) b.dataset.tip += " · Bấm để xác nhận đã biết";
+  b.onclick = ev => {ev.stopPropagation(); if(ok){cmpAckAdd("s|" + cmpSyncKey(e)); cmpSyncPaint(r, kind); return;} cmpSyncOpen(r, kind);};
+  if(kind === "crew" && !e.changes.length && !ok) b.disabled = true;
   if(kind === "crew") td.prepend(b);
-  else if(kind === "fpl") td.replaceChildren(b);
+  else if(kind === "fpl") { Array.from(td.children).forEach(el => {el.hidden = true;}); td.prepend(b); }
   else { Array.from(td.children).forEach(el => {if(!el.classList.contains("cmp-sync-pick")) el.hidden = true;}); td.prepend(b); }
   if(kind !== "fpl" && xls && xls.file){
     const pick = document.createElement("button"); pick.type = "button"; pick.className = "cmp-sync-pick"; pick.textContent = "≡";
@@ -140,12 +146,14 @@ function cmpMsgPaint(r){
   const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg));
   const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? (acChg ? "CHG DLA" : "DLA") : acChg ? "CHG A/C" : "";
   if(!kind) return;
+  const ackKey = "m|" + JSON.stringify([f.id, f.callsign, f.std, kind, row && row.reg, crewRow && crewRow.reg]);
+  if(cmpAckHas(ackKey)) return;
   const b = document.createElement("button"); b.type = "button"; b.className = "cmp-msg-quick";
   b.textContent = kind === "CHG A/C" ? "CHG" : kind;
   b.dataset.tip = "FPL mới so với FPL cũ: " + kind + " · Bấm để soạn điện văn";
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
-  b.onclick = ev => {ev.stopPropagation(); menu.value = kind; menu.onchange();};
+  b.onclick = ev => {ev.stopPropagation(); cmpAckAdd(ackKey); b.remove(); menu.value = kind; menu.onchange();};
   td.prepend(b);
 }
 function cmpSyncRepaint(rows){ for(const r of (rows || ((lastCmp && lastCmp.table) || []))){ for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); cmpMsgPaint(r); } }
