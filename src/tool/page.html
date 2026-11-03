@@ -11395,7 +11395,7 @@ async function aeStartDraft(){
    return Number((ver && ver.new_ver) || 0)
      || parseVerNo((ver && ver.new) || "")
      || parseVerNo(($("#vNew") && $("#vNew").value) || "")
-     || parseVerNo(($("#verBang") && $("#verBang").textContent) || "");
+     || Number(($("#verBang") && $("#verBang").dataset.n) || 0);
  }
  // Khoá xác nhận theo TÊN FILE ver mới nhất (không theo số ver): số VER có thể
  // lặp lại giữa các ngày, còn tên file thì không — nhờ vậy ver mới luôn nháy đỏ
@@ -11415,6 +11415,7 @@ async function aeStartDraft(){
      bang.title = "";
      return;
    }
+   bang.dataset.n = n;
    bang.innerHTML = '<i class="vb-dot"></i><b class="vb-lab">FPL</b><b class="vb-no">V' + n + '</b>';
    bang.classList.add("on");
    const pending = verBangFileKey(ver) !== verBangAcked;
