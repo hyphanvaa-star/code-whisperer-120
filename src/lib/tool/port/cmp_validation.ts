@@ -42,7 +42,7 @@ export function patchCmpValidationPage(html: string): string {
     cs.appendChild(opsStatus);
     tr.appendChild(cs);
     tr.appendChild(routeCmpCell(r));`)
-    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["ATC STATUS", "Trạng thái ATC trên AviWeb đúng ngày/chặng."],\n  ["REG FPL", "Số tàu trên FliteBrief của đúng chuyến."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
+    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["ATC STATUS", "Trạng thái ATC trên AviWeb đúng ngày/chặng."],\n  ["REG FPL", "Số tàu theo file Excel FPL VER mới nhất (dự phòng: OFP FliteBrief)."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
     .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
     .replace('    tr.appendChild(regCmpCell(r));', `    const atcCell = txtCell("…", "q");
     atcCell.dataset.cmpAtcSid = r.sector_id;
@@ -328,7 +328,9 @@ function cmpRegPaint(r){
   const td = document.querySelector('#cmpBody td[data-fpl-reg-sid="' + r.sector_id + '"]');
   if(!td) return;
   const cached = cmpFplRegs.get(String(r.sector_id));
-  const reg = f && cached && cached.stamp === ofpStamp(f) ? cached.reg : "";
+  const fplRow = f && typeof cmpSyncSources !== "undefined" ? cmpSourceChange(cmpSyncSources.fpl || [], f.id, f.std) : null;
+  const excelReg = fplRow && fplRow.reg && String(fplRow.reg.new || "").trim();
+  const reg = excelReg || (f && cached && cached.stamp === ofpStamp(f) ? cached.reg : "");
   const changes = ((typeof vLast !== "undefined" && vLast && vLast.rows) || []).filter(v =>
     String(v.sector_id) === String(r.sector_id) && v.reg && v.reg.changed
     && v.ops_ok !== false && v.fb_std && f && new Date(v.fb_std).getTime() === new Date(f.std).getTime());
@@ -338,7 +340,7 @@ function cmpRegPaint(r){
   td.textContent = reg || "—";
   td.classList.toggle("cmp-fpl-match", state.same);
   td.classList.toggle("cmp-fpl-mismatch", !!reg && !!f && !state.same);
-  td.title = "FPL: " + (reg || "chưa đọc được") + "\\nFliteBrief: " + ((f && f.reg) || "—");
+  td.title = (excelReg ? "Excel FPL mới: " : "FPL: ") + (reg || "chưa đọc được") + "\\nFliteBrief: " + ((f && f.reg) || "—");
   const cell = document.querySelector('#cmpBody td[data-cmp-brief-sid="' + r.sector_id + '"]');
   const action = cell && cell._cmpBrief;
   if(action){
