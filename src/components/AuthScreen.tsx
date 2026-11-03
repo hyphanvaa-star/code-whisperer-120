@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import loginBgUrl from "@/assets/login-shanghai-day2.jpg";
@@ -26,21 +26,14 @@ export function AuthScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Cờ báo việc xoá phiên cũ lúc mở trang đã xong — tránh đăng nhập bị xoá nhầm.
-  const ready = useRef<Promise<void> | null>(null);
-
   useEffect(() => {
-    // Mỗi lần mở web đều bắt đăng nhập lại: xoá phiên đăng nhập đang lưu sẵn.
-    // Phải CHỜ xoá xong mới cho đăng nhập, nếu không lần bấm đầu bị signOut()
-    // xoá mất phiên vừa tạo và người dùng phải bấm lần thứ 2.
-    ready.current = (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) await supabase.auth.signOut({ scope: "local" });
-    })();
-    // Không đăng ký onAuthStateChange: submit() tự điều hướng sau khi đã set
-    // cờ fb-login-done. Listener trước đây điều hướng sớm hơn cờ khiến guard
-    // ở /_authenticated signOut() rồi đá về lại trang đăng nhập.
-  }, []);
+    let alive = true;
+    // Khôi phục phiên đã lưu; cổng /tool vẫn xác thực người dùng trước khi mở.
+    void supabase.auth.getSession().then(({ data }) => {
+      if (alive && data.session) void navigate({ to: "/tool", replace: true });
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [navigate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +46,6 @@ export function AuthScreen() {
     const account = raw.includes("@") ? raw : `${raw.toLowerCase()}@app.local`;
     setBusy(true);
     try {
-      await ready.current; // đảm bảo phiên cũ đã được dọn sạch
       const { error } = await supabase.auth.signInWithPassword({
         email: account,
         password: parsed.data.password,
@@ -61,7 +53,6 @@ export function AuthScreen() {
       if (error) {
         toast.error("Sai ID hoặc mật khẩu");
       } else {
-        sessionStorage.setItem("fb-login-done", "1");
         navigate({ to: "/tool", replace: true });
       }
     } finally {
@@ -130,7 +121,7 @@ export function AuthScreen() {
             <p>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
         </main>
-        <span className="sakura-version">V 4.56</span>
+        <span className="sakura-version">V 4.57</span>
       </div>
     </div>
   );
