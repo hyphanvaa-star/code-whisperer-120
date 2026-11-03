@@ -135,9 +135,12 @@ export function patchCmpValidationPage(html: string): string {
         if(!f){ alert("Chưa xác định được đúng chuyến trong khung khai thác"); return; }
         menu.disabled = true;
         try{
+          const atcHit = cmpAtcCache.get(cmpAtcKey(f));
           const response = await fetch("/api/fpltext/msg", {method: "POST", headers: {"Content-Type": "application/json"},
             body: JSON.stringify({kind, items: [{sector_id: f.id, flt: f.callsign,
-              date: new Date(f.std).toISOString().slice(0,10), dep: r.dep, arr: r.arr}]})});
+              date: new Date(f.std).toISOString().slice(0,10), dep: r.dep, arr: r.arr,
+              avi_eobt: (atcHit && atcHit.status && atcHit.eobt) || "",
+              etd_local: r.crew_etd || "", std_local: r.crew_std || ""}]})});
           const d = await response.json();
           if(!response.ok || d.error) throw new Error(d.error || "Không lấy được điện văn");
           ftOpenAtcReview(d);

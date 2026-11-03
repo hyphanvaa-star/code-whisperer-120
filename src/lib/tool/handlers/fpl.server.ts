@@ -387,11 +387,27 @@ export const routes: Routes = {
     for (const { ix, f, block } of got) {
       const fields = atcChg.fields_from_fpl(block);
       if (!fields) { missed.push(`${f.callsign}: không đọc được FPL trong OFP`); continue; }
-      const converted = atcChg.render_msg(kind, fields, items[ix] || {});
+      const it = (items[ix] || {}) as Raw;
+      // Giờ đầu điện: AviWeb EOBT > ETD UTC (Crewlist) > STD UTC; thiếu AviWeb thì cảnh báo đỏ.
+      const avi = /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
+      const etdU = avi ? "" : vnToUtc(it.etd_local);
+      const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
+      const stdU = avi || etdU ? "" : (vnToUtc(it.std_local) || (std && !isNaN(std.getTime())
+        ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : ""));
+      const base = avi || etdU || stdU;
+      if (base && fields.item13) fields.item13 = atcChg.set_eobt(fields.item13, base);
+      const notes: string[] = [];
+      if (!avi) {
+        const w = `⚠ ${fields.callsign || f.callsign}: KHÔNG có giờ AviWeb — tạm dùng ${etdU ? "ETD" : "STD"} ${base || "?"} UTC`;
+        notes.push(w); missed.push(w);
+      }
+      const converted = atcChg.render_msg(kind, fields, it);
+      let html = atcChg.msg_html(converted, { need });
+      if (!avi && base) html = html.replace(base, `<span style="color:#d10000;font-weight:800;background:#ffe3e3" title="Không có giờ AviWeb">${base}</span>`);
       rows.push({
         id: f.id, callsign: fields.callsign || f.callsign, dep: fields.dep || f.dep_icao,
         arr: fields.arr || f.dest_icao, original: block.trim(), converted,
-        html: atcChg.msg_html(converted, { need }), notes: [],
+        html, notes, avi_missing: !avi,
       });
     }
     return { ok: true, ok_n: rows.length, missed, flights: rows, kind, filename: atcChg.msg_filename(kind) };
