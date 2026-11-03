@@ -1270,7 +1270,20 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
   border:0 !important;border-radius:999px !important;min-width:54px !important;height:24px !important;
   padding:0 9px !important;font-size:12.5px !important;font-weight:800 !important;
 }
-.aside-head .modes .mode-bang#verBang.flash{background:#DC2626 !important}
+.aside-head .modes .mode-bang#verBang.on{
+  right:44px !important;min-width:0 !important;height:22px !important;padding:0 3px 0 7px !important;gap:5px !important;
+  background:#fff !important;color:#0F172A !important;-webkit-text-fill-color:#0F172A !important;
+  border:1px solid #CBD5E1 !important;box-shadow:0 1px 3px rgba(15,23,42,.12) !important;
+  font-size:11px !important;letter-spacing:.3px !important;animation:none !important;opacity:1 !important}
+.aside-head .modes .mode-bang#verBang .vb-dot{width:7px;height:7px;border-radius:50%;background:#16a34a;display:inline-block}
+.aside-head .modes .mode-bang#verBang .vb-lab{font-weight:700;color:#64748B;-webkit-text-fill-color:#64748B}
+.aside-head .modes .mode-bang#verBang .vb-no{background:#16a34a;color:#fff;-webkit-text-fill-color:#fff;border-radius:999px;padding:2px 7px;font-weight:800}
+.aside-head .modes .mode-bang#verBang.flash{border-color:#FCA5A5 !important;background:#FEF2F2 !important;animation:vbGlow 1.4s ease-in-out infinite !important}
+.aside-head .modes .mode-bang#verBang.flash .vb-dot{background:#DC2626;animation:vbDot 1.4s ease-out infinite}
+.aside-head .modes .mode-bang#verBang.flash .vb-no{background:#DC2626}
+.aside-head .modes .mode-bang#verBang.flash .vb-lab{color:#B91C1C;-webkit-text-fill-color:#B91C1C}
+@keyframes vbGlow{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.35)}50%{box-shadow:0 0 0 4px rgba(220,38,38,.12)}}
+@keyframes vbDot{0%{box-shadow:0 0 0 0 rgba(220,38,38,.7)}100%{box-shadow:0 0 0 6px rgba(220,38,38,0)}}
 
 /* Bảng: không khối đỏ — đầu bảng trắng chữ đỏ, gạch đỏ; dòng thoáng phẳng */
 aside,main.split2{border-radius:12px !important;overflow:hidden}
@@ -2498,7 +2511,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.73')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.74')
     .replace('  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");', '  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");\n  $("#ftAtcMiss").style.cssText = /KHÔNG có giờ AviWeb/.test($("#ftAtcMiss").textContent) ? "color:#d10000;font-weight:800;font-size:14px" : "";')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
