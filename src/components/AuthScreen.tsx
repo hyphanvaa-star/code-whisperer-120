@@ -83,7 +83,6 @@ export function AuthScreen() {
           <circle className="atc-ring" cx="760" cy="180" r="120" />
           <circle className="atc-ring" cx="760" cy="180" r="220" />
         </svg>
-        <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
         <section className="sakura-brand">
           <div className="sakura-wordmark">VietJet<span>Air.com</span></div>
           <h1>Sohee<br />Dispatch Board</h1>
@@ -91,7 +90,15 @@ export function AuthScreen() {
           <p>Connecting People,<br />Flying Further Together</p>
           <div className="sakura-tags"><span>✈ Safety</span><span>⏱ On-time</span><span>🌸 Teamwork</span></div>
         </section>
-        <main className="sakura-glass">
+        <div className="sakura-tow">
+        <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
+        <svg className="sakura-ropes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M8 4 L4 100" />
+          <path d="M8 4 L96 100" />
+          <circle cx="8" cy="4" r="1.4" />
+        </svg>
+        <div className="sakura-pole" aria-hidden="true"><i /><i /></div>
+        <main className="sakura-glass sakura-flag">
           <div className="sakura-form-mark">✈ SOHEE · DISPATCH ✈</div>
           <h2 className="sakura-form-title">Đăng nhập</h2>
           <p className="sakura-form-sub">Dùng ID và mật khẩu do quản lý cấp.</p>
@@ -121,7 +128,8 @@ export function AuthScreen() {
             <p>Hệ thống chỉ dành cho tài khoản được cấp. Chưa có ID? Liên hệ người quản lý để được cấp tài khoản.</p>
           </div>
         </main>
-        <span className="sakura-version">V 4.63</span>
+        </div>
+        <span className="sakura-version">V 4.79</span>
       </div>
     </div>
   );

@@ -290,3 +290,26 @@
 .sakura-glass .sakura-input { transition: transform .2s, box-shadow .2s; }
 .sakura-glass .sakura-input:focus { transform: translateY(-1px); box-shadow: 0 6px 18px color-mix(in oklab, var(--login-ink) 30%, transparent); }
 @media (prefers-reduced-motion: reduce) { .sakura-glass, .sakura-glass::before { animation: none; } }
+
+/* Airshow banner tow: plane pulls the login flag */
+.sakura-tow { position: absolute; left: 50%; top: 6%; width: min(560px, 40%); padding-top: 190px; z-index: 15; animation: sakura-tow-fly 7s ease-in-out infinite; }
+.sakura-tow .sakura-plane { left: auto; right: -48%; top: -10px; width: 92%; max-width: none; transform: rotate(-6deg); }
+.sakura-ropes { position: absolute; left: 4%; right: 4%; top: 120px; height: 72px; width: 92%; overflow: visible; z-index: 18; pointer-events: none; transform: translateX(42%); }
+.sakura-ropes path { fill: none; stroke: var(--login-ink); stroke-width: .5; vector-effect: non-scaling-stroke; stroke-width: 2; opacity: .85; }
+.sakura-ropes circle { fill: var(--login-red); }
+.sakura-pole { position: relative; height: 10px; margin: 0 -10px -2px; border-radius: 6px; background: linear-gradient(180deg, var(--login-ink), color-mix(in oklab, var(--login-ink) 55%, transparent)); box-shadow: 0 4px 12px rgb(0 0 0 / .25); z-index: 17; }
+.sakura-pole i { position: absolute; top: -6px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--login-red); background: var(--login-ink); }
+.sakura-pole i:first-child { left: 2%; } .sakura-pole i:last-child { right: 2%; }
+.sakura-glass.sakura-flag { position: relative; left: auto; top: auto; transform: none; width: 100%; max-width: none; border-radius: 4px 4px 28px 28px; border-top-width: 0; transform-origin: top center; animation: sakura-glass-in .9s cubic-bezier(.2,.8,.2,1) both, sakura-flag-wave 5s ease-in-out 1s infinite, sakura-glass-glow 4s ease-in-out 1s infinite; }
+.sakura-flag::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: repeating-linear-gradient(90deg, var(--login-red) 0 18px, var(--login-ink) 18px 36px); opacity: .9; }
+@keyframes sakura-tow-fly { 0%,100% { translate: 0 0; } 50% { translate: -10px -12px; } }
+@keyframes sakura-flag-wave { 0%,100% { transform: skewX(0deg) rotate(0deg); } 30% { transform: skewX(-1.6deg) rotate(.6deg); } 70% { transform: skewX(1.2deg) rotate(-.5deg); } }
+@media (prefers-reduced-motion: reduce) { .sakura-tow, .sakura-glass.sakura-flag { animation: none; } }
+@media (max-width: 1100px) and (min-width: 761px) { .sakura-tow { width: 44%; left: 48%; } }
+@media (max-width: 760px) {
+  .sakura-tow { left: 7%; right: 7%; width: auto; top: auto; bottom: 30px; padding-top: 130px; }
+  .sakura-tow .sakura-plane { width: 70%; right: -6%; top: 0; bottom: auto; }
+  .sakura-ropes { top: 70px; height: 62px; transform: translateX(30%); }
+  .sakura-glass.sakura-flag { left: auto; right: auto; bottom: auto; width: 100%; padding: 24px; }
+  .sakura-brand { top: 18px; }
+}
