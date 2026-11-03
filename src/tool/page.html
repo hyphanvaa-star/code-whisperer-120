@@ -6154,13 +6154,13 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           <button class="mode on" id="mGeneral" role="tab" aria-selected="true">Hiển thị chung<span
                   class="mode-bang" id="genBang" role="status" aria-live="polite"></span></button>
           <button class="mode" id="mCompare" role="tab" aria-selected="false"><span
-                  class="mode-bang" id="estBang" role="status" aria-live="polite"></span>Dữ liệu so sánh</button>
+                  class="mode-bang" id="estBang" role="status" aria-live="polite"></span><span
+                  class="mode-bang" id="verBang" role="status" aria-live="polite"></span>Dữ liệu so sánh</button>
           <button class="mode" id="mTool" role="tab" aria-selected="false">Công cụ hỗ trợ</button>
           <button class="mode" id="mNotam" role="tab" aria-selected="false"
                   title="Tracking mọi chuyến quốc nội của DSP: FIR + RALT + SID/STAR / RWY / ATS, rồi tóm tắt">Check NOTAM</button>
-          <button class="mode" id="mVer" role="tab" aria-selected="false"
-                  title="So bản kế hoạch đang dùng với bản mới chuẩn bị đưa vào: đổi tàu / đổi crew / delay"><span
-                  class="mode-bang" id="verBang" role="status" aria-live="polite"></span>Dữ liệu thay đổi theo ver</button>
+          <button class="mode" id="mVer" role="tab" aria-selected="false" style="display:none" aria-hidden="true" tabindex="-1"
+                  title="So bản kế hoạch đang dùng với bản mới chuẩn bị đưa vào: đổi tàu / đổi crew / delay">Dữ liệu thay đổi theo ver</button>
           <button class="mode" id="mFpl" role="tab" aria-selected="false" style="display:none" aria-hidden="true" tabindex="-1"
                   title="Tự tải Flight Plan từ Outlook mỗi 15 giây xuống D:\FPL, và Omni hôm nay mỗi 1 giờ xuống D:\Omni">Tự động tải</button>
           <button class="mode" id="mAtcCheck" role="tab" aria-selected="false" style="display:none" aria-hidden="true" tabindex="-1"
@@ -11395,7 +11395,7 @@ async function aeStartDraft(){
    return Number((ver && ver.new_ver) || 0)
      || parseVerNo((ver && ver.new) || "")
      || parseVerNo(($("#vNew") && $("#vNew").value) || "")
-     || parseVerNo(($("#verBang") && $("#verBang").textContent) || "");
+     || Number(($("#verBang") && $("#verBang").dataset.n) || 0);
  }
  // Khoá xác nhận theo TÊN FILE ver mới nhất (không theo số ver): số VER có thể
  // lặp lại giữa các ngày, còn tên file thì không — nhờ vậy ver mới luôn nháy đỏ
@@ -11415,13 +11415,14 @@ async function aeStartDraft(){
      bang.title = "";
      return;
    }
-   bang.textContent = "Ver " + n;
+   bang.dataset.n = n;
+   bang.innerHTML = '<i class="vb-dot"></i><b class="vb-lab">FPL</b><b class="vb-no">V' + n + '</b>';
    bang.classList.add("on");
    const pending = verBangFileKey(ver) !== verBangAcked;
    bang.classList.toggle("flash", pending);
    bang.classList.toggle("ok", !pending);
    bang.title = pending
-     ? "BẢN MỚI là FPL VER " + n + " — bấm tab Dữ liệu thay đổi để xác nhận"
+     ? "FPL VER " + n + " mới — bấm tab Dữ liệu so sánh để xác nhận"
      : "FPL VER " + n + " — đã xem";
  }
  function verBangAck(){
@@ -23051,7 +23052,7 @@ function setMode(m){
   $("#wrapTool").style.display = tool ? "flex" : "none";
   $("#wrapNotam").style.display = notam ? "flex" : "none";
   $("#wrapVer").style.display = ver ? "flex" : "none";
-  if(ver) verBangAck();
+  if(ver || cmp) verBangAck();
   $("#wrapFpl").style.display = fpl ? "flex" : "none";
   $("#wrapAtcCheck").style.display = atcChk ? "flex" : "none";
   $("#wrapLimits").style.display = lim ? "flex" : "none";
