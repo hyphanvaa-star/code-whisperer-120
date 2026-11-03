@@ -464,7 +464,11 @@ function renderCompareTable(d, opts){`)
     .replace('  paintDelta(sid);\n}\n\n/* EST (Omni)', '  paintDelta(sid);\n  cmpValPaint(sid);\n}\n\n/* EST (Omni)')
     .replace('<span class="dim xls-bar-name crew-using" id="cmpVerBar"', '<button id="cmpAtcBtn" type="button" class="btn" onclick="cmpReadAtc((lastCmp && lastCmp.table) || [])" title="Đọc trạng thái ATC trên AviWeb cho các chuyến trong bảng">ATC check</button> <span class="dim xls-bar-name crew-using" id="cmpVerBar"')
     .replace('<button id="cmpAtcBtn"', '<button id="cmpHoBtn" type="button" class="btn" onclick="cmpToHandover()" title="Tạo bảng giao ca từ các chuyến của DSP trong bảng So sánh (kèm NOTE)">Giao ca</button> <button id="cmpAtcBtn"')
-    .replace('function renderCompareTable(d, opts){', `function cmpToHandover(){
+    .replace('function renderCompareTable(d, opts){', `function cmpHoClose(){
+  const w = $("#wrapHandover"); if(w){ w.classList.remove("ho-pop"); w.style.display = "none"; }
+  const b = $("#hoPopBack"); if(b) b.style.display = "none";
+}
+function cmpToHandover(){
   const all = (lastCmp && lastCmp.table) || [];
   if(!all.length){ alert("Bảng So sánh chưa có chuyến — bấm Cmp trước."); return; }
   const names = [...new Set(all.map(r => String(r.dsp || "").trim()).filter(Boolean))];
@@ -493,7 +497,17 @@ function renderCompareTable(d, opts){`)
     if(!row.sta && r.sta) row.sta = String(r.sta).replace(":", "") + "Z";
     return row;
   }).sort((a,b) => String(a.std).localeCompare(String(b.std)));
-  setMode("handover");
+  const wrap = $("#wrapHandover");
+  if(!$("#hoPopBack")){
+    const back = document.createElement("div"); back.id = "hoPopBack";
+    back.onclick = cmpHoClose; document.body.appendChild(back);
+    const x = document.createElement("button"); x.type = "button"; x.id = "hoPopClose";
+    x.className = "btn small"; x.textContent = "✕ Đóng"; x.onclick = cmpHoClose;
+    const bar = wrap.querySelector(".ho-bar"); if(bar) bar.appendChild(x);
+  }
+  document.body.appendChild(wrap);
+  wrap.classList.add("ho-pop"); wrap.style.display = "flex";
+  $("#hoPopBack").style.display = "block";
   Promise.resolve(hoShow()).then(() => {
     hoFillDspList();
     if($("#hoDsp")) $("#hoDsp").value = name;
@@ -508,6 +522,10 @@ function renderCompareTable(d, opts){`)
 function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
 .cmptbl :is(th,td):nth-child(12),.cmptbl :is(th,td):nth-child(n+16):nth-child(-n+20){display:none!important}
+.mode#mHandover{display:none!important}
+#wrapHandover.ho-pop{position:fixed;inset:3vh 2vw;z-index:10001;border-radius:12px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#hoPopBack{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55)}
+#hoPopClose{display:none}#wrapHandover.ho-pop #hoPopClose{display:inline-flex}
 .cmptbl .cmp-ops-status{margin-top:4px;text-align:left}
 .cmptbl .cmp-vst{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
 .cmptbl .cmp-vst.ok{background:#16a34a;color:#fff}
