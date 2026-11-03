@@ -2498,7 +2498,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.70')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.71')
     .replace('  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");', '  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");\n  $("#ftAtcMiss").style.cssText = /KHÔNG có giờ AviWeb/.test($("#ftAtcMiss").textContent) ? "color:#d10000;font-weight:800;font-size:14px" : "";')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
