@@ -41,13 +41,13 @@ export function cmpPilotChanges(oldRaw: unknown, newRaw: unknown) {
 }
 
 /** Pick distinct numeric revisions from one operating date, never upload order. */
-export function cmpFplPair<T extends { name: string; modified?: number }>(files: T[], now = Date.now()): T[] {
+export function cmpFplPair<T extends { name: string; modified?: number }>(files: T[], now = Date.now(), allowSingle = false): T[] {
   const reference = new Date(now);
   const year = reference.getUTCFullYear();
   const candidates = files.flatMap(file => {
     const ver = /\bVER\D{0,3}(\d+)/i.exec(file.name);
     const date = /(?:^|[^0-9])(\d{1,2})\s*[-_ ]?\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(?![A-Z])(?:\s*[-_ ]?\s*(20\d{2}))?/i.exec(file.name);
-    if (!ver || !date) return [];
+    if (!ver || !date || !/FLIGHT\s*PLAN|\bFPL\b/i.test(file.name)) return [];
     const month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(String(date[2]).toUpperCase());
     const day = Number(date[1]);
     if (month < 0 || day < 1 || day > 31) return [];
@@ -62,11 +62,38 @@ export function cmpFplPair<T extends { name: string; modified?: number }>(files:
   const latest = candidates[0];
   if (!latest) return [];
   const previous = candidates.find(c => c.stamp === latest.stamp && c.revision < latest.revision);
-  return previous ? [previous.file, latest.file] : [];
+  return previous ? [previous.file, latest.file] : allowSingle ? [latest.file] : [];
 }
 
 export function patchCmpSyncPage(html: string): string {
-  return html.replace('function renderCompareTable(d, opts){', `
+  return html.replace(/async function applyFplVer\(ver\)\{[\s\S]*?(?=\nfunction setOwaState)/, `async function applyFplVer(ver){
+  const old = String(ver && ver.old || ""), neu = String(ver && ver.new || "");
+  if(!neu) return;
+  const sig = JSON.stringify([old, neu]);
+  if(sig === window.__fplVerSig){paintVerBang(fplVerApplied);return;}
+  const seq = window.__fplApplySeq = (window.__fplApplySeq || 0) + 1;
+  await vLoadFiles({preferNewest: false});
+  if(seq !== window.__fplApplySeq) return;
+  const pair = cmpFplPair(vFileList, Date.now(), true);
+  const latest = pair[pair.length - 1];
+  if(!latest) return;
+  const previous = pair.length === 2 ? pair[0].name : "";
+  vSetValue("new", latest.name);
+  vSetValue("old", previous);
+  vPaintMenus();
+  fplVerApplied = {old: previous, new: latest.name};
+  window.__fplVerSig = sig;
+  paintVerBang(fplVerApplied);
+  await cmpReadSyncSources();
+  cmpAtcAutoPending = true;
+  if(lastCmp && lastCmp.table) cmpAtcAutoRun(lastCmp.table);
+  if(mode === "version" && previous && previous !== latest.name) vRun();
+}
+`)
+    .replace('  if(ver || cmp) verBangAck();', '  if(cmp) verBangAck();')
+    .replace('   return Number((ver && ver.new_ver) || 0)\n     || parseVerNo((ver && ver.new) || "")', '   return parseVerNo((ver && ver.new) || "")\n     || Number((ver && ver.new_ver) || 0)')
+    .replace('    const d = await (await fetch("/api/version/files")).json();\n    vFileList', '    const seq = window.__vFilesSeq = (window.__vFilesSeq || 0) + 1;\n    const response = await fetch("/api/version/files");\n    const d = await response.json();\n    if(!response.ok || d.error || seq !== window.__vFilesSeq) return;\n    vFileList')
+    .replace('function renderCompareTable(d, opts){', `
 const cmpSourceChange = ${cmpSourceChange.toString()};
 const cmpAircraftChange = ${cmpAircraftChange.toString()};
 const cmpPilotChanges = ${cmpPilotChanges.toString()};

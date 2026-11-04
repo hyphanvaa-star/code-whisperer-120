@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.08 FPL VER 12: nhận tên FPL thiếu ON, chọn hai VER khác nhau cùng ngày, cập nhật So sánh ngay và nhãn theo file thực nạp; 26 kiểm thử đạt, trình duyệt xác nhận trước sửa 0 lượt cập nhật/sau sửa 1 lượt, 16 đoạn mã hợp lệ, build OK. Chưa publish.
+- [ ] V 5.08: thử nhận mail VER 12 và đọc lại bảng của JACK — chưa có phiên đăng nhập khớp người yêu cầu; cần đăng nhập preview và trợ lý PC tại máy công ty.
+
 - [x] V 4.89: mở rộng khung chat, giao diện Messenger, emoji lớn và nhãn dán không nền; 9 kiểm thử đạt, giữ nguyên gửi tin/reaction. Chưa thử trên phòng chat thật do không có phiên người yêu cầu.
 
 - [x] V 4.88: thêm emoji, bốn nhãn dán hàng không và reaction tin nhắn; kiểm tra gửi/thu hồi và đọc lại bằng kiểm thử. Chưa thử hai tài khoản thật vì không cấp được phiên người yêu cầu.
