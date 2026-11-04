@@ -95,9 +95,8 @@ export function AuthScreen() {
         <div className="sakura-tow">
         <img src={vietjetPlane} alt="Máy bay Vietjet Air" className="sakura-plane" />
         <svg className="sakura-ropes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M8 4 L4 100" />
-          <path d="M8 4 L96 100" />
-          <circle cx="8" cy="4" r="1.4" />
+          <path d="M50 0 L3 100" />
+          <path d="M50 0 L97 100" />
         </svg>
         <div className="sakura-pole" aria-hidden="true"><i /><i /></div>
         <main className="sakura-glass sakura-flag">
