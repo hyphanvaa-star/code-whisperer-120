@@ -107,9 +107,9 @@ export function patchCmpSyncPage(html: string): string {
     if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();`)
     .replace('    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";', '    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();')
     .replace('</head>', `<style>
-#cmpVerDialog{position:fixed;inset:16px;margin:0;box-sizing:border-box;padding:0;border:1px solid var(--atc-line);border-radius:8px;background:var(--atc-paper);color:var(--atc-ink);width:calc(100vw - 32px);max-width:none;height:calc(100vh - 32px);max-height:none;overflow:hidden}
+#cmpVerDialog{position:fixed;inset:16px;margin:0;box-sizing:border-box;padding:0;border:1px solid var(--atc-line,var(--vj-line));border-radius:8px;background:var(--atc-paper,var(--vj-surface));color:var(--atc-ink,var(--vj-ink));width:calc(100vw - 32px);max-width:none;height:calc(100vh - 32px);max-height:none;overflow:hidden}
 #cmpVerDialog[open]{display:flex;flex-direction:column}
-#cmpVerDialog::backdrop{background:color-mix(in srgb,var(--atc-ink) 55%,transparent)}
+#cmpVerDialog::backdrop{background:color-mix(in srgb,var(--atc-ink,var(--vj-ink)) 55%,transparent)}
 .cmp-ver-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--atc-line);flex-shrink:0;font-size:18px;font-weight:700}
 #cmpVerDialog #wrapVer{width:100%;overflow:hidden;flex:1}
 #cmpVerDialog .toolbar2{flex-wrap:wrap;flex-shrink:0}
