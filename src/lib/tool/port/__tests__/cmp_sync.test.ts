@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import vm from 'node:vm';
+import { readFileSync } from 'node:fs';
 import { cmpAircraftChange, cmpFplPair, cmpPilotChanges, cmpSourceChange, patchCmpSyncPage } from '../cmp_sync';
 
 describe('Compare source changes', () => {
@@ -76,5 +77,23 @@ describe('Compare source changes', () => {
     expect(cmpPilotChanges('(CPT) 1234','(DHD CPT) 4321')).toEqual([]);
     expect(cmpPilotChanges('unknown','unknown')).toEqual([]);
     expect(cmpPilotChanges('(CPT) 1234','(CPT) 4321; (CPT) 5555; (CPT) 6666')).toEqual([]);
+  });
+  it('hover tooltip shows the compared FPL versions and Crewlist file', () => {
+    const html = patchCmpSyncPage(readFileSync('src/tool/page.html', 'utf8'));
+    expect(html).toContain(': "FPL VER " + n + " — đã xem") + (typeof cmpVerDetail === "function" ? cmpVerDetail() : "");');
+    expect(html).toContain('bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();');
+    const start = html.indexOf('function cmpVerDetail()');
+    const end = html.indexOf('async function cmpVerOpen()');
+    const pick = (sel: string) => sel === '#vOld' ? {value:'FLIGHT PLAN ON 02NOV - VER 09.xlsx'} : sel === '#vNew' ? {value:'FLIGHT PLAN ON 02NOV - VER 10.xlsx'} : null;
+    const context = {xls:{file:'hyd.xlsx'}, $: pick};
+    vm.createContext(context);
+    vm.runInContext(html.slice(start,end), context);
+    const tip = vm.runInContext('cmpVerDetail()', context) as string;
+    expect(tip).toContain('FPL FLIGHT PLAN ON 02NOV - VER 09.xlsx → FLIGHT PLAN ON 02NOV - VER 10.xlsx');
+    expect(tip).toContain('Crewlist: hyd.xlsx');
+    const noFiles = {xls:null, $:() => null};
+    vm.createContext(noFiles);
+    vm.runInContext(html.slice(start,end), noFiles);
+    expect(vm.runInContext('cmpVerDetail()', noFiles)).toBe('');
   });
 });
