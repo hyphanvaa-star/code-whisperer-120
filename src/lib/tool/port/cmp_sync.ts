@@ -131,6 +131,44 @@ const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
+function cmpSourceTip(kind){
+  if(kind === "fpl"){
+    const file = cmpSyncSources.fplFile || "";
+    const previous = cmpSyncSources.fplOld || "";
+    const ver = parseVerNo(file);
+    return file ? "Đang đối chiếu: FPL" + (ver ? " VER " + String(ver).padStart(2,"0") : "") + " (" + file + ")" + (previous ? "\\nSo với: " + previous : "") : "Nguồn REG FPL: chưa đọc được cặp Excel FPL; dự phòng OFP FliteBrief";
+  }
+  const file = (typeof xls !== "undefined" && xls && xls.file) || "";
+  return file ? "Đang đối chiếu Crewlist: " + file : "Nguồn Crewlist: chưa chọn file; đang hiện dữ liệu FliteBrief";
+}
+function cmpSourceTipSet(el, kind){
+  if(!el) return;
+  const key = el === _tipHost ? "data-tip" : el.hasAttribute("title") ? "title" : el.hasAttribute("data-tip") ? "data-tip" : "title";
+  let base = el.getAttribute(key) || "";
+  if(el._cmpSourcePrefix && base.startsWith(el._cmpSourcePrefix)) base = base.slice(el._cmpSourcePrefix.length);
+  const prefix = cmpSourceTip(kind) + "\\n\\n";
+  el._cmpSourcePrefix = prefix;
+  el.setAttribute(key, prefix + base);
+}
+function cmpSourceHeaders(){
+  document.querySelectorAll("#cmpHead th").forEach(th=>{
+    const label = th.textContent.trim();
+    if(["REG FPL","REG AIMS","CREW"].includes(label)) cmpSourceTipSet(th,label === "REG FPL" ? "fpl" : "crew");
+  });
+}
+// Capture before the shared tooltip handler, including child buttons with their own tips.
+document.addEventListener("mouseover", ev=>{
+  const target = ev.target;
+  if(!target || !target.closest) return;
+  const cell = target.closest("#cmpBody td[data-fpl-reg-sid],#cmpBody td[data-reg-sid],#cmpBody td[data-crew-sid],#cmpHead th");
+  if(!cell) return;
+  const label = cell.tagName === "TH" ? cell.textContent.trim() : "";
+  if(cell.tagName === "TH" && !["REG FPL","REG AIMS","CREW"].includes(label)) return;
+  const kind = cell.hasAttribute("data-fpl-reg-sid") || label === "REG FPL" ? "fpl" : "crew";
+  cmpSourceTipSet(cell,kind);
+  const child = target.closest("[title],[data-tip]");
+  if(child && child !== cell && cell.contains(child)) cmpSourceTipSet(child,kind);
+},true);
 function cmpVerDetail(){
   try{
     const vo = ($("#vOld") && $("#vOld").value) || "";
@@ -415,8 +453,9 @@ async function cmpReadSyncSources(){
         return diff.rows || [];
       }));
       if(seq!==cmpSyncSeq) return;
-      cmpSyncSources={stamp,current,crew:results[0],fpl:results[1]};
+      cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl[0]?.name || "",fplFile:pairs.fpl[1]?.name || ""};
     }
+    cmpSourceHeaders();
     const targets = ((lastCmp && lastCmp.table) || []).flatMap(r=>["crew","aims","fpl"].map(kind=>cmpSyncEvidence(r,kind)).filter(Boolean));
     if(typeof cmpRegRepaint === "function") cmpRegRepaint();
     cmpSyncRepaint();
@@ -431,10 +470,12 @@ async function cmpReadSyncSources(){
 }
 setInterval(()=>{if(!document.hidden && !cmpSyncBusy && document.querySelector("#cmpBody")?.offsetParent!==null) cmpReadSyncSources();},60000);
 const cmpSyncFillCrew = fillCrewCell;
-fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=cmpSyncRow(td.dataset.crewSid);if(r)cmpSyncPaint(r,"crew");return td;};
+fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=cmpSyncRow(td.dataset.crewSid);if(r)cmpSyncPaint(r,"crew");cmpSourceTipSet(td,"crew");return td;};
 const cmpSyncFillReg = fillRegCell;
-fillRegCell = function(...args){const td=cmpSyncFillReg(...args);const r=cmpSyncRow(td.dataset.regSid);if(r){cmpRegPaint(r);cmpSyncPaint(r,"aims");}return td;};
+fillRegCell = function(...args){const td=cmpSyncFillReg(...args);const r=cmpSyncRow(td.dataset.regSid);if(r){cmpRegPaint(r);cmpSyncPaint(r,"aims");}cmpSourceTipSet(td,"crew");return td;};
 function renderCompareTable(d, opts){`)
+    .replace('    head.appendChild(th);\n  }', '    head.appendChild(th);\n  }\n  cmpSourceHeaders();')
+    .replace('  const cell = document.querySelector(\'#cmpBody td[data-cmp-brief-sid="\' + r.sector_id + \'"]\');', '  cmpSourceTipSet(td,"fpl");\n  const cell = document.querySelector(\'#cmpBody td[data-cmp-brief-sid="\' + r.sector_id + \'"]\');')
     .replace('  cmpOpsRepaint(rows);', '  cmpReadSyncSources();\n  cmpOpsRepaint(rows);')
     .replace('function vReqCell(r){', 'function vReqCell(r, onReqDone){')
     .replace('    const box = document.getElementById("ftDspBox");\n    const dsp = ((box && box.value) || r.dsp || "").trim();', '')
