@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.19: tắt tự check EOBT AviWeb nền ở tab Dữ liệu thay đổi (không còn tự gõ chuyến sang Check ATC avi); giờ chỉ chạy khi bấm nút Check ATC avi. Chưa publish.
+
 - [x] V 5.10: CREW chuyến giao ca vẫn trống — máy chủ đọc tổ bay cho cả chuyến ngoài DSP chính, thử lại ô trống đã nhớ; crewlist hy2.xlsx thật: 58/58 chuyến có tổ bay (trước sửa thiếu toàn bộ HO). Chưa publish.
 
 - [x] Sửa CREW chuyến giao ca: đồng bộ crew/crewnames với các dòng HO trong bảng So sánh, giữ IDs/bộ lọc khác và DSP chính; tái hiện 2 lỗi trước sửa, 31 kiểm thử đạt sau sửa, trang phục vụ đủ hai bản sửa và 16 đoạn mã hợp lệ, build OK. Chưa publish.
