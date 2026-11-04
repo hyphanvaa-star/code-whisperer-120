@@ -18,6 +18,7 @@ import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
 import { notamCounts } from '@/lib/tool/port/notam_counts';
+import { bpParsePack, bpWebIds, bpCompare, bpNewIds, bpDueRescan } from '@/lib/tool/port/briefing_pack';
 import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
 import { patchAccountMemoryPage } from '@/lib/tool/port/account_memory';
 import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
@@ -2426,8 +2427,9 @@ function nmPaintListBase(place, q){`)
       bp.textContent = (ok ? "☑" : "☐") + " Briefing pack";
       bp.title = ok ? "Đã verify — có Briefing pack" : "Chưa verify — chưa có Briefing pack";
       row.appendChild(bp);
+      try{ window.bpRowExtras && window.bpRowExtras(row, opt); }catch(_e){}
     }`)
-    .replace('    el.value = String(f.id);\n    const t = String(f.std || "").match(/T(\\d{2}:\\d{2})/);', '    el.value = String(f.id);\n    el.dataset.bp = (f.verified_by || f.verified_on) ? "1" : "0";\n    const t = String(f.std || "").match(/T(\\d{2}:\\d{2})/);')
+    .replace('    el.value = String(f.id);\n    const t = String(f.std || "").match(/T(\\d{2}:\\d{2})/);', '    el.value = String(f.id);\n    el.dataset.bp = (f.verified_by || f.verified_on) ? "1" : "0"; el.dataset.dep = String(f.etd || f.std || "");\n    const t = String(f.std || "").match(/T(\\d{2}:\\d{2})/);')
     .replace('</head>', '<style>.nm-flt-choice{display:flex;align-items:center}.nm-flt-bp{margin-left:auto;padding-left:8px;white-space:nowrap;font:800 11px/1.2 system-ui,sans-serif}.nm-flt-bp.ok{color:#16a34a}.nm-flt-bp.no{color:#dc2626}</style></head>')
     .replace('  const cur = (($("#nmFlt") || {}).value || "");\n  hits.forEach(opt => {', `  const cur = (($("#nmFlt") || {}).value || "");
   {
@@ -2567,6 +2569,114 @@ function nmRouteLayers(ids){
       #wrapNotam .toolbar2{position:sticky;top:0;z-index:130;box-shadow:0 2px 8px rgba(156,26,92,.12)}
       #wrapNotam .nm-bar2{position:sticky;top:var(--nm-tbh,46px);z-index:125;background:linear-gradient(145deg,#fff5fa,#fce9f1);padding-bottom:4px}
     </style></head>`)
+    .replace('if(nmTrackData) nmTrackCache[id] = nmTrackData;', 'if(nmTrackData){ nmTrackCache[id] = nmTrackData; try{ window.bpSaveBase && window.bpSaveBase(id, nmTrackData); }catch(_e){} }')
+    .replace('</body>', `<style>
+.nm-flt-cmp{margin-left:6px;padding:2px 7px;border-radius:999px;white-space:nowrap;font:800 11px/1.2 system-ui,sans-serif;cursor:pointer;border:1px solid transparent}
+.nm-flt-cmp.wait{color:#64748b;border-color:#cbd5e1;background:#f8fafc}
+.nm-flt-cmp.ok{background:#16a34a;color:#fff}
+.nm-flt-cmp.bad{background:#dc2626;color:#fff}
+.nm-flt-new{margin-left:6px;padding:2px 7px;border-radius:999px;background:#dc2626;color:#fff;font:800 11px/1.2 system-ui,sans-serif;cursor:pointer;animation:bpPulse 1s infinite}
+@keyframes bpPulse{50%{opacity:.35}}
+#bpToast{position:fixed;right:18px;top:70px;z-index:99999;max-width:380px;background:#dc2626;color:#fff;padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);font:600 14px/1.4 system-ui,sans-serif;white-space:pre-line;cursor:pointer}
+</style><script>(function(){
+  ${bpParsePack.toString()}
+  ${bpWebIds.toString()}
+  ${bpCompare.toString()}
+  ${bpNewIds.toString()}
+  ${bpDueRescan.toString()}
+  function uid(){ try{ for(const k of Object.keys(localStorage)){ if(/^sb-.*-auth-token$/.test(k)){ const s = JSON.parse(localStorage.getItem(k)||"{}"); const u = (s.user||(s.currentSession||{}).user||{}).id; if(u) return u; } } }catch(e){} return "anon"; }
+  const K = (kind, fid) => "nm." + kind + ":" + uid() + ":" + fid;
+  const get = (k) => { try{ return JSON.parse(localStorage.getItem(k) || "null"); }catch(e){ return null; } };
+  const set = (k, v) => { try{ if(v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+  const allIds = (places) => { const w = bpWebIds(places); return [...new Set(Object.values(w).flat())]; };
+  function depOf(fid){ const o = document.querySelector('#nmFlt option[value="' + fid + '"]'); const t = Date.parse((o && o.dataset.dep) || ""); return t; }
+  function label(fid){ const o = document.querySelector('#nmFlt option[value="' + fid + '"]'); return o ? String(o.textContent || "").trim().split(/\\s+/)[0] : ("#" + fid); }
+  window.bpSaveBase = function(fid, data){
+    const places = (data && data.places) || [];
+    const old = get(K("watch", fid));
+    const dep = depOf(fid);
+    // Lần check trong giờ T-60 vẫn làm mốc mới; đã quét T-60 rồi thì giữ trạng thái done.
+    set(K("watch", fid), { ids: allIds(places), dep: Number.isFinite(dep) ? dep : (old && old.dep) || null, done: !!(old && old.done && old.dep === dep) });
+  };
+  function refill(){ try{ if(typeof nmFltFillItems === "function") nmFltFillItems((document.getElementById("nmFltQ") || {}).value || ""); }catch(e){} }
+  function toast(msg){
+    let t = document.getElementById("bpToast"); if(t) t.remove();
+    t = document.createElement("div"); t.id = "bpToast"; t.textContent = msg; t.title = "Bấm để đóng";
+    t.onclick = () => t.remove(); document.body.appendChild(t);
+    try{ const a = new (window.AudioContext || window.webkitAudioContext)(); [0, .18].forEach((d, i) => { const o = a.createOscillator(), g = a.createGain(); o.frequency.value = i ? 1100 : 880; g.gain.value = .6; o.connect(g); g.connect(a.destination); o.start(a.currentTime + d); o.stop(a.currentTime + d + .15); }); }catch(e){}
+  }
+  async function pickPack(fid){
+    const data = (typeof nmTrackCache !== "undefined" && nmTrackCache[fid]) || null;
+    if(!data){ alert("Hãy Check NOTAM tracking chuyến " + label(fid) + " trước, rồi mới so với Briefing pack."); return; }
+    const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,application/pdf";
+    inp.onchange = async () => {
+      const f = inp.files && inp.files[0]; if(!f) return;
+      try{
+        const pdfjs = await import("/vendor/pdf.min.mjs");
+        pdfjs.GlobalWorkerOptions.workerSrc = "/vendor/pdf.worker.min.mjs";
+        const doc = await pdfjs.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
+        let text = "";
+        for(let i = 1; i <= doc.numPages; i++){ const tc = await (await doc.getPage(i)).getTextContent(); text += tc.items.map(t => t.str).join(" ") + "\\n"; }
+        const pack = bpParsePack(text);
+        if(!Object.keys(pack).length){ alert("Không đọc được NOTAM nào trong file này — có đúng Briefing pack không?"); return; }
+        const r = bpCompare(pack, bpWebIds(data.places || []));
+        set(K("bpcmp", fid), { at: Date.now(), file: f.name, common: r.common, packCount: r.packCount, missing: r.missing });
+        refill();
+        if(r.missing.length) toast(label(fid) + ": Briefing pack có " + r.missing.length + " NOTAM web chưa có\\n" + r.missing.map(m => m.loc + " " + m.id).join(", "));
+      }catch(e){ alert("Đọc Briefing pack lỗi: " + (e && e.message || e)); }
+    };
+    inp.click();
+  }
+  window.bpRowExtras = function(row, opt){
+    const fid = opt.value;
+    if(opt.dataset.bp === "1"){
+      const c = get(K("bpcmp", fid));
+      const s = document.createElement("span");
+      if(!c){ s.className = "nm-flt-cmp wait"; s.textContent = "So pack"; s.title = "Chọn file Briefing pack (PDF) để so với NOTAM web đã lấy"; }
+      else if(!c.missing.length){ s.className = "nm-flt-cmp ok"; s.textContent = "✓ Đủ NOTAM"; s.title = "Web có đủ " + c.packCount + " NOTAM của pack ở " + c.common.join(", ") + ". Bấm để so lại."; }
+      else { s.className = "nm-flt-cmp bad"; s.textContent = "✕ Thiếu " + c.missing.length; s.title = "Web chưa có:\\n" + c.missing.map(m => m.loc + "  " + m.id).join("\\n") + "\\n\\nBấm để so lại."; }
+      s.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };
+      s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); pickPack(fid); };
+      row.appendChild(s);
+    }
+    const nw = get(K("new", fid));
+    if(nw && nw.ids && nw.ids.length){
+      const b = document.createElement("span"); b.className = "nm-flt-new"; b.textContent = "+" + nw.ids.length + " mới";
+      b.title = "NOTAM mới trước giờ bay 1h:\\n" + nw.ids.join("\\n") + "\\n\\nBấm để đã xem";
+      b.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };
+      b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); set(K("new", fid), null); refill(); };
+      row.appendChild(b);
+    }
+  };
+  let busy = false;
+  async function tick(){
+    if(busy) return; busy = true;
+    try{
+      const pre = "nm.watch:" + uid() + ":";
+      for(const k of Object.keys(localStorage)){
+        if(!k.startsWith(pre)) continue;
+        const fid = k.slice(pre.length);
+        const w = get(k); if(!w) continue;
+        const now = Date.now();
+        if(w.dep && (now > w.dep + 6 * 3600_000)){ set(k, null); continue; }
+        if(!bpDueRescan(Number(w.dep), now, !!w.done)) continue;
+        w.done = true; set(k, w);
+        try{
+          const r = await fetch("/api/notam/track?id=" + encodeURIComponent(fid) + "&days=2");
+          const d = await r.json();
+          if(!d || d.error) continue;
+          const added = bpNewIds(w.ids || [], allIds(d.places || []));
+          if(added.length){
+            set(K("new", fid), { ids: added, at: now });
+            toast(label(fid) + " có " + added.length + " NOTAM mới (" + (w.ids || []).length + " → " + ((w.ids || []).length + added.length) + ")\\n" + added.join(", "));
+            refill();
+          }
+        }catch(e){}
+      }
+    }finally{ busy = false; }
+  }
+  setInterval(tick, 60000); setTimeout(tick, 15000);
+})();</script></body>`)
     .replace('</body>', `<script>(function(){
   function nmStickyTb(){
     var w = document.getElementById("wrapNotam");
@@ -2588,7 +2698,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.99')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.00')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')

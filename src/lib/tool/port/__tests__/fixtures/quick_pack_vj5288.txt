@@ -1,0 +1,2723 @@
+Date Generated: 04-Nov-2026 06:44 UTC
+          Sectors: VJC5288
+Intentionally Left Blank
+                                                                                                                                                     Pack Summary
+
+
+                                                                    Brieﬁng Pack
+
+   Voyage ID -1                                      Sector ID 22471360          VJC5288 CXR - HGH
+  Flight/CSN VJC5288                              Registration VNA629            VVCR ZSHC VVDN ZSNB ZSNJ VHHH ZGOW ZSAM RCTP ZSFZ
+       Plan # 1316                                 Planned by BUI T H NHUNG
+                                                                                 TAFs
+         Dep CXR(VVCR) CAM RANH IN...                     ETD 04/11/2026 08:55
+                                                                                 VJC5288 CXR - HGH
+        Dest HGH(ZSHC) XIAOSHAN                           ETA 04/11/2026 12:11
+         Slot Unreserved                                Stand N/A                VVCR ZSHC VVDN ZSNB ZSNJ VHHH ZGOW ZSAM RCTP ZSFZ
+
+                                                          PAX
+   PAX A/C/I N/A                                              N/A                SNOWTAM
+                                                 1st/Bus/Econ
+       Cargo N/A                                                                 VJC5288 CXR - HGH
+
+                Skoptsov Sergei                                                  No SNOWTAM in force
+         F/C
+                Ho Minh Khoi
+NOTAM Data Validity : 04 Nov 2026 06:55 - 04 Nov 26 14:11
+                                                                                 SIGMET
+                                                                                 VJC5288 CXR - HGH
+
+                                                                                 ZJSA VHHK ZGZU ZSHA
+
+RAIM Outages
+                                                                                 ASHTAM
+VJC5288 CXR - HGH                                                                VJC5288 CXR - HGH
+VVCR ZSHC VVDN ZSNB ZSNJ VHHH ZGOW ZSAM RCBS ZSQZ RCTP ZSFZ                      No ASHTAMs in force
+
+Enroute                                                                          Airﬁeld NOTAM
+Airﬁelds                                                                         VJC5288 CXR - HGH
+
+VJC5288 CXR - HGH                                                                (VVCR: 1) (ZSHC: 3) (VVDN: 9) (ZSNB: 3) (ZSNJ: 5) (VHHH: 9) (ZGOW: 6) (ZSAM: 7)
+                                                                                 (RCBS: 10) (ZSQZ: 6) (RCTP: 56) (ZSFZ: 13)
+VVCR ZSHC VVDN ZSNB ZSNJ VHHH ZGOW ZSAM RCBS ZSQZ RCTP ZSFZ
+                                                                                 FIR NOTAM
+FIRs
+                                                                                 VJC5288 CXR - HGH
+VJC5288 CXR - HGH
+                                                                                 (VVHM 3) (ZJSA 2) (VHHK 3) (ZGZU 6) (RCAA 17) (ZSHA 10)
+VVHM ZJSA VHHK ZGZU RCAA ZSHA
+                                                                                 Charts
+METARs
+
+
+Ref: OPS GEN.                                                                                                                                                 3/134
+                                                   Pack Summary
+
+VJC5288 CXR - HGH
+
+ROUTE PLOT
+WAYPOINT PLOT
+UPPER WIND & TEMP FL050 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL100 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL180 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL240 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL300 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL320 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL340 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL360 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL390 Valid 06 UTC 04 Nov 2026
+UPPER WIND & TEMP FL050 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL100 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL180 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL240 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL300 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL320 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL340 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL360 Valid 12 UTC 04 Nov 2026
+UPPER WIND & TEMP FL390 Valid 12 UTC 04 Nov 2026
+SIG WX FL100-FL450 Valid 06 UTC 04 Nov 2026
+SIG WX FL250-FL630 Valid 06 UTC 04 Nov 2026
+SIG WX FL100-FL450 Valid 12 UTC 04 Nov 2026
+SIG WX FL250-FL630 Valid 12 UTC 04 Nov 2026
+VERTICAL PROFILE
+
+
+Notices
+No Notices to Display
+
+
+Sector Messages
+No Sector Messages to Display
+
+
+
+
+Ref: OPS GEN.                                             4/134
+                                              VJC5288 VVCR - ZSHC VNA629           OFP
+
+CFP 1316 VJC5288VVCR TO ZSHC IFR/32SK/VNA629 COMPUTED 0317Z 04/11/26
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+VIETJETAIR DISPATCH FLIGHT RELEASE VJC5288
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+GENERAL INFO
+
+FLT NBR     A/C REG     DATE       DEP/ARR     ETD/ ETA         DEST ALTN
+VJC5288     VNA629      04/11/26   CXR/HGH    0855Z/1211Z       NKG/NGB
+
+TRIP TIME    3.16      CI 14
+
+WEIGH AND FUEL-ALL IN KGS
+
+EST PLD     13000
+EZFW        61518
+TRIP FUEL    9446
+BLOCK FUEL 14149
+FINAL FUEL ORDER.........
+REASON - ZFW CHG/ALTN CHG/MEL CDL/ATC: DEP-ENR-DES/LOW FL/
+          WX: ENR-DES/OTHS......................................
+
+
+DOCUMENT                                     YES / NO
+-COMPUTERIZED FLIGHT PLAN                 ......./.......
+-ATC FLIGHT PLAN OF VJC5288               ......./.......
+-NOTAM                                    ......./.......
+-WX                                       ......./.......
+-DISPATCHER BRIEFING                      ......./.......
+
+ _
+|_| It is the PIC"s responsibility that prior to flight, notices and safety
+    promotions distributed in Coruson and eCREW must be reviewed, acknowledged,
+    and fully implemented by all flight crew members, including Documents
+    Required On Board Aircraft that are deemed to be required as per
+    OM Part A 8.1.12.1 in electronic or paper format as applicable.
+
+ _
+|_| All operating crew members declared themselves fit for duty.
+
+
+CREW INFORMATION
+                    CAPT                F/O
+-NAME:              15097 SKOPTSOV SERGE17390 HO MINH KHOI
+
+-COMPANY Ipad: EFB.............           EFB.............
+-PERSONAL Ipad: ................          ................
+
+AIRPORT         VVCR       SUNRISE     2237            SUNSET           1017
+                ZSHC       SUNRISE     2215            SUNSET           0909
+
+
+REMARKS ........................................................
+EFBVER20261028V0
+
+
+TIME ACCEPT (HH:MM):. . . . . . . .          LT/UTC
+
+I HEREBY RELEASE THIS FLIGHT IN FULL COMPLIANCE WITH CIVIL AVIATION
+LAW AND/OR COMPANY OPERATION MANUAL
+
+- DISPATCHER: BUI T H NHUNG
+
+I HEREBY ACCEPT THIS FLIGHT RELEASE WITH FULL ACKNOWLEDGEMENT.
+
+- PIC:    15097 SKOPTSOV SERGE               SIGN: . . . . . . . . . . .
+
+
+
+Ref: OPS GEN.                                                                     5/134
+                                              VJC5288 VVCR - ZSHC VNA629                   OFP
+
+END OF DISPATCH FLIGHT RELEASE VJC5288
+
+
+
+
+PLAN 1316 VJC5288 04NOV VVCR TO ZSHC 32SK    14/F IFR 04/11/26
+NONSTOP COMPUTED 0317Z FOR ETD/ETA 0855Z/1231Z   PROGS 0318UK  VNA629              KGS
+
+V1:. . . . .             VR:. . . . . .              V2:. . . . .          RWY:. . . .
+
+FLX:. . . . .            FOB:. . . . . .             FLAPS:. . . . .       RTOW:. . . .
+
+FUEL PLAN
+GROUND DIST 1374          AIR DIST: 1401           M011 (032/M011) MXSH 06/UGAGO
+AVG W/C: M009             AVG ISA: +14
+
+                          FUEL       TIME
+TRIP                      9446       3:16    . . . .
+ROUTE RES 3PCT             283       0:07    . . . .
+1ST ALT / ZSNJ            1722       0:31    . . . .
+FINAL RES                 1400       0:30    . . . .
+EXTRA                     1178       0:30    . . . .
+DISCR                        0       0:00    . . . .
+TAKE OFF                 14029       4:54    . . . .
+TAXI                       120               . . . .
+BLOCK                    14149       4:54    . . . .
+
+FINAL FUEL ORDER.........
+
+GREATER THAN 500 KGS OF DISCRETIONARY FUEL REQUIRED . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+LRC   FL270   009866   03:24
+
+PIC SIGNATURE:_________________ LICENCE No: ______________ EXPIRY DATE: _______
+
+PIC"S SIGNATURE CONFIRMS THE ACCEPTANCE OF THIS FLIGHT PLAN
+
+CAPT 15097 SKOPTSOV      FO 17390 HO MINHDISPATCHER BUI T H NHUNG
+
+ROUTE CXRHGH1        FL310        CRZ TEMP M32
+
+PLD   13000 KG            . . . . . .                   DOW    48518
+ZFW   61518 KG            . . . . . .                   MZFW   71500
+TOW   75546 KG            . . . . . .                   MTOW   89000
+LWT   66101 KG            . . . . . .                   MLWT   75500
+
+FUEL CONSUMPTION - PLUS +05.2 PCT/HR/ENG
+
+WEIGHT CHANGE P1000 KG       FP     78 KG   TRIP FUEL
+
+ATC CLEARANCE REQUESTED
+
+
+VVCR FURA1A NITOM M771 DULOP Q1 CARSO..NOBAD..SANKU..BIMIX..DOTMI
+A470 UGAGO UGAG81 ZSHC
+
+
+WEATHER AND TAXI ROUTE
+
+ATC Clearance:     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+WEATHER DEP:     . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+TAXI DEP: . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+WEATHER ARR:. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+
+Ref: OPS GEN.                                                                             6/134
+                                          VJC5288 VVCR - ZSHC VNA629                        OFP
+
+TAXI ARR: . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+ATC CLEARANCE ISSUED
+
+
+(FPL-VJC5288-IS
+-A321/M-SDGHIRWYZ/LB1
+-VVCR0855
+-N0455F310 FURAL1A NITOM/M075F310 M771 DOSUT/N0453F310 M771 DULOP
+ Q1 CARSO DCT NOBAD DCT SANKU DCT BIMIX DCT DOTMI/K0832S0940 A470
+ UGAGO UGAG81
+-ZSHC0316 ZSNJ ZSNB
+-PBN/A1B2C1D1L1O2S1S2 NAV/RNP2 DOF/261104 REG/VNA629
+ EET/ZJSA0034 VHHK0059 ZGZU0153 ZSHA0203 SEL/CKDJ CODE/888173
+ OPR/VIETJET AIR PER/C RALT/VVCR VHHH ZSHC TALT/VVDN
+ RMK/TCAS EQUIPPED
+-E/0454 P/TBN R/UVE J/L D/4 220 C YLW
+ A/RED AND WHITE
+ C/15097 SKOPTSOV SERGEI)
+
+EFBVER20261028V0
+
+                                                               TIME TO
+                DIST       W/C     CFR    FOB          EXC    ETP / ALT
+ETP VVCR/VHHH 0355/0352 P010/P004 003661 010495       006834 00.53/00.50
+     N16270 E113150
+ETP VHHH/ZSHC 0307/0323 M009/P010 003317 006562       003245 02.18/00.46
+     N25048 E118360
+
+
+
+
+                                 DESTINATION ALTERNATE DATA
+
+ALT1 ZSNJ/NKG     FL 236    WIND M033    GDIST 163 NM    FUEL    1722 KG    TIME   00.31
+ALT2 ZSNB/NGB     FL 167    WIND P016    GDIST 142 NM    FUEL    1529 KG    TIME   00.28
+
+                                                               TIME TO
+                DIST       W/C     CFR    FOB          EXC    ETP / ALT
+ETP VVCR/VHHH 0355/0352 P010/P004 003661 010495       006834 00.53/00.50
+     N16270 E113150
+ETP VHHH/ZSHC 0307/0323 M009/P010 003317 006562       003245 02.18/00.46
+     N25048 E118360
+
+FUEL T/O . . . . ETD 0855Z      BLON . . . . LDG . . . .
+
+     LDG . . . . ETA 1231Z      BLOFF. . . . T/O . . . . AFLT 03:16
+
+     B/O . . . .                TIME. . . . TIME . . . . RETA . . . .
+
+TAKE OFF ALT   VVDN
+ENROUTE ALT = RCTP
+
+Enroute
+RVSM
+                PFD 1              STBY             PFD 2
+Level Off.    . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 2.       . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 3.       . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 4.       . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 5.       . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 6.       . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 7.       . . . . . .   /   . . . . . .   /   . . . . . .
+Hour 8.       . . . . . .   /   . . . . . .   /   . . . . . .
+
+
+VVCR ELEV    00046FT
+AWY   FIX       FREQ   FL TAS   GS MCSE ZDIST ZTIME ETA/ATA     REMT   FU
+
+
+Ref: OPS GEN.                                                                              7/134
+                                     VJC5288 VVCR - ZSHC VNA629                OFP
+
+                MSA    WIND    ITCS       CTIME                 REMF
+                       MXSH
+FURA1 CR300         03 264 257 020 0006   0/01 ..../....3/15   00416/......
+N12054E109151 089      079/013 019        0/01                 13733/......
+                        00
+FURA1 FURAL         10 343 330 053 0016   0/04 ..../....3/11   00774/......
+N12156E109282 089      068/016 052        0/05                 13375/......
+                        01
+FURA1 RABIN         17 380 368 062 0020   0/03 ..../....3/08   01082/......
+N12249E109456 089      032/008 061        0/08                 13067/......
+                        02
+FURA1 NITOM         28 448 436 070 0055   0/09 ..../....2/59   01714/......
+N12445E110384 089      068/018 069        0/17                 12435/......
+                        02
+M771 TOC            31 455 436 036 0021   0/02 ..../....2/57   02007/......
+N13018E110504 010      071/023 035        0/19                 12142/......
+                        00
+M771 DAMEL          31 455 436 036 0069   0/10 ..../....2/47   02466/......
+N13587E111306 010      071/023 035        0/29                 11683/......
+                        00
+M771 72PCA          31 455 436 036 0043   0/05 ..../....2/42   02751/......
+N14340E111555 014      060/021 035        0/34                 11398/......
+                        01
+M771 DONDA          31 454 435 036 0010   0/02 ..../....2/40   02818/......
+N14422E112013 014      054/020 035        0/36                 11331/......
+                        01
+M771 ETP1           31 454 436 036 0127   0/17 ..../....2/22   03653/......
+N16270E113150 015      029/018 035        0/53                 10496/......
+                        01
+M771 DOSUT          31 454 436 036 0042   0/06 ..../....2/17   03930/......
+N17020E113408 015      029/018 035        0/59                 10219/......
+                        01
+M771 DULOP          31 453 437 037 0087   0/12 ..../....2/05   04496/......
+N18142E114326 015      009/018 035        1/11                 09653/......
+                        01
+Q1    CARSO         31 453 436 014 0047   0/06 ..../....1/59   04801/......
+N19000E114426 015      010/017 012        1/17                 09348/......
+                        01
+..    NOBAD         31 452 438 034 0087   0/12 ..../....1/47   05360/......
+N20147E115306 024      360/016 031        1/29                 08789/......
+                        00
+..    SANKU         31 451 438 035 0090   0/13 ..../....1/34   05933/......
+N21314E116207 024      351/017 032        1/42                 08215/......
+                        01
+..    BIMIX         31 451 433 002 0030   0/04 ..../....1/30   06126/......
+N22014E116199 022      337/019 359        1/46                 08023/......
+                        01
+..    DOTMI         31 451 431 351 0043   0/06 ..../....1/24   06403/......
+N22431E116101 022      323/022 348        1/52                 07746/......
+                        02
+A470 BEBEM          31 449 444 041 0017   0/02 ..../....1/22   06509/......
+N22570E116216 022      317/023 037        1/54                 07640/......
+                        01
+A470 SWA      112.6 31 448 445 041 0037   0/05 ..../....1/17   06738/......
+N23264E116460 059      313/025 037        1/59                 07411/......
+                        02
+A470 IKATA          31 448 451 050 0028   0/04 ..../....1/13   06908/......
+N23459E117082 059      308/027 046        2/03                 07241/......
+                        01
+A470 TEBON          31 447 450 046 0030   0/04 ..../....1/09   07091/......
+N24083E117301 071      304/029 042        2/07                 07058/......
+                        01
+A470 XLN      114.7 31 447 455 052 0038   0/05 ..../....1/04   07318/......
+N24339E118009 071      301/032 048        2/12                 06831/......
+                        01
+A470 AMURI          31 447 456 050 0012   0/01 ..../....1/03   07390/......
+N24420E118101 053      298/034 046        2/13                 06759/......
+
+
+Ref: OPS GEN.                                                                 8/134
+                                           VJC5288 VVCR - ZSHC VNA629              OFP
+
+                        01
+A470 ETP2           31 446 457 051 0033       0/05 ..../....0/58   07586/......
+N25048E118360 080      296/036 046            2/18                 06563/......
+                        01
+A470 ATSAB          31 446 457 051 0001       0/00 ..../....0/58   07592/......
+N25056E118371 080      296/036 046            2/18                 06557/......
+                        01
+A470 ENVEN/         31 445 460 052 0022       0/03 ..../....0/55   07722/......
+N25205E118551 080      293/039 048            2/21                 06427/......
+                        01
+A470 FQG      117.4 31 445 462 051 0035       0/04 ..../....0/51   07926/......
+N25444E119231 080      291/042 047            2/25                 06223/......
+                        01
+A470 LJG      117.6 31 447 444 022 0030       0/04 ..../....0/47   08109/......
+N26132E119329 060      288/046 017            2/29                 06040/......
+                        01
+A470 PADRU          31 448 432 006 0010       0/02 ..../....0/45   08171/......
+N26232E119330 060      287/050 001            2/31                 05977/......
+                        01
+A470 AKAVO          31 448 432 006 0052       0/07 ..../....0/38   08498/......
+N27156E119334 084      284/055 000            2/38                 05651/......
+                        01
+A470 DAGMO          31 447 432 005 0011       0/02 ..../....0/36   08567/......
+N27262E119334 084      281/060 360            2/40                 05582/......
+                        00
+A470 KAGED          31 448 429 006 0029       0/04 ..../....0/32   08750/......
+N27553E119335 084      283/064 000            2/44                 05399/......
+                        00
+A470 BZ       244.0 31 448 429 006 0011       0/01 ..../....0/31   08819/......
+N28061E119337 084      283/069 001            2/45                 05330/......
+                        01
+A470 AKEKO          31 447 433 007 0021       0/03 ..../....0/28   08950/......
+N28275E119349 074      280/071 003            2/48                 05199/......
+                        01
+A470 OSPAM          31 447 433 009 0038       0/05 ..../....0/23   09186/......
+N29051E119372 074      279/076 003            2/53                 04963/......
+                        02
+A470 TOD            31 447 433 009 0018       0/03 ..../....0/20   09291/......
+N29228E119384 063      278/081 003            2/56                 04858/......
+                        05
+A470 EMRID          27 419 418 009 0010       0/02 ..../....0/18   09317/......
+N29329E119389 063      270/071 003            2/58                 04832/......
+                        05
+A470 UGAGO          26 408 459 007 0005       0/00 ..../....0/18   09330/......
+N29377E119390 063      266/068 001            2/58                 04819/......
+                        06
+UGAG8 MOLGU         20 373 424 057 0021       0/04 ..../....0/14   09383/......
+N29510E119580 063      260/054 051            3/02                 04766/......
+                        01
+UGAG8 HC309         18 364 411 067 0006       0/01 ..../....0/13   09398/......
+N29539E120041 063      261/053 061            3/03                 04750/......
+                        02
+UGAG8 HC307         15 346 388 067 0012       0/03 ..../....0/10   09429/......
+N29598E120165 060      262/047 061            3/06                 04720/......
+                        02
+UGAG8 HC306         10 320 302 069 0017       0/03 ..../....0/07   09472/......
+N30076E120340 060      261/038 063            3/09                 04677/......
+                        02
+UGAG8 ZSHC          00 384 390 317 0037       0/07 ..../....0/00   09566/......
+                                                                   04583/......
+ELEV   00022FT
+
+FUEL OVER DESTINATION     4583
+
+FIRS   ZJSA/0034   VHHK/0059   ZGZU/0153   ZSHA/0203
+
+ROUTE TO FIRST ALTERNATE: HGHNKG1
+
+
+Ref: OPS GEN.                                                                     9/134
+                                      VJC5288 VVCR - ZSHC VNA629             OFP
+
+-K0685S0720 NIVK8D NIVIK W135 GOSRO W546 SNQ DCT
+
+ZSHC ELEV   00022FT
+AWY   FIX     FREQ FL TAS GS MCSE ZDIST ZTIME ETA/ATA REMT   FU
+              MSA       WIND    ITCS      CTIME             REMF
+                        MXSH
+NIVK8 DER24             327 305 006 0001 0/00 ..../....    00020 /......
+N30143E120245 ...       259/027 294       0/00             04563 /......
+                         03
+NIVK8 HC601             325 298 249 0013 0/02 ..../....    00282 /......
+N30085E120115 044       260/028 242       0/02             04301 /......
+                         02
+NIVK8 HC602             322 309 337 0006 0/01 ..../....    00403 /......
+N30134E120084 044       261/033 331       0/03             04180 /......
+                         03
+NIVK8 HC212             325 306 337 0015 0/03 ..../....    00705 /......
+N30264E120002 044       262/045 331       0/06             03878 /......
+                         03
+NIVK8 HC213             325 302 337 0014 0/03 ..../....    00987 /......
+N30385E119525 072       261/055 331       0/09             03596 /......
+                         03
+NIVK8 NIVIK             394 421 021 0008 0/01 ..../....    01148 /......
+N30457E119547 072       255/064 014       0/10             03435 /......
+                         03
+W135 TOD             23 288 256 330 0030 0/05 ..../....    01444 /......
+N31098E119338 072       258/063 323       0/15             03139 /......
+                         03
+W135 TAPEN              318 286 330 0003 0/01 ..../....    01455 /......
+N31124E119316 072       258/063 323       0/16             03128 /......
+                         03
+W135 UPKEK              287 262 329 0024 0/05 ..../....    01543 /......
+N31321E119145 041       264/044 323       0/21             03040 /......
+                         03
+W135 GOSRO              277 277 006 0002 0/00 ..../....    01550 /......
+N31334E119133 041       265/043 360       0/21             03033 /......
+                         03
+W546 SNQ      115.75    286 258 306 0015 0/03 ..../....    01604 /......
+N31408E118581 041       265/033 300       0/24             02979 /......
+                         03
+..    ZSNJ                       311 0032 0/07 ..../....   01721 /......
+N31446E118518 026       263/061 305       0/31             02862 /......
+                         02
+ELEV 00049FT
+
+ROUTE TO SECOND ALTERNATE: HGHNGB1
+-K0635S0510 SUPA8D SUPAR B221 SHZ SHZ91A
+
+ZSHC ELEV   00022FT
+AWY   FIX     FREQ FL TAS GS MCSE ZDIST ZTIME ETA/ATA REMT   FU
+              MSA      WIND    ITCS     CTIME               REMF
+                       MXSH
+SUPA8 DER24            300 277 006 0001 0/00 ..../....     00024 /......
+N30143E120245 ...      259/027 294      0/00               04559 /......
+                        02
+SUPA8 HC601            289 260 249 0013 0/03 ..../....     00340 /......
+N30085E120115 044      260/030 242      0/03               04243 /......
+                        02
+SUPA8 HC307            288 298 337 0010 0/02 ..../....     00583 /......
+N29598E120165 060      261/040 153      0/05               04000 /......
+                        02
+SUPA8 TOC           16 289 335 337 0011 0/02 ..../....     00848 /......
+N30048E120278 060      262/049 062      0/07               03735 /......
+                        02
+SUPA8 HC306         16 354 400 337 0006 0/01 ..../....     00894 /......
+N30076E120340 060      262/049 062      0/08               03689 /......
+                        02
+SUPA8 HC606         16 354 396 337 0006 0/01 ..../....     00938 /......
+
+
+Ref: OPS GEN.                                                              10/134
+                                       VJC5288 VVCR - ZSHC VNA629                  OFP
+
+N30054E120402 044     262/049 111         0/09                  03645 /......
+                       02
+SUPA8 SUPAR        16 354 396 021 0011    0/02 ..../....        01020 /......
+N30014E120515 044     262/049 112         0/11                  03563 /......
+                       02
+B221 SHZ     113.4 16 354 340 330 0025    0/04 ..../....        01205 /......
+N29360E120490 060     262/049 185         0/15                  03378 /......
+                       02
+SHZ91 TOD          16 263 308 329 0002    0/00 ..../....        01285 /......
+N29369E120511 060     263/045 063         0/15                  03298 /......
+                       02
+SHZ91 NB206           277 319 329 0005    0/01 ..../....        01306 /......
+N29389E120558 060     263/045 063         0/16                  03277 /......
+                       02
+SHZ91 NB303           262 294 006 0023    0/05 ..../....        01404 /......
+N29390E121217 060     260/032 089         0/21                  03179 /......
+                       02
+SHZ91 NB205           261 283 306 0009    0/02 ..../....        01443 /......
+N29390E121320 057     255/023 090         0/23                  03140 /......
+                       02
+SHZ91 NB204           261 278 311 0005    0/01 ..../....        01464 /......
+N29373E121378 057     253/021 107         0/24                  03119 /......
+                       02
+SHZ91 ZSNB                    000 0015    0/03 ..../....        01528 /......
+N29496E121278 057     254/021 324         0/27                  03055 /......
+                       02
+ELEV 00012FT
+
+
+
+
+           START OF WIND AND TEMPERATURE SUMMARY VVCR TO ZSHC
+           --------------------------------------------------
+
+
+WIND ALOFT
+
+FL /     18000       24000       30000       34000       38000       41000
+POS    Wind Tem WS Wind Tem WS Wind Tem WS Wind Tem WS Wind Tem WS Wind Tem WS
+
+CR300 02005M04-00 06013M16-02 07017M29-00 07014M40-01 08020M51-01 08018M58-01
+FURAL 02005M04-00 06013M16-02 07018M29-00 08015M40-01 08020M51-01 08018M58-01
+RABIN 02006M04-00 06014M16-01 07019M29-01 08015M40-02 08021M51-01 08018M58-01
+NITOM 03007M04-00 05015M16-01 08020M29-02 08017M40-02 08020M51-01 08018M58-01
+DAMEL 04008M03-01 05017M16-01 07022M29-02 07018M40-02 08020M51-00 08018M58-01
+72PCA 05009M03-01 05017M16-02 06022M29-01 06018M40-01 08019M51-01 09017M58-01
+DONDA 05009M04-01 05016M16-02 05021M29-01 05018M40-01 07018M51-02 09016M58-01
+DOSUT 06010M04-01 04017M16-03 03019M29-01 02016M40-01 06014M51-03 08013M58-02
+DULOP 09010M04-01 05015M16-05 01018M29-01 01015M40-02 04007M50-02 07007M57-02
+CARSO 11008M04-01 05013M16-03 01017M29-00 02016M40-01 01007M50-02 05006M57-02
+NOBAD 12005M04-01 06010M17-02 00016M29-01 01016M40-01 02006M50-02 08005M57-02
+SANKU 21003M04-01 36005M17-02 35017M30-00 35016M40-02 05005M50-03 12004M57-01
+BIMIX 25006M04-01 31006M17-02 34020M30-01 34017M39-02 32005M50-03 29005M57-02
+DOTMI 26009M04-01 30010M17-02 32022M30-00 33019M39-02 31007M50-02 29007M57-01
+BEBEM 27012M04-00 29012M17-02 32024M30-01 32021M39-02 30010M49-02 28010M57-02
+SWA   27015M04-01 28014M17-02 31026M30-00 32023M39-02 30013M49-03 28013M57-02
+IKATA 27018M04-01 27017M17-03 31028M30-02 32025M39-01 29017M49-03 27016M57-01
+TEBON 27021M04-01 27020M17-02 31030M30-02 31027M39-01 28019M49-03 27018M57-02
+XLN   27024M04-01 27024M18-02 30033M30-00 31030M39-01 28022M49-03 27021M57-02
+AMURI 27026M04-01 27027M18-02 30035M30-02 30032M38-01 28024M49-02 27023M57-02
+ATSAB 27027M04-01 27030M18-02 30038M30-02 30034M38-01 28026M49-03 27025M57-02
+ENVEN 27029M05-01 27033M18-04 29040M30-00 30036M38-02 28029M49-02 27028M57-02
+FQG   27031M05-02 26037M18-03 29043M30-00 30040M38-01 28033M49-03 27031M57-03
+LJG   27034M05-02 26042M18-03 29047M30-03 29044M38-01 28038M49-03 27036M57-03
+PADRU 27036M05-02 26045M18-03 29051M30-03 29048M38-01 28041M49-03 27039M56-04
+AKAVO 27040M06-02 26050M19-03 28056M30-00 29053M38-01 28048M49-03 27045M56-04
+DAGMO 27044M06-03 27055M19-01 28061M30-00 29059M38-03 28054M49-01 27052M56-05
+KAGED 27045M06-03 27056M19-01 28064M30-04 29063M38-01 28058M49-01 27056M56-05
+
+
+Ref: OPS GEN.                                                                    11/134
+                                                 VJC5288 VVCR - ZSHC VNA629       OFP
+
+BZ    27046M07-02 27055M19-02 28067M30-04 28067M38-01 28063M49-01 27060M56-05
+AKEKO 27047M07-02 26054M20-04 28070M30-04 28070M38-01 28066M49-01 27064M56-03
+OSPAM 27048M07-03 26053M20-04 28075M30-05 28076M38-01 28073M49-01 27071M56-03
+EMRID 26049M07-01 26056M21-03 28079M30-05 28085M39-00 28081M49-01 27078M56-04
+UGAGO 26050M08-02 26057M21-03 28081M30-06 28090M39-01 28085M49-01 27082M56-07
+MOLGU 26051M08-02 26058M21-03 28082M31-06 28091M39-01 28087M49-01 27084M56-08
+HC309 26052M08-02 26058M21-03 28083M31-06 28093M39-01 28089M49-01 27085M56-08
+HC307 26053M08-02 26059M21-03 27084M31-06 28094M39-02 28090M49-02 27086M56-08
+HC306 26053M08-02 26059M21-03 27083M31-06 28096M39-02 28091M49-01 27087M56-08
+ZSHC 26052M08-02 26060M21-03 27083M31-04 28096M39-02 28092M49-01 27089M56-08
+
+
+
+
+AIR OPS QUALIFICATION
+
+                          MSA    TTK    DIST   FL    TIME   ETA
+T/O ALTERNATE      VVDN   117    346    0249   100   0.36   0931
+
+ERA     DIVERT PT    CUMD   MSA    TTK    DIST   FL    TIME   ETA
+RCTP      N2534.2    1031   047    105    0115   100   0.18   1136
+         E11911.1
+
+                          MSA    TTK    DIST   FL    TIME   ETA    FUEL
+ALTERNATE - 1      ZSNJ   072    318    0163   236   0.31   1242   001722
+
+ALTERNATE - 2      ZSNB   060    114    0142   167   0.28   1239   001529
+
+-K0685S0720 NIVK8D NIVIK W135 GOSRO W546 SNQ DCT
+
+CPT       LAT       LONG        MSA    TTK   DIST
+DER24     N30143    E120245     ...    294   0001
+HC601     N30085    E120115     044    243   0013
+HC602     N30134    E120084     044    331   0006
+HC212     N30264    E120002     044    331   0015
+HC213     N30385    E119525     072    331   0014
+NIVIK     N30457    E119547     072    015   0008
+TAPEN     N31124    E119316     072    323   0033
+UPKEK     N31321    E119145     041    323   0024
+GOSRO     N31334    E119133     041    323   0002
+SNQ       N31408    E118581     041    300   0015
+ZSNJ      N31446    E118518     026    305   0032
+
+-K0635S0510 SUPA8D SUPAR B221 SHZ SHZ91A
+
+CPT       LAT       LONG        MSA    TTK   DIST
+DER24     N30143    E120245     ...    294   0001
+HC601     N30085    E120115     044    243   0013
+HC307     N29598    E120165     060    153   0010
+HC306     N30076    E120340     060    063   0017
+HC606     N30054    E120402     044    112   0006
+SUPAR     N30014    E120515     044    112   0011
+SHZ       N29360    E120490     060    185   0025
+NB206     N29389    E120558     060    064   0007
+NB303     N29390    E121217     060    090   0023
+NB205     N29390    E121320     057    090   0009
+NB204     N29373    E121378     057    107   0005
+ZSNB      N29496    E121278     057    325   0015
+
+
+
+
+DRIFTDOWN SUMMARY DATA
+CRZ TO    BURN FL MSA TO      BURN FL MSA FOB      LAT    LON     W
+LRC VVCR 003631 100 090 VHHH 003661 100 052 010495 N16270 E113150
+   *VHHH 003317 100 081 ZSHC 003284 100 085 006562 N25048 E118360
+1LE VVCR 002761 190 090 VHHH 002781 190 052 010495 N16270 E113150
+
+
+Ref: OPS GEN.                                                                   12/134
+                                        VJC5288 VVCR - ZSHC VNA629     OFP
+
+   *VHHH 002422 200 081 ZSHC 002405 210 085 006562 N25048 E118360
+
+WARNING FLAGS:   M-MSA,   D-FUEL DUMP REQ.,   F-DIVERT FUEL REQ.,
+                          S-SPIRAL DESCENT
+
+END OF JEPPESEN DATAPLAN
+REQUEST NO. 1316
+
+
+
+
+Ref: OPS GEN.                                                        13/134
+                       VJC5288 VVCR - ZSHC VNA629     OFP
+
+
+
+
+                Intentionally Left Blank
+
+
+
+
+Ref: OPS GEN.                                       14/134
+                                                                                                                               En-Route Data
+
+
+RAIM Outages
+                                                                       Airport       Scenario Start        Scenario End        Duration
+                                                                        ZSNB         4-11-2026 08:54       4-11-2026 12:12       3h 18m
+    Airport       Scenario Start        Scenario End        Duration
+      VVCR        4-11-2026 08:54       4-11-2026 12:12       3h 18m   Sample Period             Almanac           Min Duration Outage
+                                                                       1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)
+   Sample Period              Almanac           Min Duration Outage
+    1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)     Request Date
+                                                                        4-11-2026 08:54
+     Request Date
+     4-11-2026 08:54                                                     No GPS outages predicted for this Airfield.
+
+      No GPS outages predicted for this Airfield.
+
+
+                                                                       Airport       Scenario Start        Scenario End        Duration
+                                                                        ZSNJ         4-11-2026 08:54       4-11-2026 12:12       3h 18m
+    Airport       Scenario Start        Scenario End        Duration
+      ZSHC        4-11-2026 08:54       4-11-2026 12:12       3h 18m   Sample Period             Almanac           Min Duration Outage
+                                                                       1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)
+   Sample Period              Almanac           Min Duration Outage
+    1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)     Request Date
+                                                                        4-11-2026 08:54
+     Request Date
+     4-11-2026 08:54                                                     No GPS outages predicted for this Airfield.
+
+      No GPS outages predicted for this Airfield.
+
+
+                                                                       Airport       Scenario Start        Scenario End        Duration
+                                                                        VHHH         4-11-2026 08:54       4-11-2026 12:12       3h 18m
+    Airport       Scenario Start        Scenario End        Duration
+      VVDN        4-11-2026 08:54       4-11-2026 12:12       3h 18m   Sample Period             Almanac           Min Duration Outage
+                                                                       1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)
+   Sample Period              Almanac           Min Duration Outage
+    1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)     Request Date
+                                                                        4-11-2026 08:54
+     Request Date
+     4-11-2026 08:54                                                     No GPS outages predicted for this Airfield.
+
+      No GPS outages predicted for this Airfield.
+
+
+                                                                       Airport       Scenario Start        Scenario End        Duration
+
+Ref: OPS GEN.                                                                                                                            15/134
+                                                                                                                               En-Route Data
+
+    Airport       Scenario Start        Scenario End        Duration   Sample Period             Almanac           Min Duration Outage
+      ZGOW        4-11-2026 08:54       4-11-2026 12:12       3h 18m   1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)
+
+   Sample Period              Almanac           Min Duration Outage     Request Date
+    1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)     4-11-2026 08:54
+
+     Request Date                                                        No GPS outages predicted for this Airfield.
+     4-11-2026 08:54
+
+      No GPS outages predicted for this Airfield.
+
+                                                                       Airport       Scenario Start        Scenario End        Duration
+                                                                        RCTP         4-11-2026 08:54       4-11-2026 12:12       3h 18m
+
+    Airport       Scenario Start        Scenario End        Duration   Sample Period             Almanac           Min Duration Outage
+      ZSAM        4-11-2026 08:54       4-11-2026 12:12       3h 18m   1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)
+
+   Sample Period              Almanac           Min Duration Outage     Request Date
+    1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)     4-11-2026 08:54
+
+     Request Date                                                        No GPS outages predicted for this Airfield.
+     4-11-2026 08:54
+
+      No GPS outages predicted for this Airfield.
+
+                                                                       Airport       Scenario Start        Scenario End        Duration
+                                                                        ZSFZ         4-11-2026 08:54       4-11-2026 12:12       3h 18m
+
+    Airport       Scenario Start        Scenario End        Duration   Sample Period             Almanac           Min Duration Outage
+      RCBS        4-11-2026 08:54       4-11-2026 12:12       3h 18m   1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)
+
+   Sample Period              Almanac           Min Duration Outage     Request Date
+    1 minute (PT1M)     Week: 395 TOA: 405504       1 minute (PT1M)     4-11-2026 08:54
+
+     Request Date                                                        No GPS outages predicted for this Airfield.
+     4-11-2026 08:54
+
+      No GPS outages predicted for this Airfield.
+
+
+
+
+    Airport       Scenario Start        Scenario End        Duration
+      ZSQZ        4-11-2026 08:54       4-11-2026 12:12       3h 18m
+
+Ref: OPS GEN.                                                                                                                            16/134
+                                                                                                                                                            En-Route Data
+
+
+DEPARTURE                                                                            Airﬁeld NOTAM Information
+                                                                                     ICAO Class 1 International
+VVCR [CXR] CAM RANH INTL
+                                                                                     VVDN: APT 2610310911 A4214/26
+Airﬁeld Weather Information                                                          Q)VVHM/QFMAU/IV/BO/A/0/999/1602N10812E
+                                                                                     A)VVDN B)202610310911 C)202612311659 - EST
+M:040630Z 06008KT 030V090 9999 FEW017 30/25 Q1013 NOSIG=                             E)DOPPLER WX RADAR SYSTEM (METEOR 60DX10-S) UNSERVICEABLE FOR REPAIR
+T:040500Z 0406/0506 01010KT 9999 FEW020 TEMPO 0406/0409 4500                         RMK: LOW-LEVEL WS ALERT SYSTEM (LLWAS) NML OPS.
+SHRA BKN013 FEW015CB BKN050 BECMG 0412/0413 31005KT
+TEMPO                                                                                VVDN: APT 2610121034 A3847/26
+0420/0424 4000 SHRA BKN013 FEW015CB BKN050=                                          Q)VVHM/QLAAS/IV/NBO/A/0/999/1602N10812E
+                                                                                     A)VVDN B)202610121032 C)202611231000 - EST
+Airﬁeld NOTAM Information                                                            E)ALS ON RWY 17R/35L UNSERVICEABLE
+
+ICAO Class 1 International                                                           VVDN: APT 2610121034 A3843/26
+                                                                                     Q)VVHM/QMXLC/IV/M/A/0/999/1602N10812E
+VVCR: APT 2610170347 A3953/26                                                        A)VVDN B)202610121027 C)202611231000
+Q)VVHM/QMRHW/IV/NBO/A/0/999/1159N10913E                                              E)TAXIWAYS G1, G2, G4, G6, W1, W2, W4, W5, W6 TEMPO CLSD.
+A)VVCR B)202610191700 C)202611051659
+E)CLEANING AND FRICTION MEASUREMENT ON RWY 02R/20L WHEN THERE                        VVDN: APT 2610121032 A3846/26
+ARE NO FLT OPS, DRG INTERMITTENT TIME BTN FLTS.                                      Q)VVHM/QLRAS/IV/NBO/A/0/999/1602N10812E
+                                                                                     A)VVDN B)202610121030 C)202611231000 - EST
+Airﬁeld Chart NOTAM                                                                  E)LGT SYSTEM ON RWY 17R/35L UNSERVICEABLE
+VVCR: Z3419/26 20/10/2026 12:03 - 06/11/2026 23:59                                   VVDN: APT 2610121031 A3845/26
+AERODROME                                                                            Q)VVHM/QLPAS/IV/BO/A/0/999/1602N10812E
+(JEPPESEN TERMINAL CHART CHANGE NOTICE) CONSTRUCTIONS WORKS NOTIFIED AS FOLLOWS:     A)VVDN B)202610121029 C)202611231000 - EST
+PHASE 1: 12 OCT 1700 - 20 OCT 1659: RWY 02L/20R TAXIING ONLY, RWY 02R/20L TAKE-      E)PAPI RWY 17R/35L UNSERVICEABLE
+OFF/LANDING, RWY 02L/20R APCH LGT, THR LGT, PAPI, LANDING LGTS CLOSED, TWY W
+(BETWEEN TWY W1 AND W6/Y6), TWYS W1, W3, W5, Y5 CLOSED. PHASE 2: 20 OCT 1700 - 24    VVDN: APT 2610121031 A3844/26
+OCT 1659: RWY 02L/20R TAXIING ONLY, RWY 02R/20L TAKE-OFF/LANDING, RWY 02L/20R APCH   Q)VVHM/QICAS/I/NBO/A/0/999/1602N10812E
+LGT, THR LGT, PAPI, LANDING LGTS CLOSED, TWY W (BETWEEN TWY W7 AND 140M WEST OF      A)VVDN B)202610121028 C)202611231000 - EST
+TWY W6/Y6), TWYS W1, W3, W5, Y5 CLOSED. PHASE 3: 24 OCT 1700 - 1 NOV 1659: RWY       E)ILS-LOC, GP, DME FOR RWY 35L UNSERVICEABLE
+02L/20R CLOSED (EXCEPT FOR TAXIING AT RWY ENDS ONLY), RWY 02R/20L TAKE-
+OFF/LANDING, RWY 02L/20R APCH LGT, THR LGT, PAPI, LANDING LGTS CLOSED, TWYS G3,      VVDN: APT 2610121027 A3842/26
+G5, W3, W5, W6 CLOSED. PHASE 4: 1-5 NOV, 1900-2230 DAILY - WORKS IN NON-FLIGHT       Q)VVHM/QMRLC/IV/NBO/A/0/999/1602N10812E
+HOURS. PLEASE REFER TO NOTICES AND ALERTS ON WWW.JEPPESEN.COM.                       A)VVDN B)202610121026 C)202611231000
+                                                                                     E)RWY 17R/35L TEMPO CLSD.
+DEPARTURE ALTERNATES                                                                 VVDN: APT 2609290405 A3523/26
+                                                                                     Q)VVHM/QMXHW/IV/M/A/0/999/1602N10812E
+VVDN [DAD] DA NANG INTL                                                              A)VVDN B)202610011900 C)202612302300
+                                                                                     D)DAILY 1900-2300
+Airﬁeld Weather Information                                                          E)WORK IN PROGRESS ON AREAS DRG INTERMITTENT TIME BTN FLTS, DETAILS
+                                                                                     AS FLW:
+M:040630Z 12007KT 070V150 9999 FEW014 SCT060 29/25 Q1013                             - AREA 1:
+NOSIG=
+                                                                                     + INT OF RWY 17L/35R AND TWY E1
+T:040500Z 0406/0506 13008KT 9999 FEW020 SCT050
+                                                                                     + TWY E1 (PORTION 90M FM RCL 17L/35R TO THE EAST TOWARD TWY E)
+TEMPO 0410/0413
+                                                                                     + TWY E (PORTION 45M FM CL OF TWY E1 TO THE SOUTH TOWARD PSN
+4000 SHRA BKN013 FEW015CB BKN050 TEMPO 0419/0424 4000 RA BR=
+                                                                                     45M FM CL OF TWY E2 TO THE NORTH)
+
+
+Ref: OPS GEN.                                                                                                                                                     17/134
+                                                                                                                                      En-Route Data
+
++ TWY E2 (PORTION 90M FM RCL 17L/35R TO THE EAST TOWARD TWY E)      ZSHC: APT 2610290352 M3191/26
+- AREA 2:                                                           Q)ZSHA/QMPLC/IV/BO/A/0/999/3013N12026E
++ TWY E (PORTION 45M FM CL OF TWY E2 TO THE NORTH TOWARD PSN        A)ZSHC B)202610290349 C)202611250159
+45M FM CL OF TWY E4 TO THE NORTH)                                   E)PARKING STAND NR.251,252,253,254 CLSD.
++ TWY E3 (PORTION 90M FM RCL 17L/35R TO THE EAST TOWARD TWY E)
++ INT OF RWY 17L/35R AND TWY E4                                     ZSHC: APT 2609281112 M2805/26
++ TWY E4 (PORTION 90M FM RCL 17L/35R TO THE EAST TOWARD TWY E)      Q)ZSHA/QMPLC/IV/BO/A/0/999/3013N12026E
+- AREA 3:                                                           A)ZSHC B)202609281055 C)202612231559
++ TWY E (PORTION 45M FM CL OF TWY E4 TO THE NORTH TOWARD PSN        E)PARKING STAND NR.721 CLSD.
+45M FM CL OF TWY E7 TO THE NORTH)
++ TWY E7 (PORTION 90M FM RCL 17L/35R TO THE EAST TOWARD TWY E)      Airﬁeld Chart NOTAM
++ INT OF RWY 17L/35R AND TWY E6
++ TWY E6.                                                           No Chart NOTAM in force for this Airfield
+
+VVDN: APT 2609190441 A3281/26
+Q)VVHM/QFDXX/IV//A/0/999/1602N10812E                                DESTINATION ALTERNATES
+A)VVDN B)202609191700 - PERM
+E)VISUAL DOCKING GUIDANCE SYSTEM (VDGS) AT ACFT STAND 27            ZSNB [NGB] LISHE
+PUT INTO OPS AS FLW:
+- SAFEDOCK TYPE: T3-9                                               Airﬁeld Weather Information
+- HR OF OPS: H24
+REF AIP VIET NAM ITEM VVDN AD 2.9.                                  M:040600Z 18002MPS 140V210 7000 -RA BKN033 19/18 Q1015
+                                                                    NOSIG=
+Airﬁeld Chart NOTAM                                                 T:040309Z 0406/0506 15004MPS 3000 -RA BR BKN020 TX22/0506Z
+                                                                    TN16/0421Z BECMG 0414/0415 33005G10MPS BR=
+No Chart NOTAM in force for this Airfield
+                                                                    Airﬁeld NOTAM Information
+DESTINATION                                                         ICAO Class 1 International
+
+ZSHC [HGH] XIAOSHAN                                                 ZSNB: APT 2609030859 M2620/26
+                                                                    Q)ZSHA/QFAHX/IV/BO/A/0/999/2949N12127E
+Airﬁeld Weather Information                                         A)ZSNB B)202609030840 C)202611301559
+                                                                    E)BIRD FLOCKS MIGRATION WILL TAKE PLACE AROUND AD:
+M:040630Z VRB01MPS 9999 -RA BKN010 BKN023 18/17 Q1015               1.MIGRATION ROUTE:FROM NORTH TO SOUTH.
+NOSIG=                                                              2.AREA:WATER BODIES AND GRASSLAND AROUND AD.
+T:040301Z 0406/0506 27003MPS 3000 -SHRA BR SCT010 BKN020            3.ACTIVITY TIME:ALL DAY,ESPECIALLY DURING THE EARLY MORNING AND
+TX19/0406Z TN15/0421Z BECMG 0417/0418 33005G10MPS=                  EVENING HOURS.
+                                                                    4.ALT: ABOUT 100M - 2,000M.
+Airﬁeld NOTAM Information                                           AERODROME AUTHORITY RESORTS TO DISPERSAL METHODS TO REDUCE BIRD
+                                                                    ACTIVITIES.
+ICAO Class 1 International                                          EXERCISE CAUTION WHILE LANDING AND TAKE-OFF.
+
+ZSHC: APT 2610290402 M3192/26                                       ZSNB: APT 2608240809 M2516/26
+Q)ZSHA/QMXLC/IV/M/A/0/999/3013N12026E                               Q)ZSHA/QPDXX/IV//A/0/999/2949N12127E
+A)ZSHC B)202610290349 C)202611250159                                A)ZSNB B)202609021600 C)202612311559 - EST
+E)FLW TWY CLSD:                                                     E)ZSNB-7A SID RWY13 HSN-11D:SEGMENT OVNEV-HSN.
+1.TWY Z1 CLOSED BTN PARKING STAND NR.255 AND TWY Z11,INTERSECTION   ZSNB-7B SID RWY31 HSN-01D:SEGMENT OVNEV-HSN.
+CLOSED BTN TWY Z11 AND TWY Z1.                                      ACFT SHALL FOLLOW RADAR VECTORING.FLIGHT CREW SHALL EXERCISE
+2.TWY Z11.                                                          CAUTION.
+
+
+Ref: OPS GEN.                                                                                                                               18/134
+                                                                                                                                      En-Route Data
+
+ZSNB: APT 2608240748 M2515/26                                  ZSNJ: APT 2609300553 M2820/26
+Q)ZSHA/QPAXX/IV//A/0/999/2949N12127E                           Q)ZSHA/QFAHX/IV/BO/A/0/999/3144N11851E
+A)ZSNB B)202609021600 C)202612311559 - EST                     A)ZSNJ B)202609300545 C)202612311559
+E)ZSNB-9B STAR RWY31 HSN-01A: SEGMENT HSN-OVNEV.               E)BIRD FLOCKS MIGRATION WILL TAKE PLACE AROUND AD:
+ZSNB-9A STAR RWY13 HSN-11A,HSN-12A: SEGMENT HSN-OVNEV.         HEIGHT:0M -300M,
+ACFT SHALL FOLLOW RADAR VECTORING.FLIGHT CREW SHALL EXERCISE   MIGRATION ROUTE:FROM NORTH TO SOUTH.
+CAUTION.                                                       MOVE TIME: 2300-0100(NEXT DAY),0700-1100.
+                                                               AERODROME AUTHORITY RESORTS TO DISPERSAL METHODS TO REDUCE BIRD
+Airﬁeld Chart NOTAM                                            ACTIVITIES. EXERCISE CAUTION WHILE LANDING AND TAKE-OFF.
+
+No Chart NOTAM in force for this Airfield                      Airﬁeld Chart NOTAM
+ZSNJ [NKG] LUKOU                                               No Chart NOTAM in force for this Airfield
+
+Airﬁeld Weather Information                                    DRIFT DOWN ALTERNATES
+M:040600Z 25003MPS 9999 BKN012 OVC023 17/17 Q1015
+BECMG                                                          VHHH [HKG] HONG KONG INTL
+TL0730 BKN015 OVC030=
+T:040303Z 0406/0506 28004MPS 3000 BR BKN030 TX20/0506Z         Airﬁeld Weather Information
+TN13/0421Z=
+                                                                 M:040630Z 12013KT 9999 FEW015 SCT025 29/22 Q1015 NOSIG=
+Airﬁeld NOTAM Information                                         T:040500Z 0406/0512 10015KT 9999 FEW015 SCT035 TX30/0406Z
+                                                               TX31/0506Z TN26/0422Z TEMPO 0503/0509 27010KT=
+ICAO Class 1 International
+ZSNJ: APT 2611020815 M3264/26
+                                                               Airﬁeld NOTAM Information
+Q)ZSHA/QMXLC/IV/M/A/0/999/3144N11851E                          ICAO Class 1 International
+A)ZSNJ B)202611031600 C)202611042200
+D)1600-2200 DLY                                                VHHH: APT 2611040124 A2542/26
+E)TWY C,D CLOSED WEST OF TWY N,DUE TO MAINT.                   Q)VHHK/QICXX/IV//A/0/999/2218N11354E
+                                                               A)VHHH B)202611040120 C)202611042059
+ZSNJ: APT 2611020813 M3265/26                                  E)RWY 07C ILS 'IZSC' CAT I ONLY
+Q)ZSHA/QMXLC/IV/M/A/0/999/3144N11851E
+A)ZSNJ B)202611031800 C)202611042200                           VHHH: APT 2610300818 A2515/26
+D)1800-2200 DLY                                                Q)VHHK/QMRLC/IV/NBO/A/0/999/2218N11354E
+E)TWY P CLOSED BTN TWY B AND TWY Q6, DUT TO MAINT.             A)VHHH B)202611030800 C)202611061400
+                                                               D)DLY 0800-1400
+ZSNJ: APT 2611020810 M3263/26                                  E)CENTRE RWY (RWY07C/RWY25C) CLOSED ON STANDBY DUE WORK IN PROGRESS.
+Q)ZSHA/QMRLC/IV/NBO/A/0/999/3144N11851E
+A)ZSNJ B)202611031600 C)202611042200                           VHHH: APT 2610300817 A2516/26
+D)1600-2200 DLY                                                Q)VHHK/QMXLC/IV/M/A/0/999/2218N11354E
+E)RWY07/25 CLOSED DUE TO MAINT.                                A)VHHH B)202611030800 C)202611061400
+                                                               D)DLY 0800-1400
+ZSNJ: APT 2610160600 M2993/26                                  E)TWY F BTN TWY E2 AND TWY D CLOSED DUE WORK IN PROGRESS.
+Q)ZSHA/QMXLC/IV/M/A/0/999/3144N11851E
+A)ZSNJ B)202610181700 C)202611072200                           VHHH: APT 2610280913 A2483/26
+D)1700-2200 OCT 18-19 AND OCT 22-NOV 07                        Q)VHHK/QWULW/IV/BO/A/0/5/2219N11355E
+E)TWY T6 CLOSED BTN TWY C10 AND TWY Q,DUE TO MAINT.            A)VHHH B)202610282200 C)202701252359
+                                                               D)DLY 2200-2359
+
+
+Ref: OPS GEN.                                                                                                                               19/134
+                                                                                                                                           En-Route Data
+
+E)UAS OPS WILL TAKE PLACE AT THE LANDSIDE AREA AND CONSTRUCTION       RNP Y RWY 07R (AR) - AD-2-VHHH-IAC-01G
+SITE                                                                  CAT A/B/C/D - OCA (OCH):490(463), RVR:1500M.
+AT THE AD PLATFORM BOUNDED BY THE FLW AREAS:
+1) ZONE A: 221928N1135409E 221919N1135339E 221851N1135349E            Airﬁeld Chart NOTAM
+221900N1135420E
+2) ZONE B: 221949N1135512E 221921N1135523E 221853N1135427E            No Chart NOTAM in force for this Airfield
+221931N1135417E
+3) ZONE C: 221956N1135533E 221942N1135624E 221934N1135627E
+221926N1135603E 221927N1135543E 221923N1135530E 221952N1135520E
+                                                                      EN-ROUTE ALTERNATES
+SUBJECT TO THE FLW CONDITIONS:
+1) OPS SHALL ONLY BE CONDUCTED WHEN ADJACENT RUNWAY(S) IS OR ARE      ZGOW [SWA] CHAOSHAN
+NON-OPERATIONAL.
+2) UAS SHALL REMAIN WI THE DEFINED AREA AND SHALL NOT FLY OVER ANY
+                                                                      Airﬁeld Weather Information
+ACTIVE RWY, TWY OR TXL.
+3) FINAL APPROVAL OR TERMINATION OF UAS OPS ARE SUBJECT TO ATC        M:040600Z VRB02MPS 9999 FEW050 30/20 Q1016 NOSIG=
+                                                                      T:040302Z 0406/0506 15003MPS 6000 SCT040 TX31/0506Z
+F)SFC G)420FT AMSL
+                                                                      TN23/0422Z=
+VHHH: APT 2610260717 A2472/26
+Q)VHHK/QMXLC/IV/M/A/0/999/2218N11354E                                 Airﬁeld NOTAM Information
+A)VHHH B)202610280200 C)202611100800
+E)TWY D BTN TXL D9 AND TWY E CLOSED DUE WORK IN PROGRESS              ICAO Class 1 International
+
+VHHH: APT 2610260716 A2473/26                                         ZGOW: APT 2611030442 G4933/26
+Q)VHHK/QMXLX/IV//A/0/999/2218N11354E                                  Q)ZGZU/QFAHX/IV/BO/A/0/999/2333N11630E
+A)VHHH B)202610280200 C)202611100800                                  A)ZGOW B)202611030433 C)202611100400
+E)TWY C BTN TXL D9 AND TWY E DOWNGRADE TO CODE E                      E)ACTIVITIES OF BIRD FLOCKS AND MIGRATION WILL TAKE PLACE
+                                                                      CENTERED AT ARP WITH RADIUS OF 13KM.
+VHHH: APT 2610230249 A2438/26                                         ACTIVITY TIME:MAINLY FOCUSES ON 2100-2300,1000-1200,1400-1800
+Q)VHHK/QICAU/IV//A/0/999/2218N11354E                                  ALT: 30-1,000M,MAINLY FOCUSES ON 200-300M
+A)VHHH B)202611032100 C)202611112359                                  MIGRATION ROUTE: FROM NORTHEAST TO SOUTHWEST.
+D)NOV 03 04 10 11 2100-2359                                           AERODROME AUTHORITY RESORTS TO DISPERSAL METHODS TO REDUCE BIRD
+E)RWY 07C ILS 'IZSC' 109.3MHZ/ 332MHZ/ CH30X AND RWY 25C ILS 'ITFC'   ACTIVITIES. EXERCISE CAUTION WHILE LANDING AND TAKE-OFF.
+109.3MHZ/ 332MHZ/ CH30X NOT AVBL DUE FLTCK. ILS MAY BE RADIATING
+FOR                                                                   ZGOW: APT 2610200231 G4685/26
+FLTCK ONLY. NOT FOR NAV.                                              Q)ZGZU/QMYXX/IV//A/0/999/2333N11630E
+                                                                      A)ZGOW B)202610200224 C)202701182200
+VHHH: APT 2610090344 A2341/26                                         E)ADD NEW LGTS ON RAPID EXIT TWY A3,A5,A6:
+Q)VHHK/QPCCA/IV/NBO/A/0/999/2218N11354E                               1.ADD TYPE A RWY GUARD LGTS ON BOTH SIDE OF TWY A3,A5,A6,NEARBY NO
+A)VHHH B)202610090338 C)202611092359 - EST                            ENTRY SIGN,YELLOW LGT.
+E)REF AIP AMDT 7/26, RNAV1(DME/DME/IRU) CONTINGENCY PROCEDURE TAKES   2.ADD TCL FROM EAST SIDE OF TWY A3,A5,A6.RED LGT HEADING EAST,AND
+EFFECT FROM 9 JULY 2026. RNAV TRANSITION FOR ILS RWY25R AVBL FOR      NO CHANGE FOR LGT VACATING RUNWAY.
+BOTH RNP1 AND RNAV1(DME/DME/IRU) CAPABLE ACFT. THIS NOTAM             3.CREW PAY ATTENTION TO THE LGTS.
+SUPPLEMENT
+THE INFORMATION ON AIC 30/24 PARA.3.1                                 ZGOW: APT 2610050719 G4436/26
+                                                                      Q)ZGZU/QPIAU/IV//A/0/999/2333N11630E
+VHHH: APT 2610021055 A2301/26                                         A)ZGOW B)202610050716 C)202701041559
+Q)VHHK/QPICH/I/NBO/A/0/999/2218N11354E                                E)DUE TO CHAOSHAN VOR/DME 'CSS' 110.6MHZ/CH43X LIMIT TO USE, FLW
+A)VHHH B)202610021020 - PERM                                          APPROACH PROCEDURE U/S:
+E)AMEND OCA(OCH) VALUE AND RVR REQUIREMENT OF THE FOLLOWING           IAC VOR/DME RWY04(ZGOW-10C).
+INSTRUMENT APPROACH PROCEDURES:
+RNP Z RWY 07R (AR) - AD-2-VHHH-IAC-01E, AND                           ZGOW: APT 2610050717 G4435/26
+
+Ref: OPS GEN.                                                                                                                                    20/134
+                                                                                                                                          En-Route Data
+
+Q)ZGZU/QNMXX/IV///0/999/2331N11629E                                 A)ZSAM B)202610270328 C)202612231559
+A)ZGOW B)202610050711 C)202701041559                                E)BIRD FLOCKS MIGRATION WILL TAKE PLACE AROUND AD:
+E)CHAOSHAN VOR/DME 'CSS' 110.6MHZ/CH43X LIMITED TO USE:             MIGRATION ROUTE:FROM NORTH TO SOUTH NEAR AD.
+VOR UNSERVICEABLE BTN 3-5NM,ON RADIAL 224DEG.                       MIGRATION ALT:500-3,000M(TIME:MOSTLY AT NIGHT).
+                                                                    AT AD AND IN SURROUNDING AREAS,FLIGHT ALT 50-500M,FLIGHT ALT NEAR
+ZGOW: APT 2608310408 G3918/26                                       THE HABITAT BELOW 1,500M.(TIME: ALL DAY)
+Q)ZGZU/QISAS/I/NBO/A/0/999/2333N11630E                              EXERCISE CAUTION WHILE LANDING AND TAKE-OFF.
+A)ZGOW B)202608310400 C)202702280359
+E)RWY04/22 HUD SPECIAL CAT I UNSERVICEABLE                          ZSAM: APT 2610140925 M2963/26
+                                                                    Q)ZSHA/QOBCE/IV/M/A/0/999/2433N11808E
+ZGOW: APT 2608270343 G3846/26                                       A)ZSAM B)202610140920 C)202612231559
+Q)ZGZU/QFAXX/IV//A/0/999/2333N11630E                                E)ADD NEW TEMPO OBSTACLES WITHIN A CIRCLE WITH A RADIUS OF 15KM
+A)ZGOW B)202608270339 C)202611261559                                CENTERED ON THE CENTER OF RWY05/23:
+E)AD IMPLEMENTS TAKEOFF AUTOMATIC LEAVE FREQUENCY TEST:             OBSTACLE ID/DESIGNATION TYPE POSITION MAG BRG(DEGREE)/DIST(M)
+TOWER ATC WILL SPECIFY THE FIRST CONTACT FREQUENCY AFTER ACFT       ELEVATION(M) MARKING/LIGHTING TYPE AND COLOUR
+TAKEOFF IN ATC CLEARANCE. ACFT SHALL CONTACT DESIGNATED FREQUENCY   CRANE CRANE 315/1,733 68.7 LGT
+AFTER TAKEOFF WITHOUT TOWER ATC INSTRUCTION.
+                                                                    ZSAM: APT 2609110650 M2701/26
+Airﬁeld Chart NOTAM                                                 Q)ZSHA/QOBCE/IV/M/A/0/999/2433N11808E
+                                                                    A)ZSAM B)202609110645 C)202612061559
+No Chart NOTAM in force for this Airfield                           E)ADD NEW TEMPO OBSTACLES WITHIN A CIRCLE WITH A RADIUS OF 15KM
+                                                                    CENTERED ON THE CENTER OF RWY05/23:
+ZSAM [XMN] GAOQI                                                    OBSTACLE ID/DESIGNATION TYPE POSITION MAG BRG(DEGREE)/DIST(M)
+                                                                    ELEVATION(M) MARKING/LIGHTING TYPE AND COLOUR
+Airﬁeld Weather Information                                         CRANE CRANE 102/2,321 77.8
+                                                                    LGT
+M:040600Z 13004MPS 090V180 CAVOK 28/19 Q1016 NOSIG=
+T:040311Z 0406/0506 08004MPS 8000 SCT030 TX28/0506Z                 ZSAM: APT 2608211002 M2497/26
+TN23/0421Z=                                                         Q)ZSHA/QOBCE/IV/M/A/0/999/2433N11808E
+                                                                    A)ZSAM B)202608210949 C)202611151559
+                                                                    E)ADD NEW TEMPO OBSTACLES WITHIN A CIRCLE WITH A RADIUS OF 15KM
+Airﬁeld NOTAM Information
+                                                                    CENTERED ON THE CENTER OF RWY05/23:
+ICAO Class 1 International                                          OBSTACLE ID/DESIGNATION TYPE POSITION MAG BRG(DEGREE)/DIST(M)
+                                                                    ELEVATION(M) MARKING/LIGHTING TYPE AND COLOUR
+ZSAM: APT 2610300150 M3217/26                                       CRANE CRANE 203/4,126 70.9 LGT
+Q)ZSHA/QMXLC/IV/M/A/0/999/2432N11807E
+A)ZSAM B)202611011730 C)202611292130                                ZSAM: APT 2606010822 M1536/26
+D)1730-2130 SUN AND 1745-2130 TUE,THU                               Q)ZSHA/QNMXX/IV///0/999/2433N11800E
+E)FLW TWY CLOSED DUE TO MAINT:                                      A)ZSAM B)202606010802 C)202611301559
+1.TWY A1-A10                                                        E)XINGLIN VOR/DME 'XLN' 114.7MHZ/CH94X LIMITED TO USE:
+2.TWY B1-B7,B9-B12                                                  1. UNSERVICEABLE BTN RADIAL 090DEG-188DEG CLOCKWISE.
+3.TWY A                                                             2. UNSERVICEABLE BEYOND 43NM ON RADIAL 359DEG FOR ARRIVAL/DEPARTURE
+                                                                    PROCEDURE.
+ZSAM: APT 2610300147 M3216/26
+Q)ZSHA/QMRLC/IV/NBO/A/0/999/2432N11807E                             Airﬁeld Chart NOTAM
+A)ZSAM B)202611011730 C)202611292130
+D)1730-2130 SUN AND 1745-2130 TUE,THU                               No Chart NOTAM in force for this Airfield
+E)RWY 05/23 CLOSED DUE TO MAINT,EXCEPT EMERGENCY ALTN.
+                                                                    RCBS KINMEN
+ZSAM: APT 2610270344 M3130/26
+Q)ZSHA/QFAHX/IV/BO/A/0/999/2432N11807E
+
+Ref: OPS GEN.                                                                                                                                   21/134
+                                                                                                                      En-Route Data
+
+Airﬁeld Weather Information                                        3.AREA AS FLW:
+                                                                   242350N 1181137E
+No METAR Available                                                 242337N 1181359E
+No TAF Available                                                   242313N 1181354E
+                                                                   242346N 1181135E
+                                                                   242350N 1181137E.
+Airﬁeld NOTAM Information                                          F)SFC G)1000FT AMSL
+ICAO Class 1 International                                         RCBS: APT 2610150356 U2701/26
+RCBS: APT 2610161241 A3889/26                                      Q)RCAA/QWULW/IV/BO/A/0/25/2426N11827E
+Q)RCAA/QWMLW/IV/BO/E/0/66/2425N11828E                              A)RCBS B)202610201600 C)202612111600
+A)RCBS B)202611020600 C)202611130300                               E)UNMANNED ACFT WILL BE RELEASED:
+D)NOV 02 0600-0900 2100-2300, NOV 03 2100-2300, NOV 13 0100-0300   1.CASE NR:AB260929000202
+E)GUN FIRING WILL TAKE PLACE:                                      2.LCA:JINHU TOWNSHIP, KINMEN COUNTY
+1.LIAISON OFFICER AT RCBS TWR, TFC CONCERNED KEEP CLOSE CTC        3.COOR TEL:0952-123316, 0955-963530
+WITH KAOHSIUNG APP AND RCBS TWR.                                   4.AREA AS FLW:
+2.OPR TEL: 082-333691, 0975-427131, 0963-375518                    242516N 1182407E
+3.AREA AS FLW:                                                     242537N 1182525E
+242540N 1182729E                                                   242648N 1182516E
+242450N 1182830E                                                   242729N 1182950E
+242406N 1182735E                                                   242329N 1182828E
+242456N 1182702E                                                   242357N 1182434E
+242517N 1182702E                                                   242516N 1182407E
+242540N 1182729E.                                                  F)SFC G)2500FT AMSL
+F)SFC G)6600FT AMSL
+                                                                   RCBS: APT 2610150352 U2700/26
+RCBS: APT 2610161233 A3888/26                                      Q)RCAA/QWULW/IV/BO/A/0/25/2427N11820E
+Q)RCAA/QWMLW/IV/BO/E/0/10/2428N11814E                              A)RCBS B)202610201600 C)202612111600
+A)RCBS B)202611040100 C)202611050330                               E)UNMANNED ACFT WILL BE RELEASED:
+D)0100-0330                                                        1.CASE NR:AB260929000201
+E)GUN FIRING WILL TAKE PLACE:                                      2.LCA:JINNING TOWNSHIP, KINMEN COUNTY
+1.LIAISON OFFICER AT RCBS TWR, TFC CONCERNED KEEP CLOSE CTC        3.COOR TEL:0952-123316, 0955-963530
+WITH KAOHSIUNG APP AND RCBS TWR.                                   4.AREA AS FLW:
+2.OPR TEL: 082-333691, 0975-427131, 0963-375518                    243043N 1182736E
+3.AREA AS FLW:                                                     242242N 1181152E
+242807N 1181335E                                                   242442N 1181105E
+242807N 1181400E                                                   242658N 1181408E
+242720N 1181400E                                                   242915N 1181826E
+242720N 1181335E                                                   243140N 1182432E
+242807N 1181335E                                                   243043N 1182736E
+F)SFC G)1000FT AMSL                                                F)SFC G)2500FT AMSL
+
+RCBS: APT 2610161232 A3887/26                                      RCBS: APT 2610140134 U2667/26
+Q)RCAA/QWMLW/IV/BO/E/0/10/2424N11813E                              Q)RCAA/QWULW/IV/BO/A/0/6/2427N11822E
+A)RCBS B)202611040100 C)202611050330                               A)RCBS B)202610192030 C)202612061100
+D)0100-0330                                                        D)2030-1100
+E)GUN FIRING WILL TAKE PLACE:                                      E)UNMANNED ACFT WILL BE RELEASED:
+1.LIAISON OFFICER AT RCBS TWR, TFC CONCERNED KEEP CLOSE CTC        1.CASE NR:AB260921002203
+WITH KAOHSIUNG APP AND RCBS TWR.                                   2.LCA:JINNING TOWNSHIP, KINMEN COUNTY
+2.OPR TEL: 082-333691, 0975-427131, 0963-375518                    3.COOR TEL:0937-556643, 0956-825608, 0905-077932
+
+
+Ref: OPS GEN.                                                                                                               22/134
+                                                                                                          En-Route Data
+
+4.AREA AS FLW:                                     242503N 1182046E
+242759N 1182051E                                   242501N 1182051E
+242744N 1182150E                                   242449N 1182043E
+242741N 1182235E                                   242452N 1182037E
+242701N 1182239E                                   242503N 1182046E
+242652N 1182044E                                   F)SFC G)500FT AMSL
+242759N 1182051E
+F)SFC G)600FT AMSL                                 RCBS: APT 2506260123 A1958/25
+                                                   Q)RCAA/QPIAU/IV//A/0/999/2425N11821E
+RCBS: APT 2610140133 U2666/26                      A)RCBS B)202506260120 C)202612312359 - EST
+Q)RCAA/QWULW/IV/BO/A/0/6/2427N11820E               E)REF AIP SUP 02/24 RCBS IAP RNP RWY06 SUSPENDED,
+A)RCBS B)202610192030 C)202612061100               END DATE OF THIS SUP REVISED AS 31 DEC 2026.
+D)2030-1100                                        THE REST NC.
+E)UNMANNED ACFT WILL BE RELEASED:
+1.CASE NR:AB260921002202                           Airﬁeld Chart NOTAM
+2.LCA:JINCHENG TOWNSHIP, KINMEN COUNTY
+3.COOR TEL:0937-556643, 0956-825608, 0905-077932   No Chart NOTAM in force for this Airfield
+4.AREA AS FLW:
+242554N 1181930E                                   ZSQZ [JJN] JINJIANG
+242641N 1181854E
+242727N 1181954E                                   Airﬁeld Weather Information
+242646N 1182036E
+242554N 1181930E                                   No METAR Available
+F)SFC G)600FT AMSL                                 No TAF Available
+
+RCBS: APT 2610140131 U2665/26
+Q)RCAA/QWULW/IV/BO/A/0/6/2424N11820E
+                                                   Airﬁeld NOTAM Information
+A)RCBS B)202610192030 C)202611061100               ICAO Class 1 International
+D)2030-1100
+E)UNMANNED ACFT WILL BE RELEASED:                  ZSQZ: APT 2610160724 M2997/26
+1.CASE NR:AB260921002201                           Q)ZSHA/QMRLC/IV/NBO/A/0/999/2447N11835E
+2.LCA:JINNING TOWNSHIP, KINMEN COUNTY              A)ZSQZ B)202610171800 C)202612272230
+3.COOR TEL:0937-556643, 0956-825608, 0905-077932   D)SAT SUN 1800-2230
+4.AREA AS FLW:                                     E)RWY03/21 CLOSED DUE TO MAINT.
+242325N 1181850E
+242428N 1181830E                                   ZSQZ: APT 2610070519 M2859/26
+242503N 1182019E                                   Q)ZSHA/QMPLC/IV/BO/A/0/999/2447N11835E
+242404N 1182044E                                   A)ZSQZ B)202610080700 C)202611201559
+242325N 1181850E                                   E)PARKING STAND NR.8 CLOSED DUE TO WORK IN PROGRESS.
+F)SFC G)600FT AMSL
+                                                   ZSQZ: APT 2609290346 M2811/26
+RCBS: APT 2608310335 U2173/26                      Q)ZSHA/QISAS/I/NBO/A/0/999/2447N11835E
+Q)RCAA/QWULW/IV/BO/A/0/5/2425N11821E               A)ZSQZ B)202609290342 C)202612311559
+A)RCBS B)202609042100 C)202611041300               E)RWY03 HUD SPECIAL CAT I UNSERVICEABLE.
+D)2100-1300
+                                                   ZSQZ: APT 2609140947 M2731/26
+E)UNMANNED ACFT WILL BE RELEASED:
+                                                   Q)ZSHA/QFAHW/IV/NBO/A/0/999/2447N11835E
+1.CASE NR:AB260817001901
+                                                   A)ZSQZ B)202609160000 C)202611101559
+2.LCA:JINNING TOWNSHIP, KINMEN COUNTY
+                                                   E)WORK IN PROGRESS WI FLW AREA WITH MARKINGS:
+3.COOR TEL:0913-756025, 0919-500209
+                                                   315M-393M WEST OF RCL,758M-800M SOUTH OF RWY21 THR.
+4.AREA AS FLW:
+                                                   EXERCISE CAUTION WHILE LANDING AND TAKE-OFF.
+
+Ref: OPS GEN.                                                                                                   23/134
+                                                                                                                                      En-Route Data
+
+ZSQZ: APT 2609140931 M2730/26                                    1.IN THE VCY OF THE AP, AND AT AP
+Q)ZSHA/QMPLC/IV/BO/A/0/999/2447N11835E                           IN THE APPROACH PATH OF RWY 05R/23L AND RWY 05L,
+A)ZSQZ B)202609160000 C)202611101559                             BIRD TYPE: GREY HERON
+E)PARKING STAND NR.7 CLOSED DUE TO WORK IN PROGRESS.             HGT: 0-1500FT WT: 1020-2070 GRAMS.
+                                                                 2.IN THE VCY OF THE AP AND AT AP
+ZSQZ: APT 2609011121 M2605/26                                    IN THE APPROACH PATH OF RWY 05R/23L AND RWY 05L,
+Q)ZSHA/QMXLC/IV/M/A/0/999/2447N11835E                            BIRD TYPE: GREAT EGRET
+A)ZSQZ B)202609012300 C)202612011559                             HGT: 0-1500FT WT: 700-1500 GRAMS.
+E)FLW TWY CLSD:                                                  3.IN THE VCY OF THE AP
+1.TWY A NORTH OF TWY A2.                                         BIRD TYPE: OSPERY
+2.TWY A1.                                                        HGT: 0-1000FT WT: 900-2100 GRAMS.
+                                                                 4.IN THE VCY OF THE AP, AND AT AP
+Airﬁeld Chart NOTAM                                              IN THE APPROACH PATH OF RWY 05L/23R AND RWY 05R/23L,
+                                                                 BIRD TYPE: EASTERN SPOT-BILLED DUCK
+No Chart NOTAM in force for this Airfield                        HGT: 0-300FT WT: 750-1500 GRAMS.
+
+RCTP [TPE] TAIWAN TAOYUAN INTL 3% ERA                            RCTP: APT 2610290822 A4024/26
+                                                                 Q)RCAA/QMXLT/IV/M/A/0/999/2504N12113E
+Airﬁeld Weather Information                                      A)RCTP B)202610290821 C)202611300900 - EST
+                                                                 E)PORTION OF TWY E BTN TWY P(EXCLUDED) AND TWY Q(EXCLUDED) ONLY
+M:040630Z 33008KT 9999 FEW020 29/22 Q1014 NOSIG                  AVBL FOR ACFT WITH CODE LETTER A, B, C, D, E.
+RMK                                                              (REF ICAO ANNEX 14 AERODROMES, TABLE 1-1 AERODROME REFERENCE CODE)
+A2997=                                                           RMK: ACFT TYPE B748 TOWING IS PERMITTED.
+T:040500Z 0406/0512 34008KT 9999 FEW015
+BECMG 0410/0412 21005KT                                          RCTP: APT 2610290216 U2772/26
+TEMPO 0420/0424 15005KT 5000 BR                                  Q)RCAA/QWULW/IV/BO/A/0/28/2502N12113E
+BECMG 0500/0502 36007KT                                          A)RCTP B)202611032100 C)202612231530
+BECMG 0506/0508 05010KT=                                         D)2100-1530
+                                                                 E)UNMANNED ACFT WILL BE RELEASED:
+                                                                 1.CASE NR:AB260923000201
+Airﬁeld NOTAM Information                                        2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+ICAO Class 1 International                                       3.COOR TEL:0952-890660, 0912-218136
+                                                                 4.AREA AS FLW:
+RCTP: APT 2611020948 A4072/26                                    250220N 1211211E
+Q)RCAA/QMXLC/IV/M/A/0/999/2504N12113E                            250330N 1211333E
+A)RCTP B)202611021700 C)202611082220                             250236N 1211441E
+D)NOV 02 04 08 1700-2220                                         250110N 1211311E
+E)TWY L1 BTN RWY 05L/23R(EXCLUDED) AND TWY L(EXCLUDED)           250220N 1211211E
+CLOSED DUE TO WORK IN PROGRESS.                                  F)SFC G)2800FT AMSL
+
+RCTP: APT 2611020755 A4068/26                                    RCTP: APT 2610270203 U2745/26
+Q)RCAA/QMRXX/IV//A/0/999/2504N12113E                             Q)RCAA/QWULW/IV/BO/A/0/15/2505N12114E
+A)RCTP B)202611021700 C)202611042230                             A)RCTP B)202611011600 C)202612311600
+E)RAPID EXIT TWY INDICATOR LIGHTS (RETILS) OF RWY 05L/23R ONTO   E)UNMANNED ACFT WILL BE RELEASED:
+TWY N5 UNSERVICEABLE                                             1.CASE NR:AB260814003201
+                                                                 2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+RCTP: APT 2610302352 A4045/26                                    3.THE AREA OVERLAPS PART OF VFR HEL RTE H1,
+Q)RCAA/QFAHX/IV/BO/A/0/999/2504N12113E                           ACFT ARE CTN ADZ.
+A)RCTP B)202611010000 C)202611302359                             4.COOR TEL:0937-565491, 0955-758659, 0912-218136
+E)BIRD CONCENTRATION DRG 2100-1100:                              5.AREA AS FLW:
+
+
+Ref: OPS GEN.                                                                                                                               24/134
+                                                                                                                               En-Route Data
+
+250439N 1211136E                                               CLOSED FOR ACFT PRKG.
+250703N 1211456E
+250536N 1211618E                                               RCTP: APT 2610210437 U2733/26
+250306N 1211259E                                               Q)RCAA/QWULW/IV/BO/A/0/33/2458N12111E
+250439N 1211136E                                               A)RCTP B)202610281600 C)202611161600
+F)SFC G)1500FT AMSL                                            E)UNMANNED ACFT WILL BE RELEASED:
+                                                               1.CASE NR:AB260901000902
+RCTP: APT 2610270156 U2743/26                                  2.LCA:ZHONGLI DISTRICT, TAOYUAN CITY
+Q)RCAA/QWULW/IV/BO/A/0/5/2506N12110E                           3.THE AREA OVERLAPS PART OF VFR HEL RTE H2, ACFT ARE CTN ADZ.
+A)RCTP B)202611020000 C)202611300900                           4.COOR TEL:0989-310732, 0953-830118
+D)0000-0900                                                    5.AREA AS FLW:
+E)UNMANNED ACFT WILL BE RELEASED:                              245800N 1211112E
+1.CASE NR:AB260929001302                                       245802N 1211108E
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                            245804N 1211106E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1,                    245805N 1211106E
+ACFT ARE CTN ADZ.                                              245806N 1211111E
+4.COOR TEL:0937-318928, 0919-396198                            245800N 1211112E
+5.AREA AS FLW:                                                 F)SFC G)3300FT AMSL
+250434N 1210819E
+250450N 1210811E                                               RCTP: APT 2610200156 U2723/26
+250716N 1211131E                                               Q)RCAA/QWULW/IV/BO/A/0/6/2504N12115E
+250613N 1211225E                                               A)RCTP B)202610262130 C)202612060900
+250451N 1211008E                                               D)2130-0900
+250434N 1210819E                                               E)UNMANNED ACFT WILL BE RELEASED:
+F)SFC G)500FT AMSL                                             1.CASE NR:AB260921001501
+                                                               2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+RCTP: APT 2610270153 U2742/26                                  3.COOR TEL:0966-157117, 0909-302709
+Q)RCAA/QWULW/IV/BO/A/0/5/2507N12114E                           4.AREA AS FLW:
+A)RCTP B)202611020000 C)202611300900                           250425N 1211535E
+D)0000-0900                                                    250351N 1211547E
+E)UNMANNED ACFT WILL BE RELEASED:                              250311N 1211453E
+1.CASE NR:AB260929001301                                       250345N 1211424E
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                            250425N 1211535E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1,                    F)SFC G)600FT AMSL
+ACFT ARE CTN ADZ.
+4.COOR TEL:0937-318928, 0919-396198                            RCTP: APT 2610160026 A3865/26
+5.AREA AS FLW:                                                 Q)RCAA/QMXLC/IV/M/A/0/999/2504N12113E
+250627N 1211248E                                               A)RCTP B)202610160024 C)202701120800 - EST
+250715N 1211231E                                               E)PORTION OF TWY L BEHIND PARKING BAY 525 CLOSED
+250739N 1211550E                                               FOR ACFT PARKING AND TOWING.
+250712N 1211554E                                               RMK: DEP ACFT IN PARKING BAY 524 PUSH BACK TO FACE EAST
+250710N 1211507E                                               UNTIL ABEAM PARKING BAY 520, THEN TAX.
+250654N 1211446E
+250627N 1211248E
+                                                               RCTP: APT 2610150429 U2708/26
+                                                               Q)RCAA/QWULW/IV/BO/A/0/12/2505N12116E
+F)SFC G)500FT AMSL
+                                                               A)RCTP B)202610201600 C)202612051600
+RCTP: APT 2610210959 A3931/26                                  E)UNMANNED ACFT WILL BE RELEASED:
+Q)RCAA/QMXXX/IV//A/0/999/2504N12113E                           1.CASE NR:AB260910000801
+A)RCTP B)202610210957 C)202701150930 - EST                     2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+E)PORTION OF TWY R BTN TWY R1(INCLUDED) AND TWY R3(EXCLUDED)   3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+
+
+Ref: OPS GEN.                                                                                                                        25/134
+                                                                                                                                En-Route Data
+
+4.COOR TEL:0933-147693, 0912-218136                             250200N 1211820E
+5.AREA AS FLW:                                                  F)SFC G)2000FT AMSL
+250537N 1211458E
+250621N 1211605E                                                RCTP: APT 2610130158 U2648/26
+250425N 1211734E                                                Q)RCAA/QWULW/IV/BO/A/0/12/2507N12122E
+250332N 1211639E                                                A)RCTP B)202610182100 C)202611301100
+250342N 1211632E                                                D)2100-1100
+250537N 1211458E                                                E)UNMANNED ACFT WILL BE RELEASED:
+F)SFC G)1200FT AMSL                                             1.CASE NR:AB260924000402
+                                                                2.LCA:LINKOU DISTRICT, NEW TAIPEI CITY
+RCTP: APT 2610130639 A3820/26                                   3.THE AREA OVERLAPS PART OF VFR HEL RTE H1,
+Q)RCAA/QOBCE/IV/M/A/0/6/2501N12113E                             ACFT ARE CTN ADZ.
+A)RCTP B)202610310000 C)202804302359                            4.COOR TEL:02-23315068, 0939-549849, 0920-496822
+E)AIP SUP 26/26 WEF 31 OCT 2026 TIL 30 APR 2028,                5.AREA AS FLW:
+CRANES IN THE VICINITY OF TAIPEI/TAIWAN TAOYUAN INTERNATIONAL   250638N 1212251E
+AIRPORT.                                                        250650N 1212216E
+                                                                250701N 1212149E
+RCTP: APT 2610130216 U2658/26                                   250718N 1212154E
+Q)RCAA/QWULW/IV/BO/A/0/25/2458N12112E                           250706N 1212238E
+A)RCTP B)202610181600 C)202612091600                            250652N 1212250E
+E)UNMANNED ACFT WILL BE RELEASED:                               250638N 1212251E
+1.CASE NR:AB260924000801                                        F)SFC G)1200FT AMSL
+2.LCA:ZHONGLI DISTRICT, TAOYUAN CITY
+3.THE AREA OVERLAPS PART OF LONGTAN MIL TRAINING AREA,          RCTP: APT 2610080249 U2631/26
+PART OF VFR CORRIDOR C1, C33, PART OF VFR HEL RTE H1 AND H2,    Q)RCAA/QWULW/IV/BO/A/0/24/2459N12121E
+ACFT ARE CTN ADZ.                                               A)RCTP B)202610141600 C)202611201600
+4.COOR TEL:0920-332466, 0972-890719, 0912-218136                E)UNMANNED ACFT WILL BE RELEASED:
+5.AREA AS FLW:                                                  1.CASE NR:AB260903002201
+250245N 1211748E                                                2.LCA:SANXIA DISTRICT, NEW TAIPEI CITY
+245956N 1211942E                                                3.THE AREA OVERLAPS PART OF LONGTAN MIL TRAINING AREA,
+245224N 1211149E                                                PART OF VFR CORRIDOR C1, C10, C33 AND PART OF VFR HEL RTE H2,
+245358N 1210642E                                                ACFT ARE CTN ADZ.
+250245N 1211748E                                                4.COOR TEL:0933-147693, 0912-218136
+F)SFC G)2500FT AMSL                                             5.AREA AS FLW:
+                                                                250110N 1211546E
+RCTP: APT 2610130211 U2657/26                                   250126N 1211939E
+Q)RCAA/QWULW/IV/BO/A/0/20/2500N12119E                           245958N 1212540E
+A)RCTP B)202610181600 C)202612091600                            245742N 1212655E
+E)UNMANNED ACFT WILL BE RELEASED:                               245449N 1212002E
+1.CASE NR:AB260923001501                                        250110N 1211546E.
+2.LCA:TAOYUAN DISTRICT, TAOYUAN CITY                            F)SFC G)2400FT AMSL
+3.THE AREA OVERLAPS PART OF VFR CORRIDOR C1,
+ACFT ARE CTN ADZ.                                               RCTP: APT 2610080151 U2610/26
+4.COOR TEL:0910-282857, 0912-218330                             Q)RCAA/QWULW/IV/BO/A/0/5/2504N12112E
+5.AREA AS FLW:                                                  A)RCTP B)202610142200 C)202611271000
+250200N 1211820E                                                D)2200-1000
+245946N 1212047E                                                E)UNMANNED ACFT WILL BE RELEASED:
+245824N 1211846E                                                1.CASE NR:AB260921003302
+250105N 1211641E                                                2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+250139N 1211709E                                                3.COOR TEL:0933-976707, 0912-218330
+
+
+Ref: OPS GEN.                                                                                                                         26/134
+                                                                                                                                  En-Route Data
+
+4.AREA AS FLW:                                                  1.COORD: 250344.75N 1211338.96E
+100M RADIUS CENTRED ON 250330N 1211154E                         2.MAX HGT: 15M AGL
+F)SFC G)500FT AMSL                                              3.LOW-INTENSITY TYPE B OBST LGT ON TOP.
+
+RCTP: APT 2610080149 U2609/26                                   RCTP: APT 2610010750 A3634/26
+Q)RCAA/QWULW/IV/BO/A/0/22/2504N12111E                           Q)RCAA/QFUAU/IV/NBO/A/0/999/2504N12113E
+A)RCTP B)202610142200 C)202611271000                            A)RCTP B)202611020400 C)202611300400
+D)2200-1000                                                     E)FUELLING SERVICE NOT AVBL FOR PARKING BAY D11-D18 DUE TO WORK
+E)UNMANNED ACFT WILL BE RELEASED:                               IN PROGRESS.
+1.CASE NR:AB260921003301                                        RMK: FUELLING SERVICE ONLY AVBL BY MOBILE TANKER.
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1,                     RCTP: APT 2609300406 U2508/26
+ACFT ARE CTN ADZ.                                               Q)RCAA/QWULW/IV/BO/A/0/20/2503N12110E
+4.COOR TEL:0933-976707, 0912-218330                             A)RCTP B)202610052200 C)202611201300
+5.AREA AS FLW:                                                  D)2200-1300
+400M RADIUS CENTRED ON 250408N 1211123E                         E)UNMANNED ACFT WILL BE RELEASED:
+F)SFC G)2200FT AMSL                                             1.CASE NR:AB260914000702
+                                                                2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+RCTP: APT 2610070641 U2576/26                                   3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+Q)RCAA/QWULW/IV/BO/A/0/20/2504N12111E                           4.COOR TEL:0939-600675, 0912-218136
+A)RCTP B)202610141600 C)202612141600                            5.AREA AS FLW:
+E)UNMANNED ACFT WILL BE RELEASED:                               250328N 1210924E
+1.CASE NR:AB260922001301                                        250343N 1211019E
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                             250309N 1211033E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   250249N 1210940E
+4.COOR TEL:0916-077501, 0910-606101                             250328N 1210924E
+5.AREA AS FLW:                                                  F)SFC G)2000FT AMSL
+250415N 1211055E
+250445N 1211138E                                                RCTP: APT 2609300351 U2497/26
+250400N 1211203E                                                Q)RCAA/QWULW/IV/BO/A/0/25/2502N12113E
+250343N 1211104E                                                A)RCTP B)202610051600 C)202611271600
+250415N 1211055E                                                E)UNMANNED ACFT WILL BE RELEASED:
+F)SFC G)2000FT AMSL                                             1.CASE NR:AB260914001004
+                                                                2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+RCTP: APT 2610050254 U2532/26                                   3.COOR TEL:04-23012328 EXTENSION 28, 0933-454538, 0920-061485
+Q)RCAA/QWULW/IV/BO/A/0/8/2503N12105E                            4.AREA AS FLW:
+A)RCTP B)202610111600 C)202611301600                            250037N 1211234E
+E)UNMANNED ACFT WILL BE RELEASED:                               250057N 1211213E
+1.CASE NR:AB260915003501                                        250153N 1211202E
+2.LCA:GUANYIN DISTRICT, TAOYUAN CITY                            250308N 1211359E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   250232N 1211441E
+4.COOR TEL:0920-332466, 0972-890719, 0912-218136                250037N 1211234E
+5.AREA AS FLW:                                                  F)SFC G)2500FT AMSL
+500M RADIUS CENTRED ON 250243N 1210524E
+F)SFC G)800FT AMSL                                              RCTP: APT 2609300346 U2496/26
+                                                                Q)RCAA/QWULW/IV/BO/A/0/25/2503N12112E
+RCTP: APT 2610020916 A3647/26                                   A)RCTP B)202610051600 C)202611271600
+Q)RCAA/QOBCE/IV/M/A/0/2/2504N12114E                             E)UNMANNED ACFT WILL BE RELEASED:
+A)RCTP B)202610031700 C)202701010800 - EST                      1.CASE NR:AB260914001003
+E)OBST ERECTED DUE TO NEW GP ANTENNA WIP, INFO AS FLW:          2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+
+
+Ref: OPS GEN.                                                                                                                           27/134
+                                                                                                                                En-Route Data
+
+3.COOR TEL:04-23012328 EXTENSION 28, 0933-454538, 0920-061485   1.CASE NR:AB260720000801
+4.AREA AS FLW:                                                  2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+250140N 1211221E                                                3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+250353N 1211129E                                                4.COOR TEL:0935-811226, 0923-830809, 0901-493531
+250401N 1211224E                                                5.AREA AS FLW:
+250341N 1211242E                                                250600N 1211335E
+250219N 1211332E                                                250535N 1211306E
+250140N 1211221E                                                250552N 1211236E
+F)SFC G)2500FT AMSL                                             250620N 1211317E
+                                                                250600N 1211335E
+RCTP: APT 2609300345 U2495/26                                   F)SFC G)500FT AMSL
+Q)RCAA/QWULW/IV/BO/A/0/25/2504N12115E
+A)RCTP B)202610051600 C)202611271600                            RCTP: APT 2609290242 U2489/26
+E)UNMANNED ACFT WILL BE RELEASED:                               Q)RCAA/QWULW/IV/BO/A/0/6/2504N12116E
+1.CASE NR:AB260914001002                                        A)RCTP B)202610041600 C)202611241600
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                             E)UNMANNED ACFT WILL BE RELEASED:
+3.COOR TEL:04-23012328 EXTENSION 28, 0933-454538, 0920-061485   1.CASE NR:AB260911000503
+4.AREA AS FLW:                                                  2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+250307N 1211301E                                                3.COOR TEL:0939-114657, 0919-502656
+250456N 1211532E                                                4.AREA AS FLW:
+250424N 1211606E                                                250330N 1211625E
+250331N 1211559E                                                250350N 1211542E
+250210N 1211413E                                                250355N 1211550E
+250225N 1211324E                                                250332N 1211637E
+250307N 1211301E                                                250330N 1211625E
+F)SFC G)2500FT AMSL                                             F)SFC G)600FT AMSL
+
+RCTP: APT 2609300341 U2494/26                                   RCTP: APT 2609290241 U2488/26
+Q)RCAA/QWULW/IV/BO/A/0/25/2505N12116E                           Q)RCAA/QWULW/IV/BO/A/0/6/2504N12116E
+A)RCTP B)202610051600 C)202611271600                            A)RCTP B)202610041600 C)202611241600
+E)UNMANNED ACFT WILL BE RELEASED:                               E)UNMANNED ACFT WILL BE RELEASED:
+1.CASE NR:AB260914001001                                        1.CASE NR:AB260911000502
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                             2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   3.COOR TEL:0939-114657, 0919-502656
+4.COOR TEL:04-23012328 EXTENSION 28, 0933-454538, 0920-061485   4.AREA AS FLW:
+5.AREA AS FLW:                                                  250446N 1211529E
+250409N 1211558E                                                250513N 1211552E
+250525N 1211509E                                                250509N 1211600E
+250559N 1211607E                                                250444N 1211538E
+250500N 1211708E                                                250355N 1211550E
+250446N 1211656E                                                250350N 1211542E
+250440N 1211616E                                                250446N 1211529E
+250409N 1211558E                                                F)SFC G)600FT AMSL
+F)SFC G)2500FT AMSL
+                                                                RCTP: APT 2609230559 U2476/26
+RCTP: APT 2609290246 U2491/26                                   Q)RCAA/QWULW/IV/BO/A/0/4/2518N12114E
+Q)RCAA/QWULW/IV/BO/A/0/5/2506N12113E                            A)RCTP B)202610011600 C)202612291600
+A)RCTP B)202610052100 C)202611300600                            E)UNMANNED ACFT WILL BE RELEASED:
+D)2100-0600                                                     1.CASE NR:M260916000401
+E)UNMANNED ACFT WILL BE RELEASED:                               2.LCA:TAMSUI DISTRICT, NEW TAIPEI CITY
+
+
+Ref: OPS GEN.                                                                                                                         28/134
+                                                                                                                                En-Route Data
+
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1 AND                  E)UNMANNED ACFT WILL BE RELEASED:
+PART OF RESTRICTED VFR RTE MT2, ACFT ARE CTN ADZ.               1.CASE NR:M260908000401
+4.COOR TEL:0919-593559                                          2.LCA:GUANYIN DISTRICT, TAOYUAN CITY
+5.AREA AS FLW:                                                  3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+252821N 1212311E                                                4.COOR TEL:0938-421017
+251705N 1212712E                                                5.AREA AS FLW:
+250558N 1210847E                                                250709N 1205933E
+251947N 1205942E                                                250958N 1210809E
+252841N 1211942E                                                250014N 1211242E
+252821N 1212311E                                                245942N 1211135E
+6.MAX HGT: 400FT AGL                                            250405N 1210931E
+F)SFC G)400FT AMSL                                              250136N 1210349E
+                                                                250709N 1205933E
+RCTP: APT 2609220252 U2446/26                                   6.MAX HGT: 400FT AGL
+Q)RCAA/QWULW/IV/BO/A/0/8/2500N12108E                            F)SFC G)800FT AMSL
+A)RCTP B)202609301600 C)202612291600
+E)UNMANNED ACFT WILL BE RELEASED:                               RCTP: APT 2609220241 U2439/26
+1.CASE NR:M260908001301                                         Q)RCAA/QWULW/IV/BO/A/0/5/2506N12113E
+2.LCA:GUANYIN DISTRICT, TAOYUAN CITY                            A)RCTP B)202609301600 C)202612291600
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   E)UNMANNED ACFT WILL BE RELEASED:
+4.COOR TEL:0938-421017                                          1.CASE NR:M260908000301
+5.AREA AS FLW:                                                  2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+245815N 1210620E                                                3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+250122N 1210357E                                                4.COOR TEL:0938-421017
+250400N 1210938E                                                5.AREA AS FLW:
+245859N 1211202E                                                250536N 1211148E
+245815N 1210620E                                                250608N 1211232E
+6.MAX HGT: 400FT AGL                                            250628N 1211328E
+F)SFC G)800FT AMSL                                              250624N 1211426E
+                                                                250539N 1211402E
+RCTP: APT 2609220250 U2445/26                                   250448N 1211254E
+Q)RCAA/QWULW/IV/BO/A/0/11/2508N12118E                           250536N 1211148E
+A)RCTP B)202609301600 C)202612291600                            6.MAX HGT: 400FT AGL
+E)UNMANNED ACFT WILL BE RELEASED:                               F)SFC G)500FT AMSL
+1.CASE NR:M260908001201
+2.LCA:LINKOU DISTRICT, NEW TAIPEI CITY                          RCTP: APT 2609220224 U2432/26
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   Q)RCAA/QWULW/IV/BO/A/0/12/2510N12120E
+4.COOR TEL:0938-421017                                          A)RCTP B)202609301600 C)202612291600
+5.AREA AS FLW:                                                  E)UNMANNED ACFT WILL BE RELEASED:
+250525N 1211654E                                                1.CASE NR:M260907000101
+250956N 1211543E                                                2.LCA:TAMSUI DISTRICT, NEW TAIPEI CITY
+251127N 1211802E                                                3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+250556N 1212014E                                                4.COOR TEL:0938-421017
+250525N 1211654E                                                5.AREA AS FLW:
+6.MAX HGT: 400FT AGL                                            250605N 1212011E
+F)SFC G)1100FT AMSL                                             251223N 1211614E
+                                                                251447N 1212032E
+RCTP: APT 2609220243 U2440/26                                   250755N 1212358E
+Q)RCAA/QWULW/IV/BO/A/0/8/2504N12106E                            250605N 1212011E
+A)RCTP B)202609301600 C)202612291600                            6.MAX HGT: 400FT AGL
+
+
+Ref: OPS GEN.                                                                                                                         29/134
+                                                                                                                                En-Route Data
+
+F)SFC G)1200FT AMSL                                             250547N 1211501E
+                                                                250617N 1211501E
+RCTP: APT 2609210329 U2417/26                                   250712N 1211410E
+Q)RCAA/QWULW/IV/BO/A/0/24/2458N12114E                           F)SFC G)2300FT AMSL
+A)RCTP B)202609282000 C)202611201600
+D)2000-1600                                                     RCTP: APT 2609190858 A3470/26
+E)UNMANNED ACFT WILL BE RELEASED:                               Q)RCAA/QMXLC/IV/M/A/0/999/2504N12113E
+1.CASE NR:AB260905001303                                        A)RCTP B)202609190857 C)202611300900 - EST
+2.LCA:ZHONGLI DISTRICT, TAOYUAN CITY                            E)PORTION OF TWY S BTN S4(EXCLUDED) AND S5(EXCLUDED)
+3.THE AREA OVERLAPS PART OF LONGTAN MIL TRAINING AREA,          CLOSED DUE TO WORK IN PROGRESS.
+PART OF VFR CORRIDOR C1 AND PART OF VFR HEL RTE H2,
+ACFT ARE CTN ADZ.                                               RCTP: APT 2609090530 U2321/26
+4.COOR TEL:0988-108565, 0926-167775, 0912-218330                Q)RCAA/QWULW/IV/BO/A/0/20/2502N12113E
+5.AREA AS FLW:                                                  A)RCTP B)202609141600 C)202611061600
+245723N 1211101E - 250013N 1211432E - 245751N 1211644E          E)UNMANNED ACFT WILL BE RELEASED:
+245521N 1211255E - 245723N 1211101E.                            1.CASE NR:AB260825000801
+F)SFC G)2400FT AMSL                                             2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+                                                                3.COOR TEL:0916-077501, 0910-606101
+RCTP: APT 2609210323 U2412/26                                   4.AREA AS FLW:
+Q)RCAA/QWULW/IV/BO/A/0/23/2504N12117E                           250341N 1211201E
+A)RCTP B)202609282200 C)202611091000                            250316N 1211322E
+D)2200-1000                                                     250405N 1211437E
+E)UNMANNED ACFT WILL BE RELEASED:                               250319N 1211529E
+1.CASE NR:AB260826000602                                        250024N 1211212E
+2.LCA:LUZHU DISTRICT, TAOYUAN CITY                              250235N 1211028E
+3.COOR TEL:04-23012328 EXTENSION 28, 0933-454538, 0920-061485   250341N 1211201E
+4.AREA AS FLW:                                                  F)SFC G)2000FT AMSL
+250234N 1211852E
+250233N 1211818E                                                RCTP: APT 2609070308 U2262/26
+250441N 1211544E                                                Q)RCAA/QWULW/IV/BO/A/0/16/2506N12117E
+250524N 1211657E                                                A)RCTP B)202609301600 C)202611301600
+250417N 1211833E                                                E)UNMANNED ACFT WILL BE RELEASED:
+250258N 1211945E                                                1.CASE NR:AB260812004001
+250234N 1211852E                                                2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+F)SFC G)2300FT AMSL                                             3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+                                                                4.COOR TEL:0937-565491, 0955-758659, 0912-218136
+RCTP: APT 2609210322 U2411/26                                   5.AREA AS FLW:
+Q)RCAA/QWULW/IV/BO/A/0/23/2506N12115E                           250734N 1211535E
+A)RCTP B)202609282200 C)202611091000                            250455N 1211828E
+D)2200-1000                                                     250353N 1211559E
+E)UNMANNED ACFT WILL BE RELEASED:                               250616N 1211451E
+1.CASE NR:AB260826000601                                        250558N 1211402E
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                             250641N 1211335E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   250734N 1211535E
+4.COOR TEL:04-23012328 EXTENSION 28, 0933-454538, 0920-061485   F)SFC G)1600FT AMSL
+5.AREA AS FLW:
+250712N 1211410E                                                RCTP: APT 2609030158 U2214/26
+250737N 1211500E                                                Q)RCAA/QWULW/IV/BO/A/0/16/2504N12118E
+250509N 1211654E                                                A)RCTP B)202609122100 C)202611121330
+250427N 1211544E                                                D)2100-1330
+
+
+Ref: OPS GEN.                                                                                                                         30/134
+                                                                                                                                  En-Route Data
+
+E)UNMANNED ACFT WILL BE RELEASED:                               3.THE AREA OVERLAPS PART OF LONGTAN MIL TRAINING AREA,
+1.CASE NR:AB260820002501                                        PART OF VFR CORRIDOR C33 AND PART OF VFR HEL RTE H2,
+2.LCA:LUZHU DISTRICT, TAOYUAN CITY                              ACFT ARE CTN ADZ.
+3.COOR TEL:0961-101656, 0912-218330                             4.COOR TEL:0965-157897, 0912-218136
+4.AREA AS FLW:                                                  5.AREA AS FLW:
+250333N 1211543E                                                245613N 1211627E
+250516N 1211812E                                                245554N 1211751E
+250442N 1212006E                                                245513N 1211735E
+250301N 1211754E                                                245514N 1211558E
+250239N 1211709E                                                245613N 1211627E
+250333N 1211543E                                                F)SFC G)2900FT AMSL
+F)SFC G)1600FT AMSL
+                                                                RCTP: APT 2608250212 A3047/26
+RCTP: APT 2608310329 U2167/26                                   Q)RCAA/QOBCE/IV/M/A/0/6/2501N12113E
+Q)RCAA/QWULW/IV/BO/A/0/10/2505N12114E                           A)RCTP B)202608302300 C)202707012359
+A)RCTP B)202609131601 C)202611131600                            E)AIP SUP 21/26 WEF 30 AUG 2026 TIL 01 JUL 2027,
+D)1601-1600                                                     A CRANE AT TAIPEI/TAIWAN TAOYUAN INTERNATIONAL AIRPORT.
+E)UNMANNED ACFT WILL BE RELEASED:
+1.CASE NR:AB260814001001                                        RCTP: APT 2608240523 U2103/26
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                             Q)RCAA/QWULW/IV/BO/A/0/25/2504N12114E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1,                     A)RCTP B)202609111600 C)202611111545
+ACFT ARE CTN ADZ.                                               D)1600-1545
+4.COOR TEL:0912-671266                                          E)UNMANNED ACFT WILL BE RELEASED:
+5.AREA AS FLW:                                                  1.CASE NR:AB260813000501
+250341N 1210920E                                                2.LCA:DAYUAN DISTRICT, TAOYUAN CITY
+250835N 1211535E                                                3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.
+250547N 1211846E                                                4.COOR TEL:0920-977086, 0932-215478
+250041N 1211221E                                                5.AREA AS FLW:
+250341N 1210920E                                                250621N 1211408E
+F)SFC G)1000FT AMSL                                             250523N 1211508E
+                                                                250431N 1211655E
+RCTP: APT 2608310317 U2159/26                                   250122N 1211306E
+Q)RCAA/QWULW/IV/BO/A/0/10/2506N12115E                           250344N 1211048E
+A)RCTP B)202610252100 C)202612250930                            250621N 1211408E
+D)2100-0930                                                     F)SFC G)2500FT AMSL
+E)UNMANNED ACFT WILL BE RELEASED:
+1.CASE NR:AB260811001201                                        RCTP: APT 2608030135 A2638/26
+2.LCA:DAYUAN DISTRICT, TAOYUAN CITY                             Q)RCAA/QMXXX/IV//A/0/999/2504N12113E
+3.THE AREA OVERLAPS PART OF VFR HEL RTE H1, ACFT ARE CTN ADZ.   A)RCTP B)202608030135 C)202712312359
+4.COOR TEL:0919-936896                                          E)AIP SUP 19/26 WEF 03 AUG 2026 TIL 31 DEC 2027,
+5.AREA AS FLW:                                                  GROUND MANEUVERING RESTRICTIONS FOR AERODROME REFERENCE
+500M RADIUS CENTRED ON 250629N 1211451E                         CODE F AIRCRAFT AT TAIPEI/TAIWAN TAOYUAN INTERNATIONAL AIRPORT.
+F)SFC G)1000FT AMSL                                             THIS AIP SUP REPLACES AIP SUP 14/22.
+
+RCTP: APT 2608260221 U2124/26                                   RCTP: APT 2607300419 A2568/26
+Q)RCAA/QWULW/IV/BO/A/0/29/2456N12117E                           Q)RCAA/QOBCE/IV/M/A/0/4/2506N12112E
+A)RCTP B)202609091600 C)202611091600                            A)RCTP B)202608152300 C)202707011100
+E)UNMANNED ACFT WILL BE RELEASED:                               E)AIP SUP 18/26 WEF 15 AUG 2026 TIL 01 JUL 2027,
+1.CASE NR:AB260817001401                                        CRANES AT TAIPEI/TAIWAN TAOYUAN INTERNATIONAL AIRPORT.
+2.LCA:BADE DISTRICT, TAOYUAN CITY
+
+
+Ref: OPS GEN.                                                                                                                           31/134
+                                                                                                                                        En-Route Data
+
+RCTP: APT 2605270114 A1612/26                                      E)RWY04/22 ILS ON TEST DO NOT USE DUE TO WORK IN PROGRESS
+Q)RCAA/QOBCE/IV/M/A/0/3/2505N12116E
+A)RCTP B)202607011700 C)202709292230
+                                                                   ZSFZ: APT 2610220818 M3077/26
+                                                                   Q)ZSHA/QMPLC/IV/BO/A/0/999/2556N11939E
+E)AIP SUP 11/26 WEF 01 JUL 2026 TIL 29 SEP 2027,
+                                                                   A)ZSFZ B)202610260130 C)202611191200
+CRANES IN THE VICINITY OF TAIPEI/TAIWAN TAOYUAN INTERNATIONAL
+                                                                   E)PARKING STAND NR.217 CLOSED DUE TO WORK IN PROGRESS.
+AIRPORT.
+
+RCTP: APT 2602120127 A0382/26                                      ZSFZ: APT 2610150945 M2985/26
+                                                                   Q)ZSHA/QMXLT/IV/M/A/0/999/2556N11939E
+Q)RCAA/QWZLW/IV/M/A/0/6/2500N12112E
+                                                                   A)ZSFZ B)202610161000 - PERM
+A)RCTP B)202604111100 C)202611081400
+                                                                   E)TWY L5 WINGSPAN LIMITED CHANGED AS FLW:
+E)AIP SUP 04/26 WEF 11 APR 2026 TIL 08 NOV 2026, FIREWORKS TAKE
+                                                                   1.TWY L5 WEST OF TWY K,ONLY AVBL FOR ACFT WITH WINGSPAN LESS THAN
+PLACE AT TAOYUAN INTERNATIONAL BASEBALL STADIUM.
+                                                                   36M.
+F)SFC G)600FT AMSL
+                                                                   2.TWY L5 EAST OF TWY K,ONLY AVBL FOR ACFT WITH WINGSPAN LESS THAN
+RCTP: APT 2512120902 A4706/25                                      65M.
+Q)RCAA/QOBCE/IV/M/A/0/4/2503N12115E
+A)RCTP B)202512120858 C)202612311000
+                                                                   ZSFZ: APT 2610090656 M2901/26
+                                                                   Q)ZSHA/QOBCE/IV/M/A/0/999/2556N11940E
+E)REF AIP SUP 27/22, TOWER CRANES ARE ERECTED IN THE VICINITY OF
+                                                                   A)ZSFZ B)202610090653 C)202701141559
+TAIPEI/TAIWAN TAOYUAN INTL AP, END DATE REVISED AS 31 DEC 2026,
+                                                                   E)ADD NEW BSTACLES WITHIN A CIRCLE WITH A RADIUS OF 15KM
+1000UTC.
+                                                                   (CENTERED ON THE CENTER OF RWY03/21):
+THE REST NC.
+                                                                   OBSTACLE ID/DESIGNATION TYPE POSITION MAG
+RCTP: APT 2512120854 A4705/25                                      BRG(DEGREE)/DIST(M) ELEVATION(M) MARKING/LIGHTING TYPE AND
+Q)RCAA/QOBCE/IV/M/A/0/3/2504N12114E                                COLOUR
+A)RCTP B)202512120851 C)202707311000                               CRANE CRANE 245/4,929 73.1 LGT
+E)REF AIP SUP 25/22, TOWER CRANES ARE ERECTED AT TAIPEI/TAIWAN
+TAOYUAN INTL AP,
+                                                                   ZSFZ: APT 2609270656 M2795/26
+                                                                   Q)ZSHA/QFAHX/IV/BO/A/0/999/2556N11939E
+END DATE REVISED AS 31 JUL 2027, 1000UTC.
+                                                                   A)ZSFZ B)202609270632 C)202611301559
+THE REST NC.
+                                                                   E)ACTIVITIES OF BIRD FLOCKS AND MIGRATION TAKE PLACE AROUND AD,
+                                                                   BIRDS ARE ACTIVE BOTH DAY AND NIGHT, ESPECIALLY DURING DAWM AND
+Airﬁeld Chart NOTAM
+                                                                   DUSK.
+                                                                   BIRDS ACTIVITY WILL PRIMARILY ACT IN:
+No Chart NOTAM in force for this Airfield
+                                                                   1. RWY04/22: 0-1KM WEST OF RWY04/22 CL, 0-2KM SOUTH OF RWY04
+                                                                   THR,0-1KM NORTH OF RWY22 THR, ACT ALT:0M-50M, MIGRATORY ALT:
+ZSFZ [FOC] CHANGLE
+                                                                   50M-200M. .
+                                                                   2. RWY03/21: 0-1KM WEST OF RWY03/21 CL, 0-1KM OF RWY03 THR,
+Airﬁeld Weather Information
+                                                                   ALT:0M-20M.
+                                                                   EXERCISE CAUTION WHILE LANDING AND TAKE-OFF.
+M:040600Z 08004MPS 9999 FEW023 BKN033 26/19 Q1016 NOSIG=
+T:040306Z 0406/0506 05004MPS 6000 SCT023 TX28/0506Z                ZSFZ: APT 2609110505 M2698/26
+TN21/0421Z=
+                                                                   Q)ZSHA/QMXCS/IV/M/A/0/999/2556N11939E
+                                                                   A)ZSFZ B)202609121000 - PERM
+Airﬁeld NOTAM Information                                          E)NEWLY-CONSTRUCTED TWY B( NORTH OF TWY B10):
+                                                                   1. WIDTH 23M, TWY SHOULDER WIDTH 10.5M.
+ICAO Class 1 International                                         2. PCR 860/R/A/W/T,SURFACE:CONC.
+ZSFZ: APT 2610301112 M3231/26                                      3. OPERATION LIMITATION:AVBL FOR ACFT WITH WINGSPAN LESS THAN 65M.
+Q)ZSHA/QICCT/I/NBO/A/0/999/2556N11939E
+                                                                   ZSFZ: APT 2609110452 M2696/26
+A)ZSFZ B)202611021830 C)202611092100
+                                                                   Q)ZSHA/QMPCS/IV/M/A/0/999/2556N11939E
+D)1830-2100 DLY
+                                                                   A)ZSFZ B)202609121000 - PERM
+
+Ref: OPS GEN.                                                                                                                                 32/134
+                                                                                                                                       En-Route Data
+
+E)NEW PARKING STAND NR.107,108L,108R,130 PUT INTO USE:              LGT
+APRON SURFACE:CONC.
+1.STANDS NR AND STRENGTH:                                           ZSFZ: APT 2609070435 M2658/26
+107 PCR 860/R/A/W/T                                                 Q)ZSHA/QOBCE/IV/M/A/0/999/2556N11940E
+108R PCR 860/R/A/W/T                                                A)ZSFZ B)202609070429 C)202612191559
+108L PCR 860/R/A/W/T                                                E)ADD NEW OBSTACLES WITHIN A CIRCLE WITH A RADIUS OF 15KM
+130 PCR 860/R/A/W/T                                                 (CENTERED ON THE CENTER OF RWY03/21):
+2. OPERATION LIMITATION:                                            OBSTACLE ID/DESIGNATION TYPE POSITION MAG
+2.1 FOR PARKING STAND NR.107:                                       BRG(DEGREE)/DIST(M) ELEVATION(M)
+WING SPAN LIMITS:LESS THAN 65M,                                     OBSTACLE MARKING/LIGHTING TYPE& COLOUR
+FUSELAGE LIMITS:NOT MORE THAN 75.4M.                                1. CRANE CRANE 125/758 71.5 LGT
+ENTER OR EXIT:TAXI IN BY OWN POWER AND BE PUSHED BACK.              2. CRANE CRANE 123/931 88.5 LGT
+2.2 FOR PARKING STAND NR.108L,108R:
+WING SPAN LIMITS:LESS THAN 36M,FUSELAGE LIMITS:NOT MORE THAN
+                                                                    ZSFZ: APT 2608270355 M2538/26
+                                                                    Q)ZSHA/QMPXX/IV//A/0/999/2556N11939E
+44.6M.
+                                                                    A)ZSFZ B)202608270351 C)202611101559
+ENTER OR EXIT:TAXI IN BY OWN POWER AND BE PUSHED BACK.
+                                                                    E)ENTER OR EXIT FOR PARKING STAND NR.51-54 CHANGED TO:TAXI IN BY
+2.3 PARKING STAND NR.130 FOR RUN-UPS:
+                                                                    OWN POWER AND BE PUSHED BACK.
+WING SPAN LIMITS:LESS THAN 65M,FUSELAGE LIMITS:NOT MORE THAN
+75.4M,                                                              ZSFZ: APT 2608270339 M2537/26
+ENTER OR EXIT:BE PUSHED IN, TOW OUT, TAXI OUT BY OWN POWER.
+                                                                    Q)ZSHA/QMXLC/IV/M/A/0/999/2556N11939E
+ZSFZ: APT 2609090221 M2677/26                                       A)ZSFZ B)202608270335 C)202611101559
+                                                                    E)TWY S1 CLOSED SOUTH OF TWY T1 DUE TO WORK IN PROGRESS.
+Q)ZSHA/QMRLT/IV/NBO/A/0/999/2556N11939E
+A)ZSFZ B)202609090146 C)202612101559
+E)RWY03/21 HUD SPECIAL CAT I UNSERVICEABLE                          Airﬁeld Chart NOTAM
+ZSFZ: APT 2609090158 M2678/26                                       No Chart NOTAM in force for this Airfield
+Q)ZSHA/QPICH/I/NBO/A/0/999/2556N11939E
+A)ZSFZ B)202609090147 C)202612101559
+E)RWY 04/22 HUD SPECIAL CAT I UNSERVICEABLE
+
+ZSFZ: APT 2609070440 M2659/26
+Q)ZSHA/QOBCE/IV/M/A/0/999/2556N11940E
+A)ZSFZ B)202609070431 C)202612101559
+E)ADD NEW OBSTACLES WITHIN A CIRCLE WITH A RADIUS OF 15KM (OF THE
+CENTER OF RWY03/21)
+OBSTACLE ID/DESIGNATION TYPE POSITION MAG BRG(DEGREE)/DIST(M)
+ELEVATION(M)
+MARKING/LIGHTING TYPE& COLOUR
+CRANE1 CRANE 264/3,661
+79.8
+LGT
+CRANE2 CRANE 035/3,066
+33.4
+LGT
+CRANE3 CRANE 034/3,174
+35.2
+LGT
+CRANE4 CRANE 034/3,385
+38.5
+
+
+Ref: OPS GEN.                                                                                                                                33/134
+                                                                                                                                                         En-Route Data
+
+
+FIR INFORMATION                                                                      FIR Chart NOTAM
+                                                                                     VVHM: Z3171/26 16/02/2026 09:24 - UFN
+VVHM HO CHI MINH FIR                                                                 CTR
+                                                                                     (JEPPESEN ENROUTE CHART CHANGE NOTICE) DONG NAI CTR ESTBLD. A RECTANGULAR SHAPED-
+FIR SIGMET Information                                                               AREA APPROX 5 NM N-S BY 15NM E-W BEGINNING APPROX 20NM E OF TAN SON NHAT (TSH)
+                                                                                     VOR. ALTITUDES GND - 2500 MSL. CLASS 'C'. TIMES OF OPERATION DURING HOURS OF
+No SIGMETs in force for this FIR                                                     SCHEDULED OPERATION (N10 E107). FE H/L-11
+
+FIR ASHTAM Information                                                               VVHM: Z3170/26 16/02/2026 09:24 - UFN
+                                                                                     VOR/DME
+                                                                                     (JEPPESEN ENROUTE CHART CHANGE NOTICE) LONG THANH VORDME COMSND. IDENT 'LTH', FREQ
+No ASHTAMs in force for this FIR
+                                                                                     114.8, COORDS AT N10 45.9 E107 00.9. FE H/L-11
+
+FIR Notam Information                                                                VVHM: Z2856/25 16/02/2026 09:23 - UFN
+                                                                                     RNAV ROUTE
+ICAO Class 1 International                                                           (JEPPESEN ENROUTE CHART CHANGE NOTICE) M768 LANHI NCRP WITHDRAWN. ASEBO - LOSON
+VVHM: FIR 2611040432 A4272/26                                                        16NM (N10 E107). FE H/L-11
+Q)VVHM/QWMLW/IV/BO/E/0/70/1011N10434E
+                                                                                     VVHM: Z2855/25 16/02/2026 09:23 - UFN
+A)VVHM B)202611040630 C)202611190400
+                                                                                     RNAV ROUTE
+D)04 0630-0930 05 0030-0330 0630-0930 17 19 0000-0400
+                                                                                     (JEPPESEN ENROUTE CHART CHANGE NOTICE) N500 BAOMY NCRP WITHDRAWN. BUKMA - MATGI
+E)FIRING WILL TAKE PLACE WI:
+                                                                                     37NM (N10 E107). FE H/L-11
+101130N1043242E - 101130N1043524E - 100930N1043506E -
+100930N1043224E - 101130N1043242E                                                    VVHM: Z2853/25 03/02/2026 11:59 - UFN
+BRG: S                                                                               TMA
+- ALL FLIGHTS ARE PROHIBITED WI THIS AREA.                                           (JEPPESEN ENROUTE CHART CHANGE NOTICE) TAN SON NHAT TMA EXTENDED APPROX 6NM TO THE
+F)GND G)7000FT AMSL                                                                  SOUTH-EAST. LOWER LIMIT 1500 AGL (N10 E108). FE H/L-11
+
+VVHM: FIR 2610250615 A4110/26                                                        VVHM: Z2795/25 27/11/2025 00:01 - UFN
+Q)VVHM/QWMLW/IV/BO/E/0/159/1031N10500E                                               ATS-ROUTE
+A)VVHM B)202611020030 C)202611301400                                                 (JEPPESEN ENROUTE CHART CHANGE NOTICE) W15 BIXEX NCRP ESTBLD (N11 36.2 E108 08.3).
+D)02-04 27 30 0030-0330 0630-0930 1200-1400 05 09 0000-0400 0630-0930 1200-1400 06   VETOM - BIXEX - LIEN KHUONG (LKH) VOR 38/16 NM. H/L-11
+10-12 23 0030-0330 0630-0930 17-19 1200-1400 25 0000-0400
+E)FIRING WILL TAKE PLACE WI:                                                         VVHM: Z2790/25 27/11/2025 00:01 - UFN
+103132N1045945E - 103128N1050113E - 103054N1050112E -                                RNAV ROUTE
+103052N1045940E - 103132N1045945E                                                    (JEPPESEN ENROUTE CHART CHANGE NOTICE) L637 BITIS RENAMED ANBOV (N10 E106).
+BRG: S                                                                               H/L-1,H/L-11
+- ALL FLIGHTS ARE PROHIBITED WI THIS AREA.
+F)GND G)15900FT AMSL                                                                 VVHM: Z2749/25 27/11/2025 00:01 - UFN
+                                                                                     CTR
+VVHM: FIR 2610250600 A4109/26                                                        (JEPPESEN ENROUTE CHART CHANGE NOTICE) TAN SON NHAT CTR CHGD TO A RECTANGULAR
+Q)VVHM/QWMLW/IV/BO/E/0/31/1031N10500E                                                SHAPED AREA APPROX 5NM S-N BY 16NM E-W (N10 E106). FE H/L-11
+A)VVHM B)202611030000 C)202611050400
+D)03 0000-0400 0630-0930 05 0000-0400                                                VVHM: Z2602/20 08/10/2020 00:01 - UFN
+E)FIRING WILL TAKE PLACE WI:                                                         FIR
+103132N1045945E - 103128N1050113E - 103054N1050112E -                                (JEPPESEN ENROUTE CHART CHANGE NOTICE) LOCATION INDICATORS OF HA NOI FIR VVVV
+103052N1045940E - 103132N1045945E                                                    CHGED TO VVHN AND HO CHI MINH FIR VVTS CHGED TO VVHM. CPDLC ADDED.
+BRG: S
+- ALL FLIGHTS ARE PROHIBITED WI THIS AREA.
+                                                                                     VVHM: Z1588/26 29/10/2026 11:54 - UFN
+F)GND G)3100FT AMSL                                                                  MINIMUM ALTITUDE
+                                                                                     (JEPPESEN ENROUTE CHART CHANGE NOTICE) GRID MORA CHGD WITHIN HO CHI MINH FIR:
+
+Ref: OPS GEN.                                                                                                                                                      34/134
+                                                                                                                                                          En-Route Data
+
+(N17-N18, E109-E110) RAISED TO 1500, (N16-N17, E109-E110) RAISED TO 1500, (N16-      3.MSA ADJUSTED IN ILI/YINING AIRPORT(ZWYN).
+N17, E110-E111) RAISED TO 1500, (N15-N16, E110-E111) RAISED TO 1500, (N14-N15,       4.ATS ROUTES W144,W179 ADJUSTED.
+E109-E110) RAISED TO 5000, (N14-N15, E110-E111) RAISED TO 1500. ME HI-2,FE           5.AIC 11/26 ABOUT NOTICE ON THE ADDITION OF QUICK IDENTIFICATION
+H/L-1,FE H/L-3,FE H/L-11,HL-8                                                        LABELS FOR SPECIAL OPERATIONS
+                                                                                     CHARTS IN THE AIP CHART DIRECTORY TREE PUT INTO USE.
+VVHM: Z1409/26 01/10/2026 00:01 - UFN                                                .
+CTR                                                                                  LOG ON AIS CHINA WEBSITE: WWW.EAIPCHINA.CN FOR PREVIEWING THE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) PHU QUOC CTR ESTBLD. A RECTANGULAR AREA       WHOLE INFORMATION.
+APPROX 5NM N-S BY 16NM E-W CENTERED ON PHU QUOC (PQU) VOR. ALTITUDES: GND -
+2500MSL. CLASS 'D'. TIMES OF OPERATION H24 (N10 E104). FE H/L-1,FE H/L-3,FE H/L-11   ZJSA: FIR 2609210149 A4848/26
+                                                                                     Q)ZJSA/QPFCA/I/NBO/A/0/999/
+VVHM: Z1408/26 01/10/2026 00:01 - UFN                                                A)ZJSA B)202609210138 C)202703201559
+TMA                                                                                  E)SANYA FIR(ZJSA)EXECUTE OCS(ONE CTOT SOLUTION)PROCEDURE,ALL ACFT
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) PHU QUOC TMA ESTBLD. AN IRREGULAR SHAPED-     OVERFLYING SANYA FIR(ZJSA) SHALL OPERATE CTOT (CALCULATED TAKE OFF
+AREA APPROX 53 NM N-S BY 61NM E-W OF CENTERED ON PHU QUOC (PQU) VOR. ALTITUDES:      TIME). EXECUTION BY CTOT(CALCULATED TAKE OFF TIME).
+1500MSL - FL155. CLASS 'C'. TIMES OF OPERATION H24 (N10 E104). FE H/L-1,FE
+H/L-3,FE H/L-11.                                                                     FIR Chart NOTAM
+VVHM: Z1051/26 06/08/2026 00:01 - UFN
+                                                                                     No Chart NOTAM in force for this FIR
+CTR
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) LIEN KHUONG CTR UPPER LIMIT FL115 (N11
+                                                                                     VHHK HONG KONG FIR
+E108). FE H/L-3,FE H/L-11
+                                                                                     FIR SIGMET Information
+ZJSA SANYA FIR
+                                                                                     VHHK SIGMET 2 VALID 040330/040730 VHHH- VHHK HONG KONG FIR EMBD TS FCST WI N1734
+FIR SIGMET Information                                                               E11314 - N1930 E11130 - N2130 E11130 - N2152 E11222 - N1734 E11323 - N1734 E11314
+                                                                                     TOP FL500 MOV NNW 05KT NC=
+ZJSA SIGMET 2 VALID 040345/040745 ZJHK- ZJSA SANYA FIR SEV ICE FCST WI N1808
+E10754 - N1626 E10948 - N1857 E11023 - N1928 E10824 - N1808 E10754 FL180/220 STNR
+WKN=
+                                                                                     FIR ASHTAM Information
+                                                                                     No ASHTAMs in force for this FIR
+FIR ASHTAM Information
+No ASHTAMs in force for this FIR
+                                                                                     FIR Notam Information
+                                                                                     ICAO Class 1 International
+FIR Notam Information
+                                                                                     VHHK: FIR 2611040237 A2543/26
+ICAO Class 1 International                                                           Q)VHHK/QPFCA/I/NBO/A/0/999/
+                                                                                     A)VHHK B)202611040900 C)202611041300
+ZJSA: FIR 2609210953 A4854/26                                                        E)DUE TO TRAFFIC, FLIGHTS TRANSITING HONG KONG FIR,
+Q)ZBPE/QOATT/IV/BO//0/999/                                                           1. DESTINATIONS ZSAM, ZSQZ, ZSFZ: TREATED AS ONE STREAM
+A)ZJSA B)202610281600 C)202611111559                                                 2. DESTINATIONS OTHER THAN MENTIONED IN (1): TREATED AS ONE STREAM
+E)TRIGGER NOTAM                                                                      VIA THE FOLLOWING ROUTE IS SUBJECT TO FLOW CONTROL:
+AIP CHINA AMENDMENT NR.11/2026(2026-9-17) WILL BE EFFECTIVE FROM                     A461 NOMAN - DOTMI A470, 10 MINUTES
+1600UTC ON 28 OCT 2026.                                                              RMK: FLOW CONTROL MAY BE ADJUSTED SUBJECT TO SITUATION AND
+MAIN CHANGES AS FOLLOWS:                                                             DISCRETION OF HONG KONG ATS WATCH SUPERVISOR.
+1.AIC12/26 ABOUT EMERGENCY FORCED LANDING AERODROME
+(TURPAN/JIAOHE-ZWTL) PUT INTO USE. AIC08/26 REPLACED.                                VHHK: FIR 2610010748 A2277/26
+2.SUP22/26 ABOUT CONSTRUCTION AREA OF TAIYUAN/WUSU AIRPORT(ZBYN)                     Q)VHHK/QOATT/IV/BO//0/999/2003N11500E
+PUT INTO USE. SUP09/26 DELETED.                                                      A)VHHK B)202610290000 C)202611120000
+
+
+Ref: OPS GEN.                                                                                                                                                   35/134
+                                                                                                                                                         En-Route Data
+
+E)NIL AIRAC PUBLICATION FOR EFFECTIVE DATE 29 OCT 2026.                              VHHK: Z2321/25 30/10/2025 00:01 - UFN
+                                                                                     ATS-ROUTE
+VHHK: FIR 2609100142 A2117/26                                                        (JEPPESEN ENROUTE CHART CHANGE NOTICE) SANKU (N2131.4 E11620.7) - SOUSA,
+Q)VHHK/QPFCA/I/NBO/A/0/999/
+                                                                                     WITHDRAWN. FE HL-11
+A)VHHK B)202609101700 C)202612082030
+D)DLY 1700-2030                                                                      VHHK: Z2320/25 30/10/2025 00:01 - UFN
+E)DUE TO RESTRICTION FROM TAIPEI ACC (REFER TO RCAA NOTAM                            ATS-ROUTE
+A3295/26),                                                                           (JEPPESEN ENROUTE CHART CHANGE NOTICE) ESTBLD; BIGEX NCRP (N2213.2 E11401.8) -
+OVERFLYING ACFT ENTERING HONG KONG FIR VIA IKELA EXITING VIA ENVAR                   POVAM NCRP AT N2114.9 E11521.1, 131, 94NM, MORA 6200A; POVAM - NOPER NCRP AT
+ENTERING RKRR, FL390 NOT AVBL AT IKELA.                                              N2050.8 E11606.0, 123, 48NM, MORA 2400A; BIGEX TO NOPER ONE-WAY SE-BOUND. FE HL-11
+RMK: RESTRICTION MAY BE ADJUSTED SUBJECT TO SITUATION AND
+DISCRETION OF HONG KONG ATS WATCH SUPERVISOR.                                        VHHK: Z2319/25 30/10/2025 00:01 - UFN
+                                                                                     ATS-ROUTE
+FIR Chart NOTAM                                                                      (JEPPESEN ENROUTE CHART CHANGE NOTICE) BIGEX (N2213.2 E11401.8) - GRUPA,
+VHHK: Z2328/25 30/10/2025 00:01 - UFN                                                WITHDRAWN. FE HL-11
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) ESTBLD; SKATE NCRP (N2131.9 E11508.7) -       ZGZU GUANGZHOU FIR
+KAPLI NCRP, 102, 134NM, MORA 2400A, ONE-WAY E-BOUND. FE HL-11
+                                                                                     FIR SIGMET Information
+VHHK: Z2327/25 30/10/2025 00:01 - UFN
+ATS-ROUTE                                                                            ZGZU SIGMET 1 VALID 040420/040820 ZGGG- ZGZU GUANGZHOU FIR EMBD TS FCST N OF N2733
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) GRUPA (N2050.7 E11557.0) - KAPLI,             TOP FL300 MOV ENE 50KMH NC=
+WITHDRAWN. FE HL-11
+                                                                                     ZGZU SIGMET 2 VALID 040420/040820 ZGGG- ZGZU GUANGZHOU FIR EMBD TS FCST WI N2310
+VHHK: Z2326/25 30/10/2025 00:01 - UFN                                                E11400 - N2121 E11326 - N2030 E11131 - N2030 E10804 - N2152 E10647 - N2328 E10738
+ATS-ROUTE                                                                            - N2310 E11400 TOP FL340 MOV NNW 20KMH NC=
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) NOPER NCRP ESTBLD AT N2050.8 E11606.0,
+UNTUL NCRP ESTBLD AT N2019.0 E11601.6; ENROM - NOPER - UNTUL - SABNO, 43/32/80NM.    FIR ASHTAM Information
+FE HL-11
+                                                                                     No ASHTAMs in force for this FIR
+VHHK: Z2325/25 30/10/2025 00:01 - UFN
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) RUSBI NCRP ESTBLD AT N2047.0 E115415, ENROM   FIR Notam Information
+- RUSBI - SULUX, 55/30NM. FE HL-11
+                                                                                     ICAO Class 1 International
+VHHK: Z2324/25 30/10/2025 00:01 - UFN                                                ZGZU: FIR 2611031507 A5719/26
+ATS-ROUTE                                                                            Q)ZGZU/QARCH/IV/BO/E/0/999/
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) ESTBLD; CHALI NCRP (N2117.8 E11336.7) -       A)ZGZU B)202611040950 C)202611041115
+POVAM NCRP AT N2114.9 E11521.1, 094, 98NM, MORA 3500A, ONE-WAY E-BOUND. FE HL-11     E)SEGMENT OSNOV-ALGAG OF ATS RTE G586 NOT AVBL DUE TO TECHNICAL
+                                                                                     REASON, SCHEDULED FLIGHTS ALONG G586 OSNOV-ALGAG ADJUSTED TO ATS
+VHHK: Z2323/25 30/10/2025 00:01 - UFN
+                                                                                     RTE V147,V148, ALL ACFT FLW ATC INSTRUCTION.
+ATS-ROUTE
+                                                                                     1. MOLSO AND BEYOND TO MAMSI AND BEYOND: MOLSO-OPIXU-UGRIG-MAMSI
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) CHALI (N2117.8 E11336.7) - LENBU - GRUPA,
+                                                                                     AND BEYOND.
+WITHDRAWN. FE HL-11
+                                                                                     2. MOLSO AND BEYOND TO ZGKL: MOLSO-OPIXU-UGRIG-MAMSI-ZGKL.
+VHHK: Z2322/25 30/10/2025 00:01 - UFN                                                3. MAMSI AND BEYOND TO MOLSO AND BEYOND: MAMSI-UGRIG-OPIXU-MOLSO
+ATS-ROUTE                                                                            AND BEYOND.
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) ESTBLD; SANKU NCRP (N2131.4 E11620.7) -       4. ZGKL TO MOLSO AND BEYOND: MAMSI-UGRIG-OPIXU-MOLSO AND BEYOND.
+BIMIX NCRP AT N2201.4 E11619.9, 002, 30NM; BIMIX - DOTMI NCRP, 351, 43NM; SANKU TO   5. AGVIL AND BEYOND TO MAMSI AND BEYOND:
+DOTMI ONE-WAY N-BOUND, MORAS 2200A. FE HL-11                                         AGVIL-OSNOV-OPIXU-UGRIG-MAMSI AND BEYOND.
+                                                                                     6. AGVIL AND BEYOND TO ZGKL: AGVIL-OSNOV-OPIXU-UGRIG-MAMSI-ZGKL.
+
+Ref: OPS GEN.                                                                                                                                                   36/134
+                                                                                                                                                      En-Route Data
+
+ZGZU: FIR 2611031220 A5717/26                                                     OVGOT - VIPAP, MOCAS 4700T/6200T/6200T; LIANSHENGWEI VORDME (ZUH) - KIBAS - BOKAT
+Q)ZGZU/QARLC/IV/NBO/E/0/999/                                                      - ADBIN - TOMUD - BIGRO, MOCAS 4100T/5300T/5300T/4700T/4700T. FE HL-8,FE HL-11,FE
+A)ZGZU B)202611040700 C)202611041130                                              HL-12
+E)SEGMENT NANNING VOR 'WUY'-RUNEG OF ATS RTE W169 CLSD.
+                                                                                  RCAA TAIPEI FIR
+ZGZU: FIR 2611031219 A5716/26
+Q)ZGZU/QARCH/IV/BO/E/0/999/                                                       FIR SIGMET Information
+A)ZGZU B)202611040700 C)202611041130
+E)SEGMENT NANNING VOR 'WUY'-ALEKI OF ATS RTE R339 NOT AVBL DUE                    No SIGMETs in force for this FIR
+TO TECHNICAL REASON,ALL AFFECTED FLIGHTS SHALL BE ADJUSTED.ALL
+ACFT FOLLOW ATC INSTRUCTIONS:
+                                                                                  FIR ASHTAM Information
+SCHEDULED FLIGHTS ALONG R339 NANNING VOR 'WUY'-ALEKI ADJUSTED TO
+NANNING VOR 'WUY'-V153-ALEKI.
+                                                                                  No ASHTAMs in force for this FIR
+ZGZU: FIR 2610221411 A5466/26
+Q)ZGZU/QNBXX/IV///0/999/2850N11137E                                               FIR Notam Information
+A)ZGZU B)202610221251 C)202701211559 - EST
+E)CHANGDE NDB 'CD' 225KHZ LIMITED TO USE:                                         ICAO Class 1 International
+1.U/S BEYOND 12.0NM OF BEARING 9DEG.
+                                                                                  RCAA: FIR 2610140928 A3843/26
+2.U/S BEYOND 15.0NM OF BEARING 329DEG.
+                                                                                  Q)RCAA/QWELW/IV/BO//0/60/2208N11953E
+ZGZU: FIR 2609300854 A5025/26                                                     A)RCAA B)202611020400 C)202611060400
+Q)ZGZU/QNMAS/IV/BO//0/999/2421N11406E                                             D)NOV 02 0400-0900, NOV 05 2300-0400
+A)ZGZU B)202610120200 C)202701201559                                              E)AIR EXERCISE WILL TAKE PLACE:
+E)WENGYUAN VOR/DME 'WYN' 113.9MHZ/CH86X UNSERVICEABLE DUE TO MAINT.               1.LIAISON OFFICER AT KAOHSIUNG APP, TFC CONCERNED KEEP
+                                                                                  CLOSE CTC WITH KAOHSIUNG APP.
+ZGZU: FIR 2609210953 A4854/26                                                     2.OPR TEL: 02-24289181, 0980-050211, 0978-096115
+Q)ZBPE/QOATT/IV/BO//0/999/                                                        3.AREA AS FLW:
+A)ZGZU B)202610281600 C)202611111559                                              222600N 1195400E
+E)TRIGGER NOTAM                                                                   215600N 1201600E
+AIP CHINA AMENDMENT NR.11/2026(2026-9-17) WILL BE EFFECTIVE FROM                  214900N 1195500E
+1600UTC ON 28 OCT 2026.                                                           221900N 1193000E
+MAIN CHANGES AS FOLLOWS:                                                          222600N 1195400E
+1.AIC12/26 ABOUT EMERGENCY FORCED LANDING AERODROME                               F)SFC G)6000FT AMSL
+(TURPAN/JIAOHE-ZWTL) PUT INTO USE. AIC08/26 REPLACED.
+2.SUP22/26 ABOUT CONSTRUCTION AREA OF TAIYUAN/WUSU AIRPORT(ZBYN)
+                                                                                  RCAA: FIR 2610130808 A3825/26
+PUT INTO USE. SUP09/26 DELETED.                                                   Q)RCAA/QWMLW/IV/BO/E/0/120/2335N11910E
+3.MSA ADJUSTED IN ILI/YINING AIRPORT(ZWYN).                                       A)RCAA B)202611012300 C)202611300900
+4.ATS ROUTES W144,W179 ADJUSTED.                                                  D)NOV 01-05 08-12 15-19 22-26 29 2300-0900
+5.AIC 11/26 ABOUT NOTICE ON THE ADDITION OF QUICK IDENTIFICATION                  E)GUN FIRING WILL TAKE PLACE(RCR39):
+LABELS FOR SPECIAL OPERATIONS                                                     1.AIRSPACE BLOCKED.
+CHARTS IN THE AIP CHART DIRECTORY TREE PUT INTO USE.                              2.OPR TEL: 07-5830881, 06-9212765, 0903-144221, 0980-333012
+.                                                                                 3.AREA AS FLW:
+LOG ON AIS CHINA WEBSITE: WWW.EAIPCHINA.CN FOR PREVIEWING THE                     233954N 1190529E
+WHOLE INFORMATION.                                                                233954N 1191529E
+                                                                                  232954N 1191529E
+                                                                                  232954N 1190529E
+FIR Chart NOTAM
+                                                                                  233954N 1190529E
+ZGZU: Z2574/25 27/11/2025 00:01 - UFN                                             F)SFC G)12000FT AMSL
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) R200, AVBEP (N2254.9 E11601.3) - SUMDO -   RCAA: FIR 2610130804 A3824/26
+
+Ref: OPS GEN.                                                                                                                                                37/134
+                                                                                                                   En-Route Data
+
+Q)RCAA/QWMLW/IV/BO/E/0/40/2524N12206E                          2.LCA: DACHENG TOWNSHIP, CHANGHUA COUNTY
+A)RCAA B)202611012300 C)202611292359                           3.AREA: 25000M RADIUS CENTRED ON 235010N 1202052E
+D)NOV 01-05 08-12 15-19 22-26 29 2300-2359                     4.QUANTITY: 8 PER DAY, ONE AT EACH TIME
+E)GUN FIRING WILL TAKE PLACE(RCR25):                           5.INTERVAL: 180 MIN
+1.AIRSPACE BLOCKED.                                            6.SIZE: 1M IN DIAMETER
+2.OPR TEL: 07-5830881, 02-24289181, 0903-144221, 0986-066392   7.WT: 30G
+3.AREA AS FLW:                                                 8.THE ASCENT RATE: 2.5M/SEC
+252754N 1220030E                                               9.COOR TEL: 0968-001669
+252754N 1221230E                                               F)SFC G)FL263
+251954N 1221230E
+251954N 1220030E                                               RCAA: FIR 2609181309 A3450/26
+252754N 1220030E                                               Q)RCAA/QWMLW/IV/BO/E/0/110/2445N12154E
+F)SFC G)4000FT AMSL                                            A)RCAA B)202611030500 C)202611260900
+                                                               D)NOV 03-05 10-12 17-19 24-26 0500-0900
+RCAA: FIR 2610130801 A3823/26                                  E)GUN FIRING WILL TAKE PLACE:
+Q)RCAA/QWMLW/IV/BO/E/0/250/2245N11935E                         1.TFC CONCERNED KEEP CLOSE CTC WITH TAIPEI APP.
+A)RCAA B)202611020000 C)202611300900                           2.GUN FIRING WILL BE SUSPENDED BY KNOWN TFC.
+D)NOV 02-06 09-13 16-20 23-27 30 0000-0900                     3.REF AIP ENR 5.1 FOR RCR30 TYPE OF RESTRICTION.
+E)GUN FIRING WILL TAKE PLACE:                                  4.OPR TEL: 03-9301734, 03-9308628
+1.AIRSPACE BLOCKED.                                            5.AREA AS FLW:
+2.REF AIP ENR 5.1 FOR RCR18A, RCR18B TYPE OF RESTRICTION.      244800N 1214900E
+3.OPR TEL: 07-35887353, 0980-461000, 0976-620520               245000N 1215000E
+4.AREA AS FLW:                                                 245000N 1215500E
+225454N 1192529E                                               244000N 1215500E
+225454N 1194529E                                               244200N 1215000E
+223454N 1194529E                                               244400N 1214900E
+223454N 1192529E                                               244800N 1214900E
+225454N 1192529E                                               F)SFC G)11000FT AMSL
+F)SFC G)FL250
+                                                               RCAA: FIR 2609181309 A3450/26
+RCAA: FIR 2609290924 A3579/26                                  Q)RCAA/QWMLW/IV/BO/E/0/110/2445N12154E
+Q)RCAA/QWLLW/IV/M//0/263/2427N12043E                           A)RCAA B)202611030500 C)202611260900
+A)RCAA B)202609301600 C)202612311559                           D)NOV 03-05 10-12 17-19 24-26 0500-0900
+E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:                     E)GUN FIRING WILL TAKE PLACE:
+1.DOCUMENT NR: 1152800872                                      1.TFC CONCERNED KEEP CLOSE CTC WITH TAIPEI APP.
+2.LCA: TONGXIAO TOWNSHIP, MIAOLI COUNTY                        2.GUN FIRING WILL BE SUSPENDED BY KNOWN TFC.
+3.AREA: 25000M RADIUS CENTRED ON 242648N 1204318E              3.REF AIP ENR 5.1 FOR RCR30 TYPE OF RESTRICTION.
+4.QUANTITY: 8 PER DAY, ONE AT EACH TIME                        4.OPR TEL: 03-9301734, 03-9308628
+5.INTERVAL: 180 MIN                                            5.AREA AS FLW:
+6.SIZE: 1M IN DIAMETER                                         244800N 1214900E
+7.WT: 30G                                                      245000N 1215000E
+8.THE ASCENT RATE: 2.5M/SEC                                    245000N 1215500E
+9.COOR TEL: 0905-119755                                        244000N 1215500E
+F)SFC G)FL263                                                  244200N 1215000E
+                                                               244400N 1214900E
+RCAA: FIR 2609290921 A3578/26                                  244800N 1214900E
+Q)RCAA/QWLLW/IV/M//0/263/2350N12021E                           F)SFC G)11000FT AMSL
+A)RCAA B)202609301600 C)202612311559
+E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:                     RCAA: FIR 2609150413 A3368/26
+1.DOCUMENT NR: 1152800872                                      Q)RCAA/QWLLW/IV/M//0/263/2359N12041E
+
+
+Ref: OPS GEN.                                                                                                            38/134
+                                                                                                                                        En-Route Data
+
+A)RCAA B)202609301600 C)202612311559                                               E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:
+E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:                                         1.DOCUMENT NR: 1155021577
+1. DOCUMENT NR: 1152802576                                                         2.LCA: GUANMIAO DISTRICT, TAINAN CITY
+2.LCA: CAOTUN TOWNSHIP, NANTOU COUNTY                                              3.AREA: 5000M RADIUS CENTRED ON 225908N 1201945E
+3.AREA: 25000M RADIUS CENTRED ON 235856N 1204042E                                  4.QUANTITY: ONE PER PERIOD
+4.QUANTITY: 8 PER DAY, ONE AT EACH TIME                                            5.SIZE: 1M IN DIAMETER
+5.INTERVAL: 180 MIN                                                                6.WT: 350G
+6.SIZE: 1M IN DIAMETER                                                             7.THE ASCENT RATE: 5-6M/SEC
+7.WT: 30G                                                                          8.COOR TEL: 0983-075716, 0938-367215
+8.THE ASCENT RATE: 2.5M/SEC                                                        F)SFC G)FL591
+9.COOR TEL: 0965-030467
+F)SFC G)FL263                                                                      RCAA: FIR 2603310327 A0854/26
+                                                                                   Q)RCAA/QWLLW/IV/M//0/263/2358N12100E
+RCAA: FIR 2609150142 A3367/26                                                      A)RCAA B)202609301600 C)202611301559
+Q)RCAA/QARLT/IV/NBO/E/0/999/                                                       E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:
+A)RCAA B)202610010120 C)202612310300                                               1.DOCUMENT NR: 1152800872
+E)AIP SUP 23/26 WEF 01 OCT 2026 TIL 31 DEC 2026, ALTERNATE                         2.LCA: PULI TOWNSHIP, NANTOU COUNTY
+ROUTES AND MEASURES FOR AIRSPACE BLOCKED DUE TO FLIGHT TESTING                     3.AREA: 25000M RADIUS CENTRED ON 235823N 1205938E
+(OCT TO DEC 2026).                                                                 4.QUANTITY: 8 PER DAY, ONE AT EACH TIME
+                                                                                   5.INTERVAL: 180 MIN
+RCAA: FIR 2609100001 A3295/26                                                      6.SIZE: 1M IN DIAMETER
+Q)RCAA/QPFCA/I/NBO/A/0/999/                                                        7.WT: 30G
+A)RCAA B)202609101800 C)202612082100                                               8.THE ASCENT RATE: 2.5M/SEC
+D)1800-2100                                                                        9.COOR TEL: 06-2785123 EXTENSION 7517, 0965-030467
+E)FLOW CTL AT FIR BDRY AS FLW:                                                     F)SFC G)FL263
+1.RTE: M750
+2.ACFT: NB FOR ENTERING RKRR                                                       RCAA: FIR 2603310325 A0852/26
+3.PROC: FL390 NOT AVBL AT ENVAR                                                    Q)RCAA/QWLLW/IV/M//0/263/2357N12100E
+                                                                                   A)RCAA B)202609301600 C)202611301559
+RCAA: FIR 2609030935 A3204/26                                                      E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:
+Q)RCAA/QWMLW/IV/BO/E/0/30/2300N12020E                                              1.DOCUMENT NR: 1152800872
+A)RCAA B)202611030000 C)202611180500                                               2.LCA: PULI TOWNSHIP, NANTOU COUNTY
+D)NOV 03 04 17 18 0000-0500                                                        3.AREA: 25000M RADIUS CENTRED ON 235642N 1205935E
+E)GUN FIRING WILL TAKE PLACE:                                                      4.QUANTITY: 8 PER DAY, ONE AT EACH TIME
+1.AIRSPACE BLOCKED.                                                                5.INTERVAL: 180 MIN
+2.OPR TEL: 06-2339947, 0926-190601, 0901-053539                                    6.SIZE: 1M IN DIAMETER
+3.AREA AS FLW:                                                                     7.WT: 30G
+230132N 1201933E                                                                   8.THE ASCENT RATE: 2.5M/SEC
+230016N 1202240E                                                                   9.COOR TEL: 06-2785123 EXTENSION 7517, 0965-030467
+225731N 1202030E                                                                   F)SFC G)FL263
+225911N 1201742E
+230132N 1201933E                                                                   RCAA: FIR 2603310323 A0850/26
+F)SFC G)3000FT AMSL                                                                Q)RCAA/QWLLW/IV/M//0/263/2338N11931E
+                                                                                   A)RCAA B)202609301600 C)202611301559
+RCAA: FIR 2609011029 A3169/26                                                      E)UNMANNED FREE BALLOONS WILL BE LAUNCHED:
+Q)RCAA/QWLLW/IV/M//0/591/2259N12020E                                               1.DOCUMENT NR: 1152800872
+A)RCAA B)202609302200 C)202611300500                                               2.LCA: XIYU TOWNSHIP, PENGHU COUNTY
+D)SEP 30 OCT 04 11 18 26 NOV 01 08 15 22 29 2200-2300, OCT 01 05-07 12-15 19-22    3.AREA: 25000M RADIUS CENTRED ON 233752N 1193036E
+27-29 NOV 02-05 09-12 16-19 23-26 0400-0500 2200-2300, OCT 02 08 16 23 30 NOV 06   4.QUANTITY: 8 PER DAY, ONE AT EACH TIME
+13 20 27 30 0400-0500                                                              5.INTERVAL: 180 MIN
+
+
+Ref: OPS GEN.                                                                                                                                 39/134
+                                                                                                                                                         En-Route Data
+
+6.SIZE: 1M IN DIAMETER                                                               (JEPPESEN ENROUTE CHART CHANGE NOTICE) THE FOLLOWING HOLDING PATTERNS REDESIG IN
+7.WT: 30G                                                                            TAIPEI FIR: AISAR; 234 INBOUND TRACK (N25 E123); ANBU (APU) VOR; 235 INBOUND TRACK
+8.THE ASCENT RATE: 2.5M/SEC                                                          (N25 E121); BESTO; 220 INBOUND TRACK (N26 E122); SIGANG (TNN) VOR; 183 INBOUND
+9.COOR TEL: 0906-797967                                                              TRACK (N23 E120); TINHO; 336 INBOUND TRACK (N24 E122); TONGA; 035 INBOUND TRACK
+F)SFC G)FL263                                                                        (N23 E119). RCTP,FE H/L-8
+
+RCAA: FIR 2501170200 A0135/25                                                        RCAA: Z1022/25 15/08/2025 08:01 - UFN
+Q)RCAA/QNMXX/IV///0/999/2240N12129E                                                  NON DIRECTIONAL RADIO BEACON
+A)RCAA B)202501170200 C)202612312359 - EST                                           (JEPPESEN ENROUTE CHART CHANGE NOTICE) LUDAO NDB COMSND. IDENT 'GI', FREQ 300,
+E)REF AIP SUP 06/24 UNSERVICEABILITY OF LUDAO VOR GID,                               COORDS AT N22 40.6 E121 29.0. FE H/L-8
+END DATE OF THIS SUP REVISED AS 31 DEC 2026.
+THE REST NC.                                                                         RCAA: Z1007/25 17/04/2025 00:01 - UFN
+                                                                                     ATS-ROUTE
+FIR Chart NOTAM                                                                      (JEPPESEN ENROUTE CHART CHANGE NOTICE) R583 BORDO - KIKIT 256/075 (N25 E123). FE
+                                                                                     H/L-8
+RCAA: Z2428/24 03/10/2024 00:01 - UFN
+NON DIRECTIONAL RADIO BEACON                                                         RCAA: Z0929/24 16/05/2024 00:01 - UFN
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) SIGANG (NN) NDB DECMSND (N23 E120). RCTP.     ATS-ROUTE
+                                                                                     (JEPPESEN ENROUTE CHART CHANGE NOTICE) V25 ESTBLD ONE-WAY W-BND CASAR NCRP - OPTIC
+RCAA: Z1916/24 08/08/2024 00:01 - UFN                                                NCRP 122, 21NM, MEA 6000; OPTIC - HENGCHUN (HCN) VOR 27NM (N21 E120). RCTP
+RNAV ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) Q11 FANPY NCRP ESTBLD (N25 07.5 E122 03.5).   RCAA: Z0820/24 16/05/2024 00:01 - UFN
+DRAKE - FANPY - TINHO 29/46 NM. RCTP                                                 ATS-ROUTE
+                                                                                     (JEPPESEN ENROUTE CHART CHANGE NOTICE) A577 CASAR NCRP ESTBLD (N22 17.7 E120
+RCAA: Z1915/24 08/08/2024 00:01 - UFN                                                04.6). MENON - CASAR - PARPA 31/16NM. RCTP
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) R595 FANPY NCRP ESTBLD (N25 07.5 E122
+03.5). GRACE - FANPY - KUDOS 13/4 NM. RCTP
+                                                                                     ZSHA SHANGHAI FIR
+
+RCAA: Z1480/25 10/07/2025 00:01 - UFN                                                FIR SIGMET Information
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) A1 HOMEI CRP ESTBLD (N24 14.1 E120 21.4).     ZSHA SIGMET 2 VALID 040330/040730 ZSSS- ZSHA SHANGHAI FIR SEV ICE FCST N OF N28
+HOULONG (HLG) VOR/DME - HOMEI - WUCHI 28/3NM. RCTP,FE H/L-8                          FL100/280 MOV E 20KMH NC=
+
+RCAA: Z1459/25 10/07/2025 00:01 - UFN                                                ZSHA SIGMET 3 VALID 040330/040730 ZSSS- ZSHA SHANGHAI FIR SEV TURB FCST N OF N28
+ATS-ROUTE                                                                            FL160/380 MOV E 20KMH NC=
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) W4 TENLI CRP ESTBLD (N23 55.6 E120 29.6).
+BURMY - TENLI - ANLOT 8/1NM. RCTP,FE H/L-8                                           FIR ASHTAM Information
+RCAA: Z1297/25 02/02/2026 18:07 - 31/12/2026 23:59                                   No ASHTAMs in force for this FIR
+VOR/DME
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) LUDAO (GID) VOR OTS FROM 20 FEB 2024 TO 31
+DEC 2026. B591 USE LUDAO (GI) NDB INSTEAD. V12 TRANSITION ROUTE SUSPENDED. ATC TO
+                                                                                     FIR Notam Information
+PROVIDE SERVICE ON REQUEST (N22 E121). RCTP,FE H/L-3,FE H/L-8                        ICAO Class 1 International
+RCAA: Z1288/25 29/05/2025 07:52 - UFN                                                ZSHA: FIR 2610130235 A5182/26
+HOLDING PROCEDURE                                                                    Q)ZYSH/QOAXX/IV///0/999/
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) LUDAO (GID) VOR HOLDING ESTBLD; 279 INBOUND   A)ZSHA B)202610130224 C)202701131559 - EST
+TRACK, LEFT TURNS (N22 E121). RCTP                                                   E)SCHEDULE FLIGHT OVERFLYING DALIAN CTA ADJUSTED AS FOLLOW:
+                                                                                     1. ACFT OVERFLYING DALIAN CTA VIA
+RCAA: Z1287/25 30/01/2026 09:04 - UFN                                                W100-ORAVA-W201-UNSEK-A326-DONVO: SHALL FLY TO UNSEK FM MUDOT
+HOLDING PROCEDURE
+
+Ref: OPS GEN.                                                                                                                                                   40/134
+                                                                                                                                                         En-Route Data
+
+DIRECTLY.                                                                           450KMH.
+2. ACFT OVERFLYING DALIAN CTA SOUTHWARD VIA A588-UDETI-W106-MAKNO:                  NOTE:
+SHALL FLY TO MAKNO FM VENOS DIRECTLY.                                               1. CALIBRATION FLIGHTS, TEST FLIGHTS, FERRY FLIGHTS, AND
+3. ACFT FLY TO AD ZSYT VIA A588-VENOS-W573-DALIAN VOR 'DBL': SHALL                  PRODUCTION FLIGHT TESTS SHALL BE MANAGED IN THE SAME MANNER AS
+FLY TO MAKNO FM VENOS DIRECTLY.                                                     COMMERCIAL FLIGHTS.
+4. ACFT FLY VIA A588-VENOS-W573-DALIAN VOR                                          2. BUSINESS FLIGHTS REFER TO THOSE FLIGHT ACTIVITIES APPROVED
+'DBL'-W5-EKULI-W576-OVTUP: SHALL FLY TO EKULI FM VENOS DIRECTLY.                    UNDER RELEVANT PROVISIONS, AND OPERATED ON A NON-SCHEDULE BASIS
+                                                                                    WITH NO PASSENGER TICKET FOR THEIR BUSINESS OR ADMINISTRATIVE
+ZSHA: FIR 2609241218 A4484/26                                                       ACTIVITIES, ACCORDING TO THE SLOTS AND AIRPORTS OF DEPARTURE AND
+Q)ZBPE/QRTCA/IV/BO//0/999/                                                          ARRIVAL SPECIFIED BY AN INDIVIDUAL USER.
+A)ZSHA B)202609191600 - PERM                                                        3. THE CONTENT OF SECURITY STATUS REPORT INCLUDES: AIRCRAFT
+E)SPECIAL RESTRICTED AREA ESTABLISHED, THE RELEVANT REQUIREMENTS                    IDENTIFICATION (FLIGHT NUMBER, OR AIRCRAFT NATIONALITY AND
+AS FOLLOWS:                                                                         REGISTRATION MARK), SSR TRANSPONDER CODE, CURRENT POSITION, AND
+1. NAME AND IDENTIFICATION                                                          NORMALITY OF SECURITY STATUS.
+SPECIAL RESTRICTED AREA (ZB(SR)801)                                                 F)SFC G)UNL
+2. LATERAL LIMITS: A CIRCLE WITH A RADIUS OF 300KM CENTERED AT
+N395410E1162327, BEIJING PROHIBITED AREA (ZB(P)801) NOT INCLUDED.                   ZSHA: FIR 2609241218 A4484/26
+VERTICAL LIMITS: SFC-UNL                                                            Q)ZBPE/QRTCA/IV/BO//0/999/
+EFFECTIVE TIME: H24                                                                 A)ZSHA B)202609191600 - PERM
+3. SPECIAL RESTRICTIONS                                                             E)SPECIAL RESTRICTED AREA ESTABLISHED, THE RELEVANT REQUIREMENTS
+NO FLIGHT OPERATIONS SHALL BE PERMITTED EXCEPT COMMERCIAL FLIGHTS                   AS FOLLOWS:
+(NOTE 1), BUSINESS FLIGHTS (NOTE 2), AND FLIGHTS FOR MILITARY,                      1. NAME AND IDENTIFICATION
+CUSTOMS, POLICE SERVICES, AND FIRE-FIGHTING RESCUE PURPOSES.                        SPECIAL RESTRICTED AREA (ZB(SR)801)
+4. OPERATIONAL REQUIREMENTS                                                         2. LATERAL LIMITS: A CIRCLE WITH A RADIUS OF 300KM CENTERED AT
+4.1 MANNED AIRCRAFT SHALL BE EQUIPPED WITH A SECONDARY                              N395410E1162327, BEIJING PROHIBITED AREA (ZB(P)801) NOT INCLUDED.
+SURVEILLANCE RADAR (SSR) TRANSPONDER OR OTHER SURVEILLANCE                          VERTICAL LIMITS: SFC-UNL
+EQUIPMENT OF EQUIVALENT PERFORMANCE, WHICH SHALL REMAIN ACTIVATED                   EFFECTIVE TIME: H24
+THROUGHOUT THE FLIGHT. UNMANNED AIRCRAFT SHALL HAVE RELIABLE                        3. SPECIAL RESTRICTIONS
+SURVEILLANCE CAPABILITY, FITTED WITH AN AIRBORNE OPERATIONAL                        NO FLIGHT OPERATIONS SHALL BE PERMITTED EXCEPT COMMERCIAL FLIGHTS
+IDENTIFICATION TRANSMITTING MODULE, AN SSR TRANSPONDER OR                           (NOTE 1), BUSINESS FLIGHTS (NOTE 2), AND FLIGHTS FOR MILITARY,
+SURVEILLANCE EQUIPMENT OF EQUIVALENT PERFORMANCE, WHICH SHALL                       CUSTOMS, POLICE SERVICES, AND FIRE-FIGHTING RESCUE PURPOSES.
+REMAIN ACTIVATED THROUGHOUT THE FLIGHT.                                             4. OPERATIONAL REQUIREMENTS
+4.2 PILOTS SHALL MAINTAIN CONTINUOUS TWO-WAY COMMUNICATION WITH                     4.1 MANNED AIRCRAFT SHALL BE EQUIPPED WITH A SECONDARY
+AIR TRAFFIC CONTROL (ATC) UNIT. REMOTE PILOTS OF UNMANNED AIRCRAFT                  SURVEILLANCE RADAR (SSR) TRANSPONDER OR OTHER SURVEILLANCE
+SYSTEM (UAS) SHALL HAVE RELIABLE MEANS FOR TWO-WAY COMMUNICATION                    EQUIPMENT OF EQUIVALENT PERFORMANCE, WHICH SHALL REMAIN ACTIVATED
+WITH ATC UNIT. IN THE EVENT OF LOSS OF TWO-WAY COMMUNICATION,                       THROUGHOUT THE FLIGHT. UNMANNED AIRCRAFT SHALL HAVE RELIABLE
+PILOTS OR REMOTE PILOTS OF UAS SHALL IMMEDIATELY SET THE SSR                        SURVEILLANCE CAPABILITY, FITTED WITH AN AIRBORNE OPERATIONAL
+TRANSPONDER CODE FOR RADIO COMMUNICATION FAILURE, AND TAKE ALL                      IDENTIFICATION TRANSMITTING MODULE, AN SSR TRANSPONDER OR
+FEASIBLE MEASURES TO OBTAIN ACKNOWLEDGEMENT FROM ATC UNIT.                          SURVEILLANCE EQUIPMENT OF EQUIVALENT PERFORMANCE, WHICH SHALL
+4.3 PRIOR TO ENTERING THE SPECIAL RESTRICTED AREA, AIRCRAFT MUST                    REMAIN ACTIVATED THROUGHOUT THE FLIGHT.
+REPORT THEIR SECURITY STATUS (NOTE 3) TO THE ATC UNIT AND                           4.2 PILOTS SHALL MAINTAIN CONTINUOUS TWO-WAY COMMUNICATION WITH
+COOPERATE WITH AIRBORNE TARGET RECOGNITION. WHEN NECESSARY,                         AIR TRAFFIC CONTROL (ATC) UNIT. REMOTE PILOTS OF UNMANNED AIRCRAFT
+AIRCRAFT WITHIN THE SPECIAL RESTRICTED AREA SHALL BE SUBJECT TO                     SYSTEM (UAS) SHALL HAVE RELIABLE MEANS FOR TWO-WAY COMMUNICATION
+AIRBORNE SECURITY VERIFICATION.                                                     WITH ATC UNIT. IN THE EVENT OF LOSS OF TWO-WAY COMMUNICATION,
+4.4 AIRCRAFT SHALL OPERATE STRICTLY IN ACCORDANCE WITH THE                          PILOTS OR REMOTE PILOTS OF UAS SHALL IMMEDIATELY SET THE SSR
+APPROVED FLIGHT PLAN. ANY INTENTION OR ACTION TO DEVIATE FROM THE                   TRANSPONDER CODE FOR RADIO COMMUNICATION FAILURE, AND TAKE ALL
+FLIGHT PLAN MUST BE REPORTED TO ATC UNIT IN A TIMELY MANNER AND APPROVED PRIOR TO   FEASIBLE MEASURES TO OBTAIN ACKNOWLEDGEMENT FROM ATC UNIT.
+EXECUTION.                                                                          4.3 PRIOR TO ENTERING THE SPECIAL RESTRICTED AREA, AIRCRAFT MUST
+4.5 WHEN CIVIL AIRCRAFT OPERATES BELOW 3,000M (INCLUDED) ABOVE                      REPORT THEIR SECURITY STATUS (NOTE 3) TO THE ATC UNIT AND
+MEAN SEA LEVEL, THE INDICATED AIRSPEED (IAS) SHOULD NOT EXCEED                      COOPERATE WITH AIRBORNE TARGET RECOGNITION. WHEN NECESSARY,
+
+Ref: OPS GEN.                                                                                                                                                  41/134
+                                                                                                                                                          En-Route Data
+
+AIRCRAFT WITHIN THE SPECIAL RESTRICTED AREA SHALL BE SUBJECT TO                     HEIGHT: 225M(AGL).
+AIRBORNE SECURITY VERIFICATION.                                                     F)GND G)225M AGL
+4.4 AIRCRAFT SHALL OPERATE STRICTLY IN ACCORDANCE WITH THE
+APPROVED FLIGHT PLAN. ANY INTENTION OR ACTION TO DEVIATE FROM THE                   ZSHA: FIR 2609161053 A4646/26
+FLIGHT PLAN MUST BE REPORTED TO ATC UNIT IN A TIMELY MANNER AND APPROVED PRIOR TO   Q)ZBPE/QOEXX/IV//E/0/999/
+EXECUTION.                                                                          A)ZSHA B)202609191600 - PERM
+4.5 WHEN CIVIL AIRCRAFT OPERATES BELOW 3,000M (INCLUDED) ABOVE                      E)PRIOR TO ENTERING THE SPECIAL RESTRICTED AREA (ZB(SR)801),
+MEAN SEA LEVEL, THE INDICATED AIRSPEED (IAS) SHOULD NOT EXCEED                      AIRCRAFT MUST REPORT SECURITY STATUS TO THE AIR TRAFFIC
+450KMH.                                                                             CONTROL(ATC) UNIT AT THE FOLLOWING REPORTING POINTS:
+NOTE:                                                                               (1) FOR ENTRY ALONG ROUTE B334, REPORTING POINT: TGO.
+1. CALIBRATION FLIGHTS, TEST FLIGHTS, FERRY FLIGHTS, AND                            (2) FOR ENTRY ALONG ROUTE W31, REPORTING POINT: CHG.
+PRODUCTION FLIGHT TESTS SHALL BE MANAGED IN THE SAME MANNER AS                      (3) FOR ENTRY ALONG ROUTE G212 VIA TGO, REPORTING POINT: TGO.
+COMMERCIAL FLIGHTS.                                                                 FOR ENTRY ALONG ROUTE G212 VIA BESGI, REPORTING POINT: BESGI.
+2. BUSINESS FLIGHTS REFER TO THOSE FLIGHT ACTIVITIES APPROVED                       (4) FOR ENTRY ALONG ROUTE A575 VIA CHG, REPORTING POINT: CHG.
+UNDER RELEVANT PROVISIONS, AND OPERATED ON A NON-SCHEDULE BASIS                     FOR ENTRY ALONG ROUTE A575 VIA VANVO, REPORTING POINT: VANVO.
+WITH NO PASSENGER TICKET FOR THEIR BUSINESS OR ADMINISTRATIVE                       (5) FOR ENTRY ALONG ROUTE G332, REPORTING POINT: CHG.
+ACTIVITIES, ACCORDING TO THE SLOTS AND AIRPORTS OF DEPARTURE AND                    (6) FOR ENTRY ALONG ROUTE W35, REPORTING POINT: CHG.
+ARRIVAL SPECIFIED BY AN INDIVIDUAL USER.                                            (7) FOR ENTRY ALONG ROUTE W201, REPORTING POINT: ORAVA.
+3. THE CONTENT OF SECURITY STATUS REPORT INCLUDES: AIRCRAFT                         (8) FOR ENTRY ALONG ROUTE W576 JOIN TO W55, REPORTING POINT: ORAVA.
+IDENTIFICATION (FLIGHT NUMBER, OR AIRCRAFT NATIONALITY AND                          (9) FOR ENTRY ALONG ROUTE W200, REPORTING POINT: DOVIV.
+REGISTRATION MARK), SSR TRANSPONDER CODE, CURRENT POSITION, AND                     (10) FOR ENTRY ALONG ROUTE W4, REPORTING POINT: DYN.
+NORMALITY OF SECURITY STATUS.                                                       (11) FOR ENTRY ALONG ROUTE W569, REPORTING POINT: YQG.
+F)SFC G)UNL                                                                         (12) FOR ENTRY ALONG ROUTE W56, REPORTING POINT: ORODO.
+                                                                                    (13) FOR ENTRY ALONG ROUTE W62, REPORTING POINT: ORODO.
+ZSHA: FIR 2609210953 A4854/26                                                       (14) FOR ENTRY ALONG ROUTE W277, REPORTING POINT: OMBIM.
+Q)ZBPE/QOATT/IV/BO//0/999/                                                          (15) FOR ENTRY ALONG ROUTE W69, REPORTING POINT: BAXOD.
+A)ZSHA B)202610281600 C)202611111559                                                (16) FOR ENTRY ALONG ROUTE W64, REPORTING POINT: NUTLO.
+E)TRIGGER NOTAM                                                                     (17) FOR ENTRY ALONG ROUTE W65, REPORTING POINT: TMR.
+AIP CHINA AMENDMENT NR.11/2026(2026-9-17) WILL BE EFFECTIVE FROM                    (18) FOR ENTRY ALONG ROUTE B458, REPORTING POINT: TMR.
+1600UTC ON 28 OCT 2026.                                                             (19) FOR ENTRY ALONG ROUTE W86, REPORTING POINT: TMR.
+MAIN CHANGES AS FOLLOWS:                                                            (20) FOR ENTRY ALONG ROUTE B339, REPORTING POINT: ERVEB.
+1.AIC12/26 ABOUT EMERGENCY FORCED LANDING AERODROME                                 (21) FOR ENTRY ALONG ROUTE W33, REPORTING POINT: NUVPU.
+(TURPAN/JIAOHE-ZWTL) PUT INTO USE. AIC08/26 REPLACED.                               (22) FOR ENTRY ALONG ROUTE W52, REPORTING POINT: NUVPU.
+2.SUP22/26 ABOUT CONSTRUCTION AREA OF TAIYUAN/WUSU AIRPORT(ZBYN)                    (23) FOR ENTRY ALONG ROUTE W157, REPORTING POINT: DALIM.
+PUT INTO USE. SUP09/26 DELETED.                                                     (24) FOR ENTRY ALONG ROUTE W160, REPORTING POINT: YQG.
+3.MSA ADJUSTED IN ILI/YINING AIRPORT(ZWYN).                                         (25) AIRCRAFT TAKING-OFF FROM THE FOLLOWING AERODROMES AND
+4.ATS ROUTES W144,W179 ADJUSTED.                                                    ENTERING THE SPECIAL RESTRICTED AREA (ZB(SR)801) SHALL REPORT TO
+5.AIC 11/26 ABOUT NOTICE ON THE ADDITION OF QUICK IDENTIFICATION                    THE AERODROME ATC UNIT:
+LABELS FOR SPECIAL OPERATIONS                                                       JINAN/YAOQIANG(ZSJN),TAIYUAN/WUSU(ZBYN), HOHHOT/BAITA(ZBHH).
+CHARTS IN THE AIP CHART DIRECTORY TREE PUT INTO USE.
+.                                                                                   ZSHA: FIR 2608280802 A4021/26
+LOG ON AIS CHINA WEBSITE: WWW.EAIPCHINA.CN FOR PREVIEWING THE                       Q)ZSHA/QNMAS/IV/BO//0/999/3617N12022E
+WHOLE INFORMATION.                                                                  A)ZSHA B)202608280759 C)202702281559
+                                                                                    E)QINGDAO VOR/DME 'TAO' 117.5MHZ/CH122X UNSERVICEABLE DUE TO MAINT.
+ZSHA: FIR 2609170840 A4701/26
+Q)ZSHA/QWMLW/IV/BO/E/0/100/3054N12156E                                              ZSHA: FIR 2607300758 A3194/26
+A)ZSHA B)202610031200 C)202612261230                                                Q)ZSHA/QARXX/IV//E/0/999/
+D)1200-1230 EVERY SAT                                                               A)ZSHA B)202607300743 C)202612311559 - EST
+E)FIREWORK WILL TAKE PLACE WITHIN A CIRCLE CENTERED AT                              E)THE NEW FLIGHT ROUTES ARE PRIMARY FLIGHTS ROUTES. SEND FPL
+N305356.10E1215608.82 WITH RADIUS OF 1,330M.                                        ACCORDING TO THE NEW FLIGHTS ROUTES. IF THERE IS ANY TEMPORARY
+
+
+Ref: OPS GEN.                                                                                                                                                   42/134
+                                                                                                                                                    En-Route Data
+
+CHANGE, FLW ATC INSTRUCTIONS:                                                   ZSHA: FIR 2605110640 A1519/26
+1. FLIGHTS ROUTE FROM ZSSS, ZSPD, ZSNB, ZSZS VIA                                Q)ZSHA/QNBAS/IV/BO//0/999/2712N11633E
+PIKAS-G330-UNTAN-G345-OLRIS-R343-LUOGANG VOR 'HFE'-B208 TO FUYANG               A)ZSHA B)202605110637 C)202611140100
+VOR 'FYG' AND A POINT BEYOND FUYANG VOR 'FYG':                                  E)NANFENG NDB 'NF' 292KHZ UNSERVICEABLE DUE TO MAINT.
+ZSSS/ZSPD/ZSNB/ZSZS VIA                                                         UNITED STATES NOTAM OFFICE DISCLAIMS FOREIGN NOTAM ACCURACY
+PIKAS-G330-PIMOL-V14-NOBEM-W73-VEMEX-W163-LUOGANG VOR                           OR COMPLETENESS
+'HFE'-B208-FUYANG VOR 'FYG', THEN JOIN THE EXISTING FLIGHTS ROUTE.
+2. FLIGHTS ROUTE FROM ZSSS, ZSPD VIA                                            FIR Chart NOTAM
+PIKAS-G330-UNTAN-G345-OLRIS-R343-MADUK-W51-LEGIV-W164-ADGOL-W50 TO
+XISHUI VOR 'XSH' AND A POINT BEYOND XISHUI VOR 'XSH':
+                                                                                ZSHA: Z1625/26 14/10/2026 05:04 - UFN
+                                                                                CTR
+ZSSS/ZSPD VIA
+                                                                                (JEPPESEN ENROUTE CHART CHANGE NOTICE) WUHU TOWER CONTROL AREA ESTBLD. ALTITUDES:
+PIKAS-G330-PIMOL-V14-NOBEM-W73-MADUK-W51-LEGIV-W164-ADGOL-W50-XISHU
+                                                                                GND-7900; UFN (N31 E118). CH HL-6.
+I VOR 'XSH', THEN JOIN THE EXISTING FLIGHTS ROUTE.
+3. FLIGHTS ROUTE FROM ZSNT, ZSCG, ZSYA VIA                                      ZSHA: Z1624/26 14/10/2026 05:03 - UFN
+BENNIU NDB'ZJ'-G345-OLRIS-R343-MADUK-W51-LEGIV-W164-VILID AND A
+                                                                                ATS-ROUTE
+POINT BEYOND VILID: ZSNT/ZSCG/ZSYA-BENNIU NDB
+                                                                                (JEPPESEN ENROUTE CHART CHANGE NOTICE) J258 ESTBLD WUHU (WHX) VORDME CRP - P566
+'ZJ'-G345-PIMUS-V11-DOGVI-W545-VEMEX-W73-MADUK-W51- LEGIV-
+                                                                                CRP AT N30 33.6 E118 20.8 211/031, 36NM, MOCA 5700; P566 - CHIZHOU (JHS) VORDME
+W164-VILID, THEN JOIN THE EXISTING FLIGHTS ROUTE.
+                                                                                CRP 292/112, 35NM, MOCA 6100; UFN. CH HL-6
+4. FLIGHTS ROUTE FROM ZSNT, ZSCG, ZSYA VIA BENNIU NDB
+'ZJ'-G345-OLRIS-R343-LUOGANG VOR 'HFE' TO LUOGANG VOR 'HFE' AND                 ZSHA: Z1623/26 14/10/2026 05:03 - UFN
+BEYOND : ZSNT/ZSCG/ZSYA-BENNIU NDB 'ZJ'-G345-PIMUS-V11-DOGVI-W545-VEMEX-W163-   ATS-ROUTE
+LUOGANG VOR 'HFE', THEN                                                         (JEPPESEN ENROUTE CHART CHANGE NOTICE) J119 ESTBLD CHIZHOU (JHS) VORDME CRP - P37
+JOIN THE EXISTING FLIGHTS ROUTE.                                                CRP AT N31 14.7 E118 20.8, 329/149, 38NM, MOCA 4700; UFN. CH HL-6
+5. FLIGHTS ROUTE FROM ZSWX(DEPARTURE) VIA SASAN TO LUOGANG VOR
+'HFE' AND BEYOND :                                                              ZSHA: Z1622/26 14/10/2026 05:03 - UFN
+ZSWX(DEPARTURE) VIA SASAN-W161-WUXI VOR                                         ATS-ROUTE
+'VMB'-V11-DOGVI-W545-VEMEX-W163-LUOGANG VOR 'HFE', THEN JOIN THE                (JEPPESEN ENROUTE CHART CHANGE NOTICE) H2 ESTBLD LUOGANG (HFE) VORDME CRP - VILID
+EXISTING FLIGHTS ROUTE.                                                         CRP - P37 CRP AT N31 14.7 E117 16.5 - P321 CRP AT N30 47.8 E117 15.0 - P206 CRP AT
+6. FLIGHTS ROUTE FROM ZSWX(DEPARTURE) VIA SASAN TO A POINT BEYOND               N30 23.4 E117 13.8 - P468 CRP AT N29 59.6 E117 12.6 - P179 CRP AT N29 53.6 E117
+VILID: ZSWX(DEPARTURE) VIA SASAN-W161-WUXI VOR                                  12.3 - P262 CRP AT N29 45.5 E117 11.8 - P599 CRP AT N29 32.1 E117 11.1 -
+'VMB'-V11-DOGVI-W545-VEMEX-W73-MADUK-W51-LEGIV-W164-VILID, THEN                 JINGDEZHEN (JDZ) VORDME CRP AT N29 20.6 E117 10.5, 186/006,
+JOIN THE EXISTING FLIGHTS ROUTE.                                                13/19/27/24/24/6/8/14/12NM, MOCAS 4000/4000/7700/7700/7700/7700/7700/5700/4900;
+7.FLIGHTS ROUTE FROM ZSHC TO A POINT BEYOND ALDAP: ZSHC-ANDONG VOR              (JDZ) - P395 NCRP AT N29 00.8 E117 16.4 - P263 CRP AT N28 55.4 E117 17.9 - P645
+'AND'-B221-GOVNI-V140-IDNIK-V141-ALDAP AND A POINT BEYOND ALDAP.                NCRP AT N28 50.2 E117 19.5 - P712 CRP AT N28 39.2 E117 22.7 - OMDEM CRP, 171/351,
+8. FLIGHTS ROUTE FROM ZSNB TO A POINT BEYOND ALDAP: ZSNB-                       21/5/5/11/37NM, MOCAS 4900/4900/4900/4800/8700; UFN. CH HL-4,CH HL-6
+GOVNI-V140-IDNIK-V141-ALDAP AND A POINT BEYOND ALDAP.
+9.FLIGHTS ROUTE FROM ZSWZ(DEPARTURE) VIA SHENGZHOU                              ZSHA: Z1361/25 10/07/2025 00:01 - UFN
+VOR'SHZ'-B221-ANDONG VOR'AND'- G204-A POINT BEYOND JIUTING                      ATS-ROUTE
+VOR'JTN'(EXCLUDE LANDING AT ZSSS AND ZSNT) :                                    (JEPPESEN ENROUTE CHART CHANGE NOTICE) V31, LADIX (N3907.8 E116 59.5) TO JINAN
+ZSWZ(DEPARTURE) VIA SHENGZHOU VOR'SHZ'-B221-GOVNI-V140-JIUTING                  VORDME (YQG), WITHDRAWN. ZBAA 10-1
+VOR'JTN' TO A POINT BEYOND JIUTING VOR'JTN', THEN JOIN THE
+EXISTING FLIGHTS ROUTE.
+                                                                                ZSHA: Z1191/26 12/08/2026 09:33 - 09/02/2027 23:59
+                                                                                ATS-ROUTE
+ZSHA: FIR 2607041215 A2574/26                                                   (JEPPESEN ENROUTE CHART CHANGE NOTICE) X270 ESTBLD JIAXING (XJX) VORDME CRP AT N30
+Q)ZSHA/QNVLT/IV///0/999/3043N11742E                                             42.6 E120 37.7 - DADAT CRP 122/302, 36NM; DADAT - P704 NCRP AT N30 25.9 E121 31.8
+A)ZSHA B)202607041125 C)202701031559                                            101/281, 15NM; MOCAS 2600/2300; UNTIL 9 FEB 27. CH HL-6
+E)CHIZHOU VOR 'JHS' 117.5MHZ LIMITATION CHANGED AS FLW:
+UNSERVICEABLE BTN RADIAL 172DEG-182DEG CLOCKWISE,BTN RADIAL
+                                                                                ZSHA: Z1190/26 12/08/2026 09:33 - 09/02/2027 23:59
+300DEG-330DEG CLOCKWISE.                                                        ATS-ROUTE
+                                                                                (JEPPESEN ENROUTE CHART CHANGE NOTICE) J912 ESTBLD JIAXING (XJX) VORDME CRP AT N30
+
+
+Ref: OPS GEN.                                                                                                                                              43/134
+                                                                                                        En-Route Data
+
+42.6 E120 37.7 - NANXUN (NXD) VORDME CRP 324/144, 16NM; NXD - NIVIK CRP 260/080,     (N37 E126). RKSS
+28NM; NIVIK - IGRAT CRP 251/071, 6NM; MOCAS 3000/4300/4300 ; UNTIL 9 FEB 27. CH
+HL-6
+
+ZSHA: Z1189/26 12/08/2026 09:33 - 09/02/2027 23:59
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) J911 ESTBLD JIAXING (XJX) VORDME CRP AT N30
+42.6 E120 37.7 - P526 CRP AT N30 59.6 E120 49.4 037/217, 20NM; P526 - P527 NCRP AT
+N30 58.8 E121 05.7 100/280, 14NM; P527 - P703 NCRP AT N30 47.9 E121 55.4 111/291,
+44NM; P703 - ELAGO CRP 096/276, 14NM; MOCAS 2600/2600/2800/2600; UNTIL 9 FEB 27.
+CH HL-6
+
+ZSHA: Z1188/26 12/08/2026 09:33 - 09/02/2027 23:59
+VOR/DME
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) JIAXING (XJX) VORDME 114.25 COMSND AT N30
+42.6 E120 37.7; UNTIL 9 FEB 27. CH HL-6
+
+ZSHA: Z1187/26 12/08/2026 13:33 - 09/02/2027 23:59
+CTR
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) JIAXING TOWER CONTROL AREA ESTBLD.
+ALTITUDES: GND-4900; UNTIL 9 FEB 27 (N30 E120). CH HL-6
+
+ZSHA: Z0576/26 11/06/2026 00:01 - UFN
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) W645, OBGAK REPLACED BY GUKUL CRP AT
+N2540.7 E11938.4; FUZHOU VORDME (FOC) - GUKUL - BUPDU, MOCAS 4200T/5200T. FE
+HL-3,FE HL-9
+
+ZSHA: Z0575/26 11/06/2026 00:01 - UFN
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) W644, IDMUV REPLACED BY MUGPI CRP AT
+N2603.3 E11945.2; FUZHOU VORDME (FOC) - MUGPI, 038/218, MOCA 4200T. FE HL-9
+
+ZSHA: Z0574/26 11/06/2026 00:01 - UFN
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) V183 ESTBLD; GUKUL CRP ESTBLD AT N2540.7
+E11938.4, RUMTA CRP ESTBLD AT N2522.4 E11920.1; GUKUL - RUMTA, 227, 25NM, MOCA
+4100T; RUMTA - DOVPU CRP, 257, 21NM, MOCA 4300T; GUKUL TO DOVPU, ONE-WAY SW-BOUND.
+FE HL-3,FE HL-9
+
+ZSHA: Z0573/26 11/06/2026 00:01 - UFN
+REPORTING POINT
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) AGVUR (N3745.0 E11237.1) RENAMED OVKOM
+(B208, B215, W87, W175, W287), GORPI (N3340.1 E12124.4) RENAMED SANUS (B221,
+W113), LAPEN (N2935.8 E11538.2) RENAMED ISPUP (W105), PINOT (N3127.0 E12227.0)
+RENAMED BEKOK (B221, W11, W13, W38, W115), TOSAS (3119.0 E12131.5) RENAMED NUPLA
+(G455). EA HL-8
+
+ZSHA: Z0503/23 12/04/2023 07:48 - UFN
+ATS-ROUTE
+(JEPPESEN ENROUTE CHART CHANGE NOTICE) Y644 REDESIG ONE-WAY E-BND AGAVO TO BOGAN
+
+
+Ref: OPS GEN.                                                                                                 44/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                45/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                46/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                47/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                48/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                49/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                50/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                51/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                52/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                53/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                54/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                55/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                56/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                57/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                58/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                59/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                60/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                61/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                62/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                63/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                64/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                65/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                66/134
+                VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+Ref: OPS GEN.                                67/134
+                        VJC5288 VVCR - ZSHC VNA629   Charts
+
+
+
+
+                Intentionally Left Blank
+
+
+
+
+Ref: OPS GEN.                                        68/134
+                VJC5288 VVCR - ZSHC VNA629   Route Plot
+
+
+
+
+Ref: OPS GEN.                                   69/134
+                       VJC5288 VVCR - ZSHC VNA629   Route Plot
+
+
+
+
+                Intentionally Left Blank
+
+
+
+
+Ref: OPS GEN.                                          70/134
+                VJC5288 VVCR - ZSHC VNA629   Route Plot
+
+
+
+
+Ref: OPS GEN.                                   71/134
+                       VJC5288 VVCR - ZSHC VNA629   Route Plot
+
+
+
+
+                Intentionally Left Blank
+
+
+
+
+Ref: OPS GEN.                                          72/134
+                                                         VJC5288 VVCR - ZSHC VNA629                                                               Attachments
+
+
+
+
+            Post:   Contact:                               CỤC HÀNG KHÔNG VIỆT NAM                                                 AIP SUP
+                    Air Navigation Department                                                                                        55/26
+                    119 Nguyen Son Str.,
+                                                     CIVIL AVIATION AUTHORITY OF VIET NAM
+                    Bo De Ward,                                                                                                 Có hiệu lực từ
+                    Ha Noi, Viet Nam                                                                                            Effective from
+            Tel:    +84 24 38274191                                                                                              12 OCT 2026
+            Fax:    +84 24 38274194                                                                                           Được xuất bản vào
+            E-mail: and@caa.gov.vn                                                                                              Published on
+            Web: http://caa.gov.vn                                                                                               10 OCT 2026
+
+
+
+           THI CÔNG ĐƯỜNG CẤT HẠ CÁNH 02L/20R VÀ CÁC                                    CONSTRUCTION OF RUNWAY 02L/20R AND TAXI-
+            ĐƯỜNG LĂN TẠI CẢNG HÀNG KHÔNG QUỐC TẾ                                       WAYS AT CAM RANH INTERNATIONAL AIRPORT
+                       CAM RANH (VVCR)                                                                  (VVCR)
+
+           1        GIỚI THIỆU                                                      1        INTRODUCTION
+
+           Tập bổ sung AIP này nhằm thông báo về việc thi công đường CHC            This AIP Supplement issues notification of the construction of RWY
+           02L/20R và các đường lăn tại Cảng hàng không quốc tế Cam Ranh            02L/20R and TWYs at Cam Ranh International Airport (VVCR).
+           (VVCR).
+
+           2        CHI TIẾT                                                        2        DETAILS
+
+           2.1      Phạm vi thi công:                                               2.1      Construction areas:
+
+           2.1.1    Khu vực 1 (Từ 1700 ngày 12/10/2026 đến 1659 ngày 20/10/         2.1.1    Area 1 (From 1700 on 12 OCT 2026 to 1659 on 20 OCT 2026):
+                    2026):
+
+           –     Đường lăn song song W: Ðoạn từ đường lăn W1 đến vị trí cách        –     Parallel TWY W: A portion from TWY W1 to a position of 140 m from
+                 tim đường lăn W6, Y6 140 m về hướng Nam.                                 the CL of TWYs W6, Y6 to the South.
+
+           –     Đường lăn W1: Ðoạn từ đường lăn song song W đến vị trí cách        –     TWY W1: A portion from parallel TWY W to a position of 120 m from
+                 tim đường CHC 02L/20R 120 m về hướng Tây.                                the CL of RWY 02L/20R to the West.
+
+           –     Đường lăn Y5: Ðoạn từ đường lăn song song W đến vị trí cách        –     TWY Y5: A portion from parallel TWY W to a position of 90 m from
+                 mép sân đỗ tàu bay 90 m về hướng Đông.                                   the apron edge to the East.
+
+           2.1.2    Khu vực 2 (Từ 1700 ngày 20/10/2026 đến 1659 ngày 24/10/         2.1.2    Area 2 (From 1700 on 20 OCT 2026 to 1659 on 24 OCT 2026):
+                    2026):
+
+           –     Đường lăn song song W: Ðoạn từ vị trí cách tim đường lăn W6,       –     Parallel TWY W: A portion from a position of 140 m from the CL of
+                 Y6 140 m về hướng Nam đến vị trí cách tim đường lăn W7, Y7               TWYs W6, Y6 to the South to a position of 150 m from the CL of
+                 150 m về hướng Nam.                                                      TWYs W7, Y7 to the South.
+
+           –     Đường lăn Y6: Ðoạn từ đường lăn song song W đến vị trí cách        –     TWY Y6: A portion from parallel TWY W to a position of 90 m from
+                 mép sân đỗ tàu bay 90 m về hướng Đông.                                   the apron edge to the East.
+
+           2.1.3    Khu vực 3 (Từ 1700 ngày 24/10/2026 đến 1659 ngày 01/11/         2.1.3    Area 3 (From 1700 on 24 OCT 2026 to 1659 on 01 NOV 2026):
+                    2026):
+
+           –     Đường CHC 02L/20R: Ðoạn từ vị trí cách tim đường lăn W1 120        –     RWY 02L/20R: A portion from a position of 120 m from the CL of
+                 m về hướng Bắc đến vị trí cách tim đường lăn W7, G7 95 m về              TWY W1 to the North to a position of 95 m from the CL of TWYs
+                 hướng Nam.                                                               W7, G7 to the South.
+
+           –     Đường lăn W3, W5, W6: Ðoạn từ đường CHC 02L/20R đến vị trí         –     TWYs W3, W5, W6: A portion from RWY 02L/20R to a position of
+                 cách tim đường lăn W 150 m về phía Đông.                                 150 m from the CL of TWY W to the East.
+           –     Đường lăn G3, G5: Ðoạn từ đường CHC 02L/20R đến vị trí cách        –     TWYs G3, G5: A portion from RWY 02L/20R to a position of 215 m
+                 tim đường CHC 02R/20L 215 m về hướng Tây.                                from the RCL 02R/20L to the West.
+
+           2.1.4    Khu vực 4 (Thi công trong thời gian không có hoạt động bay,     2.1.4    Area 4 (Carry out during non-flight operation hours, from 1900
+                    từ 1900 đến 2230 hằng ngày, từ ngày 01/11/2026 đến hết                   to 2230 daily, from 01 NOV 2026 to 05 NOV 2026):
+                    ngày 05/11/2026):
+
+           Trên dải bay và đường CHC 02L/20R, phạm vi dài 280 m, rộng 60 m,         On the RWY strip and RWY 02L/20R, with dimensions of 280 m in
+           điểm đầu cách tim đường lăn W7 67 m về phía Nam và cách tim              length and 60 m in width; starting point is 67 m from the CL of TWY W7
+           đường CHC 02L/20R 44 m về phía Tây.                                      to the South and 44 m from the RCL 02L/20R to the West.
+
+
+
+
+                                                                                  -1-
+
+
+
+Ref: OPS GEN.                                                                                                                                             73/134
+                                                             VJC5288 VVCR - ZSHC VNA629                                                                   Attachments
+
+
+
+
+     2.1.5     Khu vực 5 (Thi công trong thời gian không có hoạt động bay,     2.1.5     Area 5 (Carry out during non-flight operation hours, from 1900
+               từ 1900 đến 2230 hằng ngày, từ ngày 01/11/2026 đến hết                    to 2230 daily, from 01 NOV 2026 to 05 NOV 2026)
+               ngày 05/11/2026):
+
+     Trên dải bay đường CHC 02L/20R, phạm vi dài 230 m, rộng 60 m,             On the RWY strip of RWY 02L/20R, with dimensions of 230 m in length
+     điểm đầu cách tim đường lăn W 184 m về phía Bắc, cách tim đường           and 60 m in width; starting point is 184 m from the CL of TWY W to the
+     CHC 02L/20R 34 m về phía Tây.                                             North and 34 m from the RCL 02L/20R to the West.
+
+     2.1.6     Khu vực 6 (Thi công trong thời gian không có hoạt động bay,     2.1.6     Area 6 (Carry out during non-flight operation hours, from 1900
+               từ 1900 đến 2230 hằng ngày, từ ngày 01/11/2026 đến hết                    to 2230 daily, from 01 NOV 2026 to 05 NOV 2026):
+               ngày 05/11/2026):
+
+     Trên dải bay đường CHC 02R/20L, phạm vi dài 53 m, rộng 90 m,              On the RWY strip of RWY 02R/20L, with dimensions of 53 m in length
+     điểm đầu cách tim đường CHC 02R/20L 98 m về phía Tây, cách tim            and 90 m in width; starting point is 98 m from the RCL 02R/20L to the
+     đường lăn G1 80 m về phía Nam.                                            West and 80 m from the CL of TWY G1 to the South.
+
+     2.1.7     Khu vực 7 (Từ 1700 ngày 12/10/2026 đến 1659 ngày 01/11/         2.1.7     Area 7 (From 1700 on 12 OCT 2026 to 1659 on 01 NOV 2026):
+               2026):
+
+     Khu vực RESA và dải bay đường CHC 02L/20R, phạm vi dài 320 m,             RESA and RWY strip of RWY 02L/20R, with dimensions of 320 m in
+     rộng 400 m, điểm đầu cách tim đường CHC 02R/20L 190 m về phía             length and 400 m in width; starting point is 190 m from the RCL 02R/20L
+     Tây, cách tim đường lăn G1 58 m về phía Nam.                              to the West and 58 m from the CL of TWY G1 to the South.
+
+     2.2       Phương thức vận hành tàu bay trong thời gian thi                2.2       Aircraft operational procedures during construction
+               công:                                                                     period:
+
+     2.2.1     Thi công khu vực 1, 7: Từ 1700 ngày 12/10/2026 đến 1659         2.2.1     Construction of areas 1, 7: From 1700 on 12 OCT 2026 to
+               ngày 20/10/2026:                                                          1659 on 20 OCT 2026:
+
+     2.2.1.1 Điều chỉnh phương án khai thác:                                   2.2.1.1 Adjustment of operational procedures:
+
+     –     Tạm dừng khai thác đường lăn song song W đoạn từ đường lăn          –     Temporary closure of parallel TWY W, a portion from TWY W1 to a
+           W1 đến vị trí cách tim đường lăn W6, Y6 140 m về hướng Nam.               position of 140 m from the CL of TWYs W6, Y6 to the South.
+
+     –     Tạm dừng khai thác đường lăn W1, W3, W5, Y5.                        –     Temporary closure of TWYs W1, W3, W5, Y5.
+     –     Đường CHC 02L/20R chỉ sử dụng cho tàu bay lăn.                      –     RWY 02L/20R is used for taxiing aircraft only.
+
+     –     Đường CHC 02R/20L sử dụng cho tàu bay cất, hạ cánh.                 –     RWY 02R/20L is used for take-off and landing aircraft.
+
+     –     Dừng khai thác đèn tiếp cận, đèn thềm, đèn PAPI và các đèn hỗ       –     Temporary closure of the APCH LGT, THR LGT, PAPI system and
+           trợ hạ cánh liên quan đường CHC 02L/20R.                                  landing LGTs related to RWY 02L/20R.
+
+     –     Dừng khai thác hệ thống ILS đường CHC 02L/20R.                      –     Temporary suspension of the ILS system of RWY 02L/20R.
+
+     2.2.1.2 Phương án vận hành tàu bay:                                       2.2.1.2 Aircraft operational procedures:
+
+     a) Tàu bay hạ cánh:                                                       a) For landing aircraft:
+
+           –   Đường CHC 02R:                                                        –   RWY 02R:
+
+               •   Sau khi hạ cánh → đường lăn G5 → rẽ p
