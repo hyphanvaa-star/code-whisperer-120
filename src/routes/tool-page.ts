@@ -2726,7 +2726,30 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.04')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.05')
+    .replace('    else body.textContent = n.text || n.e_field || "";\n    item.appendChild(body);', `    else body.textContent = n.text || n.e_field || "";
+    try{ nmHlKeys(body); }catch(_e){}
+    item.appendChild(body);`)
+    .replace('</body>', `<style>.nm-kw{font-weight:800;padding:0 3px;border-radius:4px}.nm-kw.r{background:#fee2e2;color:#b91c1c}.nm-kw.o{background:#ffedd5;color:#c2410c}.nm-kw.b{background:#dbeafe;color:#1d4ed8}</style><script>
+function nmHlKeys(root){
+  var RED=/^(CLSD|CLOSED|U\\/S|UNSERVICEABLE|NOT AVBL|NOT AVAILABLE|UNAVBL|PROHIBITED|PROHIBITED AREA|SUSPENDED|OUT OF SERVICE|NOT USABLE|DANGER|MISSILE|FIRING|ROCKET|GUN FIRING)$/i;
+  var ORG=/^(WIP|WORK IN PROGRESS|OBST|OBSTACLE|CRANE|RESTRICTED|LIMITED|REDUCED|DEGRADED|CAUTION|BIRD|ACT|ACTIVE|UNMANNED|UAS|DRONE|LGT|LIGHTING)$/i;
+  var re=/\\b(CLSD|CLOSED|U\\/S|UNSERVICEABLE|NOT AVBL|NOT AVAILABLE|UNAVBL|PROHIBITED|SUSPENDED|OUT OF SERVICE|NOT USABLE|DANGER|MISSILE|ROCKET|GUN FIRING|FIRING|WIP|WORK IN PROGRESS|OBST|OBSTACLE|CRANE|RESTRICTED|LIMITED|REDUCED|DEGRADED|CAUTION|BIRD|UNMANNED|UAS|DRONE|RWY\\s?\\d{2}[LRC]?(?:\\/\\d{2}[LRC]?)?|TWY\\s?[A-Z]\\d?|ILS|VOR|DME|NDB|GP|LOC|PAPI|FL\\s?\\d{2,3})\\b/gi;
+  var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),list=[],t;
+  while((t=w.nextNode())){ if(t.parentNode&&t.parentNode.closest&&t.parentNode.closest(".nm-kw"))continue; list.push(t); }
+  list.forEach(function(tn){
+    var s=tn.nodeValue; re.lastIndex=0; if(!re.test(s))return; re.lastIndex=0;
+    var f=document.createDocumentFragment(),last=0,m;
+    while((m=re.exec(s))){
+      if(m.index>last)f.appendChild(document.createTextNode(s.slice(last,m.index)));
+      var k=m[0],sp=document.createElement("span");
+      sp.className="nm-kw "+(RED.test(k)?"r":ORG.test(k)?"o":"b");
+      sp.textContent=k; f.appendChild(sp); last=m.index+k.length;
+    }
+    if(last<s.length)f.appendChild(document.createTextNode(s.slice(last)));
+    tn.parentNode.replaceChild(f,tn);
+  });
+}</script></body>`)
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
