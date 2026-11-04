@@ -2578,7 +2578,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.97')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.98')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
