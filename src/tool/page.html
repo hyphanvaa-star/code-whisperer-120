@@ -15524,7 +15524,7 @@ $("#nmCheck").onclick = async () => {
     nmShowDropped = false;
     if($("#nmSearch")) $("#nmSearch").value = "";
     nmRender();
-    setMode("notam");
+    if(mode === "notam") setMode("notam");
     nmSetWpt(true);
   }catch(err){
     alert(err.name === "AbortError"
@@ -16916,7 +16916,7 @@ function nmTrackShow(id){
   if(!d) return false;
   nmGroup = NM_GROUP_TRACK; nmPick = ""; nmShowDropped = false;
   nmSyncActiveMap._kind = "track"; nmSyncActiveMap._id = String(id);
-  nmDrawTrack(d); setMode("notam"); nmRender();
+  nmDrawTrack(d); if(mode === "notam") setMode("notam"); nmRender();
   return true;
 }
 $("#nmTrack").onclick = async () => {
@@ -16969,7 +16969,7 @@ async function nmTrackOne(){
     nmSyncActiveMap._kind = "track";
     nmSyncActiveMap._id = String(((d || {}).flight || {}).id || "");
     nmDrawTrack(d);
-    setMode("notam");
+    if(mode === "notam") setMode("notam");
     nmPick = "";
     nmRender();
     { const hl = $("#nmTrackHits"); if(hl) hl.hidden = true;
