@@ -63,7 +63,14 @@ function typeMatch(token, ac) {
 }
 const regKey = (r) => norm(r).replace(/^VN/, "");
 export function srAcMatch(acs, reg, acType, groups, depth) {
-  return (acs || []).some((t) => {
+  const list = acs || [];
+  const neg = list.filter((t) => String(t || "").startsWith("NOT:"));
+  if (neg.length) {
+    const pos = list.filter((t) => !String(t || "").startsWith("NOT:"));
+    if (pos.length && !srAcMatch(pos, reg, acType, groups, depth)) return false;
+    return !srAcMatch(neg.map((t) => String(t).slice(4)), reg, acType, groups, depth);
+  }
+  return list.some((t) => {
     const s = String(t || "");
     if (s === "ALL") return true;
     if (s.startsWith("REG:")) return !!regKey(reg) && regKey(s.slice(4)) === regKey(reg);
@@ -76,7 +83,7 @@ export function srAcMatch(acs, reg, acType, groups, depth) {
   });
 }
 export function srAcLabel(acs) {
-  return (acs || []).map((t) => (t === "ALL" ? "Tất cả tàu" : String(t).replace(/^(REG|TYPE|GROUP):/, (m) => (m === "GROUP:" ? "nhóm " : "")))).join(", ");
+  return (acs || []).map((t) => (t === "ALL" ? "Tất cả tàu" : String(t).startsWith("NOT:") ? "trừ " + srAcLabel([String(t).slice(4)]) : String(t).replace(/^(REG|TYPE|GROUP):/, (m) => (m === "GROUP:" ? "nhóm " : "")))).join(", ");
 }
 export function srAptLabel(apts) {
   return (apts || []).map((t) => { const r = SR_REGIONS.find((x) => x.id === t); return r ? r.label : t; }).join(", ");
