@@ -32,6 +32,12 @@ function cmpFlightPool(){
   for(const f of (flights || [])) byId.set(String(f.id), f);
   return [...byId.values()].filter(inOpsWindow);
 }
+function cmpCrewParams(rows){
+  const p = new URLSearchParams(qs());
+  // Match the Compare read only; IDs still limit each crew batch.
+  if((rows || []).some(r => r.handover)) p.delete("dispatcher");
+  return p;
+}
 async function runCompare(opts){
   const handoverRevision = ++cmpHandoverRevision;
   const primaryDsp = $("#fDispatcher").value;
@@ -39,6 +45,8 @@ async function runCompare(opts){
   const scopeQs = qs();`)
     .replace('    const p = new URLSearchParams(qs());\n    p.set("file", xls.file);', '    const p = new URLSearchParams(scopeQs);\n    if(handoverDsps.length) p.delete("dispatcher");\n    p.set("file", xls.file);')
     .replace('    cmpQs = qs();', '    cmpQs = scopeQs;')
+    .replace('      const p = new URLSearchParams(qs());\n      if(xls && xls.file) p.set("file", xls.file);', '      const p = cmpCrewParams(rows);\n      if(xls && xls.file) p.set("file", xls.file);')
+    .replace('      const p = new URLSearchParams(qs());\n      p.set("ids", chunk.join(","));\n      const d = await (await fetch("/api/excel/crewnames?"', '      const p = cmpCrewParams((lastCmp && lastCmp.table) || []);\n      p.set("ids", chunk.join(","));\n      const d = await (await fetch("/api/excel/crewnames?"')
     .replace('    lastCmp = d;\n    paintCompare(d);', `    if(handoverRevision !== cmpHandoverRevision || scopeQs !== qs()) return;
     d.table = cmpHandoverRows(d.table || [], primaryDsp, handoverDsps);
     lastCmp = d;
