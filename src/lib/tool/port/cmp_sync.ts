@@ -107,7 +107,7 @@ export function patchCmpSyncPage(html: string): string {
     if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();`)
     .replace('    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";', '    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();')
     .replace('</head>', `<style>
-#cmpVerDialog{padding:0;border:1px solid var(--atc-line);border-radius:8px;background:var(--atc-paper);color:var(--atc-ink);width:calc((100vw - 48px) * var(--taf-read-scale,1));max-width:none;height:calc((100vh - 64px) * var(--taf-read-scale,1));max-height:none;overflow:hidden}
+#cmpVerDialog{position:fixed;inset:16px;margin:0;box-sizing:border-box;padding:0;border:1px solid var(--atc-line);border-radius:8px;background:var(--atc-paper);color:var(--atc-ink);width:calc(100vw - 32px);max-width:none;height:calc(100vh - 32px);max-height:none;overflow:hidden}
 #cmpVerDialog[open]{display:flex;flex-direction:column}
 #cmpVerDialog::backdrop{background:color-mix(in srgb,var(--atc-ink) 55%,transparent)}
 .cmp-ver-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--atc-line);flex-shrink:0;font-size:18px;font-weight:700}
@@ -147,6 +147,13 @@ function cmpVerTipPaint(){
   if(vb) vb.title = "Bấm để so 2 FPL VER gần nhất" + cmpVerDetail();
 }
 let cmpVerOpening = false, cmpVerRestore = null, cmpVerReturnFocus = null;
+function cmpVerModalFit(){
+  const dialog = document.getElementById("cmpVerDialog");
+  if(!dialog || !dialog.open) return;
+  const zoom = (parseFloat(getComputedStyle(document.documentElement).zoom) || 1) * (parseFloat(getComputedStyle(document.body).zoom) || 1);
+  dialog.style.zoom = String(1 / zoom);
+}
+window.addEventListener("resize", () => requestAnimationFrame(cmpVerModalFit));
 function cmpVerModalShow(){
   let dialog = document.getElementById("cmpVerDialog");
   if(!dialog){
@@ -166,6 +173,7 @@ function cmpVerModalShow(){
   window.__verReadFile = "";
   tipRelease(); dialog.appendChild(wrap); wrap.style.display = "flex";
   dialog.showModal();
+  cmpVerModalFit();
 }
 function cmpVerModalClose(){
   const dialog = document.getElementById("cmpVerDialog");
