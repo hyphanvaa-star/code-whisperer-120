@@ -19,7 +19,9 @@ import {
 
 type Room = { id: string; kind: string; name: string; dm_key: string | null };
 type Msg = { id: string; room_id: string; user_id: string; body: string; created_at: string };
-type Profile = { id: string; email: string | null; display_name: string | null };
+type Profile = { id: string; email: string | null; display_name: string | null; last_seen_at?: string | null };
+// Online = heartbeat (every 40s while the tool tab is open) within the last 2 minutes.
+const isOnline = (p: Profile) => !!p.last_seen_at && Date.now() - new Date(p.last_seen_at).getTime() < 120_000;
 
 const GROUP_NAME = "Phòng chung";
 
@@ -158,7 +160,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   }, []);
 
   const loadProfiles = useCallback(async () => {
-    const { data } = await supabase.from("profiles").select("id,email,display_name");
+    const { data } = await supabase.from("profiles").select("id,email,display_name,last_seen_at");
     setProfiles((data as Profile[] | null) ?? []);
     try {
       setAvatars(await readAvatars());
@@ -179,7 +181,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       void loadProfiles();
     };
     window.addEventListener("sohee-profile-updated", refresh);
-    const timer = setInterval(refresh, 60_000);
+    const timer = setInterval(refresh, 30_000);
     return () => {
       clearInterval(timer);
       window.removeEventListener("sohee-profile-updated", refresh);
@@ -483,12 +485,24 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                       onClick={() => openDm(p.id)}
                       className="flex h-auto w-full justify-start items-center gap-3 border-b border-[var(--chat-line)] px-5 py-4 text-left transition-colors hover:bg-[var(--chat-hover)]"
                     >
-                      <Avatar label={nameOf(p, "?")} seed={p.id} src={avatars[p.id]} />
+                      <span className="relative shrink-0">
+                        <Avatar label={nameOf(p, "?")} seed={p.id} src={avatars[p.id]} />
+                        {isOnline(p) && (
+                          <span aria-hidden className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-[var(--chat-bg)] bg-[#16a34a]" />
+                        )}
+                      </span>
                       <span className="min-w-0">
                         <span className="block truncate text-base font-semibold text-[var(--chat-ink)]">
                           {nameOf(p, p.id)}
                         </span>
-                        <span className="block text-xs text-[var(--chat-sub)]">Nhắn riêng</span>
+                        {isOnline(p) ? (
+                          <span className="flex items-center gap-1.5 text-xs font-semibold text-[#16a34a]">
+                            <span className="h-2 w-2 rounded-full bg-[#16a34a]" />
+                            Đang online
+                          </span>
+                        ) : (
+                          <span className="block text-xs text-[var(--chat-sub)]">Nhắn riêng</span>
+                        )}
                       </span>
                       {badge(
                         unread[
