@@ -1,4 +1,5 @@
 ## Tool rules
+- CREW hover presentation lives in `port/cmp_crew_hover.ts`, separates Excel/FliteBrief without changing matching inputs, and imports only its semantic token declarations from global CSS for the isolated tool document.
 - KHB change markers reconcile the current/previous Crewlist through existing version reads in `khb_crew_sync`; never reinsert FPL history, preserve manual values on unchanged fields, and persist empty change maps to prevent old markers returning.
 - FPL quick-view reparents the live `wrapVer` into a dialog and restores it on close; acknowledge only a successfully displayed filename so unseen newer revisions remain pending.
 - KHB airport hover composes existing limits and TAF in `port/khb_airport_hover.ts` after the tool-page patches; exempt these cells from generic title tips so weather stays visible.
