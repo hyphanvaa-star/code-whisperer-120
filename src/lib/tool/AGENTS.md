@@ -7,3 +7,4 @@
 - Allowed-aircraft LIMIT success is presentation-only via `srOnlyAircraftDisplay` and the tool-page shim; never place success in operational warning arrays, and keep other warnings higher priority.
 - Red-triangle verify lives only in the Compare VERIFY column: `port/cmp_validation.ts` prepends a `.cmp-vf` tick wired to `csQuickVerify` (with an `onDone` that clears `ofp_ack` and calls `vMarkDone`), so the flight board callsign cell stays free of write actions.
 - Track-mode "Lọc notam tracking chuyến" grades every in-scope NOTAM with `port/notam_assess.ts` (five levels, tri-state gates, per-role time windows configurable from the client `cfg`); `dropped` holds only NO IMPACT so CRITICAL/manual items are never hidden. Domestic tune keeps the legacy `tuneWhy` rules.
+- AviWeb EOBT check runs only on the manual "Check ATC avi" button; never auto-trigger `vAviAutoCheck` when CHG/DLA cells render (user turned the background run off in V 5.19).

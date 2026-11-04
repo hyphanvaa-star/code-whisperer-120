@@ -22788,7 +22788,6 @@ function vAtcCell(r){
     sp.classList.add("vavi");
     sp.dataset.cs = vAviCs(r.flt);
     sp.dataset.date = vAtcIsoDate(r);
-    setTimeout(vAviAutoCheck, 500);
     if(r.reg && r.reg.changed && r.reg.new){
       sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
       sp.dataset.route = String(r.route || "");
@@ -22817,7 +22816,6 @@ function vAtcCell(r){
       sp.dataset.date = vAtcIsoDate(r);
       vPaintDla(sp);
       td.appendChild(sp);
-      setTimeout(vAviAutoCheck, 500);
     }else{
       sp.className = "vatc";
       sp.style.fontWeight = "700";
@@ -22856,7 +22854,7 @@ function vPaintDla(sp){
   sp.style.fontWeight = "700";
   sp.style.color = t ? "#0a8a2a" : "#d10000";
   sp.title = t ? "✓ EOBT gốc từ AviWeb: " + t + " UTC — dùng làm giờ đầu điện"
-               : "Chưa có EOBT gốc trên AviWeb — đang/sẽ tự check ở tab Check ATC avi";
+               : "Chưa có EOBT gốc trên AviWeb — bấm nút Check ATC avi để tự lấy";
 }
 function vPaintAllDla(){
   document.querySelectorAll("#vBody span.vdla").forEach(vPaintDla);
