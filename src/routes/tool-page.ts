@@ -2571,13 +2571,19 @@ function nmRouteLayers(ids){
     </style></head>`)
     .replace('if(nmTrackData) nmTrackCache[id] = nmTrackData;', 'if(nmTrackData){ nmTrackCache[id] = nmTrackData; try{ window.bpSaveBase && window.bpSaveBase(id, nmTrackData); }catch(_e){} }')
     .replace('</body>', `<style>
-#wrapNotam .nm-flt-menu{width:min(640px,94vw) !important;max-width:94vw !important;min-width:min(640px,94vw) !important}
-#wrapNotam #nmFltItems .nm-flt-choice:not(.nm-flt-all){display:grid !important;grid-template-columns:22px minmax(0,1fr) 118px 104px 64px;align-items:center;gap:8px;padding:4px 10px !important;min-height:40px;border-bottom:1px solid #eef0f4}
+#wrapNotam .nm-flt-menu{width:min(800px,96vw) !important;max-width:96vw !important;min-width:min(800px,96vw) !important}
+#wrapNotam #nmFltItems .nm-flt-choice:not(.nm-flt-all){display:grid !important;grid-template-columns:22px minmax(0,1fr) 150px 130px 150px 72px;align-items:center;gap:8px;padding:4px 10px !important;min-height:40px;border-bottom:1px solid #eef0f4}
 #wrapNotam #nmFltItems .nm-flt-choice:not(.nm-flt-all) > button{white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;text-align:left;min-height:32px !important;padding:6px 8px !important;border-radius:8px}
 #wrapNotam #nmFltItems .nm-flt-choice .nm-flt-bp{margin:0;padding:0;justify-self:start}
 #wrapNotam #nmFltItems .nm-flt-choice .nm-flt-cmp{margin:0;justify-self:start;text-align:center}
 #wrapNotam #nmFltItems .nm-flt-choice .nm-flt-new{margin:0;justify-self:start}
 #wrapNotam #nmFltItems .nm-flt-choice .nm-flt-cmp.none{visibility:hidden}
+#wrapNotam #nmFltItems .nm-flt-choice .nm-flt-bp{font-size:14px !important;font-weight:800 !important}
+#wrapNotam #nmFltItems .nm-flt-choice .nm-flt-cmp{font-size:13.5px;padding:4px 10px}
+.nm-flt-cd{justify-self:start;padding:4px 10px;border-radius:999px;font:800 13px/1.2 ui-monospace,Consolas,monospace;white-space:nowrap;border:1px solid #cbd5e1;color:#475569;background:#f8fafc}
+.nm-flt-cd.run{color:#1d4ed8;border-color:#93c5fd;background:#eff6ff}
+.nm-flt-cd.ok{background:#16a34a;color:#fff;border-color:#16a34a;font-family:system-ui,sans-serif}
+.nm-flt-cd.scan{color:#b45309;border-color:#fcd34d;background:#fffbeb}
 .nm-flt-cmp{margin-left:6px;padding:2px 7px;border-radius:999px;white-space:nowrap;font:800 11px/1.2 system-ui,sans-serif;cursor:pointer;border:1px solid transparent}
 .nm-flt-cmp.wait{color:#64748b;border-color:#cbd5e1;background:#f8fafc}
 .nm-flt-cmp.ok{background:#16a34a;color:#fff}
@@ -2649,6 +2655,7 @@ function nmRouteLayers(ids){
       s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); if(!(typeof nmTrackCache !== "undefined" && nmTrackCache[fid])){ alert("Hãy Check NOTAM tracking chuyến " + label(fid) + " trước."); return; } autoPack(fid, true); };
       row.appendChild(s);
     } else { const s = document.createElement("span"); s.className = "nm-flt-cmp none"; s.textContent = "-"; row.appendChild(s); }
+    const cd = document.createElement("span"); cd.className = "nm-flt-cd"; cd.dataset.fid = fid; cdPaint(cd); row.appendChild(cd);
     const nw = get(K("new", fid));
     if(nw && nw.ids && nw.ids.length){
       const b = document.createElement("span"); b.className = "nm-flt-new"; b.textContent = "+" + nw.ids.length + " mới";
@@ -2658,6 +2665,17 @@ function nmRouteLayers(ids){
       row.appendChild(b);
     }
   };
+  function fmt(ms){ const t = Math.max(0, Math.floor(ms / 1000)); const h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), x = t % 60; return "⏱ " + (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(x).padStart(2, "0"); }
+  function cdPaint(el){
+    const fid = el.dataset.fid, w = get(K("watch", fid)), nw = get(K("new", fid));
+    el.title = "Quét lại NOTAM lúc 1 giờ trước STD";
+    if(!w || !w.dep){ el.className = "nm-flt-cd"; el.textContent = "Chưa check"; return; }
+    if(w.done){ if(nw && nw.ids && nw.ids.length){ el.className = "nm-flt-cd scan"; el.textContent = "Đã quét T-60"; } else { el.className = "nm-flt-cd ok"; el.textContent = "✓ Không NOTAM mới"; } return; }
+    const left = w.dep - 3600_000 - Date.now();
+    if(left > 0){ el.className = "nm-flt-cd run"; el.textContent = fmt(left); }
+    else { el.className = "nm-flt-cd scan"; el.textContent = "Đang quét…"; }
+  }
+  setInterval(() => document.querySelectorAll(".nm-flt-cd[data-fid]").forEach(cdPaint), 1000);
   let busy = false;
   async function tick(){
     if(busy) return; busy = true;
@@ -2708,7 +2726,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.03')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.04')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
