@@ -14879,6 +14879,14 @@ function nmPaintPinBar(n, place){
   };
   btnCloud.onclick = ev => { ev.stopPropagation(); nmPinCloud(n, place, msg, btnCloud); };
   btnCopy.onclick = ev => { ev.stopPropagation(); nmCopyNotam(n, msg, btnCopy); };
+  const btnAi = document.createElement("button");
+  btnAi.type = "button";
+  btnAi.className = "nm-pin-btn nm-ai-btn";
+  btnAi.textContent = "✨ AI decode";
+  btnAi.title = "Nhờ trợ lý sohee giải mã NOTAM, giải thích từ viết tắt và gợi ý việc cần làm.";
+  btnAi.style.cssText = "background:linear-gradient(135deg,#dd2a7b,#8134af);color:#fff;border-color:transparent;font-weight:700";
+  btnAi.onclick = ev => { ev.stopPropagation(); nmAiDecode(n, place, msg); };
+  bar.insertBefore(btnAi, msg);
   inp.oninput = () => nmPinSuggest(inp, box);
   inp.onfocus = () => nmPinSuggest(inp, box);
   inp.onblur = () => setTimeout(() => {
@@ -14886,6 +14894,32 @@ function nmPaintPinBar(n, place){
     if(m) m.hidden = true;
   }, 180);
   return bar;
+}
+function nmAiDecode(n, place, msg){
+  const text = nmNotamCopyText(n);
+  if(!text){
+    if(msg){ msg.textContent = "Không có nội dung NOTAM."; msg.classList.add("bad"); }
+    return;
+  }
+  let flight = "";
+  try{
+    const sel = document.querySelector("#nmFlight, #nmTrackSel, select[id^='nm'][id*='Flt']");
+    if(sel && sel.selectedOptions && sel.selectedOptions[0]) flight = sel.selectedOptions[0].textContent.trim();
+  }catch(_){}
+  const where = place ? (" (sân bay/FIR: " + (place.icao || place.code || place.name || place) + ")") : "";
+  const prompt = "AI DECODE NOTAM" + (flight ? " cho chuyến " + flight : "") + where + ".\n"
+    + "Hãy trả lời bằng tiếng Việt, rõ ràng theo các mục:\n"
+    + "1) Tóm tắt NOTAM nói gì (1-2 câu).\n"
+    + "2) Decode từng dòng Q) A) B) C) D) E) F) G): ý nghĩa, thời gian hiệu lực đổi ra UTC dễ đọc, độ cao.\n"
+    + "3) Giải thích các từ viết tắt/thuật ngữ khó (bảng: viết tắt → nghĩa đầy đủ → giải thích).\n"
+    + "4) Mức ảnh hưởng tới khai thác chuyến bay.\n"
+    + "5) Action cho dispatcher/tổ bay cần làm gì (gạch đầu dòng cụ thể).\n\n"
+    + "NOTAM:\n" + text;
+  aiToggle(true);
+  const inp = $("#aiInput");
+  if(!inp) return;
+  inp.value = prompt;
+  aiSend();
 }
 function nmNotamCopyText(n){
   return String((n && (n.text || n.e_field || "")) || "").replace(/\s+$/, "");
