@@ -117,6 +117,21 @@ const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
+function cmpVerDetail(){
+  try{
+    const vo = ($("#vOld") && $("#vOld").value) || "";
+    const vne = ($("#vNew") && $("#vNew").value) || "";
+    const xf = (typeof xls !== "undefined" && xls && xls.file) || "";
+    const parts = [];
+    if(vne || vo) parts.push("FPL " + [vo, vne].filter(Boolean).join(" → "));
+    if(xf) parts.push("Crewlist: " + xf);
+    return parts.length ? " · Đang đối chiếu: " + parts.join(" · ") : "";
+  }catch(_){ return ""; }
+}
+function cmpVerTipPaint(){
+  const vb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
+  if(vb) vb.title = "Bấm để so 2 FPL VER gần nhất" + cmpVerDetail();
+}
 async function cmpVerOpen(){
   await vLoadFiles({preferNewest: false});
   const pair = cmpFplPair(vFileList, Date.now(), true);
