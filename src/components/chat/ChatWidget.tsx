@@ -25,7 +25,7 @@ function playMessengerPing() {
       o.type = "sine";
       o.frequency.setValueAtTime(f, t0 + d);
       g.gain.setValueAtTime(0.0001, t0 + d);
-      g.gain.exponentialRampToValueAtTime(0.7, t0 + d + 0.015);
+      g.gain.exponentialRampToValueAtTime(1, t0 + d + 0.015);
       g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.22);
       o.connect(g).connect(ctx.destination);
       o.start(t0 + d);
