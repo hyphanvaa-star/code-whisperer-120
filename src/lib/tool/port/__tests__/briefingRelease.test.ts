@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildSheet, parseEnrouteAlts, toHtml, toText, applyFields, draftFromFlight, toPdf } from "../briefingRelease";
+import { buildSheet, parseEnrouteAlts, toHtml, toText, applyFields, draftFromFlight, toPdf, editIdentity } from "../briefingRelease";
 import { applyToSheet, emptyStore, itemFrom, joinNotam, NOTAM_NIL, NOTAM_NO_OPS } from "../notam_pin";
 import { PDFDocument } from "pdf-lib";
 import { writeFileSync, mkdirSync } from "node:fs";
 
-const flight = { id: 21638165, callsign: "VJC869", reg: "VN-A575", dep_icao: "RKPK", dest_icao: "VVTS", dest_alt1: "VVCR", dest_alt2: "VVCT" };
+const flight = { id: 21638165, callsign: "VJC869", reg: "VN-A575", dep_icao: "RKPK", dest_icao: "VVTS", dest_alt1: "VVCR", dest_alt2: "VVCT", raw: { std: "2026-08-31T23:10:00Z" } };
 const ofp = `CFP 7843 VJC869 RKPK TO VVTS
 TAKE OFF ALT RKSI
 ENROUTE ALT = VVDN
@@ -84,4 +84,23 @@ describe("Python Briefing parity", () => {
     const { extractText } = await import("unpdf");
     expect((await extractText(pdf, { mergePages: true })).text).toContain("END_OF_NOTAM");
   }, 60000);
+});
+describe("saved briefing edit identity", () => {
+  const today = { ...flight, callsign: "VJC821", raw: { std: "2026-11-04T16:00:00Z", etd: "2026-11-05T01:00:00Z" } };
+  it("keys by callsign + STD UTC date + route, ignoring a delayed ETD", () => {
+    expect(editIdentity(today)).toBe("VJC821.20261104.RKPK-VVTS");
+  });
+  it("same flight number on 26 Oct gets a different key", () => {
+    expect(editIdentity({ ...today, raw: { std: "2026-10-26T16:00:00Z" } })).toBe("VJC821.20261026.RKPK-VVTS");
+  });
+  it("missing date never produces a key", () => {
+    expect(editIdentity({ ...today, raw: {} })).toBe("");
+  });
+  it("draft never applies another day's saved copy", async () => {
+    const store: Record<string, Record<string, unknown>> = { "VJC821.20261026.RKPK-VVTS": { notam1: "OLD 26 OCT" } };
+    const seen: string[] = [];
+    const s = await draftFromFlight(today, { tafs, fetchPdf: () => new Uint8Array([1]), pdfText: () => ofp, loadEdits: (k) => { seen.push(k); return store[k] ?? null; } });
+    expect(seen).toEqual(["VJC821.20261104.RKPK-VVTS"]);
+    expect(s.notams[1]).not.toBe("OLD 26 OCT");
+  });
 });
