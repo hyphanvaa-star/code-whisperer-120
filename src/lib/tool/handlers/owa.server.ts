@@ -3,6 +3,7 @@ import type { Jobs, Routes } from "../types";
 import { jobId } from "../jobs";
 import * as pc from "../pcagent.server";
 import * as ae from "../port/atc_ezfw";
+import { cmpFplPair } from "../port/cmp_sync";
 
 // Port of web.py OWA/PIB endpoints (start_owa_login, owa_fpl_watch.status,
 // start_pib_download): the real Outlook-Web/Selenium session must run on the
@@ -94,7 +95,7 @@ export const routes: Routes = {
       }
       // Always prefer the newest FLIGHT PLAN VER pair actually stored.
       const pair = fplVerPair([...stored]);
-      if (pair.new) { ver.new = pair.new; ver.old = pair.old || ver.old || ""; }
+      if (pair.new) { ver.new = pair.new; ver.old = pair.old; }
       r.ver = ver;
       return r;
     } catch (e) {
@@ -339,11 +340,6 @@ export const jobs: Jobs = {
 
 /** Newest two FLIGHT PLAN files by (date, VER number): {new, old}. */
 export function fplVerPair(names: string[]): { new: string; old: string } {
-  const key = (n: string) => {
-    const v = /VER\D{0,3}(\d+)/i.exec(n); const d = /ON\s*(\d{1,2})\s*([A-Z]{3})/i.exec(n);
-    const mon = d ? "JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC".indexOf(d[2].toUpperCase()) / 3 : -1;
-    return (mon * 100 + (d ? Number(d[1]) : 0)) * 1000 + (v ? Number(v[1]) : -1);
-  };
-  const s = names.filter(n => /FLIGHT\s*PLAN|\bFPL\b/i.test(n)).sort((a, b) => key(b) - key(a));
-  return { new: s[0] || "", old: s[1] || "" };
+  const pair = cmpFplPair(names.map(name => ({name})), Date.now(), true);
+  return { new: pair[pair.length - 1]?.name || "", old: pair.length === 2 ? pair[0]?.name || "" : "" };
 }
