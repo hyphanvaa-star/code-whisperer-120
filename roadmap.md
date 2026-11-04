@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 5.23: KHB chỉ đánh dấu thay đổi của cặp Crewlist mới nhất; bỏ dấu xanh/nút cũ ở ô không còn đổi, giữ chỉnh sửa và cập nhật số đếm.
+- [x] V 5.23: KHB chỉ đánh dấu thay đổi của cặp Crewlist mới nhất; bỏ dấu xanh/nút cũ ở ô không còn đổi, giữ chỉnh sửa và cập nhật số đếm. 21 kiểm thử đạt; trình duyệt thử dấu xanh và hai nút cũ biến mất, giữ VN-A580; build OK. Chưa publish.
+- [ ] V 5.23: thử nạp Crewlist thật trong phiên JACK — không cấp được phiên khớp người yêu cầu; cần JACK đăng nhập preview.
 
 - [x] V 5.22: gộp giới hạn sân bay và TAF vào cùng bảng rê chuột trong KHB; đã thử HUI bằng dữ liệu kiểm tra, chưa thử phiên JACK.
 - [x] V 5.22: nhấn FPL VER mới mở bảng nổi dữ liệu thay đổi, đóng tại chỗ rồi chuyển nhãn xanh; 31 kiểm thử đạt, thử mở/đóng tại So sánh đạt, chưa thử dữ liệu thật do không cấp được phiên JACK. Chưa publish.
