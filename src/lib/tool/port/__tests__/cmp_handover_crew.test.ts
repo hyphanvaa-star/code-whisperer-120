@@ -6,7 +6,7 @@ import { patchCmpValidationPage } from '../cmp_validation';
 const html = patchCmpValidationPage(readFileSync('src/tool/page.html', 'utf8'));
 const scope = 'dispatcher=PHAN+THANH+HY&dep=VVTS&refresh=1';
 
-async function readCrew(handover: boolean, names = false) {
+async function readCrew(handover: boolean, names = false, opts: { cache?: Record<string, unknown>; dsps?: string[] } = {}) {
   const calls: URLSearchParams[] = [];
   const painted: unknown[] = [];
   const table = [{ sector_id: 642, in_excel: true, handover }];
@@ -16,7 +16,7 @@ async function readCrew(handover: boolean, names = false) {
     $: (s: string) => ({ value: s === '#cmpSheet' ? 'CREW' : 'PHAN THANH HY' }),
     xls: { file: 'Crewlist.xlsx' }, lastCmp: { table },
     cmpHandoverRevision: 1,
-    C_CACHE: {}, C_BATCH: 40, cSeq: 0,
+    C_CACHE: opts.cache || {}, cmpHandoverDsps: new Set(opts.dsps || []), C_BATCH: 40, cSeq: 0,
     CREW_NAMES: {}, cmpNameQ: new Set([642]),
     crewStat() {}, write() {}, cmpBind: {},
     paintCrew: (id: number, cell: unknown) => painted.push([id, cell]),
@@ -63,5 +63,14 @@ describe('Compare handover crew reads', () => {
       const { calls } = await readCrew(false, names);
       expect(calls[0]?.get('dispatcher')).toBe('PHAN THANH HY');
     }
+  });
+  it('drops the primary DSP filter whenever a handover DSP is selected', async () => {
+    const { calls } = await readCrew(false, false, { dsps: ['BUI T H NHUNG'] });
+    expect(calls[0]?.has('dispatcher')).toBe(false);
+  });
+  it('retries a cached missing crew instead of keeping the dash', async () => {
+    const { calls, painted } = await readCrew(true, false, { cache: { 642: null } });
+    expect(calls.length).toBe(1);
+    expect(painted).toEqual([[642, { verdict: true, same: true }]]);
   });
 });

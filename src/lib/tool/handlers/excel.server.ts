@@ -577,7 +577,12 @@ export const routes: Routes = {
     if (!filename) return { error: "Chưa nạp file Excel nào." };
     const sheetName = ctx.params.get("sheet") || state?.sheet || "";
     const days = Number.parseInt(ctx.params.get("days") || "1", 10) || 1;
-    const flights = applyFilters(await loadFlights(days), ctx.params);
+    const catalogue = await loadFlights(days);
+    let flights = applyFilters(catalogue, ctx.params);
+    // Explicit IDs may include Compare handover sectors from another DSP; when any
+    // requested sector is outside the DSP filter, match on the same broadened set
+    // as the handover Compare read instead of silently returning no crew.
+    if (ids.some((id) => !flights.some((f) => f.id === id))) flights = applyFilters(catalogue, ctx.params, true);
 
     try {
       const { sheets } = await readSheet(ctx, filename);

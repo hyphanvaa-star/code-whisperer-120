@@ -23,6 +23,8 @@ function cmpHandoverToggle(name){
   const key = dspKey(name);
   if(!key || key === dspKey($("#fDispatcher").value)) return;
   if(cmpHandoverDsps.has(key)) cmpHandoverDsps.delete(key); else cmpHandoverDsps.add(key);
+  // Cached misses may come from a read scoped to the primary DSP; retry them.
+  if(typeof C_CACHE === "object") for(const k of Object.keys(C_CACHE)) if(!C_CACHE[k]) delete C_CACHE[k];
   if(xls) runCompare();
   else alert("Đã chọn DSP giao ca — chọn Crewlist để nạp bảng So sánh.");
 }
@@ -35,7 +37,7 @@ function cmpFlightPool(){
 function cmpCrewParams(rows){
   const p = new URLSearchParams(qs());
   // Match the Compare read only; IDs still limit each crew batch.
-  if((rows || []).some(r => r.handover)) p.delete("dispatcher");
+  if((rows || []).some(r => r.handover) || (typeof cmpHandoverDsps !== "undefined" && cmpHandoverDsps.size)) p.delete("dispatcher");
   return p;
 }
 async function runCompare(opts){
@@ -45,6 +47,8 @@ async function runCompare(opts){
   const scopeQs = qs();`)
     .replace('    const p = new URLSearchParams(qs());\n    p.set("file", xls.file);', '    const p = new URLSearchParams(scopeQs);\n    if(handoverDsps.length) p.delete("dispatcher");\n    p.set("file", xls.file);')
     .replace('    cmpQs = qs();', '    cmpQs = scopeQs;')
+    // A cached miss is retried so an earlier narrower read cannot hide crew forever.
+    .replace('    if(r.sector_id in C_CACHE) paintCrew(r.sector_id, C_CACHE[r.sector_id]);', '    if(C_CACHE[r.sector_id]) paintCrew(r.sector_id, C_CACHE[r.sector_id]);')
     .replace('      const p = new URLSearchParams(qs());\n      if(xls && xls.file) p.set("file", xls.file);', '      const p = cmpCrewParams(rows);\n      if(xls && xls.file) p.set("file", xls.file);')
     .replace('      const p = new URLSearchParams(qs());\n      p.set("ids", chunk.join(","));\n      const d = await (await fetch("/api/excel/crewnames?"', '      const p = cmpCrewParams((lastCmp && lastCmp.table) || []);\n      p.set("ids", chunk.join(","));\n      const d = await (await fetch("/api/excel/crewnames?"')
     .replace('    lastCmp = d;\n    paintCompare(d);', `    if(handoverRevision !== cmpHandoverRevision || scopeQs !== qs()) return;
