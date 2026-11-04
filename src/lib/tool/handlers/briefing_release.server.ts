@@ -14,7 +14,7 @@ import {
   toPdf,
   pdfFilename,
   draftFromFlight,
-  editKey,
+  editIdentity,
   type ReleaseSheet,
 } from "../port/briefingRelease";
 
@@ -51,12 +51,16 @@ async function fetchOfpPdf(sectorId: number): Promise<Uint8Array | null> {
   return null;
 }
 
-function editSettingKey(callsign: string): string {
-  return `briefing_edit.${editKey(callsign)}`;
+// Saved edits are keyed by full sector identity (callsign + STD UTC date + route),
+// so a same-number flight on another day never reuses an old copy. Legacy
+// callsign-only keys ("briefing_edit.VJC821") are simply never read again.
+function editSettingKey(identity: string): string {
+  return `briefing_edit.${identity}`;
 }
 
-async function loadEdits(ctx: Parameters<Routes[string]>[0], callsign: string) {
-  return getJson<Record<string, unknown> | null>(ctx, editSettingKey(callsign), null);
+async function loadEdits(ctx: Parameters<Routes[string]>[0], identity: string) {
+  if (!identity) return null;
+  return getJson<Record<string, unknown> | null>(ctx, editSettingKey(identity), null);
 }
 
 async function findFlight(flight: string) {
@@ -73,16 +77,21 @@ async function findFlight(flight: string) {
   return hits[0];
 }
 
-async function draft(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<ReleaseSheet> {
+async function draftWithIdentity(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<{ sheet: ReleaseSheet; identity: string }> {
   const f = await findFlight(flight);
   if (!f) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
-  return draftFromFlight(f, {
+  const sheet = await draftFromFlight(f, {
     ...await loadBriefingData(ctx),
     fetchPdf: fetchOfpPdf,
     pdfText: ofpPdfText,
     applyEdits,
-    loadEdits: (cs) => loadEdits(ctx, cs),
+    loadEdits: (id) => loadEdits(ctx, id),
   });
+  return { sheet, identity: editIdentity(f) };
+}
+
+async function draft(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<ReleaseSheet> {
+  return (await draftWithIdentity(ctx, flight, applyEdits)).sheet;
 }
 
 export const routes: Routes = {
@@ -91,8 +100,8 @@ export const routes: Routes = {
     const flight = String(body["flight"] ?? "").trim();
     if (!flight) return { error: "Nhập số hiệu chuyến, ví dụ 869." };
     try {
-      const sheet = await draft(ctx, flight, true);
-      const saved = await loadEdits(ctx, sheet.callsign);
+      const { sheet, identity } = await draftWithIdentity(ctx, flight, true);
+      const saved = await loadEdits(ctx, identity);
       return toDict(sheet, { edit: true, edited: !!saved });
     } catch (exc) {
       return { error: errorMessage(exc) };
@@ -104,8 +113,10 @@ export const routes: Routes = {
     const cs = String(body["callsign"] ?? "").trim();
     if (!cs) return { error: "Thiếu số hiệu chuyến." };
     try {
-      const sheet = applyFields(await draft(ctx, cs, true), body);
-      await setJson(ctx, editSettingKey(sheet.callsign), toFields(sheet));
+      const drafted = await draftWithIdentity(ctx, cs, true);
+      if (!drafted.identity) throw new BriefReleaseError(`Thiếu ngày/chặng của ${cs} — không lưu để tránh nhầm chuyến ngày khác.`);
+      const sheet = applyFields(drafted.sheet, body);
+      await setJson(ctx, editSettingKey(drafted.identity), toFields(sheet));
       const out = toDict(sheet, { edit: true, edited: true });
       out["saved"] = true;
       return out;
@@ -122,8 +133,11 @@ export const routes: Routes = {
       // Clear first: a transient OFP failure must not leave a supposedly cleared edit behind.
       const existing = await findFlight(flight);
       if (!existing) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
-      const { error } = await ctx.supabase.from("app_settings").delete().eq("key", editSettingKey(existing.callsign));
-      if (error) throw new Error(error.message);
+      const identity = editIdentity(existing);
+      if (identity) {
+        const { error } = await ctx.supabase.from("app_settings").delete().eq("key", editSettingKey(identity));
+        if (error) throw new Error(error.message);
+      }
       const sheet = await draft(ctx, flight, false);
       return toDict(sheet, { edit: true, edited: false });
     } catch (exc) {
@@ -279,7 +293,7 @@ export const jobs: Jobs = {
             fetchPdf: fetchOfpPdf,
             pdfText: ofpPdfText,
             applyEdits: true,
-            loadEdits: (c) => getJson(ctx, editSettingKey(c), null),
+            loadEdits: (id) => loadEdits(ctx, id),
           });
           return { sheet, pdf: await toPdf(sheet) };
         })();

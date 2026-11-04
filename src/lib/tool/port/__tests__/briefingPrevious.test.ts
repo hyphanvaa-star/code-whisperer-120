@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildSheet, draftFromFlight, NOTES_RED, sheetFromFields, toPdf } from "../briefingRelease";
 import { readPreviousBriefing, restorePreviousBriefing } from "../briefingPrevious";
 import { mkdirSync, writeFileSync } from "node:fs";
-const flight = { id: 12, callsign: "VJC161", dep_icao: "VVNB", dest_icao: "VVTS", dest_alt1: "VVCR", dest_alt2: "VVCT", reg: "VN-A551" };
+const flight = { id: 12, callsign: "VJC161", dep_icao: "VVNB", dest_icao: "VVTS", dest_alt1: "VVCR", dest_alt2: "VVCT", reg: "VN-A551", raw: { std: "2026-11-04T01:00:00Z" } };
 const sheet = () => buildSheet(flight, "RALT/VVDN", { tafs: { VVNB: { nil: false, issue: "181600", raw: "TAF VVNB FRESH_WX" } } });
 
 describe("Briefing creation and aircraft replacement", () => {
