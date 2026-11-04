@@ -1096,6 +1096,26 @@ html.night .ai-log{background:#fafafa}
 html.night .ai-msg.bot{background:#f0f0f0;color:#111;border:0}
 html.night .ai-foot{background:#fff}
 html.night .ai-foot textarea{background:#f0f0f0;color:#111;border:0}
+.ai-msg.bot{white-space:normal;background:#fff;border:1px solid #eee;box-shadow:0 2px 10px rgba(129,52,175,.08);max-width:94%;padding:12px 16px}
+.ai-msg.bot p{margin:0 0 7px}
+.ai-msg.bot .ai-h{margin:12px 0 6px;padding:6px 10px;border-left:4px solid #dd2a7b;background:linear-gradient(90deg,#fdf0f7,#fff);border-radius:8px;font-weight:800;color:#8134af;font-size:15.5px}
+.ai-msg.bot .ai-h:first-child{margin-top:0}
+.ai-msg.bot ul,.ai-msg.bot ol{margin:0 0 8px;padding-left:22px}
+.ai-msg.bot li{margin:3px 0}
+.ai-msg.bot li::marker{color:#dd2a7b;font-weight:800}
+.ai-msg.bot b{color:#111;font-weight:800}
+.ai-msg.bot code{background:#f3eefe;color:#6b21a8;padding:1px 6px;border-radius:6px;font:600 14px monospace}
+.ai-tag{background:#111;color:#fff;padding:1px 7px;border-radius:6px;font:700 13px monospace}
+.ai-num{color:#0369a1;font-weight:700}
+.ai-warn{color:#fff;background:#E31937;padding:0 6px;border-radius:5px;font-weight:800;font-size:13px}
+.ai-tblw{overflow:auto;margin:4px 0 8px}
+.ai-tbl{border-collapse:collapse;width:100%;font-size:14px}
+.ai-tbl th{background:#8134af;color:#fff;text-align:left;padding:6px 8px}
+.ai-tbl td{border-bottom:1px solid #eee;padding:6px 8px;vertical-align:top}
+.ai-tbl tr:nth-child(odd) td{background:#faf7ff}
+.ai-msg.user{background:linear-gradient(45deg,#dd2a7b,#8134af)}
+.ai-log{background:linear-gradient(180deg,#faf7ff,#fafafa)}
+html.night .ai-msg.bot{background:#fff;color:#111;border:1px solid #eee}
 .taf-tip{position:fixed;z-index:10050;max-width:min(560px,92vw);padding:10px 12px;
   background:#161b26;color:#e7ebf3;border:1px solid rgba(255,255,255,.12);border-radius:10px;
   box-shadow:0 12px 32px rgba(0,0,0,.35);font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
@@ -28483,12 +28503,43 @@ function aiToggle(on){
     if(inp) setTimeout(() => inp.focus(), 40);
   }
 }
+function aiRenderMd(text){
+  const esc = t => String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const inl = t => esc(t)
+    .replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")
+    .replace(/`([^`]+)`/g,"<code>$1</code>")
+    .replace(/\b([A-Z]\d{3,4}\/\d{2})\b/g,'<span class="ai-tag">$1</span>')
+    .replace(/\b(FL\d{2,3}|\d{4}Z|\d{10})\b/g,'<span class="ai-num">$1</span>')
+    .replace(/\b(CRITICAL|CRUCIAL|CLOSED|CLSD|U\/S|PROHIBITED|DANGER)\b/g,'<span class="ai-warn">$1</span>');
+  const lines = String(text||"").split(/\r?\n/);
+  let out = [], list = null, tbl = null;
+  const flush = () => { if(list){ out.push("<"+list.t+">"+list.i.join("")+"</"+list.t+">"); list=null; }
+    if(tbl){ out.push('<div class="ai-tblw"><table class="ai-tbl">'+tbl.join("")+"</table></div>"); tbl=null; } };
+  for(const raw of lines){
+    const l = raw.trim();
+    if(/^\|.*\|$/.test(l)){
+      if(/^\|[\s:|-]+\|$/.test(l)) continue;
+      if(list){ out.push("<"+list.t+">"+list.i.join("")+"</"+list.t+">"); list=null; }
+      const c = l.slice(1,-1).split("|").map(x=>inl(x.trim()));
+      const tag = tbl ? "td" : "th"; tbl = tbl || [];
+      tbl.push("<tr>"+c.map(x=>"<"+tag+">"+x+"</"+tag+">").join("")+"</tr>"); continue;
+    }
+    let m;
+    if((m = l.match(/^#{1,4}\s+(.*)$/)) || (m = l.match(/^\*\*(\d+[.)].*?)\*\*:?$/))){ flush(); out.push('<div class="ai-h">'+inl(m[1])+"</div>"); continue; }
+    if((m = l.match(/^[-*•]\s+(.*)$/))){ if(tbl) flush(); if(!list||list.t!=="ul"){ flush(); list={t:"ul",i:[]}; } list.i.push("<li>"+inl(m[1])+"</li>"); continue; }
+    if((m = l.match(/^\d+[.)]\s+(.*)$/))){ if(tbl) flush(); if(!list||list.t!=="ol"){ flush(); list={t:"ol",i:[]}; } list.i.push("<li>"+inl(m[1])+"</li>"); continue; }
+    flush();
+    if(l) out.push("<p>"+inl(l)+"</p>");
+  }
+  flush();
+  return out.join("");
+}
 function aiPaintLine(role, text, cls){
   const log = $("#aiLog");
   if(!log) return;
   const el = document.createElement("div");
   el.className = "ai-msg " + (cls || role);
-  el.textContent = text;
+  if((cls || role) === "bot") el.innerHTML = aiRenderMd(text); else el.textContent = text;
   log.appendChild(el);
   log.scrollTop = log.scrollHeight;
 }
