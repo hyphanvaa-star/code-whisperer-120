@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 5.25: thiết kế lại hover CREW thành hai mục Excel/FliteBrief, mỗi người một dòng, giữ tên nguồn và kết quả đối chiếu.
 - [x] V 5.24: thêm nguồn FPL/Crewlist vào chú thích từng ô và tiêu đề REG FPL, REG AIMS, CREW; 18 kiểm thử đạt, thử rê chuột và đổi hy4 → hy5 bằng dữ liệu mẫu. Chưa publish.
 - [ ] V 5.24: thử bảng So sánh thật trong phiên JACK — không có tài khoản ứng dụng khớp email người yêu cầu.
 - [x] V 5.23: KHB chỉ đánh dấu thay đổi của cặp Crewlist mới nhất; bỏ dấu xanh/nút cũ ở ô không còn đổi, giữ chỉnh sửa và cập nhật số đếm. 21 kiểm thử đạt; trình duyệt thử dấu xanh và hai nút cũ biến mất, giữ VN-A580; build OK. Chưa publish.
