@@ -2438,12 +2438,65 @@ function nmPaintListBase(place, q){`)
     t.textContent = "Tất cả (" + hits.length + " chuyến)";
     allRow.appendChild(allCk); allRow.appendChild(t);
     box.appendChild(allRow);
+    const split = document.createElement("div");
+    split.className = "nm-flt-split";
+    [["intl", "Quốc tế", o => o.className.indexOf("intl") >= 0], ["dom", "Quốc nội", o => o.className.indexOf("intl") < 0]].forEach(([k, name, test]) => {
+      const grp = hits.filter(test);
+      const sb = document.createElement("button");
+      sb.type = "button"; sb.className = "nm-flt-sp nm-flt-sp-" + k;
+      const allOn = grp.length > 0 && grp.every(o => nmMulti.has(o.value));
+      if(allOn) sb.classList.add("on");
+      sb.textContent = name + " (" + grp.length + ")";
+      sb.onmousedown = ev => ev.preventDefault();
+      sb.onclick = ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        grp.forEach(o => { if(allOn) nmMulti.delete(o.value); else nmMulti.add(o.value); });
+        nmMultiLabel(); nmFltFillItems(($("#nmFltQ") || {}).value || "");
+      };
+      split.appendChild(sb);
+    });
+    box.appendChild(split);
   }
   hits.forEach(opt => {`)
+    .replace('let nmBatchLbl = "";', `let nmBatchLbl = "";
+let nmRteOverlays = [];
+function nmRouteLayers(ids){
+  const map = nmEnsureMap();
+  if(!map || !nmLayerCtl) return;
+  nmRteOverlays.forEach(g => { try{ nmLayerCtl.removeLayer(g); map.removeLayer(g); }catch(e){} });
+  nmRteOverlays = [];
+  const sel = $("#nmFlt");
+  const rows = ids.map(id => {
+    const d = nmTrackCache[String(id)];
+    if(!d) return null;
+    const f = d.flight || {};
+    return {id: String(id), d, f, intl: nmIsIntl(f)};
+  }).filter(Boolean).sort((a, b) => (b.intl - a.intl) || String(a.f.callsign || "").localeCompare(String(b.f.callsign || "")));
+  for(const r of rows){
+    const g = L.layerGroup();
+    const legs = nmAddRouteLegs(r.d.track, r.d.line, {weight: 4, opacity: 1, flightId: r.id, color: r.intl ? "#c62828" : "#f2c200"});
+    if(!legs.length) continue;
+    const tip = (r.f.callsign || "") + "  " + (r.f.dep || "") + "–" + (r.f.dest || "");
+    legs.forEach(l => { l.bindTooltip(tip); l.addTo(g); });
+    const lab = '<b class="nm-rte-tag ' + (r.intl ? "qt" : "qn") + '">' + (r.intl ? "QT" : "QN") + "</b> " + esc(tip);
+    nmLayerCtl.addOverlay(g, lab);
+    nmRteOverlays.push(g);
+  }
+  if(sel) void sel;
+}`)
+    .replace('  $("#nmFlt").value = ids[0]; nmFltSyncQ(); nmTrackShow(ids[0]);', '  $("#nmFlt").value = ids[0]; nmFltSyncQ(); nmTrackShow(ids[0]);\n  if(ids.length > 1) nmRouteLayers(ids);')
     .replace('    box.appendChild(b);\n  });\n}\nfunction nmFltPlaceMenu', '    box.appendChild(row);\n  });\n}\nfunction nmFltPlaceMenu')
     .replace('</head>', `<style>
       #nmFltItems .nm-flt-choice{display:flex;align-items:center;gap:8px;padding-left:10px;min-height:42px}
       #nmFltItems .nm-flt-choice:has(input:checked){background:var(--x-red-50)}
+      #nmFltItems .nm-flt-split{display:flex;gap:6px;padding:6px 10px;border-bottom:1px solid var(--x-line)}
+      #wrapNotam #nmFltItems .nm-flt-sp{flex:1;text-align:center;border:1.5px solid;border-radius:8px;font-weight:800;padding:8px 4px}
+      #wrapNotam #nmFltItems .nm-flt-sp-intl{color:#c62828;border-color:#c62828}
+      #wrapNotam #nmFltItems .nm-flt-sp-dom{color:#1d4ed8;border-color:#1d4ed8}
+      #wrapNotam #nmFltItems .nm-flt-sp-intl.on{background:#c62828;color:#fff}
+      #wrapNotam #nmFltItems .nm-flt-sp-dom.on{background:#1d4ed8;color:#fff}
+      #nmTrackMap .nm-rte-tag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:4px;color:#fff}
+      #nmTrackMap .nm-rte-tag.qt{background:#c62828}#nmTrackMap .nm-rte-tag.qn{background:#1d4ed8}
       #nmFltItems .nm-flt-all{font:800 15px/1.3 Arial,sans-serif;color:var(--x-red);border-bottom:1px solid var(--x-line);cursor:pointer;padding-right:10px}
       #wrapNotam #nmFltItems .nm-flt-choice>button{flex:1;min-width:0;text-align:left;width:auto}
       #nmFltItems .nm-flt-choice>.nm-flt-ck{display:block!important;visibility:visible!important;opacity:1!important;appearance:auto!important;position:static!important;flex:0 0 20px;width:20px!important;height:20px!important;margin:0!important;padding:0!important;accent-color:var(--x-red);cursor:pointer}
@@ -2507,7 +2560,7 @@ function nmPaintListBase(place, q){`)
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.89')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.90')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replaceAll('if(nmLayerCtl) nmLayerCtl.addOverlay(nmAtsGroups[cc], nmAtsLabel(cc));', '')
     .replace('{"Sân bay": nmAdGroup, "Đài": nmNavGroup},', '{"Sân bay": nmAdGroup},')
