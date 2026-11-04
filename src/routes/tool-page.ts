@@ -2571,6 +2571,13 @@ function nmRouteLayers(ids){
     </style></head>`)
     .replace('if(nmTrackData) nmTrackCache[id] = nmTrackData;', 'if(nmTrackData){ nmTrackCache[id] = nmTrackData; try{ window.bpSaveBase && window.bpSaveBase(id, nmTrackData); }catch(_e){} }')
     .replace('</body>', `<style>
+#wrapNotam .nm-flt-menu{width:min(640px,94vw) !important;max-width:94vw !important;min-width:min(640px,94vw) !important}
+#wrapNotam #nmFltItems .nm-flt-choice:not(.nm-flt-all){display:grid !important;grid-template-columns:22px minmax(0,1fr) 118px 104px 64px;align-items:center;gap:8px;padding:4px 10px !important;min-height:40px;border-bottom:1px solid #eef0f4}
+#wrapNotam #nmFltItems .nm-flt-choice:not(.nm-flt-all) > button{white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;text-align:left;min-height:32px !important;padding:6px 8px !important;border-radius:8px}
+#wrapNotam #nmFltItems .nm-flt-choice .nm-flt-bp{margin:0;padding:0;justify-self:start}
+#wrapNotam #nmFltItems .nm-flt-choice .nm-flt-cmp{margin:0;justify-self:start;text-align:center}
+#wrapNotam #nmFltItems .nm-flt-choice .nm-flt-new{margin:0;justify-self:start}
+#wrapNotam #nmFltItems .nm-flt-choice .nm-flt-cmp.none{visibility:hidden}
 .nm-flt-cmp{margin-left:6px;padding:2px 7px;border-radius:999px;white-space:nowrap;font:800 11px/1.2 system-ui,sans-serif;cursor:pointer;border:1px solid transparent}
 .nm-flt-cmp.wait{color:#64748b;border-color:#cbd5e1;background:#f8fafc}
 .nm-flt-cmp.ok{background:#16a34a;color:#fff}
@@ -2638,7 +2645,7 @@ function nmRouteLayers(ids){
       s.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };
       s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); pickPack(fid); };
       row.appendChild(s);
-    }
+    } else { const s = document.createElement("span"); s.className = "nm-flt-cmp none"; s.textContent = "-"; row.appendChild(s); }
     const nw = get(K("new", fid));
     if(nw && nw.ids && nw.ids.length){
       const b = document.createElement("span"); b.className = "nm-flt-new"; b.textContent = "+" + nw.ids.length + " mới";
@@ -2698,7 +2705,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.00')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.01')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
