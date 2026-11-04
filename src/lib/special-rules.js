@@ -91,6 +91,21 @@ export function srAptLabel(apts) {
 }
 export function srRuleLabel(id) { const r = SR_RULES.find((x) => x.id === id); return r ? r.label : id; }
 
+// Presentation only: a permitted destination is not an operational warning.
+export function srOnlyAircraftDisplay(row, f, groups) {
+  if (!row || row.rule !== "ONLY_ACS_APTS") return [];
+  const rule = "Chỉ các tàu đã chọn được bay đến sân bay " + srAptLabel(row.apts);
+  const permitted = srAcMatch(row.acs, f.reg, f.ac, groups);
+  const hits = srEvaluate(row, f, groups);
+  const result = hits.map(h => ({kind: "special", check: "special", severity: h.sev,
+    text: (f.reg || f.ac || "Tàu") + ": " + (row.note || "Giới hạn tàu được phép"),
+    limit: rule, evidence: h.role + " — " + h.text}));
+  if (permitted && srAptIn(row.apts, f.dest)) result.push({kind: "special", check: "special", severity: "success",
+    text: (f.reg || f.ac) + ": ĐẠT — " + (row.note || "Tàu được phép"),
+    limit: rule, evidence: "Được phép bay đến " + srIcao(f.dest)});
+  return result;
+}
+
 /**
  * f: {reg, ac, dep, dest, alt1, alt2, talt, etops}
  * Trả [{role, sev:"critical"|"warning", text}] — role: DEP|DEST|ALT1|ALT2|TALT

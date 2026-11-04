@@ -215,6 +215,7 @@
 - [x] So sánh VJC834: Tracking thiếu apply24h nên lấy ALL; sửa trước đếm/vẽ. Kiểm tra thực tế còn 1154 NOTAM so với ảnh cũ 1152 (nguồn thay đổi + VVHM thêm); bộ lọc và parser có regression tests.
 
 ## Giao diện đăng nhập / nền trang
+- [x] V 5.15: LIMIT tàu được phép đến VVPC/VVPQ hiện xanh, ghi chú ghi rõ sân; không đổi cảnh báo khai thác khác.
 - [x] Nền đăng nhập mới: wash đỏ + chấm lưới + mạng đường bay/vòng radar (kiểm desktop + mobile)
 - [x] Bỏ ô nhập email (Chrome hay gợi ý tài khoản trong ô đó) — đã thay bằng ô 'ID tài khoản'
 - [x] Đăng nhập chỉ cần ID + mật khẩu: ID 'hyphan'/'roise' tự map thành <id>@app.local

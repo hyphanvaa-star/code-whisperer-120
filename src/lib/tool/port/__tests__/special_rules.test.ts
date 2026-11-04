@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { srEvaluate } from "../../../special-rules";
+import { srEvaluate, srOnlyAircraftDisplay } from "../../../special-rules";
 
 const row = { rule: "DOMESTIC_ONLY", acs: ["REG:VNA202", "REG:VNA640"], apts: [] };
 
@@ -48,5 +48,21 @@ describe("ONLY_ACS_APTS", () => {
   });
   it("unticked aircraft elsewhere ok", () => {
     expect(_ev(row as never, { reg: "VN-A522", dep: "VVTS", dest: "VVNB" } as never, []).length).toBe(0);
+  });
+});
+
+describe("allowed aircraft LIMIT display", () => {
+  const row = {rule: "ONLY_ACS_APTS", acs: ["REG:VNA580"], apts: ["VVPC", "VVPQ"]};
+  it.each(["VVPC", "VVPQ"])("selected aircraft arriving at %s gets success", dest => {
+    expect(srOnlyAircraftDisplay(row, {reg: "VN-A580", dep: "VVTS", dest}, [])[0]?.severity).toBe("success");
+  });
+  it("unselected aircraft arriving at VVPQ stays critical", () => {
+    expect(srOnlyAircraftDisplay(row, {reg: "VN-A522", dep: "VVTS", dest: "VVPQ"}, [])[0]?.severity).toBe("critical");
+  });
+  it("selected aircraft elsewhere has no green verdict", () => {
+    expect(srOnlyAircraftDisplay(row, {reg: "VN-A580", dep: "VVTS", dest: "VVNB"}, [])).toEqual([]);
+  });
+  it("missing aircraft identity cannot produce success", () => {
+    expect(srOnlyAircraftDisplay(row, {dep: "VVTS", dest: "VVPC"}, []).some(h => h.severity === "success")).toBe(false);
   });
 });
