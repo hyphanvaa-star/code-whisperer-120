@@ -260,6 +260,33 @@ async function findFlight(id: number): Promise<Flight | null> {
 }
 
 export const routes: Routes = {
+  // TEMP probe: find where FliteBrief serves the Briefing Pack PDF.
+  "GET /api/bp/probe": async (ctx) => {
+    const fid = parseInt(q(ctx.params, "fid"), 10);
+    const f = await findFlight(fid);
+    const raw = (f?.raw || {}) as Record<string, unknown>;
+    const vid = raw["voyage_id"];
+    const out: Record<string, unknown> = { vid, rawKeys: Object.keys(raw) };
+    const { fbGet } = await import("../../flitebrief.server");
+    const paths = [
+      `/webapi/sectors/${fid}`,
+      `/webapi/voyages/${vid}`,
+      `/webapi/voyages/${vid}/pack?printStyle=QUICK&printSize=A4`,
+      `/webapi/voyages/${vid}/pack/download`,
+      `/webapi/voyages/${vid}/packs`,
+      `/webapi/sectors/${fid}/pack`,
+      `/webapi/sectors/${fid}/briefing`,
+      `/webapi/voyages/${vid}/briefing`,
+    ];
+    for (const p of paths) {
+      try {
+        const r = await fbGet(p, "*/*");
+        const ct = r.headers.get("content-type") || "";
+        out[p] = { s: r.status, ct, cd: r.headers.get("content-disposition"), body: ct.includes("pdf") ? "PDF" : (await r.text()).slice(0, 600) };
+      } catch (e) { out[p] = String(e); }
+    }
+    return out;
+  },
   // Route dự bị (ALT1/ALT2/TALT) từ NAV LOG alternate trong OFP — KML JetPlan không có.
   "GET /api/notam/alts": async (ctx) => {
     const fid = parseInt(q(ctx.params, "fid"), 10);
