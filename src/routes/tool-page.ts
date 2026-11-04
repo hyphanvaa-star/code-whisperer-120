@@ -2489,6 +2489,14 @@ function nmRouteLayers(ids){
     .replace('</head>', `<style>
       #nmFltItems .nm-flt-choice{display:flex;align-items:center;gap:8px;padding-left:10px;min-height:42px}
       #nmFltItems .nm-flt-choice:has(input:checked){background:var(--x-red-50)}
+      #nmFltItems .nm-flt-split{display:flex;gap:6px;padding:6px 10px;border-bottom:1px solid var(--x-line)}
+      #wrapNotam #nmFltItems .nm-flt-sp{flex:1;text-align:center;border:1.5px solid;border-radius:8px;font-weight:800;padding:8px 4px}
+      #wrapNotam #nmFltItems .nm-flt-sp-intl{color:#c62828;border-color:#c62828}
+      #wrapNotam #nmFltItems .nm-flt-sp-dom{color:#1d4ed8;border-color:#1d4ed8}
+      #wrapNotam #nmFltItems .nm-flt-sp-intl.on{background:#c62828;color:#fff}
+      #wrapNotam #nmFltItems .nm-flt-sp-dom.on{background:#1d4ed8;color:#fff}
+      #nmTrackMap .nm-rte-tag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:4px;color:#fff}
+      #nmTrackMap .nm-rte-tag.qt{background:#c62828}#nmTrackMap .nm-rte-tag.qn{background:#1d4ed8}
       #nmFltItems .nm-flt-all{font:800 15px/1.3 Arial,sans-serif;color:var(--x-red);border-bottom:1px solid var(--x-line);cursor:pointer;padding-right:10px}
       #wrapNotam #nmFltItems .nm-flt-choice>button{flex:1;min-width:0;text-align:left;width:auto}
       #nmFltItems .nm-flt-choice>.nm-flt-ck{display:block!important;visibility:visible!important;opacity:1!important;appearance:auto!important;position:static!important;flex:0 0 20px;width:20px!important;height:20px!important;margin:0!important;padding:0!important;accent-color:var(--x-red);cursor:pointer}
@@ -2552,7 +2560,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.89')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.90')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replaceAll('if(nmLayerCtl) nmLayerCtl.addOverlay(nmAtsGroups[cc], nmAtsLabel(cc));', '')
     .replace('{"Sân bay": nmAdGroup, "Đài": nmNavGroup},', '{"Sân bay": nmAdGroup},')
