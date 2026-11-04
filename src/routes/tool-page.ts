@@ -2418,7 +2418,17 @@ function nmPaintListBase(place, q){`)
     const row = document.createElement("div");
     row.className = "nm-flt-choice";
     row.appendChild(ck);
-    row.appendChild(b);`)
+    row.appendChild(b);
+    {
+      const bp = document.createElement("span");
+      const ok = opt.dataset.bp === "1";
+      bp.className = "nm-flt-bp " + (ok ? "ok" : "no");
+      bp.textContent = (ok ? "☑" : "☐") + " Briefing pack";
+      bp.title = ok ? "Đã verify — có Briefing pack" : "Chưa verify — chưa có Briefing pack";
+      row.appendChild(bp);
+    }`)
+    .replace('    el.value = String(f.id);\n    const t = String(f.std || "").match(/T(\\d{2}:\\d{2})/);', '    el.value = String(f.id);\n    el.dataset.bp = (f.verified_by || f.verified_on) ? "1" : "0";\n    const t = String(f.std || "").match(/T(\\d{2}:\\d{2})/);')
+    .replace('</head>', '<style>.nm-flt-choice{display:flex;align-items:center}.nm-flt-bp{margin-left:auto;padding-left:8px;white-space:nowrap;font:800 11px/1.2 system-ui,sans-serif}.nm-flt-bp.ok{color:#16a34a}.nm-flt-bp.no{color:#dc2626}</style></head>')
     .replace('  const cur = (($("#nmFlt") || {}).value || "");\n  hits.forEach(opt => {', `  const cur = (($("#nmFlt") || {}).value || "");
   {
     const allRow = document.createElement("label");
@@ -2578,7 +2588,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.98')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.99')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
