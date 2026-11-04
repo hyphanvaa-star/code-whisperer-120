@@ -932,8 +932,9 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
   }
   const text = await opts.pdfText(blob);
   let sheet = buildSheet(flight, text, opts);
-  if (opts.applyEdits !== false && opts.loadEdits) {
-    const saved = await opts.loadEdits(sheet.callsign);
+  const identity = editIdentity(flight);
+  if (opts.applyEdits !== false && opts.loadEdits && identity) {
+    const saved = await opts.loadEdits(identity);
     if (saved) sheet = applyFields(sheet, { ...saved, ...(saved.notes === NOTES_RED ? { notes: "" } : {}) });
   }
   if (opts.pins) {
