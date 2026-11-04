@@ -153,7 +153,6 @@ function cmpVerModalFit(){
   const zoom = (parseFloat(getComputedStyle(document.documentElement).zoom) || 1) * (parseFloat(getComputedStyle(document.body).zoom) || 1);
   dialog.style.zoom = String(1 / zoom);
 }
-window.addEventListener("resize", () => requestAnimationFrame(cmpVerModalFit));
 function cmpVerModalShow(){
   let dialog = document.getElementById("cmpVerDialog");
   if(!dialog){
@@ -164,6 +163,7 @@ function cmpVerModalShow(){
     const close = document.createElement("button"); close.type = "button"; close.className = "btn small"; close.textContent = "✕"; close.setAttribute("aria-label", "Đóng bảng dữ liệu thay đổi"); close.onclick = cmpVerModalClose;
     header.append(title, close); dialog.appendChild(header); document.body.appendChild(dialog);
     dialog.addEventListener("cancel", ev => {ev.preventDefault();cmpVerModalClose();});
+    window.addEventListener("resize", () => requestAnimationFrame(cmpVerModalFit));
   }
   if(dialog.open) return;
   const wrap = $("#wrapVer");
