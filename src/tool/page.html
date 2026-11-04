@@ -14939,6 +14939,7 @@ function nmAiDecode(n, place, msg){
   const inp = $("#aiInput");
   if(!inp) return;
   inp.value = prompt;
+  window.__aiDecodeFresh = true;
   aiSend();
 }
 function nmNotamCopyText(n){
@@ -29008,7 +29009,7 @@ async function aiSend(){
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
-        messages: aiHistory.slice(-20),
+        messages: (window.__aiDecodeFresh ? (window.__aiDecodeFresh=false, aiHistory.slice(-1)) : aiHistory.slice(-20)),
         context: aiBuildContext()
       })
     });

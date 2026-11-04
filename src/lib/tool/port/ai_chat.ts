@@ -7,8 +7,8 @@ export const SYSTEM_PROMPT =
   "soạn văn, link, chuyện phiếm.\n" +
   "Không từ chối chỉ vì câu hỏi ngoài hàng không.\n" +
   "Tiếng Việt khi hỏi tiếng Việt. Câu thường: ngắn gọn. Câu cần giải thích: đủ ý.\n" +
-  "CẤM markdown: không bọc chữ bằng ** ** hay * * hay __ __, không # tiêu đề, " +
-  "không `code`. Viết chữ thường; muốn nhấn thì nói thẳng, không thêm dấu sao.\n";
+  "Được dùng markdown để trình bày rõ: ## tiêu đề mục, gạch đầu dòng -, **in đậm**, " +
+  "bảng | cột |. Khi giải mã NOTAM luôn chia mục bằng ## và dùng bảng cho từ viết tắt.\n";
 
 export type BoardFlight = {
   callsign: string;
