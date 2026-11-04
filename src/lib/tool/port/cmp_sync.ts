@@ -146,7 +146,7 @@ function cmpSourceTipSet(el, kind){
   const key = el === _tipHost ? "data-tip" : el.hasAttribute("title") ? "title" : el.hasAttribute("data-tip") ? "data-tip" : "title";
   let base = el.getAttribute(key) || "";
   if(el._cmpSourcePrefix && base.startsWith(el._cmpSourcePrefix)) base = base.slice(el._cmpSourcePrefix.length);
-  const prefix = cmpSourceTip(kind) + "\\n\\n";
+  const prefix = cmpSourceTip(kind) + (base ? "\\n\\n" : "");
   el._cmpSourcePrefix = prefix;
   el.setAttribute(key, prefix + base);
 }
