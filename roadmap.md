@@ -1,6 +1,7 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] Sửa CREW chuyến giao ca: đồng bộ phạm vi đọc crew/crewnames với bảng So sánh, giữ DSP chính và các tab khác; kiểm thử trước/sau và thử phiên JACK nếu có.
+- [x] Sửa CREW chuyến giao ca: đồng bộ crew/crewnames với các dòng HO trong bảng So sánh, giữ IDs/bộ lọc khác và DSP chính; tái hiện 2 lỗi trước sửa, 31 kiểm thử đạt sau sửa, trang phục vụ đủ hai bản sửa và 16 đoạn mã hợp lệ, build OK. Chưa publish.
+- [ ] Thử CREW giao ca trong phiên JACK — không cấp được phiên khớp người yêu cầu; cần JACK đăng nhập preview để xác nhận chuyến thật.
 
 - [x] V 5.08 FPL VER 12: nhận tên FPL thiếu ON, chọn hai VER khác nhau cùng ngày, cập nhật So sánh ngay và nhãn theo file thực nạp; 26 kiểm thử đạt, trình duyệt xác nhận trước sửa 0 lượt cập nhật/sau sửa 1 lượt, 16 đoạn mã hợp lệ, build OK. Chưa publish.
 - [ ] V 5.08: thử nhận mail VER 12 và đọc lại bảng của JACK — chưa có phiên đăng nhập khớp người yêu cầu; cần đăng nhập preview và trợ lý PC tại máy công ty.
