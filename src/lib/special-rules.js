@@ -5,7 +5,7 @@ export const SR_RULES = [
   { id: "NO_DOMESTIC", label: "Không bay nội địa Việt Nam", apt: false },
   { id: "SEA_ONLY", label: "Chỉ bay trong Đông Nam Á", apt: false },
   { id: "ONLY_APTS", label: "Chỉ bay đi/đến các sân đã chọn", apt: true },
-  { id: "ONLY_ACS_APTS", label: "Chỉ các tàu đã chọn được bay đi/đến các sân đã chọn", apt: true },
+  { id: "ONLY_ACS_APTS", label: "Chỉ các tàu đã chọn được bay đến các sân đã chọn", apt: true },
   { id: "NO_OPS_APTS", label: "Không bay đi/đến các sân đã chọn", apt: true },
   { id: "NO_DEP_APTS", label: "Không cất cánh từ các sân đã chọn", apt: true },
   { id: "NO_ARR_APTS", label: "Không hạ cánh tại các sân đã chọn", apt: true },
@@ -139,7 +139,7 @@ export function srEvaluate(row, f, groups) {
     case "ONLY_APTS":
       route.forEach(([r, c]) => { if (!srAptIn(apts, c)) add(r, "critical", r + " " + c + " không nằm trong danh sách cho phép"); });
       break;
-    case "ONLY_ACS_APTS": route.forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", "tàu không nằm trong danh sách được bay " + r + " " + c); }); break;
+    case "ONLY_ACS_APTS": at(["DEST"]).forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", "tàu không nằm trong danh sách được bay đến " + c); }); break;
     case "NO_OPS_APTS": route.forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", r + " " + c); }); break;
     case "NO_DEP_APTS": at(["DEP"]).forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", r + " " + c); }); break;
     case "NO_ARR_APTS": at(["DEST"]).forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", r + " " + c); }); break;

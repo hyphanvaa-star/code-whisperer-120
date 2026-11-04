@@ -49,6 +49,13 @@ describe("ONLY_ACS_APTS", () => {
   it("unticked aircraft elsewhere ok", () => {
     expect(_ev(row as never, { reg: "VN-A522", dep: "VVTS", dest: "VVNB" } as never, []).length).toBe(0);
   });
+  it.each(["VN-A580", "VN-A522"])("%s departing VVPC to another airport is unrestricted", reg => {
+    expect(srEvaluate(row, {reg, dep: "VVPC", dest: "VVNB"}, [])).toEqual([]);
+    expect(srOnlyAircraftDisplay(row, {reg, dep: "VVPC", dest: "VVNB"}, [])).toEqual([]);
+  });
+  it("unticked aircraft arriving VVPC is critical", () => {
+    expect(srEvaluate(row, {reg: "VN-A522", dep: "VVNB", dest: "VVPC"}, []).map(h => [h.role, h.sev])).toEqual([["DEST", "critical"]]);
+  });
 });
 
 describe("allowed aircraft LIMIT display", () => {
