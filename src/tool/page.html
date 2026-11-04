@@ -28970,8 +28970,7 @@ async function aiSend(){
     aiHistory.push({role: "assistant", content: reply});
     aiPaintLine("bot", reply, "bot");
     const acts = aiMergeActions(d.actions || [], aiLocalActions(text));
-    if(acts.length) aiPaintActions(acts);
-    else {
+    if(!acts.length){
       const csOnly = aiGuessCallsign(text);
       if(csOnly && !aiMatchFlight(csOnly))
         aiPaintLine("sys", "Không thấy " + csOnly
