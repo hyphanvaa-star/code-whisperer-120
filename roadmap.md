@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 5.24: thêm nguồn FPL/Crewlist vào chú thích từng ô và tiêu đề REG FPL, REG AIMS, CREW; kiểm tra cập nhật sau khi đổi nguồn.
 - [x] V 5.23: KHB chỉ đánh dấu thay đổi của cặp Crewlist mới nhất; bỏ dấu xanh/nút cũ ở ô không còn đổi, giữ chỉnh sửa và cập nhật số đếm. 21 kiểm thử đạt; trình duyệt thử dấu xanh và hai nút cũ biến mất, giữ VN-A580; build OK. Chưa publish.
 - [ ] V 5.23: thử nạp Crewlist thật trong phiên JACK — không cấp được phiên khớp người yêu cầu; cần JACK đăng nhập preview.
 
