@@ -96,7 +96,7 @@ export function patchCmpSyncPage(html: string): string {
     .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
    if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
    bang.title = (pending\n`)
-    .replace('     : "FPL VER " + n + " — đã xem";\n', '     : "FPL VER " + n + " — đã xem") + cmpVerDetail();\n')
+    .replace('     : "FPL VER " + n + " — đã xem";\n', '     : "FPL VER " + n + " — đã xem") + (typeof cmpVerDetail === "function" ? cmpVerDetail() : "");\n')
     .replace('    vb.textContent = latest ? ("FPL VER đang dùng: " + latest) : "";', `    const vn = parseVerNo(latest);
     vb.textContent = latest ? ("FPL VER " + (vn ? String(vn).padStart(2, "0") : "") + (vn ? " · " : "") + latest) : "";
     if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();`)
