@@ -47,6 +47,8 @@ async function runCompare(opts){
   const scopeQs = qs();`)
     .replace('    const p = new URLSearchParams(qs());\n    p.set("file", xls.file);', '    const p = new URLSearchParams(scopeQs);\n    if(handoverDsps.length) p.delete("dispatcher");\n    p.set("file", xls.file);')
     .replace('    cmpQs = qs();', '    cmpQs = scopeQs;')
+    // A cached miss is retried so an earlier narrower read cannot hide crew forever.
+    .replace('    if(r.sector_id in C_CACHE) paintCrew(r.sector_id, C_CACHE[r.sector_id]);', '    if(C_CACHE[r.sector_id]) paintCrew(r.sector_id, C_CACHE[r.sector_id]);')
     .replace('      const p = new URLSearchParams(qs());\n      if(xls && xls.file) p.set("file", xls.file);', '      const p = cmpCrewParams(rows);\n      if(xls && xls.file) p.set("file", xls.file);')
     .replace('      const p = new URLSearchParams(qs());\n      p.set("ids", chunk.join(","));\n      const d = await (await fetch("/api/excel/crewnames?"', '      const p = cmpCrewParams((lastCmp && lastCmp.table) || []);\n      p.set("ids", chunk.join(","));\n      const d = await (await fetch("/api/excel/crewnames?"')
     .replace('    lastCmp = d;\n    paintCompare(d);', `    if(handoverRevision !== cmpHandoverRevision || scopeQs !== qs()) return;
