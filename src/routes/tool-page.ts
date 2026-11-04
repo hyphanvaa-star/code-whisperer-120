@@ -2438,8 +2438,53 @@ function nmPaintListBase(place, q){`)
     t.textContent = "Tất cả (" + hits.length + " chuyến)";
     allRow.appendChild(allCk); allRow.appendChild(t);
     box.appendChild(allRow);
+    const split = document.createElement("div");
+    split.className = "nm-flt-split";
+    [["intl", "Quốc tế", o => o.className.indexOf("intl") >= 0], ["dom", "Quốc nội", o => o.className.indexOf("intl") < 0]].forEach(([k, name, test]) => {
+      const grp = hits.filter(test);
+      const sb = document.createElement("button");
+      sb.type = "button"; sb.className = "nm-flt-sp nm-flt-sp-" + k;
+      const allOn = grp.length > 0 && grp.every(o => nmMulti.has(o.value));
+      if(allOn) sb.classList.add("on");
+      sb.textContent = name + " (" + grp.length + ")";
+      sb.onmousedown = ev => ev.preventDefault();
+      sb.onclick = ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        grp.forEach(o => { if(allOn) nmMulti.delete(o.value); else nmMulti.add(o.value); });
+        nmMultiLabel(); nmFltFillItems(($("#nmFltQ") || {}).value || "");
+      };
+      split.appendChild(sb);
+    });
+    box.appendChild(split);
   }
   hits.forEach(opt => {`)
+    .replace('let nmBatchLbl = "";', `let nmBatchLbl = "";
+let nmRteOverlays = [];
+function nmRouteLayers(ids){
+  const map = nmEnsureMap();
+  if(!map || !nmLayerCtl) return;
+  nmRteOverlays.forEach(g => { try{ nmLayerCtl.removeLayer(g); map.removeLayer(g); }catch(e){} });
+  nmRteOverlays = [];
+  const sel = $("#nmFlt");
+  const rows = ids.map(id => {
+    const d = nmTrackCache[String(id)];
+    if(!d) return null;
+    const f = d.flight || {};
+    return {id: String(id), d, f, intl: nmIsIntl(f)};
+  }).filter(Boolean).sort((a, b) => (b.intl - a.intl) || String(a.f.callsign || "").localeCompare(String(b.f.callsign || "")));
+  for(const r of rows){
+    const g = L.layerGroup();
+    const legs = nmAddRouteLegs(r.d.track, r.d.line, {weight: 4, opacity: 1, flightId: r.id, color: r.intl ? "#c62828" : "#f2c200"});
+    if(!legs.length) continue;
+    const tip = (r.f.callsign || "") + "  " + (r.f.dep || "") + "–" + (r.f.dest || "");
+    legs.forEach(l => { l.bindTooltip(tip); l.addTo(g); });
+    const lab = '<b class="nm-rte-tag ' + (r.intl ? "qt" : "qn") + '">' + (r.intl ? "QT" : "QN") + "</b> " + esc(tip);
+    nmLayerCtl.addOverlay(g, lab);
+    nmRteOverlays.push(g);
+  }
+  if(sel) void sel;
+}`)
+    .replace('  $("#nmFlt").value = ids[0]; nmFltSyncQ(); nmTrackShow(ids[0]);', '  $("#nmFlt").value = ids[0]; nmFltSyncQ(); nmTrackShow(ids[0]);\n  if(ids.length > 1) nmRouteLayers(ids);')
     .replace('    box.appendChild(b);\n  });\n}\nfunction nmFltPlaceMenu', '    box.appendChild(row);\n  });\n}\nfunction nmFltPlaceMenu')
     .replace('</head>', `<style>
       #nmFltItems .nm-flt-choice{display:flex;align-items:center;gap:8px;padding-left:10px;min-height:42px}
