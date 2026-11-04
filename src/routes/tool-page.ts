@@ -2603,6 +2603,7 @@ function nmRouteLayers(ids){
     const old = get(K("watch", fid));
     const dep = depOf(fid);
     // Lần check trong giờ T-60 vẫn làm mốc mới; đã quét T-60 rồi thì giữ trạng thái done.
+    setTimeout(() => { const o = document.querySelector('#nmFlt option[value="' + fid + '"]'); if(o && o.dataset.bp === "1") autoPack(fid); }, 500);
     set(K("watch", fid), { ids: allIds(places), dep: Number.isFinite(dep) ? dep : (old && old.dep) || null, done: !!(old && old.done && old.dep === dep) });
   };
   function refill(){ try{ if(typeof nmFltFillItems === "function") nmFltFillItems((document.getElementById("nmFltQ") || {}).value || ""); }catch(e){} }
@@ -2612,38 +2613,40 @@ function nmRouteLayers(ids){
     t.onclick = () => t.remove(); document.body.appendChild(t);
     try{ const a = new (window.AudioContext || window.webkitAudioContext)(); [0, .18].forEach((d, i) => { const o = a.createOscillator(), g = a.createGain(); o.frequency.value = i ? 1100 : 880; g.gain.value = .6; o.connect(g); g.connect(a.destination); o.start(a.currentTime + d); o.stop(a.currentTime + d + .15); }); }catch(e){}
   }
-  async function pickPack(fid){
+  const bpBusy = {};
+  async function autoPack(fid, force){
     const data = (typeof nmTrackCache !== "undefined" && nmTrackCache[fid]) || null;
-    if(!data){ alert("Hãy Check NOTAM tracking chuyến " + label(fid) + " trước, rồi mới so với Briefing pack."); return; }
-    const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".pdf,application/pdf";
-    inp.onchange = async () => {
-      const f = inp.files && inp.files[0]; if(!f) return;
-      try{
-        const pdfjs = await import("/vendor/pdf.min.mjs");
-        pdfjs.GlobalWorkerOptions.workerSrc = "/vendor/pdf.worker.min.mjs";
-        const doc = await pdfjs.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
-        let text = "";
-        for(let i = 1; i <= doc.numPages; i++){ const tc = await (await doc.getPage(i)).getTextContent(); text += tc.items.map(t => t.str).join(" ") + "\\n"; }
-        const pack = bpParsePack(text);
-        if(!Object.keys(pack).length){ alert("Không đọc được NOTAM nào trong file này — có đúng Briefing pack không?"); return; }
-        const r = bpCompare(pack, bpWebIds(data.places || []));
-        set(K("bpcmp", fid), { at: Date.now(), file: f.name, common: r.common, packCount: r.packCount, missing: r.missing });
-        refill();
-        if(r.missing.length) toast(label(fid) + ": Briefing pack có " + r.missing.length + " NOTAM web chưa có\\n" + r.missing.map(m => m.loc + " " + m.id).join(", "));
-      }catch(e){ alert("Đọc Briefing pack lỗi: " + (e && e.message || e)); }
-    };
-    inp.click();
+    if(!data || bpBusy[fid]) return;
+    const prev = get(K("bpcmp", fid));
+    if(prev && !force && prev.web === allIds(data.places || []).length) return;
+    bpBusy[fid] = 1; refill();
+    try{
+      const r = await fetch("/api/notam/bpack?fid=" + encodeURIComponent(fid));
+      if(!/pdf/.test(r.headers.get("content-type") || "")){ const j = await r.json().catch(() => ({})); set(K("bpcmp", fid), { err: j.error || ("HTTP " + r.status) }); return; }
+      const pdfjs = await import("/vendor/pdf.min.mjs");
+      pdfjs.GlobalWorkerOptions.workerSrc = "/vendor/pdf.worker.min.mjs";
+      const doc = await pdfjs.getDocument({ data: new Uint8Array(await r.arrayBuffer()) }).promise;
+      let text = "";
+      for(let i = 1; i <= doc.numPages; i++){ const tc = await (await doc.getPage(i)).getTextContent(); text += tc.items.map(t => t.str).join(" ") + "\n"; }
+      const res = bpCompare(bpParsePack(text), bpWebIds(data.places || []));
+      set(K("bpcmp", fid), { at: Date.now(), web: allIds(data.places || []).length, common: res.common, packCount: res.packCount, missing: res.missing });
+      if(res.missing.length) toast(label(fid) + ": Briefing pack có " + res.missing.length + " NOTAM web chưa có\n" + res.missing.map(m => m.loc + " " + m.id).join(", "));
+    }catch(e){ set(K("bpcmp", fid), { err: String(e && e.message || e) }); }
+    finally{ delete bpBusy[fid]; refill(); }
   }
+  window.bpAutoPack = autoPack;
   window.bpRowExtras = function(row, opt){
     const fid = opt.value;
     if(opt.dataset.bp === "1"){
       const c = get(K("bpcmp", fid));
       const s = document.createElement("span");
-      if(!c){ s.className = "nm-flt-cmp wait"; s.textContent = "So pack"; s.title = "Chọn file Briefing pack (PDF) để so với NOTAM web đã lấy"; }
+      if(bpBusy[fid]){ s.className = "nm-flt-cmp wait"; s.textContent = "Đang so…"; }
+      else if(!c){ s.className = "nm-flt-cmp wait"; s.textContent = "Chưa so"; s.title = "Check NOTAM chuyến này, web sẽ tự so với Briefing pack trên FliteBrief"; }
+      else if(c.err){ s.className = "nm-flt-cmp wait"; s.textContent = "Lỗi pack"; s.title = c.err + " — bấm để thử lại"; }
       else if(!c.missing.length){ s.className = "nm-flt-cmp ok"; s.textContent = "✓ Đủ NOTAM"; s.title = "Web có đủ " + c.packCount + " NOTAM của pack ở " + c.common.join(", ") + ". Bấm để so lại."; }
-      else { s.className = "nm-flt-cmp bad"; s.textContent = "✕ Thiếu " + c.missing.length; s.title = "Web chưa có:\\n" + c.missing.map(m => m.loc + "  " + m.id).join("\\n") + "\\n\\nBấm để so lại."; }
+      else { s.className = "nm-flt-cmp bad"; s.textContent = "✕ Thiếu " + c.missing.length; s.title = "Web chưa có:\n" + c.missing.map(m => m.loc + "  " + m.id).join("\n") + "\n\nBấm để so lại."; }
       s.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };
-      s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); pickPack(fid); };
+      s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); if(!(typeof nmTrackCache !== "undefined" && nmTrackCache[fid])){ alert("Hãy Check NOTAM tracking chuyến " + label(fid) + " trước."); return; } autoPack(fid, true); };
       row.appendChild(s);
     } else { const s = document.createElement("span"); s.className = "nm-flt-cmp none"; s.textContent = "-"; row.appendChild(s); }
     const nw = get(K("new", fid));
@@ -2705,7 +2708,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.01')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.02')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
