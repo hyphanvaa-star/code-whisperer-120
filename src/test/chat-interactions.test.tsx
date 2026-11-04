@@ -6,8 +6,9 @@ const store = vi.hoisted(() => ({
   messages: [{ id: 'message1', room_id: 'room1', user_id: 'other', body: 'Đã rõ', created_at: '2026-11-04T04:00:00Z' }],
   reactions: [{ message_id: 'message1', user_id: 'other', emoji: '👍' }],
   writes: [] as { table: string; operation: string; payload: Record<string, string> }[],
+  readAvatars: async () => ({}),
 }));
-vi.mock('@tanstack/react-start', () => ({ useServerFn: () => async () => ({}) }));
+vi.mock('@tanstack/react-start', () => ({ useServerFn: () => store.readAvatars }));
 vi.mock('@/lib/account.functions', () => ({ getChatAvatars: vi.fn() }));
 vi.mock('@/integrations/supabase/client', () => ({ supabase: { from: (table: string) => {
   let operation = 'read';
