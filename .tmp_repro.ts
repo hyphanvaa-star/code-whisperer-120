@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { handlers } from './src/lib/tool/handlers/excel.server';
+import { routes as handlers } from './src/lib/tool/handlers/excel.server';
 const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
 const uid = '17a2acd2-ff3e-45d2-90dd-bcd55ff38d4a';
 const mk = (route: string, q: string) => ({ request: new Request('http://x/'+route+'?'+q), url: new URL('http://x'+route+'?'+q), params: new URLSearchParams(q), route, userId: uid, supabase: sb as any, json: async () => ({}) });
