@@ -10,6 +10,7 @@ import taxiSeed from "../data/fpl/taxi_fuel.json";
 import routeSeed from "../data/fpl/route_suffix.json";
 import pcrSeed from "../data/pcr_limits.json";
 import * as excelMod from "./excel.server";
+import WORLD_TZ from "../data/world_tz.json";
 import { resolveCrewFlight } from '../port/fpl_flight_identity';
 import { exportPayloadItems } from '../port/fpl_payload';
 import { rawOmniPay } from '../port/khb_payload';
@@ -390,9 +391,9 @@ export const routes: Routes = {
       const it = (items[ix] || {}) as Raw;
       // Giờ đầu điện: AviWeb EOBT > ETD UTC (Crewlist) > STD UTC; thiếu AviWeb thì cảnh báo đỏ.
       const avi = /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
-      const etdU = avi ? "" : vnToUtc(it.etd_local);
+      const etdU = avi ? "" : vnToUtc(it.etd_local, f.dep_icao);
       const std: Date | null = f.std instanceof Date ? f.std : (f.std ? new Date(f.std) : null);
-      const stdU = avi || etdU ? "" : (vnToUtc(it.std_local) || (std && !isNaN(std.getTime())
+      const stdU = avi || etdU ? "" : (vnToUtc(it.std_local, f.dep_icao) || (std && !isNaN(std.getTime())
         ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : ""));
       const base = avi || etdU || stdU;
       if (base && fields.item13) fields.item13 = atcChg.set_eobt(fields.item13, base);
@@ -431,11 +432,11 @@ export const routes: Routes = {
       const dof = std?.toISOString().slice(2, 10).replace(/-/g, "");
       const avi = it.avi_dof === dof && /^\d{4}$/.test(String(it.avi_eobt || "")) ? String(it.avi_eobt) : "";
       // Không có AviWeb: CHG lấy ETD hiện tại; CHG DLA/DLA lấy ETD cũ; không có ETD mới dùng STD.
-      const etdBase = vnToUtc(code === atcChg.KIND_CHG ? it.etd_cur : it.etd_old);
-      const orig = avi || etdBase || vnToUtc(it.std) || (std && !isNaN(std.getTime())
+      const etdBase = vnToUtc(code === atcChg.KIND_CHG ? it.etd_cur : it.etd_old, f.dep_icao);
+      const orig = avi || etdBase || vnToUtc(it.std, f.dep_icao) || (std && !isNaN(std.getTime())
         ? String(std.getUTCHours()).padStart(2, "0") + String(std.getUTCMinutes()).padStart(2, "0") : "");
       if (!avi) missed.push(`${fields.callsign || f.callsign}: chưa có EOBT gốc AviWeb — tạm dùng ${etdBase ? "ETD" : "STD"} ${orig} UTC, kiểm tra lại`);
-      const fresh = vnToUtc(it.etd);
+      const fresh = vnToUtc(it.etd, f.dep_icao);
       const msg = atcChg.render(code, fields, { delay_min: Number(it.delay_min) || 0, new_type: String(it.new_type || ""), orig_eobt: orig, new_eobt: fresh });
       const region = atcChg.aro_of(fields.dep || f.dep_icao);
       (code === atcChg.KIND_DLA ? dla : chg).push([region, msg]);
@@ -630,11 +631,19 @@ export const jobs: Jobs = {
   },
 };
 
-/** Local VN "HH:MM" → UTC "HHMM". */
-function vnToUtc(hm: unknown): string {
+/** Departure-airport UTC offset in minutes (bundled world_tz); VN +7 when unknown. */
+export function depOffsetMin(dep: unknown): number {
+  const tz = (WORLD_TZ as Record<string, string>)[String(dep || "").trim().toUpperCase()];
+  const m = String(tz || "").match(/^([+-]?)(\d{1,2}):(\d{2})$/);
+  if (!m) return 420;
+  return (m[1] === "-" ? -1 : 1) * (+m[2] * 60 + +m[3]);
+}
+
+/** Local "HH:MM" at the departure airport → UTC "HHMM". */
+export function vnToUtc(hm: unknown, dep?: unknown): string {
   const m = String(hm || "").match(/(\d{1,2})\D?(\d{2})/);
   if (!m) return "";
-  const t = (((+m[1] * 60 + +m[2] - 420) % 1440) + 1440) % 1440;
+  const t = (((+m[1] * 60 + +m[2] - depOffsetMin(dep)) % 1440) + 1440) % 1440;
   return String(Math.trunc(t / 60)).padStart(2, "0") + String(t % 60).padStart(2, "0");
 }
 
