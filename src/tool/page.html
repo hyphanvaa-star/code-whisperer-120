@@ -14895,6 +14895,32 @@ function nmPaintPinBar(n, place){
   }, 180);
   return bar;
 }
+function nmAiDecode(n, place, msg){
+  const text = nmNotamCopyText(n);
+  if(!text){
+    if(msg){ msg.textContent = "Không có nội dung NOTAM."; msg.classList.add("bad"); }
+    return;
+  }
+  let flight = "";
+  try{
+    const sel = document.querySelector("#nmFlight, #nmTrackSel, select[id^='nm'][id*='Flt']");
+    if(sel && sel.selectedOptions && sel.selectedOptions[0]) flight = sel.selectedOptions[0].textContent.trim();
+  }catch(_){}
+  const where = place ? (" (sân bay/FIR: " + (place.icao || place.code || place.name || place) + ")") : "";
+  const prompt = "AI DECODE NOTAM" + (flight ? " cho chuyến " + flight : "") + where + ".\n"
+    + "Hãy trả lời bằng tiếng Việt, rõ ràng theo các mục:\n"
+    + "1) Tóm tắt NOTAM nói gì (1-2 câu).\n"
+    + "2) Decode từng dòng Q) A) B) C) D) E) F) G): ý nghĩa, thời gian hiệu lực đổi ra UTC dễ đọc, độ cao.\n"
+    + "3) Giải thích các từ viết tắt/thuật ngữ khó (bảng: viết tắt → nghĩa đầy đủ → giải thích).\n"
+    + "4) Mức ảnh hưởng tới khai thác chuyến bay.\n"
+    + "5) Action cho dispatcher/tổ bay cần làm gì (gạch đầu dòng cụ thể).\n\n"
+    + "NOTAM:\n" + text;
+  aiToggle(true);
+  const inp = $("#aiInput");
+  if(!inp) return;
+  inp.value = prompt;
+  aiSend();
+}
 function nmNotamCopyText(n){
   return String((n && (n.text || n.e_field || "")) || "").replace(/\s+$/, "");
 }
