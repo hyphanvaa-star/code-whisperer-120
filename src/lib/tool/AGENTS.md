@@ -1,4 +1,5 @@
 ## Tool rules
+- KHB change markers reconcile the current/previous Crewlist through existing version reads in `khb_crew_sync`; never reinsert FPL history, preserve manual values on unchanged fields, and persist empty change maps to prevent old markers returning.
 - FPL quick-view reparents the live `wrapVer` into a dialog and restores it on close; acknowledge only a successfully displayed filename so unseen newer revisions remain pending.
 - KHB airport hover composes existing limits and TAF in `port/khb_airport_hover.ts` after the tool-page patches; exempt these cells from generic title tips so weather stays visible.
 - NOTAM summaries use per-flight `verdictOf`/`fleetVerdict` in `port/notam_verdict.ts`, not raw map hit counts (those include distant/unresolved/above-ceiling areas). Every FliteBrief NOTAM tracking/fleet place is filtered through `apply24h` before enrichment and counting — the upstream payload is ALL, not the portal's 24H selection.
