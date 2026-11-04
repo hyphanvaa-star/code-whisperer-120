@@ -306,6 +306,7 @@ async function cmpReadSyncSources(){
       const results = await Promise.all(["crew","fpl"].map(async kind=>{
         if(pairs[kind].length!==2) return [];
         const p = new URLSearchParams({old:pairs[kind][0].name,new:pairs[kind][1].name});
+        if(kind==="fpl") p.set("all","1");
         const res = await fetch("/api/version/diff?"+p), diff = await res.json();
         if(!res.ok || diff.error) throw new Error(diff.error || "Chưa đọc được phiên bản.");
         return diff.rows || [];

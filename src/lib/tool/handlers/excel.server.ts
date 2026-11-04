@@ -343,7 +343,8 @@ export const routes: Routes = {
       return { error: e instanceof Error ? `${e.constructor.name}: ${e.message}` : String(e) };
     }
 
-    const rows = xlsdiff.rowsForUi(res);
+    // all=1: include unchanged legs too so REG FPL can read every flight's latest aircraft.
+    const rows = xlsdiff.rowsForUi(res, ctx.params.get("all") === "1");
     // Ngầm so 2 crewlist gần nhất (file FPL VER không có cột tổ bay).
     let crewNote = "";
     let nCrewList = 0;
