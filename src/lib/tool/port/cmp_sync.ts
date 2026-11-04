@@ -90,7 +90,21 @@ export function patchCmpSyncPage(html: string): string {
   if(mode === "version" && previous && previous !== latest.name) vRun();
 }
 `)
-    .replace('  if(ver || cmp) verBangAck();', '  if(cmp) verBangAck();')
+    // FPL VER label: red flash until the user opens the version tab and leaves it again.
+    .replace('  if(ver || cmp) verBangAck();', '  if(ver) window.__verSeen = true; else if(window.__verSeen){ window.__verSeen = false; verBangAck(); }')
+    .replace('id="cmpVerBar" title="File FPL VER đang dùng (BẢN ĐANG DÙNG ở tab Dữ liệu thay đổi)"', 'id="cmpVerBar" role="button" tabindex="0" onclick="cmpVerOpen()" style="cursor:pointer" title="Bấm để so 2 FPL VER gần nhất"')
+    .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
+   if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
+   bang.title = pending\n`)
+    .replace('    vb.textContent = latest ? ("FPL VER đang dùng: " + latest) : "";', `    const vn = parseVerNo(latest);
+    vb.textContent = latest ? ("FPL VER " + (vn ? String(vn).padStart(2, "0") : "") + (vn ? " · " : "") + latest) : "";`)
+    .replace('</head>', `<style>
+#cmpVerBar.cmp-ver-new{color:#fff !important;background:#dc2626 !important;border-color:#dc2626 !important;animation:cmpVerFlash 1s ease-in-out infinite;font-weight:800}
+#cmpVerBar.cmp-ver-new::before{background:#fff !important;box-shadow:none !important}
+#cmpVerBar.cmp-ver-seen{color:#fff !important;background:#16a34a !important;border-color:#16a34a !important;font-weight:800}
+#cmpVerBar.cmp-ver-seen::before{background:#fff !important;box-shadow:none !important}
+@keyframes cmpVerFlash{0%,100%{opacity:1}50%{opacity:.45}}
+</style></head>`)
     .replace('   return Number((ver && ver.new_ver) || 0)\n     || parseVerNo((ver && ver.new) || "")', '   return parseVerNo((ver && ver.new) || "")\n     || Number((ver && ver.new_ver) || 0)')
     .replace('    const d = await (await fetch("/api/version/files")).json();\n    vFileList', '    const seq = window.__vFilesSeq = (window.__vFilesSeq || 0) + 1;\n    const response = await fetch("/api/version/files");\n    const d = await response.json();\n    if(!response.ok || d.error || seq !== window.__vFilesSeq) return;\n    vFileList')
     .replace('function renderCompareTable(d, opts){', `
@@ -101,6 +115,17 @@ const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
+async function cmpVerOpen(){
+  await vLoadFiles({preferNewest: false});
+  const pair = cmpFplPair(vFileList, Date.now(), true);
+  const latest = pair[pair.length - 1];
+  if(!latest){ alert("Chưa có file FPL VER"); return; }
+  vSetValue("new", latest.name);
+  vSetValue("old", pair.length === 2 ? pair[0].name : "");
+  vPaintMenus();
+  setMode("version");
+  if(pair.length === 2) vRun();
+}
 const cmpSyncChecks = new Map();
 const cmpAckStore = (()=>{ try{return new Set(JSON.parse(localStorage.getItem("cmp_ack_v1")||"[]"));}catch(_){return new Set();} })();
 function cmpAckHas(k){ return cmpAckStore.has(k); }
@@ -306,6 +331,7 @@ async function cmpReadSyncSources(){
       const results = await Promise.all(["crew","fpl"].map(async kind=>{
         if(pairs[kind].length!==2) return [];
         const p = new URLSearchParams({old:pairs[kind][0].name,new:pairs[kind][1].name});
+        if(kind==="fpl") p.set("all","1");
         const res = await fetch("/api/version/diff?"+p), diff = await res.json();
         if(!res.ok || diff.error) throw new Error(diff.error || "Chưa đọc được phiên bản.");
         return diff.rows || [];

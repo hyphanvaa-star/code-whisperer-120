@@ -301,9 +301,10 @@ export function atcChgLabel(code: string): string {
   return String(code || "").trim();
 }
 
-export function rowsForUi(res: DiffResult): Array<Record<string, unknown>> {
+export function rowsForUi(res: DiffResult, all = false): Array<Record<string, unknown>> {
   const out: Array<Record<string, unknown>> = [];
-  for (const c of changedList(res)) {
+  const list = all ? res.changes.filter((c) => c.old && c.new) : changedList(res);
+  for (const c of list) {
     const o = c.old!, n = c.new!;
     const d = delayMin(c) || 0;
     const atcKind = atcChgKind({ regChanged: regChanged(c), delayChanged: !!d });
