@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.22: gộp giới hạn sân bay và TAF vào cùng bảng rê chuột trong KHB; đã thử HUI bằng dữ liệu kiểm tra, chưa thử phiên JACK.
+- [x] V 5.22: nhấn FPL VER mới mở bảng nổi dữ liệu thay đổi, đóng tại chỗ rồi chuyển nhãn xanh; 31 kiểm thử đạt, thử mở/đóng tại So sánh đạt, chưa thử dữ liệu thật do không cấp được phiên JACK. Chưa publish.
 - [x] V 5.21: sửa cấu hình VVPC/VVPQ về danh sách tàu được phép đến, giữ 62 tàu; quy tắc chỉ xét sân đến, không chặn sân khác. Chưa publish.
 - [x] V 5.20: rê chuột lên nhãn FPL VER (thanh So sánh và nhãn trên tab) hiện đang đối chiếu với FPL VER nào và file Crewlist nào. Chưa publish.
 - [x] V 5.19: tắt tự check EOBT AviWeb nền ở tab Dữ liệu thay đổi (không còn tự gõ chuyến sang Check ATC avi); giờ chỉ chạy khi bấm nút Check ATC avi. Chưa publish.

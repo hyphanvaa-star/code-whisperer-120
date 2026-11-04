@@ -90,9 +90,14 @@ export function patchCmpSyncPage(html: string): string {
   if(mode === "version" && previous && previous !== latest.name) vRun();
 }
 `)
-    // FPL VER label: red flash until the user opens the version tab and leaves it again.
-    .replace('  if(ver || cmp) verBangAck();', '  if(ver) window.__verSeen = true; else if(window.__verSeen){ window.__verSeen = false; verBangAck(); }')
+    // Viewing is acknowledged only after a successful comparison is closed.
+    .replace('  if(ver || cmp) verBangAck();', '  if(ver) window.__verSeen = true; else if(window.__verSeen){ window.__verSeen = false; if(window.__verReadFile === verBangFileKey()) verBangAck(); }')
+    .replace('function setMode(m){\n  mode = m;', 'function setMode(m){\n  if(typeof cmpVerModalClose === "function") cmpVerModalClose();\n  mode = m;')
+    .replace('  const o = $("#vOld").value, n = $("#vNew").value;\n', '  const o = $("#vOld").value, n = $("#vNew").value;\n  window.__verReadFile = "";\n')
+    .replace('    vRender(d);\n  }catch(err){', '    vRender(d);\n    window.__verReadFile = n;\n  }catch(err){')
     .replace('id="cmpVerBar" title="File FPL VER đang dùng (BẢN ĐANG DÙNG ở tab Dữ liệu thay đổi)"', 'id="cmpVerBar" role="button" tabindex="0" onclick="cmpVerOpen()" style="cursor:pointer" title="Bấm để so 2 FPL VER gần nhất"')
+    .replace('class="mode-bang" id="verBang" role="status" aria-live="polite"', 'class="mode-bang" id="verBang" role="button" tabindex="0" onclick="event.preventDefault();event.stopPropagation();cmpVerOpen()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();cmpVerOpen()}" aria-live="polite"')
+    .replace('onclick="cmpVerOpen()" style="cursor:pointer"', 'onclick="cmpVerOpen()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();cmpVerOpen()}" style="cursor:pointer"')
     .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
    if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
    bang.title = (pending\n`)
@@ -102,11 +107,19 @@ export function patchCmpSyncPage(html: string): string {
     if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();`)
     .replace('    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";', '    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();')
     .replace('</head>', `<style>
+#cmpVerDialog{position:fixed;inset:16px;margin:0;box-sizing:border-box;padding:0;border:1px solid var(--atc-line,var(--vj-line));border-radius:8px;background:var(--atc-paper,var(--vj-surface));color:var(--atc-ink,var(--vj-ink));width:calc(100vw - 32px);max-width:none;height:calc(100vh - 32px);max-height:none;overflow:hidden}
+#cmpVerDialog[open]{display:flex;flex-direction:column}
+#cmpVerDialog::backdrop{background:color-mix(in srgb,var(--atc-ink,var(--vj-ink)) 55%,transparent)}
+.cmp-ver-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:var(--vj-surface);color:var(--vj-ink);border-bottom:1px solid var(--vj-line);flex-shrink:0;font-size:18px;font-weight:700}
+#cmpVerDialog #wrapVer{width:100%;overflow:hidden;flex:1}
+#cmpVerDialog .toolbar2{flex-wrap:wrap;flex-shrink:0}
+#cmpVerDialog .tbl-wrap{overflow:auto}
 #cmpVerBar.cmp-ver-new{color:#fff !important;background:#dc2626 !important;border-color:#dc2626 !important;animation:cmpVerFlash 1s ease-in-out infinite;font-weight:800}
 #cmpVerBar.cmp-ver-new::before{background:#fff !important;box-shadow:none !important}
 #cmpVerBar.cmp-ver-seen{color:#fff !important;background:#16a34a !important;border-color:#16a34a !important;font-weight:800}
 #cmpVerBar.cmp-ver-seen::before{background:#fff !important;box-shadow:none !important}
 @keyframes cmpVerFlash{0%,100%{opacity:1}50%{opacity:.45}}
+@media(prefers-reduced-motion:reduce){#cmpVerBar.cmp-ver-new{animation:none}}
 </style></head>`)
     .replace('   return Number((ver && ver.new_ver) || 0)\n     || parseVerNo((ver && ver.new) || "")', '   return parseVerNo((ver && ver.new) || "")\n     || Number((ver && ver.new_ver) || 0)')
     .replace('    const d = await (await fetch("/api/version/files")).json();\n    vFileList', '    const seq = window.__vFilesSeq = (window.__vFilesSeq || 0) + 1;\n    const response = await fetch("/api/version/files");\n    const d = await response.json();\n    if(!response.ok || d.error || seq !== window.__vFilesSeq) return;\n    vFileList')
@@ -133,16 +146,63 @@ function cmpVerTipPaint(){
   const vb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
   if(vb) vb.title = "Bấm để so 2 FPL VER gần nhất" + cmpVerDetail();
 }
+let cmpVerOpening = false, cmpVerRestore = null, cmpVerReturnFocus = null;
+function cmpVerModalFit(){
+  const dialog = document.getElementById("cmpVerDialog");
+  if(!dialog || !dialog.open) return;
+  const zoom = (parseFloat(getComputedStyle(document.documentElement).zoom) || 1) * (parseFloat(getComputedStyle(document.body).zoom) || 1);
+  dialog.style.zoom = String(1 / zoom);
+}
+function cmpVerModalShow(){
+  let dialog = document.getElementById("cmpVerDialog");
+  if(!dialog){
+    dialog = document.createElement("dialog"); dialog.id = "cmpVerDialog";
+    dialog.setAttribute("aria-labelledby", "cmpVerDialogTitle");
+    const header = document.createElement("div"); header.className = "cmp-ver-dialog-head";
+    const title = document.createElement("span"); title.id = "cmpVerDialogTitle"; title.textContent = "Dữ liệu thay đổi · FPL VER";
+    const close = document.createElement("button"); close.type = "button"; close.className = "btn small"; close.textContent = "✕"; close.setAttribute("aria-label", "Đóng bảng dữ liệu thay đổi"); close.onclick = cmpVerModalClose;
+    header.append(title, close); dialog.appendChild(header); document.body.appendChild(dialog);
+    dialog.addEventListener("cancel", ev => {ev.preventDefault();cmpVerModalClose();});
+    window.addEventListener("resize", () => requestAnimationFrame(cmpVerModalFit));
+  }
+  if(dialog.open) return;
+  const wrap = $("#wrapVer");
+  if(!wrap) return;
+  cmpVerReturnFocus = document.activeElement;
+  cmpVerRestore = {parent:wrap.parentNode, next:wrap.nextSibling, display:wrap.style.display};
+  window.__verReadFile = "";
+  tipRelease(); dialog.appendChild(wrap); wrap.style.display = "flex";
+  dialog.showModal();
+  cmpVerModalFit();
+}
+function cmpVerModalClose(){
+  const dialog = document.getElementById("cmpVerDialog");
+  if(!dialog || !dialog.open) return;
+  const read = window.__verReadFile;
+  const wrap = $("#wrapVer");
+  dialog.close();
+  if(wrap && cmpVerRestore){
+    cmpVerRestore.parent.insertBefore(wrap, cmpVerRestore.next);
+    wrap.style.display = cmpVerRestore.display;
+  }
+  cmpVerRestore = null;
+  if(read){ verBangAcked = read; verBangSave(); paintVerBang(fplVerApplied); }
+  if(cmpVerReturnFocus && cmpVerReturnFocus.isConnected) cmpVerReturnFocus.focus();
+}
 async function cmpVerOpen(){
-  await vLoadFiles({preferNewest: false});
-  const pair = cmpFplPair(vFileList, Date.now(), true);
-  const latest = pair[pair.length - 1];
-  if(!latest){ alert("Chưa có file FPL VER"); return; }
-  vSetValue("new", latest.name);
-  vSetValue("old", pair.length === 2 ? pair[0].name : "");
-  vPaintMenus();
-  setMode("version");
-  if(pair.length === 2) vRun();
+  if(cmpVerOpening) return;
+  cmpVerOpening = true;
+  try{
+    await vLoadFiles({preferNewest: false});
+    const pair = cmpFplPair(vFileList, Date.now(), true);
+    if(pair.length !== 2){ alert("Chưa có đủ 2 FPL VER cùng ngày để đối chiếu."); return; }
+    const latest = pair[1];
+    vSetValue("new", latest.name); vSetValue("old", pair[0].name);
+    vPaintMenus();
+    $("#vOnlyChg").checked = true;
+    cmpVerModalShow();
+    await vRun();
+  }finally{ cmpVerOpening = false; }
 }
 const cmpSyncChecks = new Map();
 const cmpAckStore = (()=>{ try{return new Set(JSON.parse(localStorage.getItem("cmp_ack_v1")||"[]"));}catch(_){return new Set();} })();
