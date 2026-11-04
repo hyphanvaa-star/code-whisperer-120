@@ -46,6 +46,27 @@ function cmpCrewHoverShow(ev, td){
   if(data.detail)el.append(node("div","crew-hover-detail",data.detail));
   el.classList.add("show"); moveTafTip(ev);
 }
+function cmpRegHoverShow(ev, td){
+  const data = td._cmpRegDisplay || {};
+  const el = tafTipEl();
+  el.classList.remove("pcr-wide"); el.classList.add("cmp-crew-tip"); el.textContent = "";
+  const node = (tag, cls, text) => {const n=document.createElement(tag);n.className=cls;if(text)n.textContent=text;return n;};
+  const head=node("div","crew-hover-head");
+  head.append(node("span","crew-hover-heading",data.kind === "fpl" ? "REG FPL" : "REG AIMS"));
+  if(data.same !== null && data.same !== undefined)head.append(node("span","crew-hover-status" + (data.same ? "" : " mismatch"),data.same ? "✓ Khớp" : "≠ Lệch tàu"));
+  el.append(head,node("div","crew-hover-file",cmpSourceTip(data.kind === "fpl" ? "fpl" : "crew")));
+  const grid=node("div","crew-hover-grid");
+  for(const [key,label,icon] of [["excel","Excel","▦"],["flite","FliteBrief","✈"]]){
+    const section=node("section","crew-hover-source " + key);
+    const title=node("div","crew-hover-source-head");title.append(node("span","crew-hover-source-icon",icon),node("strong","",label));section.append(title);
+    section.append(node("div","crew-hover-reg",data[key] || "—"));
+    section.append(node("div","crew-hover-reg-caption",key === "excel" ? data.kind === "fpl" ? "FPL VER" : "Crewlist AIMS" : "Tàu trên FliteBrief"));grid.append(section);
+  }
+  el.append(grid);
+  if(data.fallback)el.append(node("div","crew-hover-detail","Chưa đọc được tàu từ Excel FPL; ô đang hiển thị từ OFP FliteBrief: " + data.fallback));
+  if(data.detail)el.append(node("div","crew-hover-detail",data.detail));
+  el.classList.add("show"); moveTafTip(ev);
+}
 function tipHover(ev){`)
     .replace('  const text = el && el.getAttribute("title");', `  const text = el && el.getAttribute("title");
   const crewCell = t.closest("#cmpBody td[data-crew-sid]");
@@ -53,11 +74,21 @@ function tipHover(ev){`)
     tipRelease(); _tipHost = crewCell;
     if(crewCell.hasAttribute("title")){crewCell.setAttribute("data-tip",crewCell.title);crewCell.removeAttribute("title");}
     cmpCrewHoverShow(ev,crewCell); return;
+  }
+  const regCell = t.closest("#cmpBody td[data-fpl-reg-sid],#cmpBody td[data-reg-sid]");
+  if(regCell && regCell._cmpRegDisplay){
+    tipRelease(); _tipHost = regCell;
+    if(regCell.hasAttribute("title")){regCell.setAttribute("data-tip",regCell.title);regCell.removeAttribute("title");}
+    cmpRegHoverShow(ev,regCell); return;
   }`)
     .replace('  el.classList.remove("show", "pcr-wide");', '  el.classList.remove("show", "pcr-wide", "cmp-crew-tip");')
     .replace('  if(!inExcel || !cell || !cell.verdict){\n    const sidK', `  td._cmpCrewDisplay = {excel:inExcel && cell ? cell.excel || "" : "",flite:(cell && cell.flite) || CREW_NAMES[String(td.dataset.crewSid || "")] || "",same:cell && cell.verdict ? !!cell.same : null,detail:(cell && cell.detail) || ""};
   if(!inExcel || !cell || !cell.verdict){
     const sidK`)
+    .replace('  const pickReg = v => {', `  td._cmpRegDisplay = {kind:"aims",excel:inExcel && cell ? cell.excel || "" : "",flite:(cell && cell.flite) || fallback || "",same:cell && cell.verdict ? !!cell.same : null,detail:(cell && cell.detail) || ""};
+  const pickReg = v => {`)
+    .replace('  td.classList.toggle("cmp-fpl-match", state.same);', `  td._cmpRegDisplay = {kind:"fpl",excel:excelReg || "",flite:(f && f.reg) || "",same:excelReg && f && f.reg ? state.same : null,fallback:!excelReg ? reg || "" : ""};
+  td.classList.toggle("cmp-fpl-match", state.same);`)
     .replace('</head>', `<style>
 :root{${tokens}}
 #tafTip.cmp-crew-tip{background:var(--crew-hover-paper)!important;color:var(--crew-hover-ink)!important;border:1px solid var(--crew-hover-line)!important;box-shadow:var(--crew-hover-shadow)!important;font-family:var(--x-sans,system-ui)!important;font-size:calc(16px * var(--taf-read-scale,1))!important;line-height:1.45!important;width:min(calc(700px * var(--taf-read-scale,1)),calc((100vw - 28px) * var(--taf-read-scale,1)));padding:calc(18px * var(--taf-read-scale,1))!important;white-space:normal;letter-spacing:0}
@@ -78,6 +109,8 @@ function tipHover(ev){`)
 .crew-hover-id{color:var(--crew-hover-muted);font-family:var(--x-mono,monospace)}
 .crew-hover-detail{margin-top:1em;padding-top:.8em;border-top:1px solid var(--crew-hover-line);font-size:.85em;color:var(--crew-hover-muted);white-space:pre-wrap;overflow-wrap:anywhere}
 .crew-hover-empty{padding:1em 0;color:var(--crew-hover-muted);font-size:.9em}
+.crew-hover-reg{font-size:1.65em;font-weight:800;font-family:var(--x-mono,monospace);padding:.6em 0 .15em;overflow-wrap:anywhere}
+.crew-hover-reg-caption{font-size:.8em;color:var(--crew-hover-muted);padding-bottom:.6em}
 @media(max-width:580px){.crew-hover-grid{grid-template-columns:minmax(0,1fr)}.crew-hover-head{flex-wrap:wrap}}
 </style></head>`);
 }
