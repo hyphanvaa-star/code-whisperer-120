@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getChatAvatars } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageCircle, X, Trash2, ArrowLeft, Send, Users } from "lucide-react";
+import { MessageCircle, X, Trash2, ArrowLeft, Send, Users, Smile, Sticker } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { ChatPicker, STICKERS } from './ChatPicker';
+import { REACTIONS, groupReactions, insertEmoji, readSticker, stickerBody, type Reaction, type StickerId } from './chat-content';
 
 type Room = { id: string; kind: string; name: string; dm_key: string | null };
 type Msg = { id: string; room_id: string; user_id: string; body: string; created_at: string };
@@ -72,6 +75,12 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [picker, setPicker] = useState<'emoji' | 'stickers' | null>(null);
+  const [reactionMenu, setReactionMenu] = useState<string | null>(null);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [reactionBusy, setReactionBusy] = useState(false);
+  const [chatError, setChatError] = useState('');
+  const activeRoomRef = useRef<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -126,16 +135,27 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   }, [me, open, loadProfiles]);
 
   const loadMessages = useCallback(async (roomId: string) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("chat_messages")
       .select("id,room_id,user_id,body,created_at")
       .eq("room_id", roomId)
       .order("created_at", { ascending: true })
       .limit(200);
-    setMessages((data as Msg[] | null) ?? []);
+    if (activeRoomRef.current !== roomId || error) return;
+    const nextMessages = (data as Msg[] | null) ?? [];
+    setMessages(nextMessages);
+    if (!nextMessages.length) { setReactions([]); return; }
+    const result = await supabase.from('chat_reactions').select('message_id,user_id,emoji').in('message_id', nextMessages.map((m) => m.id));
+    if (activeRoomRef.current === roomId && !result.error) setReactions(result.data ?? []);
   }, []);
 
   useEffect(() => {
+    activeRoomRef.current = active?.id ?? null;
+    setMessages([]);
+    setReactions([]);
+    setPicker(null);
+    setReactionMenu(null);
+    setChatError('');
     if (!active) return;
     loadMessages(active.id);
     const t = setInterval(() => loadMessages(active.id), 4000);
@@ -240,19 +260,49 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     if (room) setActive(room);
   };
 
-  const send = async () => {
-    const body = draft.trim();
+  const send = async (sticker?: StickerId) => {
+    const body = sticker ? stickerBody(sticker) : draft.trim();
     if (!body || !active || sending) return;
+    const roomId = active.id;
     setSending(true);
-    const { error } = await supabase
-      .from("chat_messages")
-      .insert({ room_id: active.id, user_id: me, body });
-    setSending(false);
-    if (!error) {
-      setDraft("");
-      loadMessages(active.id);
-      inputRef.current?.focus();
+    setChatError('');
+    try {
+      const { error } = await supabase.from('chat_messages').insert({ room_id: roomId, user_id: me, body });
+      if (error) throw error;
+      if (activeRoomRef.current === roomId) {
+        if (!sticker) setDraft('');
+        setPicker(null);
+        await loadMessages(roomId);
+        inputRef.current?.focus();
+      }
+    } catch {
+      setChatError('Chưa gửi được tin nhắn. Vui lòng thử lại.');
+    } finally {
+      setSending(false);
     }
+  };
+
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!active || reactionBusy) return;
+    const roomId = active.id;
+    const exists = reactions.some((r) => r.message_id === messageId && r.user_id === me && r.emoji === emoji);
+    setReactionBusy(true);
+    setChatError('');
+    try {
+      const result = exists
+        ? await supabase.from('chat_reactions').delete().eq('message_id', messageId).eq('user_id', me).eq('emoji', emoji)
+        : await supabase.from('chat_reactions').upsert({ message_id: messageId, user_id: me, emoji }, { onConflict: 'message_id,user_id,emoji', ignoreDuplicates: true });
+      if (result.error) throw result.error;
+      if (activeRoomRef.current === roomId) { setReactionMenu(null); await loadMessages(roomId); }
+    } catch { setChatError('Chưa lưu được cảm xúc. Vui lòng thử lại.'); }
+    finally { setReactionBusy(false); }
+  };
+
+  const addEmoji = (emoji: string) => {
+    const input = inputRef.current;
+    const next = insertEmoji(draft, emoji, input?.selectionStart ?? draft.length, input?.selectionEnd ?? draft.length);
+    setDraft(next.text);
+    requestAnimationFrame(() => { input?.focus(); input?.setSelectionRange(next.caret, next.caret); });
   };
 
   const remove = async (id: string) => {
@@ -278,7 +328,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       </button>
 
       {open && (
-        <div className="fixed bottom-20 right-5 z-50 flex h-[520px] w-[380px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-[var(--chat-line)] bg-[var(--chat-panel)] shadow-2xl">
+        <div className="fixed bottom-20 right-5 z-50 flex h-[min(560px,calc(100dvh-110px))] w-[380px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-[var(--chat-line)] bg-[var(--chat-panel)] shadow-2xl">
           {!active ? (
             <>
               <div className="flex items-center gap-2 bg-[var(--chat-header)] px-4 py-3.5">
@@ -352,7 +402,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   {roomLabel(active)}
                 </div>
               </div>
-              <div ref={listRef} className="flex-1 space-y-3 overflow-y-auto bg-[var(--chat-bg)] p-3">
+              <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[var(--chat-bg)] p-3">
                 {messages.length === 0 && (
                   <div className="pt-12 text-center text-xs text-[var(--chat-sub)]">
                     Chưa có tin nhắn. Gửi tin đầu tiên nhé.
@@ -361,6 +411,8 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                 {messages.map((m) => {
                   const mine = m.user_id === me;
                   const sender = profileOf(m.user_id);
+                  const sticker = readSticker(m.body);
+                  const messageReactions = groupReactions(reactions, m.id, me);
                   return (
                     <div
                       key={m.id}
@@ -380,7 +432,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                               : "rounded-tl-sm border border-[var(--chat-line)] bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"
                           }`}
                         >
-                          <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                          {sticker ? <img src={STICKERS[sticker].src} alt={STICKERS[sticker].name} width={512} height={512} loading="lazy" className="h-32 w-32 rounded-md object-contain" /> : <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{m.body}</div>}
                           <div
                             className={`mt-1 flex items-center gap-1.5 text-[10px] ${
                               mine ? "justify-end text-[var(--chat-bubble-me-ink)]/55" : "text-[var(--chat-sub)]"
@@ -398,30 +450,39 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                             )}
                           </div>
                         </div>
+                        <div className="mt-1 flex max-w-full flex-wrap items-center gap-1">
+                          {messageReactions.map((r) => <Button key={r.emoji} variant="ghost" disabled={reactionBusy} aria-label={`${r.mine ? 'Thu hồi' : 'Thả'} ${r.emoji}, ${r.count} lượt`} aria-pressed={r.mine} title={reactions.filter((v) => v.message_id === m.id && v.emoji === r.emoji).map((v) => nameOf(profileOf(v.user_id), 'Dispatcher')).join(', ')} onClick={() => void toggleReaction(m.id, r.emoji)} className={`h-7 gap-1 rounded-full border px-2 text-xs ${r.mine ? 'border-[var(--chat-accent)] bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]' : 'border-[var(--chat-line)] bg-[var(--chat-panel)] text-[var(--chat-ink)]'}`}><span>{r.emoji}</span>{r.count}</Button>)}
+                          <Button variant="ghost" size="icon" title="Thả cảm xúc" aria-label={`Thả cảm xúc tin ${m.id}`} aria-expanded={reactionMenu === m.id} onClick={() => setReactionMenu(reactionMenu === m.id ? null : m.id)} className="h-7 w-7 text-[var(--chat-sub)] hover:bg-[var(--chat-hover)]"><Smile /></Button>
+                        </div>
+                        {reactionMenu === m.id && <div className="mt-1 flex flex-wrap gap-0.5 rounded-lg border border-[var(--chat-line)] bg-[var(--chat-panel)] p-1" role="group" aria-label="Cảm xúc tin nhắn">{REACTIONS.map((emoji) => <Button key={emoji} variant="ghost" disabled={reactionBusy} title={emoji} aria-label={`Thả ${emoji}`} onClick={() => void toggleReaction(m.id, emoji)} className="h-8 w-8 p-0 text-xl hover:bg-[var(--chat-hover)]">{emoji}</Button>)}</div>}
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="flex items-center gap-2 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] p-2.5">
+              {chatError && <div role="alert" className="px-3 py-1 text-xs text-[var(--chat-danger)]">{chatError}</div>}
+              {picker && <ChatPicker mode={picker} busy={sending} onEmoji={addEmoji} onSticker={(id) => void send(id)} />}
+              <div className="flex items-center gap-1 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] p-2">
+                <Button variant="ghost" size="icon" title="Emoji" aria-label="Emoji" aria-expanded={picker === 'emoji'} onClick={() => setPicker(picker === 'emoji' ? null : 'emoji')} className="shrink-0 text-[var(--chat-sub)] hover:bg-[var(--chat-hover)]"><Smile /></Button>
+                <Button variant="ghost" size="icon" title="Nhãn dán" aria-label="Nhãn dán" aria-expanded={picker === 'stickers'} onClick={() => setPicker(picker === 'stickers' ? null : 'stickers')} className="shrink-0 text-[var(--chat-sub)] hover:bg-[var(--chat-hover)]"><Sticker /></Button>
                 <input
                   ref={inputRef}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") send();
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing) void send();
                   }}
                   placeholder="Nhập tin nhắn…"
-                  className="h-9 flex-1 rounded-lg border border-[var(--chat-line)] bg-[var(--chat-bg)] px-3 text-sm text-[var(--chat-ink)] outline-none transition-shadow focus:border-[var(--chat-accent)] focus:ring-2 focus:ring-[var(--chat-accent)]/25"
+                  className="h-9 min-w-0 flex-1 rounded-lg border border-[var(--chat-line)] bg-[var(--chat-bg)] px-2 text-sm text-[var(--chat-ink)] outline-none transition-shadow focus:border-[var(--chat-accent)] focus:ring-2 focus:ring-[var(--chat-accent)]/25"
                 />
-                <button
+                <Button
                   aria-label="Gửi"
-                  onClick={send}
+                  onClick={() => void send()}
                   disabled={sending || !draft.trim()}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--chat-accent)] text-[var(--chat-accent-ink)] transition-colors hover:brightness-95 disabled:opacity-40"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--chat-accent)] p-0 text-[var(--chat-accent-ink)] transition-colors hover:brightness-95 disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </>
           )}

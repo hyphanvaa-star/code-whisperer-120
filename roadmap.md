@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 4.88: thêm emoji, bốn nhãn dán hàng không và reaction tin nhắn; kiểm tra gửi/thu hồi và đọc lại bằng kiểm thử. Chưa thử hai tài khoản thật vì không cấp được phiên người yêu cầu.
+
 - [x] V 4.64: CFP NO nháy đỏ theo đổi tàu/crew Crewlist, dùng lại xuất REQ và chỉ hết nháy sau khi tải thành công; giữ REQ tab Dữ liệu thay đổi. 30 kiểm thử đạt, build OK; chưa xuất REQ trên chuyến thật.
 
 - [x] V 4.55: Compare chọn hai số VER khác nhau của cùng ngày, không lấy bản cũ tải lên muộn; giữ thứ tự Crewlist và xác nhận đổi tàu. Kiểm thử VER 10/09, khác ngày, bản trùng và giao năm; cần người dùng thử lại VJ155 trên chuyến thật.
