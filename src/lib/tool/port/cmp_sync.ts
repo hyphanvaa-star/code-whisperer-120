@@ -95,9 +95,11 @@ export function patchCmpSyncPage(html: string): string {
     .replace('id="cmpVerBar" title="File FPL VER đang dùng (BẢN ĐANG DÙNG ở tab Dữ liệu thay đổi)"', 'id="cmpVerBar" role="button" tabindex="0" onclick="cmpVerOpen()" style="cursor:pointer" title="Bấm để so 2 FPL VER gần nhất"')
     .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
    if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
-   bang.title = pending\n`)
+   bang.title = (pending\n`)
+    .replace('     : "FPL VER " + n + " — đã xem";\n', '     : "FPL VER " + n + " — đã xem") + cmpVerDetail();\n')
     .replace('    vb.textContent = latest ? ("FPL VER đang dùng: " + latest) : "";', `    const vn = parseVerNo(latest);
-    vb.textContent = latest ? ("FPL VER " + (vn ? String(vn).padStart(2, "0") : "") + (vn ? " · " : "") + latest) : "";`)
+    vb.textContent = latest ? ("FPL VER " + (vn ? String(vn).padStart(2, "0") : "") + (vn ? " · " : "") + latest) : "";
+    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();`)
     .replace('</head>', `<style>
 #cmpVerBar.cmp-ver-new{color:#fff !important;background:#dc2626 !important;border-color:#dc2626 !important;animation:cmpVerFlash 1s ease-in-out infinite;font-weight:800}
 #cmpVerBar.cmp-ver-new::before{background:#fff !important;box-shadow:none !important}
