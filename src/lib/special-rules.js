@@ -5,6 +5,7 @@ export const SR_RULES = [
   { id: "NO_DOMESTIC", label: "Không bay nội địa Việt Nam", apt: false },
   { id: "SEA_ONLY", label: "Chỉ bay trong Đông Nam Á", apt: false },
   { id: "ONLY_APTS", label: "Chỉ bay đi/đến các sân đã chọn", apt: true },
+  { id: "ONLY_ACS_APTS", label: "Chỉ các tàu đã chọn được bay đi/đến các sân đã chọn", apt: true },
   { id: "NO_OPS_APTS", label: "Không bay đi/đến các sân đã chọn", apt: true },
   { id: "NO_DEP_APTS", label: "Không cất cánh từ các sân đã chọn", apt: true },
   { id: "NO_ARR_APTS", label: "Không hạ cánh tại các sân đã chọn", apt: true },
@@ -95,7 +96,9 @@ export function srRuleLabel(id) { const r = SR_RULES.find((x) => x.id === id); r
  * Trả [{role, sev:"critical"|"warning", text}] — role: DEP|DEST|ALT1|ALT2|TALT
  */
 export function srEvaluate(row, f, groups) {
-  if (!row || !row.rule || !srAcMatch(row.acs, f.reg, f.ac, groups)) return [];
+  if (!row || !row.rule) return [];
+  const acHit = srAcMatch(row.acs, f.reg, f.ac, groups);
+  if (row.rule === "ONLY_ACS_APTS" ? acHit : !acHit) return [];
   const out = [];
   const name = (row.note ? row.note + " — " : "") + srRuleLabel(row.rule);
   const who = (f.reg || f.ac || "Tàu") + ": ";
@@ -121,6 +124,7 @@ export function srEvaluate(row, f, groups) {
     case "ONLY_APTS":
       route.forEach(([r, c]) => { if (!srAptIn(apts, c)) add(r, "critical", r + " " + c + " không nằm trong danh sách cho phép"); });
       break;
+    case "ONLY_ACS_APTS": route.forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", "tàu không nằm trong danh sách được bay " + r + " " + c); }); break;
     case "NO_OPS_APTS": route.forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", r + " " + c); }); break;
     case "NO_DEP_APTS": at(["DEP"]).forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", r + " " + c); }); break;
     case "NO_ARR_APTS": at(["DEST"]).forEach(([r, c]) => { if (srAptIn(apts, c)) add(r, "critical", r + " " + c); }); break;

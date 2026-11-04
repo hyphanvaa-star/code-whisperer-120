@@ -37,3 +37,16 @@ describe("NOT group exception", () => {
     expect(_ev(row as never, { reg: "VN-A580", dep: "VVTS", dest: "VVPC" } as never, groups as never).length).toBe(0);
   });
 });
+
+describe("ONLY_ACS_APTS", () => {
+  const row = { rule: "ONLY_ACS_APTS", acs: ["REG:VNA580"], apts: ["VVPC", "VVPQ"] };
+  it("unticked aircraft to PQC is critical", () => {
+    expect(_ev(row as never, { reg: "VN-A522", dep: "VVTS", dest: "VVPQ" } as never, []).length).toBe(1);
+  });
+  it("ticked aircraft allowed", () => {
+    expect(_ev(row as never, { reg: "VN-A580", dep: "VVPC", dest: "VVTS" } as never, []).length).toBe(0);
+  });
+  it("unticked aircraft elsewhere ok", () => {
+    expect(_ev(row as never, { reg: "VN-A522", dep: "VVTS", dest: "VVNB" } as never, []).length).toBe(0);
+  });
+});
