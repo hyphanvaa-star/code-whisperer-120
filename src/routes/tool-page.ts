@@ -2726,7 +2726,8 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.05')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.06')
+    .replace('const NM_ASSESS_DEF = {corridor_nm:5,', 'const NM_ASSESS_DEF = {corridor_nm:15,')
     .replace('    else body.textContent = n.text || n.e_field || "";\n    item.appendChild(body);', `    else body.textContent = n.text || n.e_field || "";
     try{ nmHlKeys(body); }catch(_e){}
     item.appendChild(body);`)

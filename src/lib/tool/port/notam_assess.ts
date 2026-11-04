@@ -23,7 +23,7 @@ export interface AssessCfg {
   fir_before: number; fir_after: number;
 }
 export const DEFAULT_ASSESS_CFG: AssessCfg = {
-  corridor_nm: 5, max_delay_minutes: 180,
+  corridor_nm: 15, max_delay_minutes: 180,
   dep_before: 60, dep_after: 60, arr_before: 60, arr_after: 60,
   talt_before: 15, talt_after: 60, enrt_alt_after: 60,
   dest_alt_before: 60, dest_alt_after: 60, fir_before: 60, fir_after: 60,
@@ -37,6 +37,7 @@ export function normAssessCfg(raw: unknown): AssessCfg {
       out[k] = Math.min(k === "corridor_nm" ? 200 : 1440, v);
     }
   }
+  if (out.corridor_nm === 5) out.corridor_nm = 15; // legacy default
   out.max_delay_minutes = Math.round(out.max_delay_minutes);
   return out;
 }
@@ -538,6 +539,12 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
   if (sp.type !== "BRIEFING-INFO" && sp.type !== "CHART-ROUTE-RESTRICTION") {
     const band = notamBand(n);
     const fr = sp.flRange ?? (sp.fl !== undefined && sp.fl !== null ? [sp.fl, sp.fl] as [number, number] : null);
+    const firKeys = Object.keys(f.firs);
+    const firCode = qfir || normIcao(code);
+    if (kind === "FIR" && band && band[1] < 100 && firKeys.length > 2 && firKeys.indexOf(firCode) > 0 && firKeys.indexOf(firCode) < firKeys.length - 1) {
+      reasons.push(`FIR ${firCode} là FIR enroute; NOTAM trần FL${band[1]} dưới FL100 không tính.`);
+      return out("NO IMPACT", sp.type);
+    }
     if (!band || !fr) { reasons.push("Thiếu cao độ NOTAM hoặc FL của chuyến tại điểm giao."); return out("NEED MANUAL CHECK", sp.type); }
     if (!(band[0] <= fr[1] && fr[0] <= band[1])) {
       reasons.push(`FL kế hoạch ${fr[0]}${fr[1] !== fr[0] ? "–" + fr[1] : ""} ngoài dải NOTAM FL${band[0]}–FL${band[1]}.`);
