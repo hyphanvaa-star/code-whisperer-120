@@ -100,6 +100,7 @@ export function patchCmpSyncPage(html: string): string {
     .replace('    vb.textContent = latest ? ("FPL VER đang dùng: " + latest) : "";', `    const vn = parseVerNo(latest);
     vb.textContent = latest ? ("FPL VER " + (vn ? String(vn).padStart(2, "0") : "") + (vn ? " · " : "") + latest) : "";
     if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();`)
+    .replace('    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";', '    bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();')
     .replace('</head>', `<style>
 #cmpVerBar.cmp-ver-new{color:#fff !important;background:#dc2626 !important;border-color:#dc2626 !important;animation:cmpVerFlash 1s ease-in-out infinite;font-weight:800}
 #cmpVerBar.cmp-ver-new::before{background:#fff !important;box-shadow:none !important}
