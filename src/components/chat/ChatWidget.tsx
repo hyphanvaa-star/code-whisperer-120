@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MessageCircle, X, Trash2, ArrowLeft, Send, Users, Smile, Sticker } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { ChatPicker, STICKERS } from './ChatPicker';
-import { REACTIONS, groupReactions, insertEmoji, readSticker, stickerBody, type Reaction, type StickerId } from './chat-content';
+import { REACTIONS, groupReactions, insertEmoji, messageParts, isEmojiOnly, readSticker, stickerBody, type Reaction, type StickerId } from './chat-content';
 
 type Room = { id: string; kind: string; name: string; dm_key: string | null };
 type Msg = { id: string; room_id: string; user_id: string; body: string; created_at: string };
@@ -45,18 +45,18 @@ function nameOf(p: Profile | undefined, fallback: string) {
 /** Avatar vuông bo góc kiểu WeChat, màu theo tên */
 function Avatar({ label, seed, size = 38, src }: { label: string; seed: string; size?: number; src?: string }) {
   const [failedSrc, setFailedSrc] = useState("");
-  if (src && src !== failedSrc) return <img src={src} alt={label} width={size} height={size} className="shrink-0 rounded-md object-cover" onError={() => setFailedSrc(src)} />;
-  const hues = [150, 20, 210, 260, 330, 45, 190, 100];
+  if (src && src !== failedSrc) return <img src={src} alt={label} width={size} height={size} className="shrink-0 rounded-full object-cover" onError={() => setFailedSrc(src)} />;
+  const tones = ["var(--chat-avatar-a)", "var(--chat-avatar-b)", "var(--chat-avatar-c)"];
   let h = 0;
   for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  const hue = hues[h % hues.length];
+  const tone = tones[h % tones.length];
   return (
     <span
-      className="flex shrink-0 items-center justify-center rounded-[6px] text-sm font-bold text-white"
+      className="flex shrink-0 items-center justify-center rounded-full text-sm font-bold text-[var(--chat-accent-ink)]"
       style={{
         width: size,
         height: size,
-        background: `linear-gradient(135deg, oklch(0.62 0.14 ${hue}), oklch(0.5 0.15 ${hue + 25}))`,
+        background: tone,
       }}
     >
       {label.slice(0, 1).toUpperCase()}
@@ -226,7 +226,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   void readKey;
   const badge = (n: number, cls = "") =>
     n > 0 ? (
-      <span className={`flex min-w-5 h-5 items-center justify-center rounded-full border-2 border-[var(--chat-panel)] bg-[var(--chat-danger)] px-1 text-[11px] font-bold leading-none text-white ${cls}`}>
+      <span className={`flex min-w-5 h-5 items-center justify-center rounded-full border-2 border-[var(--chat-panel)] bg-[var(--chat-danger)] px-1 text-[11px] font-bold leading-none text-[var(--chat-accent-ink)] ${cls}`}>
         {n > 9 ? "9+" : n}
       </span>
     ) : null;
@@ -317,23 +317,23 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   return (
     <>
       <style>{`@keyframes chatShake{0%,60%,100%{transform:rotate(0)}65%{transform:rotate(-14deg)}70%{transform:rotate(12deg)}75%{transform:rotate(-10deg)}80%{transform:rotate(8deg)}85%{transform:rotate(-4deg)}90%{transform:rotate(0)}}`}</style>
-      <button
+      <Button variant="ghost"
         aria-label="Chat nội bộ"
         onClick={() => setOpen((v) => !v)}
         style={totalUnread > 0 && !open ? { animation: "chatShake 1.6s ease-in-out infinite" } : undefined}
-        className="fixed bottom-5 right-5 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--chat-accent)] p-3.5 text-[var(--chat-accent-ink)] shadow-[0_6px_20px_-4px_oklch(0.66_0.19_150/0.6)] transition-transform hover:scale-105 active:scale-95"
+        className="fixed bottom-5 right-5 z-50 flex h-13 w-13 items-center justify-center rounded-full bg-[var(--chat-accent)] p-3.5 text-[var(--chat-accent-ink)] shadow-[var(--chat-launcher-shadow)] transition-transform hover:scale-105 active:scale-95"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
         {badge(totalUnread, "absolute -right-1 -top-1 animate-[bounce_1s_ease-in-out_2]")}
-      </button>
+      </Button>
 
       {open && (
-        <div className="fixed bottom-20 right-5 z-50 flex h-[min(560px,calc(100dvh-110px))] w-[380px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-[var(--chat-line)] bg-[var(--chat-panel)] shadow-2xl">
+        <div className="chat-window fixed bottom-20 right-5 z-50 flex h-[min(680px,calc(100dvh-110px))] w-[460px] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-[var(--chat-line)] bg-[var(--chat-panel)] text-[var(--chat-ink)] shadow-[var(--chat-window-shadow)]">
           {!active ? (
             <>
-              <div className="flex items-center gap-2 bg-[var(--chat-header)] px-4 py-3.5">
-                <MessageCircle className="h-4 w-4 text-[var(--chat-accent)]" />
-                <span className="text-sm font-semibold tracking-wide text-[var(--chat-header-ink)]">
+              <div className="flex items-center gap-3 border-b border-[var(--chat-line)] bg-[var(--chat-header)] px-5 py-5">
+                <MessageCircle className="h-6 w-6 text-[var(--chat-accent)]" />
+                <span className="text-lg font-semibold text-[var(--chat-header-ink)]">
                   Chat nội bộ
                 </span>
               </div>
@@ -341,22 +341,22 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                 {rooms
                   .filter((r) => r.kind === "group")
                   .map((r) => (
-                    <button
+                    <Button variant="ghost"
                       key={r.id}
                       onClick={() => setActive(r)}
-                      className="flex w-full items-center gap-3 border-b border-[var(--chat-line)] px-4 py-3 text-left transition-colors hover:bg-[var(--chat-hover)]"
+                      className="flex h-auto w-full justify-start items-center gap-3 border-b border-[var(--chat-line)] px-5 py-4 text-left transition-colors hover:bg-[var(--chat-hover)]"
                     >
-                      <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[6px] bg-[var(--chat-accent)] text-[var(--chat-accent-ink)]">
+                      <span className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-[var(--chat-accent)] text-[var(--chat-accent-ink)]">
                         <Users className="h-5 w-5" />
                       </span>
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-[var(--chat-ink)]">
+                        <span className="block truncate text-base font-semibold text-[var(--chat-ink)]">
                           {roomLabel(r)}
                         </span>
                         <span className="block text-xs text-[var(--chat-sub)]">Tất cả dispatcher</span>
                       </span>
                       {badge(unread[r.id] ?? 0, "ml-auto")}
-                    </button>
+                    </Button>
                   ))}
                 <div className="bg-[var(--chat-bg)] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--chat-sub)]">
                   Chat riêng
@@ -364,45 +364,43 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                 {profiles
                   .filter((p) => p.id !== me)
                   .map((p) => (
-                    <button
+                    <Button variant="ghost"
                       key={p.id}
                       onClick={() => openDm(p.id)}
-                      className="flex w-full items-center gap-3 border-b border-[var(--chat-line)] px-4 py-3 text-left transition-colors hover:bg-[var(--chat-hover)]"
+                      className="flex h-auto w-full justify-start items-center gap-3 border-b border-[var(--chat-line)] px-5 py-4 text-left transition-colors hover:bg-[var(--chat-hover)]"
                     >
                       <Avatar label={nameOf(p, "?")} seed={p.id} src={avatars[p.id]} />
                       <span className="min-w-0">
-                        <span className="block truncate text-sm font-medium text-[var(--chat-ink)]">
+                        <span className="block truncate text-base font-semibold text-[var(--chat-ink)]">
                           {nameOf(p, p.id)}
                         </span>
                         <span className="block text-xs text-[var(--chat-sub)]">Nhắn riêng</span>
                       </span>
                       {badge(unread[rooms.find((r) => r.dm_key === [me, p.id].sort().join("|"))?.id ?? ""] ?? 0, "ml-auto")}
-                    </button>
+                    </Button>
                   ))}
               </div>
             </>
           ) : (
             <>
-              <div className="flex items-center gap-2 bg-[var(--chat-header)] px-3 py-2.5">
-                <button
+              <div className="flex shrink-0 items-center gap-3 border-b border-[var(--chat-line)] bg-[var(--chat-header)] px-3 py-4">
+                <Button variant="ghost"
                   aria-label="Quay lại"
                   onClick={() => setActive(null)}
-                  className="rounded-md p-1.5 text-[var(--chat-header-ink)]/80 transition-colors hover:bg-white/10"
+                  title="Quay lại" className="h-9 w-9 shrink-0 rounded-full p-0 text-[var(--chat-accent)] transition-colors hover:bg-[var(--chat-hover)]"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                </button>
+                </Button>
                 {active.kind === "group" ? (
-                  <span className="flex h-7 w-7 items-center justify-center rounded-[5px] bg-[var(--chat-accent)] text-[var(--chat-accent-ink)]">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--chat-accent)] text-[var(--chat-accent-ink)]">
                     <Users className="h-4 w-4" />
                   </span>
                 ) : (
-                  <Avatar label={roomLabel(active)} seed={active.id} size={28} src={avatars[dmPartner(active)?.id || ""]} />
+                  <Avatar label={roomLabel(active)} seed={active.id} size={40} src={avatars[dmPartner(active)?.id || ""]} />
                 )}
-                <div className="truncate text-sm font-semibold text-[var(--chat-header-ink)]">
-                  {roomLabel(active)}
-                </div>
+                <div className="min-w-0 flex-1"><div className="truncate text-base font-semibold text-[var(--chat-header-ink)]">{roomLabel(active)}</div><div className="mt-0.5 text-xs text-[var(--chat-sub)]">{active.kind === "group" ? "Sohee · Dispatch team" : "Tin nhắn riêng"}</div></div><Button variant="ghost" size="icon" aria-label="Đóng chat" title="Đóng chat" onClick={() => setOpen(false)} className="h-9 w-9 shrink-0 rounded-full text-[var(--chat-sub)]"><X className="h-5 w-5" /></Button>
               </div>
-              <div ref={listRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[var(--chat-bg)] p-3">
+              <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-[var(--chat-bg)] p-4">
                 {messages.length === 0 && (
                   <div className="pt-12 text-center text-xs text-[var(--chat-sub)]">
                     Chưa có tin nhắn. Gửi tin đầu tiên nhé.
@@ -412,46 +410,43 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   const mine = m.user_id === me;
                   const sender = profileOf(m.user_id);
                   const sticker = readSticker(m.body);
+                  const emojiOnly = !sticker && isEmojiOnly(m.body);
                   const messageReactions = groupReactions(reactions, m.id, me);
                   return (
                     <div
                       key={m.id}
                       className={`group flex items-start gap-2 ${mine ? "flex-row-reverse" : ""}`}
                     >
-                      <Avatar label={nameOf(sender, "?")} seed={m.user_id} size={34} src={avatars[m.user_id]} />
-                      <div className={`flex max-w-[72%] flex-col ${mine ? "items-end" : "items-start"}`}>
+                      <Avatar label={nameOf(sender, "?")} seed={m.user_id} size={32} src={avatars[m.user_id]} />
+                      <div className={`flex min-w-0 max-w-[80%] flex-col ${mine ? "items-end" : "items-start"}`}>
                         {!mine && active.kind === "group" && (
-                          <div className="mb-0.5 px-0.5 text-[11px] text-[var(--chat-sub)]">
+                          <div className="mb-1 px-2 text-xs text-[var(--chat-sub)]">
                             {nameOf(sender, "—")}
                           </div>
                         )}
                         <div
-                          className={`relative rounded-lg px-3 py-2 text-sm shadow-sm ${
-                            mine
-                              ? "rounded-tr-sm bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]"
-                              : "rounded-tl-sm border border-[var(--chat-line)] bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"
-                          }`}
+                          className={`relative ${sticker || emojiOnly ? "px-1 py-1 text-[var(--chat-ink)]" : `rounded-2xl px-4 py-2.5 text-base leading-relaxed ${mine ? "bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]" : "bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"}`}`}
                         >
-                          {sticker ? <img src={STICKERS[sticker].src} alt={STICKERS[sticker].name} width={512} height={512} loading="lazy" className="h-32 w-32 rounded-md object-contain" /> : <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{m.body}</div>}
+                          {sticker ? <img src={STICKERS[sticker].src} alt={STICKERS[sticker].name} width={512} height={512} loading="lazy" className="h-40 w-40 max-w-full object-contain" /> : <div className={`whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${emojiOnly ? "chat-emoji-only" : "chat-message-text"}`}>{messageParts(m.body).map((part, index) => part.emoji ? <span key={index} className="chat-emoji">{part.text}</span> : part.text)}</div>}
                           <div
-                            className={`mt-1 flex items-center gap-1.5 text-[10px] ${
-                              mine ? "justify-end text-[var(--chat-bubble-me-ink)]/55" : "text-[var(--chat-sub)]"
+                            className={`mt-1 flex items-center gap-1.5 text-[11px] ${
+                              mine && !sticker && !emojiOnly ? "justify-end text-[var(--chat-bubble-me-ink)]/75" : "text-[var(--chat-sub)]"
                             }`}
                           >
                             {fmt(m.created_at)}
                             {isAdmin && (
-                              <button
+                              <Button variant="ghost"
                                 aria-label="Xóa tin nhắn"
                                 onClick={() => remove(m.id)}
-                                className="hidden text-[var(--chat-danger)] group-hover:inline"
+                                className="h-6 w-6 p-0 text-[var(--chat-danger)] opacity-70 sm:opacity-0 sm:group-hover:opacity-100"
                               >
                                 <Trash2 className="h-3 w-3" />
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>
                         <div className="mt-1 flex max-w-full flex-wrap items-center gap-1">
-                          {messageReactions.map((r) => <Button key={r.emoji} variant="ghost" disabled={reactionBusy} aria-label={`${r.mine ? 'Thu hồi' : 'Thả'} ${r.emoji}, ${r.count} lượt`} aria-pressed={r.mine} title={reactions.filter((v) => v.message_id === m.id && v.emoji === r.emoji).map((v) => nameOf(profileOf(v.user_id), 'Dispatcher')).join(', ')} onClick={() => void toggleReaction(m.id, r.emoji)} className={`h-7 gap-1 rounded-full border px-2 text-xs ${r.mine ? 'border-[var(--chat-accent)] bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]' : 'border-[var(--chat-line)] bg-[var(--chat-panel)] text-[var(--chat-ink)]'}`}><span>{r.emoji}</span>{r.count}</Button>)}
+                          {messageReactions.map((r) => <Button key={r.emoji} variant="ghost" disabled={reactionBusy} aria-label={`${r.mine ? 'Thu hồi' : 'Thả'} ${r.emoji}, ${r.count} lượt`} aria-pressed={r.mine} title={reactions.filter((v) => v.message_id === m.id && v.emoji === r.emoji).map((v) => nameOf(profileOf(v.user_id), 'Dispatcher')).join(', ')} onClick={() => void toggleReaction(m.id, r.emoji)} className={`h-7 gap-1 rounded-full border px-2 text-xs ${r.mine ? 'border-[var(--chat-accent)] bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]' : 'border-[var(--chat-line)] bg-[var(--chat-panel)] text-[var(--chat-ink)]'}`}><span className="text-lg leading-none">{r.emoji}</span>{r.count}</Button>)}
                           <Button variant="ghost" size="icon" title="Thả cảm xúc" aria-label={`Thả cảm xúc tin ${m.id}`} aria-expanded={reactionMenu === m.id} onClick={() => setReactionMenu(reactionMenu === m.id ? null : m.id)} className="h-7 w-7 text-[var(--chat-sub)] hover:bg-[var(--chat-hover)]"><Smile /></Button>
                         </div>
                         {reactionMenu === m.id && <div className="mt-1 flex flex-wrap gap-0.5 rounded-lg border border-[var(--chat-line)] bg-[var(--chat-panel)] p-1" role="group" aria-label="Cảm xúc tin nhắn">{REACTIONS.map((emoji) => <Button key={emoji} variant="ghost" disabled={reactionBusy} title={emoji} aria-label={`Thả ${emoji}`} onClick={() => void toggleReaction(m.id, emoji)} className="h-8 w-8 p-0 text-xl hover:bg-[var(--chat-hover)]">{emoji}</Button>)}</div>}
@@ -462,9 +457,9 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
               </div>
               {chatError && <div role="alert" className="px-3 py-1 text-xs text-[var(--chat-danger)]">{chatError}</div>}
               {picker && <ChatPicker mode={picker} busy={sending} onEmoji={addEmoji} onSticker={(id) => void send(id)} />}
-              <div className="flex items-center gap-1 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] p-2">
-                <Button variant="ghost" size="icon" title="Emoji" aria-label="Emoji" aria-expanded={picker === 'emoji'} onClick={() => setPicker(picker === 'emoji' ? null : 'emoji')} className="shrink-0 text-[var(--chat-sub)] hover:bg-[var(--chat-hover)]"><Smile /></Button>
-                <Button variant="ghost" size="icon" title="Nhãn dán" aria-label="Nhãn dán" aria-expanded={picker === 'stickers'} onClick={() => setPicker(picker === 'stickers' ? null : 'stickers')} className="shrink-0 text-[var(--chat-sub)] hover:bg-[var(--chat-hover)]"><Sticker /></Button>
+              <div className="flex shrink-0 items-center gap-1.5 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] px-3 py-3">
+                <Button variant="ghost" size="icon" title="Emoji" aria-label="Emoji" aria-expanded={picker === 'emoji'} onClick={() => setPicker(picker === 'emoji' ? null : 'emoji')} className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"><Smile /></Button>
+                <Button variant="ghost" size="icon" title="Nhãn dán" aria-label="Nhãn dán" aria-expanded={picker === 'stickers'} onClick={() => setPicker(picker === 'stickers' ? null : 'stickers')} className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"><Sticker /></Button>
                 <input
                   ref={inputRef}
                   value={draft}
@@ -473,15 +468,15 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                     if (e.key === "Enter" && !e.nativeEvent.isComposing) void send();
                   }}
                   placeholder="Nhập tin nhắn…"
-                  className="h-9 min-w-0 flex-1 rounded-lg border border-[var(--chat-line)] bg-[var(--chat-bg)] px-2 text-sm text-[var(--chat-ink)] outline-none transition-shadow focus:border-[var(--chat-accent)] focus:ring-2 focus:ring-[var(--chat-accent)]/25"
+                  className="h-11 min-w-0 flex-1 rounded-full border border-transparent bg-[var(--chat-bubble-other)] px-4 text-base text-[var(--chat-ink)] outline-none transition-shadow focus:border-[var(--chat-accent)] focus:ring-2 focus:ring-[var(--chat-accent)]/25"
                 />
                 <Button
                   aria-label="Gửi"
                   onClick={() => void send()}
                   disabled={sending || !draft.trim()}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--chat-accent)] p-0 text-[var(--chat-accent-ink)] transition-colors hover:brightness-95 disabled:opacity-40"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--chat-accent)] p-0 text-[var(--chat-accent-ink)] transition-colors hover:brightness-95 disabled:opacity-40"
                 >
-                  <Send className="h-4 w-4" />
+                  <Send className="h-5 w-5" />
                 </Button>
               </div>
             </>
