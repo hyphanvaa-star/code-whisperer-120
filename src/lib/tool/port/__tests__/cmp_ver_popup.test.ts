@@ -16,6 +16,7 @@ it('opens the two latest revisions without switching the current tab', async () 
     vSetValue:(k:string,v:string) => {chosen[k]=v;}, vPaintMenus:() => {},
     setMode:() => {switched=true;}, vRun:async () => {},
     cmpVerModalShow:() => {opened=true;}, alert:() => {},
+    $:() => ({checked:false}),
   };
   await runInNewContext(html.slice(start,end) + '\ncmpVerOpen()',context);
   expect(switched).toBe(false);
