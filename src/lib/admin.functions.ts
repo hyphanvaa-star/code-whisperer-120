@@ -136,7 +136,15 @@ export const deleteAccount = createServerFn({ method: "POST" })
     if (data.userId === context.userId) throw new Error("Không thể tự xóa tài khoản của mình");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
-    if (error) throw new Error(error.message || "Không xóa được tài khoản");
+    // Legacy profiles may survive an earlier Auth deletion. Only a confirmed
+    // missing Auth user permits cleanup; other Auth errors must block it.
+    const missingUser = error?.code === "user_not_found" ||
+      (error?.status === 404 && /^user not found\.?$/i.test(error.message));
+    if (error && !missingUser) throw new Error(error.message || "Không xóa được tài khoản");
+    const { error: roleError } = await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    if (roleError) throw new Error("Đã xóa đăng nhập nhưng chưa xóa được quyền; hãy bấm Xóa lại");
+    const { error: profileError } = await supabaseAdmin.from("profiles").delete().eq("id", data.userId);
+    if (profileError) throw new Error("Đã xóa đăng nhập nhưng chưa xóa được hồ sơ; hãy bấm Xóa lại");
     const { logActivity } = await import("./flights.server");
     await logActivity(context.userId, "delete_account", data.userId);
     return { ok: true };
