@@ -36,6 +36,13 @@
       "when": 1793207880059,
       "tag": "0004_tool_file_owners",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793765138690,
+      "tag": "0005_chat_reactions",
+      "breakpoints": true
     }
   ]
 }
