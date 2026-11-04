@@ -743,6 +743,23 @@ export function editKey(callsign: unknown): string {
   return raw;
 }
 
+/**
+ * Saved hand-edit identity: callsign + scheduled UTC date (STD, never the
+ * delayed ETD) + route. Returns "" when any part is missing so a sector
+ * without full identity never reads or writes another day's saved copy.
+ */
+export function editIdentity(flight: FlightLike & { std?: Date | string | null }): string {
+  const cs = editKey(flight.callsign);
+  const r = (flight.raw ?? {}) as Record<string, unknown>;
+  const stdRaw = r["std"] ?? flight.std ?? null;
+  const t = stdRaw instanceof Date ? stdRaw.getTime() : Date.parse(String(stdRaw ?? ""));
+  const dep = String(flight.dep_icao || flight.dep_iata || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const dest = String(flight.dest_icao || flight.dest_iata || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!cs || !Number.isFinite(t) || !dep || !dest) return "";
+  const date = new Date(t).toISOString().slice(0, 10).replace(/-/g, "");
+  return `${cs}.${date}.${dep}-${dest}`;
+}
+
 export function parseIcaos(raw: unknown): string[] {
   const parts = Array.isArray(raw) ? raw.map(String) : String(raw ?? "").split(/[\/,;\s]+/);
   const out: string[] = [];
