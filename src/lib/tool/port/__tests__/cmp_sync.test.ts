@@ -78,7 +78,7 @@ describe('Compare source changes', () => {
     expect(cmpPilotChanges('(CPT) 1234','(CPT) 4321; (CPT) 5555; (CPT) 6666')).toEqual([]);
   });
   it('hover tooltip shows the compared FPL versions and Crewlist file', () => {
-    const html = patchCmpSyncPage('function renderCompareTable(d, opts){');
+    const html = patchCmpSyncPage(readFileSync('src/tool/page.html', 'utf8'));
     expect(html).toContain(': "FPL VER " + n + " — đã xem") + cmpVerDetail();');
     expect(html).toContain('bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();');
     const start = html.indexOf('function cmpVerDetail()');
