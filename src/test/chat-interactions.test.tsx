@@ -38,6 +38,7 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: { from: (table: str
 } } }));
 
 beforeEach(() => {
+  Object.defineProperty(HTMLElement.prototype, 'scrollTo', { configurable: true, value: vi.fn() });
   store.messages = [{ id: 'message1', room_id: 'room1', user_id: 'other', body: 'Đã rõ', created_at: '2026-11-04T04:00:00Z' }];
   store.reactions = [{ message_id: 'message1', user_id: 'other', emoji: '👍' }];
   store.writes = [];
