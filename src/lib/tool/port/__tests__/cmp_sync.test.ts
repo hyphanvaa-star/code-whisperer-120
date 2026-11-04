@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import vm from 'node:vm';
+import { readFileSync } from 'node:fs';
 import { cmpAircraftChange, cmpFplPair, cmpPilotChanges, cmpSourceChange, patchCmpSyncPage } from '../cmp_sync';
 
 describe('Compare source changes', () => {
