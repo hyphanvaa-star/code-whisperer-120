@@ -80,7 +80,7 @@ describe('Compare source changes', () => {
   });
   it('hover tooltip shows the compared FPL versions and Crewlist file', () => {
     const html = patchCmpSyncPage(readFileSync('src/tool/page.html', 'utf8'));
-    expect(html).toContain(': "FPL VER " + n + " — đã xem") + cmpVerDetail();');
+    expect(html).toContain(': "FPL VER " + n + " — đã xem") + (typeof cmpVerDetail === "function" ? cmpVerDetail() : "");');
     expect(html).toContain('bar.title = tip || "File Crewlist Aims đang dùng để đối chiếu";\n    if(typeof cmpVerTipPaint === "function") cmpVerTipPaint();');
     const start = html.indexOf('function cmpVerDetail()');
     const end = html.indexOf('async function cmpVerOpen()');
