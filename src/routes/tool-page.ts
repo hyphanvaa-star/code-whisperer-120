@@ -2553,7 +2553,25 @@ function nmRouteLayers(ids){
       :is(#nmTabs,.nm-vd-counts) .nm-overview-noimpact{border-color:#16a34a;color:#15803d}
       .nm-vd-counts{margin:8px 12px 2px;padding:10px;border:1px solid #e4eaf3;border-radius:12px;background:#f8fafc}
       .nm-vd-counts .nm-overview-counts{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+      /* Ghim thanh công cụ + hàng nhóm khi cuộn danh sách NOTAM */
+      #wrapNotam .toolbar2{position:sticky;top:0;z-index:130;box-shadow:0 2px 8px rgba(156,26,92,.12)}
+      #wrapNotam .nm-bar2{position:sticky;top:var(--nm-tbh,46px);z-index:125;background:linear-gradient(145deg,#fff5fa,#fce9f1);padding-bottom:4px}
     </style></head>`)
+    .replace('</body>', `<script>(function(){
+  function nmStickyTb(){
+    var w = document.getElementById("wrapNotam");
+    var tb = w && w.querySelector(".toolbar2");
+    if(!w || !tb) return;
+    w.style.setProperty("--nm-tbh", tb.offsetHeight + "px");
+  }
+  window.addEventListener("resize", nmStickyTb);
+  var t0 = Date.now();
+  var iv = setInterval(function(){
+    nmStickyTb();
+    if(Date.now() - t0 > 15000) clearInterval(iv);
+  }, 800);
+  document.addEventListener("DOMContentLoaded", nmStickyTb);
+})();</script></body>`)
     .replace('  if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);', `  const areaHit = nmFindHit(ident);
   const hasBoundary = areaHit && ((areaHit.ring || []).length >= 3 || Number(areaHit.radius_nm) > 0 || ((areaHit.shape === "line" || areaHit.shape === "linestring") && (areaHit.ring || []).length >= 2));
   if(hasBoundary){ nmFocusMap(ident); onSeg = true; }
