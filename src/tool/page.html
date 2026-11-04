@@ -22788,7 +22788,6 @@ function vAtcCell(r){
     sp.classList.add("vavi");
     sp.dataset.cs = vAviCs(r.flt);
     sp.dataset.date = vAtcIsoDate(r);
-    setTimeout(vAviAutoCheck, 500);
     if(r.reg && r.reg.changed && r.reg.new){
       sp.dataset.flt = r.flt; sp.dataset.reg = r.reg.new;
       sp.dataset.route = String(r.route || "");
@@ -22817,7 +22816,6 @@ function vAtcCell(r){
       sp.dataset.date = vAtcIsoDate(r);
       vPaintDla(sp);
       td.appendChild(sp);
-      setTimeout(vAviAutoCheck, 500);
     }else{
       sp.className = "vatc";
       sp.style.fontWeight = "700";
