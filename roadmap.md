@@ -1,6 +1,6 @@
 # Roadmap — Dispatch Board web app
 
-- [ ] V 4.89: mở rộng khung chat, giao diện Messenger, emoji lớn và nhãn dán không nền; giữ nguyên gửi tin và reaction.
+- [x] V 4.89: mở rộng khung chat, giao diện Messenger, emoji lớn và nhãn dán không nền; 9 kiểm thử đạt, giữ nguyên gửi tin/reaction. Chưa thử trên phòng chat thật do không có phiên người yêu cầu.
 
 - [x] V 4.88: thêm emoji, bốn nhãn dán hàng không và reaction tin nhắn; kiểm tra gửi/thu hồi và đọc lại bằng kiểm thử. Chưa thử hai tài khoản thật vì không cấp được phiên người yêu cầu.
 
