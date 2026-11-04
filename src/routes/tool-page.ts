@@ -2560,7 +2560,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.90')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 4.91')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replaceAll('if(nmLayerCtl) nmLayerCtl.addOverlay(nmAtsGroups[cc], nmAtsLabel(cc));', '')
     .replace('{"Sân bay": nmAdGroup, "Đài": nmNavGroup},', '{"Sân bay": nmAdGroup},')
