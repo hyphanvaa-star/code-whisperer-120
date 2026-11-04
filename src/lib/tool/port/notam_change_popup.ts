@@ -61,7 +61,8 @@ export function patchNotamChangePopupPage(html: string): string {
     const data = bpDetailData[fid] || (typeof nmTrackCache !== "undefined" && nmTrackCache[fid]) || {};
     const wanted = kind === "missing" ? (state.missing || []) : seen.map(id => ({id}));
     const stored = state.details || [];
-    const rows = kind === "missing" ? wanted.map(w => stored.find(n => n.loc === w.loc && n.id === w.id) || {...w,text:""}) : bpNotamDetails(data.places || [], wanted).map(n => stored.find(s => s.id === n.id && (!n.loc || s.loc === n.loc)) || n);
+    const fresh = bpNotamDetails(data.places || [], wanted);
+    const rows = kind === "missing" ? wanted.map(w => stored.find(n => n.loc === w.loc && n.id === w.id) || {...w,text:""}) : (data.places ? fresh.map(n => stored.find(s => s.id === n.id && s.loc === n.loc) || n) : wanted.flatMap(w => {const matches=stored.filter(n=>n.id===w.id);return matches.length?matches:[{id:w.id,loc:"",text:""}];}));
     const node = (tag, cls, text) => { const el = document.createElement(tag); el.className = cls; if(text)el.textContent=text; return el; };
     const dialog = node("dialog", "bp-detail"); dialog.id = "bpDetailDialog";
     dialog.setAttribute("aria-labelledby", "bpDetailTitle");
@@ -81,7 +82,7 @@ export function patchNotamChangePopupPage(html: string): string {
     bar.append(button("▣ Số hiệu", "Sao chép danh sách số hiệu", () => copy(rows.map(n => [n.loc,n.id].filter(Boolean).join(" ")).join("\\n"))),button("▣ Nội dung", "Sao chép đầy đủ nội dung", () => copy(rows.map(full).join("\\n\\n"))));
     if(kind === "missing")bar.append(button("↻ So lại", "So lại với FliteBrief", async ev => {
       const b=ev.currentTarget;b.disabled=true;status.textContent="Đang đọc Briefing pack…";
-      try{await autoPack(fid,true);const c=get(K("bpcmp",fid));if(c && c.err){status.textContent=c.err;return;}dialog.close();bpPopup(fid,kind);}finally{b.disabled=false;}
+      try{if(!nmTrackCache[fid]){const r=await fetch("/api/notam/track?id="+encodeURIComponent(fid)+"&days=2");const d=await r.json();if(!r.ok || !d || d.error)throw Error(d && d.error || "Không tải được dữ liệu chuyến");nmTrackCache[fid]=d;}await autoPack(fid,true);const c=get(K("bpcmp",fid));if(c && c.err){status.textContent=c.err;return;}dialog.close();bpPopup(fid,kind);}catch(e){status.textContent=String(e.message || e);}finally{b.disabled=false;}
     }));
     else bar.append(button("✓ Đã xem", "Đánh dấu đã xem", () => {set(K("new",fid),bpUnseenAfter(get(K("new",fid)),seen));refill();dialog.close();}));
     const list=node("div","bp-detail-list");
@@ -106,6 +107,7 @@ export function patchNotamChangePopupPage(html: string): string {
   }
   function uid(){ try{ for(const k of Object.keys(localStorage))`)
     .replace('missing: res.missing });', 'missing: res.missing, details: bpPackDetails(text).filter(n => res.missing.some(m => m.loc === n.loc && m.id === n.id)) });')
+    .replace('text += tc.items.map(t => t.str).join(" ") + "\\n";', 'text += tc.items.map(t => t.str + (t.hasEOL ? "\\n" : " ")).join("") + "\\n";')
     .replace('if(!(typeof nmTrackCache !== "undefined" && nmTrackCache[fid])){ alert(', 'if(c && !c.err && c.missing && c.missing.length){ bpPopup(fid,"missing"); return; } if(!(typeof nmTrackCache !== "undefined" && nmTrackCache[fid])){ alert(')
     .replace('set(K("new", fid), null); refill(); };', 'bpPopup(fid,"new"); };')
     .replace('set(K("new", fid), { ids: added, at: now });', 'bpDetailData[fid] = d; set(K("new", fid), { ids: added, at: now, details: bpNotamDetails(d.places || [], added.map(id => ({id}))) });')
