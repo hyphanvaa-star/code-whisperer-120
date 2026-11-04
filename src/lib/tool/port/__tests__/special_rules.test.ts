@@ -25,3 +25,15 @@ describe("giới hạn đặc biệt chọn sẵn", () => {
     expect(srEvaluate(r, { reg: "VNA1", ac: "A320", dep: "VVTS", dest: "VVNB", alt1: "CXR" }, [])[0]?.role).toBe("ALT1");
   });
 });
+
+import { srEvaluate as _ev } from "../../../special-rules";
+describe("NOT group exception", () => {
+  const groups = [{ name: "TDB", items: ["REG:VNA580", "REG:VNA673"] }];
+  const row = { rule: "NO_OPS_APTS", acs: ["NOT:GROUP:TDB"], apts: ["VVPC", "VVPQ"] };
+  it("blocks aircraft outside the list to PQC", () => {
+    expect(_ev(row as never, { reg: "VN-A522", dep: "VVTS", dest: "VVPQ" } as never, groups as never).length).toBe(1);
+  });
+  it("allows listed aircraft to UIH", () => {
+    expect(_ev(row as never, { reg: "VN-A580", dep: "VVTS", dest: "VVPC" } as never, groups as never).length).toBe(0);
+  });
+});
