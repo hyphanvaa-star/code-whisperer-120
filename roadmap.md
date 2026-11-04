@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 5.27: bấm nhãn NOTAM thiếu/mới mở danh sách, xem/copy nội dung, so lại/đánh dấu đã xem; thử trình duyệt và kiểm thử dữ liệu.
 - [x] V 5.26: REG FPL/REG AIMS dùng khung sáng hai nguồn Excel xanh lá/FliteBrief xanh dương như CREW, số tàu lớn và nhãn khớp/lệch; giữ tên nguồn, OFP dự phòng được ghi riêng. 18 kiểm thử đạt, thử mẫu trình duyệt đạt. Chưa publish, chưa thử phiên JACK.
 - [x] V 5.25: hover CREW nền sáng, Excel xanh lá/FliteBrief xanh dương, mỗi người riêng với vai trò/ID nếu có; giữ nguồn và kết quả. 18 kiểm thử đạt, xem mẫu desktop/mobile không tràn ngang. Chưa thử phiên JACK, chưa publish.
 - [x] V 5.24: thêm nguồn FPL/Crewlist vào chú thích từng ô và tiêu đề REG FPL, REG AIMS, CREW; 18 kiểm thử đạt, thử rê chuột và đổi hy4 → hy5 bằng dữ liệu mẫu. Chưa publish.
