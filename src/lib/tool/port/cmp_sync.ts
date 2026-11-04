@@ -93,7 +93,7 @@ export function patchCmpSyncPage(html: string): string {
     // FPL VER label: red flash until the user opens the version tab and leaves it again.
     .replace('  if(ver || cmp) verBangAck();', '  if(ver) window.__verSeen = true; else if(window.__verSeen){ window.__verSeen = false; verBangAck(); }')
     .replace('id="cmpVerBar" title="File FPL VER đang dùng (BẢN ĐANG DÙNG ở tab Dữ liệu thay đổi)"', 'id="cmpVerBar" role="button" tabindex="0" onclick="cmpVerOpen()" style="cursor:pointer" title="Bấm để so 2 FPL VER gần nhất"')
-    .replace('   bang.title = pending\n', `   const cvb = document.getElementById("cmpVerBar");
+    .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
    if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
    bang.title = pending\n`)
     .replace('    vb.textContent = latest ? ("FPL VER đang dùng: " + latest) : "";', `    const vn = parseVerNo(latest);
