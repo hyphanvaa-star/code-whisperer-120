@@ -96,6 +96,8 @@ export function patchCmpSyncPage(html: string): string {
     .replace('  const o = $("#vOld").value, n = $("#vNew").value;\n', '  const o = $("#vOld").value, n = $("#vNew").value;\n  window.__verReadFile = "";\n')
     .replace('    vRender(d);\n  }catch(err){', '    vRender(d);\n    window.__verReadFile = n;\n  }catch(err){')
     .replace('id="cmpVerBar" title="File FPL VER đang dùng (BẢN ĐANG DÙNG ở tab Dữ liệu thay đổi)"', 'id="cmpVerBar" role="button" tabindex="0" onclick="cmpVerOpen()" style="cursor:pointer" title="Bấm để so 2 FPL VER gần nhất"')
+    .replace('class="mode-bang" id="verBang" role="status" aria-live="polite"', 'class="mode-bang" id="verBang" role="button" tabindex="0" onclick="event.preventDefault();event.stopPropagation();cmpVerOpen()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();event.stopPropagation();cmpVerOpen()}" aria-live="polite"')
+    .replace('onclick="cmpVerOpen()" style="cursor:pointer"', 'onclick="cmpVerOpen()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();cmpVerOpen()}" style="cursor:pointer"')
     .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
    if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
    bang.title = (pending\n`)
@@ -107,7 +109,7 @@ export function patchCmpSyncPage(html: string): string {
     .replace('</head>', `<style>
 #cmpVerDialog{padding:0;border:1px solid var(--atc-line);border-radius:8px;background:var(--atc-paper);color:var(--atc-ink);width:calc((100vw - 48px) * var(--taf-read-scale,1));max-width:none;height:calc((100vh - 64px) * var(--taf-read-scale,1));max-height:none;overflow:hidden}
 #cmpVerDialog[open]{display:flex;flex-direction:column}
-#cmpVerDialog::backdrop{background:var(--hover-backdrop)}
+#cmpVerDialog::backdrop{background:color-mix(in srgb,var(--atc-ink) 55%,transparent)}
 .cmp-ver-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--atc-line);flex-shrink:0;font-size:18px;font-weight:700}
 #cmpVerDialog #wrapVer{width:100%;overflow:hidden;flex:1}
 #cmpVerDialog .toolbar2{flex-wrap:wrap;flex-shrink:0}

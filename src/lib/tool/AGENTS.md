@@ -1,4 +1,5 @@
 ## Tool rules
+- FPL quick-view reparents the live `wrapVer` into a dialog and restores it on close; acknowledge only a successfully displayed filename so unseen newer revisions remain pending.
 - KHB airport hover composes existing limits and TAF in `port/khb_airport_hover.ts` after the tool-page patches; exempt these cells from generic title tips so weather stays visible.
 - NOTAM summaries use per-flight `verdictOf`/`fleetVerdict` in `port/notam_verdict.ts`, not raw map hit counts (those include distant/unresolved/above-ceiling areas). Every FliteBrief NOTAM tracking/fleet place is filtered through `apply24h` before enrichment and counting — the upstream payload is ALL, not the portal's 24H selection.
 - GD printing commits paper/orientation, joins disjoint print areas, sets an explicit Zoom measured from the print range (min 18pt margins) and verifies one page via Excel's own PDF export before printing — RICOH drivers ignore FitToPages and Excel's page count can be stale.
