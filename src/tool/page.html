@@ -6653,7 +6653,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
             Lọc notam tracking chuyến</button>
           <button class="btn t-undo" id="nmAssessCfg"
                   title="Cài đặt số phút trước/sau giờ chuyến cho sân đi, sân đến, sân dự bị và FIR khi lọc tracking chuyến.">
-            ⚙ Giờ sân bay</button>
+            ⚙ Filter setting</button>
           <button class="btn t-undo" id="nmPinClear"
                   title="Danh sách NOTAM đã ghim cloud hoặc theo chuyến. Xoá từng cái, hoặc xoá tất cả.">
             NOTAM library</button>
@@ -29323,7 +29323,7 @@ function boot(){
   <h5>Thứ tự kiểm tra (dừng ở bước đã kết luận)</h5>
   <ul>
     <li><b>0. Đọc NOTAM</b> — thiếu B/C/E → NEED MANUAL CHECK.</li>
-    <li><b>1. Giờ theo vai trò sân/FIR</b> — DEP ETD−60/+60, ARR ETA−60/+60, TALT ETD−15/+60, dự bị đường bay ETD→ETA+60, dự bị sân đến ETA−60/+60, FIR vào−60/ra+60, cộng trễ tối đa 180′. Chỉnh ở nút <b>⚙ Giờ sân bay</b>.</li>
+    <li><b>1. Giờ theo vai trò sân/FIR</b> — DEP ETD−60/+60, ARR ETA−60/+60, TALT ETD−15/+60, dự bị đường bay ETD→ETA+60, dự bị sân đến ETA−60/+60, FIR vào−60/ra+60, cộng trễ tối đa 180′. Chỉnh ở nút <b>⚙ Filter setting</b>.</li>
     <li><b>2. Lịch D)</b> — quét từng phút cả chuyến: DAILY, thứ, ngày, EXC, SR/SS, HJ/HN. Không phút nào bật → NO IMPACT.</li>
     <li><b>3. Không gian</b> — hành lang = bán kính NOTAM + 5 NM; SID/STAR, đoạn ATS route, navaid đúng FPL; RFFS theo CAT tàu (A321/A21N CAT 7, A333 CAT 9).</li>
     <li><b>4. Cao độ</b> — FL tại điểm giao phải nằm trong dải NOTAM; chướng ngại lấy trần FT AMSL. Không nới ±5000 ft.</li>
