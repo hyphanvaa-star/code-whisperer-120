@@ -315,9 +315,9 @@
 }
 /* Centered tow: plane centered high above the login flag */
 @media (min-width: 761px) {
-  .sakura-tow { left: calc(50% - min(280px, 20%)); top: 2%; padding-top: 240px; }
-  .sakura-tow .sakura-plane { right: 4%; top: -20px; width: 92%; transform: none; }
-  .sakura-ropes { top: 150px; height: 92px; transform: none; }
+  .sakura-tow { left: calc(50% - min(280px, 20%)); top: 1%; padding-top: 300px; }
+  .sakura-tow .sakura-plane { right: -12%; top: -40px; width: 124%; transform: none; }
+  .sakura-ropes { top: 85px; height: 215px; left: 0; width: 100%; transform: none; }
 }
 @media (max-width: 1100px) and (min-width: 761px) { .sakura-tow { left: 28%; width: 44%; } }
 @media (max-width: 760px) {
