@@ -26,7 +26,10 @@
     tab.setAttribute("role","tab"); tab.setAttribute("aria-selected","false");
     tab.title = "Các bảng dữ liệu: Cost Index, Taxi fuel, Route, ALT, ERA, PCR, Convert, OFP check";
     tab.textContent = "Database";
-    aftn.parentNode.insertBefore(tab, aftn.nextSibling);
+    /* Database luôn nằm ngay trước "Quản lí tài khoản" (nếu đã có), không thì sau AFTN. */
+    var acctMg = document.getElementById("opsAcctManage");
+    if(acctMg && acctMg.parentNode === aftn.parentNode) aftn.parentNode.insertBefore(tab, acctMg);
+    else aftn.parentNode.insertBefore(tab, aftn.nextSibling);
     var wrap = document.createElement("div");
     wrap.id = "wrapDatabase"; wrap.className = "dbx-wrap"; wrap.style.display = "none";
     var h = '<div class="dbx-head"><div><h2>Database</h2><p>Chọn một danh mục để xem và chỉnh bảng dữ liệu.</p></div>'
