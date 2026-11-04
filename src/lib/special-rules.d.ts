@@ -11,4 +11,5 @@ export function srAcMatch(acs: string[] | undefined, reg: unknown, acType: unkno
 export function srAcLabel(acs: string[] | undefined): string;
 export function srAptLabel(apts: string[] | undefined): string;
 export function srRuleLabel(id: string): string;
+export function srOnlyAircraftDisplay(row: SrRow, f: SrFlight, groups: SrGroup[] | undefined): Array<{kind: string; check: string; severity: string; text: string; limit: string; evidence: string}>;
 export function srEvaluate(row: SrRow, f: SrFlight, groups: SrGroup[] | undefined): SrHit[];
