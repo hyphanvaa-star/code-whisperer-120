@@ -113,7 +113,7 @@ export function patchNotamChangePopupPage(html: string): string {
     .replace('set(K("new", fid), { ids: added, at: now });', 'bpDetailData[fid] = d; set(K("new", fid), { ids: added, at: now, details: bpNotamDetails(d.places || [], added.map(id => ({id}))) });')
     .replace('"\\n\\nBấm để so lại."; }', '"\\n\\nBấm để xem danh sách."; }')
     .replace('"\\n\\nBấm để đã xem";', '"\\n\\nBấm để xem danh sách";')
-    .replace('s.onmousedown = ev =>', 's.setAttribute("role","button"); s.tabIndex=0; s.onkeydown=ev=>{if(ev.key==="Enter" || ev.key===" "){ev.preventDefault();s.click();}}; s.onmousedown = ev =>')
+    .replace('s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); if(c &&', 's.setAttribute("role","button"); s.tabIndex=0; s.onkeydown=ev=>{if(ev.key==="Enter" || ev.key===" "){ev.preventDefault();s.click();}}; s.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); if(c &&')
     .replace('b.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };\n      b.onclick', 'b.setAttribute("role","button"); b.tabIndex=0; b.onkeydown=ev=>{if(ev.key==="Enter" || ev.key===" "){ev.preventDefault();b.click();}}; b.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };\n      b.onclick')
     .replace('</head>', `<style>
 :root{${tokens}}
