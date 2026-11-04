@@ -14879,6 +14879,14 @@ function nmPaintPinBar(n, place){
   };
   btnCloud.onclick = ev => { ev.stopPropagation(); nmPinCloud(n, place, msg, btnCloud); };
   btnCopy.onclick = ev => { ev.stopPropagation(); nmCopyNotam(n, msg, btnCopy); };
+  const btnAi = document.createElement("button");
+  btnAi.type = "button";
+  btnAi.className = "nm-pin-btn nm-ai-btn";
+  btnAi.textContent = "✨ AI decode";
+  btnAi.title = "Nhờ trợ lý sohee giải mã NOTAM, giải thích từ viết tắt và gợi ý việc cần làm.";
+  btnAi.style.cssText = "background:linear-gradient(135deg,#dd2a7b,#8134af);color:#fff;border-color:transparent;font-weight:700";
+  btnAi.onclick = ev => { ev.stopPropagation(); nmAiDecode(n, place, msg); };
+  bar.insertBefore(btnAi, msg);
   inp.oninput = () => nmPinSuggest(inp, box);
   inp.onfocus = () => nmPinSuggest(inp, box);
   inp.onblur = () => setTimeout(() => {
