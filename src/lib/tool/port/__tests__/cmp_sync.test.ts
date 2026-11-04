@@ -17,7 +17,7 @@ describe('Compare source changes', () => {
     const context = {
       cmpSyncSeq:0, cmpSyncSources:{stamp:''}, xls:{file:'crew-new.xlsx'}, lastCmp:{table:[]},
       cmpFplPair:(rows: typeof files) => cmpFplPair(rows,now), URLSearchParams,
-      cmpSyncRepaint() {}, cmpSyncEvidence() {},
+      cmpSyncRepaint() {}, cmpSyncEvidence() {}, cmpSourceHeaders() {},
       fetch:async (url: string) => {
         calls.push(url);
         return {ok:true,json:async () => url === '/api/version/files' ? {files} : {rows:[]}};
@@ -36,6 +36,8 @@ describe('Compare source changes', () => {
       ['crew-old.xlsx','crew-new.xlsx'],
       ['FLIGHT PLAN ON 02NOV - VER 09.xlsx','FLIGHT PLAN ON 02NOV - VER 10.xlsx'],
     ]);
+    expect(vm.runInContext('cmpSyncSources.fplFile',context)).toBe('FLIGHT PLAN ON 02NOV - VER 10.xlsx');
+    expect(vm.runInContext('cmpSyncSources.fplOld',context)).toBe('FLIGHT PLAN ON 02NOV - VER 09.xlsx');
   });
   it('uses VER 10 versus VER 09 even when VER 01 is uploaded last', () => {
     const old = {name:'FLIGHT PLAN ON 02NOV - VER 09.xlsx',modified:100};
