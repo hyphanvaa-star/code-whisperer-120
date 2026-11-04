@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.20: rê chuột lên nhãn FPL VER (thanh So sánh và nhãn trên tab) hiện đang đối chiếu với FPL VER nào và file Crewlist nào. Chưa publish.
 - [x] V 5.19: tắt tự check EOBT AviWeb nền ở tab Dữ liệu thay đổi (không còn tự gõ chuyến sang Check ATC avi); giờ chỉ chạy khi bấm nút Check ATC avi. Chưa publish.
 
 - [x] V 5.10: CREW chuyến giao ca vẫn trống — máy chủ đọc tổ bay cho cả chuyến ngoài DSP chính, thử lại ô trống đã nhớ; crewlist hy2.xlsx thật: 58/58 chuyến có tổ bay (trước sửa thiếu toàn bộ HO). Chưa publish.
