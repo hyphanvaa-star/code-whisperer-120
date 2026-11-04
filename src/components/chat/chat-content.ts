@@ -16,3 +16,16 @@ export function groupReactions(rows: Reaction[], messageId: string, me: string) 
 export function insertEmoji(text: string, emoji: string, start: number, end = start) {
   return { text: text.slice(0, start) + emoji + text.slice(end), caret: start + emoji.length };
 }
+
+// Preserve complete emoji sequences (skin tones, flags, keycaps and ZWJ families).
+const emojiPattern = /(?:\p{Regional_Indicator}{2}|[0-9#*]\uFE0F?\u20E3|\p{Extended_Pictographic}[\uFE0F\p{Emoji_Modifier}]*(?:\u200D\p{Extended_Pictographic}[\uFE0F\p{Emoji_Modifier}]*)*)/gu;
+export function messageParts(body: string) {
+  return body.split(new RegExp(`(${emojiPattern.source})`, 'gu')).filter(Boolean).map((text) => ({
+    text,
+    emoji: new RegExp(`^(?:${emojiPattern.source})$`, 'u').test(text),
+  }));
+}
+export function isEmojiOnly(body: string) {
+  const parts = messageParts(body);
+  return parts.some((part) => part.emoji) && parts.every((part) => part.emoji || !part.text.trim());
+}

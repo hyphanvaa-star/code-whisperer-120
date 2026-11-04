@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [ ] V 4.89: mở rộng khung chat, giao diện Messenger, emoji lớn và nhãn dán không nền; giữ nguyên gửi tin và reaction.
+
 - [x] V 4.88: thêm emoji, bốn nhãn dán hàng không và reaction tin nhắn; kiểm tra gửi/thu hồi và đọc lại bằng kiểm thử. Chưa thử hai tài khoản thật vì không cấp được phiên người yêu cầu.
 
 - [x] V 4.64: CFP NO nháy đỏ theo đổi tàu/crew Crewlist, dùng lại xuất REQ và chỉ hết nháy sau khi tải thành công; giữ REQ tab Dữ liệu thay đổi. 30 kiểm thử đạt, build OK; chưa xuất REQ trên chuyến thật.

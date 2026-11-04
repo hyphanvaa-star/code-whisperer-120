@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { groupReactions, insertEmoji, readSticker, stickerBody } from '@/components/chat/chat-content';
+import { groupReactions, insertEmoji, readSticker, stickerBody, messageParts, isEmojiOnly } from '@/components/chat/chat-content';
 
 describe('Chat content', () => {
+  it('keeps complex emoji intact and preserves surrounding message text', () => {
+    expect(messageParts('Rõ 👍🏽 👨‍👩‍👧‍👦 🇻🇳 1️⃣')).toEqual([
+      { text: 'Rõ ', emoji: false }, { text: '👍🏽', emoji: true },
+      { text: ' ', emoji: false }, { text: '👨‍👩‍👧‍👦', emoji: true },
+      { text: ' ', emoji: false }, { text: '🇻🇳', emoji: true },
+      { text: ' ', emoji: false }, { text: '1️⃣', emoji: true },
+    ]);
+    expect(isEmojiOnly('😅 😅')).toBe(true);
+    expect(isEmojiOnly('Đã rõ 👍')).toBe(false);
+    expect(isEmojiOnly('123')).toBe(false);
+    expect(isEmojiOnly('')).toBe(false);
+  });
   it('recognizes only complete allowlisted sticker messages', () => {
     expect(readSticker(stickerBody('plane'))).toBe('plane');
     expect(readSticker('[sohee-sticker:https://other.site/a.jpg]')).toBeNull();
