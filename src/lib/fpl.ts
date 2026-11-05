@@ -81,7 +81,7 @@ function pcrField(db: FplDb, dep: string, reg: string) {
 const extraOn = (e: string) => { const t = (e || "").trim().toUpperCase().replace(/,/g, ""); const m = t.match(/^(\d+)/); return m ? Number(m[1]) > 0 : !!t && t !== "0" && t !== "0M"; };
 function optTail(extra: string, rmk: string) {
   let n = (rmk || "").trim(); if (n.startsWith("/")) n = n.slice(1).trim();
-  const p: string[] = []; if (extraOn(extra)) p.push("/EXTRA FUEL DUE WX ENROUTE AND TRAFFIC"); if (n) p.push("/" + n);
+  const p: string[] = []; if (extraOn(extra)) p.push("/EXTRA FUEL DUE WX AND TRAFFIC"); if (n) p.push("/" + n);
   return p.length ? " " + p.join(" ") : "";
 }
 const profile = (ac: string, fl: string, found: boolean) => ac === "330" ? "PRO÷I,T,M,100,410" : !found ? "PRO÷I,T,M,100,350" : fl === "" ? "PRO÷I,T,M" : "PRO÷I,T,M," + fl;
