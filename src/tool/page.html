@@ -19730,10 +19730,20 @@ function limPad(arr, n, blank, norm){
   return out;
 }
 
+/* LOW EGT ở trên, 3 ô trống, rồi defect summary bên dưới */
+function limEgtLayout(arr){
+  const rows = Array.isArray(arr) ? arr : [];
+  const filled = r => r && ["reg","defect","limit"].some(k => String(r[k] || "").trim());
+  const isEgt = r => /\bLOW\s+EGT/i.test(String((r && r.defect) || ""));
+  const egt = rows.filter(r => filled(r) && isEgt(r));
+  const rest = rows.filter(r => filled(r) && !isEgt(r));
+  return limPad(egt.concat([limBlankAc(), limBlankAc(), limBlankAc()], rest), LIM_ROWS, limBlankAc);
+}
+
 function limNormalize(d){
   d = d || {};
   return {
-    aircraft: limPad(d.aircraft, LIM_ROWS, limBlankAc),
+    aircraft: limEgtLayout(d.aircraft),
     airports: limPad(d.airports, LIM_ROWS, limBlankAp),
     curfew: limPad(d.curfew, LIM_ROWS, limBlankCf, limNormCf),
     special: limPad(d.special, LIM_ROWS, limBlankSp),
@@ -20298,7 +20308,7 @@ async function defPullSummary(opts){
       else alert("Tải defect summary lỗi:\n\n" + d.error);
       return false;
     }
-    limData.aircraft = limPad(d.aircraft || [], LIM_ROWS, limBlankAc);
+    limData.aircraft = limEgtLayout(d.aircraft || []);
     limSaveLocal(limData);
     limDirty = false;
     limSetSaveMsg("Đã lưu");
