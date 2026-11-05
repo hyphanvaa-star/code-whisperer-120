@@ -418,6 +418,7 @@ Object.assign(routes, {
 
 function noticeMissingCallsigns(flights: { callsign?: string }[], cs: string[]): boolean {
   const norm = (v: unknown) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const have = new Set(flights.map((f) => norm(f.callsign)));
-  return cs.some((c) => !have.has(norm(c)));
+  const have = new Set<string>();
+  for (const f of flights) { const n = norm(f.callsign); have.add(n); have.add(n.replace(/^[A-Z]+/, "")); }
+  return cs.some((c) => { const n = norm(c); return n && !have.has(n) && !have.has(n.replace(/^[A-Z]+/, "")); });
 }
