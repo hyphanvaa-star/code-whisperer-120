@@ -120,7 +120,7 @@ function _optTail(extra: any, rmk: string | null | undefined): string {
   let note = String(rmk ?? "").trim();
   if (note.startsWith("/")) note = note.slice(1).trim();
   const parts: string[] = [];
-  if (_extraOn(extra)) parts.push("/EXTRA FUEL DUE WX ENROUTE AND TRAFFIC");
+  if (_extraOn(extra)) parts.push("/EXTRA FUEL DUE WX AND TRAFFIC");
   if (note) parts.push("/" + note);
   if (!parts.length) return "";
   return " " + parts.join(" ");

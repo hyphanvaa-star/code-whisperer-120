@@ -75,12 +75,12 @@ describe("FplFormulaTests", () => {
     expect(plain).not.toContain("EXTRA FUEL");
     expect(plain).not.toContain("RMK÷");
     const fueled = ft.render_fpl(db, f, { extra: "200", seq: 121, routeTable: routeDoc.rows });
-    expect(fueled).toContain(tlk + " /EXTRA FUEL DUE WX ENROUTE AND TRAFFIC,CPT/");
+    expect(fueled).toContain(tlk + " /EXTRA FUEL DUE WX AND TRAFFIC,CPT/");
     const tagged = ft.render_fpl(db, f, { extra: "60M", seq: 121, routeTable: routeDoc.rows });
-    expect(tagged).toContain(tlk + " /EXTRA FUEL DUE WX ENROUTE AND TRAFFIC,CPT/");
+    expect(tagged).toContain(tlk + " /EXTRA FUEL DUE WX AND TRAFFIC,CPT/");
     expect(tagged).toContain("16F÷A60M,");
     const both = ft.render_fpl(db, f, { extra: "200", seq: 121, rmk: "MIL ACT", routeTable: routeDoc.rows });
-    expect(both).toContain(tlk + " /EXTRA FUEL DUE WX ENROUTE AND TRAFFIC /MIL ACT,CPT/");
+    expect(both).toContain(tlk + " /EXTRA FUEL DUE WX AND TRAFFIC /MIL ACT,CPT/");
     expect(both).not.toContain("RMK÷");
     const noted = ft.render_fpl(db, f, { extra: 0, seq: 121, rmk: "MIL ACT", routeTable: routeDoc.rows });
     expect(noted).toContain(tlk + " /MIL ACT,CPT/");
