@@ -38,6 +38,7 @@ declare global {
 function ToolPage() {
   const [ready, setReady] = useState(false);
   const [toolVersion, setToolVersion] = useState("");
+  const [loadStamp] = useState(() => Date.now().toString(36));
   const [editOpen, setEditOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const ownerRef = useRef(false);
@@ -176,7 +177,7 @@ function ToolPage() {
       ref={frame}
       key={toolVersion}
       title="Dispatch Board"
-      src={`/tool-page?v=${toolVersion}`}
+      src={`/tool-page?v=${toolVersion}&t=${loadStamp}`}
       onLoad={sendAccount}
       className="fixed inset-0 h-screen w-screen border-0"
     />

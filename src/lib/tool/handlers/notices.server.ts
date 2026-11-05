@@ -49,7 +49,9 @@ export const routes: Routes = {
     const { loadFlights } = await import("../core/gantts.server");
     const days = Number(ctx.params.get("days") || "1") || 1;
     const cs = (ctx.params.get("callsigns") || "").split(",").filter(Boolean);
-    const flights = pickNoticeFlights(await loadFlights(days), cs);
+    let flights = pickNoticeFlights(await loadFlights(days), cs);
+    // Chuyến mới chưa có trong cache 5 phút → đọc lại FliteBrief ngay.
+    if (cs.length && noticeMissingCallsigns(flights, cs)) flights = pickNoticeFlights(await loadFlights(days, true), cs);
     const rules = await loadRules(ctx);
     const lib = await noticeLibrary(ctx);
     const plan = noticesPreview(flights, rules, (title) => lib.has(normTitle(title)));
@@ -151,7 +153,12 @@ export const jobs: Jobs = {
     let flights;
     try {
       flights = selectNoticeSectors(
-        pickNoticeFlights(await loadFlights(Number(params["days"] ?? 1) || 1), (params["callsigns"] as string[]) ?? []),
+        await (async () => {
+          const d = Number(params["days"] ?? 1) || 1;
+          const want = (params["callsigns"] as string[]) ?? [];
+          const got = pickNoticeFlights(await loadFlights(d), want);
+          return want.length && noticeMissingCallsigns(got, want) ? pickNoticeFlights(await loadFlights(d, true), want) : got;
+        })(),
         params["sector_ids"] as unknown[],
       );
     } catch (e) {
@@ -408,3 +415,10 @@ Object.assign(routes, {
       note: "File tạm — chỉ dùng trong phiên đăng nhập này, đăng xuất/đăng nhập lại sẽ mất (chỉ quản trị lưu lâu dài được)." };
   },
 });
+
+function noticeMissingCallsigns(flights: { callsign?: string }[], cs: string[]): boolean {
+  const norm = (v: unknown) => String(v ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const have = new Set<string>();
+  for (const f of flights) { const n = norm(f.callsign); have.add(n); have.add(n.replace(/^[A-Z]+/, "")); }
+  return cs.some((c) => { const n = norm(c); return n && !have.has(n) && !have.has(n.replace(/^[A-Z]+/, "")); });
+}
