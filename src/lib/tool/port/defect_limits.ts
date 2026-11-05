@@ -16,5 +16,6 @@ export function mergeDefectLimits(current: AircraftLimit[], previous: AircraftLi
     seen.add(identity);
     merged.push(row);
   }
-  return merged;
+  const egt = (r: AircraftLimit) => /\bLOW\s+EGT/i.test(String(r['defect'] ?? ''));
+  return [...merged.filter(egt), ...merged.filter(r => !egt(r))];
 }
