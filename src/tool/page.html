@@ -21316,7 +21316,7 @@ function tlRefreshDspPibList(){
 async function tlFillByDsp(){
   const dsp = $("#tlDsp").value;
   if(!dsp){ alert("Chọn một Dispatcher (DSP crew-file) trước."); return; }
-  await syncToolFlights(true);
+  syncToolFlights(true).catch(()=>{});
   const src = toolFlights().filter(f =>
     (f.dispatcher || "").trim() === dsp
     && (!f.crew_count || !f.attachment_count)
