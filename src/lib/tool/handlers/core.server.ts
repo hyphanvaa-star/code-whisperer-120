@@ -391,9 +391,7 @@ function omniMerge(cache: OmniCache, rows: omni.OmniFlight[]): number {
   const today = vnDay(Date.now()), tomorrow = vnDay(Date.now() + 86400_000);
   cache.rows = Array.from(byKey.values()).filter((r) => {
     if (!r.std_local) return false;
-    const t = Date.parse(r.std_local);
-    if (!Number.isFinite(t)) return false;
-    const d = vnDay(t);
+    const d = r.std_local.slice(0, 10); // naive local wall-clock date
     return d === today || d === tomorrow;
   });
   cache.at = Math.floor(Date.now() / 1000);
