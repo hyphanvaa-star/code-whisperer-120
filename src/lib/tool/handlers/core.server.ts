@@ -386,7 +386,16 @@ function omniMerge(cache: OmniCache, rows: omni.OmniFlight[]): number {
     if (!byKey.has(k)) added++;
     byKey.set(k, row);
   }
-  cache.rows = Array.from(byKey.values());
+  // Keep only today's and tomorrow's flights (Vietnam date) — old sectors are useless.
+  const vnDay = (ms: number) => new Date(ms + 7 * 3600_000).toISOString().slice(0, 10);
+  const today = vnDay(Date.now()), tomorrow = vnDay(Date.now() + 86400_000);
+  cache.rows = Array.from(byKey.values()).filter((r) => {
+    if (!r.std_local) return false;
+    const t = Date.parse(r.std_local);
+    if (!Number.isFinite(t)) return false;
+    const d = vnDay(t);
+    return d === today || d === tomorrow;
+  });
   cache.at = Math.floor(Date.now() / 1000);
   return added;
 }
