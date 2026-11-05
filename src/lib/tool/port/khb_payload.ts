@@ -114,7 +114,7 @@ function ftPldCell(f){
   };
   estEl.addEventListener("change", commit);
   estEl.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); estEl.blur(); } });
-  const update = w => { paint(w && w.pld, st.est); };
+  const update = w => { paint(w && w.pld, (st.pay != null && String(st.pay).trim() !== "") ? st.pay : st.est); };
   td._repaint = () => { const s2 = ftPayloadSector(f); const w = s2 && W_CACHE[s2.id]; update(w && ofpFitsFlight(s2,w) ? w : null); };
   const cached = sector && W_CACHE[sector.id];
   update(cached && ofpFitsFlight(sector,cached) ? cached : null);
