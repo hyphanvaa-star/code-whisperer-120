@@ -307,9 +307,9 @@ export const jobs: Jobs = {
         await store.putFile(ctx, `briefing/${name}`, pdf, "application/pdf");
         let where = "";
         try {
-          const { saveToPc } = await import("./pc.server");
-          const p = await saveToPc(ctx, "briefing", name, pdf);
-          if (p) { where = ` (đã lưu ${p})`; savedPc++; }
+          const { queueFilesToPc } = await import("./pc.server");
+          const p = await queueFilesToPc(ctx, "briefing", [{ name, bytes: pdf }]);
+          if (p) { where = ` (đã xếp lưu ${p}\\${name})`; savedPc++; }
         } catch (e) { where = ` (không lưu được xuống máy: ${errorMessage(e)})`; }
         emit({ type: "line", text: `✓ ${cs} → ${name}${where}`, cls: "ok" });
         ok++;
