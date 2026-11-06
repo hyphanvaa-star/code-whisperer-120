@@ -20308,7 +20308,7 @@ async function defPullSummary(opts){
       else alert("Tải defect summary lỗi:\n\n" + d.error);
       return false;
     }
-    limData.aircraft = limEgtLayout(d.aircraft || []);
+    limData.aircraft = limEgtLayout(d.limits_aircraft || d.aircraft || []);
     limSaveLocal(limData);
     limDirty = false;
     limSetSaveMsg("Đã lưu");
