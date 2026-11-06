@@ -8,7 +8,7 @@ function mnlScript(src,name){return window[name]?Promise.resolve():new Promise((
 function mnlTime(date,utc){
   const d=String(date||''),u=/(\d{1,2}):?(\d{2})/.exec(String(utc||''));
   let m=/(\d{4})-(\d{2})-(\d{2})/.exec(d),y,mo,da;
-  if(m){y=+m[1];mo=+m[2];da=+m[3];}else if((m=/(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(d))){da=+m[1];mo=+m[2];y=+m[3];}else return 0;
+  if(m){y=+m[1];mo=+m[2];da=+m[3];}else if((m=/(\d{1,2})\/(\d{1,2})\/(\d{2,4})\b/.exec(d))){da=+m[1];mo=+m[2];y=+m[3];if(y<100)y+=2000;}else return 0;
   return Date.UTC(y,mo-1,da,u?+u[1]:0,u?+u[2]:0);
 }
 // The ICAO frame is drawn with pdf-lib vectors from a measured layout
@@ -155,8 +155,12 @@ mnlBtn.onclick=async function(){
     for(const leg of legs){
       $('#ftStat').textContent='Đang lấy View ICAO JetPlan '+leg.flt+'…';
       try{
-        const r=await fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t+(leg.plan?'&plan='+leg.plan:''));
-        const j=await r.json();
+        const q=p=>fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t+'&dep='+leg.dep+'&arr='+leg.arr+(p?'&plan='+p:'')).then(r=>r.json().catch(()=>({error:'HTTP '+r.status})));
+        let j=await q(leg.plan);
+        if(j&&j.error&&/Không tìm thấy plan/.test(j.error)){
+          const cfp=String(prompt(leg.flt+' '+leg.dep+'-'+leg.arr+': JetPlan không tự tìm thấy plan.\nNhập số CFP (Plan No trên OFP, vd: 6120):','')||'').replace(/\D/g,'');
+          if(cfp) j=await q(cfp);
+        }
         if(!j || j.error) throw new Error(j&&j.error||('HTTP '+r.status));
         files.push({plan:j.plan,reg:((/REG\/([A-Z0-9]+)/.exec(j.html)||[])[1]||'?'),flt:leg.flt,html:j.html,name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.pdf'});
       }catch(e){errs.push(leg.flt+': '+e.message);}

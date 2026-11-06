@@ -58,9 +58,10 @@ export function parseDispatch(html: string): PlanRow[] {
 }
 
 /** Pick the newest plan for the callsign whose ETD is closest to the wanted time (±18h). */
-export function pickPlan(rows: PlanRow[], callsign: string, want: number): PlanRow | null {
+export function pickPlan(rows: PlanRow[], callsign: string, want: number, dep = "", arr = ""): PlanRow | null {
   const cs = callsign.toUpperCase();
-  const hits = rows.filter((r) => r.callsign === cs && r.t && (!want || Math.abs(r.t - want) <= 18 * 3600e3));
+  const hits = rows.filter((r) => r.callsign === cs && r.t && (!want || Math.abs(r.t - want) <= 18 * 3600e3)
+    && (!dep || !r.pod || r.pod.toUpperCase() === dep) && (!arr || !r.poa || r.poa.toUpperCase() === arr));
   hits.sort((a, b) => (want ? Math.abs(a.t - want) - Math.abs(b.t - want) : 0) || b.plan - a.plan);
   return hits[0] ?? null;
 }
@@ -76,6 +77,8 @@ export const routes: Routes = {
     if (!digits) return { error: "Thiếu số hiệu chuyến" };
     const callsign = "VJC" + digits;
     const want = Number(ctx.params.get("t") || 0);
+    const dep = (ctx.params.get("dep") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+    const arr = (ctx.params.get("arr") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
     const direct = Number((ctx.params.get("plan") || "").replace(/\D/g, "") || 0);
     let jar: Jar;
     try { jar = await login(); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; }
@@ -90,17 +93,23 @@ export const routes: Routes = {
         return { error: `Plan ${direct} không phải của ${callsign} — kiểm tra lại số CFP` };
       }
     } else {
-      for (let first = -1, pages = 0; pages < 6 && !row; pages++) {
-        const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=410&firstPlanNumber=${first}&numberOfPlans=50&thType=FP&direction=init`)).text();
-        const rows = parseDispatch(html);
-        row = pickPlan(rows, callsign, want);
-        if (!rows.length) break;
-        const min = Math.min(...rows.map((r) => r.plan));
-        if (min <= 1) break;
-        first = min - 1;
+      // Lọc theo sân đi (rồi sân đến) để plan tính sớm không bị trôi khỏi
+      // các trang đầu của danh sách toàn mạng; cuối cùng mới quét không lọc.
+      const filters = [...new Set([dep ? `&searchPOD=${dep}` : "", arr ? `&searchPOA=${arr}` : "", ""])];
+      for (const f of filters) {
+        for (let first = -1, pages = 0; pages < (f ? 8 : 6) && !row; pages++) {
+          const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=410&firstPlanNumber=${first}&numberOfPlans=50&thType=FP&direction=init${f}`)).text();
+          const rows = parseDispatch(html);
+          row = pickPlan(rows, callsign, want, dep, arr);
+          if (!rows.length) break;
+          const min = Math.min(...rows.map((r) => r.plan));
+          if (min <= 1) break;
+          first = min - 1;
+        }
+        if (row) break;
       }
     }
-    if (!row) return { error: `Không tìm thấy plan ${callsign} trong Dispatch JetPlan` };
+    if (!row) return { error: `Không tìm thấy plan ${callsign}${dep ? ` ${dep}-${arr}` : ""} trong Dispatch JetPlan` };
     let html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=776&plan=${row.plan}`)).text();
     let css = "";
     try { css = await (await jar.go(`${BASE}/atcFiling/stylesheet/icaoDisplay.css`)).text(); } catch { /* render without */ }
