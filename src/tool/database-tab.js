@@ -12,6 +12,7 @@
     ["dbxAftnBook","AFTN Address","Danh bạ CODE → địa chỉ AFTN","📡","#0f766e"],
     ["dbxAftnDef","DEFAULT ADDRESS","Địa chỉ AFTN gửi mặc định cho mọi chuyến (dùng khi xuất TPL)","📮","#b45309"],
     ["dbxFiles","Quản lí file","Các file đang lưu trên máy chủ: xem, tìm, tải về, xoá (admin)","🗂️","#4f46e5"],
+    ["dbxAirports","Airport","Sân bay theo quốc gia · giờ Local time hiện tại","🛫","#0369a1"],
     ["dbxAirspace","Named Airspace","Danh mục vùng theo quốc gia · AIP ENR","🌐","var(--x-red)"]
   ];
   function init(){
@@ -163,6 +164,57 @@
     };
     wrap.querySelector("#dbxAirDetail").onclick = function(e){ if(e.target.closest("[data-copy]")) wrap.querySelector("#dbxAirRows").onclick(e); };
     wrap.querySelector("#dbxAirBack").onclick=function(){closePanes();};
+    /* ---- Airport: theo quốc gia + Local time ---- */
+    var aptRows = window.__airportCatalogue || [], aptCc = "VN", aptTimer = null;
+    var ccName = (function(){ var dn=null; try{ dn=new Intl.DisplayNames(["vi"],{type:"region"}); }catch(e){} return function(c){ try{ return (dn&&dn.of(c))||c; }catch(e){ return c; } }; })();
+    var aptGroups = {}; aptRows.forEach(function(r){ aptGroups[r[1]]=(aptGroups[r[1]]||0)+1; });
+    var aptPane = document.createElement("section");
+    aptPane.id = "dbxAptPane"; aptPane.style.display = "none";
+    aptPane.innerHTML = '<div class="dbx-air-toolbar"><button class="btn small" type="button" id="dbxAptBack">← Danh mục</button><h3>Airport</h3><span id="dbxAptTotal"></span><span id="dbxAptUtc" class="dbx-apt-utc"></span><input type="search" id="dbxAptQ" aria-label="Tìm sân bay" placeholder="Tìm ICAO / quốc gia…"><input type="search" id="dbxAptCcQ" aria-label="Tìm quốc gia" placeholder="Lọc quốc gia…"></div><div class="dbx-air-layout"><nav id="dbxAptCountries" aria-label="Quốc gia"></nav><div class="dbx-air-content"><div class="dbx-air-heading"><h3 id="dbxAptCountry"></h3><span id="dbxAptCount"></span></div><div class="dbx-air-scroll"><table aria-label="Danh mục sân bay"><thead><tr><th>ICAO</th><th>Quốc gia</th><th>UTC</th><th>Local time</th></tr></thead><tbody id="dbxAptRows"></tbody></table></div></div></div>';
+    wrap.appendChild(aptPane);
+    var aptStyle = document.createElement("style");
+    aptStyle.textContent = '#dbxAptPane{color:var(--x-ink);font-size:16px;min-height:0;flex:1;flex-direction:column;gap:18px}'
+      + '#dbxAptQ{margin-left:auto}#dbxAptQ,#dbxAptCcQ{min-width:180px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line);border-radius:6px;padding:10px 12px;font-size:16px}'
+      + '#dbxAptCountries{display:flex;flex-direction:column;gap:5px;overflow:auto;align-self:start;max-height:600px}'
+      + '#dbxAptCountries .btn{display:flex;justify-content:space-between;gap:12px;font-size:15px;text-align:left;border-radius:6px;padding:10px 12px;background:var(--x-card);color:var(--x-ink);border:1px solid var(--x-line)}'
+      + '#dbxAptCountries .btn[aria-pressed=true]{background:var(--x-red);color:var(--x-card);border-color:var(--x-red);font-weight:750}'
+      + '#dbxAptPane table{width:100%;border-collapse:collapse}#dbxAptPane th{position:sticky;top:0;background:var(--x-bg)!important;color:var(--x-ink2)!important;-webkit-text-fill-color:var(--x-ink2)!important;text-align:left;padding:12px!important;font-size:13px!important;z-index:1}'
+      + '#dbxAptPane td{padding:10px 12px!important;border-bottom:1px solid var(--x-line2);background:var(--x-card)!important;color:var(--x-ink)!important;-webkit-text-fill-color:var(--x-ink)!important;font-size:16px!important}'
+      + '#dbxAptPane .dbx-apt-icao{font:750 16px var(--x-mono);color:var(--x-red)!important;-webkit-text-fill-color:var(--x-red)!important}'
+      + '#dbxAptPane .dbx-apt-lt{font:700 17px var(--x-mono);font-variant-numeric:tabular-nums}#dbxAptPane .dbx-apt-day{font-size:12px;color:var(--x-ink2);margin-left:6px}'
+      + '.dbx-apt-utc{font:700 15px var(--x-mono);color:var(--x-ink2)}'
+      + '@media(max-width:760px){#dbxAptCountries{flex-direction:row;max-width:100%;align-self:stretch}#dbxAptCountries .btn{flex-shrink:0}}';
+    document.head.appendChild(aptStyle);
+    wrap.querySelector("#dbxAptTotal").textContent = aptRows.length + " sân · " + Object.keys(aptGroups).length + " quốc gia";
+    function aptOffMin(s){ var m=/^([+-]?)(\d{1,2}):(\d{2})$/.exec(s||""); if(!m) return 0; var v=(+m[2])*60+(+m[3]); return m[1]==="-"?-v:v; }
+    function aptLocal(off){ var now=new Date(), d=new Date(now.getTime()+aptOffMin(off)*60000); var hh=("0"+d.getUTCHours()).slice(-2), mm=("0"+d.getUTCMinutes()).slice(-2); var dd=("0"+d.getUTCDate()).slice(-2)+"/"+("0"+(d.getUTCMonth()+1)).slice(-2); return hh+":"+mm+'<span class="dbx-apt-day">'+dd+'</span>'; }
+    function aptUtcLabel(off){ return "UTC" + (/^-/.test(off)?"":"+") + off; }
+    function drawAptCountries(){
+      var q = wrap.querySelector("#dbxAptCcQ").value.trim().toLowerCase();
+      var keys = Object.keys(aptGroups).sort(function(a,b){ if(a==="VN") return -1; if(b==="VN") return 1; return ccName(a).localeCompare(ccName(b),"vi"); })
+        .filter(function(k){ return !q || (ccName(k)+" "+k).toLowerCase().indexOf(q)>=0; });
+      wrap.querySelector("#dbxAptCountries").innerHTML = '<button class="btn" type="button" data-apt-cc="ALL" aria-pressed="'+(aptCc==="ALL")+'">Tất cả <span>'+aptRows.length+'</span></button>'
+        + keys.map(function(k){ return '<button class="btn" type="button" data-apt-cc="'+k+'" aria-pressed="'+(aptCc===k)+'">'+esc(ccName(k))+' <span>'+aptGroups[k]+'</span></button>'; }).join("");
+    }
+    function drawApt(){
+      var q = wrap.querySelector("#dbxAptQ").value.trim().toUpperCase();
+      var list = aptRows.filter(function(r){ return (aptCc==="ALL"||r[1]===aptCc) && (!q || r[0].indexOf(q)>=0 || ccName(r[1]).toUpperCase().indexOf(q)>=0); });
+      wrap.querySelector("#dbxAptCountry").textContent = aptCc==="ALL" ? "Tất cả quốc gia" : ccName(aptCc);
+      wrap.querySelector("#dbxAptCount").textContent = list.length + " sân bay";
+      wrap.querySelector("#dbxAptRows").innerHTML = list.length ? list.slice(0,1500).map(function(r){
+        return '<tr><td class="dbx-apt-icao">'+r[0]+'</td><td>'+esc(ccName(r[1]))+'</td><td>'+aptUtcLabel(r[2])+'</td><td class="dbx-apt-lt" data-off="'+r[2]+'">'+aptLocal(r[2])+'</td></tr>';
+      }).join("") : '<tr><td colspan="4">Không tìm thấy sân bay.</td></tr>';
+      wrap.querySelectorAll("[data-apt-cc]").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.aptCc===aptCc)); });
+      tickApt();
+    }
+    function tickApt(){
+      var n=new Date(); wrap.querySelector("#dbxAptUtc").textContent = "UTC " + ("0"+n.getUTCHours()).slice(-2)+":"+("0"+n.getUTCMinutes()).slice(-2);
+      wrap.querySelectorAll("#dbxAptRows .dbx-apt-lt").forEach(function(td){ td.innerHTML = aptLocal(td.dataset.off); });
+    }
+    wrap.querySelector("#dbxAptCountries").onclick = function(e){ var b=e.target.closest("[data-apt-cc]"); if(!b) return; aptCc=b.dataset.aptCc; drawApt(); };
+    wrap.querySelector("#dbxAptQ").addEventListener("input", drawApt);
+    wrap.querySelector("#dbxAptCcQ").addEventListener("input", drawAptCountries);
+    wrap.querySelector("#dbxAptBack").onclick = function(){ closePanes(); };
     function fmtSize(n){ return n > 1048576 ? (n/1048576).toFixed(1)+" MB" : n > 1024 ? Math.round(n/1024)+" KB" : n+" B"; }
     function esc(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
     function drawFiles(){
@@ -203,12 +255,13 @@
         .then(function(r){ return r.json(); }).then(function(d){ if(d && d.error) alert(d.error); loadFiles(); });
     };
     wrap.querySelector("#dbxFileBack").onclick = function(){ closePanes(); };
-    function closePanes(){ pane.style.display = "none"; defPane.style.display = "none"; filePane.style.display = "none"; airPane.style.display = "none"; grid.style.display = ""; }
+    function closePanes(){ pane.style.display = "none"; defPane.style.display = "none"; filePane.style.display = "none"; airPane.style.display = "none"; aptPane.style.display = "none"; if(aptTimer){ clearInterval(aptTimer); aptTimer = null; } grid.style.display = ""; }
     wrap.querySelector("#dbxBookBack").onclick = closePanes;
     wrap.querySelector("#dbxDefBack").onclick = closePanes;
     wrap.addEventListener("click", function(e){
       var c = e.target.closest(".dbx-card"); if(!c) return;
       var id = c.getAttribute("data-btn");
+      if(id === "dbxAirports"){ closePanes(); grid.style.display="none"; aptPane.style.display="flex"; drawAptCountries(); drawApt(); aptTimer = setInterval(tickApt, 15000); return; }
       if(id === "dbxAirspace"){ closePanes(); grid.style.display="none"; airPane.style.display="flex"; drawAir(); return; }
       if(id === "dbxFiles"){ grid.style.display = "none"; pane.style.display = "none"; defPane.style.display = "none"; filePane.style.display = "flex"; loadFiles(); return; }
       if(id === "dbxAftnBook"){ grid.style.display = "none"; defPane.style.display = "none"; pane.style.display = "flex"; return; }

@@ -17,6 +17,7 @@ import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
+import { airportCatalogue } from '@/lib/tool/port/airport_catalogue';
 import { notamCounts } from '@/lib/tool/port/notam_counts';
 import { bpParsePack, bpWebIds, bpCompare, bpNewIds, bpDueRescan } from '@/lib/tool/port/briefing_pack';
 import { patchFlightRefreshPage } from '@/lib/tool/port/flight_refresh';
@@ -2320,7 +2321,7 @@ function ftRender(){
 .dbx-t{font-size:17px;font-weight:800;color:#0f172a}
 .dbx-d{font-size:13px;color:#64748b;line-height:1.4;flex:1}
 .dbx-go{font-size:12px;font-weight:700;color:var(--c);margin-top:4px}
-</style><script>window.__namedAirspaceCatalogue=${JSON.stringify(enrCatalogue()).replace(/</g, '\\u003c')};</script><script>${databaseTabScript}</script></body>`)
+</style><script>window.__namedAirspaceCatalogue=${JSON.stringify(enrCatalogue()).replace(/</g, '\\u003c')};</script><script>window.__airportCatalogue=${JSON.stringify(airportCatalogue())};</script><script>${databaseTabScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
@@ -2822,7 +2823,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.37')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.38')
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt(); };')
