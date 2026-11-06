@@ -143,7 +143,7 @@ mnlBtn.onclick=async function(){
   for(const f of ftRows){
     if(!f) continue; const st=ftSt(f); if(!st.on) continue;
     const digits=String(f.flt||'').replace(/\D/g,'');
-    legs.push({digits,flt:'VJ'+digits,dep:String(st.dep||'').toUpperCase(),arr:String(st.arr||'').toUpperCase(),date:st.date,t:mnlTime(st.date,st.utc),plan:String(f.plan_no||'').replace(/\D/g,'')});
+    legs.push({digits,flt:'VJ'+digits,dep:String(st.dep||'').toUpperCase(),arr:String(st.arr||'').toUpperCase(),date:st.date,etd:st.etd||'',utc:st.utc||'',t:mnlTime(st.date,st.utc),plan:String(f.plan_no||'').replace(/\D/g,'')});
   }
   if(!legs.length){alert('Tick ít nhất một chuyến.');return;}
   const lic=($('#ftLicInput').value||'').trim();
@@ -155,13 +155,13 @@ mnlBtn.onclick=async function(){
     for(const leg of legs){
       $('#ftStat').textContent='Đang lấy View ICAO JetPlan '+leg.flt+'…';
       try{
-        const q=p=>fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t+'&dep='+leg.dep+'&arr='+leg.arr+(p?'&plan='+p:'')).then(r=>r.json().catch(()=>({error:'HTTP '+r.status})));
+        const E=encodeURIComponent,q=p=>fetch('/api/jetplan/icao?flt='+leg.digits+'&t='+leg.t+'&date='+E(leg.date||'')+'&etd='+E(leg.etd)+'&utc='+E(leg.utc)+'&dep='+E(leg.dep)+'&arr='+E(leg.arr)+(p?'&plan='+p:'')).then(r=>r.json().catch(()=>({error:'HTTP '+r.status})));
         let j=await q(leg.plan);
         if(j&&j.error&&/Không tìm thấy plan/.test(j.error)){
           const cfp=String(prompt(leg.flt+' '+leg.dep+'-'+leg.arr+': JetPlan không tự tìm thấy plan.\nNhập số CFP (Plan No trên OFP, vd: 6120):','')||'').replace(/\D/g,'');
           if(cfp) j=await q(cfp);
         }
-        if(!j || j.error) throw new Error(j&&j.error||('HTTP '+r.status));
+        if(!j || j.error) throw new Error(j&&j.error||'Không có phản hồi');
         files.push({plan:j.plan,reg:((/REG\/([A-Z0-9]+)/.exec(j.html)||[])[1]||'?'),flt:leg.flt,html:j.html,name:'ATC_FPL_'+leg.flt+'_'+(j.pod||leg.dep)+'-'+(j.poa||leg.arr)+'_'+String(j.etd||leg.date||'').split(',')[0].replace(/[^0-9A-Za-z-]/g,'')+'.pdf'});
       }catch(e){errs.push(leg.flt+': '+e.message);}
     }

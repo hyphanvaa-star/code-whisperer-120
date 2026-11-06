@@ -2829,7 +2829,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.47')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.48')
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt(); };')

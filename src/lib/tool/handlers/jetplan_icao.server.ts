@@ -1,5 +1,7 @@
 import type { Routes } from "../types";
 import { env } from "../creds.server";
+import { loadFlights } from "../core/gantts.server";
+import { mnlIcao, mnlUtcTime, pickFlightPlan, planBelongsTo } from "../port/formmnl_plan";
 
 // FORM MNL: find the flight's plan in JetPlan Dispatch and return its "View ICAO" page
 // (query=776) with the stylesheet inlined and scripts stripped, for client-side rendering.
@@ -66,20 +68,28 @@ export function pickPlan(rows: PlanRow[], callsign: string, want: number, dep = 
   return hits[0] ?? null;
 }
 
-/** A directly fetched View ICAO page must belong to the requested callsign. */
-export function planBelongsTo(html: string, callsign: string): boolean {
-  return new RegExp("-" + callsign.toUpperCase() + "\\b").test((html || "").toUpperCase());
-}
+export { planBelongsTo };
 
 export const routes: Routes = {
   "GET /api/jetplan/icao": async (ctx) => {
     const digits = (ctx.params.get("flt") || "").replace(/\D/g, "");
     if (!digits) return { error: "Thiếu số hiệu chuyến" };
     const callsign = "VJC" + digits;
-    const want = Number(ctx.params.get("t") || 0);
-    const dep = (ctx.params.get("dep") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
-    const arr = (ctx.params.get("arr") || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
-    const direct = Number((ctx.params.get("plan") || "").replace(/\D/g, "") || 0);
+    // Crewlist dates are local: derive the real UTC ETD from date + local ETD + UTC ETD.
+    const want = mnlUtcTime(ctx.params.get("date") || "", ctx.params.get("etd") || "", ctx.params.get("utc") || "")
+      || Number(ctx.params.get("t") || 0);
+    // JetPlan Dispatch lists ICAO airports; Crewlist gives IATA (MNL/SGN).
+    const dep = mnlIcao(ctx.params.get("dep") || "");
+    const arr = mnlIcao(ctx.params.get("arr") || "");
+    let direct = Number((ctx.params.get("plan") || "").replace(/\D/g, "") || 0);
+    let source = direct ? "manual" : "";
+    if (!direct) {
+      // Mỗi ngày một CFP: lấy plan_no FliteBrief của đúng chuyến/ngày/chặng.
+      try {
+        const p = pickFlightPlan(await loadFlights(2), { digits, dep, arr, t: want });
+        if (p) { direct = Number(p); source = "flitebrief"; }
+      } catch { /* fall back to Dispatch scan */ }
+    }
     let jar: Jar;
     try { jar = await login(); } catch (e) { return { error: e instanceof Error ? e.message : String(e) }; }
     let row: PlanRow | null = null;
@@ -90,23 +100,21 @@ export const routes: Routes = {
       if (planBelongsTo(html, callsign)) {
         row = { plan: direct, pod: "", poa: "", etd: "", callsign, t: 0 };
       } else {
-        return { error: `Plan ${direct} không phải của ${callsign} — kiểm tra lại số CFP` };
+        if (source === "manual") return { error: `Plan ${direct} không phải của ${callsign} — kiểm tra lại số CFP` };
+        direct = 0; // FliteBrief CFP chưa có trên JetPlan → quét Dispatch
       }
-    } else {
-      // Lọc theo sân đi (rồi sân đến) để plan tính sớm không bị trôi khỏi
-      // các trang đầu của danh sách toàn mạng; cuối cùng mới quét không lọc.
-      const filters = [...new Set([dep ? `&searchPOD=${dep}` : "", arr ? `&searchPOA=${arr}` : "", ""])];
-      for (const f of filters) {
-        for (let first = -1, pages = 0; pages < (f ? 8 : 6) && !row; pages++) {
-          const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=410&firstPlanNumber=${first}&numberOfPlans=50&thType=FP&direction=init${f}`)).text();
-          const rows = parseDispatch(html);
-          row = pickPlan(rows, callsign, want, dep, arr);
-          if (!rows.length) break;
-          const min = Math.min(...rows.map((r) => r.plan));
-          if (min <= 1) break;
-          first = min - 1;
-        }
-        if (row) break;
+    }
+    if (!row) {
+      // JetPlan's searchPOD/POA need its full hidden form, so scan the plain
+      // Dispatch list and filter by ICAO route + UTC ETD here.
+      for (let first = -1, pages = 0; pages < 8 && !row; pages++) {
+        const html = await (await jar.go(`${BASE}/jeppesen/jpdcServlet?query=410&firstPlanNumber=${first}&numberOfPlans=50&thType=FP&direction=init`)).text();
+        const rows = parseDispatch(html);
+        row = pickPlan(rows, callsign, want, dep, arr);
+        if (!rows.length) break;
+        const min = Math.min(...rows.map((r) => r.plan));
+        if (min <= 1) break;
+        first = min - 1;
       }
     }
     if (!row) return { error: `Không tìm thấy plan ${callsign}${dep ? ` ${dep}-${arr}` : ""} trong Dispatch JetPlan` };
@@ -118,7 +126,7 @@ export const routes: Routes = {
       .replace(/<link[^>]*stylesheet[^>]*>/gi, () => `<style>${css.replace(/<\/?style[^>]*>/gi, "")}</style>`)
       .replace(/<input[^>]*type="(?:submit|reset|button|hidden)"[^>]*>/gi, "");
     html = html.replace(/<div[^>]*id="noprint"[\s\S]*?<\/div>/i, "");
-    return { plan: row.plan, callsign, etd: row.etd, pod: row.pod, poa: row.poa, html };
+    return { plan: row.plan, callsign, etd: row.etd, pod: row.pod || dep, poa: row.poa || arr, source: source || "dispatch", html };
   },
 };
 export const jobs = {};
