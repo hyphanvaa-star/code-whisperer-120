@@ -29456,7 +29456,7 @@ function render(){
   $("#afRcp").innerHTML=r.map((x,i)=>`<tr><td style="color:#16a34a;font-weight:700">${i+1}</td><td>${x[0]}</td><td${x[2]?' style="color:#c00" title="Không có trong danh bạ"':''}>${x[1]}</td></tr>`).join("");}
 function init(){
   $("#afFl").value=localStorage.getItem(K.fl)||"";
-  $("#afDef").value=localStorage.getItem(K.def)??DEF_DEFAULT;
+  $("#afDef").value=DEF_DEFAULT;$("#afDef").readOnly=true;$("#afDef").title="Địa chỉ mặc định cố định — không sửa/xoá được";
   $("#afIn").value=localStorage.getItem(K.in)||"";
   $("#afBook").value=localStorage.getItem(K.book)??BOOK_DEFAULT;
   for(const id of ["#afFl","#afDef","#afIn","#afBook"]) $(id).addEventListener("input",render);

@@ -21,11 +21,11 @@ describe("AFTN filling tab hidden", () => {
     expect(khbExport).toContain('parse($("#afBook").value)');
   });
 
-  it("moves DEFAULT ADDRESS into the Database categories", () => {
-    expect(dbTab).toContain('["dbxAftnDef","DEFAULT ADDRESS"');
-    expect(dbTab).toContain('document.getElementById("afDef")');
-    expect(dbTab).toContain("defPane.appendChild(def)");
-    expect(dbTab).toContain('id === "dbxAftnDef"');
+  it("shows DEFAULT ADDRESS locked inside AFTN Address", () => {
+    expect(dbTab).not.toContain('["dbxAftnDef","DEFAULT ADDRESS"');
+    expect(dbTab).toContain("pane.insertBefore(def, bookCol || null)");
+    expect(dbTab).toContain("def.readOnly = true");
+    expect(page).toContain('$("#afDef").value=DEF_DEFAULT;$("#afDef").readOnly=true;');
   });
 
   it("still injects the Database tab script", () => {

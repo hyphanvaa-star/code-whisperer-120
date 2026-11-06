@@ -10,7 +10,6 @@
     ["ftConvBtn","Data Convert","FL, SID đặc biệt, không convert STAR","🔁","#ea580c"],
     ["ftOfpRulesBtn","OFP check data","Điều kiện nút OFP kiểm tra (vd giờ tới KAPLI)","✅","#dc2626"],
     ["dbxAftnBook","AFTN Address","Danh bạ CODE → địa chỉ AFTN","📡","#0f766e"],
-    ["dbxAftnDef","DEFAULT ADDRESS","Địa chỉ AFTN gửi mặc định cho mọi chuyến (dùng khi xuất TPL)","📮","#b45309"],
     ["dbxFiles","Quản lí file","Các file đang lưu trên máy chủ: xem, tìm, tải về, xoá (admin)","🗂️","#4f46e5"],
     ["dbxAirports","Airport","Sân bay theo quốc gia · giờ Local time hiện tại","🛫","#0369a1"],
     ["dbxAirspace","Named Airspace","Danh mục vùng theo quốc gia · AIP ENR","🌐","var(--x-red)"]
@@ -98,9 +97,10 @@
     var def = document.getElementById("afDef");
     if(def){
       var defHead = def.previousElementSibling;
-      if(defHead && (defHead.textContent || "").indexOf("DEFAULT ADDRESS") >= 0) defPane.appendChild(defHead);
-      defPane.appendChild(def);
-      def.style.height = "220px";
+      if(defHead && (defHead.textContent || "").indexOf("DEFAULT ADDRESS") >= 0){ defHead.insertAdjacentHTML("beforeend", ' <span style="color:#7c2d12;font-weight:600">🔒 cố định — luôn gửi kèm, không sửa/xoá</span>'); pane.insertBefore(defHead, bookCol || null); }
+      pane.insertBefore(def, bookCol || null);
+      def.readOnly = true;
+      def.style.height = "150px"; def.style.opacity = ".85"; def.style.cursor = "not-allowed";
     }
     var filePane = wrap.querySelector("#dbxFilePane"), files = [];
     var airPane = document.createElement("section");
