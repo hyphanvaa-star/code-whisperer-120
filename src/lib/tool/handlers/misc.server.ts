@@ -93,6 +93,39 @@ export const routes: Routes = {
 
   "GET /api/chat/status": () => ({ configured: Boolean(process.env.LOVABLE_API_KEY) }),
 
+  "POST /api/notam/decode": async (ctx) => {
+    const body = await ctx.json();
+    const text = String(body.text || "").slice(0, 6000);
+    if (!text.trim()) return { error: "NOTAM trống" };
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) return { error: "Chưa có tài khoản AI Gateway (LOVABLE_API_KEY)." };
+    const fl = (body.flight || {}) as Record<string, unknown>;
+    const s = (v: unknown) => String(v ?? "").slice(0, 40);
+    const ctxLine = `Chuyến ${s(fl.cs)} ${s(fl.dep)}→${s(fl.dest)} STD ${s(fl.std)} STA ${s(fl.sta)}; sân/FIR ${s(body.loc)} vai trò ${s(body.role) || "?"}.`;
+    const system =
+      "Bạn là chuyên gia dispatch hàng không, giải mã NOTAM ICAO sang tiếng Việt cho dispatcher VJC. " +
+      "Trả lời ngắn gọn bằng markdown, đúng 4 mục:\n## Tóm tắt\n(1-2 câu dễ hiểu)\n## Chi tiết\n- Vị trí/đối tượng, thời gian hiệu lực (giờ UTC, lịch D nếu có), độ cao F/G nếu có\n" +
+      "## Ảnh hưởng tới chuyến\n- Đánh giá ngắn theo vai trò sân và giờ chuyến (có giao giờ bay không)\n## Từ viết tắt\n- ABBR: nghĩa\n" +
+      "Không bịa thông tin không có trong NOTAM.";
+    try {
+      const r = await fetch(GATEWAY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({ model: MODEL, messages: [
+          { role: "system", content: system },
+          { role: "user", content: `${ctxLine}\n\nNOTAM ${s(body.id)}:\n${text}` },
+        ] }),
+      });
+      if (r.status === 429) return { error: "Hết hạn mức AI, thử lại sau." };
+      if (r.status === 402) return { error: "Hết credit AI — cần nạp thêm." };
+      if (!r.ok) return { error: `AI lỗi ${r.status}` };
+      const data = (await r.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      return { content: data.choices?.[0]?.message?.content ?? "" };
+    } catch (exc) {
+      return { error: String((exc as Error)?.message ?? exc) };
+    }
+  },
+
   "POST /api/chat": async (ctx) => {
     const body = await ctx.json();
     const messages = body.messages;
