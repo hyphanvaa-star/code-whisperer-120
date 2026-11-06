@@ -230,14 +230,27 @@ export function tafBlock(icao: string, tafs: Record<string, TafRecord> | null | 
   return body;
 }
 
+export const LOW_EGT_NOTES = [
+  "Crew shall select the highest FLEX temperature available in the FlySmart Take-off application while ensuring the required take-off margin is maintained.",
+  "Observe the required engine warm-up and cooling times.",
+  "PACKs OFF for take-off (except A321neo).",
+  "Keep A/THR ON during flight and use Managed Speed throughout all phases of flight, unless otherwise instructed by ATC.",
+];
+const LOW_EGT_KEYS = new Set(LOW_EGT_NOTES.map((n) => n.toUpperCase()));
+export function isLowEgtNote(line: string): boolean {
+  return LOW_EGT_KEYS.has(line.trim().replace(/^[-•]\s*/, "").toUpperCase());
+}
+
 export function defectBullets(items: string[]): string[] {
   const out: string[] = [];
   for (const item of items) {
     let text = item.trim();
     if (!text) continue;
     text = text.replace(/^[-•]\s*/, "");
-    if (!/^FM\b/i.test(text)) text = "FM: " + text;
+    if (isLowEgtNote(text)) continue;
+    text = text.replace(/^FM:?\s*/i, "");
     out.push("- " + text);
+    if (/\bLOW\s+EGT/i.test(text)) out.push(...LOW_EGT_NOTES.map((n) => "  • " + n));
   }
   return out;
 }
@@ -786,6 +799,7 @@ export function parseDefects(raw: unknown): string[] {
     let text = line.trim();
     text = text.replace(/^[-•]\s*/, "");
     text = text.replace(/^FM:\s*/i, "");
+    if (isLowEgtNote(text)) continue;
     const key = text.toUpperCase();
     if (text && !seen.has(key)) {
       seen.add(key);

@@ -104,3 +104,15 @@ describe("saved briefing edit identity", () => {
     expect(s.notams[1]).not.toBe("OLD 26 OCT");
   });
 });
+describe("LOW EGT ops notes", async () => {
+  const { defectBullets, parseDefects, LOW_EGT_NOTES } = await import("../briefingRelease");
+  it("adds the 4 notes under LOW EGT only and survives edit round-trip", () => {
+    const b = defectBullets(["LOW EGT", "BRAKE NO #2 IS OUT OF LIMIT"]);
+    expect(b).toHaveLength(6);
+    expect(b[1]).toContain("highest FLEX temperature");
+    expect(b[4]).toContain("Managed Speed");
+    expect(parseDefects(b.join("\n"))).toEqual(["LOW EGT", "BRAKE NO #2 IS OUT OF LIMIT"]);
+    expect(defectBullets(["APU INOP"])).toHaveLength(1);
+    expect(LOW_EGT_NOTES).toHaveLength(4);
+  });
+});
