@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.44: tóm tắt dùng đánh giá hiện tại theo từng sân, bổ sung đủ J2241/26 + J2240/26; 12 kiểm thử đạt, bảng đang chạy hiển thị đủ trên mẫu tái hiện; build OK, chưa publish.
+- [ ] V 5.44: xác nhận VJC820 thật của JACK — không cấp được phiên khớp người yêu cầu, cần JACK đăng nhập preview.
+
 - [x] V 5.41: summary chữ tím / tự nhập hoặc chỉnh sửa chữ đen; lưu nguồn rõ ràng, bỏ đúng 3 dòng cũ A644 APU/VN-532 APU/A816 CPC, dữ liệu còn 14 LOW EGT và 66 summary. Thử màu/sửa tay trên mẫu đạt; chưa publish.
 - [ ] V 5.41: thử tải summary qua Outlook thật của JACK — không cấp được phiên người yêu cầu; cần JACK đăng nhập preview và Trợ lý PC.
 

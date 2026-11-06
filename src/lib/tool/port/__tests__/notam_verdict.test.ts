@@ -28,6 +28,25 @@ const hit = {
 const section = (v: ReturnType<typeof verdictOf>, key: string) =>
   v.sections.find((s) => s.key === key);
 describe("Original NOTAM verdict parity", () => {
+  it("keeps both assessed RJTT runway closures even outside the legacy arrival window", () => {
+    const arrival = new Flight({ id: 820, callsign: "VJC820", dep_icao: "VVTS", dest_icao: "RJTT",
+      std: new Date("2026-11-06T10:20:00Z"), sta: new Date("2026-11-06T15:50:00Z") });
+    const places = [{ code: "RJTT", kind: "A", uses: [{ cs: "VJC820", role: "ARR" }], notams: [
+      { ident: "J2241/26", qsubj: "MR", qcond: "LC", e_field: "RWY 16L/34R CLOSED",
+        start: "2026-11-06T18:00:00Z", end: "2026-11-06T21:30:00Z", level: "DELAY-ONLY" },
+      { ident: "J2240/26", qsubj: "MR", qcond: "LC", e_field: "RWY 04/22 CLOSED",
+        start: "2026-11-06T14:30:00Z", end: "2026-11-06T21:00:00Z", level: "CRITICAL" },
+    ] }];
+    const rows = section(verdictOf(places, arrival, []), "rwy")?.rows;
+    expect(rows?.map(r => r.ident)).toEqual(["J2241/26", "J2240/26"]);
+    expect(rows?.map(r => r.value)).toEqual(["16L/34R", "04/22"]);
+  });
+  it("excludes assessed NO IMPACT closures instead of reintroducing them through legacy timing", () => {
+    const places = [{ code: "VVNB", kind: "A", notams: [
+      { ident: "J2241/26", qsubj: "MR", qcond: "LC", e_field: "RWY 16L/34R CLOSED", level: "NO IMPACT" },
+    ] }];
+    expect(section(verdictOf(places, flight, []), "rwy")?.rows).toEqual([]);
+  });
   it("does not turn distant, unresolved, dot or above-ceiling areas into affected flights", () => {
     for (const patch of [
       { dist_nm: 50 },

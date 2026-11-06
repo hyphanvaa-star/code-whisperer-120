@@ -30,6 +30,7 @@ import { patchKhbAirportHoverPage } from '@/lib/tool/port/khb_airport_hover';
 import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
 import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
 import { patchDefectSourcePage } from '@/lib/tool/port/defect_source_page';
+import { assessedVerdict } from '@/lib/tool/port/notam_summary';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -2267,7 +2268,9 @@ function ftRender(){
     // Summary comes from the original per-flight verdict pipeline, never raw map hits.
     .replace(/\/\/ Tóm tắt cả ca quốc nội:[\s\S]*?(?=function nmPaintVerdict\(\))/, '')
     .replace(/    let fleet = \(nmData && nmData\.fleet_verdict\) \|\| null;\s*if\(fleet && !\(fleet\.sections \|\| \[\]\)\.length\)\{[\s\S]*?\n    \}/, '    const fleet = (nmData && nmData.fleet_verdict) || null;')
-    .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length) return Object.assign({}, nmTrackData.verdict, {callsign:f.callsign, dep:f.dep, dest:f.dest});')
+    .replace('function nmBuildVerdict(){', () => `const nmAssessedVerdict = ${assessedVerdict.toString()};\nfunction nmBuildVerdict(){`)
+    .replace('    if(graded.size){', '    if(graded.size && !v.tracked){')
+    .replace('  const tracked = !!(nmTrackData && String(tf.id || "") === id);', '  const tracked = !!(nmTrackData && String(tf.id || "") === id);\n  if(tracked && nmTrackData.verdict && (nmTrackData.verdict.sections || []).length){\n    const current = nmTrackData.tuned ? nmAssessedVerdict(nmTrackData.verdict, nmTrackData.places || [], nmClassifyEffect) : nmTrackData.verdict;\n    return Object.assign({}, current, {callsign:f.callsign, dep:f.dep, dest:f.dest});\n  }')
     .replace(/\/\* ===== Checklist F-017 ===== \*\/[\s\S]*?(?=\$\("#ftMsgBtn"\)\.onclick)/, () => 'const CK_EDTO_TEMPLATE_URL = '+JSON.stringify(checklistEdtoAsset.url)+';\n'+checklistScript + '\nconst FORM_MNL_TEMPLATE_URL = '+JSON.stringify(formMnlAsset.url)+';\nconst FORM_MNL_SIG_URL = '+JSON.stringify(mnlSigAsset.url)+';\n'+formMnlScript+'\n')
     .replace(/\s*<button type="button" class="btn small" id="ftLicBtn"[^>]*>DSP License<\/button>/, '')
     .replace('KHOUXAAF /OU=KHOUXAAF/O=AFTN/";', 'KHOUXAAF /OU=KHOUXAAF/O=AFTN/PRMD=K/ADMD=ICAO/C=XX/";')
@@ -2824,7 +2827,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.43')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.44')
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt(); };')

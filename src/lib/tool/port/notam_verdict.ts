@@ -305,10 +305,12 @@ export function verdictOf(
         (ctx.roles as Record<string, string>)[str(p.code)],
     );
     for (const n of arr(p.notams)) {
+      const level = str(n.level);
+      if (level === "NO IMPACT") continue;
       let tags = classifyEffect(n, p);
-      if (tags.includes("ad_closed") && !bcOk(n, ...placeWindow(p, ctx)))
+      if (!level && tags.includes("ad_closed") && !bcOk(n, ...placeWindow(p, ctx)))
         tags = tags.filter((t) => t !== "ad_closed");
-      if (tags.includes("rwy_closed") && !rwyInFlightWin(n, rwyRoleOf(role, p, ctx), ctx))
+      if (!level && tags.includes("rwy_closed") && !rwyInFlightWin(n, rwyRoleOf(role, p, ctx), ctx))
         tags = tags.filter((t) => t !== "rwy_closed");
       const base = {
         ident: str(n.ident),
@@ -323,7 +325,7 @@ export function verdictOf(
       let sh = arr(n.sid_star_hits).filter((h) => !cs || str(h.cs).trim().toUpperCase() === cs);
       if (!sh.length && ofpText) {
         let procs = sidStarHitsOf(n, ofpText, tokens);
-        if (["DEP", "ARR"].includes(role) && !rwyInFlightWin(n, role, ctx)) procs = [];
+        if (!level && ["DEP", "ARR"].includes(role) && !rwyInFlightWin(n, role, ctx)) procs = [];
         if (procs.length) sh = [{ cs, procs, role }];
       }
       for (const h of sh) {
@@ -365,10 +367,7 @@ export function verdictOf(
     if (hitOnRoute(h) && tags.includes("route") && awySegmentAffects(h, points, chart))
       route.push(r);
   }
-  const rwyBy = new Map<string, VerdictRow>();
-  for (const r of rwy)
-    if (!rwyBy.has(r.icao))
-      rwyBy.set(r.icao, row(r.icao, (r.closed as string[]).join(", ") || "?", r.ident, r.icao));
+  const rwyRows = uniq(rwy.map(r => row(r.icao, (r.closed as string[]).join(", ") || "?", r.ident, r.icao)));
   const ats = new Map<string, { labs: string[]; icao: string }>();
   for (const r of [...ofp, ...route]) {
     if (!r.ident) continue;
@@ -395,7 +394,7 @@ export function verdictOf(
   );
   const rows: Record<string, VerdictRow[]> = {
     ad: ad.map((r) => row(r.icao, r.ident)),
-    rwy: [...rwyBy.values()],
+    rwy: rwyRows,
     area: [],
     ats: [...ats].map(([id, r]) => row(r.labs.join("-") || r.icao || "—", id, id, r.icao)),
     sidstar: uniq(sid),
