@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.45: sửa KHB VJ362/363 giữ VN-A580 khi Crewlist mới là VN-A683; hy3.xlsx xác nhận cả hai là VN-A683, hai kiểm thử tái hiện lỗi trước sửa và đạt sau sửa, 24 kiểm thử đạt; trình duyệt thử chuỗi nạp lại đạt, chưa publish.
+- [ ] V 5.45: xác nhận KHB thật của JACK — không cấp được phiên khớp người yêu cầu; cần JACK đăng nhập preview.
+
 - [x] V 5.44: tóm tắt dùng đánh giá hiện tại theo từng sân, bổ sung đủ J2241/26 + J2240/26; 12 kiểm thử đạt, bảng đang chạy hiển thị đủ trên mẫu tái hiện; build OK, chưa publish.
 - [ ] V 5.44: xác nhận VJC820 thật của JACK — không cấp được phiên khớp người yêu cầu, cần JACK đăng nhập preview.
 

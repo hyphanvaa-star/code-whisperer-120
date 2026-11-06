@@ -6,6 +6,31 @@ import { patchKhbCrewSyncPage } from '../khb_crew_sync';
 const html = patchKhbCrewSyncPage(readFileSync('src/tool/page.html', 'utf8'));
 const start = html.indexOf('function ftApplyCrewDiff(');
 const script = html.slice(start, html.indexOf('function ftChgClass(', start));
+const route = readFileSync('src/routes/tool-page.ts', 'utf8');
+const remapStart = route.indexOf('function ftRemap(snap){');
+const remapScript = route.slice(remapStart, route.indexOf('function ftCrewChanged(){', remapStart));
+
+function refreshRegistration(flt: string, dep: string, arr: string, editReg = 'VN-A580') {
+  const old = {id: 100, flt, date: '06/11/26', dep, arr, etd: flt === '362' ? '18:15' : '19:40', reg: 'VN-A580'};
+  const fresh = {...old, id: 575, reg: 'VN-A683'};
+  const state = {...old, reg: editReg, extra: '45', pay: '20000'};
+  const context = {ftRows: [old], ftCatalog: [fresh], ftEdit: {'100': state} as Record<string, typeof state>,
+    ftCrewChanges: {source: 'hy3.xlsx', pair: 'hy2|hy3', rows: []},
+    ftSt: (f: {id: number}) => context.ftEdit[String(f.id)],
+    ftFillIdent: (st: object, f: object) => Object.assign(st, f), FT_CHG_KEYS: [['reg', 'reg']]};
+  runInNewContext(remapScript + script + ';ftRemap([{f: ftRows[0], edit: ftEdit[100]}]);ftApplyCrewDiff("hy3.xlsx");', context);
+  return {state: context.ftEdit['575'], flight: context.ftRows[0]};
+}
+
+describe('VJ362/363 new Crewlist after KHB remap', () => {
+  it.each([['362', 'SGN', 'DLI'], ['363', 'DLI', 'SGN']])('%s updates the saved VN-A580 to Crewlist VN-A683', (flt, dep, arr) => {
+    const result = refreshRegistration(flt, dep, arr);
+    expect(result.state.reg).toBe('VN-A683');
+    expect(result.flight.reg).toBe('VN-A683');
+    expect(result.state.extra).toBe('45');
+    expect(result.state.pay).toBe('20000');
+  });
+});
 
 function apply(rows: unknown[], oldChange: Record<string, unknown> = {}, edits = {}) {
   const flight = { id: 717, flt: '717', date: '05/11/26', dep: 'DAD', arr: 'PQC', reg: 'VN-A580', etd: '10:50', utc: '03:50', cpt: '15399 NEW CAPT', fo: '7390 NEW FO' };
