@@ -1,6 +1,6 @@
 // Port of FplFormulaTests from tests/test_fpl_tool.py (pure-logic parts only;
 // page/DOM tests and tests needing fs reload are skipped).
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import * as ft from "../fpl_tool";
@@ -15,7 +15,10 @@ const taxiDoc = JSON.parse(readFileSync(join(DATA_DIR, "fpl/taxi_fuel.json"), "u
 const routeDoc = JSON.parse(readFileSync(join(DATA_DIR, "fpl/route_suffix.json"), "utf-8"));
 const pcrLimitsDoc = JSON.parse(readFileSync(join(DATA_DIR, "pcr_limits.json"), "utf-8"));
 
+// This fixture is explicitly the October taxi sheet, regardless of today's month.
+const fixtureMonth = vi.spyOn(Date.prototype, "getUTCMonth").mockReturnValue(9);
 const db = new ft.Db(raw, { altRoutesDoc: altDoc, eraDoc, ciDoc: costDoc, taxiDoc });
+fixtureMonth.mockRestore();
 
 function flight(flt: string) {
   const row = db.flights.find((r) => ft._num(r.flt) === flt);

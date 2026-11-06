@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.39: CI tự nhận diện vùng từ quốc gia sân bay cho KHB/FPL/REQ; giữ số CI cấu hình và ngoại lệ sân; Perth A321NEO CI18 và các vùng đạt, 43 kiểm thử đạt, build OK; chưa publish.
+- [ ] V 5.39: thử xuất REQ VJ92 từ bảng thật của JACK — chưa cấp được phiên khớp tài khoản người yêu cầu, cần đăng nhập preview.
+
 - [x] V 5.27: nhãn NOTAM thiếu/mới mở danh sách đọc/copy; so lại và đánh dấu đã xem riêng, giữ NOTAM đến sau. 8 kiểm thử đạt; thử mẫu desktop/mobile, copy và đóng/Esc đạt; build OK. Chưa publish.
 - [ ] V 5.27: thử Briefing pack và NOTAM mới trên chuyến thật của JACK — không cấp được phiên khớp người yêu cầu; cần JACK đăng nhập preview.
 - [x] V 5.26: REG FPL/REG AIMS dùng khung sáng hai nguồn Excel xanh lá/FliteBrief xanh dương như CREW, số tàu lớn và nhãn khớp/lệch; giữ tên nguồn, OFP dự phòng được ghi riêng. 18 kiểm thử đạt, thử mẫu trình duyệt đạt. Chưa publish, chưa thử phiên JACK.

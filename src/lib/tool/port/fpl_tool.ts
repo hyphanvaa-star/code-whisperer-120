@@ -4,6 +4,7 @@ import * as taf from "./taf";
 import type { TafRec } from "./taf";
 import { limitKhbPilotName } from "../../khb-pilot-name";
 import WORLD_TZ from "../data/world_tz.json";
+import { selectCostIndexRow } from "./cost_index_region";
 
 export type Raw = Record<string, any>;
 
@@ -640,22 +641,9 @@ function _ciColumn(ac: string, reg: string, neo: Set<string>): string {
 export function _ci(db: Db, dep: string, arr: string, ac: string, reg: string): string {
   const col = _ciColumn(ac, reg, db.neo);
   if (!col) return "";
-  const rows = db.ci_rows || [];
-  const byId: Record<string, Raw> = {};
-  for (const r of rows) byId[String(r.id)] = r;
-  let domestic = new Set<string>((byId.domestic?.airports || []).map((x: any) => String(x).toUpperCase()));
-  if (!domestic.size) domestic = db.domestic;
-  let chosen: Raw | null = null;
-  if (domestic.has(dep) && domestic.has(arr)) chosen = byId.domestic;
-  else if (domestic.has(dep)) chosen = byId.vietnam;
-  else {
-    for (const rec of rows) {
-      if (["domestic", "vietnam"].includes(String(rec.id))) continue;
-      if ((rec.airports || []).map((x: any) => String(x).toUpperCase()).includes(dep)) { chosen = rec; break; }
-    }
-  }
+  const chosen = selectCostIndexRow((db.ci_rows || []) as (Raw & { id: string })[], dep, arr, [...db.domestic]);
   if (!chosen) return "";
-  return String(chosen[col] || "").trim();
+  return String(chosen[col] ?? "").trim();
 }
 
 function _hold(db: Db, route: string, arr: string, sta: string, ac: string, alt1: string, alt2: string): string {

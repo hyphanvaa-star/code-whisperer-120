@@ -1,4 +1,5 @@
 ## Tool rules
+- KHB and FPL/REQ share `port/cost_index_region.ts` for CI country fallback and explicit airport exceptions, preserving configured CI values. Countries come from the Airport Database ICAO map; unique IATA→ICAO codes are bundled from datasets/airport-codes (OurAirports), never guessed from timezone or prefix, to keep exports consistent.
 - NOTAM missing/new quick-view uses `port/notam_change_popup.ts` through the HTML shim; retain PDF bodies and T-60 details alongside comparison state, and acknowledge only opened IDs to preserve later arrivals.
 - Compare CREW/REG hover presentation lives in `port/cmp_crew_hover.ts`, separates Excel/FliteBrief without changing matching inputs, labels OFP fallback separately, and imports only its semantic token declarations from global CSS for the isolated tool document.
 - KHB change markers reconcile the current/previous Crewlist through existing version reads in `khb_crew_sync`; never reinsert FPL history, preserve manual values on unchanged fields, and persist empty change maps to prevent old markers returning.

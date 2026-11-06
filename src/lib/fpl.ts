@@ -1,4 +1,5 @@
 // Port of fpl_tool.py render_fpl / build_req (client-safe; lookup tables come from the server).
+import { selectCostIndexRow } from "./tool/port/cost_index_region";
 export type FplDb = {
   tlk: string; dsp: string; legendCpt2: string; legendFo: string;
   etp: Record<string, [string, string]>;
@@ -59,9 +60,7 @@ function tx(db: FplDb, ac: string, reg: string, dep: string) {
 function ci(db: FplDb, dep: string, arr: string, ac: string, reg: string) {
   const col = ac === "330" ? "a330" : ac === "321" ? (db.neo.includes(reg) ? "a321neo" : "a321ceo") : ac === "320" ? "a320" : "";
   if (!col) return "";
-  const by = Object.fromEntries(db.ci.map((r) => [r.id, r]));
-  const dom = new Set((by["domestic"]?.airports ?? db.domestic).map((x) => x.toUpperCase()));
-  let ch = dom.has(dep) && dom.has(arr) ? by["domestic"] : dom.has(dep) ? by["vietnam"] : db.ci.find((r) => r.id !== "domestic" && r.id !== "vietnam" && r.airports.map((x) => x.toUpperCase()).includes(dep));
+  const ch = selectCostIndexRow(db.ci, dep, arr, db.domestic);
   return ch ? String(ch[col as "a320"] ?? "").trim() : "";
 }
 function hold(db: FplDb, route: string, arr: string, sta: string, ac: string, a1: string, a2: string) {
