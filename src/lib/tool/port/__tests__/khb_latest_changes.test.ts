@@ -60,6 +60,14 @@ describe('KHB latest Crewlist comparison', () => {
     const result = apply([], {}, {reg: 'VN-A554', cptText: '9999 MANUAL CAPT', extra: '45', pay: '16000'});
     expect(result.state).toMatchObject({reg: 'VN-A554', cptText: '9999 MANUAL CAPT', extra: '45', pay: '16000'});
   });
+  it('repairs the old saved aircraft when the row already holds the new source', () => {
+    const result = apply([{flt: '717', route: 'DAD-PQC', day_new: '05/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}], {}, {reg: 'VN-A648'});
+    expect(result.state.reg).toBe('VN-A580');
+  });
+  it('does not replace an unrelated manual aircraft with latest change evidence', () => {
+    const result = apply([{flt: '717', route: 'DAD-PQC', day_new: '05/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}], {}, {reg: 'VN-A554'});
+    expect(result.state.reg).toBe('VN-A554');
+  });
   it('never uses a same-number change from a different date or route', () => {
     const result = apply([{flt: '717', route: 'DAD-PQC', day_new: '04/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}, {flt: '717', route: 'HAN-PQC', day_new: '05/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}]);
     expect(result.count).toBe(0);

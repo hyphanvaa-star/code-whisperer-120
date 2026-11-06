@@ -35,8 +35,8 @@ async function ftReadCrewChanges(source){
   ftCrewChanges = {source, pair: JSON.stringify([older || null, current]), rows};
   return true;
 }
-function ftApplyCrewDiff(src){
-  if(!src || !ftCrewChanges || ftCrewChanges.source !== src) return 0;
+function ftApplyCrewDiff(src, identityOnly){
+  if(!src || (!identityOnly && (!ftCrewChanges || ftCrewChanges.source !== src))) return 0;
   const norm = v => String(v == null ? "" : v).trim().toUpperCase();
   const digits = v => String(v || "").replace(/\\D/g, "").replace(/^0+/, "");
   let total = 0;
@@ -46,10 +46,16 @@ function ftApplyCrewDiff(src){
     const same = ftCatalog.filter(c => digits(c.flt) === digits(f.flt) && norm(c.date) === norm(f.date));
     const exact = same.filter(c => norm(c.dep) === norm(f.dep) && norm(c.arr) === norm(f.arr));
     const nf = exact.find(c => norm(c.etd) === norm(f.etd)) || (exact.length === 1 ? exact[0] : null);
+    const route = norm((nf || f).dep) + "-" + norm((nf || f).arr);
+    const day = String((nf || f).date || "").slice(0, 5);
+    const matches = !identityOnly && ftCrewChanges ? ftCrewChanges.rows.filter(r => digits(r.flt) === digits(f.flt) && norm(r.route) === route && r.day_new === day) : [];
+    const hit = matches.length === 1 ? matches[0] : null;
     if(nf){
       const before = {}; for(const [key] of FT_CHG_KEYS) before[key] = st[key];
       const sourceChanged = {};
       for(const [key, field] of FT_CHG_KEYS) sourceChanged[key] = norm(f[field]) !== norm(nf[field]);
+      // Repair a saved pre-refresh value only with exact Crewlist-change evidence.
+      if(hit && hit.reg && hit.reg.changed && norm(st.reg) === norm(hit.reg.old) && norm(nf.reg) === norm(hit.reg.new)) sourceChanged.reg = true;
       if(String(nf.id) !== String(f.id)){ ftEdit[String(nf.id)] = st; delete ftEdit[String(f.id)]; }
       if(sourceChanged.cptText) st.cptId = "";
       if(sourceChanged.foText) st.foId = "";
@@ -57,10 +63,8 @@ function ftApplyCrewDiff(src){
       for(const [key] of FT_CHG_KEYS) if(!sourceChanged[key]) st[key] = before[key];
       ftRows[i] = nf;
     }
-    const route = norm((nf || f).dep) + "-" + norm((nf || f).arr);
-    const day = String((nf || f).date || "").slice(0, 5);
-    const matches = ftCrewChanges.rows.filter(r => digits(r.flt) === digits(f.flt) && norm(r.route) === route && r.day_new === day);
-    const hit = matches.length === 1 ? matches[0] : null, chg = {};
+    if(identityOnly) continue;
+    const chg = {};
     const add = (key, from, to) => {
       if(norm(from) === norm(to)) return;
       const old = previous[key];
@@ -85,7 +89,15 @@ function ftApplyCrewDiff(src){
   return total;
 }
 `)
-    .replace('    const nChg = ftApplyCrewDiff(d.source || "");', '    if(!await ftReadCrewChanges(d.source || "")) return;\n    const nChg = ftApplyCrewDiff(d.source || "");')
+    .replace('    const nChg = ftApplyCrewDiff(d.source || "");', `    ftApplyCrewDiff(d.source || "", true);
+    ftRender();
+    try{ ftKeepLater(); }catch(e){}
+    let historyError = "";
+    try{
+      if(!await ftReadCrewChanges(d.source || "")) return;
+    }catch(e){ historyError = e.message || "Chưa đọc được lịch sử Crewlist."; }
+    const nChg = historyError ? 0 : ftApplyCrewDiff(d.source || "");`)
+    .replace('    $("#ftStat").textContent = nChg ?', '    $("#ftStat").textContent = historyError ? ("Đã cập nhật Crewlist; chưa đối chiếu được bản trước: " + historyError) : nChg ?')
     .replace('    if(nChg) try{ ftKeepLater(); }catch(e){}', '    try{ ftKeepLater(); }catch(e){}')
     .replace(/function ftApplyVerDiff\(\)\{[\s\S]*?(?=\/\/ Sau khi đối chiếu FliteBrief:)/, 'function ftApplyVerDiff(){ /* KHB markers come only from the current Crewlist pair. */ }\n')
     .replace('V 2.98</span>', 'V 2.99</span>')

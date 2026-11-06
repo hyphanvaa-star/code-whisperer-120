@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.46: cập nhật và vẽ KHB trước đọc lịch sử Crewlist, lỗi lịch sử không chặn tàu mới; sửa giá trị tàu cũ đã lưu theo chứng cứ diff chính xác, giữ sửa tay khác; tái hiện lỗi trước/sau sửa, 27 kiểm thử đạt, thử bấm KHB trên mẫu trình duyệt đạt; chưa publish.
+- [ ] V 5.46: xác nhận đổi tab KHB trong phiên JACK — chưa có phiên khớp người yêu cầu; cần JACK đăng nhập preview.
+
 - [x] V 5.45: sửa KHB VJ362/363 giữ VN-A580 khi Crewlist mới là VN-A683; hy3.xlsx xác nhận cả hai là VN-A683, hai kiểm thử tái hiện lỗi trước sửa và đạt sau sửa, 24 kiểm thử đạt; trình duyệt thử chuỗi nạp lại đạt, chưa publish.
 - [ ] V 5.45: xác nhận KHB thật của JACK — không cấp được phiên khớp người yêu cầu; cần JACK đăng nhập preview.
 
