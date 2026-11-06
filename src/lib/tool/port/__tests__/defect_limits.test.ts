@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { mergeDefectLimits } from '../defect_limits';
 import defaults from '../../data/limits.json';
 describe('summary preserves maintained limits', () => {
-  const egt = { reg: 'VN-A522', defect: 'LOW EGT', limit: '' };
-  const manual = { reg: 'VN-A631', defect: 'MANUAL DEFECT', limit: 'NO CAT 3' };
+  const egt = { reg: 'VN-A522', defect: 'LOW EGT', limit: '', source: 'manual' };
+  const manual = { reg: 'VN-A631', defect: 'MANUAL DEFECT', limit: 'NO CAT 3', source: 'manual' };
   const old = { reg: 'VN-A810', defect: 'OLD REPORT DEFECT', limit: '' };
-  const fresh = { reg: 'VN-A810', defect: 'NEW REPORT DEFECT', limit: '' };
+  const fresh = { reg: 'VN-A810', defect: 'NEW REPORT DEFECT', limit: '', source: 'summary' };
   it('keeps LOW EGT even from previous report', () => {
     expect(mergeDefectLimits([egt, old], [egt, old], [fresh])).toEqual([egt, fresh]);
   });
@@ -13,7 +13,7 @@ describe('summary preserves maintained limits', () => {
     expect(mergeDefectLimits([manual, old], [old], [fresh])).toEqual([manual, fresh]);
   });
   it('keeps user edits to report rows', () => {
-    const edited = { ...old, limit: 'USER LIMIT' };
+    const edited = { ...old, limit: 'USER LIMIT', source: 'manual' };
     expect(mergeDefectLimits([edited], [old], [fresh])).toEqual([edited, fresh]);
   });
   it('does not reinsert deleted A649 LOW EGT', () => {

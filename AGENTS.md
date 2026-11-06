@@ -36,7 +36,7 @@
 - Jobs encode kind+params in id; run via `/api/stream` (`jobs.ts`); no shared memory.
 - State: `app_settings`; files: private `tool-files` via `store.server.ts`.
 - PIB/WX attachment validation is centralized in `port/pibwx_time.ts` and receives only first-page text plus document kind, so body timestamps cannot authorize a stale file.
-- Mail/upload PDFs share `defect-limits.server.ts`: replace exact old-report rows, preserve manual/edited/LOW EGT rows, return merged limits to the editor.
+- Defect PDFs share `defect-limits.server.ts`: persist summary/manual ownership, replace summary rows, preserve manual/LOW EGT; edits become manual via tool-page shim.
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py`: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with `PC_AGENT_TOKEN` — a Worker cannot reach LAN devices.
 - Server-side Excel reading uses SheetJS (`xlsx` CDN tarball) — ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, via `src/lib/exceljs-load.ts`.
 - Airport flags use bundled ICAO-country data, no requests.

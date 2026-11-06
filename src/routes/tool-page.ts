@@ -29,6 +29,7 @@ import { patchCmpValidationPage } from '@/lib/tool/port/cmp_validation';
 import { patchKhbAirportHoverPage } from '@/lib/tool/port/khb_airport_hover';
 import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
 import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
+import { patchDefectSourcePage } from '@/lib/tool/port/defect_source_page';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -2823,7 +2824,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.40')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.41')
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt(); };')
@@ -2901,7 +2902,7 @@ function nmHlKeys(root){
     .replace('  if(!t || !t.closest) return;\n  if(_tipHost', '  if(!t || !t.closest) return;\n  if(t.closest("#wrapGeneral td.taf-cell")) return;\n  if(_tipHost')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
-  cached = patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached)));
+  cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached))));
   return cached;
 }
 

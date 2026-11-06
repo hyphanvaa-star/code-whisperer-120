@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.41: summary chữ tím / tự nhập hoặc chỉnh sửa chữ đen; lưu nguồn rõ ràng, bỏ đúng 3 dòng cũ A644 APU/VN-532 APU/A816 CPC, dữ liệu còn 14 LOW EGT và 66 summary. Thử màu/sửa tay trên mẫu đạt; chưa publish.
+- [ ] V 5.41: thử tải summary qua Outlook thật của JACK — không cấp được phiên người yêu cầu; cần JACK đăng nhập preview và Trợ lý PC.
+
 - [x] V 5.39: CI tự nhận diện vùng từ quốc gia sân bay cho KHB/FPL/REQ; giữ số CI cấu hình và ngoại lệ sân; Perth A321NEO CI18 và các vùng đạt, 43 kiểm thử đạt, build OK; chưa publish.
 - [ ] V 5.39: thử xuất REQ VJ92 từ bảng thật của JACK — chưa cấp được phiên khớp tài khoản người yêu cầu, cần đăng nhập preview.
 

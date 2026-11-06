@@ -67,6 +67,8 @@
 }
 
 :root {
+  --defect-summary-ink: oklch(0.48 0.22 305);
+  --defect-manual-ink: oklch(0 0 0);
   --crew-hover-paper: oklch(0.995 0.003 250);
   --crew-hover-ink: oklch(0.28 0.02 250);
   --crew-hover-muted: oklch(0.52 0.02 250);

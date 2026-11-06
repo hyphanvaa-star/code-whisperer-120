@@ -1,6 +1,7 @@
 import type { Jobs, Routes } from "../types";
 import { getJson, setJson } from "../store.server";
 import { DefectPdfError, processUpload } from "../port/defect_pdf";
+import { classifyDefectLimits } from '../port/defect_limits';
 
 // Port of web.py limits.json endpoints ("/api/limits", "/api/limits/status").
 // Storage: app_settings key "limits" — value is the {aircraft,airports,curfew,special}
@@ -60,11 +61,15 @@ async function loadLimits(ctx: Parameters<Routes[string]>[0]): Promise<LimitsDat
       if (Array.isArray(seed[key])) data[key] = seed[key] as Record<string, unknown>[];
     }
   }
+  const report = await getJson<{ aircraft?: Record<string, unknown>[] }>(ctx, 'defect.summary', {});
+  data.aircraft = classifyDefectLimits(data.aircraft, report.aircraft ?? []);
   return data;
 }
 
 async function saveLimits(ctx: Parameters<Routes[string]>[0], payload: Record<string, unknown>): Promise<LimitsData> {
   const data = cleanLimits(payload);
+  const report = await getJson<{ aircraft?: Record<string, unknown>[] }>(ctx, 'defect.summary', {});
+  data.aircraft = classifyDefectLimits(data.aircraft, report.aircraft ?? []);
   await setJson(ctx, "limits", data);
   return data;
 }
