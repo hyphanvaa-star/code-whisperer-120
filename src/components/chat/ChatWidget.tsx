@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getChatAvatars } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageCircle, X, Trash2, ArrowLeft, Send, Users, Smile, Sticker } from "lucide-react";
+import { MessageCircle, X, Trash2, ArrowLeft, Send, Users, Smile, Sticker, Paperclip, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatPicker, STICKERS } from "./ChatPicker";
+import { ChatFileBubble } from "./ChatFileBubble";
 import {
   REACTIONS,
   groupReactions,
@@ -13,6 +14,9 @@ import {
   isEmojiOnly,
   readSticker,
   stickerBody,
+  fileBody,
+  readFile,
+  CHAT_FILE_MAX,
   type Reaction,
   type StickerId,
 } from "./chat-content";
@@ -363,6 +367,41 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     }
   };
 
+  const fileRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLInputElement>(null);
+  const sendFiles = async (files: File[]) => {
+    if (!active || !files.length) return;
+    const roomId = active.id;
+    setSending(true);
+    setChatError("");
+    try {
+      for (const f of files) {
+        if (f.size > CHAT_FILE_MAX) {
+          setChatError(`${f.name} quá 20 MB, chưa gửi được.`);
+          continue;
+        }
+        const name = f.name || `anh-${Date.now()}.png`;
+        const safe = name.replace(/[^\w.\-]+/g, "_").slice(-80);
+        const path = `${roomId}/${me}/${crypto.randomUUID()}-${safe}`;
+        const up = await supabase.storage
+          .from("chat-files")
+          .upload(path, f, { contentType: f.type || "application/octet-stream" });
+        if (up.error) throw up.error;
+        const { error } = await supabase.from("chat_messages").insert({
+          room_id: roomId,
+          user_id: me,
+          body: fileBody({ path, name, size: f.size, type: f.type || "" }),
+        });
+        if (error) throw error;
+      }
+      if (activeRoomRef.current === roomId) await loadMessages(roomId);
+    } catch {
+      setChatError("Chưa gửi được tệp. Vui lòng thử lại.");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const toggleReaction = async (messageId: string, emoji: string) => {
     if (!active || reactionBusy) return;
     const roomId = active.id;
@@ -559,6 +598,11 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
               </div>
               <div
                 ref={listRef}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  void sendFiles(Array.from(e.dataTransfer.files));
+                }}
                 className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-[var(--chat-bg)] p-4"
               >
                 {messages.length === 0 && (
@@ -569,8 +613,9 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                 {messages.map((m) => {
                   const mine = m.user_id === me;
                   const sender = profileOf(m.user_id);
+                  const attached = readFile(m.body);
                   const sticker = readSticker(m.body);
-                  const emojiOnly = !sticker && isEmojiOnly(m.body);
+                  const emojiOnly = !sticker && !attached && isEmojiOnly(m.body);
                   const messageReactions = groupReactions(reactions, m.id, me);
                   return (
                     <div
@@ -592,9 +637,11 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                           </div>
                         )}
                         <div
-                          className={`relative ${sticker || emojiOnly ? "px-1 py-1 text-[var(--chat-ink)]" : `rounded-2xl px-4 py-2.5 text-base leading-relaxed ${mine ? "bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]" : "bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"}`}`}
+                          className={`relative ${sticker || emojiOnly || attached ? "px-1 py-1 text-[var(--chat-ink)]" : `rounded-2xl px-4 py-2.5 text-base leading-relaxed ${mine ? "bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]" : "bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"}`}`}
                         >
-                          {sticker ? (
+                          {attached ? (
+                            <ChatFileBubble file={attached} mine={mine} />
+                          ) : sticker ? (
                             <img
                               src={STICKERS[sticker].src}
                               alt={STICKERS[sticker].name}
@@ -620,7 +667,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                           )}
                           <div
                             className={`mt-1 flex items-center gap-1.5 text-[11px] ${
-                              mine && !sticker && !emojiOnly
+                              mine && !sticker && !emojiOnly && !attached
                                 ? "justify-end text-[var(--chat-bubble-me-ink)]/75"
                                 : "text-[var(--chat-sub)]"
                             }`}
@@ -732,6 +779,56 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   <Sticker />
                 </Button>
                 <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={(e) => {
+                    void sendFiles(Array.from(e.target.files ?? []));
+                    e.target.value = "";
+                  }}
+                />
+                <input
+                  ref={fileRef}
+                  type="file"
+                  multiple
+                  hidden
+                  onChange={(e) => {
+                    void sendFiles(Array.from(e.target.files ?? []));
+                    e.target.value = "";
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Gửi ảnh"
+                  aria-label="Gửi ảnh"
+                  disabled={sending}
+                  onClick={() => imageRef.current?.click()}
+                  className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"
+                >
+                  <ImageIcon />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Đính kèm tệp"
+                  aria-label="Đính kèm tệp"
+                  disabled={sending}
+                  onClick={() => fileRef.current?.click()}
+                  className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"
+                >
+                  <Paperclip />
+                </Button>
+                <input
+                  onPaste={(e) => {
+                    const files = Array.from(e.clipboardData.files);
+                    if (files.length) {
+                      e.preventDefault();
+                      void sendFiles(files);
+                    }
+                  }}
                   ref={inputRef}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}

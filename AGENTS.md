@@ -50,7 +50,7 @@
 - Omni tokens are cached in service-role-only `omni_session` (via `src/lib/tool/omni_session.server.ts`) and can come from the dispatcher's browser login — Omni rejects token creation from the runtime's IPv6 X-Forwarded-For.
 - Normal/EDTO PDFs use shim overlays and template coordinates to preserve cells; EDTO loads its asset pointer. KHB keys flight/date/route/ETD and resets on Crewlist changes; rows can be reused.
 - NOTAM pins use `notam.pins:<userId>` to isolate libraries.
-- Chat uses `chat_rooms`/`chat_messages`, dispatcher RLS, admin-only delete and 4s polling. Root's single auth subscriber passes identity to user-keyed ChatWidget: show on login, clear on logout/account change.
+- Chat uses `chat_rooms`/`chat_messages` (attachments: private `chat-files` bucket at `<room>/<uid>/…`, body `[sohee-file:json]`, signed URLs), dispatcher RLS, admin-only delete and 4s polling. Root's single auth subscriber passes identity to user-keyed ChatWidget: show on login, clear on logout/account change.
 - Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs. Mount account menu on body to avoid header clipping.
 - Ver tab crew changes come from diffing the two newest non-VER crewlists (`port/crewlist_diff.ts`) — FPL VER files have no crew column.
 - KHB lightning actions resolve fresh FliteBrief sector identity through version/fbreg, never spreadsheet row IDs; crew acknowledgement checks active staff IDs and roles with the old pilot absent, and unreadable crew blocks writes to preserve the existing roster.

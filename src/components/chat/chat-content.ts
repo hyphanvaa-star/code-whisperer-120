@@ -35,3 +35,22 @@ export function isEmojiOnly(body: string) {
   const parts = messageParts(body);
   return parts.some((part) => part.emoji) && parts.every((part) => part.emoji || !part.text.trim());
 }
+
+export type ChatFile = { path: string; name: string; size: number; type: string };
+const FILE_PREFIX = "[sohee-file:";
+export function fileBody(f: ChatFile) {
+  return FILE_PREFIX + JSON.stringify(f) + "]";
+}
+export function readFile(body: string): ChatFile | null {
+  if (!body.startsWith(FILE_PREFIX) || !body.endsWith("]")) return null;
+  try {
+    const f = JSON.parse(body.slice(FILE_PREFIX.length, -1));
+    return typeof f?.path === "string" && typeof f?.name === "string" ? f : null;
+  } catch {
+    return null;
+  }
+}
+export function fileSize(n: number) {
+  return n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(1)} MB`;
+}
+export const CHAT_FILE_MAX = 20 * 1024 * 1024;
