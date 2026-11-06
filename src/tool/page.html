@@ -12545,20 +12545,20 @@ function nmWhenZ(ms){
     + String(d.getUTCMinutes()).padStart(2, "0") + "Z";
 }
 function nmPlaceWinMs(role, f){
-  const pad = 3600 * 1000;
+  const c = (typeof nmAssessCfg === "function") ? nmAssessCfg() : {};
+  const M = 60 * 1000, num = (k, d) => { const v = Number(c[k]); return Number.isFinite(v) ? v : d; };
+  const delay = num("max_delay_minutes", 180) * M;
   const std = nmMs(f && f.std), sta = nmMs(f && f.sta);
-  const r = String(role || "");
-  if(r === "DEP" || r === "TALT"){
+  const r = String(role || "").toUpperCase();
+  const around = (t, b, a) => Number.isFinite(t) ? [t - num(b, 60) * M, t + num(a, 60) * M + delay] : null;
+  if(r === "DEP") return around(std, "dep_before", "dep_after");
+  if(r === "TALT") return around(std, "talt_before", "talt_after");
+  if(r === "RALT" || r === "ENRT" || r === "ENRT ALT"){
     if(!Number.isFinite(std)) return null;
-    return [std - pad, std + pad];
+    return [std, (Number.isFinite(sta) ? sta : std) + num("enrt_alt_after", 60) * M + delay];
   }
-  if(r === "RALT"){
-    if(!Number.isFinite(std)) return null;
-    return [std - pad, (Number.isFinite(sta) ? sta : std) + pad];
-  }
-  if(Number.isFinite(sta)) return [sta - pad, sta + 2 * pad];
-  if(Number.isFinite(std)) return [std - pad, std + pad];
-  return null;
+  if(r === "ALT" || r === "DALT" || r === "DEST ALT") return around(sta, "dest_alt_before", "dest_alt_after") || around(std, "dest_alt_before", "dest_alt_after");
+  return around(sta, "arr_before", "arr_after") || around(std, "dep_before", "dep_after");
 }
 function nmBcOk(n, lo, hi){
   if(lo == null || hi == null) return true;
@@ -12606,19 +12606,10 @@ function nmRwyRoleOf(role, icao, f){
 }
 function nmRwyInFlightWin(n, role, f, icao){
   const r = nmRwyRoleOf(role, icao || (n && n.icao), f);
-  if(r !== "DEP" && r !== "ARR") return true;
-  const padLo = 3600 * 1000, padHi = 2 * 3600 * 1000;
-  const std = nmMs(f && f.std), sta = nmMs(f && f.sta);
-  let lo, hi;
-  if(r === "DEP"){
-    if(!Number.isFinite(std)) return true;
-    lo = std - padLo; hi = std + padHi;
-  }else{
-    if(!Number.isFinite(sta)) return true;
-    lo = sta - padLo; hi = sta + padHi;
-  }
-  if(!nmBcOk(n, lo, hi)) return false;
-  return nmDOk(n, lo, hi);
+  const win = nmPlaceWinMs(r, f);
+  if(!win) return true;
+  if(!nmBcOk(n, win[0], win[1])) return false;
+  return nmDOk(n, win[0], win[1]);
 }
 function nmHitOnRoute(h){
   if(!h || h.impact === "ref" || h.impact === "dot" || h.shape === "dot") return false;
@@ -12875,9 +12866,12 @@ function nmBuildVerdict(){
           area: named.join("/")});
       }
       let tags = nmClassifyEffect(n, p);
-      if(tags.indexOf("ad_closed") >= 0 && !nmAptInFlightWin(n, role, f))
+      const lvl = tracked ? String(n.level || "") : "";
+      if(lvl === "NO IMPACT") continue;
+      if(lvl){ /* đã đánh giá theo giờ DEP/ARR/ALT/FIR + buffer cấu hình */ }
+      else if(tags.indexOf("ad_closed") >= 0 && !nmAptInFlightWin(n, role, f))
         tags = tags.filter(t => t !== "ad_closed");
-      if(tags.indexOf("rwy_closed") >= 0
+      if(!lvl && tags.indexOf("rwy_closed") >= 0
         && !nmRwyInFlightWin(n, role, f, p.code)){
         tags = tags.filter(t => t !== "rwy_closed");
       }
@@ -12930,8 +12924,14 @@ function nmBuildVerdict(){
   const rwyBy = {};
   for(const r of rwy){
     const icao = String(r.icao || "").toUpperCase();
-    if(!icao || rwyBy[icao]) continue;
-    rwyBy[icao] = {shut: (r.rwy_closed_ids || []).join(", ") || "?", ident: r.ident || ""};
+    if(!icao) continue;
+    const shut = (r.rwy_closed_ids || []).join(", ") || "?";
+    const one = shut + " " + (r.ident || "");
+    if(!rwyBy[icao]){ rwyBy[icao] = {shut: shut, ident: r.ident || "", seen: [one]}; continue; }
+    if(rwyBy[icao].seen.indexOf(one) >= 0) continue;
+    rwyBy[icao].seen.push(one);
+    rwyBy[icao].shut += " · " + shut + " " + (r.ident || "");
+    rwyBy[icao].ident += " " + (r.ident || "");
   }
   const apts = nmFlightAirports(pack, cs, f);
   const rwyRows = [];
