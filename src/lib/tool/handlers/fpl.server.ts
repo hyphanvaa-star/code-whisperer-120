@@ -530,7 +530,10 @@ export const routes: Routes = {
     let sector;
     try { sector = selectOperationalFlight(await loadFlights(3, true), { sector_id: sectorId, flt: body.flt, date: body.date, dep, arr }); }
     catch (e) { return { error: (e as Error).message }; }
-    const cands = db.flights.filter((f) => dg(f.flt) === want && up(f.dep) === dep && up(f.arr) === arr
+    const { mnlIcao } = await import("../port/formmnl_plan");
+    const apt = (v: unknown) => mnlIcao(up(v)) || up(v);
+    const depK = apt(dep), arrK = apt(arr);
+    const cands = db.flights.filter((f) => dg(f.flt) === want && apt(f.dep) === depK && apt(f.arr) === arrK
       && (() => { const p = parseOpsDate(f.date); return !!p && p.d === day.d && p.m === day.m && (day.y === undefined || p.y === day.y); })());
     if (cands.length !== 1) return { error: cands.length ? "Crewlist có nhiều chuyến trùng — không chắc đúng chuyến." : "Crewlist mới không có chuyến VJ" + want + " " + dep + "-" + arr + " đúng ngày." };
     const flight = cands[0];

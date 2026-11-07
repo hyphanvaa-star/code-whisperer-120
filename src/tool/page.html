@@ -22147,12 +22147,43 @@ function vReqCell(r){
       a.download = d.filename || "FPL.req"; a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1500);
       write("✓ REQ " + r.flt + " · tàu " + d.reg + " · PAY " + d.pld + " · EXTRA " + d.extra + " · DSP " + (d.dsp||"") + " (từ OFP cũ)", "ok");
+      vReqPopup(r, d);
       b.classList.add("done");
     }catch(e){ alert("REQ lỗi: " + e.message); }
     finally{ b.disabled = false; b.textContent = "REQ"; }
   };
   td.appendChild(b);
   return td;
+}
+
+function vReqPopup(r, d){
+  const old = document.getElementById("reqPop"); if(old) old.remove();
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const chip = (k, v, c) => '<div style="background:'+c+'14;border:1px solid '+c+'55;border-radius:10px;padding:6px 12px;min-width:90px">'
+    + '<div style="font:700 10px/1.2 sans-serif;color:'+c+';letter-spacing:.06em">'+k+'</div>'
+    + '<div style="font:800 16px/1.4 monospace;color:#0f172a">'+esc(v || "—")+'</div></div>';
+  const ov = document.createElement("div");
+  ov.id = "reqPop";
+  ov.style.cssText = "position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px";
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.35);width:min(820px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden">'
+    + '<div style="background:linear-gradient(90deg,#E31937,#b0102a);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px">'
+    + '<div style="font:800 18px/1.2 sans-serif">📄 FPL.req · '+esc(r.fb_callsign || ("VJC"+r.flt))+' '+esc(r.route||"")+'</div>'
+    + '<div style="margin-left:auto;font:600 12px sans-serif;background:rgba(255,255,255,.2);padding:3px 10px;border-radius:20px">✓ đã tải '+esc(d.filename||"")+'</div>'
+    + '<button data-x style="background:none;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1">×</button></div>'
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid #e2e8f0">'
+    + chip("TÀU MỚI", d.reg, "#E31937") + chip("PAYLOAD", d.pld, "#2563eb") + chip("EXTRA", d.extra, "#16a34a")
+    + chip("DSP (OFP cũ)", d.dsp, "#7c3aed") + (d.plan_no ? chip("PLAN", d.plan_no, "#ea580c") : "") + '</div>'
+    + '<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">'+esc(d.text)+'</pre>'
+    + '<div style="display:flex;gap:10px;justify-content:flex-end;padding:12px 20px;background:#f8fafc">'
+    + '<button data-c style="background:#E31937;color:#fff;border:0;border-radius:8px;padding:9px 18px;font:700 13px sans-serif;cursor:pointer">📋 Sao chép</button>'
+    + '<button data-x style="background:#e2e8f0;color:#0f172a;border:0;border-radius:8px;padding:9px 18px;font:700 13px sans-serif;cursor:pointer">Đóng</button></div></div>';
+  const close = () => { ov.remove(); document.removeEventListener("keydown", onKey); };
+  const onKey = e => { if(e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  ov.addEventListener("click", e => { if(e.target === ov || e.target.closest("[data-x]")) close(); });
+  const cb = ov.querySelector("[data-c]");
+  cb.onclick = async () => { try{ await navigator.clipboard.writeText(d.text || ""); cb.textContent = "✓ Đã chép"; }catch{ cb.textContent = "Không chép được"; } };
+  document.body.appendChild(ov);
 }
 
 function vBriefCell(r){
