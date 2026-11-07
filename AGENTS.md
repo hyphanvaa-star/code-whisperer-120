@@ -14,7 +14,7 @@
 - Compare handover scope is browser-local via the `cmp_validation` shim: broaden only the Compare read (crew reads drop the DSP filter only for out-of-scope IDs), dedupe by sector/DSP, resolve actions via the live catalogue; never change the primary filter or other tabs.
 - Compare actions stay in `cmp_validation`/`cmp_sync`: REG FPL prefers Excel revisions; BF requires aircraft-change evidence and unique in-window sectors. CFP REQ reuses `vReqCell`/chgreq, activates only for exact Crewlist changes, and acknowledges successful downloads by user/sector/change so failures and later changes remain visible.
 - Compare source borders use browser-safe `cmp_sync`: FPL pairs use `cmpFplPair` for same-date numeric VER order, Crewlist order stays intact; keep fresh sector checks, swap confirmations and row picking; attachment completion never proves an aircraft/OFP update.
-- Compare cell fills repaint only their sector and sync-check batches repaint only touched rows; index rows per result array to avoid full-table work inside per-row callbacks.
+- Compare cell fills repaint only their sector and sync-check batches repaint only touched rows; index rows per result array to avoid full-table work per row.
 - Editable Compare notes are browser-local and keyed by user plus sector identity; background redraws retain edits without sharing notes across users or flight dates.
 - Compare ATC status reuses the authenticated ATC check job with explicit sector/date/route, validates returned DOF, and caches only by full sector identity to prevent stale-day status reuse.
 - Compare callsign phase badges reuse the existing OpsCore OOOI renderer and flight refresh; repaint badges in place to preserve editable notes.
