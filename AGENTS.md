@@ -43,7 +43,6 @@
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
 - Account dialog metadata is remembered through the HTML shim in a user-ID-scoped browser cache containing only usernames, mailboxes and saved-password flags; never cache passwords, and reject stale or cross-user reads to avoid leaking another user's account or overwriting edits.
 - Publish bumps #appVersion.
-- The shared custom select popup (`#ddPop`) mounts inside the open modal dialog when its select lives there, so top-layer dialogs never hide it.
 - KHB caches completed Validation verdicts by sector identity (flight/date/route/registration/time), preserving them during partial background reads and repainting only changed results to avoid stale cross-sector verdicts.
 - Flight catalogue refreshes use the HTML shim's flight_refresh patch: force fresh unfiltered reads, reject out-of-order/error responses, and preserve selected options as disabled when absent, so background updates cannot silently switch DSP scope.
 - Passive FPL watcher status must not change Outlook login state; active Outlook Web login/PIB operations verify and refresh tokens, while real authentication failures remain visible.
