@@ -29,7 +29,7 @@ export const DEFAULT_ASSESS_CFG: AssessCfg = {
   dep_before: 60, dep_after: 60, arr_before: 60, arr_after: 60,
   talt_before: 15, talt_after: 60, enrt_alt_after: 60,
   dest_alt_before: 60, dest_alt_after: 60, fir_before: 60, fir_after: 60,
-  alt_buffer_ft: 6000,
+  alt_buffer_ft: 10000,
 };
 export function normAssessCfg(raw: unknown): AssessCfg {
   const src = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
