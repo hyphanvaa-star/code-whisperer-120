@@ -68,3 +68,18 @@ describe("five-level NOTAM assessment", () => {
     expect(scheduleActiveAt(s, new Date("2026-10-11T02:00:00Z"), null)).toBe(true);
   });
 });
+
+describe("listed ATS route closures (A5783/26 style)", () => {
+  const E = "FLW SEGMENT OF ATS RTE CLOSED BTN 6,300M(INCLUSIVE) AND 9,200M(INCLUSIVE):\n1. W215 : YINCHUAN VOR'YHD' - DOMVA.\n2. W213 : GUYUAN VOR'GUY'- APESU.\n3. W214 : JINGNING VOR'JIG'- BIGUX.\n4. W1 : ANLOC - BIVIM.\n5. B330 : BIGUX - KIDIX.";
+  it("segment on route is CRITICAL, not a NAVAID miss", () => {
+    const r = run({ e_field: E, lower: "207", upper: "301", f_field: "FL207", g_field: "FL301" }, "VVHM", "FIR",
+      flight({ points: pts.map((p) => p.fl_ft ? { ...p, fl_ft: 25000 } : p) }));
+    expect(r.match_type).toBe("ROUTE-SEGMENT");
+    expect(r.level).toBe("CRITICAL");
+  });
+  it("no listed segment on route is NO IMPACT via ROUTE-SEGMENT", () => {
+    const r = run({ e_field: E.replace("4. W1 : ANLOC - BIVIM.", "") }, "VVHM", "FIR");
+    expect(r.match_type).toBe("ROUTE-SEGMENT");
+    expect(r.level).toBe("NO IMPACT");
+  });
+});

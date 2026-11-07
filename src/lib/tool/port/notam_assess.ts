@@ -263,6 +263,35 @@ function pointTime(f: AssessFlight, p: TrackPoint | undefined): Date | null {
 }
 const pointNames = (f: AssessFlight) => new Set(f.points.map((p) => String(p.name ?? "").toUpperCase()).filter(Boolean));
 const onRoute = (f: AssessFlight, tok: string) => f.tokens.has(tok) || pointNames(f).has(tok);
+// Endpoint name in a listed segment: "YINCHUAN VOR'YHD'" -> YHD, "DOMVA" -> DOMVA.
+function segPoint(raw: string): string {
+  const q = /'([A-Z]{2,5})'/.exec(raw);
+  if (q) return q[1]!;
+  const w = raw.trim().split(/\s+/).pop() ?? "";
+  return w.replace(/[^A-Z0-9]/g, "");
+}
+/** Numbered/listed ATS route segments "1. W215 : A - B." (two or more, or one with list numbering). */
+export function atsSegmentList(E: string): [string, string, string][] {
+  const out: [string, string, string][] = [];
+  const re = /(?:^|[\s.])(?:\d{1,2}[.)]\s*)?([A-Z]{1,2}\d{1,4}[A-Z]?)\s*:\s*([A-Z][A-Z0-9' ]*?)\s*-\s*([A-Z][A-Z0-9' ]*?)\s*(?=[.,;\n]|$)/g;
+  for (const m of E.matchAll(re)) {
+    const a = segPoint(m[2]!), b = segPoint(m[3]!);
+    if (a && b) out.push([m[1]!, a, b]);
+  }
+  return out;
+}
+function evalSeg(f: AssessFlight, awy: string, a: string, b: string): Spatial {
+  const names = f.points.map((p) => String(p.name ?? "").toUpperCase());
+  const ia = names.indexOf(a), ib = names.indexOf(b);
+  if ((f.tokens.has(awy) || (ia >= 0 && ib >= 0)) && (ia >= 0 || ib >= 0)) {
+    const i0 = ia >= 0 && ib >= 0 ? Math.min(ia, ib) : Math.max(ia, ib);
+    const i1 = ia >= 0 && ib >= 0 ? Math.max(ia, ib) : i0;
+    const fls = f.points.slice(i0, i1 + 1).map((p) => Math.round(Number(p.fl_ft || 0) / 100));
+    return { matched: true, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} trùng route FPL.`, flRange: [Math.min(...fls), Math.max(...fls)], expStart: pointTime(f, f.points[i0]), expEnd: pointTime(f, f.points[i1]) };
+  }
+  if (!f.tokens.has(awy) && (ia >= 0 || ib >= 0)) return { matched: null, type: "ROUTE-SEGMENT", reason: `Có điểm ${ia >= 0 ? a : b} trên route nhưng chưa xác nhận đường ${awy}.` };
+  return { matched: false, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} không nằm trên route FPL.` };
+}
 
 function airportHit(code: string, f: AssessFlight, type: string, reason: string, briefing = false): Spatial {
   const role = f.roles[code];
@@ -315,21 +344,23 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     }
   }
   // 7 ATS route segment
+  // 7a listed segments: "1. W215 : YINCHUAN VOR'YHD' - DOMVA."
+  const listSegs = atsSegmentList(E);
+  if (listSegs.length) {
+    if (!f.tokens.size && !f.points.length) return unk("ROUTE-SEGMENT", "Không có route của chuyến để so danh sách ATS route.");
+    const res = listSegs.map(([awy, a, b]) => evalSeg(f, awy, a, b));
+    const hit = res.find((r) => r.matched === true);
+    if (hit) return hit;
+    const u = res.find((r) => r.matched === null);
+    if (u) return u;
+    return no("ROUTE-SEGMENT", `Các đoạn ${listSegs.map((s) => s[0]).join(", ")} không nằm trên route FPL.`);
+  }
   const seg = /(?:ATS\s+RTE\s+SEGMENT|SEGMENT|RTE)\s+([A-Z]{1,2}\d{1,4}[A-Z]?)\s*\(?\s*([A-Z]{5})\s*-\s*([A-Z]{5})/.exec(E)
     || /\b([A-Z]{1,2}\d{1,4}[A-Z]?)\s+(?:BTN|BETWEEN)\s+([A-Z]{3,5})\s+(?:AND|-)\s+([A-Z]{3,5})\b/.exec(E);
   if (seg) {
     const [, awy, a, b] = seg as unknown as [string, string, string, string];
     if (!f.tokens.size && !f.points.length) return unk("ROUTE-SEGMENT", `Không có route của chuyến để so đoạn ${awy} ${a}-${b}.`);
-    const names = f.points.map((p) => String(p.name ?? "").toUpperCase());
-    const ia = names.indexOf(a), ib = names.indexOf(b);
-    if ((f.tokens.has(awy) || (ia >= 0 && ib >= 0)) && (ia >= 0 || ib >= 0)) {
-      const i0 = ia >= 0 && ib >= 0 ? Math.min(ia, ib) : Math.max(ia, ib);
-      const i1 = ia >= 0 && ib >= 0 ? Math.max(ia, ib) : i0;
-      const fls = f.points.slice(i0, i1 + 1).map((p) => Math.round(Number(p.fl_ft || 0) / 100));
-      return { matched: true, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} trùng route FPL.`, flRange: [Math.min(...fls), Math.max(...fls)], expStart: pointTime(f, f.points[i0]), expEnd: pointTime(f, f.points[i1]) };
-    }
-    if (!f.tokens.has(awy) && (ia >= 0 || ib >= 0)) return unk("ROUTE-SEGMENT", `Có điểm ${ia >= 0 ? a : b} trên route nhưng chưa xác nhận đường ${awy}.`);
-    return no("ROUTE-SEGMENT", `Đoạn ${awy} ${a}-${b} không nằm trên route FPL.`);
+    return evalSeg(f, awy, a, b);
   }
   // 8 advisory route
   const adr = /ADVISORY\s+ROUTE\s+([A-Z]{1,2}\d{1,4})/.exec(E);
@@ -337,7 +368,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     return no("ADVISORY-ROUTE", `Advisory route ${adr[1]} không phải đường đang bay.`);
   // 9 navaid in quotes
   const nav = [...E.matchAll(/'([A-Z]{2,3})'/g)].map((m) => m[1]!);
-  if (nav.length && /\b(VOR|DME|NDB|TACAN|VORTAC|LOC|GP)\b/.test(E)) {
+  if (nav.length && /\b(VOR|DME|NDB|TACAN|VORTAC|LOC|GP)\b/.test(E) && !/\b(ATS\s+)?(RTE|ROUTE)S?\b[^]*\b(CLSD|CLOSED)\b|\b(CLSD|CLOSED)\b[^]*\bATS\s+(RTE|ROUTE)/.test(E)) {
     const hitNav = nav.find((x) => onRoute(f, x));
     if (!hitNav) return no("NAVAID", `Navaid ${nav.join(", ")} không có trên FPL/navlog.`);
     const ix = f.points.findIndex((p) => String(p.name ?? "").toUpperCase() === hitNav);
