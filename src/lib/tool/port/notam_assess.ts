@@ -21,12 +21,15 @@ export interface AssessCfg {
   enrt_alt_after: number;
   dest_alt_before: number; dest_alt_after: number;
   fir_before: number; fir_after: number;
+  /** Altitude buffer (ft) widening the NOTAM F/G band on both sides. */
+  alt_buffer_ft: number;
 }
 export const DEFAULT_ASSESS_CFG: AssessCfg = {
   corridor_nm: 15, max_delay_minutes: 180,
   dep_before: 60, dep_after: 60, arr_before: 60, arr_after: 60,
   talt_before: 15, talt_after: 60, enrt_alt_after: 60,
   dest_alt_before: 60, dest_alt_after: 60, fir_before: 60, fir_after: 60,
+  alt_buffer_ft: 6000,
 };
 export function normAssessCfg(raw: unknown): AssessCfg {
   const src = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
@@ -34,7 +37,7 @@ export function normAssessCfg(raw: unknown): AssessCfg {
   for (const k of Object.keys(out) as (keyof AssessCfg)[]) {
     const v = Number(src[k]);
     if (src[k] !== undefined && src[k] !== "" && Number.isFinite(v) && v >= 0) {
-      out[k] = Math.min(k === "corridor_nm" ? 200 : 1440, v);
+      out[k] = Math.min(k === "corridor_nm" ? 200 : k === "alt_buffer_ft" ? 20000 : 1440, v);
     }
   }
   if (out.corridor_nm === 5) out.corridor_nm = 15; // legacy default
@@ -577,12 +580,16 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
       return out("NO IMPACT", sp.type);
     }
     if (!band || !fr) { reasons.push("Thiếu cao độ NOTAM hoặc FL của chuyến tại điểm giao."); return out("NEED MANUAL CHECK", sp.type); }
-    if (!(band[0] <= fr[1] && fr[0] <= band[1])) {
-      reasons.push(`FL kế hoạch ${fr[0]}${fr[1] !== fr[0] ? "–" + fr[1] : ""} ngoài dải NOTAM FL${band[0]}–FL${band[1]}.`);
+    const pad = Math.round((cfg.alt_buffer_ft ?? 0) / 100);
+    const lo = band[1] >= 900 ? band[0] : Math.max(0, band[0] - pad);
+    const hi = band[1] >= 900 ? band[1] : band[1] + pad;
+    const padTxt = pad && band[1] < 900 ? ` (buffer ±${pad * 100}ft → FL${lo}–FL${hi})` : "";
+    if (!(lo <= fr[1] && fr[0] <= hi)) {
+      reasons.push(`FL kế hoạch ${fr[0]}${fr[1] !== fr[0] ? "–" + fr[1] : ""} ngoài dải NOTAM FL${band[0]}–FL${band[1]}${padTxt}.`);
       if (sp.type === "ROUTE-SEGMENT") return out("BRIEFING INFO", sp.type);
       return out("NO IMPACT", sp.type);
     }
-    reasons.push(`FL ${fr[0]}${fr[1] !== fr[0] ? "–" + fr[1] : ""} nằm trong dải FL${band[0]}–FL${band[1]}.`);
+    reasons.push(`FL ${fr[0]}${fr[1] !== fr[0] ? "–" + fr[1] : ""} nằm trong dải FL${band[0]}–FL${band[1]}${padTxt}.`);
   }
 
   // 5 earliest delay

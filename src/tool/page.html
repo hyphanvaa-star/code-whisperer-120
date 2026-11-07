@@ -17224,7 +17224,7 @@ async function nmRunTune(mode, btn, idleLabel){
 const NM_ASSESS_KEY = "nm.assess.cfg";
 const NM_ASSESS_DEF = {corridor_nm:5, max_delay_minutes:180, dep_before:60, dep_after:60,
   arr_before:60, arr_after:60, talt_before:15, talt_after:60, enrt_alt_after:60,
-  dest_alt_before:60, dest_alt_after:60, fir_before:60, fir_after:60};
+  dest_alt_before:60, dest_alt_after:60, fir_before:60, fir_after:60, alt_buffer_ft:6000};
 function nmAssessCfg(){
   let v = {};
   try{ v = JSON.parse(localStorage.getItem(NM_ASSESS_KEY) || "{}") || {}; }catch(_){ v = {}; }
@@ -17251,7 +17251,8 @@ function nmAssessOpen(){
         + '</td><td><input type="number" min="0" max="1440" data-k="' + b + '"></td></tr>';
     }
     h += '</table><div class="nm-assess-more"><label>Trễ tối đa (phút) <input type="number" min="0" max="1440" data-k="max_delay_minutes"></label>'
-      + '<label>Hành lang route (NM) <input type="number" min="0" max="200" step="0.5" data-k="corridor_nm"></label></div>'
+      + '<label>Hành lang route (NM) <input type="number" min="0" max="200" step="0.5" data-k="corridor_nm"></label>'
+      + '<label>Buffer trần/sàn NOTAM (± ft) <input type="number" min="0" max="20000" step="500" data-k="alt_buffer_ft"></label></div>'
       + '<div class="nm-assess-btns"><button type="button" class="btn t-undo" data-act="reset">Về mặc định</button>'
       + '<button type="button" class="btn t-undo" data-act="close">Đóng</button>'
       + '<button type="button" class="btn t-go" data-act="save">Lưu</button></div>';
