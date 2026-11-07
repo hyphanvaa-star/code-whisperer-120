@@ -26,6 +26,7 @@ import { patchFlightIdentityPage } from '@/lib/tool/port/flight_identity_page';
 import { patchKhbPayloadPage } from '@/lib/tool/port/khb_payload';
 import { patchKhbCrewSyncPage } from '@/lib/tool/port/khb_crew_sync';
 import { patchCmpValidationPage } from '@/lib/tool/port/cmp_validation';
+import { patchCmpBatchPage } from '@/lib/tool/port/cmp_batch';
 import { patchKhbAirportHoverPage } from '@/lib/tool/port/khb_airport_hover';
 import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
 import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
@@ -2089,7 +2090,7 @@ const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
-  cached = patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))
+  cached = patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw)))))))
     .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + '</head>')
     .replace('el.textContent = (d.total != null ? d.total + " chuyến · " : "") + hm\n    + (d.added', 'el.title = "Payload EST (Omni) cập nhật lúc " + t.toLocaleString("vi-VN");\n  el.textContent = "EST cập nhật " + hm; void 0\n    + (d.added')
     // The embedded source stays intact; account fixes belong in this shim.
@@ -2839,7 +2840,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.59')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.60')
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt({noConfirm: true}); };')
