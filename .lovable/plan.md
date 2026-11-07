@@ -3,11 +3,11 @@
 ## Hiện trạng
 - Kho vùng Úc hiện có 749 vùng (~220 KB), chỉ gồm vùng R/D/P và CTA có chữ "CTA".
 - Các phân khu dạng `YBBB/DOWNS A`, `YBBB/BUNYA`, `YMMM/ESPERANCE`... bị bỏ sót nên NOTAM nhắc tên không vẽ được.
-- File DAH gốc (DAH_09JUL2026.pdf) hiện không còn trong máy làm việc — anh cần tải lại file khi duyệt kế hoạch.
+- Đã nhận file DAH_09JUL2026.pdf.
 
-## Sức chứa
-- DAH trang 7–188 ước khoảng 1.500–2.500 vùng (mỗi trang 8–15 vùng).
-- Dung lượng dự kiến 0,6–1,2 MB dữ liệu toạ độ đã nén điểm — chứa thoải mái, không cần bảng mới; vẫn lưu dạng kho dữ liệu cố định đi kèm hệ thống như các nước khác, NOTAM trúng tên chỉ việc tra ra vẽ ngay, không tốn thời gian tính lại.
+## Sức chứa (đã đếm thực tế trang 7–188)
+- 1.324 vùng có LATERAL LIMITS (so với 749 hiện có → thiếu ~575 vùng, gồm CONTROL ZONE, phân khu YBBB/YMMM…).
+- Dung lượng dự kiến ~0,5–0,8 MB dữ liệu toạ độ — chứa thoải mái, không cần bảng mới; vẫn lưu dạng kho dữ liệu cố định đi kèm hệ thống như các nước khác, NOTAM trúng tên chỉ việc tra ra vẽ ngay, không tốn thời gian tính lại.
 - Sau khi bóc xong em sẽ báo con số chính xác (tổng vùng, theo loại, số vùng không đọc được).
 
 ## Các bước
