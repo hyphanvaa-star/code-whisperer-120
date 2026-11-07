@@ -1744,6 +1744,10 @@ const ddScript = `
   }
   function open(sel){
     if(!pop)build();
+    // Ô chọn nằm trong hộp thoại modal (top layer) thì danh sách phải nằm cùng
+    // hộp thoại — để ở body sẽ bị che và không bấm được.
+    var host=(sel.closest&&sel.closest('dialog[open]'))||document.body;
+    if(pop.parentNode!==host)host.appendChild(pop);
     cur=sel;rows=flat(sel);
     ttEl.textContent=labelOf(sel);
     var n=0;for(var i=0;i<rows.length;i++)if(rows[i].opt)n++;
@@ -1760,7 +1764,13 @@ const ddScript = `
     // Trang có thể đang bị thu nhỏ vừa màn (html[zoom]); đặt zoom ngược cho
     // khung danh sách để chữ hiện đúng cỡ, rồi mới tính chỗ đặt.
     var z=1;
-    try{ z=parseFloat(getComputedStyle(document.documentElement).zoom)||1; }catch(e){}
+    try{
+      var ph=pop.parentNode,zf=function(el){ return parseFloat(getComputedStyle(el).zoom)||1; };
+      z=zf(document.documentElement);
+      if(ph&&ph!==document.body){
+        z=(typeof ph.currentCSSZoom==='number'&&ph.currentCSSZoom>0)?ph.currentCSSZoom:z*zf(document.body)*zf(ph);
+      }
+    }catch(e){}
     pop.style.zoom=(z>0.05&&Math.abs(z-1)>0.001)?String(1/z):'';
     var r=cur.getBoundingClientRect(),vw=window.innerWidth,vh=window.innerHeight,m=8;
     if(r.bottom<m||r.top>vh-m){ close(); return; }
@@ -2829,7 +2839,7 @@ function nmRouteLayers(ids){
   else if(nmMapIsTrack() && row) onSeg = !!nmFlashTrackNotam(row);`)
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.58')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.59')
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt({noConfirm: true}); };')
