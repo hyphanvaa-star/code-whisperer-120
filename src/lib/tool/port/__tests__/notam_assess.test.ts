@@ -19,8 +19,8 @@ const flight = (patch: Partial<AssessFlight> = {}): AssessFlight => ({
 });
 const base = { start: "2026-10-10 00:00", end: "2026-10-11 00:00", lower: "0", upper: "999", qfir: "VVHM" };
 const cfg = DEFAULT_ASSESS_CFG;
-const run = (n: Record<string, unknown>, code = "VVTS", kind = "AD", f = flight()) =>
-  assessNotam({ ...base, ...n }, code, kind, f, cfg);
+const run = (n: Record<string, unknown>, code = "VVTS", kind = "AD", f = flight(), c = cfg) =>
+  assessNotam({ ...base, ...n }, code, kind, f, c);
 
 describe("five-level NOTAM assessment", () => {
   it("ALL TWY CLSD at DEP during ETD is CRITICAL, not dropped", () => {
@@ -43,7 +43,7 @@ describe("five-level NOTAM assessment", () => {
     expect(run({ e_field: "VFR FLIGHTS NOT PERMITTED IN AREA" }, "VVHM", "FIR").level).toBe("NO IMPACT");
   });
   it("planned FL outside lower/upper is NO IMPACT, but ATS segment on route is BRIEFING INFO", () => {
-    const area = run({ e_field: "PJE WI 3NM RADIUS OF 1400N10748E PROHIBITED", coords: "1400N10748E003", lower: "0", upper: "100" }, "VVHM", "FIR");
+    const area = run({ e_field: "PJE WI 3NM RADIUS OF 1400N10748E PROHIBITED", coords: "1400N10748E003", lower: "0", upper: "100" }, "VVHM", "FIR", flight(), { ...cfg, alt_buffer_ft: 0 });
     expect(area.level).toBe("NO IMPACT");
     const seg = run({ e_field: "ATS RTE SEGMENT W1 (ANLOC-BIVIM) CLSD", lower: "0", upper: "100" }, "VVHM", "FIR");
     expect(seg.level).toBe("BRIEFING INFO");

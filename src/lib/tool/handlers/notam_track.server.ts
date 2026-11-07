@@ -24,7 +24,10 @@ import { setNotamProgress } from "./notam.server";
 import { trackFor } from "../port/jetplan_kml";
 import { supKeys, namedAreaIds, notamGeoms, type Geom } from "../port/notam_track";
 import { bindCtx, rings_of, hours_of, dah_ring, dah_named, japanTrainingRings, japanIdsInText, koreaRestrictedRings } from "../aip_sup.server";
-import { expand_au_area_ids } from '../port/aip_sup';
+import { expand_au_area_ids, au_dah_names_in_text } from '../port/aip_sup';
+import AU_DAH from '../data/au_dah.json';
+const AU_DAH_RINGS = AU_DAH.rings as unknown as Record<string, [number, number][]>;
+const AU_DAH_FIR = (AU_DAH as unknown as { fir: Record<string, string> }).fir || {};
 import AIP_CATALOG from '../port/aip_catalog.json';
 import { enrIdsInText, enrGeoms } from '../port/aip_enr_catalog';
 import type { Ctx } from "../types";
@@ -70,6 +73,11 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
       if (au) {
         const pre: Geom[] = [];
         const U = blob.toUpperCase();
+        // Phân khu DAH vẽ sẵn (YBBB/DOWNS A, NOOSA, STRADDY…) — tra theo tên trong đúng FIR.
+        for (const name of au_dah_names_in_text(String(n.e_field ?? n.text ?? ""), fir.slice(0, 4), AU_DAH_FIR)) {
+          const ring = AU_DAH_RINGS[name];
+          if (ring && ring.length >= 3 && !pre.some(g => g.name === name)) pre.push({ name, shape: "polygon", ring, source: "DAH" });
+        }
         for (const m of U.matchAll(AU_CTA_ID)) {
           const ring = await dah_named(m[1]!, fir);
           if (ring.length >= 3 && !pre.some(g => g.name === m[1])) pre.push({ name: m[1]!, shape: "polygon", ring, source: "DAH" });

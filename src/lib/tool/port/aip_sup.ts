@@ -470,6 +470,74 @@ export function parse_australia_dah_text(text: string): Record<string, Pt[]> {
   return out;
 }
 
+export type AuDahArea = { name: string; fir: string; ring: Pt[]; vert: string };
+
+/** Mọi tiêu đề DAH dạng dòng ``YBBB/DOWNS A`` / ``YMMM/ADELAIDE CONTROL ZONE`` + LATERAL LIMITS bằng toạ độ. */
+export function parse_australia_dah_areas(text: string): { areas: AuDahArea[]; skipped: string[] } {
+  const blob = String(text || "");
+  const heads = [...blob.matchAll(/^[ \t]*(Y[A-Z]{3}(?:-Y[A-Z]{3})?)\/([A-Z0-9][^\n]{0,60}?)[ \t]*$/gm)];
+  const areas: AuDahArea[] = [];
+  const skipped: string[] = [];
+  const seen = new Set<string>();
+  for (let i = 0; i < heads.length; i++) {
+    const h = heads[i]!;
+    const end = h.index! + h[0].length;
+    const nxt = i + 1 < heads.length ? heads[i + 1]!.index! : blob.length;
+    const piece = blob.slice(end, nxt);
+    const lat = /LATERAL\s+LIMITS/i.exec(piece);
+    if (!lat || lat.index > 400) continue;
+    const name = h[2]!.toUpperCase().replace(/[‘’'"]/g, "").replace(/\s+/g, " ").trim();
+    if (!name || seen.has(name)) continue;
+    const body = piece.slice(lat.index);
+    if (!auLateralPlain(body)) { skipped.push(`${h[1]}/${name}`); continue; }
+    const ring = auRing(body);
+    if (ring.length < 3) { skipped.push(`${h[1]}/${name}`); continue; }
+    const vm = /VERTICAL\s+LIMITS?\s*:?\s*([^\n]+)/i.exec(body);
+    seen.add(name);
+    areas.push({ name, fir: h[1]!, ring, vert: (vm?.[1] || "").trim() });
+  }
+  return { areas, skipped };
+}
+
+/** Tên vùng DAH chuẩn hoá để khớp NOTAM: hoa, một khoảng trắng. */
+export function au_dah_norm(name: string): string {
+  return String(name || "").toUpperCase().replace(/[‘’'"]/g, "").replace(/\s+/g, " ").trim();
+}
+
+/** Tên phân khu DAH có trong NOTAM (dài nhất trước, chỉ vùng thuộc đúng FIR). */
+export function au_dah_names_in_text(text: string, fir: string, names: Record<string, string>): string[] {
+  const U = " " + au_dah_norm(text).replace(/[^A-Z0-9 ]+/g, " ").replace(/\s+/g, " ") + " ";
+  const F = String(fir || "").toUpperCase();
+  const keys = Object.keys(names).filter(k => k.length >= 4 && (!F || names[k]!.split("-").includes(F)));
+  // ``STRADDY A``/``STRADDY B`` → nhóm ``STRADDY``; NOTAM viết ``DOWNS A/D`` hoặc chỉ ``NOOSA``.
+  const groups = new Map<string, Map<string, string>>();
+  for (const k of keys) {
+    const m = /^(.*\S) ([A-Z])$/.exec(k);
+    const base = m ? m[1]! : k;
+    if (!groups.has(base)) groups.set(base, new Map());
+    groups.get(base)!.set(m ? m[2]! : "", k);
+  }
+  const out: string[] = [];
+  let rest = U;
+  // Từ thường gặp trong câu NOTAM — chỉ nhận khi có cả tên đầy đủ nhiều chữ.
+  const STOP = new Set(["MOUNT", "PORT", "CROSS", "OCEAN", "CABLE", "CORAL", "LIGHTNING", "GROVE", "SUNSHINE", "TERRITORY", "SALTY", "OPAL", "PRAWN", "AREA99", "SNOWY"]);
+  for (const base of [...groups.keys()].sort((a, b) => b.length - a.length)) {
+    if (STOP.has(base)) continue;
+    const g = groups.get(base)!;
+    const b = base.replace(/[^A-Z0-9 ]+/g, " ").replace(/\s+/g, " ").replace(/ /g, "\\s+");
+    const rx = new RegExp(` ${b}((?:\\s+(?:AND\\s+)?[A-Z](?= ))*) `, "g");
+    let hit = false;
+    for (const m of rest.matchAll(rx)) {
+      hit = true;
+      const letters = (m[1] || "").replace(/\bAND\b/g, "").trim().split(/\s+/).filter(Boolean);
+      const pick = letters.length ? letters.map(l => g.get(l)).filter(Boolean) as string[] : [...g.values()];
+      for (const k of (pick.length ? pick : [...g.values()])) if (!out.includes(k)) out.push(k);
+    }
+    if (hit) rest = rest.replace(rx, " | ");
+  }
+  return out;
+}
+
 /** ``YBBB/TDA ‘FUNNY FARM’`` → ``TDA FUNNY FARM``. */
 function auTempName(kind: string, piece: string): string {
   const head = piece.split(/\b(?:LATERAL|VERTICAL|ROCKET|HOURS|CONTACT|CONTROLLING)\b/i)[0] || "";
