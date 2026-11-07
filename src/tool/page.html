@@ -20535,7 +20535,7 @@ alert("Đã tải vào kho Notice: "+ok.length+" file\n"+ok.join("\n")+(bad.leng
 function nrKindOf(cond){
   return ({always:"doc",has_reg:"plane",dest:"bldg",dep:"bldg",route:"route",
     ac_type:"gear",reg_in:"list",touches:"plane",prefix_or_touches:"list",
-    touches_or_alt:"bldg"}[cond]||"doc");
+    touches_or_alt:"bldg",prefix_touches_alt:"list"}[cond]||"doc");
 }
 function nrPaintKind(tr){
   const cond=(tr.querySelector(".nr-cond")||{}).value||"always";
@@ -20588,7 +20588,7 @@ function nrValueEditor(tr){
   const simple={dep:["ICAO sân bay đi","VVTS"],dest:["ICAO sân bay đến","VVNB"],
     touches:["ICAO đi hoặc đến","WMKK"],ac_type:["Loại tàu","A21N"],
     reg_in:["Danh sách REG","VNA631"],prefix_or_touches:["Prefix 2 ký tự hoặc ICAO","ZG"],
-    touches_or_alt:["ICAO đi/đến/alternate","ZSPD"]};
+    touches_or_alt:["ICAO đi/đến/alternate","ZSPD"],prefix_touches_alt:["Prefix 1–2 ký tự / ICAO, !XX loại trừ","UW"]};
   if(cond==="always"||cond==="has_reg"){
     help.textContent=cond==="always"?"Không cần giá trị: áp dụng cho mọi chuyến.":"Không cần giá trị: chỉ cần chuyến có số đăng ký tàu.";
     box.appendChild(help);return;

@@ -40,7 +40,7 @@ export const getSetting = createServerFn({ method: "POST" })
 
 const ruleSchema = z.object({
   name: z.string().trim().min(1).max(200),
-  condition: z.enum(["always", "has_reg", "dep", "dest", "touches", "route", "ac_type", "reg_in", "prefix_or_touches", "touches_or_alt"]),
+  condition: z.enum(["always", "has_reg", "dep", "dest", "touches", "route", "ac_type", "reg_in", "prefix_or_touches", "touches_or_alt", "prefix_touches_alt"]),
   values: z.array(z.string().trim().max(20)).max(200),
   files: z.array(z.string().trim().min(1).max(300)).max(30),
   enabled: z.boolean(),

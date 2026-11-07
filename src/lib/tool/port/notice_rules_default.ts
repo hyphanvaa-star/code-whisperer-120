@@ -2,7 +2,7 @@
 // Area rules match DEP, DEST or either alternate; "!XX" excludes a prefix.
 export interface DefaultNoticeRule {
   name: string;
-  condition: "always" | "route" | "touches_or_alt" | "prefix_touches_alt";
+  condition: "always" | "has_reg" | "route" | "touches_or_alt" | "prefix_touches_alt";
   values: string[];
   files: string[];
   enabled: boolean;
@@ -13,6 +13,7 @@ const CHINA = ["Z", "!ZK", "!ZM"];
 const RUSSIA = ["UE", "UH", "UI", "UL", "UN", "UO", "UR", "US", "UU", "UW"];
 
 export const NOTICE_RULES_DEFAULT: DefaultNoticeRule[] = [
+  { name: "MEL / Notice riêng theo tàu bay", condition: "has_reg", values: [], files: ["{REG}"], enabled: true },
   { name: "VVCR Cam Ranh (đến 29NOV)", condition: "touches_or_alt", values: ["VVCR"], files: ["VVCR_EFF-20261012_TO-20261028_UNTIL_29NOV"], enabled: true, effective_to: "2026-11-29" },
   { name: "Airways W27/W28/Q9 (WADD → VVNB)", condition: "route", values: ["WADD", "VVNB"], files: ["ROUTE-W27-W28-Q9_EFF-20250220_TO-UFN_W27_W28_Q9_NOTE"], enabled: true },
   { name: "Notice to Pilot chung", condition: "always", values: [], files: ["MULTI-SCOPE_EFF-MIXED_TO-MIXED_NOTICE_TO_PILOT_UPDATED_NEW"], enabled: true },

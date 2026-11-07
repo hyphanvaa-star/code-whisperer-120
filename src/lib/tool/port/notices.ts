@@ -1,6 +1,7 @@
 // Port of notices.py (data-driven rule matching only; PDF lookup is injected
 // via an `exists` callback since there is no local disk in the Worker).
 import type { Flight } from "../core/models";
+import { NOTICE_RULES_DEFAULT, prefixTouchesAlt } from "./notice_rules_default";
 
 export const TAU_LIST = new Set([
   "VNA522", "VNA631", "VNA637", "VNA651", "VNA643", "VNA642", "VNA639",
@@ -12,7 +13,7 @@ export const CHINA_PREFIX = ["ZB", "ZG", "ZH", "ZL", "ZP", "ZS", "ZU", "ZY"];
 
 export type RuleCond =
   | "always" | "has_reg" | "dep" | "dest" | "touches" | "route"
-  | "ac_type" | "reg_in" | "prefix_or_touches" | "touches_or_alt";
+  | "ac_type" | "reg_in" | "prefix_or_touches" | "touches_or_alt" | "prefix_touches_alt";
 
 export type RuleRow = {
   name: string;
@@ -46,28 +47,12 @@ const actype = (f: Flight) => icaoAcType(f.ac_type || f.acft_type || "");
 
 /** Bản JSON tương đương web.py notices._default_rule_data(). */
 export function defaultRuleData(): RuleRow[] {
-  const tau = [...TAU_LIST].sort();
-  return [
-    { name: "Notice chung cho mọi chuyến", condition: "always", values: [], files: ["NOTICES TO PILOTS | NOTICES AND SAFETY DIRECTIVE | NOTICE TO PILOT | NTP & TECHNICAL NOTE | NTP"], enabled: true },
-    { name: "Notice riêng của tàu bay", condition: "has_reg", values: [], files: ["{REG}"], enabled: true },
-    { name: "Đến VVDB", condition: "dest", values: ["VVDB"], files: ["Technical Notice VVDB"], enabled: true },
-    { name: "Từ WADD về VVNB", condition: "route", values: ["WADD", "VVNB"], files: ["TN-20022025 - AIRWAYS W27, W28 and Q9_1"], enabled: true },
-    { name: "Tàu trong danh sách EGTM thấp", condition: "reg_in", values: tau, files: ["TN-LOW EGTM A{REG3}"], enabled: true },
-    { name: "Đi/đến WMKK", condition: "touches", values: ["WMKK"], files: ["FAOC_1.20 AA 2025 (R)", "FAOC.20 VIETJET AVIATION JOINT STOCK COMPANY 2025 (R)"], enabled: true },
-    { name: "Đi/đến VVPQ", condition: "touches", values: ["VVPQ"], files: ["vv-esup-31-26-approvedbycaav"], enabled: true },
-    { name: "Đi/đến Trung Quốc / VMMC / VHHH", condition: "prefix_or_touches", values: [...CHINA_PREFIX, "VMMC", "VHHH"], files: ["2026005函 关于汛期运行安全风险的警示"], enabled: true },
-    { name: "Đi/đến VMMC", condition: "touches", values: ["VMMC"], files: ["NTP 2026-013 VMMCMFM LOC RWY16 (No LOC signal)"], enabled: true },
-    { name: "Đi/đến VVCA", condition: "touches", values: ["VVCA"], files: ["NTP 2026-014 Runway Overrun Mitigation", "NTP 2026-015 VVCA (Chu Lai Airport) Runway Shortening"], enabled: true },
-    { name: "Đi/đến VOBL", condition: "touches", values: ["VOBL"], files: ["ZSPD_NavData_Alert_2606"], enabled: true },
-    { name: "Đi/đến VVNB", condition: "touches", values: ["VVNB"], files: ["VVNB vv-esup-19-26-approvedbycaav"], enabled: false },
-    { name: "Đi/đến WSSS", condition: "touches", values: ["WSSS"], files: ["SG-AD-2-WSSS-AD-2-WSSS-ADC-3", "WSSS_Chart_Alert_26_MAR_2026"], enabled: false },
-    { name: "Đi/đến/alternate ZSPD", condition: "touches_or_alt", values: ["ZSPD"], files: ["ZSPD_Chart_Alert_26_MAR_2026"], enabled: false },
-  ];
+  return NOTICE_RULES_DEFAULT.map((r) => ({ ...r, values: [...r.values], files: [...r.files] })) as RuleRow[];
 }
 
 const ALLOWED_CONDS = new Set<RuleCond>([
   "always", "has_reg", "dep", "dest", "touches", "route",
-  "ac_type", "reg_in", "prefix_or_touches", "touches_or_alt",
+  "ac_type", "reg_in", "prefix_or_touches", "touches_or_alt", "prefix_touches_alt",
 ]);
 
 /** Port of notices.save_rule_data — validates + normalises rows, throws on bad input. */
@@ -108,6 +93,8 @@ export function matchesData(row: RuleRow, f: Flight): boolean {
     case "reg_in": return vals.has(r);
     case "prefix_or_touches":
       return vals.has(d) || vals.has(de) || [...vals].some((v) => v.length === 2 && (d.startsWith(v) || de.startsWith(v)));
+    case "prefix_touches_alt":
+      return prefixTouchesAlt(ordered, [d, de, f.dest_alt1 || "", f.dest_alt2 || ""]);
     case "touches_or_alt":
       return vals.has(d) || vals.has(de) || vals.has((f.dest_alt1 || "").toUpperCase()) || vals.has((f.dest_alt2 || "").toUpperCase());
     default: return false;
