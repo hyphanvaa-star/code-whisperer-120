@@ -6570,7 +6570,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
               <input type="file" id="atFile" accept=".txt" style="display:none">
               <button class="btn small t-soft" id="splitPdfPick"
                       title="Chọn file PDF tổng hợp (ac.pdf) rồi tách thành file riêng theo từng tàu bay (VNAxxx.pdf) vào RegNotice/">
-                ✂ Tách PDF RegNotice</button>
+                ✂ Tách MEL</button>
               <input type="file" id="splitPdfFile" accept=".pdf" style="display:none">
               <button class="btn small t-soft" id="mergePdfPick"
                       title="Chọn nhiều file Word, TXT hoặc PDF cùng lúc, gộp thành một PDF và lưu ra ổ D:">
@@ -28140,7 +28140,7 @@ $("#splitPdfFile").onchange = async e => {
   }catch(err){
     write("✗ Lỗi: " + err.message, "fail");
   }finally{
-    btn.disabled = false; btn.textContent = "✂ Tách PDF RegNotice";
+    btn.disabled = false; btn.textContent = "✂ Tách MEL";
   }
 };
 $("#mergePdfPick").onclick = () => $("#mergePdfFiles").click();
