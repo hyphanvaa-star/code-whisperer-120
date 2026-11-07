@@ -61,6 +61,18 @@ export async function loadFlights(days: number, refresh = false): Promise<Flight
   return filterByWindow(await loadFlightCatalogue(days, refresh), 6, 24);
 }
 
+/** Catalogue span for one-sector lookups; the −6/+24 clip still decides what is visible. */
+export const OPS_LOOKUP_DAYS = 3;
+
+/** One in-window sector by FliteBrief ID. Every caller shares one catalogue size (one cache),
+ *  and a miss forces one fresh read so a stale cache cannot report a live flight as absent. */
+export async function findOperationalFlightById(id: number): Promise<Flight | null> {
+  if (!id) return null;
+  const hit = (await loadFlights(OPS_LOOKUP_DAYS)).find((f) => f.id === id);
+  if (hit) return hit;
+  return (await loadFlights(OPS_LOOKUP_DAYS, true)).find((f) => f.id === id) ?? null;
+}
+
 export function filterByWindow(flights: Flight[], hoursBack: number | null, hoursAhead: number | null, ref = new Date()) {
   if (hoursBack == null && hoursAhead == null) return flights;
   const lo = hoursBack != null ? ref.getTime() - hoursBack * 3600e3 : null;

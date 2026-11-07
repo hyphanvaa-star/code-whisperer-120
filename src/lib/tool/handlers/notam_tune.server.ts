@@ -1,5 +1,5 @@
 import type { Jobs, Routes } from "../types";
-import { loadFlights, filterByWindow, filterByDispatcher } from "../core/gantts.server";
+import { loadFlights, filterByWindow, filterByDispatcher, findOperationalFlightById } from "../core/gantts.server";
 import { tunePlaces, tunePlacesDomestic, domesticAirports } from "../port/notam_check_tune";
 
 // Port of web.py's "/api/notam/tune" (_api_notam_tune): client-side re-filter of
@@ -46,7 +46,8 @@ export const routes: Routes = {
 
     const sectorId = Number.isFinite(Number(body.id)) ? Math.trunc(Number(body.id)) : 0;
     if (!sectorId) return { error: "Chọn chuyến rồi bấm Lọc notam tracking chuyến." };
-    const flight = (await loadFlights(days)).find((f) => f.id === sectorId);
+    // Same lookup as /api/notam/track, so a flight that tracked can always be filtered.
+    const flight = await findOperationalFlightById(sectorId);
     if (!flight) return { error: `Không tìm thấy chuyến ${sectorId}.` };
     const ofpText = ""; // load_ofp_text not ported; see note above.
 

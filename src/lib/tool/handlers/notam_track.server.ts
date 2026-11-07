@@ -1,7 +1,7 @@
 import type { Jobs, Routes } from "../types";
 import { q } from "../types";
 import type { Flight } from "../core/models";
-import { loadFlights, applyFilters } from "../core/gantts.server";
+import { loadFlights, applyFilters, findOperationalFlightById, OPS_LOOKUP_DAYS } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
 import { normIcao, apply24h, placeFromPayload } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
@@ -254,9 +254,7 @@ async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string
 }
 
 async function findFlight(id: number): Promise<Flight | null> {
-  if (!id) return null;
-  const flights = await loadFlights(14);
-  return flights.find((f) => f.id === id) ?? null;
+  return findOperationalFlightById(id);
 }
 
 export const routes: Routes = {
@@ -309,7 +307,7 @@ export const routes: Routes = {
   "GET /api/notam/check": async (ctx) => {
     const daysRaw = q(ctx.params, "days", "1");
     const tid = q(ctx.params, "tid");
-    const days = Math.max(1, Math.min(14, parseInt(daysRaw, 10) || 1));
+    const days = Math.max(1, Math.min(OPS_LOOKUP_DAYS, parseInt(daysRaw, 10) || 1));
     // Chỉ check các chuyến của DSP đang chọn (và khung giờ back/ahead) —
     // giống web.py: bộ lọc dispatcher trên tab Check NOTAM quyết định phạm vi.
     const flights = applyFilters(await loadFlights(days), ctx.params);
