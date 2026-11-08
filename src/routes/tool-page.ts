@@ -16,6 +16,8 @@ import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
+import manualAreaScript from '@/tool/manual-area.js?raw';
+import { maParse, maBand, maCheck } from '@/lib/tool/port/manual_area';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
 import { auDahCatalogue } from '@/lib/tool/port/au_dah_catalog';
 import { airportCatalogue } from '@/lib/tool/port/airport_catalogue';
@@ -2843,7 +2845,26 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.65')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.66')
+    .replace('</body>', () => `<style>
+.ma-ctl button{background:var(--x-card,#fff);color:var(--x-ink,#222);border:0;padding:6px 10px;font:700 12px/1.2 system-ui;cursor:pointer}
+.ma-panel{position:fixed;right:18px;top:90px;z-index:4000;width:380px;max-height:80vh;overflow:auto;background:var(--x-card,#fff);color:var(--x-ink,#222);border:1px solid var(--x-line,#ccc);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.25);padding:12px;font:13px/1.4 system-ui}
+.ma-panel[hidden]{display:none}
+.ma-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:15px}
+.ma-hd button,.ma-rh button{border:0;background:none;cursor:pointer;font-size:14px;color:inherit}
+.ma-panel label{display:block;margin:6px 0;font-weight:600}
+.ma-panel input,.ma-panel textarea{display:block;width:100%;box-sizing:border-box;margin-top:3px;padding:6px 8px;border:1px solid var(--x-line,#ccc);border-radius:6px;font:12px/1.4 monospace;background:transparent;color:inherit}
+.ma-panel textarea{height:110px;resize:vertical}
+.ma-act{display:flex;gap:8px;margin:8px 0}
+.ma-act button{flex:1;padding:7px;border-radius:6px;border:1px solid #d84315;background:#d84315;color:#fff;font-weight:700;cursor:pointer}
+.ma-act .ma-clear{background:transparent;color:#d84315}
+.ma-msg{min-height:16px;font-size:12px;color:#2e7d32}.ma-msg.bad{color:#c62828}
+.ma-row{border-left:4px solid #999;padding:6px 8px;margin:6px 0;border-radius:6px;background:rgba(127,127,127,.08)}
+.ma-rh{display:flex;gap:6px;align-items:center}.ma-rh span{flex:1;opacity:.75;font-size:12px}
+.ma-v{margin-top:3px;font-weight:600}
+.ma-cr{border-color:#c62828}.ma-cr .ma-v{color:#c62828}.ma-br{border-color:#f9a825}.ma-ok{border-color:#16a34a}.ma-ok .ma-v{color:#16a34a}.ma-mu{opacity:.7}
+.nm-unid{cursor:pointer}
+</style><script>window.__ma={parse:${maParse.toString()},band:${maBand.toString()},check:${maCheck.toString()}};</script><script>${manualAreaScript}</script></body>`)
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt({noConfirm: true}); };')
