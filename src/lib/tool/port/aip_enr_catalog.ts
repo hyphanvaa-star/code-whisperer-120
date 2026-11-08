@@ -4,28 +4,37 @@
 import DATA from "../data/aip_enr_rings.json";
 import VERIFIED from "../data/aip_named_verified.json";
 import EXTRA from "../data/aip_enr_extra.json";
+import RU from "../data/aip_enr_ru.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
 type VerifiedArea = { name: string; fir: string; ring: Pt[]; parts?: Pt[][]; circle?: { center: Pt; radiusNm: number }; source?: string; document?: string; effective?: string; lower?: string; upperFt?: number; activation?: string };
 // Czech (LK) and Kazakhstan (UA) ENR 5.1/5.2 snapshot from the official eAIPs (see AGENTS.md).
-const AREAS = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>) };
+// Russia (UH/UL/UN/UR/US/UU/UW) ENR 5.1 snapshot shares one source/document header to keep the bundle small.
+const RU_AREAS = Object.fromEntries(Object.entries(RU.areas as unknown as Record<string, VerifiedArea>)
+  .map(([key, area]) => [key, { source: RU.source, document: RU.document, ...area }]));
+const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>), ...RU_AREAS };
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
   ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
 };
 
-const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|UA|LK|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
+const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|UA|LK|UH|UL|UN|UR|US|UU|UW|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
 const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key)).map(([key, area]) => ({
   key, country: area.fir.slice(0, 2),
   pattern: new RegExp(`(?<![A-Z0-9])${area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![A-Z0-9])`),
 }));
+
+const RU_PREFIX = /^U[HLNRSUW]$/;
+const RU_FIR = /^U[EHILNORSUW]/;
 
 function matchesFir(country: string, region: string): boolean {
   if (!region) return true;
   if (country === "RJ") return /^(RJ|RO)/.test(region);
   if (/^W[ABIM]$/.test(country)) return /^(WI|WA)/.test(country) ? /^(WI|WA)/.test(region) : /^(WM|WB)/.test(region);
   if (/^V[AEIO]$/.test(country)) return /^(VA|VE|VI|VO)/.test(region);
+  // Russian area prefixes are subregions that span several FIR codes (UN* also covers UIII…).
+  if (RU_PREFIX.test(country)) return RU_FIR.test(region);
   return region.startsWith(country);
 }
 
@@ -94,6 +103,8 @@ export function enrCatalogue() {
     RJ: ["JP", "Nhật Bản"], RC: ["TW", "Đài Loan"], VL: ["LA", "Lào"],
     WI: ["ID", "Indonesia"], WA: ["ID", "Indonesia"],
     UA: ["KZ", "Kazakhstan"], LK: ["CZ", "Cộng hoà Séc"],
+    UH: ["RU", "Nga"], UL: ["RU", "Nga"], UN: ["RU", "Nga"], UR: ["RU", "Nga"],
+    US: ["RU", "Nga"], UU: ["RU", "Nga"], UW: ["RU", "Nga"],
   };
   return [...new Set([...Object.keys(RINGS), ...Object.keys(AREAS)])].sort().flatMap(id => {
     const geoms = enrGeoms(id);

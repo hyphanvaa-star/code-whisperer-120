@@ -2845,7 +2845,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.67')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.68')
     .replace('</body>', () => `<style>
 .ma-ctl button{background:var(--x-card,#fff);color:var(--x-ink,#222);border:0;padding:6px 10px;font:700 12px/1.2 system-ui;cursor:pointer}
 .ma-panel{position:fixed;right:18px;top:90px;z-index:4000;width:380px;max-height:80vh;overflow:auto;background:var(--x-card,#fff);color:var(--x-ink,#222);border:1px solid var(--x-line,#ccc);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.25);padding:12px;font:13px/1.4 system-ui}
