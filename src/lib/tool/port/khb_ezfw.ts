@@ -42,6 +42,16 @@ export function pickEzfwSector(sectors: EzfwSector[], crew: EzfwCrew, now: Date)
   return first;
 }
 
+/** FliteBrief-only pick: flight number + STD inside −6/+24 h; the OFP content check does the rest. */
+export function pickEzfwByFlight(sectors: EzfwSector[], flt: string, now: Date): EzfwSector {
+  const hits = sectors.filter(f => [f.callsign, f.fltno || '', f.commercial_fltno || ''].some(cs => digits(cs) === digits(flt))
+    && !!f.std && inOpsWindow(f.std, now)).sort((a, b) => a.std!.getTime() - b.std!.getTime());
+  const first = hits[0];
+  if (!first) throw new Error('FliteBrief chưa có chuyến này trong khung −6/+24 giờ.');
+  if (hits[1]?.std?.getTime() === first.std?.getTime()) throw new Error('Có sector trùng giờ — chưa xác định duy nhất chuyến.');
+  return first;
+}
+
 /** Validate the actual PDF, not merely the portal's sector label. */
 export function cutVerifiedEzfw(text: string, sector: EzfwSector): { name: string; text: string }[] {
   if (!sector.std) throw new Error('Chuyến thiếu STD.');

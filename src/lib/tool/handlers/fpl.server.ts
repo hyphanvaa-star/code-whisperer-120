@@ -16,7 +16,7 @@ import { exportPayloadItems } from '../port/fpl_payload';
 import { rawOmniPay } from '../port/khb_payload';
 import { crewChangeMatches } from '../port/khb_crew_sync';
 import { jobId } from '../jobs';
-import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
+import { cutVerifiedEzfw, pickEzfwByFlight, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
 import { parseOpsDate, sameOpsDay, selectOperationalFlight, validateOperationalAtc } from '../port/operational_flight';
 export { parseOpsDate, sameOpsDay } from '../port/operational_flight';
 
@@ -581,8 +581,6 @@ export const jobs: Jobs = {
     let ok = 0, failed = 0;
     try {
       if (!wants.length) throw new Error('Chưa nhập chuyến.');
-      const db = await loadDb(ctx);
-      if (!db) throw new Error(NO_CREWLIST);
       const pc = await import('../pcagent.server');
       if (!pc.agentOnline(await pc.agentInfo(ctx))) throw new Error('Trợ lý PC chưa kết nối.');
       const { loadFlights } = await import('../core/gantts.server');
@@ -590,21 +588,9 @@ export const jobs: Jobs = {
       const sectors = await loadFlights(3, true);
       const now = new Date();
       for (const want of wants) {
-        emit({ type: 'line', text: `VJC${want}: đang đối chiếu KHB và OFP…` });
+        emit({ type: 'line', text: `VJC${want}: đang tìm OFP trên FliteBrief…` });
         try {
-          const rows = db.flights.filter(f => String(f.flt || '').replace(/\D/g, '').replace(/^0+/, '') === want);
-          if (!rows.length) throw new Error('Không có trong Crewlist KHB đang nạp.');
-          const matches: EzfwSector[] = [];
-          let reason = '';
-          for (const row of rows) {
-            try {
-              matches.push(pickEzfwSector(sectors, { flt: want, reg: String(row.reg || ''), dep: String(row.dep || ''), arr: String(row.arr || ''), day: parseOpsDate(row.date) }, now));
-            } catch (e) { reason = (e as Error).message; }
-          }
-          matches.sort((a, b) => (a.std?.getTime() ?? Infinity) - (b.std?.getTime() ?? Infinity));
-          const sector = matches[0];
-          if (!sector) throw new Error(reason || 'Không xác định được chuyến.');
-          if (matches[1]?.std?.getTime() === sector.std?.getTime()) throw new Error('Crewlist có chuyến trùng — không tự chọn.');
+          const sector = pickEzfwByFlight(sectors, want, now);
           let text = '';
           for (const path of [`/webapi/sectors/${sector.id}/ofp/0`, `/webapi/sectors/${sector.id}/ofp`]) {
             const res = await fbGet(path, 'application/pdf');

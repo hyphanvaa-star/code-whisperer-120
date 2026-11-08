@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import atc from './fixtures/ATC_VJC7527.txt?raw';
 import ezfw from './fixtures/EZFW_VJC7527.txt?raw';
-import { cutVerifiedEzfw, pickEzfwSector, type EzfwSector } from '../khb_ezfw';
+import { cutVerifiedEzfw, pickEzfwByFlight, pickEzfwSector, type EzfwSector } from '../khb_ezfw';
 
 const sector: EzfwSector = { id: 7527, callsign: 'VJC7527', std: new Date('2026-10-20T18:10:00Z'), reg: 'VN-A629', dep_icao: 'ZGGG', dep_iata: 'CAN', dest_icao: 'VVNB', dest_iata: 'HAN' };
 const now = new Date('2026-10-20T14:48:00Z');
@@ -43,5 +43,13 @@ describe('KHB ATC/EZFW', () => {
   });
   it('rejects equal earliest schedules rather than picking randomly', () => {
     expect(() => pickEzfwSector([sector, { ...sector, id: 9 }], crew, now)).toThrow('trùng giờ');
+  });
+});
+describe('pickEzfwByFlight', () => {
+  it('finds the sector by flight number alone, ignoring Crewlist date/aircraft', () => {
+    expect(pickEzfwByFlight([sector], '7527', now).id).toBe(7527);
+  });
+  it('rejects sectors outside minus 6 plus 24 hours', () => {
+    expect(() => pickEzfwByFlight([sector], '7527', new Date('2026-10-21T00:10:01Z'))).toThrow();
   });
 });
