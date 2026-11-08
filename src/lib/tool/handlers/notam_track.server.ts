@@ -3,7 +3,7 @@ import { q } from "../types";
 import type { Flight } from "../core/models";
 import { loadFlights, applyFilters, findOperationalFlightById, OPS_LOOKUP_DAYS } from "../core/gantts.server";
 import { fbJson } from "../../flitebrief.server";
-import { normIcao, apply24h, placeFromPayload } from "../port/notam_check";
+import { normIcao, apply24h, placeFromPayload, dedupeAirportFirNotams } from "../port/notam_check";
 import { run, runDomesticFleet, flightAirfields, type Place, type Track } from "../port/notam_track";
 import { flightAirfields as tuneAirfields, locationsOf } from "../port/notam_check_tune";
 import { setNotamProgress } from "./notam.server";
@@ -238,7 +238,7 @@ async function fetchPlacesFor(flights: Flight[], ofpText = "", ofpTexts: Record<
     }
   }
   const firPlaces = await Promise.all([...firCodes].map((code) => fetchPlace(code, "FIR")));
-  return [...places, ...firPlaces].map(p => ({ ...p, uses: usesByCode.get(String(p.code)) || [] }));
+  return dedupeAirportFirNotams([...places, ...firPlaces].map(p => ({ ...p, uses: usesByCode.get(String(p.code)) || [] })));
 }
 
 async function fetchTrack(flight: Flight): Promise<{ track: Track; error: string }> {

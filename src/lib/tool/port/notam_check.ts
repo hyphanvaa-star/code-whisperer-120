@@ -202,6 +202,73 @@ export function apply24h(place: Record<string, unknown>, now: Date = new Date())
   return { ...place, notams_all: rows.length, notams: kept, notam_count: kept.length };
 }
 
+// Q-subject groups: airspace/ATM/warnings/GNSS belong to the FIR; movement area,
+// lighting, facilities, ILS/navaids and procedures belong to the aerodrome.
+const FIR_SUBJECT = /^[ARWG]/;
+const APT_SUBJECT = /^[MLFINP]/;
+
+function qSubjectOf(notam: Record<string, unknown>): string {
+  const own = String(notam.qsubj ?? "").toUpperCase();
+  if (/^[A-Z]{2}$/.test(own)) return own;
+  const m = /\/Q([A-Z]{2})[A-Z]{2}\//.exec(String(notam.text ?? ""));
+  return m ? m[1]! : "";
+}
+
+/** Which group should own a NOTAM listed under both an airport and a FIR. */
+export function notamHomeKind(notam: Record<string, unknown>): "A" | "FIR" {
+  const subj = qSubjectOf(notam);
+  if (FIR_SUBJECT.test(subj)) return "FIR";
+  if (APT_SUBJECT.test(subj)) return "A";
+  const scope = String(notam.scope ?? "").toUpperCase();
+  if (scope && !scope.includes("A")) return "FIR";
+  return "A";
+}
+
+function notamIdentity(notam: Record<string, unknown>): string {
+  const id = String(notam.ident ?? "").trim().toUpperCase();
+  if (!id) return "";
+  const body = String(notam.e_field ?? "").replace(/\s+/g, " ").trim().toUpperCase();
+  return `${id}\t${body}`;
+}
+
+/**
+ * FliteBrief lists the same NOTAM under an airport and a FIR when they share an ICAO
+ * code (UNNT, UHHH…). Keep exactly one copy — airspace NOTAMs under the FIR, aerodrome
+ * NOTAMs under the airport — so counts, hits and map labels are not doubled.
+ */
+export function dedupeAirportFirNotams<T extends Record<string, unknown>>(places: T[]): T[] {
+  const owners = new Map<string, { a: number[]; f: number[] }>();
+  places.forEach((place, pi) => {
+    const kind = String(place.kind ?? "").toUpperCase();
+    if (kind !== "A" && kind !== "FIR") return;
+    for (const notam of (place.notams as Record<string, unknown>[] | undefined) ?? []) {
+      const key = notam && typeof notam === "object" ? notamIdentity(notam) : "";
+      if (!key) continue;
+      const slot = owners.get(key) ?? { a: [], f: [] };
+      (kind === "FIR" ? slot.f : slot.a).push(pi);
+      owners.set(key, slot);
+    }
+  });
+  const drop = new Map<number, Set<string>>();
+  for (const [key, slot] of owners) {
+    if (!slot.a.length || !slot.f.length) continue;
+    const sample = ((places[slot.a[0]!]!.notams as Record<string, unknown>[]) ?? []).find((n) => notamIdentity(n) === key)!;
+    const loser = notamHomeKind(sample) === "FIR" ? slot.a : slot.f;
+    for (const pi of loser) {
+      const set = drop.get(pi) ?? new Set<string>();
+      set.add(key);
+      drop.set(pi, set);
+    }
+  }
+  if (!drop.size) return places;
+  return places.map((place, pi) => {
+    const keys = drop.get(pi);
+    if (!keys) return place;
+    const kept = ((place.notams as Record<string, unknown>[] | undefined) ?? []).filter((n) => !keys.has(notamIdentity(n)));
+    return { ...place, notams: kept, notam_count: kept.length };
+  });
+}
+
 export function placeFromPayload(code: string, payloadIn: Record<string, unknown> | unknown[], want = ""): Record<string, unknown> {
   // FliteBrief /webapi/icaos/<icao> trả về mảng [ {airfields, firs, ...} ].
   const payload = (Array.isArray(payloadIn) ? (payloadIn[0] ?? {}) : (payloadIn ?? {})) as Record<string, unknown>;
