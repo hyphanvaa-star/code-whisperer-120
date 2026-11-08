@@ -33,6 +33,37 @@ export async function cmpBatchRun(
   return out;
 }
 
+export interface VerifyProbe { job: boolean; busy: boolean; done: boolean; ended: boolean }
+
+/**
+ * Wait for one quick-verify click to really finish: first until the job has
+ * started (or the click already resolved/failed), then until the job ends.
+ * Checking right after the click raced the /api/verify/run request and
+ * reported a still-running verify as failed.
+ */
+export async function cmpVerifyWait(
+  probe: () => VerifyProbe,
+  sleep: (ms: number) => Promise<void>,
+  startMs = 120000,
+  runMs = 900000,
+  stepMs = 300,
+): Promise<boolean> {
+  const t0 = Date.now();
+  for (;;) {
+    const p = probe();
+    if (p.job || p.done || p.ended || !p.busy) break;
+    if (Date.now() - t0 > startMs) return false;
+    await sleep(stepMs);
+  }
+  const t1 = Date.now();
+  for (;;) {
+    const p = probe();
+    if (!p.job) return p.done || p.ended;
+    if (Date.now() - t1 > runMs) return false;
+    await sleep(stepMs);
+  }
+}
+
 const CSS = `
 html body table.cmptbl thead tr th button.cmp-batch-btn.cmp-batch-btn{display:block;margin:3px auto 0;padding:1px 7px!important;border-radius:6px;border:1px solid #fff!important;background:#fff!important;color:#e31937!important;-webkit-text-fill-color:#e31937!important;font-size:10px!important;line-height:16px!important;min-height:0!important;height:auto!important;font-weight:800;letter-spacing:0;cursor:pointer;white-space:nowrap;text-transform:none}
 html body table.cmptbl thead tr th button.cmp-batch-btn.cmp-batch-btn:disabled{opacity:.35;cursor:default}
@@ -55,6 +86,7 @@ const SCRIPT = String.raw`
 (function(){
   const cmpBatchPick = __PICK__;
   const cmpBatchRun = __RUN__;
+  const cmpVerifyWait = __VWAIT__;
   const COLS = [
     {key:"crew", head:/^CREW\b/, name:"Đổi crew", sel:'td[data-crew-sid] .cmp-sync-action:not(.synced):not(:disabled)', sidAttr:"crewSid"},
     {key:"fpl", head:/^REG FPL/, name:"Đổi tàu (FPL)", sel:'td[data-fpl-reg-sid] .cmp-sync-action:not(.synced):not(:disabled)', sidAttr:"fplRegSid"},
@@ -130,10 +162,29 @@ const SCRIPT = String.raw`
       return {ok: btn.classList.contains("done")};
     }
     if(col.key === "verify"){
-      btn.click(); await wait(50);
-      await until(() => typeof vfCmpJob === "undefined" || !vfCmpJob);
+      if(typeof vfCmpJob !== "undefined" && vfCmpJob) await until(() => !vfCmpJob);
+      const ow = window.write, fails = [];
+      let ended = null;
+      window.write = function(text, cls){
+        const t = String(text || "");
+        if(/^■ verify /.test(t)) ended = !/ lỗi\b/.test(t);
+        else if(cls === "fail" || /^✗/.test(t)) fails.push(t.replace(/^✗\s*/, ""));
+        return ow.apply(this, arguments);
+      };
+      let ok = false;
+      try{
+        btn.click();
+        ok = await cmpVerifyWait(() => ({
+          job: typeof vfCmpJob !== "undefined" && !!vfCmpJob,
+          busy: btn.isConnected && (btn.disabled || btn.textContent === "…"),
+          done: btn.classList.contains("done"),
+          ended: ended === true,
+        }), wait);
+      }finally{ window.write = ow; }
       await wait(200);
-      return {ok: btn.classList.contains("done")};
+      if(ended === false) ok = false;
+      const note = ok ? "" : (fails.slice(-3).join(" · ") || (ended === false ? "FliteBrief báo lỗi khi verify" : "Không thấy kết quả verify"));
+      return {ok, note};
     }
     if(col.key === "msg"){
       const td = btn.closest("td"), menu = td && td.querySelector("select.cmp-message-select");
@@ -215,6 +266,7 @@ export function patchCmpBatchPage(html: string): string {
   const js = SCRIPT
     .replace('__PICK__', () => cmpBatchPick.toString())
     .replace('__RUN__', () => cmpBatchRun.toString())
+    .replace('__VWAIT__', () => cmpVerifyWait.toString())
     .replace('__CSS__', () => CSS);
   const idx = html.lastIndexOf('</body>');
   const tag = '<script id="cmpBatchScript">' + js + '</script>';
