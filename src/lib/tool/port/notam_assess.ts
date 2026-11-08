@@ -62,6 +62,8 @@ export interface Assessment {
   earliest_impact_delay_minutes: number | null;
   match_type: string;
   reasons: string[];
+  /** Airspace/activity NOTAM whose boundary could not be resolved (no coords, or refers elsewhere). */
+  unidentified_area?: boolean;
 }
 
 const MIN = 60_000;
@@ -73,6 +75,13 @@ const eOf = (n: Notam) => String(n.e_field || n.text || "").toUpperCase();
 const PROHIBIT = /\b(PROHIBITED|NOT AVBL|NOT AVAILABLE|U\/S|UNSERVICEABLE|CLSD|CLOSED|SUSPENDED|WITHDRAWN|NOT AUTH(?:ORI[SZ]ED)?|DO NOT USE|NOT USABLE|NOT TO BE USED|SHALL NOT|RESTRICTED TO)\b/;
 const RWY_CLSD = /\bRWY\s*\d{2}[LCR]?(?:\/\d{2}[LCR]?)?\s+(?:CLSD|CLOSED)\b/;
 const AD_CLSD = /\b(AD|AERODROME|AIRPORT)\s+(?:CLSD|CLOSED)\b/;
+/** Safety-critical content: soft rules (comms, navaid, lights, admin…) never decide these alone. */
+const HARD_AIRSPACE = /\b(?:RESTRICTED|PROHIBITED|DANGER)\s+(?:AREA|ZONE|AIRSPACE)S?\b|\b(?:TRA|TSA|TIBA|MOA)\b|\bMIL(?:ITARY)?\s+(?:EXER\w*|ACT\w*|OPS|TRG|FLYING)\b|\b(?:FIRING|GUNFIRE|ROCKET|MISSILE|LAUNCH|SPACE\s+DEBRIS|LIVE\s+FIRE)\b|\bAIRSPACE\s+(?:CLSD|CLOSED|RESTRICTED|ACT\w*)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{2,4}[A-Z]?\s+(?:ACT\w*|ACTIVE)\b/;
+const HARD_ROUTE = /\b(?:ATS\s+)?(?:RTE|ROUTE|AWY|AIRWAY)S?\b[^]*\b(?:CLSD|CLOSED|NOT\s+AVBL|SUSPENDED|UNAVBL)\b|\b(?:CLSD|CLOSED)\b[^]*\b(?:ATS\s+)?(?:RTE|ROUTE|AWY|AIRWAY)S?\b/;
+const REFERS_ELSEWHERE = /\b(?:REF(?:ER)?\s+(?:TO\s+)?(?:AIP|SUP|MAP|CHART|DAH|AIC|HTTP)|SEE\s+(?:AIP|SUP|MAP|CHART|AIC|DAH)|AIP\s+SUP|HTTPS?:\/\/|WWW\.|SERVICE\s+VARIATION\s+MAP)/;
+export function hasHardContent(E: string): boolean {
+  return HARD_AIRSPACE.test(E) || HARD_ROUTE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E) || ALL_MOVE.test(E);
+}
 const ALL_MOVE = /\b(ALL\s+(TWY|TAXIWAYS|STANDS|APRONS?)|NO\s+TAXI\s+ROUTE|APRON\s+CLSD|APRON\s+CLOSED)\b/;
 
 // --------------------------------------------------------------------------- //
@@ -304,7 +313,7 @@ function airportHit(code: string, f: AssessFlight, type: string, reason: string,
   return { matched: true, type, reason, fl: 0, expStart: role === "ALT" ? f.eta : f.etd, expEnd: f.eta, briefing };
 }
 
-export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg): Spatial {
+export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg, hardOnly = false): Spatial {
   const E = eOf(n), B = blobOf(n);
   const role = f.roles[code];
   const isAirport = kind !== "FIR" && !!role;
@@ -371,7 +380,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     return no("ADVISORY-ROUTE", `Advisory route ${adr[1]} không phải đường đang bay.`);
   // 9 navaid in quotes
   const nav = [...E.matchAll(/'([A-Z]{2,3})'/g)].map((m) => m[1]!);
-  if (nav.length && /\b(VOR|DME|NDB|TACAN|VORTAC|LOC|GP)\b/.test(E) && !/\b(ATS\s+)?(RTE|ROUTE)S?\b[^]*\b(CLSD|CLOSED)\b|\b(CLSD|CLOSED)\b[^]*\bATS\s+(RTE|ROUTE)/.test(E)) {
+  if (!hardOnly && nav.length && /\b(VOR|DME|NDB|TACAN|VORTAC|LOC|GP)\b/.test(E) && !/\b(ATS\s+)?(RTE|ROUTE)S?\b[^]*\b(CLSD|CLOSED)\b|\b(CLSD|CLOSED)\b[^]*\bATS\s+(RTE|ROUTE)/.test(E)) {
     const hitNav = nav.find((x) => onRoute(f, x));
     if (!hitNav) return no("NAVAID", `Navaid ${nav.join(", ")} không có trên FPL/navlog.`);
     const ix = f.points.findIndex((p) => String(p.name ?? "").toUpperCase() === hitNav);
@@ -379,13 +388,13 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     return { matched: true, type: "NAVAID", reason: `Navaid ${hitNav} có trên route.`, fl: p ? Math.round(Number(p.fl_ft || 0) / 100) : null, at: pointTime(f, p) };
   }
   // 10 Jeppesen chart notice
-  if (/\bJEPPESEN\b|\bCHART\s+(CHANGE|NOTICE)/.test(E)) {
+  if (!hardOnly && /\bJEPPESEN\b|\bCHART\s+(CHANGE|NOTICE)/.test(E)) {
     const tok = [...E.matchAll(/\b([A-Z]{1,2}\d{1,4}|[A-Z]{5})\b/g)].map((m) => m[1]!).find((t) => onRoute(f, t));
     if (tok && prohibit) return unk("CHART-ROUTE-RESTRICTION", `Chart notice có hạn chế trên ${tok} của route.`);
     return { matched: true, type: "CHART-ROUTE-RESTRICTION", reason: "Jeppesen chart notice — thông tin briefing.", briefing: true };
   }
   // 11 RFFS
-  const rffs = /\b(RFFS|FIRE\s*FIGHTING|RESCUE AND FIRE)\b/.test(E) ? /\bCAT(?:EGORY)?\s*(\d{1,2})\b/.exec(E) : null;
+  const rffs = !hardOnly && /\b(RFFS|FIRE\s*FIGHTING|RESCUE AND FIRE)\b/.test(E) ? /\bCAT(?:EGORY)?\s*(\d{1,2})\b/.exec(E) : null;
   if (rffs) {
     if (!role) return no("RFFS", "Hạ cấp RFFS tại sân không thuộc chuyến.");
     const need = AC_RFFS[f.acType.toUpperCase()];
@@ -399,18 +408,18 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     return role ? unk("NAV-AID-AD", "ILS/GNSS xuống cấp tại sân của chuyến — cần kiểm tra approach.") : no("NAV-AID-AD", "ILS/GNSS tại sân khác.");
   }
   // 13 admin content
-  if (/\b(CHARGES?|FEES?|TEL\b|PHONE|NIL AIRAC|E-?MAIL)\b/.test(E) && !prohibit)
+  if (!hardOnly && /\b(CHARGES?|FEES?|TEL\b|PHONE|NIL AIRAC|E-?MAIL)\b/.test(E) && !prohibit)
     return no("ADMIN", "Nội dung phí/điện thoại/chart metadata/NIL AIRAC.");
   // 14 ADS-B / GNSS / FIR frequency
-  if (kind === "FIR" && /\b(ADS-B|ADSB|GNSS|GPS|FREQ|FREQUENCY|VHF|HF|CPDLC)\b/.test(E) && /\b(U\/S|OUTAGE|NOT AVBL|UNRELIABLE|INTERFERENCE)\b/.test(E)) {
+  if (!hardOnly && kind === "FIR" && /\b(ADS-B|ADSB|GNSS|GPS|FREQ|FREQUENCY|VHF|HF|CPDLC)\b/.test(E) && /\b(U\/S|OUTAGE|NOT AVBL|UNRELIABLE|INTERFERENCE)\b/.test(E)) {
     const fir = qfir || code;
     return f.firs[fir] ? { matched: true, type: "BRIEFING-INFO", reason: `${fir} nằm trên route — thông tin liên lạc/dẫn đường.`, briefing: true } : no("FIR-COM", `${fir} không nằm trên route.`);
   }
   // 15 radio check
-  if (/\bRADIO\s+CHECK\b/.test(E) && !/\b(U\/S|OUTAGE|CLSD|CLOSED)\b/.test(E))
+  if (!hardOnly && /\bRADIO\s+CHECK\b/.test(E) && !/\b(U\/S|OUTAGE|CLSD|CLOSED)\b/.test(E))
     return role ? brief("BRIEFING-INFO", "Radio check tại sân của chuyến.") : no("RADIO-CHECK", "Radio check tại sân khác.");
   // 16 airport briefing patterns
-  if (isAirport && /\b(BIRD|BIRDS|WIP|WORK IN PROGRESS|WORKS|ATIS|FRICTION|LGT|LIGHTS?|LIGHTING|PAPI|APAPI|CRANE OPS|GRASS CUTTING)\b/.test(E)
+  if (!hardOnly && isAirport && /\b(BIRD|BIRDS|WIP|WORK IN PROGRESS|WORKS|ATIS|FRICTION|LGT|LIGHTS?|LIGHTING|PAPI|APAPI|CRANE OPS|GRASS CUTTING)\b/.test(E)
       && !RWY_CLSD.test(E) && !AD_CLSD.test(E) && !ALL_MOVE.test(E) && !(role === "ALT" || role === "RALT" ? prohibit && /WIP|WORK/.test(E) : false)
       && !/\b(OBST|OBSTACLE|CRANE)\b/.test(E))
     return brief("BRIEFING-INFO", "Chim/WIP/đèn/ATIS/friction không đóng đường băng — briefing.");
@@ -418,7 +427,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   if (isAirport && /\b(TWY|TAXIWAY|TAXILANE|TXL|STAND|STANDS|APRON|ACFT STANDS)\b/.test(E)) {
     if (ALL_MOVE.test(E) || AD_CLSD.test(E))
       return airportHit(code, f, "AIRPORT-MOVEMENT", "Đóng toàn bộ taxiway/apron/đường lăn — ảnh hưởng di chuyển trên sân.");
-    if (!RWY_CLSD.test(E)) return brief("BRIEFING-INFO", "Đóng một phần stand/apron/taxiway, sân còn đường khác — briefing.");
+    if (!hardOnly && !RWY_CLSD.test(E)) return brief("BRIEFING-INFO", "Đóng một phần stand/apron/taxiway, sân còn đường khác — briefing.");
   }
   // 18-22 geometry
   const isObst = /\b(OBST|OBSTACLE|CRANE|MAST|TOWER|POLE|CHIMNEY|ANTENNA|WIND TURBINE)\b/.test(E);
@@ -461,7 +470,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   if (role === "DEP" || role === "ARR" || role === "TALT") return airportHit(code, f, "AIRPORT", `NOTAM tại sân ${role} ${code}.`);
   if (role) return airportHit(code, f, "AIRPORT", `Đóng sân dự bị ${code}.`);
   // 25 named area without boundary
-  if (/\b(DANGER|RESTRICTED|PROHIBITED|TRA|TSA)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{1,4}[A-Z]?\b/.test(E) && /\b(AREA|ZONE|ACT|ACTIVE)\b/.test(E))
+  if (HARD_AIRSPACE.test(E) || REFERS_ELSEWHERE.test(E) || (/\b(DANGER|RESTRICTED|PROHIBITED|TRA|TSA)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{1,4}[A-Z]?\b/.test(E) && /\b(AREA|ZONE|ACT|ACTIVE)\b/.test(E)))
     return unk("NAMED-AIRSPACE", "Vùng có tên chưa có ranh giới trong catalog — không lấy tâm Q-line làm cả vùng.");
   // 26-27 centre only
   if (q) {
@@ -516,7 +525,6 @@ function notamBand(n: Notam): [number, number] | null {
 export function assessNotam(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg): Assessment {
   const reasons: string[] = [];
   const out = (level: Level, match_type: string, delay: number | null = null): Assessment => ({ level, earliest_impact_delay_minutes: delay, match_type, reasons });
-  const maxD = cfg.max_delay_minutes;
 
   // 0 parse errors
   const missing: string[] = [];
@@ -530,8 +538,31 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
   if (String(n.end ?? "").trim() && !perm && !c) missing.push("C");
   if (missing.length) { reasons.push(`Thiếu/không đọc được mục ${[...new Set(missing)].join("/")} — cần kiểm tra tay.`); return out("NEED MANUAL CHECK", "PARSE-ERROR"); }
 
+  const E = eOf(n);
+  const evalWith = (hardOnly: boolean): Assessment => assessSpatial(n, code, kind, f, cfg, b, c, spatialMatch(n, code, kind, f, cfg, hardOnly));
+  const soft = evalWith(false);
+  let res = soft;
+  if (hasHardContent(E)) {
+    // Read the whole NOTAM: a comms/navaid/lights sentence never hides a closure or restricted area.
+    const hard = evalWith(true);
+    if (LEVELS.indexOf(hard.level) < LEVELS.indexOf(soft.level)) {
+      res = { ...hard, reasons: [...hard.reasons, `Đã xét đủ nội dung: phần phụ (${soft.match_type}) chỉ là ${soft.level}, lấy mức cao nhất.`] };
+    }
+  }
+  const UNID = new Set(["NAMED-AIRSPACE", "CENTRE-ONLY", "AIP-SUP", "FIR-ONLY", "GEOMETRY"]);
+  const hasArea = HARD_AIRSPACE.test(E) || REFERS_ELSEWHERE.test(E) || res.match_type === "NAMED-AIRSPACE" || res.match_type === "AIP-SUP";
+  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && (hasArea || !notamGeoms(n).some((g) => g.shape !== "dot"))) {
+    res.unidentified_area = true;
+    if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
+  }
+  return res;
+}
+
+function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg, b: Date | null, c: Date | null, sp: Spatial): Assessment {
+  const reasons: string[] = [];
+  const out = (level: Level, match_type: string, delay: number | null = null): Assessment => ({ level, earliest_impact_delay_minutes: delay, match_type, reasons });
+  const maxD = cfg.max_delay_minutes;
   const qfir = normIcao(String(n.qfir ?? ""));
-  const sp = spatialMatch(n, code, kind, f, cfg);
   const pos: [number, number] | null = (() => { const q = qCoordsOf(n); return q ? [q[0], q[1]] : null; })();
 
   // 1 role window

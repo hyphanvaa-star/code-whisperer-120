@@ -5864,6 +5864,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
 
 .nm-grp-pill{cursor:pointer;font-size:14px;padding:6px 14px;border:2px solid transparent}.nm-grp-pill.on{border-color:currentColor;box-shadow:0 2px 8px rgba(0,0,0,.18);transform:scale(1.05)}
 </style>
+<style>.nm-unid{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;font:800 11px/1.5 system-ui;font-style:normal;background:#f59e0b;color:#111;border:1px solid #b45309;animation:nmUnidBlink 1s steps(2,start) infinite}@keyframes nmUnidBlink{50%{opacity:.25}}</style>
 </head>
 <body>
 <div id="matchaShop" aria-hidden="true">
@@ -14319,6 +14320,7 @@ function nmPaintList(place, q){
       tag.textContent = n.level + (n.level === "DELAY-ONLY" && n.impact_delay != null ? " · trễ ≥" + n.impact_delay + "′" : "")
         + (n.level === "BRIEFING INFO" ? "" : (n.match_type ? " · " + n.match_type : ""));
       lv.appendChild(tag);
+      if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; u.title = "Không xác định được vùng ảnh hưởng — cần xem NOTAM/tài liệu tham chiếu"; tag.appendChild(u); }
       const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || "");
       if(why){
         const r = document.createElement("span");
@@ -17109,6 +17111,7 @@ function nmApplyTune(pack, dropped, extra){
         patch.impact_delay = as.earliest_impact_delay_minutes;
         patch.match_type = as.match_type;
         patch.reasons = as.reasons || [];
+        patch.unidentified_area = !!as.unidentified_area;
       }
       if(as && as.level === "NO IMPACT" && critIds.has(ident)){
         patch.level = "CRITICAL"; patch.match_type = "TRACKING-HIT";
