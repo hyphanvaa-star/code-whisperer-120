@@ -5626,7 +5626,7 @@ html.night .aside-head .mode.on{
 }
 
 /* Check NOTAM toolbar: aviation dusk. Ẩn Lọc notam quốc nội. */
-#wrapNotam #nmTuneDom,#wrapNotam #nmCheck,#wrapNotam #nmGroups{display:none !important}
+#wrapNotam #nmTuneDom,#wrapNotam #nmGroups{display:none !important}
 html.night #wrapNotam .toolbar2,
 html.tint #wrapNotam .toolbar2,
 html.tint.night #wrapNotam .toolbar2,
@@ -6625,7 +6625,7 @@ html.night .nr-file-actions .btn,html.tint .nr-file-actions .btn{
           </select>
           <button class="btn t-go" id="nmCheck"
                   title="Mọi chuyến quốc nội của DSP −6h…+24h: tracking như chuyến quốc tế (FIR, RALT, KML), soi RWY đóng / ATS / SID-STAR, tóm tắt cả ca.">
-            Check NOTAM</button>
+            Check NOTAM quốc nội</button>
           <button class="btn t-go" id="nmGet"
                   title="Gõ ICAO sân bay / FIR — lấy NOTAM còn hiệu lực hoặc bắt đầu trong 24 giờ (cùng nút 24H trên Planning Portal).">
             Get NOTAM</button>
@@ -15590,7 +15590,7 @@ $("#nmCheck").onclick = async () => {
   }finally{
     clearInterval(poll);
     clearTimeout(hardStop);
-    btn.disabled = false; btn.textContent = "Check NOTAM";
+    btn.disabled = false; btn.textContent = "Check NOTAM quốc nội";
   }
 };
 if($("#nmSearch")) $("#nmSearch").oninput = nmRender;
