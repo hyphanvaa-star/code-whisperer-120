@@ -50,10 +50,21 @@ export function extraMinutesText(time: string | null | undefined): string {
   return min > 0 ? `${min}M` : "0";
 }
 
-/** "DISPATCHER PHAN THANH HY" line on the OFP → dispatcher name. */
+/**
+ * Dispatcher name printed on the OFP. Accepts "- DISPATCHER: PHAN THANH HY"
+ * and the crew line where PDF extraction glues it to the FO name
+ * ("FO 8763 IVAN LLODISPATCHER PHAN THANH HY"); checklist lines such as
+ * "-DISPATCHER BRIEFING ..../...." never count as a name.
+ */
 export function ofpDispatcher(text: string): string {
-  const m = /\bDISPATCHER[ \t]+([A-Z][A-Z .'-]*?)[ \t]*$/im.exec(text || "");
-  return m ? m[1]!.replace(/\s+/g, " ").trim() : "";
+  const re = /DISPATCHER[ \t]*:?[ \t]*([A-Z][A-Z .'-]*?)[ \t]*$/gim;
+  for (const m of (text || "").matchAll(re)) {
+    const name = m[1]!.replace(/\s+/g, " ").trim().toUpperCase();
+    if (!/[A-Z]{2}/.test(name) || /\.\./.test(name)) continue;
+    if (/^(BRIEFING|RELEASE|SIGNATURE|SIGN|NAME|LICENSE|LICENCE)\b/.test(name)) continue;
+    return name;
+  }
+  return "";
 }
 
 export function _extraText(extra: any): string {
