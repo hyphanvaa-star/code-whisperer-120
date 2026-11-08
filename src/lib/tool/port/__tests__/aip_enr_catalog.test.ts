@@ -5,8 +5,8 @@ import { notamGeoms } from "../notam_track";
 describe("bundled ENR catalog", () => {
   it("lists the same drawable areas by country without losing cross-FIR ownership", () => {
     const rows = enrCatalogue();
-    expect(rows).toHaveLength(701);
-    expect(new Set(rows.map(row => row.id)).size).toBe(701);
+    expect(rows).toHaveLength(1076);
+    expect(new Set(rows.map(row => row.id)).size).toBe(1076);
     expect(rows.find(row => row.id === "RPR72")?.countryCode).toBe("PH");
     expect(rows.find(row => row.id === "RJW181")?.countryCode).toBe("JP");
     expect(rows.find(row => row.id === "RCDONGSHA")?.countryCode).toBe("TW");
