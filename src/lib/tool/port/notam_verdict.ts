@@ -320,7 +320,7 @@ export function verdictOf(
         area: "",
       };
       const named =
-        tokens.size && awySegmentAffects(n, points, chart) ? ofpNamedHits(n, tokens) : [];
+        tokens.size && awySegmentAffects(n, points, chart) ? ofpNamedHits(n, tokens, points) : [];
       if (named.length) ofp.push({ ...base, tags: ["ofp"], area: named.join("/") });
       let sh = arr(n.sid_star_hits).filter((h) => !cs || str(h.cs).trim().toUpperCase() === cs);
       if (!sh.length && ofpText) {

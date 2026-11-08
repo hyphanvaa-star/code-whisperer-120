@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 5.70: ATS route trùng tên ở FIR khác (A464 Úc/Singapore) không còn cảnh báo nhầm; 5 kiểm thử mới đạt; publish.
+
 - [x] V 5.46: cập nhật và vẽ KHB trước đọc lịch sử Crewlist, lỗi lịch sử không chặn tàu mới; sửa giá trị tàu cũ đã lưu theo chứng cứ diff chính xác, giữ sửa tay khác; tái hiện lỗi trước/sau sửa, 27 kiểm thử đạt, thử bấm KHB trên mẫu trình duyệt đạt; chưa publish.
 - [ ] V 5.46: xác nhận đổi tab KHB trong phiên JACK — chưa có phiên khớp người yêu cầu; cần JACK đăng nhập preview.
 

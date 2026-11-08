@@ -986,7 +986,7 @@ export async function run(flight: Flight, deps: RunDeps) {
   const hits = compare(flight, places, track, ofpText);
   const points = track.points as unknown as Record<string, unknown>[];
   const tokens = new Set([...(buildTuneCtx(flight, ofpText).tokens as Set<string>), ...extraOfpTokens(points)]);
-  for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''));
+  for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''), points);
   stampSidStarHits(places, [flight], { [flight.id]: ofpText });
   const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart);
   stampOfpHeads(places, tokens, points);
@@ -1050,7 +1050,7 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
     const tokens = new Set([...(buildTuneCtx(flight, ofpText).tokens as Set<string>), ...extraOfpTokens(points)]);
     for (const token of tokens) fleetTokens.add(token);
     fleetPoints.push(...points);
-    for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''));
+    for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''), points);
     const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart);
     const row = {
       id: flight.id, cs: flight.callsign || "", dep: flight.dep_icao || "", dest: flight.dest_icao || "",

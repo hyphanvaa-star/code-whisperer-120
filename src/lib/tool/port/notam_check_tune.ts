@@ -27,6 +27,7 @@ import {
   type TrackPoint,
 } from "./notam_track";
 import { assessNotam, normAssessCfg, type AssessFlight, type Assessment, type Role } from "./notam_assess";
+import { routeNameRemote } from "./route_name_scope";
 
 // --------------------------------------------------------------------------- //
 // api/ofp.py text parsers (minimal subset needed by tune_places)
@@ -1091,7 +1092,7 @@ function isAtsRouteNotam(notam: N): boolean {
   return false;
 }
 
-export function ofpNamedHits(notam: N, tokens: Set<string>): string[] {
+export function ofpNamedHits(notam: N, tokens: Set<string>, points?: Array<Record<string, unknown>> | null): string[] {
   if (isTaxiwayNotam(notam)) return [];
   const known = new Set([...tokens].filter(Boolean).map((t) => String(t).toUpperCase()));
   if (!known.size) return [];
@@ -1107,7 +1108,8 @@ export function ofpNamedHits(notam: N, tokens: Set<string>): string[] {
     if (stem) skip.add(stem);
   }
   const union = new Set([...awys, ...fixes, ...navaids]);
-  return [...union].filter((x) => known.has(x) && !skip.has(x)).sort();
+  // Same route/fix name flown only far from this NOTAM's FIR/centre is a different route.
+  return [...union].filter((x) => known.has(x) && !skip.has(x) && !routeNameRemote(notam, x, points)).sort();
 }
 
 function atsRouteDropWhy(notam: N, ctx: TuneCtx): string {
@@ -1493,12 +1495,12 @@ function ofpHeadNote(hits: string[]): string {
   return "có dính tới " + hits.join("/") + "-OFP cần xem lại";
 }
 
-export function applyOfpHead(notam: N, tokens: Set<string>, icao = ""): string {
+export function applyOfpHead(notam: N, tokens: Set<string>, icao = "", points?: Array<Record<string, unknown>> | null): string {
   if (isTaxiwayNotam(notam)) {
     notam.ofp_hits = [];
     return String(notam.head_vi ?? "").trim() || headVi(notam, icao);
   }
-  const hits = ofpNamedHits(notam, tokens);
+  const hits = ofpNamedHits(notam, tokens, points);
   notam.ofp_hits = hits;
   const code = headCode(notam, icao);
   let base: string;
@@ -1519,7 +1521,7 @@ export function stampOfpHeads(places: N[], tokens: Set<string>, points?: Array<R
   for (const place of places || []) {
     const code = String(place.code ?? "");
     for (const notam of (place.notams as N[] | undefined) || []) {
-      if (notam && typeof notam === "object") applyOfpHead(notam, known, code);
+      if (notam && typeof notam === "object") applyOfpHead(notam, known, code, points);
     }
   }
   return known;
