@@ -1516,8 +1516,14 @@ header#mdRoom .hdr-switch-lab.r,header#mdRoom .theme-switch-lab.r{display:block 
    Giới hạn, Giao ca, Thiết lập file add, bản đồ NOTAM) dùng cỡ chữ lớn hơn,
    kể cả tên tab trên menu trái. */
 const FONTUP = `<style id="fontup-skin">
-.aside-head .mode,.modes .mode{font-size:15.5px !important;line-height:1.4 !important;font-weight:650 !important}
-.aside-head .mode#mFplText,.modes .mode#mFplText{font-size:14px !important}
+.aside-head .mode,.modes .mode{font-size:16.5px !important;line-height:1.4 !important;font-weight:650 !important}
+.aside-head .mode#mFplText,.modes .mode#mFplText{font-size:16.5px !important}
+/* Menu trái: chữ + icon to hơn, các tab giãn cách thoáng hơn. */
+.aside-head .modes{gap:7px !important}
+.aside-head{width:282px !important}
+.body{padding-left:294px !important}
+.aside-head .mode,.modes .mode{padding:12px 12px !important;gap:12px !important}
+.aside-head .mode::before,.modes .mode::before{width:22px !important;height:22px !important;-webkit-mask-size:22px !important;mask-size:22px !important;flex:0 0 22px !important}
 :is(#wrapGeneral,#wrapCompare,#wrapVer,#wrapFpl,#wrapTool,#wrapNotam,#wrapAtcCheck,#wrapLimits,#wrapHandover,#wrapNoticeRules,#wrapNmTrack){
   font-size:14px !important;
 }
@@ -2852,7 +2858,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.83')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.84')
     .replace('  const n = (place.notams || []).filter(x => nmMatchItem(x, q)).length;', '  const n = (place.notams_src || [...(place.notams || []), ...(place.dropped || [])]).filter(x => nmMatchItem(x, q)).length;')
     .replace('    nmPick = place.code;\n    nmShowDropped = false;', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;')
     .replace('</body>', () => `<style>
