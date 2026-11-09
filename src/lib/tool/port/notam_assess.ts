@@ -417,6 +417,34 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   if (kind !== "FIR" && (/\bILS\b.*\b(U\/S|DOWNGRADED|NOT AVBL|UNSERVICEABLE)\b/.test(E) || /\b(GNSS|GPS)\b.*\b(UNRELIABLE|U\/S|NOT AVBL|OUTAGE|INTERFERENCE|JAMMING)\b/.test(E))) {
     return role ? unk("NAV-AID-AD", "ILS/GNSS xuống cấp tại sân của chuyến — cần kiểm tra approach.") : no("NAV-AID-AD", "ILS/GNSS tại sân khác.");
   }
+  // 12b operational keyword catalogue (dispatcher list): feasibility items need a dispatcher, secondary items are briefing.
+  if (isAirport) {
+    if (/\b(TORA|TODA|ASDA|LDA|DECLARED\s+DIST\w*)\b/.test(E) && /\b(REDUCED|RESTRICTED|AVBL|AVAILABLE|CHANGED|DISPLACED)\b/.test(E))
+      return unk("PERFORMANCE", "Cự ly công bố (TORA/TODA/ASDA/LDA) thay đổi tại sân của chuyến — cần tính lại tải cất/hạ cánh.");
+    if (/\b(ETOPS|EDTO)\b/.test(E))
+      return unk("EDTO", "NOTAM nhắc ETOPS/EDTO tại sân của chuyến — kiểm tra sân dự bị đường dài.");
+    if (/\b(FUEL|JET\s*A-?1|REFUEL\w*)\b/.test(E)) {
+      if (/\b(NOT\s+AVBL|NOT\s+AVAILABLE|NIL|UNAVBL|SHORTAGE|U\/S|SUSPENDED)\b/.test(E) && !/\b(LIMITED|RESTRICTED|DELAY\w*|REDUCED)\b/.test(E))
+        return unk("FUEL", "Sân của chuyến không có nhiên liệu — cân nhắc tankering.");
+      if (!hardOnly) return brief("BRIEFING-INFO", "Giới hạn dịch vụ nhiên liệu tại sân của chuyến — briefing.");
+    }
+    if (/\b(CURFEW|OPR\s+HR|OPS\s+HR|OPERATING\s+HOURS?|HOURS\s+OF\s+OPERATION|AD\s+HR|AD\s+OPR)\b/.test(E))
+      return unk("AD-HOURS", "Giới hạn giờ hoạt động/curfew tại sân của chuyến — kiểm tra ETA/ETD khi delay.");
+    if (/\b(CAT\s*[DE]\b|CODE\s*[EF]\b|WINGSPAN|ACFT\s+TYPE|PBN|RNP\s*\d|CPDLC|ADS-?B|RVSM|NOISE)\b/.test(E) && /\b(NOT\s+AUTH\w*|PROHIBITED|NOT\s+PERMITTED|ONLY|REQUIRED|MANDATORY)\b/.test(E))
+      return unk("ACFT-CAPABILITY", "Yêu cầu/giới hạn năng lực tàu bay tại sân của chuyến — đối chiếu trang bị tàu.");
+    if (!hardOnly) {
+      if (/\b(NDB|LOCATOR|MARKER|OM|MM|IM|L\s+[A-Z]{2})\b/.test(E) && /\b(U\/S|NOT\s+AVBL|UNSERVICEABLE|OUT\s+OF\s+SERVICE)\b/.test(E))
+        return brief("BRIEFING-INFO", "Đài dẫn đường phụ (NDB/marker) hỏng — briefing.");
+      if (/\b(FREQ|FREQUENCY|TWR|APP|GND|ATIS|DEL)\b/.test(E) && /\b(CHANGED|CHG|REPLACED|NEW|TEMPO\w*)\b/.test(E) && !/\bU\/S\b/.test(E))
+        return brief("BRIEFING-INFO", "Đổi tần số ATC — briefing.");
+      if (/\b(ALS|APCH\s+LGT\w*|APPROACH\s+LIGHT\w*|VASIS?|PAPI|APAPI|SALS|REDL|RCLL|TDZ)\b/.test(E))
+        return brief("BRIEFING-INFO", "Đèn tiếp cận/PAPI/VASI không hoạt động một phần — briefing.");
+      if (/\b(CUSTOMS|IMMIGRATION|HANDLING|GND\s+SVC|SERVICES?|DE-?ICING|PAX\s+BRIDGE|AEROBRIDGE|BRIDGE)\b/.test(E) && /\b(REDUCED|LIMITED|NOT\s+AVBL|UNAVBL|U\/S|SUSPENDED|PPR)\b/.test(E))
+        return brief("BRIEFING-INFO", "Dịch vụ sân bay giảm — briefing.");
+      if (/\b(CONST\w*|CONSTRUCTION)\b/.test(E) && !RWY_CLSD.test(E) && !/\b(TORA|TODA|ASDA|LDA)\b/.test(E) && !/\b(OBST|OBSTACLE|CRANE)\b/.test(E))
+        return brief("BRIEFING-INFO", "Thi công gần đường băng, không đóng RWY — briefing.");
+    }
+  }
   // 13 admin content
   if (!hardOnly && /\b(CHARGES?|FEES?|TEL\b|PHONE|NIL AIRAC|E-?MAIL)\b/.test(E) && !prohibit)
     return no("ADMIN", "Nội dung phí/điện thoại/chart metadata/NIL AIRAC.");

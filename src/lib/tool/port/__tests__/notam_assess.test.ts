@@ -83,3 +83,27 @@ describe("listed ATS route closures (A5783/26 style)", () => {
     expect(r.level).toBe("NO IMPACT");
   });
 });
+
+describe("operational keyword catalogue", () => {
+  it("TORA reduced at DEP needs manual check", () => {
+    expect(run({ e_field: "RWY 25L TORA REDUCED TO 2100M" }).level).toBe("NEED MANUAL CHECK");
+  });
+  it("no fuel at DEP needs manual check", () => {
+    expect(run({ e_field: "JET A1 FUEL NOT AVBL" }).level).toBe("NEED MANUAL CHECK");
+  });
+  it("curfew at DEP needs manual check", () => {
+    expect(run({ e_field: "AD CURFEW 1600-2200 NO DEP" }).level).toBe("NEED MANUAL CHECK");
+  });
+  it("PAPI unavailable is briefing", () => {
+    expect(run({ e_field: "PAPI RWY 25L NOT AVBL" }).level).toBe("BRIEFING INFO");
+  });
+  it("NDB unserviceable is briefing", () => {
+    expect(run({ e_field: "LOCATOR NDB TS U/S" }).level).toBe("BRIEFING INFO");
+  });
+  it("frequency change is briefing", () => {
+    expect(run({ e_field: "TWR FREQ CHANGED TO 118.700" }).level).toBe("BRIEFING INFO");
+  });
+  it("runway closure is still critical", () => {
+    expect(run({ e_field: "RWY 07L/25R CLSD" }).level).toBe("CRITICAL");
+  });
+});
