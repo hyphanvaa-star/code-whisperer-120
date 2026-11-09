@@ -354,7 +354,12 @@ export const routes: Routes = {
       const curIx = cur ? files.findIndex((f) => f.file === cur.file) : -1;
       const newer = curIx >= 0 ? files[curIx]! : files[0];
       const older = files.slice((curIx >= 0 ? curIx : 0) + 1).find(Boolean);
-      if (newer && older) {
+      if (newer && older && String(older.file) === oldName && String(newer.file) === newName) {
+        // Compare already asked for exactly this Crewlist pair — reuse it instead of parsing both files again.
+        const { mergeCrewlistDiff } = await import("../port/crewlist_diff");
+        nCrewList = mergeCrewlistDiff(rows, res, res.newDays);
+        crewNote = `Đổi crew so crewlist ${older.file} → ${newer.file}`;
+      } else if (newer && older) {
         const a = await getFile(ctx, `${excelDir(ctx)}/${older.file}`);
         const b = await getFile(ctx, `${excelDir(ctx)}/${newer.file}`);
         if (a && b) {

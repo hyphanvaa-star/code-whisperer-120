@@ -15,7 +15,7 @@ describe('Compare source changes', () => {
     ];
     const calls: string[] = [];
     const context = {
-      cmpSyncSeq:0, cmpSyncSources:{stamp:''}, xls:{file:'crew-new.xlsx'}, lastCmp:{table:[]},
+      cmpSyncSeq:0, cmpSyncSources:{stamp:''}, cmpSyncDiffJob:null, async cmpSyncCheckMany() {}, xls:{file:'crew-new.xlsx'}, lastCmp:{table:[]},
       cmpFplPair:(rows: typeof files) => cmpFplPair(rows,now), URLSearchParams,
       cmpSyncRepaint() {}, cmpSyncEvidence() {}, cmpSourceHeaders() {},
       fetch:async (url: string) => {

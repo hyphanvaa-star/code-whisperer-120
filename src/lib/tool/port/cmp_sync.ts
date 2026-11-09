@@ -130,7 +130,8 @@ const cmpPilotChanges = ${cmpPilotChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
-let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0;
+let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0, cmpSyncDiffJob = null;
+const CMP_SYNC_CHUNK = 20;
 function cmpSourceTip(kind){
   if(kind === "fpl"){
     const file = cmpSyncSources.fplFile || "";
@@ -269,7 +270,25 @@ function cmpSyncIdentity(e){ return {sector_id:e.f.id,flt:e.f.callsign,date:new 
 async function cmpSyncCheck(e){
   const response = await fetch("/api/version/fbreg", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items:[cmpSyncIdentity(e)]})});
   const d = await response.json(), it = d.items && d.items[0];
-  if(!response.ok || d.error || !it || !it.found || String(it.sector_id) !== String(e.f.id)) throw new Error(d.error || (it && it.error) || "Không tìm thấy đúng chuyến/ngày/chặng.");
+  if(!response.ok || d.error) throw new Error(d.error || "Không tìm thấy đúng chuyến/ngày/chặng.");
+  return cmpSyncApply(e, it);
+}
+/** One fresh FliteBrief read per chunk for every changed flight on the current Compare table. */
+async function cmpSyncCheckMany(list, onChunk){
+  for(let i=0;i<list.length;i+=CMP_SYNC_CHUNK){
+    const chunk = list.slice(i,i+CMP_SYNC_CHUNK);
+    let d = null;
+    try{
+      const response = await fetch("/api/version/fbreg", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items:chunk.map(cmpSyncIdentity)})});
+      d = await response.json();
+      if(!response.ok || d.error) d = null;
+    }catch(_){ d = null; }
+    if(d) chunk.forEach((e,ix)=>{try{cmpSyncApply(e, d.items && d.items[ix]);}catch(_){/* unreadable never means matched */}});
+    if(onChunk && onChunk(chunk) === false) return;
+  }
+}
+function cmpSyncApply(e, it){
+  if(!it || !it.found || String(it.sector_id) !== String(e.f.id)) throw new Error((it && it.error) || "Không tìm thấy đúng chuyến/ngày/chặng.");
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   let ok, regOk = false, atchOk = false;
   if(e.kind === "crew"){
@@ -455,28 +474,33 @@ async function cmpReadSyncSources(){
     const pairs = {crew: ix>=0 && crews[ix+1] ? [crews[ix+1],crews[ix]] : [], fpl:cmpFplPair(files)};
     const stamp = JSON.stringify([current,pairs]);
     if(cmpSyncSources.stamp !== stamp){
-      const results = await Promise.all(["crew","fpl"].map(async kind=>{
-        if(pairs[kind].length!==2) return [];
-        const p = new URLSearchParams({old:pairs[kind][0].name,new:pairs[kind][1].name});
-        if(kind==="fpl") p.set("all","1");
-        const res = await fetch("/api/version/diff?"+p), diff = await res.json();
-        if(!res.ok || diff.error) throw new Error(diff.error || "Chưa đọc được phiên bản.");
-        return diff.rows || [];
-      }));
+      // Share one in-flight diff per source pair: an upload starts it, the table render reuses it.
+      let job = cmpSyncDiffJob && cmpSyncDiffJob.stamp === stamp ? cmpSyncDiffJob.promise : null;
+      if(!job){
+        job = Promise.all(["crew","fpl"].map(async kind=>{
+          if(pairs[kind].length!==2) return [];
+          const p = new URLSearchParams({old:pairs[kind][0].name,new:pairs[kind][1].name});
+          if(kind==="fpl") p.set("all","1");
+          const res = await fetch("/api/version/diff?"+p), diff = await res.json();
+          if(!res.ok || diff.error) throw new Error(diff.error || "Chưa đọc được phiên bản.");
+          return diff.rows || [];
+        }));
+        cmpSyncDiffJob = {stamp, promise: job};
+        job.catch(()=>{ if(cmpSyncDiffJob && cmpSyncDiffJob.promise === job) cmpSyncDiffJob = null; });
+      }
+      const results = await job;
+      if(cmpSyncSources.stamp !== stamp) cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl[0]?.name || "",fplFile:pairs.fpl[1]?.name || ""};
       if(seq!==cmpSyncSeq) return;
-      cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl[0]?.name || "",fplFile:pairs.fpl[1]?.name || ""};
     }
     cmpSourceHeaders();
+    // Only flights on the current Compare table (already filtered by the chosen DSP) are checked.
     const targets = ((lastCmp && lastCmp.table) || []).flatMap(r=>["crew","aims","fpl"].map(kind=>cmpSyncEvidence(r,kind)).filter(Boolean));
     if(typeof cmpRegRepaint === "function") cmpRegRepaint();
     cmpSyncRepaint();
-    for(let i=0;i<targets.length;i+=4){
-      if(seq!==cmpSyncSeq) return;
-      const batch = targets.slice(i,i+4);
-      await Promise.all(batch.map(async e=>{try{await cmpSyncCheck(e);}catch(_){/* unreadable never means matched */}}));
-      if(seq!==cmpSyncSeq) return;
-      cmpSyncRepaint([...new Set(batch.map(e=>cmpSyncRow(e.f.id)).filter(Boolean))]);
-    }
+    await cmpSyncCheckMany(targets, chunk=>{
+      if(seq!==cmpSyncSeq) return false;
+      cmpSyncRepaint([...new Set(chunk.map(e=>cmpSyncRow(e.f.id)).filter(Boolean))]);
+    });
   }catch(_){/* Source errors do not authorize a new action. */}
 }
 setInterval(()=>{if(!document.hidden && !cmpSyncBusy && document.querySelector("#cmpBody")?.offsetParent!==null) cmpReadSyncSources();},60000);
@@ -488,6 +512,8 @@ function renderCompareTable(d, opts){`)
     .replace('    head.appendChild(th);\n  }', '    head.appendChild(th);\n  }\n  cmpSourceHeaders();')
     .replace('  const cell = document.querySelector(\'#cmpBody td[data-cmp-brief-sid="\' + r.sector_id + \'"]\');', '  cmpSourceTipSet(td,"fpl");\n  const cell = document.querySelector(\'#cmpBody td[data-cmp-brief-sid="\' + r.sector_id + \'"]\');')
     .replace('  cmpOpsRepaint(rows);', '  cmpReadSyncSources();\n  cmpOpsRepaint(rows);')
+    // Start the Crewlist diff as soon as the upload is saved, in parallel with the Compare read.
+    .replace('    lastCmp = null; xlsData = null;\n    await acLoadRegContext();', '    lastCmp = null; xlsData = null;\n    if(typeof cmpReadSyncSources === "function") cmpReadSyncSources();\n    await acLoadRegContext();')
     .replace('function vReqCell(r){', 'function vReqCell(r, onReqDone){')
     .replace('    const box = document.getElementById("ftDspBox");\n    const dsp = ((box && box.value) || r.dsp || "").trim();', '')
     .replace('date: r.day_new || "", dsp: dsp,', 'date: r.day_new || "",')
