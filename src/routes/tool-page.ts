@@ -2112,6 +2112,45 @@ html.night #wrapFplText .fttbl tbody tr:nth-child(even) td{background:#1e2430}
 html.night #wrapFplText .fttbl tbody tr:hover td{background:#2a2230}
 </style>`;
 
+/* Bảng Hiển thị chung + Công cụ hỗ trợ: cùng phong cách thẻ với bảng KHB
+   (khung bo góc, đầu bảng đỏ chuyển sắc, dòng cao, sọc rất nhạt, hover hồng).
+   Màu trạng thái dòng (done/fail/pending, dòng đang chọn) giữ nguyên. */
+const TABLE_MODERN = `<style id="table-modern">
+#wrapTool > .tbl-wrap,#wrapTool .tbl-wrap:has(> table.tooltbl){margin:12px 14px 14px !important;border:1px solid #E2E8F0 !important;border-radius:14px !important;
+  background:#fff !important;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px -12px rgba(15,23,42,.18) !important;overflow:auto !important}
+#wrapGeneral.tbl-wrap{border:1px solid #E2E8F0 !important;border-radius:14px !important;background:#fff !important;
+  box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px -12px rgba(15,23,42,.18) !important;overflow:auto !important}
+:is(#wrapGeneral table.gtable,#wrapTool table.tooltbl) thead th{
+  font-size:12.5px !important;font-weight:700 !important;letter-spacing:.05em !important;padding:13px 10px !important;
+  background:#D7102B !important;background-image:linear-gradient(180deg,#E31937 0%,#C70F28 100%) !important;
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  border:0 !important;border-right:1px solid rgba(255,255,255,.10) !important;border-bottom:0 !important;vertical-align:middle !important}
+:is(#wrapGeneral table.gtable,#wrapTool table.tooltbl) thead th:first-child{border-top-left-radius:13px !important}
+:is(#wrapGeneral table.gtable,#wrapTool table.tooltbl) thead th:last-child{border-top-right-radius:13px !important;border-right:0 !important}
+#wrapGeneral table.gtable{font-size:13.5px !important}
+#wrapGeneral table.gtable tbody td{padding:9px 10px !important;border-bottom:1px solid #EEF2F6 !important}
+#wrapGeneral table.gtable tbody td:first-child{font-weight:700 !important;color:#0F172A}
+#wrapGeneral table.gtable tbody tr{background:#fff}
+#wrapGeneral table.gtable tbody tr:nth-child(even){background:#F8FAFC}
+#wrapGeneral table.gtable tbody tr:hover{background:#FFF4F5;box-shadow:inset 3px 0 #E31937}
+#wrapTool table.tooltbl{font-size:14px !important}
+#wrapTool table.tooltbl tbody td{padding:7px 10px !important;border-bottom:1px solid #EEF2F6 !important;vertical-align:middle}
+#wrapTool table.tooltbl tbody td:first-child{color:#94A3B8;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+#wrapTool table.tooltbl tbody tr:not(.done):not(.fail):not(.pending){background:#fff}
+#wrapTool table.tooltbl tbody tr:nth-child(even):not(.done):not(.fail):not(.pending){background:#F8FAFC}
+#wrapTool table.tooltbl tbody tr:hover{background:#FFF4F5;box-shadow:inset 3px 0 #E31937}
+#wrapTool table.tooltbl input[type=text]{height:36px !important;font-size:14px !important;border-radius:9px !important;padding:0 10px !important;
+  border-color:#E2E8F0 !important;transition:border-color .15s,box-shadow .15s}
+#wrapTool table.tooltbl input[type=text]:hover{border-color:#CBD5E1 !important}
+#wrapTool table.tooltbl input[type=text]:focus{border-color:#E31937 !important;box-shadow:0 0 0 3px rgba(227,25,55,.12) !important}
+html.night #wrapTool .tbl-wrap,html.night #wrapGeneral.tbl-wrap{background:#1b1f27 !important;border-color:#3a4050 !important}
+html.night :is(#wrapGeneral table.gtable,#wrapTool table.tooltbl) tbody td{border-bottom-color:#2a303c !important}
+html.night #wrapGeneral table.gtable tbody td:first-child{color:#eeeae4}
+html.night #wrapGeneral table.gtable tbody tr,html.night #wrapTool table.tooltbl tbody tr:not(.done):not(.fail):not(.pending){background:#18181c}
+html.night #wrapGeneral table.gtable tbody tr:nth-child(even),html.night #wrapTool table.tooltbl tbody tr:nth-child(even):not(.done):not(.fail):not(.pending){background:#1e2430}
+html.night :is(#wrapGeneral table.gtable,#wrapTool table.tooltbl) tbody tr:hover{background:#2a2230}
+</style>`;
+
 const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 #wrapFplText .fttbl :is(th,td):nth-child(15){width:76px!important;min-width:76px;max-width:76px}
 #wrapFplText .fttbl :is(th,td):nth-child(16){width:100px!important;min-width:100px}
@@ -2137,7 +2176,7 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchCmpDspFastPage(patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))))
-    .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + KHB_TABLE_MODERN + '</head>')
+    .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + KHB_TABLE_MODERN + TABLE_MODERN + '</head>')
     .replace('el.textContent = (d.total != null ? d.total + " chuyến · " : "") + hm\n    + (d.added', 'el.title = "Payload EST (Omni) cập nhật lúc " + t.toLocaleString("vi-VN");\n  el.textContent = "EST cập nhật " + hm; void 0\n    + (d.added')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
@@ -2894,7 +2933,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.85')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.86')
     .replace('  const n = (place.notams || []).filter(x => nmMatchItem(x, q)).length;', '  const n = (place.notams_src || [...(place.notams || []), ...(place.dropped || [])]).filter(x => nmMatchItem(x, q)).length;')
     .replace('    nmPick = place.code;\n    nmShowDropped = false;', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;')
     .replace('</body>', () => `<style>
