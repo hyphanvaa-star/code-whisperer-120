@@ -18,7 +18,7 @@ export interface AssessCfg {
   dep_before: number; dep_after: number;
   arr_before: number; arr_after: number;
   talt_before: number; talt_after: number;
-  enrt_alt_after: number;
+  enrt_alt_before: number; enrt_alt_after: number;
   dest_alt_before: number; dest_alt_after: number;
   fir_before: number; fir_after: number;
   /** Altitude buffer (ft) widening the NOTAM F/G band on both sides. */
@@ -27,7 +27,7 @@ export interface AssessCfg {
 export const DEFAULT_ASSESS_CFG: AssessCfg = {
   corridor_nm: 15, max_delay_minutes: 180,
   dep_before: 60, dep_after: 60, arr_before: 60, arr_after: 60,
-  talt_before: 15, talt_after: 60, enrt_alt_after: 60,
+  talt_before: 15, talt_after: 60, enrt_alt_before: 60, enrt_alt_after: 60,
   dest_alt_before: 60, dest_alt_after: 60, fir_before: 60, fir_after: 60,
   alt_buffer_ft: 10000,
 };
@@ -50,6 +50,8 @@ export interface AssessFlight {
   etd: Date | null;
   eta: Date | null;
   roles: Record<string, Role>;
+  /** En-route alternate arrival range from the OFP ETP table (ETD + TIME TO ETP + TIME TO ALT). */
+  ralt_arr?: Record<string, [Date, Date]>;
   firs: Record<string, [Date, Date]>;
   points: TrackPoint[];
   tokens: Set<string>;
@@ -228,7 +230,12 @@ function roleWindow(role: Role, code: string, f: AssessFlight, c: AssessCfg): Wi
     case "ARR": return { kind: "ARR", ref: code, start: eta && add(eta, -c.arr_before), end: eta && add(eta, c.arr_after) };
     case "TALT": return { kind: "TALT", ref: code, start: etd && add(etd, -c.talt_before), end: etd && add(etd, c.talt_after) };
     // En-route alternate: diversion ETA unknown → earliest = ETD, latest = ETA.
-    case "RALT": return { kind: "ENRT_ALT", ref: code, start: etd, end: eta && add(eta, c.enrt_alt_after) };
+    case "RALT": {
+      // ETP table known: arrival at this alternate ± configured minutes.
+      const r = f.ralt_arr?.[code];
+      if (r) return { kind: "ENRT_ALT", ref: code, start: add(r[0], -c.enrt_alt_before), end: add(r[1], c.enrt_alt_after) };
+      return { kind: "ENRT_ALT", ref: code, start: etd, end: eta && add(eta, c.enrt_alt_after) };
+    }
     case "ALT": return { kind: "DEST_ALT", ref: code, start: eta && add(eta, -c.dest_alt_before), end: eta && add(eta, c.dest_alt_after) };
   }
 }
@@ -305,11 +312,13 @@ function evalSeg(f: AssessFlight, awy: string, a: string, b: string): Spatial {
   return { matched: false, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} không nằm trên route FPL.` };
 }
 
-function airportHit(code: string, f: AssessFlight, type: string, reason: string, briefing = false): Spatial {
+function airportHit(code: string, f: AssessFlight, type: string, reason: string, briefing = false, cfg: AssessCfg = DEFAULT_ASSESS_CFG): Spatial {
   const role = f.roles[code];
   if (role === "DEP") return { matched: true, type, reason, fl: 0, at: f.etd, briefing };
   if (role === "ARR") return { matched: true, type, reason, fl: 0, at: f.eta, briefing };
   if (role === "TALT") return { matched: true, type, reason, fl: 0, expStart: f.etd, expEnd: f.etd && add(f.etd, 60), briefing };
+  const r = role === "RALT" ? f.ralt_arr?.[code] : undefined;
+  if (r) return { matched: true, type, reason, fl: 0, expStart: add(r[0], -cfg.enrt_alt_before), expEnd: add(r[1], cfg.enrt_alt_after), briefing };
   return { matched: true, type, reason, fl: 0, expStart: role === "ALT" ? f.eta : f.etd, expEnd: f.eta, briefing };
 }
 
@@ -322,7 +331,8 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   const prohibit = PROHIBIT.test(E);
   const no = (type: string, reason: string): Spatial => ({ matched: false, type, reason });
   const unk = (type: string, reason: string): Spatial => ({ matched: null, type, reason });
-  const brief = (type: string, reason: string): Spatial => isAirport ? airportHit(code, f, type, reason, true) : { matched: true, type, reason, briefing: true };
+  const airportHitC = (c: string, ff: AssessFlight, type: string, reason: string, briefing = false) => airportHit(c, ff, type, reason, briefing, cfg);
+  const brief = (type: string, reason: string): Spatial => isAirport ? airportHitC(code, f, type, reason, true) : { matched: true, type, reason, briefing: true };
 
   // 1 helicopter
   if (/\bHEL(?:I|ICOPTER)?\b|\bHELICOPTER/.test(E) && /\b(ROUTE|TRAINING|TRG|CORRIDOR)\b/.test(E) && /\b(SUSPENDED|CLSD|CLOSED)\b/.test(E))
@@ -401,7 +411,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     if (!need) return unk("RFFS", `Chưa có hạng RFFS cho loại tàu ${f.acType || "?"}.`);
     const cat = +rffs[1]!;
     if (cat >= need) return brief("BRIEFING-INFO", `RFFS còn CAT ${cat} ≥ CAT ${need} của ${f.acType}.`);
-    return airportHit(code, f, "RFFS", `RFFS còn CAT ${cat} < CAT ${need} của ${f.acType}.`);
+    return airportHitC(code, f, "RFFS", `RFFS còn CAT ${cat} < CAT ${need} của ${f.acType}.`);
   }
   // 12 ILS / GNSS at airport
   if (kind !== "FIR" && (/\bILS\b.*\b(U\/S|DOWNGRADED|NOT AVBL|UNSERVICEABLE)\b/.test(E) || /\b(GNSS|GPS)\b.*\b(UNRELIABLE|U\/S|NOT AVBL|OUTAGE|INTERFERENCE|JAMMING)\b/.test(E))) {
@@ -426,7 +436,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   // 17 stand / apron / taxiway
   if (isAirport && /\b(TWY|TAXIWAY|TAXILANE|TXL|STAND|STANDS|APRON|ACFT STANDS)\b/.test(E)) {
     if (ALL_MOVE.test(E) || AD_CLSD.test(E))
-      return airportHit(code, f, "AIRPORT-MOVEMENT", "Đóng toàn bộ taxiway/apron/đường lăn — ảnh hưởng di chuyển trên sân.");
+      return airportHitC(code, f, "AIRPORT-MOVEMENT", "Đóng toàn bộ taxiway/apron/đường lăn — ảnh hưởng di chuyển trên sân.");
     if (!hardOnly && !RWY_CLSD.test(E)) return brief("BRIEFING-INFO", "Đóng một phần stand/apron/taxiway, sân còn đường khác — briefing.");
   }
   // 18-22 geometry
@@ -467,8 +477,8 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   // 23 scope A, centre, not our airport
   if (scope === "A" && q && !role) return no("AIRPORT-OTHER", "NOTAM sân không thuộc chuyến.");
   // 24 DEP/ARR/alternate match
-  if (role === "DEP" || role === "ARR" || role === "TALT") return airportHit(code, f, "AIRPORT", `NOTAM tại sân ${role} ${code}.`);
-  if (role) return airportHit(code, f, "AIRPORT", `Đóng sân dự bị ${code}.`);
+  if (role === "DEP" || role === "ARR" || role === "TALT") return airportHitC(code, f, "AIRPORT", `NOTAM tại sân ${role} ${code}.`);
+  if (role) return airportHitC(code, f, "AIRPORT", `Đóng sân dự bị ${code}.`);
   // 25 named area without boundary
   if (HARD_AIRSPACE.test(E) || REFERS_ELSEWHERE.test(E) || (/\b(DANGER|RESTRICTED|PROHIBITED|TRA|TSA)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{1,4}[A-Z]?\b/.test(E) && /\b(AREA|ZONE|ACT|ACTIVE)\b/.test(E)))
     return unk("NAMED-AIRSPACE", "Vùng có tên chưa có ranh giới trong catalog — không lấy tâm Q-line làm cả vùng.");

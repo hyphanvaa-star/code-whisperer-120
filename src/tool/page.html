@@ -17226,7 +17226,7 @@ async function nmRunTune(mode, btn, idleLabel){
 }
 const NM_ASSESS_KEY = "nm.assess.cfg";
 const NM_ASSESS_DEF = {corridor_nm:5, max_delay_minutes:180, dep_before:60, dep_after:60,
-  arr_before:60, arr_after:60, talt_before:15, talt_after:60, enrt_alt_after:60,
+  arr_before:60, arr_after:60, talt_before:15, talt_after:60, enrt_alt_before:60, enrt_alt_after:60,
   dest_alt_before:60, dest_alt_after:60, fir_before:60, fir_after:60, alt_buffer_ft:10000};
 function nmAssessCfg(){
   let v = {};
@@ -17243,7 +17243,7 @@ function nmAssessOpen(){
       ["Sân đi (DEP)", "dep_before", "dep_after", "ETD"],
       ["Sân đến (ARR)", "arr_before", "arr_after", "ETA"],
       ["Dự bị cất cánh (TALT)", "talt_before", "talt_after", "ETD"],
-      ["Dự bị đường bay (ENRT ALT)", "", "enrt_alt_after", "ETD → ETA"],
+      ["Dự bị đường bay (ENRT ALT)", "enrt_alt_before", "enrt_alt_after", "giờ đến sân theo ETP (ETD + ETP + ALT)"],
       ["Dự bị sân đến (DEST ALT)", "dest_alt_before", "dest_alt_after", "ETA"],
       ["FIR trên đường bay", "fir_before", "fir_after", "giờ vào → ra FIR"]
     ];

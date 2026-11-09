@@ -145,6 +145,25 @@ export function parseEetFirs(text: string): string[] {
   return uniqIcao(matchAll(ICAO4, blob).map((m) => m[0]));
 }
 
+/**
+ * OFP ETP table ("ETP VVTS/VVDN ... 00.29/00.25"): minutes after ETD at which the
+ * aircraft would land at each en-route alternate if diverting from that ETP
+ * (TIME TO ETP + TIME TO ALT). An airport in several ETP pairs keeps the
+ * earliest and latest arrival, covering the whole leg it protects.
+ */
+export function parseEtpAltTimes(text: string): Record<string, [number, number]> {
+  const out: Record<string, [number, number]> = {};
+  const re = /^[ \t]*ETP[ \t]+([A-Z]{4})\/([A-Z]{4})\b[^\n]*?\b(\d{1,2})\.(\d{2})\/(\d{1,2})\.(\d{2})[ \t]*$/gm;
+  for (const m of String(text || "").toUpperCase().matchAll(re)) {
+    const t = Number(m[3]) * 60 + Number(m[4]) + Number(m[5]) * 60 + Number(m[6]);
+    for (const code of [m[1]!, m[2]!]) {
+      const cur = out[code];
+      out[code] = cur ? [Math.min(cur[0], t), Math.max(cur[1], t)] : [t, t];
+    }
+  }
+  return out;
+}
+
 export function parseEetFirTimes(text: string): Array<[string, number]> {
   const block = extractFplBlock(text);
   let src = block || text || "";
@@ -1643,10 +1662,18 @@ export function tunePlaces(
   const roles: Record<string, Role> = {};
   for (const [code, role] of flightAirfields(flight, ofpText)) roles[code] = role as Role;
   const procs = [...ofpSidStarProcs(ofpText)];
+  const afEtd: Date | null = flight.etd || flight.std || null;
+  const raltArr: Record<string, [Date, Date]> = {};
+  if (afEtd) {
+    for (const [code, [a, b]] of Object.entries(parseEtpAltTimes(ofpText))) {
+      if (roles[code] === "RALT") raltArr[code] = [new Date(afEtd.getTime() + a * 60_000), new Date(afEtd.getTime() + b * 60_000)];
+    }
+  }
   const af: AssessFlight = {
-    etd: flight.etd || flight.std || null,
+    etd: afEtd,
     eta: flight.eta || flight.sta || null,
     roles,
+    ralt_arr: raltArr,
     firs: { ...(ctx.fir_win as Record<string, [Date, Date]>) },
     points: trackPoints as unknown as TrackPoint[],
     tokens,
