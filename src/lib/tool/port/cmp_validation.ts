@@ -215,7 +215,7 @@ function cmpAtcPaint(r){
   const eobt = cached && cached.eobt ? cached.eobt + "Z" : "";
   const plain = (label, v) => '<div class="cmp-tip-row s-tm"><span class="k">' + label + '</span><b>' + (v ? esc(v) : '—') + '</b></div>';
   td.dataset.ctip = '<div class="cmp-tip-h">✈ Số tàu</div>' + row("s-fb","FliteBrief",fb) + row("s-av","AviWeb",av) + row("s-cl","Crewlist",aims)
-    + '<div class="cmp-tip-h" style="margin-top:8px">🕒 Ngày · giờ (UTC)</div>' + plain("Ngày bay", dateTxt) + plain("STD FliteBrief", stdTxt) + plain("EOBT AviWeb", eobt)
+    + '<div class="cmp-tip-h" style="margin-top:8px">🕒 Ngày · giờ (UTC)</div>' + plain("Ngày bay", dateTxt) + plain("STD FliteBrief", stdTxt) + plain("DOF AviWeb", cached && cached.dof ? "DOF/" + cached.dof : "") + plain("EOBT AviWeb", eobt)
     + '<div class="cmp-tip-f' + (wrongReg ? ' bad' : '') + '">' + (wrongReg ? "Sai tàu: AviWeb ≠ " + esc(regIssues.join(", ")) : cached ? esc(cached.error || "Khớp · " + new Date(cached.time).toISOString().slice(11,16) + "Z") : "Bấm ATC check để đọc AviWeb") + '</div>';
   cmpTipEnsure();
   if(false) td.title = wrongReg ? "Sai tàu: AviWeb " + cached.reg + " ≠ " + regIssues.join(" ≠ ") : cached ? cached.error || "AviWeb · " + new Date(cached.time).toISOString() : "Bấm ATC check để đọc AviWeb";
@@ -251,10 +251,10 @@ function cmpTipEnsure(){
   tip.addEventListener("mouseleave", () => tip.classList.remove("on"));
   document.addEventListener("scroll", e => {if(!tip.contains(e.target)) tip.classList.remove("on");}, true);
 }
-function cmpAtcPut(f, status, error, reg, eobt){
+function cmpAtcPut(f, status, error, reg, eobt, dof){
   const key = cmpAtcKey(f), prev = cmpAtcCache.get(key);
   if(!status && prev && prev.status) cmpAtcCache.set(key, {...prev, time: Date.now(), error: ""});
-  else cmpAtcCache.set(key, {status, error, reg: reg || "", eobt: eobt || "", time: Date.now()});
+  else cmpAtcCache.set(key, {status, error, reg: reg || "", eobt: eobt || "", dof: dof || "", time: Date.now()});
 }
 function cmpAtcRepaint(){ for(const r of ((lastCmp && lastCmp.table) || [])) cmpAtcPaint(r); }
 let cmpAtcAutoPending = false;
@@ -298,7 +298,7 @@ async function cmpReadAtc(rows, quiet){
         const hits = (m.results || []).filter(result => String(result.callsign).toUpperCase() === f.callsign.toUpperCase());
         const result = hits.length === 1 ? hits[0] : null;
         const status = result ? cmpAtcStatus(result, f.callsign, acDofFromStd(f.std)) : "";
-        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", status && result ? result.reg : "", status && result ? result.flight_time : "");
+        cmpAtcPut(f, status, status ? "" : (result && result.error) || "Chưa có trạng thái đúng ngày/chặng trên AviWeb", status && result ? result.reg : "", status && result ? result.flight_time : "", result ? result.dof : "");
       }
       finish();
     };
