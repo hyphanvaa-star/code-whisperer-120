@@ -89,7 +89,7 @@ const SCRIPT = String.raw`
   const cmpVerifyWait = __VWAIT__;
   const COLS = [
     {key:"crew", head:/^CREW\b/, name:"Đổi crew", sel:'td[data-crew-sid] .cmp-sync-action:not(.synced):not(:disabled)', sidAttr:"crewSid"},
-    {key:"fpl", head:/^REG FPL/, name:"Đổi tàu (FPL)", sel:'td[data-fpl-reg-sid] .cmp-sync-action:not(.synced):not(:disabled)', sidAttr:"fplRegSid"},
+    
     {key:"aims", head:/^REG AIMS/, name:"Đổi tàu (AIMS)", sel:'td[data-reg-sid] .cmp-sync-action:not(.synced):not(:disabled)', sidAttr:"regSid"},
     {key:"req", head:/^CFP/, name:"Xuất REQ", sel:'td[data-w="cfp"] .cmp-cfp-req:not(:disabled)', sidAttr:"sid"},
     {key:"msg", head:/^ĐIỆN VĂN/, name:"Điện văn CHG/DLA", sel:'td[data-cmp-msg-sid] .cmp-msg-quick:not(:disabled)', sidAttr:"cmpMsgSid"},

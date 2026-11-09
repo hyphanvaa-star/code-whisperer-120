@@ -347,7 +347,10 @@ function cmpRegPaint(r){
     && v.ops_ok !== false && v.fb_std && f && new Date(v.fb_std).getTime() === new Date(f.std).getTime());
   const bound = cmpBind[String(r.sector_id)];
   const aims = ((bound && bound.reg) || r.reg_cmp || {}).excel;
-  const state = cmpRegState(reg, f && f.reg, aims, changes.length === 1);
+  // Crewlist/FPL diffs prove an aircraft change even after the OFP already carries the new REG.
+  const srcChg = !!f && typeof cmpSyncSources !== "undefined" && typeof cmpAircraftChange === "function"
+    && [cmpSyncSources.crew || [], cmpSyncSources.fpl || []].some(list => { const x = cmpSourceChange(list, f.id, f.std); return !!(x && cmpAircraftChange(x.reg)); });
+  const state = cmpRegState(reg, f && f.reg, aims, changes.length === 1 || srcChg);
   td.textContent = reg || "—";
   td.classList.toggle("cmp-fpl-match", state.same);
   td.classList.toggle("cmp-fpl-mismatch", !!reg && !!f && !state.same);

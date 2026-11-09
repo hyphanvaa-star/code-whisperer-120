@@ -327,6 +327,12 @@ function cmpSyncPaint(r, kind){
   cmpSyncWrapText(td);
   Array.from(td.children).forEach(el => {el.hidden = false;});
   const e = cmpSyncEvidence(r, kind);
+  if(kind === "fpl"){
+    // REG FPL only flags the change in red; the aircraft swap button lives in REG AIMS.
+    td.classList.toggle("cmp-fpl-mismatch", !!e);
+    if(e){ td.classList.remove("cmp-fpl-match"); td.dataset.tip = "FPL đổi tàu: " + e.row.reg.old + " → " + e.row.reg.new; }
+    return;
+  }
   if(!e) return;
   const checked = cmpSyncChecks.get(cmpSyncKey(e));
   const b = document.createElement("button"); b.type = "button";
