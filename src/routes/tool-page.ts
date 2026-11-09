@@ -2852,7 +2852,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.82')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.83')
     .replace('  const n = (place.notams || []).filter(x => nmMatchItem(x, q)).length;', '  const n = (place.notams_src || [...(place.notams || []), ...(place.dropped || [])]).filter(x => nmMatchItem(x, q)).length;')
     .replace('    nmPick = place.code;\n    nmShowDropped = false;', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;')
     .replace('</body>', () => `<style>
@@ -2971,7 +2971,10 @@ function nmHlKeys(root){
     .replace('  if(!t || !t.closest) return;\n  if(_tipHost', '  if(!t || !t.closest) return;\n  if(t.closest("#wrapGeneral td.taf-cell")) return;\n  if(_tipHost')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     ;
-  cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached))));
+  cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached))))
+    // Compare re-run button label: "Reload" (runs last so earlier patches still find "Cmp").
+    .replace('data-talk="so lại FliteBrief / OFP.">Cmp</button>', 'data-talk="so lại FliteBrief / OFP.">Reload</button>')
+    .replaceAll('btn.textContent = "Cmp";', 'btn.textContent = "Reload";');
   return cached;
 }
 
