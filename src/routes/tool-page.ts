@@ -30,6 +30,7 @@ import { patchKhbPayloadPage } from '@/lib/tool/port/khb_payload';
 import { patchKhbCrewSyncPage } from '@/lib/tool/port/khb_crew_sync';
 import { patchCmpValidationPage } from '@/lib/tool/port/cmp_validation';
 import { patchCmpBatchPage } from '@/lib/tool/port/cmp_batch';
+import { patchCmpDspFastPage } from '@/lib/tool/port/cmp_dsp_fast';
 import { patchKhbAirportHoverPage } from '@/lib/tool/port/khb_airport_hover';
 import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
 import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
@@ -2093,7 +2094,7 @@ const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
-  cached = patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw)))))))
+  cached = patchCmpDspFastPage(patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))))
     .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + '</head>')
     .replace('el.textContent = (d.total != null ? d.total + " chuyến · " : "") + hm\n    + (d.added', 'el.title = "Payload EST (Omni) cập nhật lúc " + t.toLocaleString("vi-VN");\n  el.textContent = "EST cập nhật " + hm; void 0\n    + (d.added')
     // The embedded source stays intact; account fixes belong in this shim.
@@ -2845,7 +2846,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.74')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.75')
     .replace('</body>', () => `<style>
 .ma-ctl button{background:var(--x-card,#fff);color:var(--x-ink,#222);border:0;padding:6px 10px;font:700 12px/1.2 system-ui;cursor:pointer}
 .ma-panel{position:fixed;right:18px;top:90px;z-index:4000;width:380px;max-height:80vh;overflow:auto;background:var(--x-card,#fff);color:var(--x-ink,#222);border:1px solid var(--x-line,#ccc);border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.25);padding:12px;font:13px/1.4 system-ui}
