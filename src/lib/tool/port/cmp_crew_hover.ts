@@ -55,12 +55,17 @@ function cmpRegHoverShow(ev, td){
   head.append(node("span","crew-hover-heading",data.kind === "fpl" ? "REG FPL" : "REG AIMS"));
   if(data.same !== null && data.same !== undefined)head.append(node("span","crew-hover-status" + (data.same ? "" : " mismatch"),data.same ? "✓ Khớp" : "≠ Lệch tàu"));
   el.append(head,node("div","crew-hover-file",cmpSourceTip(data.kind === "fpl" ? "fpl" : "crew")));
-  const grid=node("div","crew-hover-grid");
-  for(const [key,label,icon] of [["excel","Excel","▦"],["flite","FliteBrief","✈"]]){
+  const grid=node("div","crew-hover-grid three");
+  const sid=String(td.dataset.fplRegSid || td.dataset.regSid || "");
+  let pool=[];try{pool=typeof cmpFlightPool==="function"?cmpFlightPool():(typeof flights!=="undefined"?flights:[]);}catch(_){}
+  const fl=pool.find(x=>String(x.id)===sid);
+  const attCode=fl && fl.reg_atch ? "VN-A" + fl.reg_atch : "";
+  const vals={excel:data.excel,flite:data.flite,attach:attCode};
+  for(const [key,label,icon] of [["excel","Excel","▦"],["flite","FliteBrief","✈"],["attach","Attach","📎"]]){
     const section=node("section","crew-hover-source " + key);
     const title=node("div","crew-hover-source-head");title.append(node("span","crew-hover-source-icon",icon),node("strong","",label));section.append(title);
-    section.append(node("div","crew-hover-reg",data[key] || "—"));
-    section.append(node("div","crew-hover-reg-caption",key === "excel" ? data.kind === "fpl" ? "FPL VER" : "Crewlist AIMS" : "Tàu trên FliteBrief"));grid.append(section);
+    section.append(node("div","crew-hover-reg",vals[key] || "—"));
+    section.append(node("div","crew-hover-reg-caption",key === "excel" ? data.kind === "fpl" ? "FPL VER" : "Crewlist AIMS" : key === "flite" ? "Tàu trên FliteBrief" : (fl && fl.reg_atch_file) ? "File: " + fl.reg_atch_file : "Chưa attach file tàu"));grid.append(section);
   }
   el.append(grid);
   if(data.fallback)el.append(node("div","crew-hover-detail","Chưa đọc được tàu từ Excel FPL; ô đang hiển thị từ OFP FliteBrief: " + data.fallback));
@@ -98,6 +103,8 @@ function tipHover(ev){`)
 .crew-hover-status.mismatch{color:var(--crew-hover-danger);background:var(--crew-hover-danger-soft)}
 .crew-hover-file{font-size:.85em;color:var(--crew-hover-muted);margin:.5em 0 1em;overflow-wrap:anywhere}
 .crew-hover-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1em}
+.crew-hover-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.crew-hover-source.attach{--crew-source:var(--crew-hover-muted);--crew-source-soft:var(--crew-hover-line)}
 .crew-hover-source{min-width:0;--crew-source:var(--crew-hover-excel);--crew-source-soft:var(--crew-hover-excel-soft)}
 .crew-hover-source.flite{--crew-source:var(--crew-hover-flite);--crew-source-soft:var(--crew-hover-flite-soft)}
 .crew-hover-source-head{display:flex;align-items:center;gap:.45em;background:var(--crew-source-soft);color:var(--crew-source);padding:.6em .7em;border-radius:6px;border-top:3px solid var(--crew-source)}

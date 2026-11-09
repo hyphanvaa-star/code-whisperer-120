@@ -121,6 +121,8 @@ export function row(f: Flight, limits: LimitsData | null = EMPTY_LIMITS, attch: 
     crew_count: f.crew_count,
     attachment_count: f.attachment_count,
     pdf_count: f.pdf_attachments.length,
+    reg_atch: f.reg_attachment ? String(f.reg_attachment.reg_code || "") : "",
+    reg_atch_file: f.reg_attachment ? String(f.reg_attachment.original_filename || f.reg_attachment.title || "") : "",
     status: f.status,
     ofp_status: f.ofp_status,
     ofp_ack: ofpAckNeeded(f),
