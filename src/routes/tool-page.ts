@@ -2025,7 +2025,7 @@ const CMP_HEADER_SKIN = `<style id="cmp-header-skin">
 </style>`;
 
 const TOOL_HEADER_SKIN = `<style id="tool-header-skin">
-#wrapTool #tlAddBrief,#wrapTool #atPick,#wrapTool #mergePdfPick{display:none!important}
+#wrapTool #tlAddBrief,#wrapTool #mergePdfPick{display:none!important}
 #wrapTool .tool-row{display:flex!important;align-items:center;gap:10px;flex-wrap:nowrap;padding:8px 12px!important;margin:0 0 8px!important;
   background:#fff!important;border:1px solid #e2e8f0!important;border-radius:12px!important;
   box-shadow:0 1px 2px rgba(15,23,42,.05)!important;overflow-x:auto;scrollbar-width:thin}
