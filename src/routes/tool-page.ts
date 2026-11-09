@@ -2076,6 +2076,42 @@ const KHB_HEADER_SKIN = `<style id="khb-header-skin">
 #wrapFplText > .toolbar2 .ftdsp:focus-within{border-color:#E31937!important;box-shadow:0 0 0 3px rgba(227,25,55,.12)}
 </style>`;
 
+/* Bảng Tạo KHB: chữ/ô to hơn, khung thẻ bo góc, đầu bảng gọn, dòng thoáng.
+   Chỉ đổi kích thước/khung; màu cảnh báo của từng ô (đổi tàu, giới hạn, PLD…) giữ nguyên. */
+const KHB_TABLE_MODERN = `<style id="khb-table-modern">
+#wrapFplText > .tbl-wrap{margin:10px 14px 14px !important;border:1px solid #E2E8F0 !important;border-radius:14px !important;
+  background:#fff !important;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px -12px rgba(15,23,42,.18) !important;overflow:auto !important}
+#wrapFplText table.fttbl{width:2000px !important;font-size:14.5px !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(4){width:104px !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(5){width:108px !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(6){width:64px !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(7),#wrapFplText table.fttbl :is(th,td):nth-child(8){width:68px !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(9),#wrapFplText table.fttbl :is(th,td):nth-child(10),#wrapFplText table.fttbl :is(th,td):nth-child(11){width:76px !important}
+#wrapFplText table.fttbl thead th{
+  font-size:12.5px !important;font-weight:700 !important;letter-spacing:.05em !important;padding:13px 8px !important;
+  background:#D7102B !important;background-image:linear-gradient(180deg,#E31937 0%,#C70F28 100%) !important;
+  border:0 !important;border-right:1px solid rgba(255,255,255,.10) !important;border-bottom:0 !important;
+  vertical-align:middle !important;z-index:5 !important}
+#wrapFplText table.fttbl thead th:first-child{border-top-left-radius:13px !important}
+#wrapFplText table.fttbl thead th:last-child{border-top-right-radius:13px !important;border-right:0 !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(3){width:250px !important}
+#wrapFplText table.fttbl :is(th,td):nth-child(12),#wrapFplText table.fttbl :is(th,td):nth-child(13){width:215px !important}
+#wrapFplText table.fttbl tbody td{padding:7px 6px !important;border-bottom:1px solid #EEF2F6 !important;font-size:14.5px}
+#wrapFplText .fttbl tbody tr:nth-child(even) td{background:#F8FAFC}
+#wrapFplText .fttbl tbody tr:hover td{background:#FFF4F5}
+#wrapFplText table.fttbl input[type=text]{height:38px !important;line-height:38px !important;font-size:15px !important;
+  border-radius:9px !important;padding:0 8px !important;transition:border-color .15s,box-shadow .15s}
+#wrapFplText table.fttbl input[type=text]:hover{border-color:#CBD5E1}
+#wrapFplText table.fttbl input[type=checkbox]{width:20px !important;height:20px !important}
+#wrapFplText table.fttbl td.ftperf{font-size:13px !important;line-height:1.4 !important;padding-top:8px !important}
+#wrapFplText table.fttbl td.dimcell{color:#CBD5E1 !important}
+#wrapFplText .ft-pld-value{font-size:15px !important;line-height:22px !important}
+html.night #wrapFplText > .tbl-wrap{background:#1b1f27 !important;border-color:#3a4050 !important}
+html.night #wrapFplText table.fttbl tbody td{border-bottom-color:#2a303c !important}
+html.night #wrapFplText .fttbl tbody tr:nth-child(even) td{background:#1e2430}
+html.night #wrapFplText .fttbl tbody tr:hover td{background:#2a2230}
+</style>`;
+
 const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 #wrapFplText .fttbl :is(th,td):nth-child(15){width:76px!important;min-width:76px;max-width:76px}
 #wrapFplText .fttbl :is(th,td):nth-child(16){width:100px!important;min-width:100px}
@@ -2101,7 +2137,7 @@ async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchCmpDspFastPage(patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))))
-    .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + '</head>')
+    .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + KHB_TABLE_MODERN + '</head>')
     .replace('el.textContent = (d.total != null ? d.total + " chuyến · " : "") + hm\n    + (d.added', 'el.title = "Payload EST (Omni) cập nhật lúc " + t.toLocaleString("vi-VN");\n  el.textContent = "EST cập nhật " + hm; void 0\n    + (d.added')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
@@ -2858,7 +2894,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.84')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.85')
     .replace('  const n = (place.notams || []).filter(x => nmMatchItem(x, q)).length;', '  const n = (place.notams_src || [...(place.notams || []), ...(place.dropped || [])]).filter(x => nmMatchItem(x, q)).length;')
     .replace('    nmPick = place.code;\n    nmShowDropped = false;', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;')
     .replace('</body>', () => `<style>
