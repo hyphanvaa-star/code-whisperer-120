@@ -4,8 +4,13 @@ type ChangeRow = { sector_id?: unknown; fb_std?: unknown; ops_ok?: boolean; reg?
 export function cmpSourceChange(rows: ChangeRow[], id: unknown, std: unknown): ChangeRow | null {
   const time = new Date(String(std || '')).getTime();
   if (!Number.isFinite(time)) return null;
-  const hits = rows.filter(r => String(r.sector_id) === String(id) && new Date(String(r.fb_std || '')).getTime() === time);
-  return hits.length === 1 ? hits[0] ?? null : null;
+  const same = rows.filter(r => String(r.sector_id) === String(id));
+  const exact = same.filter(r => new Date(String(r.fb_std || '')).getTime() === time);
+  if (exact.length === 1) return exact[0] ?? null;
+  // A delay/CHG moves the FliteBrief STD after the diff was read; the sector ID stays the same.
+  // Accept the single change row of this sector when it is still within 24 h of the live STD.
+  const near = same.filter(r => Math.abs(new Date(String(r.fb_std || '')).getTime() - time) < 24 * 3600e3);
+  return exact.length === 0 && near.length === 1 ? near[0] ?? null : null;
 }
 
 export function cmpAircraftChange(reg: ChangeRow['reg']): boolean {
@@ -298,7 +303,8 @@ function cmpSyncApply(e, it){
     const want = (norm(e.row.reg.new).match(/(\\d{3})$/) || [])[1] || "";
     regOk = !!it.reg && norm(it.reg) === norm(e.row.reg.new);
     atchOk = !!want && String(it.reg_atch || "") === want;
-    ok = regOk && atchOk;
+    // Two layers: the frame follows the attached aircraft file; the text follows the OFP.
+    ok = atchOk;
   }
   cmpSyncChecks.set(cmpSyncKey(e), {ok, regOk, atchOk, file: String(it.reg_atch_file || "")});
   return ok;
@@ -328,6 +334,12 @@ function cmpSyncPaint(r, kind){
   if(ok && cmpAckHas("s|" + cmpSyncKey(e))) return;
   b.className = "regbtn cmp-sync-action" + (ok ? " synced" : "");
   b.textContent = kind === "crew" ? (ok ? "✓ Crew" : "↻ Crew") : (ok ? "✓ " : "⚠ ") + e.row.reg.new;
+  if(ok && kind !== "crew" && checked && !checked.regOk){
+    b.classList.add("cmp-reg-ofp-wait");
+    b.textContent = "";
+    const t = document.createElement("span"); t.className = "cmp-reg-ofp-old"; t.textContent = "⚠ " + e.row.reg.new;
+    b.append(t);
+  }
   if(!ok && kind !== "crew"){
     b.classList.add("cmp-wrong-ac");
     if(checked && checked.regOk){
@@ -459,7 +471,7 @@ async function cmpSyncOpen(r, kind){
     const job = await run.json(); if(!run.ok || job.error || !job.id) throw new Error(job.error || "Không gửi được thay đổi.");
     const complete = await ftStream(job.id); await cmpSyncCheck(e);
     if(!complete) throw new Error("Chưa cập nhật xong — xem nhật ký.");
-    if(!cmpSyncChecks.get(cmpSyncKey(e)).ok) alert("Đã xử lý; FliteBrief chưa khớp dữ liệu mới nên khung chưa chuyển xanh.");
+    if(!cmpSyncChecks.get(cmpSyncKey(e)).ok) alert(kind === "crew" ? "Đã xử lý; FliteBrief chưa khớp crew mới." : "Đã xử lý; file tàu trên FliteBrief chưa khớp tàu mới.");
   }catch(error){alert(error.message || "Không cập nhật được.");}
   finally{cmpSyncBusy=false;cmpSyncRepaint();}
 }
@@ -534,6 +546,8 @@ function renderCompareTable(d, opts){`)
 @keyframes cmpWrongAc{0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,.22),0 4px 12px rgba(185,28,28,.35)}50%{box-shadow:0 0 0 7px rgba(239,68,68,.08),0 4px 12px rgba(185,28,28,.35)}}
 @media (prefers-reduced-motion:reduce){.cmptbl .cmp-sync-action.cmp-wrong-ac{animation:none}}
 .cmptbl .cmp-sync-action.cmp-wrong-ac.cmp-reg-ofp-ok{background:var(--panel)!important;border:3px solid #dc2626!important;animation:none;box-shadow:0 0 0 3px rgba(239,68,68,.22)}
+.cmptbl .cmp-sync-action.synced.cmp-reg-ofp-wait{background:var(--panel)!important;border:3px solid #16a34a!important}
+.cmptbl .cmp-reg-ofp-wait .cmp-reg-ofp-old{color:#dc2626!important;-webkit-text-fill-color:#dc2626!important;font-weight:800}
 .cmptbl .cmp-reg-ofp-ok .cmp-reg-ofp-txt{color:#16a34a!important;-webkit-text-fill-color:#16a34a!important;font-weight:800}
 .cmptbl .cmp-sync-action.synced{border-radius:999px!important;border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
 .cmptbl .cmp-sync-action:disabled:not(.synced){opacity:.55;cursor:default}

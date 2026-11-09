@@ -99,3 +99,13 @@ describe('Compare source changes', () => {
     expect(vm.runInContext('cmpVerDetail()', noFiles)).toBe('');
   });
 });
+import { cmpSourceChange as pickDelayed } from '../cmp_sync';
+describe('Compare change after delay', () => {
+  const rows = [{ sector_id: 77, fb_std: '2026-11-09T15:25:00Z', reg: { changed: true, old: 'VN-A675', new: 'VN-A676' } }];
+  it('keeps the change when FliteBrief STD moved by a delay', () => {
+    expect(pickDelayed(rows, 77, '2026-11-09T16:40:00Z')).toBe(rows[0]);
+  });
+  it('rejects a sector more than 24 h away', () => {
+    expect(pickDelayed(rows, 77, '2026-11-11T16:40:00Z')).toBeNull();
+  });
+});
