@@ -271,15 +271,17 @@ async function cmpSyncCheck(e){
   const d = await response.json(), it = d.items && d.items[0];
   if(!response.ok || d.error || !it || !it.found || String(it.sector_id) !== String(e.f.id)) throw new Error(d.error || (it && it.error) || "Không tìm thấy đúng chuyến/ngày/chặng.");
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-  let ok;
+  let ok, regOk = false, atchOk = false;
   if(e.kind === "crew"){
     if(!e.changes.length || !it.crew_checked) throw new Error(it.crew_error || "Chưa đọc được mã/vai trò phi công — không gửi thay đổi.");
     ok = e.changes.every(c => (it.crew_changes || []).some(x => x.key === c.key && x.from === c.from && x.to === c.to && x.ok));
   }else{
     const want = (norm(e.row.reg.new).match(/(\\d{3})$/) || [])[1] || "";
-    ok = !!it.reg && norm(it.reg) === norm(e.row.reg.new) && !!want && String(it.reg_atch || "") === want;
+    regOk = !!it.reg && norm(it.reg) === norm(e.row.reg.new);
+    atchOk = !!want && String(it.reg_atch || "") === want;
+    ok = regOk && atchOk;
   }
-  cmpSyncChecks.set(cmpSyncKey(e), {ok, file: String(it.reg_atch_file || "")});
+  cmpSyncChecks.set(cmpSyncKey(e), {ok, regOk, atchOk, file: String(it.reg_atch_file || "")});
   return ok;
 }
 function cmpSyncWrapText(td){
@@ -307,10 +309,19 @@ function cmpSyncPaint(r, kind){
   if(ok && cmpAckHas("s|" + cmpSyncKey(e))) return;
   b.className = "regbtn cmp-sync-action" + (ok ? " synced" : "");
   b.textContent = kind === "crew" ? (ok ? "✓ Crew" : "↻ Crew") : (ok ? "✓ " : "⚠ ") + e.row.reg.new;
-  if(!ok && kind !== "crew") b.classList.add("cmp-wrong-ac");
+  if(!ok && kind !== "crew"){
+    b.classList.add("cmp-wrong-ac");
+    if(checked && checked.regOk){
+      b.classList.add("cmp-reg-ofp-ok");
+      b.textContent = "";
+      const t = document.createElement("span"); t.className = "cmp-reg-ofp-txt"; t.textContent = "✓ " + e.row.reg.new;
+      b.append(t);
+    }
+  }
   b.disabled = (!ok && cmpSyncBusy) || (kind === "crew" && !e.changes.length);
   b.setAttribute("aria-label", (kind === "crew" ? "Đổi crew " : "Đổi tàu ") + e.f.callsign + " theo " + (kind === "fpl" ? "FPL mới" : "Crewlist mới"));
   b.dataset.tip = (kind === "crew" ? String(e.row.crew.raw_old || "") + " → " + String(e.row.crew.raw_new || "") : e.row.reg.old + " → " + e.row.reg.new)
+    + (kind !== "crew" && checked && !ok && checked.regOk ? " · OFP đã đúng tàu mới" : "")
     + (kind !== "crew" && checked && !ok ? " · File tàu trên FliteBrief: " + (checked.file || "chưa có") + " — chưa khớp tàu mới" : "") + (ok ? " · Đã khớp file tàu FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
   if(ok) b.dataset.tip += " · Bấm để xác nhận đã biết";
   b.onclick = ev => {ev.stopPropagation(); if(ok){cmpAckAdd("s|" + cmpSyncKey(e)); cmpSyncPaint(r, kind); return;} cmpSyncOpen(r, kind);};
@@ -496,6 +507,8 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-sync-action.cmp-wrong-ac:hover{transform:translateY(-1px);box-shadow:0 0 0 4px rgba(239,68,68,.3),0 6px 16px rgba(185,28,28,.45)}
 @keyframes cmpWrongAc{0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,.22),0 4px 12px rgba(185,28,28,.35)}50%{box-shadow:0 0 0 7px rgba(239,68,68,.08),0 4px 12px rgba(185,28,28,.35)}}
 @media (prefers-reduced-motion:reduce){.cmptbl .cmp-sync-action.cmp-wrong-ac{animation:none}}
+.cmptbl .cmp-sync-action.cmp-wrong-ac.cmp-reg-ofp-ok{background:var(--panel)!important;border:3px solid #dc2626!important;animation:none;box-shadow:0 0 0 3px rgba(239,68,68,.22)}
+.cmptbl .cmp-reg-ofp-ok .cmp-reg-ofp-txt{color:#16a34a!important;-webkit-text-fill-color:#16a34a!important;font-weight:800}
 .cmptbl .cmp-sync-action.synced{border-radius:999px!important;border-color:var(--green)!important;background:var(--green)!important;color:var(--atc-on-color)!important;opacity:1}
 .cmptbl .cmp-sync-action:disabled:not(.synced){opacity:.55;cursor:default}
 .cmptbl .cmp-sync-action:focus-visible,.cmptbl .cmp-sync-pick:focus-visible{outline:2px solid var(--red);outline-offset:3px}
