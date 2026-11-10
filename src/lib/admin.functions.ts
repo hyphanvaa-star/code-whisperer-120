@@ -91,7 +91,7 @@ const idSchema = z.string().trim().min(2).max(60).regex(/^[a-z0-9._-]+$/i, "ID c
 export const createAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ username: idSchema, password: z.string().min(8).max(72), displayName: z.string().max(80).optional(), admin: z.boolean().optional() }).parse(d),
+    z.object({ username: idSchema, password: z.string().min(6).max(72), displayName: z.string().max(80).optional(), admin: z.boolean().optional() }).parse(d),
   )
   .handler(async ({ data, context }) => {
     await assertOwner(context.supabase, context.userId);
@@ -117,7 +117,7 @@ export const createAccount = createServerFn({ method: "POST" })
 
 export const resetAccountPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ userId: z.string().uuid(), password: z.string().min(8).max(72) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ userId: z.string().uuid(), password: z.string().min(6).max(72) }).parse(d))
   .handler(async ({ data, context }) => {
     await assertOwner(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

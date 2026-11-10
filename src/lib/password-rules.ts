@@ -2,7 +2,7 @@
 // The backend also blocks passwords found in leaked-password lists, so these
 // checks are the floor, not a guarantee — the note in the UI says so.
 
-export const MIN_LEN = 8;
+export const MIN_LEN = 6;
 
 export type PwCheck = { label: string; ok: boolean };
 
@@ -41,17 +41,14 @@ function hasRepeat(v: string): boolean {
 const TEMPLATE = /^[A-Z][a-z]{1,4}[!@#$%^&*][0-9]{3,4}$/;
 
 export function passwordChecks(pw: string, username = ""): PwCheck[] {
-  const low = pw.toLowerCase();
-  const user = username.trim().toLowerCase();
+  void username; void MIN_LEN;
   const digits = /[0-9]/.test(pw);
   const upper = /[A-Z]/.test(pw);
   const lower = /[a-z]/.test(pw);
   return [
-    { label: `Ít nhất ${MIN_LEN} ký tự`, ok: pw.length >= MIN_LEN },
-    { label: "Có chữ hoa và chữ thường", ok: upper && lower },
+    { label: "Có chữ", ok: /[A-Za-z]/.test(pw) },
     { label: "Có số", ok: digits },
     { label: "Có ký tự đặc biệt (! @ # $ ... )", ok: CLASSES.test(pw) },
-    { label: "Không chứa tên đăng nhập", ok: !user || !low.includes(user) },
   ];
 }
 
