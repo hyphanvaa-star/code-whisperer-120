@@ -64,3 +64,17 @@ describe('crew swap button without a usable Crewlist version diff', () => {
     expect(e?.changes).toEqual([{ key: 'cptText', from: '9515', to: '11332' }]);
   });
 });
+
+describe('crew loaded in background', () => {
+  it('VJ154: swap offered when crew arrived later in C_CACHE', () => {
+    const html = patchCmpSyncPage(readFileSync('src/tool/page.html', 'utf8'));
+    const start = html.indexOf('function cmpLiveChange(');
+    const src = html.slice(start, html.indexOf('function cmpSyncEvidence(', start));
+    const cell = { verdict: 'FALSE 1', same: false, excel: '-BUI ANH KHOA(CP+) 11332; -YIN KOK JING(FO) 9727',
+      flite: 'TRINH TRUNG CHUNG; YIN KOK JING', detail: 'Excel có mà FliteBrief không: 11332 · FliteBrief có mà Excel không: 9515' };
+    const ctx = vm.createContext({ cmpCellCrewChanges, xls: { file: 'AIMS.xlsx' }, cmpBind: {}, C_CACHE: { 154: cell },
+      cmpActionFlight: () => ({ id: 154, std: '2026-11-11T11:45:00Z' }), r: { sector_id: 154, crew: null } });
+    vm.runInContext(src, ctx);
+    expect(vm.runInContext('cmpLiveChange(r)', ctx)?.crewChanges).toEqual([{ key: 'cptText', from: '9515', to: '11332' }]);
+  });
+});

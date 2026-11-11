@@ -285,7 +285,8 @@ function cmpLiveChange(r){
   const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
   const reg = g && g.verdict && !g.same && norm(g.excel) && norm(g.flite) && norm(g.excel) !== norm(g.flite)
     ? {changed:true, old:String(g.flite).trim(), new:String(g.excel).trim()} : {changed:false, old:"", new:""};
-  const c = (bound && bound.crew && bound.crew.verdict) ? bound.crew : r.crew;
+  const cached = typeof C_CACHE === "object" && C_CACHE ? C_CACHE[r.sector_id] : null;
+  const c = (bound && bound.crew && bound.crew.verdict) ? bound.crew : (r.crew && r.crew.verdict ? r.crew : cached);
   const crewChanges = c && c.verdict && !c.same && c.excel ? cmpCellCrewChanges(c.excel, c.detail) : [];
   const crew = crewChanges.length ? {changed:true, live:true, raw_old:"FliteBrief: " + (c.flite || ""), raw_new:c.excel} : {changed:false};
   if(!reg.changed && !crew.changed) return null;
@@ -574,7 +575,7 @@ async function cmpReadSyncSources(){
 }
 setInterval(()=>{if(!document.hidden && !cmpSyncBusy && document.querySelector("#cmpBody")?.offsetParent!==null) cmpReadSyncSources();},60000);
 const cmpSyncFillCrew = fillCrewCell;
-fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=cmpSyncRow(td.dataset.crewSid);if(r)cmpSyncPaint(r,"crew");cmpSourceTipSet(td,"crew");return td;};
+fillCrewCell = function(...args){const td=cmpSyncFillCrew(...args);const r=cmpSyncRow(td.dataset.crewSid);if(r){cmpSyncPaint(r,"crew");cmpMsgPaint(r);if(typeof cmpReqPaint==="function")cmpReqPaint(r);}cmpSourceTipSet(td,"crew");return td;};
 const cmpSyncFillReg = fillRegCell;
 fillRegCell = function(...args){const td=cmpSyncFillReg(...args);const r=cmpSyncRow(td.dataset.regSid);if(r){cmpRegPaint(r);cmpSyncPaint(r,"aims");}cmpSourceTipSet(td,"crew");return td;};
 function renderCompareTable(d, opts){`)
