@@ -72,6 +72,7 @@ function toVars(st: Stored): Record<string, string> {
     for (const n of k.user) vars[n] = v.username;
     for (const n of k.pass) vars[n] = pw;
     if (kind === "outlook" && v.mailbox) vars["OUTLOOK_MAILBOX"] = v.mailbox;
+    if (kind === "aims" && v.mailbox) vars["AIMS_EMAIL"] = v.mailbox;
   }
   return vars;
 }

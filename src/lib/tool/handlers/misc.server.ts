@@ -186,7 +186,7 @@ export const routes: Routes = {
         accounts[kind] = {
           label: k.label,
           username: prefill ? envUser : "",
-          mailbox: kind === "outlook" ? (process.env["OUTLOOK_MAILBOX"] ?? "") : "",
+          mailbox: kind === "outlook" ? (process.env["OUTLOOK_MAILBOX"] ?? "") : kind === "aims" ? (process.env["AIMS_EMAIL"] ?? "") : "",
           has_password: Boolean(envUser && envPass),
           source: envUser && envPass ? "env" : "none",
           env_names: [k.user[0], k.pass[0]],
@@ -225,7 +225,7 @@ export const routes: Routes = {
       }
       return { error: "nhập mật khẩu để lưu tài khoản này" };
     }
-    stored[kind] = { username, password: encPw, ...(kind === "outlook" ? { mailbox: String(b["mailbox"] || "").trim().slice(0, 200), saved_at: Date.now() } : {}) };
+    stored[kind] = { username, password: encPw, ...(kind === "outlook" || kind === "aims" ? { mailbox: String(b["mailbox"] || "").trim().slice(0, 200), saved_at: Date.now() } : {}) };
     await saveStored(ctx.userId, stored, kind === "flitebrief");
     if (kind === "flitebrief" && password) {
       try {
@@ -241,7 +241,7 @@ export const routes: Routes = {
     if (kind === "aims" && password) {
       try {
         const { aimsLoginTest } = await import("../aims.server");
-        await runWithVars({ AIMS_USER: username, AIMS_PASS: password }, () => aimsLoginTest());
+        await runWithVars({ AIMS_USER: username, AIMS_PASS: password, AIMS_EMAIL: String(b["mailbox"] || "").trim() }, () => aimsLoginTest());
         return { ok: true, name: username };
       } catch (e) {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };

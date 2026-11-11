@@ -99,7 +99,7 @@ async function login(jar: Jar): Promise<void> {
   const html = await page.text();
   const tok = html.match(/name=["']?__RequestVerificationToken["']?\s+type=["']?hidden["']?\s+value=["']?([^"'\s>]+)/)?.[1];
   if (page.status !== 200 || !tok) throw new AimsError(`Không mở được trang đăng nhập AIMS (HTTP ${page.status}).`);
-  const body = new URLSearchParams({ u: user, p: pass, e: "", stationID: station, __RequestVerificationToken: tok }).toString();
+  const body = new URLSearchParams({ u: user, p: pass, e: credEnv("AIMS_EMAIL") || "", stationID: station, __RequestVerificationToken: tok }).toString();
   const res = await req(jar, "/AIMS/LoginW/LetMeIn", {
     method: "POST",
     body,

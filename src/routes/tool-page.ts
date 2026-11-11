@@ -1446,8 +1446,8 @@ header#mdRoom .md-field label::before,header#mdRoom .md-field label::after{displ
 /* --- Nút Refresh/TAF/Crew/Acc: hàng dưới của panel phải (neo theo header) --- */
 header#mdRoom .filt-actions{
   position:absolute !important;top:120px !important;right:.68% !important;bottom:auto !important;left:auto !important;
-  display:grid !important;grid-template-columns:repeat(4,1fr) !important;gap:7px !important;align-items:stretch !important;
-  width:16.6% !important;height:44px !important;flex:none !important;padding:4px !important;border:1px solid var(--ops-panel-line) !important;border-radius:8px !important;margin:0 !important;z-index:20 !important;background:var(--ops-panel) !important;box-shadow:var(--ops-panel-shadow) !important;backdrop-filter:blur(14px) saturate(1.15) !important;
+  display:grid !important;grid-template-columns:repeat(5,1fr) !important;gap:6px !important;align-items:stretch !important;
+  width:20.8% !important;height:44px !important;flex:none !important;padding:4px !important;border:1px solid var(--ops-panel-line) !important;border-radius:8px !important;margin:0 !important;z-index:20 !important;background:var(--ops-panel) !important;box-shadow:var(--ops-panel-shadow) !important;backdrop-filter:blur(14px) saturate(1.15) !important;
 }
 header#mdRoom .filt-actions .btn{
   height:100% !important;min-width:0 !important;padding:3px 2px !important;border:1px solid rgba(255,255,255,.96) !important;border-radius:9px !important;
@@ -2935,7 +2935,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.96')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.97')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
@@ -2946,6 +2946,8 @@ function nmRouteLayers(ids){
             <input type="text" id="acAimsUser" value="" autocomplete="off" spellcheck="false"></div>
           <div class="field"><label for="acAimsPass">Password</label>
             <input type="password" id="acAimsPass" placeholder="(giữ nguyên nếu để trống)"></div>
+          <div class="field"><label for="acAimsBox">Email AIMS</label>
+            <input type="email" id="acAimsBox" autocomplete="off" spellcheck="false" placeholder="ten@vietjetair.com" oninput="this.dataset.dirty=1"></div>
         </div>
         <div class="acfoot">
           <button class="btn primary small" id="acAimsSave">Lưu</button>
@@ -2957,6 +2959,8 @@ function nmRouteLayers(ids){
 </div>
 
 <div class="modal" id="nmPinModal">`)
+    .replace('if(kind === "outlook") body.mailbox = $("#acOutlookBox").value.trim();', 'if(kind === "outlook") body.mailbox = $("#acOutlookBox").value.trim();\n    if(kind === "aims") body.mailbox = $("#acAimsBox").value.trim();')
+    .replace('if(kind === "outlook" && info.mailbox) $("#acOutlookBox").value = info.mailbox;', 'if(kind === "outlook" && info.mailbox) $("#acOutlookBox").value = info.mailbox;\n      if(kind === "aims" && info.mailbox) $("#acAimsBox").value = info.mailbox;')
     .replace('$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");', '$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");\n$("#acAimsSave").onclick = () => acSave("aims", "Aims");')
     .replace('Aviweb:"aviweb",Opscore:"opscore"}[pf] || "";', 'Aviweb:"aviweb",Opscore:"opscore",Aims:"aims"}[pf] || "";')
     .replace('</body>', () => `<style>
