@@ -588,8 +588,9 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
     }
   }
   const UNID = new Set(["NAMED-AIRSPACE", "CENTRE-ONLY", "AIP-SUP", "FIR-ONLY", "GEOMETRY"]);
-  const hasArea = HARD_AIRSPACE.test(E) || REFERS_ELSEWHERE.test(E) || res.match_type === "NAMED-AIRSPACE" || res.match_type === "AIP-SUP";
-  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && (hasArea || !notamGeoms(n).some((g) => g.shape !== "dot"))) {
+  // Only a NOTAM whose area has no resolved boundary (text, AIP SUP/DAH or ENR catalogue) is unidentified.
+  const hasBoundary = notamGeoms(n).some((g) => g.shape !== "dot");
+  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary) {
     res.unidentified_area = true;
     if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
   }

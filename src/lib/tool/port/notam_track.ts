@@ -1,3 +1,4 @@
+import { enrIdsInText, enrGeoms } from "./aip_enr_catalog";
 import { parseEetFirTimes, flightAirfields as tuneAirfields } from "./notam_check_tune";
 import AIP_CATALOG from "./aip_catalog.json";
 // Port of notam_track.py — đối chiếu NOTAM 24H với track KML: toạ độ, FL, FIR, giờ.
@@ -375,7 +376,12 @@ export function notamGeoms(notam: Notam): Geom[] {
   const catBlob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
   const cat = catalogGeoms(catBlob);
   const own = notamGeomsText(notam);
-  const sup = [...cat, ...((notam.sup_geoms as Geom[] | undefined) ?? [])];
+  const attached = (notam.sup_geoms as Geom[] | undefined) ?? [];
+  // Named ENR 5.1 areas resolve from the bundled catalogue here too, so every caller
+  // (map, track filter) sees the same published boundary even without attached shapes.
+  const enr = enrIdsInText(catBlob, String(notam.qfir ?? "")).flatMap((id) => enrGeoms(id))
+    .filter((g) => !attached.some((x) => x.name === g.name));
+  const sup = [...cat, ...attached, ...enr];
   const blob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
   const ids = namedAreaIds(blob).concat([...blob.toUpperCase().matchAll(/\b((?:ITRA|LION|MOOSE|TIGER|EAGLE|EDIX)(?:-[A-Z0-9]+)+)\b/g)].map((m) => m[1]!));
   if (cat.length) return sup.filter((g, i) => sup.findIndex((x) => x.name === g.name) === i);
