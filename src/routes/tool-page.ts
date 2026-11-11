@@ -2935,7 +2935,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.03')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.04')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
@@ -3085,7 +3085,7 @@ function nmHlKeys(root){
     .replace('  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");', '  $("#ftAtcMiss").textContent = (d.missed || []).join(" · ");\n  $("#ftAtcMiss").style.cssText = /KHÔNG có giờ AviWeb/.test($("#ftAtcMiss").textContent) ? "color:#d10000;font-weight:800;font-size:14px" : "";')
     // Compare: NGÀY GIỜ -> NGÀY GIỜ CFP, plus a Crewlist STD/ETD column (ETD green).
     .replace('  ["NGÀY GIỜ", "Dòng trên:', '  ["NGÀY GIỜ CFP", "Dòng trên:')
-    .replace('  ["CREW", "So theo mã nhân viên.', '  ["STD/ETD", "Giờ local theo Crewlist. Chỉ có STD thì hiện STD; có ETD mới thì hiện cả STD và ETD, ETD màu xanh lá."],\n  ["CREW", "So theo mã nhân viên.')
+    .replace('  ["CREW", "So theo mã nhân viên.', '  ["STD/ETD", "Giờ local theo Crewlist. Chỉ có STD thì hiện STD; có ETD mới thì hiện cả STD và ETD, ETD màu xanh lá."],\n  ["TAF", "Như bảng Hiển thị chung: TAF sân đáp trong ETA ±1 giờ."],\n  ["EXTRA", "Extra fuel OFP: giờ:phút · kg."],\n  ["CREW", "So theo mã nhân viên.')
     .replace('    tr.appendChild(timeCell(r));\n', `    tr.appendChild(timeCell(r));
     { const sx = document.createElement("td");
       if(r.crew_etd && r.crew_std && r.crew_etd !== r.crew_std){
@@ -3105,6 +3105,12 @@ function nmHlKeys(root){
         sx.appendChild(v);
       }
       tr.appendChild(sx); }
+    { const fx = (typeof cmpActionFlight === "function" && cmpActionFlight(r)) || null;
+      const tt = document.createElement("td"); tt.className = "taf-cell";
+      const xt = document.createElement("td"); xt.className = "num extra-cell";
+      if(fx){ try{ paintTafWx(tt, fx); }catch(_){ tt.textContent = "—"; } try{ paintExtra(xt, fx); }catch(_){ xt.textContent = "—"; } }
+      else { tt.textContent = "—"; xt.textContent = "—"; }
+      tr.appendChild(tt); tr.appendChild(xt); }
 `)
     // General-table weather belongs to the whole cell, not just its small icon.
     // Read current flight data on entry and distinguish missing TAF from good WX.

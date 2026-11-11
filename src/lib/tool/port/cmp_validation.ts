@@ -525,7 +525,7 @@ function cmpToHandover(){
 }
 function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
-.cmptbl :is(th,td):nth-child(12),.cmptbl :is(th,td):nth-child(n+16):nth-child(-n+20){display:none!important}
+.cmptbl :is(th,td):nth-child(14),.cmptbl :is(th,td):nth-child(n+18):nth-child(-n+22){display:none!important}
 .mode#mHandover{display:none!important}
 #wrapHandover.ho-pop{position:fixed;inset:3vh 2vw;z-index:10001;border-radius:12px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.45)}
 #hoPopBack{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55)}
@@ -537,15 +537,15 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-vst.none{background:#e5e7eb;color:#6b7280}
 .cmptbl .cmp-vic{margin-left:4px;font-size:14px;vertical-align:middle}
 .cmptbl .cmp-ops-status .vd{font-size:10px;line-height:1.2;padding:2px 5px;white-space:nowrap}
-.cmptbl .cmp-note-cell{min-width:100px;max-width:220px;white-space:normal;overflow-wrap:anywhere}
-.cmp-note-input{display:block;width:160px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
+.cmptbl .cmp-note-cell{min-width:80px;max-width:180px;white-space:normal;overflow-wrap:anywhere}
+.cmp-note-input{display:block;width:122px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
 .cmp-message-select{width:110px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px}
-.cmptbl td[data-w="val"]{min-width:150px;font-size:12px;line-height:1.35}
+.cmptbl td[data-w="val"]{min-width:74px;max-width:90px;white-space:normal;font-size:12px;line-height:1.35}
 .cmptbl .cmp-val-head{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;background:#e5e7eb;color:#374151}
 .cmptbl td[data-val="good"] .cmp-val-head{background:#16a34a;color:#fff}
 .cmptbl td[data-val="warn"] .cmp-val-head{background:#facc15;color:#422006}
 .cmptbl td[data-val="bad"] .cmp-val-head{background:#dc2626;color:#fff}
-.cmptbl .cmp-val-line{margin-top:3px;font-weight:600;white-space:nowrap}
+.cmptbl .cmp-val-line{margin-top:3px;font-weight:600;white-space:normal;font-size:11px}
 .cmptbl .cmp-val-line.warn{color:#a16207}.cmptbl .cmp-val-line.bad{color:#dc2626}
 .cmptbl td.cmp-fpl-match,.cmptbl td.cmp-fpl-match *{color:var(--green)!important;font-weight:800}
 .cmptbl td.cmp-fpl-mismatch,.cmptbl td.cmp-fpl-mismatch *{color:var(--red)!important}

@@ -277,3 +277,4 @@
 - [x] KHB: đưa cột PCR T/O lên trước, cột RMK xuống cuối (bảng tool + trang KHB), badge V 2.94, 18 kiểm thử đạt, build OK, chưa publish
 - [x] Verify tam giác đỏ: bỏ nút ✔ ở bảng hiển thị, đưa về cột VERIFY của tab Dữ liệu so sánh (bấm là verify, xong lên xanh), badge V 3.19, chưa publish
 - [x] Briefing: 4 dòng LOW EGT, bỏ tiền tố FM: ở defect
+- [x] Compare: cột TAF + EXTRA sau STD; Validation -2cm, Note -1cm
