@@ -9,7 +9,7 @@ export function patchAccountMemoryPage(html: string): string {
 }
 
 export const ACCOUNT_MEMORY_SCRIPT = `
-const AC_FIELDS = [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"],["opscore","Opscore"]];
+const AC_FIELDS = [["flitebrief","Fb"],["omni","Omni"],["outlook","Outlook"],["owa","Owa"],["aviweb","Aviweb"],["opscore","Opscore"],["aims","Aims"]];
 let acRevision = 0;
 let acOwner = "";
 let acMetadata = {};

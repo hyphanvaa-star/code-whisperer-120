@@ -1,0 +1,1 @@
+ALTER TABLE public.user_credentials ADD COLUMN IF NOT EXISTS aims_cookies text NOT NULL DEFAULT '';

@@ -17,6 +17,7 @@ import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import manualAreaScript from '@/tool/manual-area.js?raw';
+import aimsCrewlistScript from '@/tool/aims-crewlist.js?raw';
 import { maParse, maBand, maCheck } from '@/lib/tool/port/manual_area';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
 import { auDahCatalogue } from '@/lib/tool/port/au_dah_catalog';
@@ -241,6 +242,7 @@ const SHIM = `<script>
         btnReload:'<path d="M20 6v6h-6M4 18v-6h6"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 9M5.5 15A7 7 0 0 0 18 17.5l2-2.5"/>',
         btnTaf:'<path d="M17.5 19H9a7 7 0 1 1 6.7-9H17a4.5 4.5 0 1 1 .5 9Z"/><path d="M12 12v4M10 14h4"/>',
         btnPickXls:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/>',
+        btnAims:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
         btnAcc:'<circle cx="8" cy="15" r="4"/><path d="m11 12 8-8M18 5l2 2M15 8l2 2"/>',
         btnOfpCheck:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 15l2 2 4-4"/>',
         aiFab:'<path d="M12 3 9.5 8.5 4 11l5.5 2.5L12 19l2.5-5.5L20 11l-5.5-2.5Z"/>'
@@ -2933,7 +2935,42 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.95')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.96')
+    .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
+    .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
+      <div class="accard" id="acAims">
+        <div class="top"><b>AIMS</b><span class="use" id="acAimsSrc"></span></div>
+        <p class="achint">Dùng cho nút AIMS trên thanh đầu trang: tự tải Crewlist (Daily Flight Schedule) thay cho tải tay. Mỗi người lưu tài khoản AIMS riêng.</p>
+        <div class="acgrid">
+          <div class="field"><label for="acAimsUser">AIMS User ID</label>
+            <input type="text" id="acAimsUser" value="" autocomplete="off" spellcheck="false"></div>
+          <div class="field"><label for="acAimsPass">Password</label>
+            <input type="password" id="acAimsPass" placeholder="(giữ nguyên nếu để trống)"></div>
+        </div>
+        <div class="acfoot">
+          <button class="btn primary small" id="acAimsSave">Lưu</button>
+          <span class="acmsg" id="acAimsMsg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="nmPinModal">`)
+    .replace('$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");', '$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");\n$("#acAimsSave").onclick = () => acSave("aims", "Aims");')
+    .replace('Aviweb:"aviweb",Opscore:"opscore"}[pf] || "";', 'Aviweb:"aviweb",Opscore:"opscore",Aims:"aims"}[pf] || "";')
+    .replace('</body>', () => `<style>
+.aims-pop{position:fixed;z-index:5000;width:340px;background:var(--x-card,#fff);color:var(--x-ink,#222);border:1px solid var(--x-line,#ddd);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.25);padding:14px;font:14px/1.45 system-ui}
+.aims-pop[hidden]{display:none}
+.aims-hd{display:flex;justify-content:space-between;align-items:center;font-size:16px;margin-bottom:6px}
+.aims-x{border:0;background:none;cursor:pointer;font-size:15px;color:inherit}
+.aims-hint{margin:0 0 10px;font-size:12.5px;opacity:.8}
+.aims-row{display:flex;gap:10px;margin-bottom:10px}.aims-row label{flex:1;font-weight:600;font-size:13px}
+.aims-row input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:7px 8px;border:1px solid var(--x-line,#ccc);border-radius:7px;font:14px system-ui;background:transparent;color:inherit}
+.aims-go{width:100%;padding:9px;border:0;border-radius:8px;background:var(--pp-red,#E31937);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+.aims-go:disabled{opacity:.6;cursor:wait}
+.aims-msg{min-height:18px;margin-top:8px;font-size:13px;font-weight:600;color:#15803d}.aims-msg.bad{color:#c62828}
+</style><script>${aimsCrewlistScript}</script></body>`)
     .replace('      sid_star_hit_names: n.sid_star_hit_names\n    }))', '      sid_star_hit_names: n.sid_star_hit_names,\n      sup_geoms: n.sup_geoms\n    }))')
     .replace('if(as && as.level === "NO IMPACT" && critIds.has(ident)){', 'if(as && as.level === "NO IMPACT" && critIds.has(ident) && !/Lịch D\\)|B–C ngoài cửa sổ|B–C không giao/.test((as.reasons || []).join(" "))){')
     .replace('    if(h.impact === "ref") continue;\n    if(h.kind === "FIR"', '    if(h.impact === "ref") continue;\n    if(!nmHitTimeOk(h)) continue;\n    if(h.kind === "FIR"')

@@ -238,6 +238,15 @@ export const routes: Routes = {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };
       }
     }
+    if (kind === "aims" && password) {
+      try {
+        const { aimsLoginTest } = await import("../aims.server");
+        await runWithVars({ AIMS_USER: username, AIMS_PASS: password }, () => aimsLoginTest());
+        return { ok: true, name: username };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      }
+    }
     if (kind === "opscore" && password) {
       try {
         const { login } = await import("../opscore.server");

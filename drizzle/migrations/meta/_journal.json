@@ -50,6 +50,13 @@
       "when": 1793973371428,
       "tag": "0006_chat_files_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794382776975,
+      "tag": "0007_aims_session_cookies",
+      "breakpoints": true
     }
   ]
 }

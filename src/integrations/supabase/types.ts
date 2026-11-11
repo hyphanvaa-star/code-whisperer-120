@@ -281,18 +281,21 @@ export type Database = {
       }
       user_credentials: {
         Row: {
+          aims_cookies: string
           data: Json
           fb_cookies: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          aims_cookies?: string
           data?: Json
           fb_cookies?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          aims_cookies?: string
           data?: Json
           fb_cookies?: string
           updated_at?: string
