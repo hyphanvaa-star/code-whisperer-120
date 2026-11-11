@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 6.02: nút ↻ Crew/REQ hiện ngay khi FliteBrief khác Crewlist, không chờ so hai bản Crewlist; 7 kiểm thử đạt; publish.
 - [x] V 5.96: nút AIMS tải Crewlist trực tiếp (Daily Flight Schedule) bằng tài khoản AIMS riêng, nạp như tải tay; thử tải thật bằng phiên AIMS của JACK đạt (90 KB, 335 chặng). Chưa publish.
 - [x] V 5.99: tự quét AIMS theo chu kỳ (5/10/15/30 phút), so với Crewlist đang dùng; đổi tàu/crew/giờ thì chuông rung + kêu + thẻ báo chuyến, tự nạp bản mới. Thử giao diện bằng dữ liệu giả đạt; chưa thử với AIMS thật. Chưa publish.
 - [ ] V 5.96: thử đăng nhập AIMS bằng mật khẩu thật — cần JACK lưu tài khoản AIMS trong 🔑 Tài khoản.
