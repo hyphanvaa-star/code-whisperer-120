@@ -13875,7 +13875,7 @@ function nmVerdictHead(box, subText){
   ico.setAttribute("aria-hidden", "true");
   top.appendChild(ico);
   const h = document.createElement("h4");
-  h.textContent = "Tóm tắt notam ảnh hưởng";
+  h.textContent = "Thông tin chung";
   top.appendChild(h);
   box.appendChild(top);
   try{
@@ -13985,7 +13985,8 @@ function nmPaintVerdictSection(sec, items){
   head.appendChild(document.createTextNode(": "));
   const ans = document.createElement("span");
   ans.className = "nm-vd-ans" + (sec.hit ? " hit" : "") + (wait ? " wait" : "");
-  ans.textContent = sec.answer || "";
+  const hasList = (sec.rows || []).length || (sec.groups || []).some(g => (g.rows || []).length);
+  ans.textContent = (!hasList && /^không/i.test(String(sec.answer || ""))) ? "" : (sec.answer || "");
   head.appendChild(ans);
   wrap.appendChild(head);
   // Mỗi mục chỉ liệt kê một NOTAM một lần (cùng nhãn + cùng số NOTAM).
