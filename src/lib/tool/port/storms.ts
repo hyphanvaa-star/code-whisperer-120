@@ -24,7 +24,9 @@ function point(value: unknown): number[] | null {
   if (!Array.isArray(value) || value.length < 2 || value[0] == null || value[1] == null) return null;
   const [lat, lon] = value.map(Number);
   if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat ?? 100) > 90 || Math.abs(lon ?? 200) > 180) return null;
-  return [lon ?? 0, lat ?? 0];
+  // Tây Thái Bình Dương (< −90°) dời sang +360° để vệt bão qua 180° liền mạch.
+  const x = lon ?? 0;
+  return [x < -90 ? x + 360 : x, lat ?? 0];
 }
 
 export function jmaStorm(fcst: Record<string, unknown>[], target: Record<string, unknown> = {}) {

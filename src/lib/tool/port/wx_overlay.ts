@@ -299,7 +299,67 @@ export function kmlFeatures(kml: string): GeoFeature[] {
     for (const c of el.children) walk(c, storm, folder);
   }
   walk(root);
-  return feats;
+  return pacificLongitudes(feats);
+}
+
+/** Kinh độ bão quanh đường đổi ngày (180°): nối liền từng hình rồi dời các
+ *  hình nằm ở Tây Thái Bình Dương (< −90°) sang +360° để bản đồ châu Á vẽ
+ *  chúng ngay cạnh 180° thay vì kéo một đường ngang qua cả bản đồ. */
+const PACIFIC_WEST = -90;
+function unwrapRun(pts: number[][]): number[][] {
+  const out: number[][] = [];
+  for (const p of pts) {
+    const q = [...p];
+    const prev = out[out.length - 1];
+    if (prev && Number.isFinite(q[0]) && Number.isFinite(prev[0])) {
+      while ((q[0] as number) - (prev[0] as number) > 180) q[0] = (q[0] as number) - 360;
+      while ((q[0] as number) - (prev[0] as number) < -180) q[0] = (q[0] as number) + 360;
+    }
+    out.push(q);
+  }
+  return out;
+}
+function meanLon(pts: number[][]): number {
+  let sum = 0, n = 0;
+  for (const p of pts) if (Number.isFinite(p[0])) { sum += p[0] as number; n++; }
+  return n ? sum / n : 0;
+}
+function shiftRun(pts: number[][], by: number): number[][] {
+  return by ? pts.map((p) => [(p[0] as number) + by, ...p.slice(1)]) : pts;
+}
+function pacificShift(lon: number): number {
+  return lon < PACIFIC_WEST ? 360 : 0;
+}
+function pacificGeometry(g: { type: string; coordinates: unknown }): { type: string; coordinates: unknown } {
+  const c = g.coordinates as never;
+  if (g.type === "Point") {
+    const p = c as number[];
+    if (!Array.isArray(p) || !Number.isFinite(p[0])) return g;
+    return { ...g, coordinates: shiftRun([p], pacificShift(p[0] as number))[0] };
+  }
+  if (g.type === "LineString" || g.type === "MultiPoint") {
+    const run = unwrapRun(c as number[][]);
+    return { ...g, coordinates: shiftRun(run, pacificShift(meanLon(run))) };
+  }
+  if (g.type === "Polygon" || g.type === "MultiLineString") {
+    const rings = (c as number[][][]).map(unwrapRun);
+    const by = pacificShift(meanLon(rings[0] ?? []));
+    return { ...g, coordinates: rings.map((r) => shiftRun(r, by)) };
+  }
+  if (g.type === "MultiPolygon") {
+    return {
+      ...g,
+      coordinates: (c as number[][][][]).map((poly) => {
+        const rings = poly.map(unwrapRun);
+        const by = pacificShift(meanLon(rings[0] ?? []));
+        return rings.map((r) => shiftRun(r, by));
+      }),
+    };
+  }
+  return g;
+}
+export function pacificLongitudes(feats: GeoFeature[]): GeoFeature[] {
+  return feats.map((f) => (f.geometry ? { ...f, geometry: pacificGeometry(f.geometry) } : f));
 }
 
 /** Bỏ best-track ngày cũ; forecast giữ điểm + nhãn tau, chỉ 1 bộ vòng gió. */
@@ -405,5 +465,5 @@ export function jmaFeatures(fcst: Array<Record<string, unknown>>, cat = ""): Geo
   const lineFeat = line.length >= 2
     ? { type: "Feature" as const, properties: { name: "track", storm, folder: "track" }, geometry: { type: "LineString", coordinates: line } }
     : null;
-  return lineFeat ? [lineFeat, ...feats] : feats;
+  return pacificLongitudes(lineFeat ? [lineFeat, ...feats] : feats);
 }
