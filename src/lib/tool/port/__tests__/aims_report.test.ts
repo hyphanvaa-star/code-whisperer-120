@@ -29,6 +29,13 @@ describe("AIMS Daily Flight Schedule", () => {
     expect(saved.DayRepState.mainParameters.DateRange.start).toBe("2026/11/01 00:00");
   });
 
+  it("applies the chosen From/To hours in AIMS format", () => {
+    const out = buildRunParams(saved, "2026-11-11", "2026-11-12", "06:30", "23:15") as typeof saved;
+    expect(out.DayRepState.mainParameters.fromTime).toBe("06:30:00");
+    expect(out.DayRepState.mainParameters.toTime).toBe("23:15:00");
+    expect(() => buildRunParams(saved, "2026-11-11", "2026-11-12", "25:00", "04:55")).toThrow();
+  });
+
   it("rejects reversed or longer than 7-day ranges", () => {
     expect(() => buildRunParams(saved, "2026-11-12", "2026-11-11")).toThrow();
     expect(() => buildRunParams(saved, "2026-11-01", "2026-11-09")).toThrow();

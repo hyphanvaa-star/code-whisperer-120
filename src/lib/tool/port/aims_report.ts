@@ -67,10 +67,25 @@ export function vnDate(now: Date, addDays = 0): string {
 
 /**
  * The RunReport body: the user's own saved DAYREP settings (columns, crew
- * display, time range) with only the date range replaced, so the export
- * matches what they download by hand.
+ * display, filters) with the date range replaced and, when given, the
+ * From/To time range, so the export matches what they download by hand.
  */
-export function buildRunParams(saved: Record<string, unknown>, start: string, end: string): Record<string, unknown> {
+const HM = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+/** "04:55" → "04:55:00" (AIMS fromTime/toTime format). */
+export function aimsTime(hm: string): string {
+  const m = hm.match(HM);
+  if (!m) throw new Error(`Giờ không hợp lệ: ${hm}`);
+  return `${m[1]}:${m[2]}:00`;
+}
+
+export function buildRunParams(
+  saved: Record<string, unknown>,
+  start: string,
+  end: string,
+  fromTime?: string,
+  toTime?: string,
+): Record<string, unknown> {
   if (!ISO_DATE.test(start) || !ISO_DATE.test(end)) throw new Error("Ngày không hợp lệ");
   if (start > end) throw new Error("Ngày bắt đầu phải trước ngày kết thúc");
   const days = (Date.parse(end) - Date.parse(start)) / 86400_000;
@@ -79,6 +94,8 @@ export function buildRunParams(saved: Record<string, unknown>, start: string, en
   const state = (params["DayRepState"] ?? {}) as Record<string, unknown>;
   const main = (state["mainParameters"] ?? {}) as Record<string, unknown>;
   main["DateRange"] = { start: aimsDate(start), end: aimsDate(end) };
+  if (fromTime) main["fromTime"] = aimsTime(fromTime);
+  if (toTime) main["toTime"] = aimsTime(toTime);
   state["mainParameters"] = main;
   state["TaskId"] = null;
   const out = (state["outputParameters"] ?? {}) as Record<string, unknown>;

@@ -9,9 +9,11 @@ export const routes: Routes = {
     const now = new Date();
     const start = String(b["start"] || vnDate(now));
     const end = String(b["end"] || vnDate(now, 1));
+    const fromTime = b["fromTime"] ? String(b["fromTime"]) : undefined;
+    const toTime = b["toTime"] ? String(b["toTime"]) : undefined;
     try {
       const { aimsCrewlistXlsx } = await import("../aims.server");
-      const buf = await aimsCrewlistXlsx(start, end);
+      const buf = await aimsCrewlistXlsx(start, end, fromTime, toTime);
       return new Response(buf, {
         status: 200,
         headers: {

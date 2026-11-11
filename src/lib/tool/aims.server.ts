@@ -127,7 +127,7 @@ export async function aimsLoginTest(): Promise<void> {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Runs the user's Daily Flight Schedule report for [start, end] and returns the XLSX bytes. */
-export async function aimsCrewlistXlsx(start: string, end: string): Promise<ArrayBuffer> {
+export async function aimsCrewlistXlsx(start: string, end: string, fromTime?: string, toTime?: string): Promise<ArrayBuffer> {
   const uid = currentUserId();
   if (!uid) throw new AimsError("Chưa đăng nhập.");
   const jar = await loadJar(uid);
@@ -149,7 +149,7 @@ export async function aimsCrewlistXlsx(start: string, end: string): Promise<Arra
   };
   const run = await req(jar, "/AIMS/DAYREP/RunReport", {
     method: "POST",
-    body: JSON.stringify(buildRunParams(page.params, start, end)),
+    body: JSON.stringify(buildRunParams(page.params, start, end, fromTime, toTime)),
     headers: { ...ajax, "Content-Type": "application/json", Accept: "*/*" },
   });
   const taskId = (await run.text()).trim().replace(/^"|"$/g, "");
