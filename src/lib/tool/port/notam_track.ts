@@ -14,6 +14,7 @@ import type { Flight } from "../core/models";
 import { applyOfpHead, buildTuneCtx, extraOfpTokens, stampOfpHeads, stampSidStarHits } from './notam_check_tune';
 import { fleetVerdict, verdictOf, type FleetItem } from './notam_verdict';
 import type { Chart } from './aip_vn_chart';
+import { parseSchedule, scheduleActiveAt } from "./notam_assess";
 export { fleetVerdict } from './notam_verdict';
 
 export const EARTH_NM = 3440.065;
@@ -660,6 +661,23 @@ export function notamOverlapsEta(notam: Notam, eta: Date, padH = ETA_PAD_H): boo
   return true;
 }
 
+/** D) schedule active within ±padH of the pass time? Unknown/unparsed schedules stay true (not hidden). */
+export function notamDActiveNear(notam: Notam, eta: Date, padH = ETA_PAD_H): boolean {
+  const sched = parseSchedule(notam.d_field);
+  if (sched.always) return true;
+  if (sched.unsupported.length) return true;
+  const q = qCoordsOf(notam);
+  const pos: [number, number] | null = q ? [q[0], q[1]] : null;
+  const lo = eta.getTime() - padH * 3600_000, hi = eta.getTime() + padH * 3600_000;
+  let unknown = false;
+  for (let t = lo; t <= hi; t += 5 * 60_000) {
+    const r = scheduleActiveAt(sched, new Date(t), pos);
+    if (r === true) return true;
+    if (r === null) unknown = true;
+  }
+  return unknown;
+}
+
 export function firKey(raw: string): string {
   const s = String(raw || "").toUpperCase().replace(/\s+/g, " ").replace(" FIR", "").trim();
   return /^[A-Z]{4}$/.test(s) ? s : s;
@@ -911,9 +929,12 @@ function hitsFor(
       reasons.push(`FL${Math.floor(flFt / 100)} trong ${gLo}-${gHi} ft`);
       if (!flOk) reasons.push("cruise trên trần vùng");
     }
-    if (notamOverlapsEta(notam, when)) {
+    const bcOk = notamOverlapsEta(notam, when);
+    const dOk = notamDActiveNear(notam, when);
+    if (bcOk) {
       reasons.push("giờ " + `${String(when.getUTCHours()).padStart(2, "0")}:${String(when.getUTCMinutes()).padStart(2, "0")}Z` + " ±2h");
     } else reasons.push("trong 24H (ngoài ±2h ETA)");
+    if (!dOk) reasons.push("ngoài cửa sổ D) lúc tàu tới");
     const eTxt = String(notam.e_field ?? notam.text ?? "").replace(/^Q\).*$/gm, "").replace(/\s+/g, " ").trim();
     out.push({
       ident: notam.ident ?? "", icao: code, kind: place.kind ?? "", name: place.name ?? "", area,
@@ -927,7 +948,7 @@ function hitsFor(
       start: notam.start ?? "", end: notam.end ?? "", severity: notam.severity ?? 0,
       purpose: notam.purpose ?? "", scope: notam.scope ?? "",
       qsubj: qSubjOf(notam), qcond: qCondOf(notam),
-      eta_ok: notamOverlapsEta(notam, when),
+      eta_ok: bcOk && dOk, d_ok: dOk,
     });
   }
   return out;
