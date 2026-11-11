@@ -2935,7 +2935,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.98')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 5.99')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
@@ -2974,6 +2974,33 @@ function nmRouteLayers(ids){
 .aims-go{width:100%;padding:9px;border:0;border-radius:8px;background:var(--pp-red,#E31937);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
 .aims-go:disabled{opacity:.6;cursor:wait}
 .aims-msg{min-height:18px;margin-top:8px;font-size:13px;font-weight:600;color:#15803d}.aims-msg.bad{color:#c62828}
+.aims-pop{max-height:calc(100vh - 140px);overflow:auto}
+.aims-watch{margin-top:12px;padding-top:10px;border-top:1px solid var(--x-line,#ddd)}
+.aims-wrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.aims-sw{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;cursor:pointer}.aims-sw input{width:17px;height:17px;accent-color:var(--pp-red,#E31937)}
+.aims-ev{font-size:13px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:4px}.aims-ev select{display:inline-block !important;width:auto !important;margin:0 !important;padding:3px 4px;border:1px solid var(--x-line,#ccc);border-radius:6px;font:13px system-ui;background:transparent;color:inherit}
+.aims-wst{font-size:12.5px;font-weight:600;color:#15803d;margin:4px 0}.aims-wst.bad{color:#c62828}
+.aims-lh{display:flex;justify-content:space-between;align-items:center;margin:8px 0 4px;font-size:13.5px}
+.aims-clr{border:1px solid var(--x-line,#ccc);background:transparent;color:inherit;border-radius:6px;padding:2px 8px;font-size:12px;cursor:pointer}
+.aims-le{border:1px solid var(--x-line,#e2e2e2);border-radius:9px;padding:6px 8px;margin-bottom:6px}
+.aims-lt{font-size:12px;font-weight:700;opacity:.7;margin-bottom:3px}
+.aims-li{padding:4px 0;border-top:1px dashed var(--x-line,#e5e5e5);font-size:13px}.aims-li:first-of-type{border-top:0}
+.aims-d{opacity:.7;font-size:12px}.aims-tx{font-size:12.5px;margin-top:2px}
+.aims-k{display:inline-block;margin-right:5px;padding:1px 6px;border-radius:999px;font:800 10.5px/1.5 system-ui;color:#fff;background:#64748b}
+.aims-k.reg{background:#c62828}.aims-k.crew{background:#7c3aed}.aims-k.time{background:#d97706}.aims-k.add{background:#16a34a}.aims-k.rem{background:#475569}
+.aims-bell{position:absolute;top:-7px;right:-7px;font-size:13px;line-height:1;filter:grayscale(1);opacity:.75;pointer-events:none;z-index:2}
+.aims-bell.on{filter:none;opacity:1}
+.aims-cnt{position:absolute;top:-6px;right:-10px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:#dc2626;color:#fff;-webkit-text-fill-color:#fff;font:800 10px/16px system-ui;font-style:normal;text-align:center;box-shadow:0 0 0 2px #fff}
+.aims-bell.ring{animation:aimsRing 1s ease-in-out 3}
+@keyframes aimsRing{0%,100%{transform:rotate(0)}15%{transform:rotate(18deg)}30%{transform:rotate(-16deg)}45%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}75%{transform:rotate(4deg)}}
+header#mdRoom .filt-actions #btnAims{overflow:visible !important}
+.aims-toast{position:fixed;right:18px;bottom:18px;z-index:6000;width:380px;max-width:calc(100vw - 36px);background:var(--x-card,#fff);color:var(--x-ink,#222);border:2px solid #dc2626;border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,.3);padding:10px 12px;font:13px/1.45 system-ui;cursor:pointer;animation:aimsIn .25s ease-out}
+.aims-toast[hidden]{display:none}
+.aims-th{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px;color:#dc2626;margin-bottom:4px}
+.aims-th button{border:0;background:none;cursor:pointer;font-size:15px;color:inherit}
+.aims-ti{padding:3px 0;border-top:1px dashed var(--x-line,#e5e5e5)}
+.aims-tf{margin-top:5px;font-weight:700;color:#15803d}
+@keyframes aimsIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
 </style><script>${aimsCrewlistScript}</script></body>`)
     .replace('      sid_star_hit_names: n.sid_star_hit_names\n    }))', '      sid_star_hit_names: n.sid_star_hit_names,\n      sup_geoms: n.sup_geoms\n    }))')
     .replace('if(as && as.level === "NO IMPACT" && critIds.has(ident)){', 'if(as && as.level === "NO IMPACT" && critIds.has(ident) && !/Lịch D\\)|B–C ngoài cửa sổ|B–C không giao/.test((as.reasons || []).join(" "))){')
