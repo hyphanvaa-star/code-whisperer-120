@@ -479,6 +479,26 @@ export const routes: Routes = {
     return { ok: true, items: out };
   },
 
+  "GET /api/fpltext/ofpcrew": async (ctx) => {
+    const sectorId = Number(ctx.params.get("sector_id") || 0);
+    if (!sectorId) return { error: "Thiếu sector_id." };
+    const { fbGet } = await import("@/lib/flitebrief.server");
+    let txt = "";
+    for (const p of [`/webapi/sectors/${sectorId}/ofp/0`, `/webapi/sectors/${sectorId}/ofp`]) {
+      const res = await fbGet(p, "application/pdf");
+      if (!res.ok || res.status === 204) continue;
+      const b = new Uint8Array(await res.arrayBuffer());
+      if (b.byteLength <= 4) continue;
+      if (String.fromCharCode(...b.slice(0, 4)) === "%PDF") {
+        const { ofpTextFromPdf } = await import("../port/ofp_weights");
+        txt = await ofpTextFromPdf(b);
+      } else txt = new TextDecoder().decode(b);
+      if (txt) break;
+    }
+    if (!txt) return { ok: true, found: false, crew: [] };
+    return { ok: true, found: true, crew: ft.ofpCrew(txt) };
+  },
+
   "POST /api/fpltext/build": async (ctx) => {
     const body = await ctx.json();
     const db = await loadDb(ctx);

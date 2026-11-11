@@ -36,7 +36,7 @@ export function cmpPilotChanges(oldRaw: unknown, newRaw: unknown) {
     for (const m of String(raw || '').matchAll(/\(([^)]*)\)\s*-?\s*(\d{3,6})/g)) {
       const role = String(m[1] || '').toUpperCase();
       if (/DHD/.test(role)) continue;
-      const key = /\b(CPT|CAPT|CAPTAIN)\b/.test(role) ? 'cptText' : /\b(FO|F\/O|FIRST OFFICER)\b/.test(role) ? 'foText' : '';
+      const key = /\b(CP|CPT|CAPT|CAPTAIN)\b/.test(role) ? 'cptText' : /\b(FO|F\/O|FIRST OFFICER)\b/.test(role) ? 'foText' : '';
       if (key) { out[key] = seen.has(key) ? '' : String(m[2] || '').replace(/^0+/, ''); seen.add(key); }
     }
     return out;
@@ -68,6 +68,23 @@ export function cmpFplPair<T extends { name: string; modified?: number }>(files:
   if (!latest) return [];
   const previous = candidates.find(c => c.stamp === latest.stamp && c.revision < latest.revision);
   return previous ? [previous.file, latest.file] : allowSingle ? [latest.file] : [];
+}
+
+/** Live mismatch fallback: Crewlist pilots absent on FliteBrief, paired with FliteBrief-only IDs when counts agree. */
+export function cmpCellCrewChanges(excelRaw: unknown, detail: unknown) {
+  const text = String(detail || '');
+  const ids = (label: string) => ((text.split(label)[1] || '').split('·')[0] || '').split(/[^0-9]+/).filter(Boolean).map(v => v.replace(/^0+/, ''));
+  const missing = ids('Excel có mà FliteBrief không:'), extra = ids('FliteBrief có mà Excel không:');
+  const pilots: {key: string; id: string}[] = [];
+  for (const m of String(excelRaw || '').matchAll(/\(([^)]*)\)\s*-?\s*(\d{3,6})/g)) {
+    const role = String(m[1] || '').toUpperCase();
+    if (/DHD/.test(role)) continue;
+    const key = /\b(CP|CPT|CAPT|CAPTAIN)\b/.test(role) ? 'cptText' : /\b(FO|F\/O|FIRST OFFICER)\b/.test(role) ? 'foText' : '';
+    const id = String(m[2] || '').replace(/^0+/, '');
+    if (key && missing.includes(id) && !pilots.some(p => p.key === key)) pilots.push({key, id});
+  }
+  const pair = extra.length === pilots.length;
+  return pilots.map((p, i) => ({key: p.key, from: pair ? extra[i] || '' : '', to: p.id}));
 }
 
 export function patchCmpSyncPage(html: string): string {
@@ -132,6 +149,7 @@ export function patchCmpSyncPage(html: string): string {
 const cmpSourceChange = ${cmpSourceChange.toString()};
 const cmpAircraftChange = ${cmpAircraftChange.toString()};
 const cmpPilotChanges = ${cmpPilotChanges.toString()};
+const cmpCellCrewChanges = ${cmpCellCrewChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
@@ -263,8 +281,16 @@ function cmpSyncEvidence(r, kind){
   if(!f) return null;
   if(cmpSyncSources.current !== ((xls && xls.file) || cmpSyncSources.current)) return null;
   const row = cmpSourceChange(kind === "fpl" ? cmpSyncSources.fpl : cmpSyncSources.crew, f.id, f.std);
-  if(!row || !(kind === "crew" ? row.crew && row.crew.changed : cmpAircraftChange(row.reg))) return null;
   const bound = cmpBind[String(r.sector_id)];
+  if(kind === "crew" && !(row && row.crew && row.crew.changed && cmpPilotChanges(row.crew.raw_old, row.crew.raw_new).length)){
+    // Crewlist unchanged between versions but FliteBrief still differs: swap from the live comparison.
+    const c = (bound && bound.crew && bound.crew.verdict) ? bound.crew : r.crew;
+    if(!c || !c.verdict || c.same || !c.excel) return null;
+    const changes = cmpCellCrewChanges(c.excel, c.detail);
+    if(!changes.length) return null;
+    return {f, kind, changes, row:{sector_id:f.id, reg:{}, crew:{changed:true, live:true, raw_old:"FliteBrief: " + (c.flite || ""), raw_new:c.excel}}};
+  }
+  if(!row || !(kind === "crew" ? row.crew && row.crew.changed : cmpAircraftChange(row.reg))) return null;
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   if(kind === "aims" && norm(((bound && bound.reg) || r.reg_cmp || {}).excel) !== norm(row.reg.new)) return null;
   if(kind === "crew" && bound && bound.crew && String(bound.crew.excel || "").trim() !== String(row.crew.raw_new || "").trim()) return null;

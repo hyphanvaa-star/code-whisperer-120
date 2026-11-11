@@ -67,6 +67,20 @@ export function ofpDispatcher(text: string): string {
   return "";
 }
 
+/** Pilots printed on the OFP crew line: "CAPT 13330 KONOVALO   FO 13054 LE ANH DISPATCHER ...". */
+export function ofpCrew(text: string): { role: string; id: string; name: string }[] {
+  const out: { role: string; id: string; name: string }[] = [];
+  const re = /\b(CAPT|CPT|CP|FO|F\/O)[ \t]+(\d{3,6})[ \t]+([A-Z][A-Z.'-]*(?:[ \t][A-Z][A-Z.'-]*)*?)(?=[ \t]{2,}|[ \t]+(?:CAPT|CPT|CP|FO|F\/O)[ \t]+\d|DISPATCHER|[ \t]*$)/gm;
+  for (const m of (text || "").matchAll(re)) {
+    const role = /^F/.test(m[1]!) ? "FO" : "CAPT";
+    const id = m[2]!.replace(/^0+/, "");
+    if (out.some((p) => p.id === id)) continue;
+    out.push({ role, id, name: m[3]!.replace(/DISPATCHER.*$/, "").trim() });
+    if (out.length >= 6) break;
+  }
+  return out;
+}
+
 export function _extraText(extra: any): string {
   if (extra == null || String(extra).trim() === "") return "0";
   return _num(extra);

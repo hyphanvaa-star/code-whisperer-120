@@ -15,6 +15,7 @@ export function patchCmpCrewHoverPage(html:string):string {
   return html
     .replace('function tipHover(ev){', `
 const cmpCrewDisplayRows = ${cmpCrewDisplayRows.toString()};
+const cmpOfpCrewCache = new Map();
 function cmpCrewHoverShow(ev, td){
   const data = td._cmpCrewDisplay || {};
   const el = tafTipEl();
@@ -24,8 +25,18 @@ function cmpCrewHoverShow(ev, td){
   head.append(node("span","crew-hover-heading","Tổ bay"));
   if(data.same !== null && data.same !== undefined) head.append(node("span","crew-hover-status" + (data.same ? "" : " mismatch"),data.same ? "✓ Khớp" : "≠ Có khác biệt"));
   el.append(head,node("div","crew-hover-file",cmpSourceTip("crew")));
-  const grid=node("div","crew-hover-grid");
-  for(const [key,label,icon] of [["excel","Excel","▦"],["flite","FliteBrief","✈"]]){
+  const grid=node("div","crew-hover-grid three");
+  const sid=String(td.dataset.crewSid || "");
+  let ofp=cmpOfpCrewCache.get(sid);
+  if(sid && (!ofp || (!ofp.loading && Date.now()-ofp.t>180000))){ ofp=null;
+    cmpOfpCrewCache.set(sid,{loading:true,t:Date.now()});
+    fetch("/api/fpltext/ofpcrew?sector_id="+encodeURIComponent(sid)).then(r=>r.json()).then(d=>{
+      cmpOfpCrewCache.set(sid,{t:Date.now(),found:!!(d && d.found),text:((d && d.crew)||[]).map(p=>"-"+p.name+"("+p.role+") "+p.id).join("; ")});
+      if(_tipHost===td && document.getElementById("tafTip")?.classList.contains("show")) cmpCrewHoverShow(ev,td);
+    }).catch(()=>cmpOfpCrewCache.set(sid,{t:Date.now(),found:false,error:true,text:""}));
+  }
+  data.ofp=(ofp && ofp.text) || "";
+  for(const [key,label,icon] of [["excel","Excel","▦"],["flite","FliteBrief","✈"],["ofp","OFP","📄"]]){
     const section=node("section","crew-hover-source " + key);
     const title=node("div","crew-hover-source-head");
     title.append(node("span","crew-hover-source-icon",icon),node("strong","",label));
@@ -39,7 +50,7 @@ function cmpCrewHoverShow(ev, td){
       if(person.role || person.id){const meta=node("div","crew-hover-person-meta");if(person.role)meta.append(node("span","crew-hover-role",person.role));if(person.id)meta.append(node("span","crew-hover-id","ID " + person.id));row.append(meta);}
       list.append(row);
     }
-    if(!people.length)list.append(node("div","crew-hover-empty",key === "excel" ? "Chưa có tổ bay từ Crewlist" : "Chưa đọc được tổ bay FliteBrief"));
+    if(!people.length)list.append(node("div","crew-hover-empty",key === "excel" ? "Chưa có tổ bay từ Crewlist" : key === "ofp" ? (!ofp || ofp.loading ? "Đang đọc OFP…" : ofp.found ? "OFP không ghi tổ bay" : "Chưa có OFP") : "Chưa đọc được tổ bay FliteBrief"));
     section.append(list);grid.append(section);
   }
   el.append(grid);
@@ -96,7 +107,7 @@ function tipHover(ev){`)
   td.classList.toggle("cmp-fpl-match", state.same);`)
     .replace('</head>', `<style>
 :root{${tokens}}
-#tafTip.cmp-crew-tip{background:var(--crew-hover-paper)!important;color:var(--crew-hover-ink)!important;border:1px solid var(--crew-hover-line)!important;box-shadow:var(--crew-hover-shadow)!important;font-family:var(--x-sans,system-ui)!important;font-size:calc(16px * var(--taf-read-scale,1))!important;line-height:1.45!important;width:min(calc(700px * var(--taf-read-scale,1)),calc((100vw - 28px) * var(--taf-read-scale,1)));padding:calc(18px * var(--taf-read-scale,1))!important;white-space:normal;letter-spacing:0}
+#tafTip.cmp-crew-tip{background:var(--crew-hover-paper)!important;color:var(--crew-hover-ink)!important;border:1px solid var(--crew-hover-line)!important;box-shadow:var(--crew-hover-shadow)!important;font-family:var(--x-sans,system-ui)!important;font-size:calc(16px * var(--taf-read-scale,1))!important;line-height:1.45!important;width:min(calc(920px * var(--taf-read-scale,1)),calc((100vw - 28px) * var(--taf-read-scale,1)));padding:calc(18px * var(--taf-read-scale,1))!important;white-space:normal;letter-spacing:0}
 .crew-hover-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .crew-hover-heading{font-size:1.2em;font-weight:800}
 .crew-hover-status{color:var(--crew-hover-excel);background:var(--crew-hover-excel-soft);border-radius:6px;padding:.25em .6em;font-weight:700;font-size:.85em;flex-shrink:0}
@@ -104,6 +115,7 @@ function tipHover(ev){`)
 .crew-hover-file{font-size:.85em;color:var(--crew-hover-muted);margin:.5em 0 1em;overflow-wrap:anywhere}
 .crew-hover-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1em}
 .crew-hover-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.crew-hover-source.ofp{--crew-source:var(--crew-hover-muted);--crew-source-soft:var(--crew-hover-line)}
 .crew-hover-source.attach{--crew-source:var(--crew-hover-muted);--crew-source-soft:var(--crew-hover-line)}
 .crew-hover-source{min-width:0;--crew-source:var(--crew-hover-excel);--crew-source-soft:var(--crew-hover-excel-soft)}
 .crew-hover-source.flite{--crew-source:var(--crew-hover-flite);--crew-source-soft:var(--crew-hover-flite-soft)}
