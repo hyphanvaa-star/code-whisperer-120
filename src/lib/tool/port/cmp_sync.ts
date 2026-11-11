@@ -276,6 +276,21 @@ function cmpSyncRow(sid){
   if(rows !== cmpSyncRowSource){cmpSyncRowSource=rows;cmpSyncRowIndex=new Map(rows.map(r=>[String(r.sector_id),r]));}
   return cmpSyncRowIndex.get(String(sid));
 }
+/** Live Compare mismatch (FliteBrief vs the loaded Crewlist) — needs no second Crewlist version. */
+function cmpLiveChange(r){
+  const f = cmpActionFlight(r);
+  if(!f || !xls || !xls.file) return null;
+  const bound = cmpBind[String(r.sector_id)];
+  const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
+  const reg = g && g.verdict && !g.same && norm(g.excel) && norm(g.flite) && norm(g.excel) !== norm(g.flite)
+    ? {changed:true, old:String(g.flite).trim(), new:String(g.excel).trim()} : {changed:false, old:"", new:""};
+  const c = (bound && bound.crew && bound.crew.verdict) ? bound.crew : r.crew;
+  const crewChanges = c && c.verdict && !c.same && c.excel ? cmpCellCrewChanges(c.excel, c.detail) : [];
+  const crew = crewChanges.length ? {changed:true, live:true, raw_old:"FliteBrief: " + (c.flite || ""), raw_new:c.excel} : {changed:false};
+  if(!reg.changed && !crew.changed) return null;
+  return {sector_id:f.id, fb_std:f.std, live:true, ops_ok:true, reg, crew, crewChanges};
+}
 function cmpSyncEvidence(r, kind){
   const f = cmpActionFlight(r);
   if(!f) return null;
@@ -284,11 +299,15 @@ function cmpSyncEvidence(r, kind){
   const bound = cmpBind[String(r.sector_id)];
   if(kind === "crew" && !(row && row.crew && row.crew.changed && cmpPilotChanges(row.crew.raw_old, row.crew.raw_new).length)){
     // Crewlist unchanged between versions but FliteBrief still differs: swap from the live comparison.
-    const c = (bound && bound.crew && bound.crew.verdict) ? bound.crew : r.crew;
-    if(!c || !c.verdict || c.same || !c.excel) return null;
-    const changes = cmpCellCrewChanges(c.excel, c.detail);
-    if(!changes.length) return null;
-    return {f, kind, changes, row:{sector_id:f.id, reg:{}, crew:{changed:true, live:true, raw_old:"FliteBrief: " + (c.flite || ""), raw_new:c.excel}}};
+    const live = cmpLiveChange(r);
+    if(!live || !live.crew.changed) return null;
+    return {f, kind, changes:live.crewChanges, row:{sector_id:f.id, reg:{}, crew:live.crew}};
+  }
+  if(kind === "aims" && !(row && cmpAircraftChange(row.reg))){
+    // Crewlist aircraft differs from FliteBrief now, even without a Crewlist-to-Crewlist change.
+    const live = cmpLiveChange(r);
+    if(!live || !live.reg.changed) return null;
+    return {f, kind, changes:[], row:{sector_id:f.id, reg:live.reg, crew:{}}};
   }
   if(!row || !(kind === "crew" ? row.crew && row.crew.changed : cmpAircraftChange(row.reg))) return null;
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -402,7 +421,8 @@ const cmpReqDone = new Set(), cmpReqBusy = new Set();
 function cmpReqEvidence(r){
   const f = cmpActionFlight(r);
   if(!f || !xls || !xls.file || cmpSyncSources.current !== xls.file) return null;
-  const row = cmpReqChange(cmpSyncSources.crew, f.id, f.std);
+  let row = cmpReqChange(cmpSyncSources.crew, f.id, f.std);
+  if(!row && typeof cmpLiveChange === "function"){ const live = cmpLiveChange(r); if(live) row = {sector_id:live.sector_id, fb_std:live.fb_std, ops_ok:true, reg:live.reg, crew:live.crew}; }
   if(!row) return null;
   const bound = cmpBind[String(r.sector_id)];
   const norm = v => String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -463,14 +483,15 @@ function cmpMsgPaint(r){
   const row = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.fpl, f.id, f.std) : null;
   const raw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
   const crewRow = f ? cmpSourceChange(cmpSyncSources.crew, f.id, f.std) : null;
-  const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg));
+  const liveRow = f ? cmpLiveChange(r) : null;
+  const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg)) || !!(liveRow && liveRow.reg.changed);
   const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? (acChg ? "CHG DLA" : "DLA") : acChg ? "CHG A/C" : "";
   if(!kind) return;
-  const ackKey = "m|" + JSON.stringify([f.id, f.callsign, f.std, kind, row && row.reg, crewRow && crewRow.reg]);
+  const ackKey = "m|" + JSON.stringify([f.id, f.callsign, f.std, kind, row && row.reg, crewRow && crewRow.reg, liveRow && liveRow.reg.changed ? liveRow.reg : null]);
   if(cmpAckHas(ackKey)) return;
   const b = document.createElement("button"); b.type = "button"; b.className = "cmp-msg-quick";
   b.textContent = kind === "CHG A/C" ? "CHG" : kind;
-  b.dataset.tip = "FPL mới so với FPL cũ: " + kind + " · Bấm để soạn điện văn";
+  b.dataset.tip = (raw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : "Crewlist đổi tàu: ") + kind + " · Bấm để soạn điện văn";
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
   b.onclick = ev => {ev.stopPropagation(); cmpAckAdd(ackKey); b.remove(); menu.value = kind; menu.onchange();};

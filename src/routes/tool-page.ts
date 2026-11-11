@@ -2935,7 +2935,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.00')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.01')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">

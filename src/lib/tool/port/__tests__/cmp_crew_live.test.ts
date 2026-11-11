@@ -17,3 +17,26 @@ describe('Compare crew swap from live mismatch', () => {
     expect(ofpCrew('CAPT 6065 GASSER AH FO 8763 IVAN LLODISPATCHER NGUYEN VAN A').map(p => p.name)).toEqual(['GASSER AH', 'IVAN LLO']);
   });
 });
+
+import vm from 'node:vm';
+import { readFileSync } from 'node:fs';
+import { patchCmpSyncPage } from '../cmp_sync';
+
+describe('live FliteBrief vs Crewlist aircraft mismatch', () => {
+  const html = patchCmpSyncPage(readFileSync('src/tool/page.html', 'utf8'));
+  const start = html.indexOf('function cmpLiveChange(');
+  const src = html.slice(start, html.indexOf('function cmpSyncEvidence(', start));
+  const run = (r: unknown) => {
+    const ctx = vm.createContext({ cmpCellCrewChanges, xls: { file: 'AIMS.xlsx' }, cmpBind: {},
+      cmpActionFlight: () => ({ id: 154, std: '2026-11-11T11:45:00Z' }), r });
+    vm.runInContext(src, ctx);
+    return vm.runInContext('cmpLiveChange(r)', ctx);
+  };
+  it('Crewlist VN-A668 vs FliteBrief VN-A528 needs an aircraft change without a second Crewlist', () => {
+    const live = run({ sector_id: 154, reg_cmp: { verdict: 'lệch', same: false, excel: 'VN-A668', flite: 'VN-A528' } });
+    expect(live.reg).toEqual({ changed: true, old: 'VN-A528', new: 'VN-A668' });
+  });
+  it('matching aircraft and crew raise nothing', () => {
+    expect(run({ sector_id: 154, reg_cmp: { verdict: 'khớp', same: true, excel: 'VN-A668', flite: 'VN-A668' } })).toBeNull();
+  });
+});
