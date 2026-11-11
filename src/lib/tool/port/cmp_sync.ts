@@ -294,14 +294,15 @@ function cmpLiveChange(r){
 function cmpSyncEvidence(r, kind){
   const f = cmpActionFlight(r);
   if(!f) return null;
-  if(cmpSyncSources.current !== ((xls && xls.file) || cmpSyncSources.current)) return null;
-  const row = cmpSourceChange(kind === "fpl" ? cmpSyncSources.fpl : cmpSyncSources.crew, f.id, f.std);
+  // Version rows only count for the loaded Crewlist; live mismatches never wait for (or depend on) that diff.
+  const fresh = cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current);
+  const row = fresh ? cmpSourceChange(kind === "fpl" ? cmpSyncSources.fpl : cmpSyncSources.crew, f.id, f.std) : null;
   const bound = cmpBind[String(r.sector_id)];
-  if(kind === "crew" && !(row && row.crew && row.crew.changed && cmpPilotChanges(row.crew.raw_old, row.crew.raw_new).length)){
-    // Crewlist unchanged between versions but FliteBrief still differs: swap from the live comparison.
+  if(kind === "crew"){
+    // FliteBrief differs from the loaded Crewlist now: that is the swap to offer, whatever the version diff says.
     const live = cmpLiveChange(r);
-    if(!live || !live.crew.changed) return null;
-    return {f, kind, changes:live.crewChanges, row:{sector_id:f.id, reg:{}, crew:live.crew}};
+    if(live && live.crew.changed) return {f, kind, changes:live.crewChanges, row:{sector_id:f.id, reg:{}, crew:live.crew}};
+    if(!(row && row.crew && row.crew.changed && cmpPilotChanges(row.crew.raw_old, row.crew.raw_new).length)) return null;
   }
   if(kind === "aims" && !(row && cmpAircraftChange(row.reg))){
     // Crewlist aircraft differs from FliteBrief now, even without a Crewlist-to-Crewlist change.
@@ -420,8 +421,8 @@ function cmpSyncPaint(r, kind){
 const cmpReqDone = new Set(), cmpReqBusy = new Set();
 function cmpReqEvidence(r){
   const f = cmpActionFlight(r);
-  if(!f || !xls || !xls.file || cmpSyncSources.current !== xls.file) return null;
-  let row = cmpReqChange(cmpSyncSources.crew, f.id, f.std);
+  if(!f || !xls || !xls.file) return null;
+  let row = cmpSyncSources.current === xls.file ? cmpReqChange(cmpSyncSources.crew, f.id, f.std) : null;
   if(!row && typeof cmpLiveChange === "function"){ const live = cmpLiveChange(r); if(live) row = {sector_id:live.sector_id, fb_std:live.fb_std, ops_ok:true, reg:live.reg, crew:live.crew}; }
   if(!row) return null;
   const bound = cmpBind[String(r.sector_id)];
@@ -482,7 +483,7 @@ function cmpMsgPaint(r){
   const f = cmpActionFlight(r);
   const row = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.fpl, f.id, f.std) : null;
   const raw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
-  const crewRow = f ? cmpSourceChange(cmpSyncSources.crew, f.id, f.std) : null;
+  const crewRow = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.crew, f.id, f.std) : null;
   const liveRow = f ? cmpLiveChange(r) : null;
   const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg)) || !!(liveRow && liveRow.reg.changed);
   const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? (acChg ? "CHG DLA" : "DLA") : acChg ? "CHG A/C" : "";
@@ -553,8 +554,11 @@ async function cmpReadSyncSources(){
         cmpSyncDiffJob = {stamp, promise: job};
         job.catch(()=>{ if(cmpSyncDiffJob && cmpSyncDiffJob.promise === job) cmpSyncDiffJob = null; });
       }
-      const results = await job;
-      if(cmpSyncSources.stamp !== stamp) cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl[0]?.name || "",fplFile:pairs.fpl[1]?.name || ""};
+      let results = null;
+      try{ results = await job; }catch(_){ results = null; }
+      // A failed version diff gives no version evidence but must not hide live FliteBrief≠Crewlist actions; retry next tick.
+      if(!results) cmpSyncSources={stamp:"",current,crew:[],fpl:[],fplOld:"",fplFile:""};
+      else if(cmpSyncSources.stamp !== stamp) cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl[0]?.name || "",fplFile:pairs.fpl[1]?.name || ""};
       if(seq!==cmpSyncSeq) return;
     }
     cmpSourceHeaders();

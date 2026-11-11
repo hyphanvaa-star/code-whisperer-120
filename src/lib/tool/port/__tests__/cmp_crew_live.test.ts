@@ -40,3 +40,27 @@ describe('live FliteBrief vs Crewlist aircraft mismatch', () => {
     expect(run({ sector_id: 154, reg_cmp: { verdict: 'khớp', same: true, excel: 'VN-A668', flite: 'VN-A668' } })).toBeNull();
   });
 });
+
+describe('crew swap button without a usable Crewlist version diff', () => {
+  const html = patchCmpSyncPage(readFileSync('src/tool/page.html', 'utf8'));
+  const start = html.indexOf('function cmpLiveChange(');
+  const src = html.slice(start, html.indexOf('function cmpSyncKey(', start));
+  const vj154 = { sector_id: 154, crew: { verdict: 'FALSE 1', same: false,
+    excel: '-BUI ANH KHOA(CP+) 11332; -YIN KOK JING(FO) 9727', flite: 'TRINH TRUNG CHUNG; YIN KOK JING',
+    detail: 'Excel có mà FliteBrief không: 11332 · FliteBrief có mà Excel không: 9515' } };
+  const run = (sources: unknown, versionRow: unknown = null) => {
+    const ctx = vm.createContext({ cmpCellCrewChanges, cmpPilotChanges, xls: { file: 'AIMS 1111-1211 16h01.xlsx' }, cmpBind: {},
+      cmpSyncSources: sources, cmpSourceChange: () => versionRow, cmpAircraftChange: () => false,
+      cmpActionFlight: () => ({ id: 154, std: '2026-11-11T11:45:00Z' }), r: vj154 });
+    vm.runInContext(src, ctx);
+    return vm.runInContext('cmpSyncEvidence(r, "crew")', ctx);
+  };
+  it('VJ154 offers 9515 → 11332 before the version diff has loaded', () => {
+    expect(run({ stamp: '', crew: [], fpl: [] })?.changes).toEqual([{ key: 'cptText', from: '9515', to: '11332' }]);
+  });
+  it('VJ154 offers the live swap even when the version diff only saw an FO change', () => {
+    const row = { crew: { changed: true, raw_old: '(CP+) 11332; (FO) 1111', raw_new: '(CP+) 11332; (FO) 9727' } };
+    const e = run({ stamp: 'x', current: 'AIMS 1111-1211 16h01.xlsx', crew: [], fpl: [] }, row);
+    expect(e?.changes).toEqual([{ key: 'cptText', from: '9515', to: '11332' }]);
+  });
+});
