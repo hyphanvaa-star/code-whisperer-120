@@ -386,25 +386,23 @@ export function flytimeVerdicts(w: Weights): Record<string, unknown> {
     cont = cell(true, shown, why || `ROUTE RES ${shown}`);
   }
 
-  const needEra = Boolean(w.era_ops_fail || pct === 3 || (trip !== null && trip >= 180));
+  // ERA chỉ bắt buộc với chuyến ≥ 3h (thiếu TRIP TIME thì dựa vào 3PCT). ERA có trong OFP
+  // và không bị cảnh báo AIR OPS là hợp lệ — không áp giới hạn TIME 60p.
+  const needEra = trip !== null ? trip >= 180 : pct === 3;
+  const eraLabel = w.era_icao ? `ERA ${w.era_icao}${w.era_time_min !== null ? ` ${w.era_time_min}p` : ""}` : "";
   let era: Cell;
   if (w.era_ops_fail) {
     const code = w.era_icao || "ERA";
-    era = cell(false, `ERA ${code} không đạt`, `THE ENROUTE ALTERNATE ${code} DOES NOT MEET AIR OPS REQUIREMENTS`);
-  } else if (w.era_icao && w.era_time_min !== null) {
-    if (w.era_time_min >= 60) {
-      era = cell(
-        false,
-        `ERA ${w.era_icao} ${w.era_time_min}p`,
-        `ERA TIME phải dưới 60p — OFP ${w.era_icao} ${w.era_time_min}p.`,
-      );
-    } else {
-      era = cell(true, `ERA ${w.era_icao} ${w.era_time_min}p`, `ERA ${w.era_icao} TIME ${w.era_time_min}p.`);
-    }
+    const msg = `THE ENROUTE ALTERNATE ${code} DOES NOT MEET AIR OPS REQUIREMENTS`;
+    era = needEra
+      ? cell(false, `ERA ${code} không đạt`, msg)
+      : cell(true, "", `Chuyến < 3h — không bắt buộc ERA (OFP ghi: ${msg}).`);
+  } else if (w.era_icao) {
+    era = cell(true, eraLabel, `${eraLabel} — ERA hợp lệ.`);
   } else if (needEra) {
-    era = cell(false, "thiếu ERA", "Chuyến 3PCT phải có ERA (bảng ERA DIVERT PT) và TIME dưới 60p.");
+    era = cell(false, "thiếu ERA", "Chuyến ≥ 3h phải có ERA (bảng ERA DIVERT PT).");
   } else {
-    era = cell(true, "", "5PCT — không bắt buộc ERA.");
+    era = cell(true, "", "Chuyến < 3h — không bắt buộc ERA.");
   }
 
   const bad: string[] = [];
