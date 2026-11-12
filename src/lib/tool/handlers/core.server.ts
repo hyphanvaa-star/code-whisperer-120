@@ -591,6 +591,9 @@ export const routes: Routes = {
       };
     }
 
+    let citxDb: Awaited<ReturnType<typeof import("./fpl.server").loadCiTaxiDb>> | null = null;
+    try { citxDb = await (await import("./fpl.server")).loadCiTaxiDb(ctx); } catch (e) { console.warn("CI/Taxi db:", e); }
+    const citx = await import("../port/ofp_ci_taxi");
     const limitWarns: Record<string, unknown> = {};
     const payload: Record<string, Record<string, unknown>> = {};
     for (const [sectorId, wdict] of ws) {
@@ -599,6 +602,11 @@ export const routes: Routes = {
       const stale = cacheStaleVsGantt(wdict, flight);
       if (stale) d["cfp_mismatch"] = true;
       payload[String(sectorId)] = d;
+      if (flight && !stale && citxDb) {
+        const dep = String(flight.dep_iata || "").toUpperCase(), arr = String(flight.dest_iata || "").toUpperCase();
+        const exp = citx.expectedCiTaxi(citxDb as any, { dep, arr, acType: flight.ac_type || flight.acft_type || flight.fleet, reg: flight.reg });
+        d["citx"] = citx.ciTaxiCell(exp, { ci: (wdict["ci"] as number) ?? null, taxi: (wdict["taxi_fuel"] as number) ?? null }, dep);
+      }
       if (!flight || stale) continue;
       const warns = [...checkFlightLimits(flight, limits, wdict), ...checkOfpRules(flight, ofpRules, wdict)];
       limitWarns[String(sectorId)] = warns;

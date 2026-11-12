@@ -416,6 +416,12 @@ function cmpValPaint(sid){
     else if(c.querySelector(".warn,.pcr-near")) level = "warn";
     items.push({label, level, text: (c && (c.title || c.getAttribute("data-tip"))) || t});
   }
+  {
+    const wc = (typeof W_CACHE !== "undefined" && W_CACHE[sid]) || null;
+    const cx = wc && wc.citx;
+    const level = !wc ? "pending" : !cx ? "pending" : cx.ok === false ? "bad" : cx.ok === true ? "ok" : "warn";
+    items.push({label: "CI/TAXI", level, text: (cx && cx.tip) || "Chưa đọc được CI / Taxi từ OFP."});
+  }
   const v = cmpValidationVerdict(items);
   td.dataset.val = v;
   td.innerHTML = "";
@@ -437,7 +443,7 @@ function cmpValPaint(sid){
   const escV = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const tagTxt = {ok:"OK", warn:"Tiệm cận", bad:"Sai", pending:"Chưa có"};
   td.dataset.ctipW = "1";
-  const symbols = {FUEL:"⛽",TOW:"↗",LWT:"↘",ZFW:"⚖","CONT/ERA":"⛨",ETP:"⌖"};
+  const symbols = {FUEL:"⛽",TOW:"↗",LWT:"↘",ZFW:"⚖","CONT/ERA":"⛨",ETP:"⌖","CI/TAXI":"⚙"};
   td.dataset.ctip = '<div class="cmp-validation-flight">' + escV(td.dataset.cmpValCallsign || "") + '</div><div class="cmp-tip-h">Validation</div><div class="cmp-vs-grid">' + items.map((i, index) => {
     const lines = String(i.text || "").split("\\n").map(x => x.trim()).filter(Boolean);
     return '<div class="cmp-vs metric-' + index + ' ' + i.level + '"><div class="cmp-vs-h"><span><b class="cmp-vs-icon" aria-hidden="true">' + symbols[i.label] + '</b>' + escV(i.label) + '</span><em>' + tagTxt[i.level] + '</em></div>'
@@ -451,7 +457,7 @@ function renderCompareTable(d, opts){`)
     .replace('  vLast = d;', '  vLast = d;\n  cmpRegRepaint();')
     .replace('    xls = d;\n', '    xls = d;\n    cmpAtcAutoPending = true;\n')
     .replace('  fplVerApplied = {old: $("#vOld").value, new: $("#vNew").value};', '  fplVerApplied = {old: $("#vOld").value, new: $("#vNew").value};\n  cmpAtcAutoPending = true;\n  if(lastCmp && lastCmp.table) cmpAtcAutoRun(lastCmp.table);')
-    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
+    .replace('    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],', '    + "FALSE nếu Cont Fuel hoặc ERA lệch — hoặc cả hai."],\n  ["NOTE", ""],\n  ["VALIDATION", "Gộp FUEL, TOW, LWT, ZFW, CONT/ERA, ETP, CI/TAXI."],\n  ["ĐIỆN VĂN", ""],\n  ["ĐỔI BRIEFING", "Xem trước rồi xác nhận đổi Briefing cho đúng chuyến và tàu FliteBrief hiện tại."],\n  ["VERIFY", "Verify chuyến có tam giác đỏ OFP mới."],')
     .replace(`    for(const k of ["ezfw", "etp", "rres"]){
       const td = document.createElement("td");
       td.dataset.w = k;
@@ -562,7 +568,7 @@ function renderCompareTable(d, opts){`)
 .cmp-validation-flight{font-size:23px;line-height:1.3;font-weight:800;color:var(--validation-ink);margin-bottom:3px}
 .cmp-vs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .cmp-vs{--metric:var(--validation-fuel);padding:12px;border:1px solid var(--validation-line);border-left:4px solid var(--metric);border-radius:6px;background:color-mix(in oklab,var(--metric) 5%,var(--validation-paper));min-width:0}
-.cmp-vs.metric-1{--metric:var(--validation-tow)}.cmp-vs.metric-2{--metric:var(--validation-lwt)}.cmp-vs.metric-3{--metric:var(--validation-zfw)}.cmp-vs.metric-4{--metric:var(--validation-era)}.cmp-vs.metric-5{--metric:var(--validation-etp)}
+.cmp-vs.metric-1{--metric:var(--validation-tow)}.cmp-vs.metric-2{--metric:var(--validation-lwt)}.cmp-vs.metric-3{--metric:var(--validation-zfw)}.cmp-vs.metric-4{--metric:var(--validation-era)}.cmp-vs.metric-5{--metric:var(--validation-etp)}.cmp-vs.metric-6{--metric:var(--validation-fuel)}
 .cmp-vs-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-weight:800;font-size:17px;color:var(--metric);flex-wrap:wrap}
 .cmp-vs-h>span{display:inline-flex;align-items:center;gap:7px}
 .cmp-vs-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;background:color-mix(in oklab,var(--metric) 12%,var(--validation-paper));font-size:21px}

@@ -3,7 +3,7 @@
 
 export const MARGIN_KG = Number(process.env["FLITEBRIEF_MARGIN_KG"] ?? "1000");
 
-const _CACHE_SCHEMA_VERSION = 10;
+const _CACHE_SCHEMA_VERSION = 11;
 
 /** FIRs crossed, read from the ATC FPL item 18 `EET/` list inside the OFP (e.g. EET/VLVT0035 VVHN0110). null = no FPL found. */
 export function fplFirs(text: string): string[] | null {
@@ -95,6 +95,8 @@ export class Weights {
   era_icao: string | null = null;
   era_time_min: number | null = null;
   era_ops_fail = false;
+  ci: number | null = null;
+  taxi_fuel: number | null = null;
   cache_schema: number = _CACHE_SCHEMA_VERSION;
   pdf_sha: string | null = null;
   plan_no: string | null = null;
@@ -166,6 +168,8 @@ export class Weights {
       era_icao: this.era_icao,
       era_time_min: this.era_time_min,
       era_ops_fail: this.era_ops_fail,
+      ci: this.ci,
+      taxi_fuel: this.taxi_fuel,
       cache_schema: this.cache_schema,
       pdf_sha: this.pdf_sha,
       plan_no: this.plan_no,
@@ -286,6 +290,10 @@ function fillFlytime(w: Weights, text: string): void {
 
   const block = _BLOCK_FUEL.exec(text || "");
   if (block) w.block_fuel = Number(block[1]);
+  const ciM = /\bCI[ \t]+(\d{1,4})\b/.exec(text || "");
+  if (ciM) w.ci = Number(ciM[1]);
+  const txM = /^[ \t]*TAXI[ \t]+(\d{2,5})\b/im.exec(text || "");
+  if (txM) w.taxi_fuel = Number(txM[1]);
 }
 
 function etpCap(w: Weights): number {

@@ -88,6 +88,13 @@ async function loadDb(ctx: Ctx): Promise<ft.Db | null> {
   return new ft.Db(raw, { altRoutesDoc, eraDoc, ciDoc, taxiDoc });
 }
 
+/** CI / taxi tables only (no Crewlist needed) for OFP validation. */
+export async function loadCiTaxiDb(ctx: Ctx): Promise<ft.Db> {
+  const base = await loadRaw(ctx);
+  const [ciDoc, taxiDoc] = await Promise.all([loadCiDoc(ctx), loadTaxiDoc(ctx)]);
+  return new ft.Db({ ...(base || {}), payload: [], flights: [] }, { ciDoc, taxiDoc });
+}
+
 function readRows(body: Record<string, unknown>): Raw[] {
   const rows = body.rows;
   return Array.isArray(rows) ? (rows as Raw[]) : [];
