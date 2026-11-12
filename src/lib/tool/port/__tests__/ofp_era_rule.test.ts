@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { Weights, flytimeVerdicts } from "../ofp_weights";
 
 function w(trip: number, pct: number, era: { icao?: string; min?: number; fail?: boolean } = {}) {
-  const x = new Weights();
+  const x = new Weights(1);
   x.trip_time_min = trip;
   x.route_res_pct = pct;
   x.route_res_min = 10;
