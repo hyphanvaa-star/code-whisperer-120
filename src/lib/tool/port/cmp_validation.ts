@@ -42,7 +42,7 @@ export function patchCmpValidationPage(html: string): string {
     cs.appendChild(opsStatus);
     tr.appendChild(cs);
     tr.appendChild(routeCmpCell(r));`)
-    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["ATC STATUS", "Trạng thái ATC trên AviWeb đúng ngày/chặng."],\n  ["REG FPL", "Số tàu theo file Excel FPL VER mới nhất (dự phòng: OFP FliteBrief)."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],')
+    .replace('["REG", "Số tàu FliteBrief. Xanh = khớp Excel, đỏ + ! = lệch."],', '["ATC STATUS", "Trạng thái ATC trên AviWeb đúng ngày/chặng."],\n  ["REG FPL", "Số tàu theo file Excel FPL VER mới nhất (dự phòng: OFP FliteBrief)."],\n  ["REG AIMS", "Số tàu từ Crewlist/Excel AIMS. Xanh = khớp FliteBrief; đỏ = lệch."],\n  ["LIMIT", "Cảnh báo giới hạn khai thác như bảng Hiển thị chung. Đỏ = vi phạm, vàng = lưu ý, ✓ = đạt."],')
     .replace('const reg = pickReg(cell && cell.flite) || pickReg(cell && cell.excel) || pickReg(fallback) || "—";', 'const reg = pickReg(cell && cell.excel) || "—";')
     .replace('    tr.appendChild(regCmpCell(r));', `    const atcCell = txtCell("…", "q");
     atcCell.dataset.cmpAtcSid = r.sector_id;
@@ -51,7 +51,11 @@ export function patchCmpValidationPage(html: string): string {
     fplCell.dataset.fplRegSid = r.sector_id;
     tr.appendChild(fplCell);
     const aimsCell = regCmpCell(r);
-    tr.appendChild(aimsCell);`)
+    tr.appendChild(aimsCell);
+    { const lf = cmpActionFlight(r);
+      const lc = document.createElement("td"); lc.className = "lim-warn-cell cmp-lim-cell"; lc.dataset.cmpLimSid = r.sector_id;
+      try{ if(lf) paintLimitWarns(lc, lf.limit_warns || [], lf); else lc.textContent = "—"; }catch(_){ lc.textContent = "—"; }
+      tr.appendChild(lc); }`)
     .replace('    tr.onclick = () => {\n      current = r.sector_id;', `    const actionFlight = cmpActionFlight(r);
     const briefCell = document.createElement("td");
     const verifyCell = document.createElement("td");
@@ -525,7 +529,7 @@ function cmpToHandover(){
 }
 function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
-.cmptbl :is(th,td):nth-child(14),.cmptbl :is(th,td):nth-child(n+18):nth-child(-n+22){display:none!important}
+.cmptbl :is(th,td):nth-child(15),.cmptbl :is(th,td):nth-child(n+19):nth-child(-n+23){display:none!important}
 .mode#mHandover{display:none!important}
 #wrapHandover.ho-pop{position:fixed;inset:3vh 2vw;z-index:10001;border-radius:12px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.45)}
 #hoPopBack{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55)}

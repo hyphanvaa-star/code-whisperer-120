@@ -2239,6 +2239,7 @@ function paintLimitWarns(td, warns, f){
     .replace('const tag = (w && w.severity || "") === "critical" ? "⚠ VI PHẠM: " : "• ";', 'const tag = (w && w.severity || "") === "critical" ? "⚠ VI PHẠM: " : w && w.severity === "success" ? "✓ " : "• ";')
     .replace('function srSyncText(row){', 'function srSyncText(row){')
     .replace('srRuleLabel(row.rule) + (row.note ? " — " + row.note : "")', '(row.rule === "ONLY_ACS_APTS" ? "Chỉ các tàu đã chọn được bay đến sân bay " + srAptLabel(row.apts) : srRuleLabel(row.rule)) + (row.note ? " — " + row.note : "")')
+    .replace('function repaintLimitCells(ids){\n  const idset = new Set(ids);', 'function repaintLimitCells(ids){\n  const idset = new Set(ids);\n  try{ document.querySelectorAll("#cmpBody td[data-cmp-lim-sid]").forEach(c => { if(!idset.has(c.dataset.cmpLimSid) && !idset.has(Number(c.dataset.cmpLimSid))) return; const r = ((lastCmp && lastCmp.table) || []).find(x => String(x.sector_id) === c.dataset.cmpLimSid); const lf = r && cmpActionFlight(r); if(lf) paintLimitWarns(c, lf.limit_warns || [], lf); }); }catch(_){}')
     .replace('  if(mode === "limits") limRender();', '  if(mode === "limits") limRender();\n  repaintLimitCells(flights.map(f => f.id));')
     .replace('  if(typeof limRender === "function") limRender();', '  if(typeof limRender === "function") limRender();\n  repaintLimitCells(flights.map(f => f.id));')
     .replace('</head>', '<style>.lim-bang.ok{color:var(--vj-dark-ink);border-radius:50%;background:var(--vj-green)}.lim-bang.ok::before{display:none}.taf-tip .lim-pass .lim-tip-head,.taf-tip .lim-pass .lim-tip-rule{color:var(--hover-success)!important}</style></head>')
@@ -2935,7 +2936,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.04')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.05')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">

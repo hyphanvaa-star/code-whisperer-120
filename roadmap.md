@@ -278,3 +278,4 @@
 - [x] Verify tam giác đỏ: bỏ nút ✔ ở bảng hiển thị, đưa về cột VERIFY của tab Dữ liệu so sánh (bấm là verify, xong lên xanh), badge V 3.19, chưa publish
 - [x] Briefing: 4 dòng LOW EGT, bỏ tiền tố FM: ở defect
 - [x] Compare: cột TAF + EXTRA sau STD; Validation -2cm, Note -1cm
+- [x] Compare: cột LIMIT sau REG AIMS
