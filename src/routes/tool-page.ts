@@ -18,6 +18,7 @@ import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import manualAreaScript from '@/tool/manual-area.js?raw';
 import aimsCrewlistScript from '@/tool/aims-crewlist.js?raw';
+import ofpCheckModalScript from '@/tool/ofp-check-modal.js?raw';
 import { maParse, maBand, maCheck } from '@/lib/tool/port/manual_area';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
 import { auDahCatalogue } from '@/lib/tool/port/au_dah_catalog';
@@ -3088,7 +3089,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.12')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.13')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
@@ -3290,6 +3291,8 @@ function nmHlKeys(root){
   cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached))))
     // Compare re-run button label: "Reload" (runs last so earlier patches still find "Cmp").
     .replace('data-talk="so lại FliteBrief / OFP.">Cmp</button>', 'data-talk="so lại FliteBrief / OFP.">Reload</button>')
+    // V 6.13: Check OFP results open in a floating modal; the general tab is hidden.
+    .replace('</body>', () => `<script>${ofpCheckModalScript}</script></body>`)
     .replaceAll('btn.textContent = "Cmp";', 'btn.textContent = "Reload";');
   return cached;
 }
