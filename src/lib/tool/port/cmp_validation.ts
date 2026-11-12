@@ -422,7 +422,8 @@ function cmpValPaint(sid){
     const level = !wc ? "pending" : !cx ? "pending" : cx.ok === false ? "bad" : cx.ok === true ? "ok" : "warn";
     items.push({label: "CI/TAXI", level, text: (cx && cx.tip) || "Chưa đọc được CI / Taxi từ OFP."});
   }
-  const v = cmpValidationVerdict(items);
+  // CI/TAXI still loading must not hold the whole cell at "Chờ dữ liệu"; only a real read/compare result counts.
+  const v = cmpValidationVerdict(items.filter(i => !(i.label === "CI/TAXI" && i.level === "pending")));
   td.dataset.val = v;
   td.innerHTML = "";
   const head = document.createElement("div");

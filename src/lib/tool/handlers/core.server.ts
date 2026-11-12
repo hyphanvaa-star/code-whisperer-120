@@ -8,7 +8,7 @@ import { checkFlightLimits, needsOfpLimitCheck, type LimitsData } from "../port/
 import { ofpAckNeeded } from "../port/verify";
 import { adviceForFlight, type TafRec, type TafSnapshot } from "../port/taf";
 import { getJson, setJson } from "../store.server";
-import { MARGIN_KG, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
+import { MARGIN_KG, OFP_CACHE_SCHEMA, OfpError, parseWeights, type Weights } from "../port/ofp_weights";
 import * as omni from "../port/omni";
 import { saveBrowserToken } from "../omni_session.server";
 import { getSnapshot, hasOooi, matchTrack, overlayOf, type Track } from "../opscore.server";
@@ -265,7 +265,7 @@ async function fetchOneWeight(
   const key = `ofp.w.${sectorId}`;
   if (!revalidate) {
     const cached = await getJson<CachedWeights | null>(ctx, key, null);
-    if (cached && cached.w && "wpts" in cached.w && Date.now() - cached.at < OFP_WEIGHTS_TTL_MS) return cached.w;
+    if (cached && cached.w && "wpts" in cached.w && Number(cached.w["cache_schema"]) >= OFP_CACHE_SCHEMA && Date.now() - cached.at < OFP_WEIGHTS_TTL_MS) return cached.w;
   }
   const readCacheFallback = async (): Promise<Record<string, unknown> | null> => {
     const cached = await getJson<CachedWeights | null>(ctx, key, null);
@@ -602,7 +602,8 @@ export const routes: Routes = {
       const stale = cacheStaleVsGantt(wdict, flight);
       if (stale) d["cfp_mismatch"] = true;
       payload[String(sectorId)] = d;
-      if (flight && !stale && citxDb) {
+      // Old-schema cache (fallback when FliteBrief is unreachable) has no CI/Taxi → leave pending, never "unreadable".
+      if (flight && !stale && citxDb && Number(wdict["cache_schema"]) >= OFP_CACHE_SCHEMA) {
         const dep = String(flight.dep_iata || "").toUpperCase(), arr = String(flight.dest_iata || "").toUpperCase();
         const exp = citx.expectedCiTaxi(citxDb as any, { dep, arr, acType: flight.ac_type || flight.acft_type || flight.fleet, reg: flight.reg });
         d["citx"] = citx.ciTaxiCell(exp, { ci: (wdict["ci"] as number) ?? null, taxi: (wdict["taxi_fuel"] as number) ?? null }, dep);

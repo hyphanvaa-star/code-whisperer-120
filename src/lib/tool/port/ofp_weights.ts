@@ -4,6 +4,8 @@
 export const MARGIN_KG = Number(process.env["FLITEBRIEF_MARGIN_KG"] ?? "1000");
 
 const _CACHE_SCHEMA_VERSION = 11;
+/** Cached OFP weights older than this schema lack fields (CI/Taxi…) and must be re-read. */
+export const OFP_CACHE_SCHEMA = _CACHE_SCHEMA_VERSION;
 
 /** FIRs crossed, read from the ATC FPL item 18 `EET/` list inside the OFP (e.g. EET/VLVT0035 VVHN0110). null = no FPL found. */
 export function fplFirs(text: string): string[] | null {
