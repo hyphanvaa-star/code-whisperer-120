@@ -2233,6 +2233,70 @@ const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 @media(prefers-reduced-motion:reduce){.ft-pld-hi{animation:none;text-decoration:underline;text-decoration-thickness:2px}}
 </style>`;
 
+
+const FILE_CHECK_FN = `
+function cmpFileCheckCell(f){
+  const td = document.createElement("td");
+  td.className = "bat-cell cmp-file-cell";
+  if(!f){ td.textContent = "—"; return td; }
+  const esc = v => String(v == null ? "" : v).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const a = f.attch || {};
+  const items = a.items || [];
+  const isVN = !!(f.dep && String(f.dep).toUpperCase().startsWith("VV"));
+  const pib = !!f.has_pib, wx = !!f.has_wx;
+  const okN = items.filter(m => m.state === "ok").length + (isVN ? (pib?1:0) + (wx?1:0) : 0);
+  const total = items.length + (isVN ? 2 : 0);
+  const wrong = (a.wrong_n || 0) > 0;
+  const missing = total - okN - (a.wrong_n || 0);
+  const full = total > 0 && okN === total;
+  const soon = !full && fileDueSoon(f.std);
+  const pct = total ? Math.round(100 * okN / total) : 0;
+  const state = wrong ? "wrong" : soon ? "wrong" : (!full && total ? "miss" : "");
+  if(!total){ td.textContent = "—"; return td; }
+  td.appendChild(sysBat("att", pct, full, full ? "Đủ" : "Thiếu", state));
+  const std = Date.parse(f.std || "");
+  const mins = std ? Math.round((std - Date.now()) / 60000) : null;
+  const badge = wrong ? ["bad", "⚠ SAI TÀU"] : soon ? ["bad", "⚠ ≤1H TỚI STD"] : full ? ["ok", "ĐỦ HỒ SƠ"] : ["warn", "THIẾU FILE"];
+  const row = (ok, name, val) => '<div class="fc-row ' + ok + '"><span class="fc-ic">' + (ok === "ok" ? "✓" : ok === "bad" ? "⚠" : "✗") + '</span><span class="fc-n">' + esc(name) + '</span><b>' + esc(val) + '</b></div>';
+  let h = '<div class="fc-tip"><div class="fc-head"><div><div class="fc-cs">' + esc(f.callsign || "") + '</div><div class="fc-sub">' + esc(f.route || "") + (std ? ' · STD ' + new Date(std).toISOString().slice(11,16) + 'Z' : '') + '</div></div><span class="fc-badge ' + badge[0] + '">' + badge[1] + '</span></div>';
+  h += '<div class="fc-sec">File Notice add</div>';
+  if(items.length) for(const m of items){
+    const st = m.state === "ok" ? "ok" : m.state === "wrong" ? "bad" : "miss";
+    h += row(st, (typeof attchLine === "function" ? attchLine(m) : (m.kind || "file")), st === "ok" ? "Có" : st === "bad" ? "Sai tàu" : "Thiếu");
+  } else h += '<div class="fc-empty">Không có file Notice yêu cầu</div>';
+  h += '<div class="fc-sec">PIB / WX</div>';
+  if(isVN){ h += row(pib ? "ok" : "miss", "PIB (NOTAM)", pib ? "Đã có" : "Chưa có") + row(wx ? "ok" : "miss", "WX (thời tiết)", wx ? "Đã có" : "Chưa có"); }
+  else h += '<div class="fc-empty">Sân đi nước ngoài (' + esc(f.dep || "?") + ') — không cần PIB/WX</div>';
+  const why = [];
+  if(wrong) why.push("Có " + a.wrong_n + " file gắn sai tàu " + (f.reg ? "(tàu đúng: " + f.reg + ")" : ""));
+  if(soon) why.push(mins != null && mins >= 0 ? "Còn " + mins + " phút tới STD mà thiếu " + missing + " file" : "Đã qua STD mà còn thiếu " + missing + " file");
+  if(why.length) h += '<div class="fc-alert">' + why.map(esc).join("<br>") + '</div>';
+  h += '<div class="fc-foot"><div class="fc-bar"><i style="width:' + pct + '%"></i></div><span>' + okN + '/' + total + ' file · ' + pct + '%</span></div></div>';
+  td.dataset.ctip = h;
+  if(typeof cmpTipEnsure === "function") cmpTipEnsure();
+  return td;
+}
+`;
+const FILE_CHECK_CSS = `<style id="cmp-file-check">
+.cmp-tip:has(.fc-tip){padding:0!important;max-width:380px!important}
+.fc-tip{min-width:300px;font:13px/1.4 system-ui,sans-serif;color:#0f172a}
+.fc-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-bottom:1px solid #e2e8f0;border-radius:10px 10px 0 0}
+.fc-cs{font-weight:800;font-size:15px;letter-spacing:.02em}.fc-sub{font-size:11.5px;color:#64748b}
+.fc-badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.fc-badge.ok{background:#16a34a;color:#fff}.fc-badge.warn{background:#fee2e2;color:#b91c1c}.fc-badge.bad{background:#dc2626;color:#fff;animation:att-wrong-blink .85s infinite}
+.fc-sec{padding:8px 14px 3px;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#4f46e5}
+.fc-row{display:flex;align-items:center;gap:8px;padding:4px 14px}
+.fc-row .fc-n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-ic{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none}
+.fc-row.ok .fc-ic{background:#dcfce7;color:#15803d}.fc-row.ok b{color:#15803d}
+.fc-row.miss .fc-ic{background:#fee2e2;color:#b91c1c}.fc-row.miss b{color:#b91c1c}
+.fc-row.bad .fc-ic{background:#dc2626;color:#fff}.fc-row.bad b{color:#dc2626}
+.fc-empty{padding:3px 14px;color:#94a3b8;font-size:12px;font-style:italic}
+.fc-alert{margin:8px 14px 0;padding:7px 10px;border-radius:8px;background:#fef2f2;border-left:3px solid #dc2626;color:#991b1b;font-weight:600;font-size:12px}
+.fc-foot{display:flex;align-items:center;gap:10px;padding:10px 14px;margin-top:8px;border-top:1px solid #e2e8f0;font-size:12px;color:#475569;font-weight:600}
+.fc-bar{flex:1;height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden}.fc-bar i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#16a34a)}
+.cmptbl td.cmp-file-cell{text-align:center}
+</style>`;
 async function page(): Promise<string> {
   if (cached) return cached;
   const raw = (await import("@/tool/page.html?raw")).default as string;
@@ -3024,7 +3088,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.11')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.12')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
@@ -3217,6 +3281,11 @@ function nmHlKeys(root){
   td.onmouseleave = hideTafTip;`)
     .replace('  if(!t || !t.closest) return;\n  if(_tipHost', '  if(!t || !t.closest) return;\n  if(t.closest("#wrapGeneral td.taf-cell")) return;\n  if(_tipHost')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
+    // V 6.12: Compare FILE CHECK = Notice add + PIB/WX in one battery (last column, keeps nth-child rules).
+    .replace('    if(tip) th.title = tip;\n    head.appendChild(th);\n  }\n', '    if(tip) th.title = tip;\n    head.appendChild(th);\n  }\n  { const th = document.createElement("th"); th.textContent = "FILE CHECK"; th.title = "Gộp file Notice add + PIB/WX. Đỏ = thiếu; nháy = sai tàu hoặc còn ≤1h tới STD mà thiếu."; head.appendChild(th); }\n')
+    .replace('    tr.append(messageCell, briefCell, verifyCell);', '    tr.append(messageCell, briefCell, verifyCell);\n    tr.appendChild(cmpFileCheckCell(actionFlight));')
+    .replace('function renderCompareTable(d, opts){', FILE_CHECK_FN + 'function renderCompareTable(d, opts){')
+    .replace('</head>', FILE_CHECK_CSS + '</head>')
     ;
   cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached))))
     // Compare re-run button label: "Reload" (runs last so earlier patches still find "Cmp").
