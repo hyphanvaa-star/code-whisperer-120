@@ -42,14 +42,95 @@
     }
     return map;
   };
+  // Map-only corridor for the "hide MINOR" box: anything farther than this
+  // from the drawn route is hidden, whatever its verdict. Lists stay intact.
+  const MAP_CORRIDOR_NM = 50;
+  const routeLines = function (packs) {
+    const lines = [];
+    for (const pack of packs) {
+      if (!pack) continue;
+      let ll = (pack.track || []).map(p => [Number(p.lat), Number(p.lon)]);
+      ll = ll.filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+      if (ll.length < 2) {
+        ll = (pack.line || []).map(p => [Number(p[1]), Number(p[0])])
+          .filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+      }
+      if (ll.length) lines.push(ll);
+    }
+    return lines;
+  };
+  // Local flat projection (NM) around the segment: good enough for a 50 NM gate.
+  const ptSegNm = function (p, a, b) {
+    const k = Math.cos(((a[0] + b[0] + p[0]) / 3) * Math.PI / 180);
+    const wrap = d => (d > 180 ? d - 360 : d < -180 ? d + 360 : d);
+    const ax = wrap(a[1] - p[1]) * 60 * k, ay = (a[0] - p[0]) * 60;
+    const bx = wrap(b[1] - p[1]) * 60 * k, by = (b[0] - p[0]) * 60;
+    const dx = bx - ax, dy = by - ay, len = dx * dx + dy * dy;
+    let t = len ? -(ax * dx + ay * dy) / len : 0;
+    t = Math.max(0, Math.min(1, t));
+    const x = ax + t * dx, y = ay + t * dy;
+    return Math.sqrt(x * x + y * y);
+  };
+  const ptLineNm = function (p, line) {
+    if (line.length === 1) return ptSegNm(p, line[0], line[0]);
+    let best = Infinity;
+    for (let i = 1; i < line.length; i++) best = Math.min(best, ptSegNm(p, line[i - 1], line[i]));
+    return best;
+  };
+  const inRing = function (p, ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const yi = ring[i][0], xi = ring[i][1], yj = ring[j][0], xj = ring[j][1];
+      if ((yi > p[0]) !== (yj > p[0]) && p[1] < (xj - xi) * (p[0] - yi) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  const hitRouteNm = function (hit, lines) {
+    const ring = (hit.ring || []).map(p => [Number(p[0]), Number(p[1])])
+      .filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+    const rad = Number(hit.radius_nm) || 0;
+    const isArea = ring.length >= 3 && hit.shape !== 'line' && hit.shape !== 'linestring' && !(rad > 0);
+    const pts = ring.length ? ring
+      : (hit.lat != null && hit.lon != null ? [[Number(hit.lat), Number(hit.lon)]] : []);
+    if (!pts.length || !pts.every(p => Number.isFinite(p[0]) && Number.isFinite(p[1]))) return null;
+    let best = Infinity;
+    for (const line of lines) {
+      for (const p of pts) best = Math.min(best, ptLineNm(p, line));
+      if (pts.length >= 2) {
+        const edges = isArea ? pts.concat([pts[0]]) : pts;
+        for (const q of line) {
+          if (isArea && inRing(q, ring)) return 0;
+          best = Math.min(best, ptLineNm(q, edges));
+        }
+      }
+    }
+    return Math.max(0, best - (rad > 0 ? rad : 0));
+  };
+  const nearRoute = function (list, packs) {
+    const lines = routeLines(packs);
+    if (!lines.length) return list; // no route geometry: never hide without evidence
+    return list.filter(h => {
+      if (!h) return false;
+      if (/^(?:A|AD|APT)$/.test(String(h.kind || '').toUpperCase())) return true; // DEP/DEST/ALTN airports
+      const d = hitRouteNm(h, lines);
+      return d == null || d <= MAP_CORRIDOR_NM;
+    });
+  };
+  const mapPacks = function () {
+    return nmMapIsTrack() ? [nmTrackData]
+      : nmFleetSum && nmData && nmData.fleet && nmGroup !== NM_GROUP_TRACK
+        ? Object.entries(nmData.tracks || {}).filter(([id]) => nmFleetTicked(id)).map(([, pack]) => pack)
+        : [nmTrackData];
+  };
   nmPlotHits = function (hits, bounds) {
     // Both shape and dot passes must see the upgraded geometry, not raw hits.
     let visible = (hits || []).slice();
-    if (!(allAreasLayer && nmMap && nmMap.hasLayer(allAreasLayer))) {
-      const packs = nmMapIsTrack() ? [nmTrackData]
-        : nmFleetSum && nmData && nmData.fleet && nmGroup !== NM_GROUP_TRACK
-          ? Object.entries(nmData.tracks || {}).filter(([id]) => nmFleetTicked(id)).map(([, pack]) => pack)
-          : [nmTrackData];
+    const hideFar = !!(allAreasLayer && nmMap && nmMap.hasLayer(allAreasLayer));
+    if (hideFar) {
+      // A single explicitly focused NOTAM is always drawn.
+      if (visible.length > 1) visible = nearRoute(visible.map(nmRefreshHitGeom).filter(Boolean), mapPacks());
+    } else {
+      const packs = mapPacks();
       // Restore only actual boundaries from this flight's checked source, not
       // the worldwide catalogue or centre-only pins. Never change verdict data.
       const keys = new Set(visible.map(h => [h.icao, h.ident, nmGeomKey(h)].join('|')));

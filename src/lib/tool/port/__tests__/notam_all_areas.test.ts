@@ -67,4 +67,32 @@ describe('all NOTAM areas map layer', () => {
     expect(s.plotted().map(h => h.ident)).toEqual(['A1', 'B2']);
     expect(s.redraws()).toBe(2);
   });
+  it('hides dots and areas more than 50 NM from the route when the hide box is ticked', () => {
+    const s = screen();
+    // Route along the equator from lon 100 to lon 101 (≈60 NM).
+    (s.pack as Record<string, unknown>).track = [{ lat: 0, lon: 100 }, { lat: 0, lon: 101 }];
+    s.toggle(true);
+    const near = { ident: 'N1', kind: 'FIR', shape: 'dot', lat: 0.5, lon: 100.5 };      // 30 NM
+    const far = { ident: 'F1', kind: 'FIR', shape: 'dot', lat: 5, lon: 100.5 };         // 300 NM
+    const farPoly = { ident: 'F2', kind: 'FIR', shape: 'polygon', ring: [[3, 100], [3, 101], [4, 101]] };
+    const crossPoly = { ident: 'X1', kind: 'FIR', shape: 'polygon', ring: [[-2, 100.4], [2, 100.4], [2, 100.6], [-2, 100.6]] };
+    const farCircle = { ident: 'F3', kind: 'FIR', shape: 'circle', lat: 2, lon: 100.5, radius_nm: 20 }; // 100 NM
+    const bigCircle = { ident: 'C1', kind: 'FIR', shape: 'circle', lat: 2, lon: 100.5, radius_nm: 90 }; // edge 30 NM
+    const airport = { ident: 'A9', kind: 'A', shape: 'dot', lat: 10, lon: 120 };
+    s.context.nmPlotHits([near, far, farPoly, crossPoly, farCircle, bigCircle, airport]);
+    expect(s.plotted().map(h => h.ident)).toEqual(['N1', 'X1', 'C1', 'A9']);
+  });
+  it('still draws a single focused NOTAM even when it is far from the route', () => {
+    const s = screen();
+    (s.pack as Record<string, unknown>).track = [{ lat: 0, lon: 100 }, { lat: 0, lon: 101 }];
+    s.toggle(true);
+    s.context.nmPlotHits([{ ident: 'F1', kind: 'FIR', shape: 'dot', lat: 5, lon: 100.5 }]);
+    expect(s.plotted().map(h => h.ident)).toEqual(['F1']);
+  });
+  it('keeps every area when ticked but the route has no coordinates', () => {
+    const s = screen();
+    s.toggle(true);
+    s.context.nmPlotHits([{ ident: 'F1', kind: 'FIR', shape: 'dot', lat: 5, lon: 100.5 }, s.impact]);
+    expect(s.plotted().map(h => h.ident)).toEqual(['F1', 'A1']);
+  });
 });
