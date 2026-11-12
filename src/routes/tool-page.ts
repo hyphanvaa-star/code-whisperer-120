@@ -2279,7 +2279,8 @@ function cmpFileCheckCell(f){
 }
 `;
 const FILE_CHECK_CSS = `<style id="cmp-file-check">
-.cmp-tip:has(.fc-tip){padding:0!important;max-width:380px!important}
+.cmp-tip:has(.fc-tip){padding:0!important;max-width:380px!important;background:#fff!important;color:#0f172a!important;border:1px solid #e2e8f0}
+.fc-row .fc-n{color:#0f172a}.fc-row.miss .fc-n{color:#991b1b;font-weight:600}
 .fc-tip{min-width:300px;font:13px/1.4 system-ui,sans-serif;color:#0f172a}
 .fc-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-bottom:1px solid #e2e8f0;border-radius:10px 10px 0 0}
 .fc-cs{font-weight:800;font-size:15px;letter-spacing:.02em}.fc-sub{font-size:11.5px;color:#64748b}
@@ -2331,7 +2332,7 @@ async function page(): Promise<string> {
   if(pd){ pd.innerHTML = ""; const c = wrap.cloneNode(true); pd.appendChild(document.createTextNode(" (")); pd.appendChild(c); pd.appendChild(document.createTextNode(")")); }
   td.title = (v > 0
     ? "còn dư "`)
-    .replace('</head>', '<style>.cmptbl thead th:nth-child(17),.cmptbl thead th:nth-child(18),.cmptbl td[data-w="est"],.cmptbl td[data-w="delta"]{display:none!important}.cmptbl td[data-w="pld"]{white-space:nowrap}.cmptbl .pld-d{margin-left:4px}</style></head>')
+    .replace('</head>', '<style>.cmptbl thead th:nth-child(18),.cmptbl thead th:nth-child(19),.cmptbl td[data-w="est"],.cmptbl td[data-w="delta"]{display:none!important}.cmptbl td[data-w="pld"]{white-space:nowrap}.cmptbl .pld-d{margin-left:4px}</style></head>')
     .replace('el.textContent = (d.total != null ? d.total + " chuyến · " : "") + hm\n    + (d.added', 'el.title = "Payload EST (Omni) cập nhật lúc " + t.toLocaleString("vi-VN");\n  el.textContent = "EST cập nhật " + hm; void 0\n    + (d.added')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
@@ -3089,7 +3090,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.14')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.15')
     // V 6.14: tên tab thanh bên bằng tiếng Anh (chuẩn OCC); id giữ nguyên.
     .replace('title="Tạo KHB / FPL.req theo sheet TOOL từ file sohee">Tạo KHB</button>', 'title="Tạo KHB / FPL.req theo sheet TOOL từ file sohee">Flight Planning</button>')
     .replace('title="Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM, note">Giao ca</button>', 'title="Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM, note">Shift Handover</button>')
@@ -3296,8 +3297,8 @@ function nmHlKeys(root){
     .replace('  if(!t || !t.closest) return;\n  if(_tipHost', '  if(!t || !t.closest) return;\n  if(t.closest("#wrapGeneral td.taf-cell")) return;\n  if(_tipHost')
     .replace('  if(_tipHost && _tipHost.contains(t)) return;', '  if(t.closest("td[data-ctip],.cmp-tip")){ tipRelease(); return; }\n  if(_tipHost && _tipHost.contains(t)) return;')
     // V 6.12: Compare FILE CHECK = Notice add + PIB/WX in one battery (last column, keeps nth-child rules).
-    .replace('    if(tip) th.title = tip;\n    head.appendChild(th);\n  }\n', '    if(tip) th.title = tip;\n    head.appendChild(th);\n  }\n  { const th = document.createElement("th"); th.textContent = "FILE CHECK"; th.title = "Gộp file Notice add + PIB/WX. Đỏ = thiếu; nháy = sai tàu hoặc còn ≤1h tới STD mà thiếu."; head.appendChild(th); }\n')
-    .replace('    tr.append(messageCell, briefCell, verifyCell);', '    tr.append(messageCell, briefCell, verifyCell);\n    tr.appendChild(cmpFileCheckCell(actionFlight));')
+    .replace('    if(tip) th.title = tip;\n    head.appendChild(th);\n  }\n', '    if(tip) th.title = tip;\n    head.appendChild(th);\n  }\n  { const th = document.createElement("th"); th.textContent = "FILE CHECK"; th.title = "Gộp file Notice add + PIB/WX. Đỏ = thiếu; nháy = sai tàu hoặc còn ≤1h tới STD mà thiếu."; const ra = [...head.children].find(x => x.textContent === "REG AIMS"); if(ra) ra.after(th); else head.appendChild(th); }\n')
+    .replace('    tr.append(messageCell, briefCell, verifyCell);', '    tr.append(messageCell, briefCell, verifyCell);\n    { const fcc = cmpFileCheckCell(actionFlight); const lim = tr.querySelector("td.cmp-lim-cell"); if(lim) tr.insertBefore(fcc, lim); else tr.appendChild(fcc); }')
     .replace('function renderCompareTable(d, opts){', FILE_CHECK_FN + 'function renderCompareTable(d, opts){')
     .replace('</head>', FILE_CHECK_CSS + '</head>')
     ;

@@ -529,7 +529,7 @@ function cmpToHandover(){
 }
 function renderCompareTable(d, opts){`)
     .replace('</head>', `<style>
-.cmptbl :is(th,td):nth-child(9),.cmptbl :is(th,td):nth-child(15),.cmptbl :is(th,td):nth-child(n+19):nth-child(-n+23){display:none!important}
+.cmptbl :is(th,td):nth-child(9),.cmptbl :is(th,td):nth-child(16),.cmptbl :is(th,td):nth-child(n+20):nth-child(-n+24){display:none!important}
 .mode#mHandover{display:none!important}
 #wrapHandover.ho-pop{position:fixed;inset:3vh 2vw;z-index:10001;border-radius:12px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.45)}
 #hoPopBack{display:none;position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55)}
