@@ -57,6 +57,13 @@
       "when": 1794382776975,
       "tag": "0007_aims_session_cookies",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794457968063,
+      "tag": "0008_bind_chat_files_to_visible_rooms",
+      "breakpoints": true
     }
   ]
 }
