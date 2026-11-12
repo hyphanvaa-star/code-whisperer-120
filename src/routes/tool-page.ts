@@ -2179,6 +2179,20 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchCmpDspFastPage(patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))))
     .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + KHB_TABLE_MODERN + TABLE_MODERN + '</head>')
+    // V 6.08: CFP time cell shows OFP STA (UTC) under STD instead of local time.
+    .replace(`  if(r.std_excel){
+    const lt = document.createElement("span");
+    lt.className = "v lt";
+    lt.textContent = r.std_excel + " LT";`, `  if(r.sta){
+    const lt = document.createElement("span");
+    lt.className = "v lt";
+    lt.textContent = "STA " + r.sta + "Z";
+    td.appendChild(lt);
+    td.title = "STD " + r.std + "Z · STA " + r.sta + "Z (OFP/FliteBrief, UTC)"
+      + (r.std_excel ? "\\nExcel " + (r.std_excel_src || "STD") + ": " + r.std_excel + " LT" : "");
+  }else if(false){
+    const lt = document.createElement("span");
+    lt.textContent = "";`)
     // V 6.07: one PLD column = OFP payload + (PLD−EST) delta; EST/Δ columns hidden.
     .replace(`      td.appendChild(mk("span", "v n", NUM(w.pld)));
       if(w.dow)`, `      td.appendChild(mk("span", "v n", NUM(w.pld)));
@@ -2950,7 +2964,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.07')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.08')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
