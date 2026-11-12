@@ -45,17 +45,17 @@ export function useShift() {
 }
 
 const TABS = [
-  { to: "/khb", label: "Tạo KHB", icon: FileText },
-  { to: "/handover", label: "Giao ca", icon: ClipboardList },
-  { to: "/board", label: "Hiển thị chung", icon: LayoutGrid },
-  { to: "/compare", label: "Dữ liệu so sánh", icon: ListChecks },
-  { to: "/tools", label: "Công cụ hỗ trợ", icon: Wrench },
-  { to: "/notam", label: "Check NOTAM", icon: FileWarning },
+  { to: "/khb", label: "Flight Planning", icon: FileText },
+  { to: "/handover", label: "Shift Handover", icon: ClipboardList },
+  { to: "/board", label: "Flight Overview", icon: LayoutGrid },
+  { to: "/compare", label: "Flight Supervisor", icon: ListChecks },
+  { to: "/tools", label: "Dispatch Tools", icon: Wrench },
+  { to: "/notam", label: "NOTAM Tracking", icon: FileWarning },
   { to: "/ver", label: "Dữ liệu thay đổi theo ver", icon: ListChecks },
-  { to: "/autoload", label: "Tự động tải", icon: Download },
-  { to: "/atc", label: "Check ATC avi", icon: Radio },
-  { to: "/aircraft", label: "Giới hạn tàu và sân bay", icon: Plane },
-  { to: "/notices", label: "Thiết lập file add", icon: Paperclip },
+  { to: "/autoload", label: "Auto Downloader", icon: Download },
+  { to: "/atc", label: "ATC AviWeb Check", icon: Radio },
+  { to: "/aircraft", label: "Aircraft & Airport Limits", icon: Plane },
+  { to: "/notices", label: "Notice Rules", icon: Paperclip },
 ] as const;
 
 function useSignOut() {

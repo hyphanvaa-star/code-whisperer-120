@@ -398,7 +398,7 @@ const SHIM = `<script>
       window.addEventListener('scroll',placeAcctMenu);
       var acctEd=document.getElementById('opsAcctEdit'); if(acctEd)acctEd.addEventListener('click',function(){ setAcctOpen(false); try{ window.parent.postMessage({type:'sohee-account-edit'},window.location.origin); }catch(e){} });
       var aftnTab=document.getElementById('mAftn');
-      if(aftnTab&&!document.getElementById('opsAcctManage')){ var acctMg=document.createElement('button'); acctMg.type='button'; acctMg.className='mode'; acctMg.id='opsAcctManage'; acctMg.hidden=true; acctMg.title='Chỉ hyphan thấy mục này'; acctMg.textContent='Quản lí tài khoản'; var dbTab=document.getElementById('mDatabase'); (dbTab||aftnTab).insertAdjacentElement('afterend',acctMg); acctMg.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); try{ window.parent.postMessage({type:'sohee-accounts-manage'},window.location.origin); }catch(err){} },true); }
+      if(aftnTab&&!document.getElementById('opsAcctManage')){ var acctMg=document.createElement('button'); acctMg.type='button'; acctMg.className='mode'; acctMg.id='opsAcctManage'; acctMg.hidden=true; acctMg.title='Chỉ hyphan thấy mục này'; acctMg.textContent='Account Management'; var dbTab=document.getElementById('mDatabase'); (dbTab||aftnTab).insertAdjacentElement('afterend',acctMg); acctMg.addEventListener('click',function(e){ e.preventDefault(); e.stopImmediatePropagation(); try{ window.parent.postMessage({type:'sohee-accounts-manage'},window.location.origin); }catch(err){} },true); }
       if(acctOut)acctOut.addEventListener('click',function(){ try{ window.parent.postMessage({type:'sohee-signout'},window.location.origin); }catch(e){} });
       window.addEventListener('message',function(ev){ if(ev.origin!==window.location.origin||ev.source!==window.parent)return; var d=ev.data||{}; if(d.type==='sohee-account'){setAcctMail(d.email,d.avatarUrl,d.displayName); var mg=document.getElementById('opsAcctManage'); if(mg)mg.hidden=!d.canManage;} if(d.type==='sohee-live-count'){ var mg2=document.getElementById('opsAcctManage'); if(!mg2)return; var lb=document.getElementById('opsLiveCount'); if(!lb){ lb=document.createElement('span'); lb.id='opsLiveCount'; lb.className='ops-live'; mg2.appendChild(lb);} var n=Number(d.count)||0; lb.title=n+' người đang online'; lb.classList.toggle('off',n<=0); lb.innerHTML='<i class="ops-live-d"></i><b class="ops-live-n">'+n+'</b><span class="ops-live-t">online</span>'; } });
       try{ window.parent.postMessage({type:'sohee-account-request'},window.location.origin); }catch(e){}
@@ -1199,7 +1199,7 @@ header .ai-fab{background:var(--x-red) !important;color:#fff !important;-webkit-
   position:fixed !important;left:0 !important;top:var(--x-top,99px) !important;bottom:0 !important;width:262px !important;display:block !important;z-index:30 !important;
   background:#fff !important;border-right:1px solid var(--x-line) !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;
 }
-.aside-head::before{content:"CHỨC NĂNG";display:block;font:800 11.5px var(--x-sans);letter-spacing:.2em;color:#788494;padding:2px 12px 13px}
+.aside-head::before{content:"OPERATIONS";display:block;font:800 11.5px var(--x-sans);letter-spacing:.2em;color:#788494;padding:2px 12px 13px}
 .aside-head .modes{flex-direction:column !important;align-items:stretch !important;gap:3px !important;padding:0 !important;background:transparent !important;flex-wrap:nowrap !important;overflow:visible !important}
 .aside-head .mode,.mode{
   white-space:nowrap !important;overflow:visible !important;justify-content:flex-start !important;text-align:left !important;flex:0 0 auto !important;width:100% !important;margin:0 !important;
@@ -3089,7 +3089,20 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.13')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.14')
+    // V 6.14: tên tab thanh bên bằng tiếng Anh (chuẩn OCC); id giữ nguyên.
+    .replace('title="Tạo KHB / FPL.req theo sheet TOOL từ file sohee">Tạo KHB</button>', 'title="Tạo KHB / FPL.req theo sheet TOOL từ file sohee">Flight Planning</button>')
+    .replace('title="Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM, note">Giao ca</button>', 'title="Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM, note">Shift Handover</button>')
+    .replace('aria-selected="true">Hiển thị chung<span', 'aria-selected="true">Flight Overview<span')
+    .replace('aria-live="polite"></span>Dữ liệu so sánh</button>', 'aria-live="polite"></span>Flight Supervisor</button>')
+    .replace('aria-selected="false">Công cụ hỗ trợ</button>', 'aria-selected="false">Dispatch Tools</button>')
+    .replace('rồi tóm tắt">Check NOTAM</button>', 'rồi tóm tắt">NOTAM Tracking</button>')
+    .replace('xuống D:\\Omni">Tự động tải</button>', 'xuống D:\\Omni">Auto Downloader</button>')
+    .replace('(Selenium chạy nền)">Check ATC avi</button>', '(Selenium chạy nền)">ATC AviWeb Check</button>')
+    .replace('theo sân bay">Giới hạn tàu và sân bay</button>', 'theo sân bay">Aircraft &amp; Airport Limits</button>')
+    .replace('thời gian hiệu lực">Thiết lập file add</button>', 'thời gian hiệu lực">Notice Rules</button>')
+    .replace('theo số chuyến">AFTN filling</button>', 'theo số chuyến">AFTN Filing</button>')
+    .replace('bấm tab Dữ liệu so sánh để xác nhận', 'bấm tab Flight Supervisor để xác nhận')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
