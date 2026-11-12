@@ -28,8 +28,8 @@
     const map = originalEnsureMap.apply(this, arguments);
     if (map && nmLayerCtl && !allAreasLayer) {
       allAreasLayer = L.layerGroup();
-      // Ticked = hide MINOR areas; unticked (default) shows every boundary.
-      nmLayerCtl.addOverlay(allAreasLayer, 'Ẩn vùng không ảnh hưởng (MINOR)');
+      // Ticked = only areas within the route corridor; unticked (default) shows every boundary.
+      nmLayerCtl.addOverlay(allAreasLayer, 'Ẩn vùng xa route (>50 NM)');
       const redraw = function (event) {
         if (event.layer !== allAreasLayer) return;
         if (nmMapIsTrack() && nmTrackData) nmDrawTrack(nmTrackData, true);
@@ -122,28 +122,36 @@
         ? Object.entries(nmData.tracks || {}).filter(([id]) => nmFleetTicked(id)).map(([, pack]) => pack)
         : [nmTrackData];
   };
+  // Real boundaries (polygon/line/circle) from this flight's checked source,
+  // including MINOR ones; never centre-only pins or the worldwide catalogue.
+  const restoreAreas = function (visible, packs) {
+    const keys = new Set(visible.map(h => [h.icao, h.ident, nmGeomKey(h)].join('|')));
+    for (const pack of packs) for (const raw of (pack && pack.hits) || []) {
+      const hit = nmRefreshHitGeom(raw);
+      if (!hit || !((hit.ring || []).length >= 3
+        || ((hit.shape === 'line' || hit.shape === 'linestring') && (hit.ring || []).length >= 2)
+        || Number(hit.radius_nm) > 0)) continue;
+      const key = [hit.icao, hit.ident, nmGeomKey(hit)].join('|');
+      if (keys.has(key)) continue;
+      keys.add(key);
+      visible.push(hit);
+    }
+    return visible;
+  };
   nmPlotHits = function (hits, bounds) {
     // Both shape and dot passes must see the upgraded geometry, not raw hits.
     let visible = (hits || []).slice();
     const hideFar = !!(allAreasLayer && nmMap && nmMap.hasLayer(allAreasLayer));
+    const packs = mapPacks();
     if (hideFar) {
-      // A single explicitly focused NOTAM is always drawn.
-      if (visible.length > 1) visible = nearRoute(visible.map(nmRefreshHitGeom).filter(Boolean), mapPacks());
-    } else {
-      const packs = mapPacks();
-      // Restore only actual boundaries from this flight's checked source, not
-      // the worldwide catalogue or centre-only pins. Never change verdict data.
-      const keys = new Set(visible.map(h => [h.icao, h.ident, nmGeomKey(h)].join('|')));
-      for (const pack of packs) for (const raw of (pack && pack.hits) || []) {
-        const hit = nmRefreshHitGeom(raw);
-        if (!hit || !((hit.ring || []).length >= 3
-          || ((hit.shape === 'line' || hit.shape === 'linestring') && (hit.ring || []).length >= 2)
-          || Number(hit.radius_nm) > 0)) continue;
-        const key = [hit.icao, hit.ident, nmGeomKey(hit)].join('|');
-        if (keys.has(key)) continue;
-        keys.add(key);
-        visible.push(hit);
+      // A single explicitly focused NOTAM is always drawn. Otherwise every
+      // area within the corridor stays for the dispatcher to judge, whatever
+      // its verdict; only areas farther than the corridor are hidden.
+      if (visible.length !== 1) {
+        visible = nearRoute(restoreAreas(visible.map(nmRefreshHitGeom).filter(Boolean), packs), packs);
       }
+    } else {
+      visible = restoreAreas(visible, packs); // never changes verdict data
     }
     return originalPlot(visible.map(nmRefreshHitGeom).filter(Boolean), bounds);
   };

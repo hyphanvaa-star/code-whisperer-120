@@ -45,11 +45,16 @@ describe('all NOTAM areas map layer', () => {
     expect(s.context.window.nmGrpPlace).toBe('FIR:RPHI');
     expect(s.context.nmFindHit('B2')?.shape).toBe('circle');
   });
-  it('hides MINOR areas when the hide box is ticked', () => {
+  it('keeps MINOR areas within 50 NM of the route and hides farther ones when ticked', () => {
     const s = screen();
+    // Route along the equator from lon 100 to lon 101 (≈60 NM).
+    (s.pack as Record<string, unknown>).track = [{ lat: 0, lon: 100 }, { lat: 0, lon: 101 }];
+    const nearMinor = { ident: 'M1', icao: 'RPHI', kind: 'FIR', shape: 'circle', lat: 0.5, lon: 100.5, radius_nm: 5 }; // ~25 NM
+    const farMinor = { ident: 'M2', icao: 'RPHI', kind: 'FIR', shape: 'circle', lat: 3, lon: 100.5, radius_nm: 5 };   // ~175 NM
+    (s.pack as {hits: unknown[]}).hits = [nearMinor, farMinor];
     s.toggle(true);
-    s.context.nmPlotHits([s.impact]);
-    expect(s.plotted().map(h => h.ident)).toEqual(['A1']);
+    s.context.nmPlotHits([]);
+    expect(s.plotted().map(h => h.ident)).toEqual(['M1']);
   });
   it('shows excluded boundaries by default, without duplicate shapes or changing assessment', () => {
     const s = screen();
@@ -93,6 +98,6 @@ describe('all NOTAM areas map layer', () => {
     const s = screen();
     s.toggle(true);
     s.context.nmPlotHits([{ ident: 'F1', kind: 'FIR', shape: 'dot', lat: 5, lon: 100.5 }, s.impact]);
-    expect(s.plotted().map(h => h.ident)).toEqual(['F1', 'A1']);
+    expect(s.plotted().map(h => h.ident)).toEqual(['F1', 'A1', 'B2']);
   });
 });

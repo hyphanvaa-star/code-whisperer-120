@@ -3090,7 +3090,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.15')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.16')
+    // V 6.16: NOTAM map box 'Ẩn vùng xa route (>50 NM)' keeps every area (incl. MINOR) within 50 NM of the route.
     // V 6.14: tên tab thanh bên bằng tiếng Anh (chuẩn OCC); id giữ nguyên.
     .replace('title="Tạo KHB / FPL.req theo sheet TOOL từ file sohee">Tạo KHB</button>', 'title="Tạo KHB / FPL.req theo sheet TOOL từ file sohee">Flight Planning</button>')
     .replace('title="Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM, note">Giao ca</button>', 'title="Bảng giao ca: chuyến bay, extra, ATC, EZFW, ATFM, note">Shift Handover</button>')
