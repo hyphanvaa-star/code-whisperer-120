@@ -2032,6 +2032,65 @@ const CMP_HEADER_SKIN = `<style id="cmp-header-skin">
 #estBar .crew-using,#estBar #cmpVerBar{white-space:nowrap;max-width:360px;overflow:hidden;text-overflow:ellipsis}
 </style>`;
 
+const PLD_HOVER = `<style id="pld-hover-skin">
+.pld-tip{position:fixed;z-index:10050;width:320px;border-radius:14px;background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;box-shadow:0 18px 48px -12px rgba(15,23,42,.35);font:13px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;opacity:0;transform:translateY(-4px);transition:opacity .12s,transform .12s;pointer-events:none;overflow:hidden}
+.pld-tip.on{opacity:1;transform:none}
+.pld-tip .ph{padding:10px 14px;background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pld-tip .ph b{font-size:14px;letter-spacing:.02em}.pld-tip .ph span{font-size:11px;opacity:.8}
+.pld-tip .pb{padding:10px 14px;display:grid;gap:8px}
+.pld-tip .card{border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px;background:#f8fafc}
+.pld-tip .card.est{border-left:4px solid #7c3aed}.pld-tip .card.ofp{border-left:4px solid #0284c7}
+.pld-tip .k{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b}
+.pld-tip .k i{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:#475569}
+.pld-tip .big{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+.pld-tip .sub{font-size:11.5px;color:#475569;font-variant-numeric:tabular-nums}
+.pld-tip .dl{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:10px;font-weight:800}
+.pld-tip .dl.ok{background:#dcfce7;color:#15803d}.pld-tip .dl.bad{background:#fee2e2;color:#b91c1c}.pld-tip .dl.n{background:#f1f5f9;color:#334155}
+.pld-tip .dl em{font-style:normal;font-size:18px;font-variant-numeric:tabular-nums}
+.pld-tip .muted{color:#94a3b8;font-weight:600}
+</style>
+<script>
+(function(){
+  var tip=null,cur=null;
+  function n(v){return v==null||v===""||isNaN(Number(v))?"—":Number(v).toLocaleString("en-US");}
+  function t(iso){if(!iso)return "";var d=new Date(iso);if(isNaN(d))return "";
+    var p=function(x){return String(x).padStart(2,"0");};
+    return p(d.getUTCDate())+"/"+p(d.getUTCMonth()+1)+" "+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+"Z";}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function build(sid){
+    var w=(typeof W_CACHE!=="undefined"&&W_CACHE[sid])||null;
+    var p=(typeof E_CACHE!=="undefined"&&E_CACHE[sid])||{};
+    var f=(typeof flights!=="undefined"&&flights.find(function(x){return String(x.id)===String(sid);}))||{};
+    var on=document.querySelector("#cmpPld")&&document.querySelector("#cmpPld").checked;
+    var h='<div class="ph"><b>'+esc(f.callsign||"")+" "+esc(f.route||"")+'</b><span>STD '+esc(t(f.std))+'</span></div><div class="pb">';
+    h+='<div class="card est"><div class="k">EST payload · Omni<i>'+(p.est_time?"cập nhật "+esc(t(p.est_time)):"")+'</i></div>';
+    if(!on) h+='<div class="sub muted">Chưa bật "so PLD / EST"</div>';
+    else if(p.est==null) h+='<div class="sub muted">'+esc(p.err||"Đang lấy EST…")+'</div>';
+    else h+='<div class="big">'+n(p.est)+' kg</div><div class="sub">Khách '+n(p.pax)+' · Hành lý '+n(p.bag)+' · Cargo '+n(p.cargo)+(p.tare!=null?' · Tare '+n(p.tare):'')+'</div>'
+      +'<div class="sub">'+esc(p.omni||"")+(p.omni_std?' (LT)':'')+'</div>';
+    h+='</div><div class="card ofp"><div class="k">Payload OFP · FliteBrief<i>'+(f.plan_released_on?"REL "+esc(t(f.plan_released_on)):"")+'</i></div>';
+    if(!w) h+='<div class="sub muted">Chưa có OFP</div>';
+    else h+='<div class="big">'+n(w.pld)+' kg</div><div class="sub">'+(f.plan_no?"CFP "+esc(f.plan_no)+" · ":"")+'DOW '+n(w.dow)+'</div><div class="sub">ZFW '+n(w.zfw)+' / MZFW '+n(w.mzfw)+'</div>';
+    h+='</div>';
+    if(on&&w&&w.pld!=null&&p.est!=null){
+      var v=Number(w.pld)-Number(p.est);
+      h+='<div class="dl '+(v>0?"ok":v<0?"bad":"n")+'"><span>'+(v<0?"EST vượt PLD":"PLD − EST")+(Math.abs(v)>2000?" ⚠ > 2000":"")+'</span><em>'+(v>0?"+":"")+v.toLocaleString("en-US")+'</em></div>';
+    }
+    return h+'</div>';
+  }
+  function place(td){var r=td.getBoundingClientRect(),W=tip.offsetWidth,H=tip.offsetHeight;
+    var x=r.right+8;if(x+W>innerWidth-8)x=Math.max(8,r.left-W-8);
+    var y=Math.min(Math.max(8,r.top-10),innerHeight-H-8);tip.style.left=x+"px";tip.style.top=y+"px";}
+  document.addEventListener("mouseover",function(e){
+    var td=e.target&&e.target.closest&&e.target.closest('#cmpBody td[data-w="pld"]');
+    if(td===cur)return;cur=td;
+    if(!td){if(tip)tip.classList.remove("on");return;}
+    if(td.title){td.dataset.tipT=td.title;td.removeAttribute("title");}
+    if(!tip){tip=document.createElement("div");tip.className="pld-tip";document.body.appendChild(tip);}
+    tip.innerHTML=build(td.dataset.sid);place(td);tip.classList.add("on");
+  },true);
+})();
+</script>`;
 const TOOL_HEADER_SKIN = `<style id="tool-header-skin">
 #wrapTool #tlAddBrief,#wrapTool #mergePdfPick{display:none!important}
 #wrapTool .tool-row{display:flex!important;align-items:center;gap:10px;flex-wrap:nowrap;padding:8px 12px!important;margin:0 0 8px!important;
@@ -2179,6 +2238,7 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchCmpDspFastPage(patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))))
     .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + KHB_TABLE_MODERN + TABLE_MODERN + '</head>')
+    .replace('</body>', PLD_HOVER + '</body>')
     // V 6.08: CFP time cell shows OFP STA (UTC) under STD instead of local time.
     .replace(`  if(r.std_excel){
     const lt = document.createElement("span");
@@ -2964,7 +3024,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.08')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.09')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">

@@ -458,6 +458,8 @@ async function estCheck(ctx: Parameters<Routes["GET /api/weights"]>[0], flights:
       pax: mt.omni.pax_weight, bag: mt.omni.bag_weight,
       cargo: mt.omni.cargo_confirm, tare: mt.omni.tare,
       note: mt.note,
+      est_time: mt.omni.est_time_utc ? mt.omni.est_time_utc.toISOString() : null,
+      omni_std: mt.omni.std_local ? mt.omni.std_local.toISOString() : null,
       err: "",
     };
   }
