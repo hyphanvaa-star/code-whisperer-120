@@ -2179,6 +2179,20 @@ async function page(): Promise<string> {
   const raw = (await import("@/tool/page.html?raw")).default as string;
   cached = patchCmpDspFastPage(patchCmpBatchPage(patchCmpValidationPage(patchKhbCrewSyncPage(patchKhbPayloadPage(patchFlightIdentityPage(patchAccountMemoryPage(patchFlightRefreshPage(raw))))))))
     .replace('</head>', KHB_RESULT_SKIN + KHB_HEADER_SKIN + CMP_HEADER_SKIN + TOOL_HEADER_SKIN + KHB_TABLE_MODERN + TABLE_MODERN + '</head>')
+    // V 6.07: one PLD column = OFP payload + (PLD−EST) delta; EST/Δ columns hidden.
+    .replace(`      td.appendChild(mk("span", "v n", NUM(w.pld)));
+      if(w.dow)`, `      td.appendChild(mk("span", "v n", NUM(w.pld)));
+      td.appendChild(mk("span", "pld-d", ""));
+      setTimeout(function(){ paintDelta(sid); }, 0);
+      if(w.dow)`)
+    .replace(`  td.appendChild(wrap);
+  td.title = (v > 0
+    ? "còn dư "`, `  td.appendChild(wrap);
+  const pd = document.querySelector('#cmpBody td[data-w="pld"][data-sid="' + sid + '"] .pld-d');
+  if(pd){ pd.innerHTML = ""; const c = wrap.cloneNode(true); pd.appendChild(document.createTextNode(" (")); pd.appendChild(c); pd.appendChild(document.createTextNode(")")); }
+  td.title = (v > 0
+    ? "còn dư "`)
+    .replace('</head>', '<style>.cmptbl thead th:nth-child(17),.cmptbl thead th:nth-child(18),.cmptbl td[data-w="est"],.cmptbl td[data-w="delta"]{display:none!important}.cmptbl td[data-w="pld"]{white-space:nowrap}.cmptbl .pld-d{margin-left:4px}</style></head>')
     .replace('el.textContent = (d.total != null ? d.total + " chuyến · " : "") + hm\n    + (d.added', 'el.title = "Payload EST (Omni) cập nhật lúc " + t.toLocaleString("vi-VN");\n  el.textContent = "EST cập nhật " + hm; void 0\n    + (d.added')
     // The embedded source stays intact; account fixes belong in this shim.
     // Team default accounts (Omni/AviWeb/OpsCore) always show a masked password.
@@ -2936,7 +2950,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.06')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.07')
     .replace('<input type="file" id="fileXls"', '<button type="button" class="btn act ico" id="btnAims" data-ico="⬇" title="Tải Crewlist trực tiếp từ AIMS (Daily Flight Schedule) bằng tài khoản AIMS đã lưu, rồi nạp vào So sánh">AIMS</button>\n          <input type="file" id="fileXls"')
     .replace('      </div>\n    </div>\n  </div>\n</div>\n\n<div class="modal" id="nmPinModal">', `      </div>
       <div class="accard" id="acAims">
