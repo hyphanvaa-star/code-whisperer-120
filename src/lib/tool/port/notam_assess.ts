@@ -390,7 +390,9 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   // An aerodrome ground NOTAM that cites an AIP SUP is still graded by what it closes (stand/apron/TWY/RWY/AD).
   const groundAd = isAerodromeGround(n, E);
   const groundDecides = groundAd && (AD_SURFACE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E));
-  if (!groundDecides && (/TRIGGER\s+NOTAM/.test(E) || (/\bAIP\s+(SUP|AMDT|SUPPLEMENT)/.test(E) && /\b(VALIDITY|VALID|EXTENDED|REPLACED|REF)\b/.test(E))))
+  // An AIP SUP whose boundary is already resolved (sup_geoms/ENR catalogue) is measured by geometry below.
+  const supResolved = notamGeoms(n).some((g) => g.shape !== "dot");
+  if (!groundDecides && !supResolved && (/TRIGGER\s+NOTAM/.test(E) || (/\bAIP\s+(SUP|AMDT|SUPPLEMENT)/.test(E) && /\b(VALIDITY|VALID|EXTENDED|REPLACED|REF)\b/.test(E))))
     return unk("AIP-SUP", groundAd ? "NOTAM mặt đất sân bay trỏ AIP SUP/AMDT — cần đọc AIP SUP gốc." : "NOTAM trỏ AIP SUP/AMDT — cần đọc AIP SUP gốc.");
   // 4 minima change
   if (isAirport && /\b(MINIMA|MNM|OCA|OCH|MDA|DA\/H|RVR)\b/.test(E) && /\b(TKOF|TAKE-?OFF|LDG|LANDING|APCH|APPROACH)\b/.test(E))
@@ -578,6 +580,11 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     }
     return unk("CENTRE-ONLY", "Q-line chỉ có tâm, không có bán kính/vùng — cần kiểm tra tay.");
   }
+  // 27b flow control / CTOT / FPL filing procedure: coordination info, never an area to check by hand
+  if (!hardOnly && !prohibit && (/^QP[FO]/.test(qCodeOf(n)) || /\b(FLOW\s+(?:CONTROL|CTL)|CTOT|SLOT|ATFM|MINIMUM\s+INTERVAL|MIT|SUBMISSION\s+OF\s+FPL)\b/.test(E)) && !HARD_AIRSPACE.test(E))
+    return (qfir && f.firs[qfir]) || f.firs[code] || role
+      ? { matched: true, type: "FLOW-CONTROL", reason: "Thủ tục flow control/CTOT/nộp FPL của FIR — thông tin briefing, không phải vùng hạn chế.", briefing: true, flRange: [0, 999] }
+      : no("FLOW-CONTROL", "Flow control tại FIR không thuộc chuyến.");
   // 28
   if ((qfir && f.firs[qfir]) || f.firs[code]) return unk("FIR-ONLY", `NOTAM thuộc FIR ${qfir || code} của chuyến, không có toạ độ/đoạn route.`);
   return no("NO-GEOMETRY", "Không trùng sân, không có hình, không thuộc FIR của chuyến.");
