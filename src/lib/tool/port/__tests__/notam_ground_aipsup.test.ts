@@ -18,9 +18,9 @@ const run = (text: string, e: string, extra: Record<string, unknown> = {}) =>
   assessNotam({ ...base, text, e_field: e, ...extra }, "VVPQ", "A", f, DEFAULT_ASSESS_CFG);
 
 describe("aerodrome ground NOTAM citing AIP SUP", () => {
-  it("stand closure at DEP is BRIEFING INFO, never UNIDENTIFIED AREA", () => {
+  it("stand closure at DEP is NO IMPACT, never UNIDENTIFIED AREA", () => {
     const r = run(STANDS, STANDS.split("E)")[1]!);
-    expect(r.level).toBe("BRIEFING INFO");
+    expect(r.level).toBe("NO IMPACT");
     expect(r.unidentified_area).toBeFalsy();
   });
   it("ground Q-code without stand/twy words stays manual but not unidentified", () => {

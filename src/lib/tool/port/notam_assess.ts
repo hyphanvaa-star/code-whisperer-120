@@ -526,6 +526,14 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   // 15 radio check
   if (!hardOnly && /\bRADIO\s+CHECK\b/.test(E) && !/\b(U\/S|OUTAGE|CLSD|CLOSED)\b/.test(E))
     return role ? brief("BRIEFING-INFO", "Radio check tại sân của chuyến.") : no("RADIO-CHECK", "Radio check tại sân khác.");
+  // 15b stand/taxiway at airports where the flight only departs or might divert: parking
+  // stands never matter at DEP/alternates, partial taxiways never at alternates (RWY content keeps grading).
+  if (!hardOnly && isAirport && role && role !== "ARR" && AD_SURFACE.test(E) && !/\bRWY\b|\bRUNWAY/.test(E)
+      && !ALL_MOVE.test(E) && !AD_CLSD.test(E) && !RWY_CLSD.test(E)) {
+    const twy = /\b(TWY|TAXIWAYS?|TAXILANES?)\b/.test(E);
+    if (role !== "DEP" || !twy)
+      return no("AD-SURFACE-" + role, `Stand/taxiway một phần tại sân ${role} ${code} — không ảnh hưởng kế hoạch bay.`);
+  }
   // 16 airport briefing patterns
   if (!hardOnly && isAirport && /\b(BIRD|BIRDS|WIP|WORK IN PROGRESS|WORKS|ATIS|FRICTION|LGT|LIGHTS?|LIGHTING|PAPI|APAPI|CRANE OPS|GRASS CUTTING)\b/.test(E)
       && !RWY_CLSD.test(E) && !AD_CLSD.test(E) && !ALL_MOVE.test(E) && !(role === "ALT" || role === "RALT" ? prohibit && /WIP|WORK/.test(E) : false)
