@@ -695,25 +695,36 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
     if (ov === "UNRESOLVED" && sp.matched !== false && sp.type !== "BRIEFING-INFO" && sp.type !== "CHART-ROUTE-RESTRICTION") {
       reasons.push(`Thiếu giờ cửa sổ ${w.kind} ${w.ref}.`); return out("NEED MANUAL CHECK", sp.type);
     }
-    if (ov === "ON_TIME") reasons.push(`Giờ hiệu lực giao cửa sổ ${w.kind} ${w.ref} đúng giờ.`);
-    if (ov === "DELAY_ONLY") reasons.push(`Giờ hiệu lực chỉ giao cửa sổ ${w.kind} ${w.ref} khi trễ.`);
   }
 
-  // 2 whole flight window + schedule
+  // 2 schedule (item D) — checked inside the role/FIR window when it is known, else the whole flight
   const sched = parseSchedule(n.d_field);
-  if (f.etd && f.eta) {
-    const ws = f.etd, we = add(f.eta, maxD + Math.max(cfg.dest_alt_after, cfg.enrt_alt_after));
+  const winKnown = !!(w && w.start && w.end);
+  const wLabel = w ? `${w.kind} ${w.ref} (${w.start ? hhmm(w.start) : "?"}–${w.end ? hhmm(w.end) : "?"} + trễ ${maxD}′)` : "";
+  const ws = winKnown ? w!.start! : f.etd;
+  const we = winKnown ? add(w!.end!, maxD) : f.eta && add(f.eta, maxD + Math.max(cfg.dest_alt_after, cfg.enrt_alt_after));
+  let schedHit: Date | null = null;
+  if (ws && we) {
     const s0 = b && b > ws ? b : ws, e0 = c && c < we ? c : we;
-    if (s0 > e0) { reasons.push("B–C không giao thời gian cả chuyến (cộng trễ tối đa)."); return out("NO IMPACT", sp.type); }
+    if (s0 > e0) { reasons.push(winKnown ? `B–C ngoài cửa sổ ${wLabel}.` : "B–C không giao thời gian cả chuyến (cộng trễ tối đa)."); return out("NO IMPACT", sp.type); }
     if (!sched.always) {
       let alive = false, unknown = false;
       for (let t = s0.getTime(); t <= e0.getTime(); t += MIN) {
         const r = scheduleActiveAt(sched, new Date(t), pos);
-        if (r === true) { alive = true; break; }
+        if (r === true) { alive = true; schedHit = new Date(t); break; }
         if (r === null) unknown = true;
       }
-      if (!alive && !unknown) { reasons.push(`Lịch D) "${String(n.d_field)}" không bật trong thời gian chuyến.`); return out("NO IMPACT", sp.type); }
+      if (!alive && !unknown) {
+        reasons.push(winKnown ? `Lịch D) "${String(n.d_field)}" không bật trong cửa sổ ${wLabel}.` : `Lịch D) "${String(n.d_field)}" không bật trong thời gian chuyến.`);
+        return out("NO IMPACT", sp.type);
+      }
     }
+  }
+  if (w && winKnown) {
+    const ov = classifyOverlap(b, c, w, maxD);
+    const onTime = sched.always || !schedHit || schedHit <= w.end!;
+    if (ov === "ON_TIME" && onTime) reasons.push(`Giờ hiệu lực${sched.always ? "" : " (kể cả lịch D)"} giao cửa sổ ${w.kind} ${w.ref} đúng giờ.`);
+    else if (ov === "ON_TIME" || ov === "DELAY_ONLY") reasons.push(`Giờ hiệu lực${sched.always ? "" : " (kể cả lịch D)"} chỉ giao cửa sổ ${w.kind} ${w.ref} khi trễ.`);
   }
 
   // 3 spatial
