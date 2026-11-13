@@ -5,6 +5,7 @@ import DATA from "../data/aip_enr_rings.json";
 import VERIFIED from "../data/aip_named_verified.json";
 import EXTRA from "../data/aip_enr_extra.json";
 import RU from "../data/aip_enr_ru.json";
+import JP from "../data/aip_enr_jp.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
@@ -13,14 +14,18 @@ type VerifiedArea = { name: string; fir: string; ring: Pt[]; parts?: Pt[][]; cir
 // Russia (UH/UL/UN/UR/US/UU/UW) ENR 5.1 snapshot shares one source/document header to keep the bundle small.
 const RU_AREAS = Object.fromEntries(Object.entries(RU.areas as unknown as Record<string, VerifiedArea>)
   .map(([key, area]) => [key, { source: RU.source, document: RU.document, ...area }]));
-const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>), ...RU_AREAS };
+// Japan ENR 5.2 JSDF "Area 1…9 / A…U" and ENR 5.3 civil "HK 1-1"-style areas (scripts/gen_aip_enr_jp.py).
+const JP_AREAS = Object.fromEntries(Object.entries(JP.areas as unknown as Record<string, VerifiedArea>)
+  .map(([key, area]) => [key, { source: JP.source, ...area }]));
+const JP_KEYS = Object.keys(JP_AREAS);
+const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>), ...RU_AREAS, ...JP_AREAS };
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
   ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
 };
 
 const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|UA|LK|UH|UL|UN|UR|US|UU|UW|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
-const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key)).map(([key, area]) => ({
+const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key) && !(key in JP_AREAS)).map(([key, area]) => ({
   key, country: area.fir.slice(0, 2),
   pattern: new RegExp(`(?<![A-Z0-9])${area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![A-Z0-9])`),
 }));
@@ -59,6 +64,20 @@ export function namedEnrIds(text: string, fir = ""): string[] {
   if (!region || region.startsWith("RK")) {
     for (const m of blob.matchAll(/\b(RK\s*)?(MOA|CATA)\s*[-/]?\s*(\d{1,3}[A-Z]?)(?![A-Z0-9])/g)) {
       if (region || m[1]) out.add(`${m[2]}${m[3]}`);
+    }
+  }
+  // Japan ENR 5.2 "AREA H", "TRG AREA A-11", "AREA 9-1" and ENR 5.3 "HK 1-1", "AREA KS3-2" inside RJ/RO FIRs.
+  if (/^(RJ|RO)/.test(region)) {
+    for (const m of blob.matchAll(/\bAREA\s+([A-Z]|\d)(?:\s*-\s*(\d{1,2}))?(?![A-Z0-9-])/g)) {
+      const exact = m[2] ? `RJAREA${m[1]}-${m[2]}` : "";
+      if (exact && JP_AREAS[exact]) { out.add(exact); continue; }
+      const base = `RJAREA${m[1]}`;
+      // Whole area or an unlisted H/S split: draw every published sub-area of that letter/number.
+      for (const k of JP_KEYS) if (k === base || k.startsWith(`${base}-${m[2] ? m[2] : ""}`)) out.add(k);
+    }
+    for (const m of blob.matchAll(/\b(HK|TH|KK|CK|CS|KS|SM)\s*(\d{1,2})\s*-\s*(\d{1,2})(?![0-9])/g)) {
+      const key = `RJ${m[1]}${m[2]}-${m[3]}`;
+      if (JP_AREAS[key]) out.add(key);
     }
   }
   // Bare W-/R-/D-/P- codes are country-local: never resolve them outside Japan.
