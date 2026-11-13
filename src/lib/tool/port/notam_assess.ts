@@ -85,6 +85,28 @@ export function hasHardContent(E: string): boolean {
   return HARD_AIRSPACE.test(E) || HARD_ROUTE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E) || ALL_MOVE.test(E);
 }
 const ALL_MOVE = /\b(ALL\s+(TWY|TAXIWAYS|STANDS|APRONS?)|NO\s+TAXI\s+ROUTE|APRON\s+CLSD|APRON\s+CLOSED)\b/;
+const AD_SURFACE = /\b(TWY|TAXIWAYS?|TAXILANES?|TXL|STANDS?|ACFT\s+STANDS|APRONS?|APN|PARKING\s+(?:POSITIONS?|STANDS?|BAYS?))\b/;
+/** Q-code (e.g. QMPLC) from the parsed fields or the Q) line in the text. */
+export function qCodeOf(n: Notam): string {
+  const sc = `${String(n.qsubj ?? "")}${String(n.qcond ?? "")}`.toUpperCase().replace(/^Q/, "");
+  if (/^[A-Z]{4}$/.test(sc)) return "Q" + sc;
+  const m = /Q\)\s*[A-Z]{4}\s*\/\s*(Q[A-Z]{4})\b/.exec(blobOf(n));
+  return m ? m[1]! : "";
+}
+/**
+ * Aerodrome ground NOTAM (stand/apron/taxiway/runway/lighting/facility): it has no airspace
+ * boundary by nature, so an AIP SUP reference or missing polygon never makes it an
+ * "unidentified area". Airspace/route content anywhere in item E keeps it an airspace NOTAM.
+ */
+export function isAerodromeGround(n: Notam, E: string = eOf(n)): boolean {
+  const air = E.replace(/\bTAXI\s*(?:ROUTES?|RTES?)\b/g, "TAXI");
+  if (HARD_AIRSPACE.test(air) || HARD_ROUTE.test(air)) return false;
+  const q = qCodeOf(n);
+  if (/^Q[MFL]/.test(q)) return true;
+  if (q) return false;
+  const scope = String(n.scope ?? "").toUpperCase();
+  return scope.includes("A") && !scope.includes("E") && !scope.includes("W") && (AD_SURFACE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E));
+}
 
 // --------------------------------------------------------------------------- //
 // Schedule (item D / E) — schedule_active_at
@@ -341,8 +363,11 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   if (/\bVFR\b/.test(E) && !/\bIFR\b/.test(E) && /\bVFR\s+(ACFT|AIRCRAFT|FLT|FLIGHTS?|TRAFFIC|ROUTE)/.test(E))
     return no("VFR-ONLY", "Item E chỉ áp dụng tàu VFR — chuyến bay IFR.");
   // 3 AIP SUP / AMDT trigger
-  if (/TRIGGER\s+NOTAM/.test(E) || (/\bAIP\s+(SUP|AMDT|SUPPLEMENT)/.test(E) && /\b(VALIDITY|VALID|EXTENDED|REPLACED|REF)\b/.test(E)))
-    return unk("AIP-SUP", "NOTAM trỏ AIP SUP/AMDT — cần đọc AIP SUP gốc.");
+  // An aerodrome ground NOTAM that cites an AIP SUP is still graded by what it closes (stand/apron/TWY/RWY/AD).
+  const groundAd = isAerodromeGround(n, E);
+  const groundDecides = groundAd && (AD_SURFACE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E));
+  if (!groundDecides && (/TRIGGER\s+NOTAM/.test(E) || (/\bAIP\s+(SUP|AMDT|SUPPLEMENT)/.test(E) && /\b(VALIDITY|VALID|EXTENDED|REPLACED|REF)\b/.test(E))))
+    return unk("AIP-SUP", groundAd ? "NOTAM mặt đất sân bay trỏ AIP SUP/AMDT — cần đọc AIP SUP gốc." : "NOTAM trỏ AIP SUP/AMDT — cần đọc AIP SUP gốc.");
   // 4 minima change
   if (isAirport && /\b(MINIMA|MNM|OCA|OCH|MDA|DA\/H|RVR)\b/.test(E) && /\b(TKOF|TAKE-?OFF|LDG|LANDING|APCH|APPROACH)\b/.test(E))
     return unk("MINIMA", "Đổi minima cất/hạ cánh tại sân của chuyến — cần đối chiếu thời tiết/minima.");
@@ -462,7 +487,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
       && !/\b(OBST|OBSTACLE|CRANE)\b/.test(E))
     return brief("BRIEFING-INFO", "Chim/WIP/đèn/ATIS/friction không đóng đường băng — briefing.");
   // 17 stand / apron / taxiway
-  if (isAirport && /\b(TWY|TAXIWAY|TAXILANE|TXL|STAND|STANDS|APRON|ACFT STANDS)\b/.test(E)) {
+  if (isAirport && AD_SURFACE.test(E)) {
     if (ALL_MOVE.test(E) || AD_CLSD.test(E))
       return airportHitC(code, f, "AIRPORT-MOVEMENT", "Đóng toàn bộ taxiway/apron/đường lăn — ảnh hưởng di chuyển trên sân.");
     if (!hardOnly && !RWY_CLSD.test(E)) return brief("BRIEFING-INFO", "Đóng một phần stand/apron/taxiway, sân còn đường khác — briefing.");
@@ -590,7 +615,7 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
   const UNID = new Set(["NAMED-AIRSPACE", "CENTRE-ONLY", "AIP-SUP", "FIR-ONLY", "GEOMETRY"]);
   // Only a NOTAM whose area has no resolved boundary (text, AIP SUP/DAH or ENR catalogue) is unidentified.
   const hasBoundary = notamGeoms(n).some((g) => g.shape !== "dot");
-  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary) {
+  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary && !isAerodromeGround(n, E)) {
     res.unidentified_area = true;
     if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
   }

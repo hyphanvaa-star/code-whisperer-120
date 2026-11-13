@@ -3090,7 +3090,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.25')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.26')
     // V 6.17: ERA hợp lệ khi có trong OFP và không bị cảnh báo AIR OPS; chỉ báo lỗi ERA với chuyến ≥ 3h.
     .replace('ERA: chuyến 3PCT phải có sân enroute và TIME dưới 60p.', 'ERA: có ERA và không bị cảnh báo AIR OPS → hợp lệ; chỉ chuyến ≥ 3h thiếu/không đạt ERA mới báo lỗi.')
     // V 6.16: NOTAM map box 'Ẩn vùng xa route (>50 NM)' keeps every area (incl. MINOR) within 50 NM of the route.
