@@ -14322,6 +14322,7 @@ function nmPaintList(place, q){
         + (n.level === "BRIEFING INFO" ? "" : (n.match_type ? " · " + n.match_type : ""));
       lv.appendChild(tag);
       if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; u.title = "Không xác định được vùng ảnh hưởng — cần xem NOTAM/tài liệu tham chiếu"; tag.appendChild(u); }
+      if(n.window){ const w = document.createElement("span"); w.className = "nm-win"; w.style.cssText = "display:block;font-weight:700"; w.textContent = "🕒 Khung giờ chuyến: " + n.window; lv.appendChild(w); }
       const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || "");
       if(why){
         const r = document.createElement("span");
@@ -17113,6 +17114,7 @@ function nmApplyTune(pack, dropped, extra){
         patch.match_type = as.match_type;
         patch.reasons = as.reasons || [];
         patch.unidentified_area = !!as.unidentified_area;
+        patch.window = as.window || "";
       }
       if(as && as.level === "NO IMPACT" && critIds.has(ident)){
         patch.level = "CRITICAL"; patch.match_type = "TRACKING-HIT";

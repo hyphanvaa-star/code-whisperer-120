@@ -66,6 +66,8 @@ export interface Assessment {
   reasons: string[];
   /** Airspace/activity NOTAM whose boundary could not be resolved (no coords, or refers elsewhere). */
   unidentified_area?: boolean;
+  /** Flight's operating window at this airport/FIR, e.g. "ENRT_ALT VVDN 13/11 1110Z–1310Z". */
+  window?: string;
 }
 
 const MIN = 60_000;
@@ -284,6 +286,14 @@ function roleWindow(role: Role, code: string, f: AssessFlight, c: AssessCfg): Wi
     }
     case "ALT": return { kind: "DEST_ALT", ref: code, start: eta && add(eta, -c.dest_alt_before), end: eta && add(eta, c.dest_alt_after) };
   }
+}
+
+const ddmm = (d: Date) => d.toISOString().slice(8, 10) + "/" + d.toISOString().slice(5, 7);
+export function windowLabel(w: Win): string {
+  const a = w.start, b = w.end;
+  const left = a ? `${ddmm(a)} ${hhmm(a)}` : "?";
+  const right = b ? (a && ddmm(a) === ddmm(b) ? hhmm(b) : `${ddmm(b)} ${hhmm(b)}`) : "?";
+  return `${w.kind} ${w.ref} ${left}–${right}`;
 }
 
 function selectWindow(code: string, qfir: string, f: AssessFlight, c: AssessCfg): Win | null {
@@ -665,6 +675,8 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
     res.unidentified_area = true;
     if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
   }
+  const win = selectWindow(code, normIcao(String(n.qfir ?? "")), f, cfg);
+  if (win && (win.start || win.end)) res.window = windowLabel(win);
   return res;
 }
 

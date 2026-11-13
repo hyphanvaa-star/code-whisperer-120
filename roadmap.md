@@ -282,3 +282,5 @@
 - [x] Briefing: 4 dòng LOW EGT, bỏ tiền tố FM: ở defect
 - [x] Compare: cột TAF + EXTRA sau STD; Validation -2cm, Note -1cm
 - [x] Compare: cột LIMIT sau REG AIMS
+
+- [x] V 6.30: sân dọc đường trong gói NOTAM không còn OUT-OF-SCOPE; hiện khung giờ chuyến trên từng NOTAM

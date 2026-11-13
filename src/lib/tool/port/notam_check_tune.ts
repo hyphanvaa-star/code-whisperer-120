@@ -822,6 +822,30 @@ export function domesticAirports(flights: Flight[], ofpTexts?: Record<number, st
   return out;
 }
 
+/** Time the track is closest to an airport (located by its NOTAMs' Q-line centre). */
+export function trackPassTime(place: N, points: Array<Record<string, unknown>>, etd: Date): Date | null {
+  let pos: [number, number] | null = null;
+  for (const n of ((place.notams as N[] | undefined) || [])) {
+    const m = /\/(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])(\d{3})?\s*$/.exec(String(n.q_line ?? n.qline ?? "")) ||
+      /Q\)[^\n]*?\/(\d{2})(\d{2})([NS])(\d{3})(\d{2})([EW])/.exec(String(n.text ?? ""));
+    if (m) {
+      const lat = (+m[1]! + +m[2]! / 60) * (m[3] === "S" ? -1 : 1);
+      const lon = (+m[4]! + +m[5]! / 60) * (m[6] === "W" ? -1 : 1);
+      pos = [lat, lon]; break;
+    }
+  }
+  if (!pos) return null;
+  let best = Infinity, ete: number | null = null;
+  for (const p of points || []) {
+    const lat = Number(p.lat), lon = Number(p.lon), e = Number(p.ete_min);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(e)) continue;
+    const dl = (lat - pos[0]) * 60, dn = (lon - pos[1]) * 60 * Math.cos(pos[0] * Math.PI / 180);
+    const d = dl * dl + dn * dn;
+    if (d < best) { best = d; ete = e; }
+  }
+  return ete == null ? null : new Date(etd.getTime() + ete * 60_000);
+}
+
 export function trackScope(flight: Flight, ofpText = "", places: N[] = []): [Set<string>, Set<string>] {
   const loc = locationsOf(flight, ofpText);
   const air = new Set<string>();
@@ -1664,6 +1688,15 @@ export function tunePlaces(
   const procs = [...ofpSidStarProcs(ofpText)];
   const afEtd: Date | null = flight.etd || flight.std || null;
   const raltArr: Record<string, [Date, Date]> = {};
+  // Every airport fetched for this flight's briefing package is an en-route diversion option,
+  // so it is graded (never OUT-OF-SCOPE) and timed by when the track passes it.
+  for (const place of places) {
+    const code = String(place.code ?? "").toUpperCase();
+    if (String(place.kind ?? "").toUpperCase() !== "A" || !code || roles[code]) continue;
+    roles[code] = "RALT";
+    const pass = afEtd ? trackPassTime(place, trackPoints, afEtd) : null;
+    if (pass) raltArr[code] = [pass, pass];
+  }
   if (afEtd) {
     for (const [code, [a, b]] of Object.entries(parseEtpAltTimes(ofpText))) {
       if (roles[code] === "RALT") raltArr[code] = [new Date(afEtd.getTime() + a * 60_000), new Date(afEtd.getTime() + b * 60_000)];
@@ -1694,7 +1727,7 @@ export function tunePlaces(
       const s0 = aware(af.etd), e0 = aware(af.eta) || s0;
       if (s0) af.firs[code] = [s0, e0 || s0];
     }
-    const inScope = air.has(code) || firs.has(code) || kind === "FIR";
+    const inScope = air.has(code) || firs.has(code) || kind === "FIR" || !!roles[code];
     ((place.notams as N[] | undefined) || []).forEach((notam, i) => {
       if (!notam || typeof notam !== "object") return;
       const key = `${code}\t${String(notam.ident ?? "").trim() || `#${i}`}`;

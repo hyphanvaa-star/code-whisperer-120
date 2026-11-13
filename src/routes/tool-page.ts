@@ -2744,6 +2744,7 @@ function nmPaintListAll(place, q){
       + (n.match_type ? " · " + n.match_type : "")
       + "  ·  " + (p.kind === "FIR" ? "FIR " : "") + (p.code || "");
     if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; tag.appendChild(u); }
+    if(n.window){ const w = document.createElement("span"); w.className = "nm-win"; w.style.cssText = "display:block;font-weight:700"; w.textContent = "🕒 Khung giờ chuyến: " + n.window; lv.appendChild(w); }
     lv.appendChild(tag);
     const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || n.reason || "");
     if(why){ const r = document.createElement("span"); r.textContent = why; lv.appendChild(r); }
@@ -3090,7 +3091,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.29')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.30')
     // V 6.17: ERA hợp lệ khi có trong OFP và không bị cảnh báo AIR OPS; chỉ báo lỗi ERA với chuyến ≥ 3h.
     .replace('ERA: chuyến 3PCT phải có sân enroute và TIME dưới 60p.', 'ERA: có ERA và không bị cảnh báo AIR OPS → hợp lệ; chỉ chuyến ≥ 3h thiếu/không đạt ERA mới báo lỗi.')
     // V 6.16: NOTAM map box 'Ẩn vùng xa route (>50 NM)' keeps every area (incl. MINOR) within 50 NM of the route.
