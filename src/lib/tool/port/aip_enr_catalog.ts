@@ -6,6 +6,7 @@ import VERIFIED from "../data/aip_named_verified.json";
 import EXTRA from "../data/aip_enr_extra.json";
 import RU from "../data/aip_enr_ru.json";
 import JP from "../data/aip_enr_jp.json";
+import IN from "../data/aip_enr_in.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
@@ -18,14 +19,16 @@ const RU_AREAS = Object.fromEntries(Object.entries(RU.areas as unknown as Record
 const JP_AREAS = Object.fromEntries(Object.entries(JP.areas as unknown as Record<string, VerifiedArea>)
   .map(([key, area]) => [key, { source: JP.source, ...area }]));
 const JP_KEYS = Object.keys(JP_AREAS);
-const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>), ...RU_AREAS, ...JP_AREAS };
+const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>), ...RU_AREAS, ...JP_AREAS,
+  // India ENR 5.2 TRA/TSA + ENR 5.3 balloon areas (scripts/gen_aip_enr_in.py); border-following areas skipped.
+  ...(IN.areas as unknown as Record<string, VerifiedArea>) };
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
   ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
 };
 
 const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|UA|LK|UH|UL|UN|UR|US|UU|UW|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
-const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key) && !(key in JP_AREAS)).map(([key, area]) => ({
+const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key) && !(key in JP_AREAS) && !/^IN/.test(key)).map(([key, area]) => ({
   key, country: area.fir.slice(0, 2),
   pattern: new RegExp(`(?<![A-Z0-9])${area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![A-Z0-9])`),
 }));
@@ -58,6 +61,15 @@ export function namedEnrIds(text: string, fir = ""): string[] {
   if (!region || region.startsWith("LK")) {
     for (const m of blob.matchAll(/\b(?:LK\s*)?(TRA|TSA)\s*-?\s*(\d{1,3}[A-Z]?)(?![A-Z0-9])/g)) {
       if (region || /\bLK\s*T[RS]A/.test(m[0])) out.add(`LK${m[1]}${m[2]}`);
+    }
+  }
+  // India ENR 5.2 "TRA503(A)", "TRA 508C", "TSA801 (B)" inside VABF/VECF/VIDF/VOMF.
+  if (/^V[AEIO]/.test(region)) {
+    for (const m of blob.matchAll(/\b(TRA|TSA)\s*-?\s*(\d{3})\s*(?:\(\s*([A-Z])\s*\)|([A-Z])(?![A-Z0-9]))?/g)) {
+      const base = `IN${m[1]}${m[2]}`, sub = m[3] || m[4] || "";
+      if (sub) { out.add(base + sub); continue; }
+      if (AREAS[base]) { out.add(base); continue; }
+      for (const k of Object.keys(AREAS)) if (k.length === base.length + 1 && k.startsWith(base)) out.add(k);
     }
   }
   // Korea ENR 5.2 MOA / ENR 5.3 CATA: "MOA 2H", "RK MOA-2H", "CATA 4A" inside RKRR (or with explicit RK prefix).
@@ -136,7 +148,8 @@ export function enrCatalogue() {
     if (!geoms.length) return [];
     const area = AREAS[id];
     const korean = /^(MOA|CATA)\d/.test(id);
-    const country = korean ? countries.RK : countries[id.slice(0, 2)] || [/^Z/.test(id) ? "CN" : "OTHER", /^Z/.test(id) ? "Trung Quốc" : "Khác"];
+    const india = /^IN(T[RS]A|53)/.test(id);
+    const country = india ? countries.VI : korean ? countries.RK : countries[id.slice(0, 2)] || [/^Z/.test(id) ? "CN" : "OTHER", /^Z/.test(id) ? "Trung Quốc" : "Khác"];
     return [{ id, countryCode: country[0], country: country[1], name: area?.name || id,
       fir: area?.fir || (korean ? "RKRR" : ""), source: area?.source || "", document: area?.document || "",
       effective: area?.effective || "", lower: area?.lower || "", upperFt: area?.upperFt ?? null,
