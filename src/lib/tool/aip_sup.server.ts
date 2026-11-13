@@ -134,13 +134,18 @@ function cacheKey(sup: string): string {
   return `aip_sup:${sup.toUpperCase()}`;
 }
 
+export function isAccountError(msg: string): boolean {
+  return /thiếu user\/pass|AIP_ACCOUNTS_JSON/i.test(String(msg || ""));
+}
+
 async function readCache(ctx: Ctx, sup: string): Promise<RingTable | null> {
   if (_mem.has(sup)) return _mem.get(sup)!;
   const rec = await getJson<CacheRec | null>(ctx, cacheKey(sup), null);
   if (!rec) return null;
   const age = Date.now() / 1000 - (rec.ts || 0);
   if ((rec.v || 1) < CACHE_VER) return null;
-  if (rec.error) return age < FAIL_TTL_S ? {} : null;
+  // Missing/invalid portal accounts are configuration errors: retry as soon as the account is fixed.
+  if (rec.error) return age < FAIL_TTL_S && !isAccountError(rec.error) ? {} : null;
   if (rec.hours) _hoursMem.set(sup.toUpperCase(), rec.hours);
   const out: RingTable = {};
   for (const [nr, item] of Object.entries(rec.rings || {})) {
@@ -446,7 +451,8 @@ export async function rings_of(sup: string, fir = "", requestCtx?: Ctx): Promise
     await writeCache(ctx, scoped, table);
     return table;
   } catch (exc) {
-    await writeCache(ctx, scoped, {}, String((exc as Error)?.message || exc));
+    const msg = String((exc as Error)?.message || exc);
+    if (!isAccountError(msg)) await writeCache(ctx, scoped, {}, msg);
     return {};
   }
 }

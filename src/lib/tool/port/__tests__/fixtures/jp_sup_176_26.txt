@@ -1,0 +1,112 @@
+Tel: +81-50-3146-3195
+AFTN:RJAAYNYX
+E-mail:
+helpdesk@ais.mlit.go.jp
+1
+JAPAN
+MINISTRY OF LAND, INFRASTRUCTURE,
+TRANSPORT AND TOURISM
+CIVIL AVIATION BUREAU
+AERONAUTICAL INFORMATION SERVICE CENTER
+AIP SUP
+176/26
+臨時訓練空域の設定について （静浜）
+令和 8 年 9 月 3 日 0700JST か ら令和 9 年 9 月 1 日 2100JST まで、
+自衛隊の訓練のため、 次の と お り 臨時訓練空域が設定 さ れ る。
+（ATTACHMENT 参照）
+本件に係るデー タ フ ァ イル （KML フ ァ イル） が AIP フ ァ イルダウ
+ン ロー ド サービ スで入手可能である。
+1. 臨時訓練空域の設定
+2. 自衛隊の訓練機以外の航空機の当該空域の使用方法
+(1) 自衛隊機以外の航空機が訓練の目的で当該空域を使用す る
+場合は、 使用統制機関 と 事前に調整する こ と 。
+(2) 訓練以外の目的で当該空域を飛行する航空機（計器飛行方式
+に よ り 飛行する航空機及び下記 (3) に掲げる航空機を除 く 。）
+は、 使用統制機関 と の事前調整な し に当該空域を飛行 し ない
+こ と 。
+(3) 当該空域周辺の航空路等を飛行中の訓練機以外の航空機が、
+緊急かつやむ を 得な い理由に よ り 当該空域に進入す る 場合
+は、 緊急機にあ っ ては、 周波数 121.5MHz 又は 243.0MHz で、
+雷雲回避等の航空機にあ っ ては、 指定 さ れた周波数で使用統
+制機関にその旨通報する こ と 。
+3. 備考
+高度及び使用時間については、24 時間前ま でに ノ ー タ ム RJJJ
+に よ り 通知 さ れる。
+6/8/26
+176/26
+Establishment of temporary training area
+(Shizuhama)
+From 2200UTC 2 SEP 2026 to 1200UTC 1 SEP 2027, temporary
+training area by Japan Self Defense Force(JSDF) will be
+established as follows:
+(See ATTACHMENT)
+Data file (KML file) for this subject is available from AIP File
+Download Service.
+1. Establishment of temporary training area
+2. Procedures for use of temporary training area by ACFT other
+than JSDF training ACFT
+(1) Training ACFT other than JSDF ACFT are required to
+coordinate with the controlling unit in advance for usage of
+the area.
+(2) ACFT not in training should not enter the area without prior
+coordination with the controlling unit, except ACFT flying
+under IFR or ACFT mentioned below(3).
+(3) ACFT except training flying the airways around the temporary
+training area should report to the controlling unit on
+121.5MHz or 243.0MHz in case of emergency, or on
+designated frequency for such as avoiding cumulonimbus,
+etc., when they enter the area.
+3. Remarks
+The altitude, exact date and time will be notified by NOTAM RJJJ
+by 24 hours before the occupation.
+名 称
+Name
+範 囲
+Lateral limits
+使用統制機関
+Controlling unit
+静浜臨時訓練空域
+Shizuhama temporary
+training area
+次の各地点を結ぶ直線に よ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(1) 350828N1384131E
+(2) 350812N1383449E
+(3) 350306N1381414E
+(4) 345552N1381555E
+(5) 345207N1382252E
+(6) 345030N1384649E
+(7) 345236N1384649E
+第 11 飛行教育団司令部教育部
+（054-622-1234 内線 232）
+無線呼出符号 ： “OFF SIDE” 133.9MHz
+(YARD ARM) ： SHIZUHAMA TOWER
+Headquarters 11th Flying Training Wing
+JSDF-A
+(Tel:+81-54-622-1234 EXT: 232)
+Radio Callsign:“OFF SIDE” 133.9MHz
+(YARD ARM) : SHIZUHAMA TOWER
+NR176/26
+6 AUG 2026
+2
+(3)
+350306N1381414E
+LHT
+YZTYZT
+SZESZE
+(4)
+345552N1381555E
+(5)
+345207N1382252E (6)
+345030N1384649E
+(1)
+350828N1384131E
+(2)
+350812N1383449E
+(7)
+345236N1384649E(7)
+345236N1384649E
+Shizuhama temporary
+training area
+ATTACHMENT
+6/8/26

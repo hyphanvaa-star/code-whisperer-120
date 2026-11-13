@@ -67,6 +67,8 @@ function coords(blob: string): Pt[] {
     const p = llFromMatch(m);
     if (pts.length && ptsEqual(p, pts[pts.length - 1]!)) continue;
     if (pts.length >= 3 && ptsEqual(p, pts[0]!)) break;
+    // A vertex seen again means the ring was already listed (e.g. map labels after the table).
+    if (pts.length >= 3 && pts.some((q) => ptsEqual(p, q))) break;
     pts.push(p);
   }
   return pts;
