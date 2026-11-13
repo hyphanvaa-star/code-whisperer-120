@@ -98,12 +98,46 @@ export function isAirspaceAreaNotam(n: Notam, E: string = eOf(n)): boolean {
   return REFERS_ELSEWHERE.test(E);
 }
 const AWY_DESIG = "(?!FL\\d)[A-Z]{1,2}\\d{1,4}[A-Z]?";
-const ROUTE_LIST_RE = new RegExp(`\\b(?:ATS\\s+)?(?:ROUTES?|RTES?|AWYS?|AIRWAYS?)\\s*(?:ON\\s+|:\\s*)?(${AWY_DESIG}(?:\\s*(?:,|\\/|&|\\bAND\\b)\\s*${AWY_DESIG})*)\\b`, "g");
-/** ATS route designators named after ROUTES/RTE/AWY, e.g. "APPLIED ON ROUTES L642, N892, M771 AND L625". */
-export function atsRouteList(E: string): string[] {
+const RTE_KW = "(?:(?:ATS|RNAV|CONDITIONAL|UPPER|LOWER|DOMESTIC|INTERNATIONAL|DIRECT|PDR|CDR)\\s+)*(?:ROUTES?|RTES?|AWYS?|AIRWAYS?|CDRS?|PDRS?)";
+const RTE_SEP = "(?:\\s*(?:,|\\/|&|;|\\+|\\bAND\\b|\\bOR\\b)\\s*|\\s+)";
+const RTE_LIST = `${AWY_DESIG}(?:${RTE_SEP}${AWY_DESIG})*`;
+const ROUTE_LIST_RE = new RegExp(`\\b${RTE_KW}\\s*(?:\\(\\s*)?(?:(?:ON|NR\\.?|DESIGNATORS?|SEGMENTS?)\\s+|[:=\\-]\\s*)?(${RTE_LIST})\\b`, "g");
+/** "ON/VIA/ALONG A1, B2" — only inside a route NOTAM. */
+const ROUTE_ON_RE = new RegExp(`\\b(?:ON|VIA|ALONG)\\s+(${RTE_LIST})\\b`, "g");
+/** "A1, B2 AND R3 CLSD / ACTIVATED / NOT AVBL" — only inside a route NOTAM. */
+const ROUTE_STATUS_RE = new RegExp(`\\b(${RTE_LIST})\\s+(?:(?:IS|ARE|WILL\\s+BE|TO\\s+BE|SHALL\\s+BE)\\s+)?(?:CLSD|CLOSED|NOT\\s+AVBL|NOT\\s+AVAILABLE|UNAVBL|UNAVAILABLE|SUSPENDED|ACTIVATED|ACTIVE|AVBL|AVAILABLE|ESTABLISHED|DEACTIVATED|WITHDRAWN|UNUSABLE|U\\/S|OPEN|OPENED)\\b`, "g");
+/** Numbered/bulleted list items "1) Z16 …", "(2) Z17:", "- L642 FL320", "a. W215" at line start. */
+const ROUTE_LINE_RE = new RegExp(`(?:^|\\n)[ \\t]*(?:\\(?\\d{1,3}[.)]|[-•*·]|\\(?[A-Z]\\))?[ \\t]*(${AWY_DESIG})\\b(?=[ \\t]*(?:$|\\n|[:,;(]|-|\\d|\\b(?:FL\\d*|MEA|MNM|MOCA|BTN|BETWEEN|FM|FROM|TO|SEGMENT|ENTIRE|WHOLE|CLSD|CLOSED|ACT\\w*|AVBL|NOT|SUSPENDED|ESTABLISHED|DEACTIVATED|UNAVBL|BLW|ABV|BELOW|ABOVE|EXC|ONLY|DIRECTION|DIR|ONE|UNI\\w*|BI\\w*)\\b))`, "g");
+/** Inline numbered items when item E is flattened: "1) Z16 … 2) Z17 …". */
+const ROUTE_NUM_RE = new RegExp(`(?:^|\\s)\\(?\\d{1,2}[.)]\\s*(${AWY_DESIG})\\b(?=\\s|[:,;]|$)`, "g");
+/** CDR/period table rows "Z17 2611131300/2611132100 MEA". */
+const ROUTE_PERIOD_RE = new RegExp(`\\b(${AWY_DESIG})\\s+\\d{10}\\s*[\\/-]\\s*\\d{10}\\b`, "g");
+/** Route context: ATS route Q-code (QAR/QAN/QAU/QAP) or route wording in item E. */
+const ROUTE_CTX = /\b(?:ROUTES?|RTES?|AWYS?|AIRWAYS?|CDRS?|PDRS?|SEGMENTS?)\b/;
+const NOT_ROUTE_AFTER = /^\s*(?:ACFT|AIRCRAFT|TYPE|SERIES|FAMILY|\d{2}\s+\d{2})/;
+/** Taxiway/stand/gate names ("TWY A1, B2", "STAND C3", "TAXI ROUTE A1") look like airways but are not. */
+const GROUND_BEFORE = /\b(?:TWY|TWYS|TAXIWAYS?|TXL|TAXILANES?|TAXI\s+(?:ROUTES?|RTES?)|STANDS?|STD|APRONS?|APN|BAYS?|GATES?|SPOTS?|PSN|POSITIONS?|HOLDING\s+POINTS?|RWY|RUNWAY)\s*(?:[:\-]\s*)?(?:[A-Z]{1,2}\d{1,4}[A-Z]?\s*(?:,|\/|&|\bAND\b|\bOR\b)?\s*)*$/;
+/**
+ * ATS route designators an item E concerns. Keyword lists ("APPLIED ON ROUTES L642, N892 AND L625")
+ * always count; numbered/bulleted lists, CDR period tables, "ON/VIA A1" and "A1, B2 CLSD/ACTIVATED"
+ * count only in a route NOTAM (route Q-code or route wording) so area/coordinate text is never taken as a route.
+ */
+export function atsRouteList(E: string, qcode = ""): string[] {
   const out = new Set<string>();
-  for (const m of E.matchAll(ROUTE_LIST_RE)) {
-    for (const t of m[1]!.match(new RegExp(`\\b${AWY_DESIG}\\b`, "g")) ?? []) out.add(t);
+  const take = (list: string, at: number, src: string) => {
+    for (const t of list.match(new RegExp(`\\b${AWY_DESIG}\\b`, "g")) ?? []) {
+      const i = src.indexOf(t, at);
+      const after = src.slice(i + t.length, i + t.length + 12);
+      if (NOT_ROUTE_AFTER.test(after) || GROUND_BEFORE.test(src.slice(Math.max(0, i - 60), i))) continue;
+      out.add(t);
+    }
+  };
+  for (const m of E.matchAll(ROUTE_LIST_RE)) take(m[1]!, m.index ?? 0, E);
+  const groundQ = /^Q[MLFIOC]/.test(qcode);
+  const ctxE = E.replace(/\bTAXI\s+(?:ROUTES?|RTES?)\b/g, "TAXI");
+  if (!groundQ && (/^QA[RNUP]/.test(qcode) || ROUTE_CTX.test(ctxE))) {
+    for (const re of [ROUTE_ON_RE, ROUTE_STATUS_RE, ROUTE_LINE_RE, ROUTE_NUM_RE, ROUTE_PERIOD_RE])
+      for (const m of E.matchAll(re)) take(m[1]!, m.index ?? 0, E);
   }
   return [...out];
 }
@@ -467,7 +501,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   }
   // 7b listed ATS routes without segments: "APPLIED ON ROUTES L642, N892, M771 AND L625".
   // Only decides when the NOTAM has no airspace area of its own (an area is measured by geometry).
-  const rteList = atsRouteList(E);
+  const rteList = atsRouteList(E, qCodeOf(n));
   if (rteList.length && !HARD_AIRSPACE.test(E) && !notamGeoms(n).some((g) => g.shape !== "dot")) {
     if (!f.tokens.size && !f.points.length) return unk("ATS-ROUTE-LIST", `Không có route của chuyến để so ATS route ${rteList.join(", ")}.`);
     const flown = rteList.filter((r) => onRoute(f, r));
