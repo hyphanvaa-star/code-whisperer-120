@@ -36,6 +36,10 @@ export type TafRec = {
   valid_to?: string;
   raw: string;
   groups: TafGroup[];
+  /** Nguồn khác đài TSN (vd "NOAA AWC"); thiếu = đài MET TSN. */
+  source?: string;
+  /** Sân không có TAF: METAR mới nhất để Dispatcher vẫn thấy thời tiết thực tế. */
+  metar?: { raw: string; time: string };
 };
 
 export type TafAdvice = {
@@ -286,7 +290,14 @@ function groupLabel(g: TafGroup): string {
 function segmentsForSta(rec: TafRec, when: Date): { text: string; hit: boolean }[] {
   const raw = (rec.raw || "").trim();
   if (rec.nil || !rec.groups || rec.groups.length === 0) {
-    return [{ text: raw || "NIL", hit: false }];
+    const out = [{ text: raw || "NIL", hit: false }];
+    if (rec.nil && rec.metar?.raw) {
+      const t = new Date(rec.metar.time);
+      const hhmm = Number.isNaN(t.getTime()) ? "" : ` ${pad2(t.getUTCHours())}${pad2(t.getUTCMinutes())}Z`;
+      out.push({ text: `\n\nKhông có TAF — METAR mới nhất${hhmm}:\n`, hit: false });
+      out.push({ text: rec.metar.raw, hit: true });
+    }
+    return out;
   }
   const groups = rec.groups;
   let mainI: number | null = null;
@@ -322,6 +333,7 @@ function segmentsForSta(rec: TafRec, when: Date): { text: string; hit: boolean }
     segs.push({ text: " " + label, hit: hits.has(i) });
   });
   segs.push({ text: "=", hit: false });
+  if (rec.source) segs.push({ text: `\n· nguồn ${rec.source}`, hit: false });
   return segs;
 }
 
@@ -333,7 +345,7 @@ export function advise(icao0: string, when0: Date, tafs: Record<string, TafRec>)
   const raw = rec.raw || "";
   const segs = segmentsForSta(rec, when);
   if (rec.nil) {
-    return mkAdvice(icao, "nil", "WX NIL", { tip: "TAF NIL", when: when.toISOString(), snippet: raw, raw, segments: segs });
+    return mkAdvice(icao, "nil", "WX NIL", { tip: rec.metar ? "TAF NIL · có METAR mới nhất" : "TAF NIL", when: when.toISOString(), snippet: raw, raw, segments: segs });
   }
 
   const v0 = new Date(rec.valid_from!);

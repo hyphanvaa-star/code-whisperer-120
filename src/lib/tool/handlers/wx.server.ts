@@ -1,6 +1,7 @@
 import type { Jobs, Routes } from "../types";
 import { getJson, setJson, putFile, listFiles } from "../store.server";
 import { fetchLatest, type TafSnapshot } from "../port/taf";
+import { fetchAwcTafs, fetchAwcMetars, mergeAwc } from "../port/taf_awc";
 import { jobId } from "../jobs";
 import {
   download as metwxDownload,
@@ -49,9 +50,36 @@ type TafCache = {
   tafs: Record<string, unknown>;
   count: number;
   active?: number;
+  awc?: { at: string; filled: number; added: number; metar: number; error?: string };
 };
 
 const emptyCache = (): TafCache => ({ fetched_at: null, datetime: "", tafs: {}, count: 0 });
+
+/** Bù TAF từ NOAA AWC cho sân TSN báo NIL / chưa có; gắn METAR cho sân không có TAF.
+ * Lỗi NOAA không chặn bộ TAF đài TSN. */
+async function fillFromAwc(info: TafSnapshot) {
+  const now = new Date();
+  const [tafs, metars] = await Promise.allSettled([fetchAwcTafs(now), fetchAwcMetars(now)]);
+  const errors: string[] = [];
+  if (tafs.status === "rejected") errors.push(`TAF: ${(tafs.reason as Error)?.message ?? tafs.reason}`);
+  if (metars.status === "rejected") errors.push(`METAR: ${(metars.reason as Error)?.message ?? metars.reason}`);
+  const stats = mergeAwc(
+    info.tafs,
+    tafs.status === "fulfilled" ? tafs.value : {},
+    metars.status === "fulfilled" ? metars.value : {},
+  );
+  info.count = Object.keys(info.tafs).length;
+  info.active = Object.values(info.tafs).filter((t) => !t.nil).length;
+  const summary = {
+    at: now.toISOString(),
+    filled: stats.filled.length,
+    added: stats.added.length,
+    metar: stats.metar.length,
+    ...(errors.length ? { error: errors.join(" | ") } : {}),
+  };
+  (info as TafSnapshot & { awc?: typeof summary }).awc = summary;
+  return summary;
+}
 
 export const routes: Routes = {
   "GET /api/taf/status": async (ctx) => {
@@ -64,6 +92,7 @@ export const routes: Routes = {
         Object.values(tafs).filter((t) => !(t as { nil?: boolean })?.nil).length,
       datetime: data.datetime ?? "",
       fetched_at: data.fetched_at ?? null,
+      awc: data.awc ?? null,
     };
   },
 
@@ -71,6 +100,7 @@ export const routes: Routes = {
     try {
       const info: TafSnapshot = await fetchLatest();
       if (!info.count) return { error: `Đài TAF (${info.source}) không trả bản TAF nào — thử lại sau ít phút.` };
+      const awc = await fillFromAwc(info);
       await setJson(ctx, CACHE_KEY, info);
       return {
         ok: true,
@@ -79,6 +109,7 @@ export const routes: Routes = {
         datetime: info.datetime ?? "",
         slots: info.slots ?? [],
         fetched_at: info.fetched_at ?? null,
+        awc,
       };
     } catch (exc) {
       return { error: (exc as Error)?.message ?? String(exc) };
