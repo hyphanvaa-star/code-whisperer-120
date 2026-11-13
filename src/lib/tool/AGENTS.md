@@ -44,3 +44,4 @@
 
 - Track-mode tune treats every airport place in the flight's briefing package as an en-route alternate (`RALT`, never OUT-OF-SCOPE), timed by the closest track point to its Q-line centre; each assessment carries `window` (role window label) shown on the NOTAM card.
 - Stand/partial-taxiway NOTAMs without runway content are NO IMPACT at DEP (stands only) and alternates (TALT/ALT/RALT); ARR keeps BRIEFING INFO, so planning lists stay focused on what affects the flight.
+- Alternate airports (ALT/RALT) drop low obstacles (<1000 FT from E/G) and taxiway/stand/ground-manoeuvring NOTAMs before the AIP SUP step; tune reads the OFP EET only for FIR windows so D) schedules are checked against real FIR times.

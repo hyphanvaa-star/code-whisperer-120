@@ -68,7 +68,14 @@ export const routes: Routes = {
     // the client supplies track points directly (same as web.py's body["track"]).
 
     try {
-      return tunePlaces(flight, places, { ofpText, trackPoints: points, cfg: body.cfg });
+      // OFP EET list gives the real FIR entry/exit times; without it a FIR spans the whole flight.
+      let eetText = "";
+      try {
+        const { fetchOfpPdf, ofpPdfText } = await import("./briefing_release.server");
+        const blob = await fetchOfpPdf(flight.id);
+        if (blob) eetText = String.fromCharCode(...blob.slice(0, 4)) === "%PDF" ? await ofpPdfText(blob) : new TextDecoder().decode(blob);
+      } catch { /* keep whole-flight fallback */ }
+      return tunePlaces(flight, places, { ofpText, eetText, trackPoints: points, cfg: body.cfg });
     } catch (exc) {
       return { error: String((exc as Error)?.message ?? exc) };
     }

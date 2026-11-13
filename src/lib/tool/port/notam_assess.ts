@@ -112,6 +112,16 @@ export function hasHardContent(E: string): boolean {
 }
 const ALL_MOVE = /\b(ALL\s+(TWY|TAXIWAYS|STANDS|APRONS?)|NO\s+TAXI\s+ROUTE|APRON\s+CLSD|APRON\s+CLOSED)\b/;
 const AD_SURFACE = /\b(TWY|TAXIWAYS?|TAXILANES?|TXL|STANDS?|ACFT\s+STANDS|APRONS?|APN|PARKING\s+(?:POSITIONS?|STANDS?|BAYS?))\b/;
+/** Highest obstacle height in feet from item E/G (FT or M, AMSL/AGL); null when none is written. */
+export function obstacleHeightFt(n: Notam, E: string): number | null {
+  const blob = `${E}\n${String(n.g_field ?? "")}\n${/G\)\s*([^\n]*)/.exec(String(n.text ?? ""))?.[1] ?? ""}`.toUpperCase();
+  let best: number | null = null;
+  for (const m of blob.matchAll(/(\d+(?:\.\d+)?)\s*(FT|M)\b(?!\s*(?:FM|FROM|RADIUS|EAST|WEST|NORTH|SOUTH))/g)) {
+    const v = m[2] === "M" ? Math.round(+m[1]! * 3.281) : Math.round(+m[1]!);
+    if (best === null || v > best) best = v;
+  }
+  return best;
+}
 /** Q-code (e.g. QMPLC) from the parsed fields or the Q) line in the text. */
 export function qCodeOf(n: Notam): string {
   const sc = `${String(n.qsubj ?? "")}${String(n.qcond ?? "")}`.toUpperCase().replace(/^Q/, "");
@@ -396,6 +406,16 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   // 2 VFR only
   if (/\bVFR\b/.test(E) && !/\bIFR\b/.test(E) && /\bVFR\s+(ACFT|AIRCRAFT|FLT|FLIGHTS?|TRAFFIC|ROUTE)/.test(E))
     return no("VFR-ONLY", "Item E chỉ áp dụng tàu VFR — chuyến bay IFR.");
+  // 2b alternates (ALT/RALT): low obstacles, partial taxiway/stand and Code F-only ground limits
+  // never change a diversion plan, even when an AIP SUP is cited. Hard content keeps grading.
+  if ((role === "ALT" || role === "RALT") && isAirport && !hasHardContent(E) && !/\bRWY\b|\bRUNWAY/.test(E)) {
+    const isObstAlt = /\b(OBST|OBSTACLE|CRANE|MAST|TOWER|POLE|CHIMNEY|ANTENNA)\b/.test(E);
+    const hFt = obstacleHeightFt(n, E);
+    if (isObstAlt && hFt !== null && hFt < 1000)
+      return no("ALT-LOW-OBST", `Chướng ngại ${hFt} FT tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay.`);
+    if (AD_SURFACE.test(E) || /\bGROUND\s+MAN(?:OE|E)UV/.test(E) || /^QM[XPAN]/.test(qCodeOf(n)))
+      return no("AD-SURFACE-" + role, `Taxiway/stand/lăn mặt đất tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay.`);
+  }
   // 3 AIP SUP / AMDT trigger
   // An aerodrome ground NOTAM that cites an AIP SUP is still graded by what it closes (stand/apron/TWY/RWY/AD).
   const groundAd = isAerodromeGround(n, E);

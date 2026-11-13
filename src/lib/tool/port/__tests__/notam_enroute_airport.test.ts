@@ -19,8 +19,8 @@ describe("en-route airports in the briefing package", () => {
     expect(a.match_type).not.toBe("OUT-OF-SCOPE");
     expect(a.level).not.toBe("NO IMPACT");
   });
-  it("keeps taxiway works at an en-route airport as briefing info", () => {
-    expect(r.assess["VVDN\tA3523/26"].level).toBe("BRIEFING INFO");
+  it("drops taxiway works at an en-route airport", () => {
+    expect(r.assess["VVDN\tA3523/26"].level).toBe("NO IMPACT");
   });
   it("labels the window around the time the track passes the airport", () => {
     expect(r.assess["VVDN\tA3842/26"].window).toBe("ENRT_ALT VVDN 13/11 1110Z–1310Z");

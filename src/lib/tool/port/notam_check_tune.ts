@@ -1651,7 +1651,7 @@ function collectExtras(places: N[]) {
 export function tunePlaces(
   flight: Flight,
   places: N[],
-  opts: { ofpText?: string; trackPoints?: Array<Record<string, unknown>>; cfg?: unknown } = {},
+  opts: { ofpText?: string; eetText?: string; trackPoints?: Array<Record<string, unknown>>; cfg?: unknown } = {},
 ): Record<string, unknown> {
   const ofpText = opts.ofpText ?? "";
   const trackPoints = opts.trackPoints ?? [];
@@ -1675,7 +1675,8 @@ export function tunePlaces(
     points: trackPoints,
     std: flight.std || flight.etd || null,
     sta: flight.sta || flight.eta || null,
-    fir_win: firWindows(flight, ofpText, depFir),
+    // FIR windows come from the OFP EET list (eetText) even when other OFP-driven parsing stays off.
+    fir_win: firWindows(flight, ofpText || opts.eetText || "", depFir),
     dep: loc.dep || flight.dep_icao,
     arr: loc.arr || flight.dest_icao,
     cruise_fl: plannedFlOf(flight, ofpText),
