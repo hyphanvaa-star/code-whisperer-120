@@ -1,0 +1,207 @@
+Tel: +81-50-3146-3195
+AFTN:RJAAYNYX
+E-mail:
+helpdesk@ais.mlit.go.jp
+1
+JAPAN
+MINISTRY OF LAND, INFRASTRUCTURE,
+TRANSPORT AND TOURISM
+CIVIL AVIATION BUREAU
+AERONAUTICAL INFORMATION SERVICE CENTER
+AIP SUP
+123/26
+障害物件の存在について ( 関西国際空港 )
+関西国際空港の転移表面、水平表面又は円錐表面上に突出する
+障害物件が次の と お り 存在する。
+本件に係るデー タ フ ァ イル （KML フ ァ イル） が AIP フ ァ イルダ
+ウン ロー ド サービ スで入手可能である。
+本航空路誌補足版は、デー タ フ ァ イル提供方法の変更に伴 う 令
+和 8 年 2 月 19 日付航空路誌補足版 NR043/26 の再発行であ り 、障
+害物件の情報に変化はない。
+14/5/26
+123/26
+Obstructions existing (Kansai INTL AP/RJBB)
+Obstructions above transitional surface, horizontal surface or
+conical surface of Kansai INTL AP exist as follows:
+Data file (KML file) for this subject is available from AIP File
+Download Service.
+This AIP SUP is a reissue of AIP SUP NR043/26 dated 19 FEB
+2026, resulting from a change in the method of providing data
+files; there are no changes to the information regarding
+obstructions.
+期間
+Period
+位置
+Position
+物件高
+Elevation
+物件の種類
+及び数
+Type and
+Number of
+obstruction
+備考
+Remarks
+1
+1-1
+Until 1500UTC 30 JUN 2028.
+The area bounded by
+straight lines connecting
+following points:
+(1)342555.0N/1351617.0E
+(2)342554.0N/1351616.0E
+(3)342551.0N/1351620.0E
+(4)342552.0N/1351621.0E
+MAX
+54m(177ft) 1 crane
+• Above horizontal surface.
+• Obstacle LGT and Obstacle
+day marking are installed on
+cranes.
+1-2
+The area bounded by
+straight lines connecting
+following points:
+(1)342552.0N/1351621.0E
+(2)342551.0N/1351620.0E
+(3)342548.0N/1351624.0E
+(4)342548.0N/1351625.0E
+MAX
+57m(186ft) 1 crane
+• Above horizontal surface.
+• Obstacle LGT and Obstacle
+day marking are installed on
+cranes.
+1-3
+The area bounded by
+straight lines connecting
+following points:
+(1)342548.0N/1351625.0E
+(2)342548.0N/1351624.0E
+(3)342541.0N/1351633.0E
+(4)342542.0N/1351634.0E
+MAX
+60m(196ft) 1 crane
+• Above horizontal surface and
+conical surface.
+• Obstacle LGT and Obstacle
+day marking are installed on
+cranes.
+1-4
+The area bounded by
+straight lines connecting
+following points:
+(1)342542.0N/1351634.0E
+(2)342541.0N/1351633.0E
+(3)342528.0N/1351650.0E
+(4)342529.0N/1351651.0E
+MAX
+61m(199ft) 1 crane
+• Above conical surface.
+• Obstacle LGT and Obstacle
+day marking are installed on
+cranes.
+2 Until 1500UTC 25 NOV 2026.
+The area bounded by
+straight lines connecting
+following points:
+(1)342617.4N/1351305.8E
+(2)342617.8N/1351305.4E
+(3)342609.6N/1351253.3E
+(4)342609.2N/1351253.6E
+MAX
+22m(71ft)
+MAX
+20 heavy
+equipments
+• Above transitional surface.
+• Obstacle LGT and red flag
+installed.
+3 Until 1500UTC 25 NOV 2026.
+The area bounded by
+straight lines connecting
+following points:
+(1)342609.2N/1351253.6E
+(2)342609.6N/1351253.3E
+(3)342602.6N/1351242.8E
+(4)342602.2N/1351243.2E
+MAX
+22m(71ft)
+MAX
+20 heavy
+equipments
+• Above transitional surface.
+• Obstacle LGT and red flag
+installed.
+• Instrument APCH PROC for
+Kansai INTL AP are
+changed.
+(See AIP SUP NR020/26)
+NR123/26
+14 MAY 2026
+214/5/26
+4 Until 1500UTC 25 NOV 2026.
+The area bounded by
+straight lines connecting
+following points:
+(1)342602.2N/1351243.2E
+(2)342602.6N/1351242.8E
+(3)342553.8N/1351229.7E
+(4)342553.4N/1351230.0E
+MAX
+22m(71ft)
+MAX
+20 heavy
+equipments
+• Above transitional surface.
+• Obstacle LGT and red flag
+installed.
+• Instrument APCH PROC for
+Kansai INTL AP are
+changed.
+(See AIP SUP NR020/26)
+5 Until 1500UTC 25 NOV 2026.
+The area bounded by
+straight lines connecting
+following points:
+(1)342553.4N/1351230.0E
+(2)342553.8N/1351229.7E
+(3)342549.3N/1351218.0E
+(4)342548.9N/1351218.3E
+MAX
+21m(67ft)
+MAX
+20 heavy
+equipments
+• Above transitional surface.
+• Obstacle LGT and red flag
+installed.
+6 Until 1500UTC 25 NOV 2026.
+The area bounded by
+straight lines connecting
+following points:
+(1)342548.9N/1351218.3E
+(2)342549.3N/1351218.0E
+(3)342547.3N/1351215.0E
+(4)342546.9N/1351215.4E
+MAX
+21m(68ft)
+MAX
+20 heavy
+equipments
+• Above transitional surface.
+• Obstacle LGT and red flag
+installed.
+期間
+Period
+位置
+Position
+物件高
+Elevation
+物件の種類
+及び数
+Type and
+Number of
+obstruction
+備考
+Remarks

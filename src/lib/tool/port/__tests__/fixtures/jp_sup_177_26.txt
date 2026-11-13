@@ -1,0 +1,182 @@
+Tel: +81-50-3146-3195
+AFTN:RJAAYNYX
+E-mail:
+helpdesk@ais.mlit.go.jp
+1
+JAPAN
+MINISTRY OF LAND, INFRASTRUCTURE,
+TRANSPORT AND TOURISM
+CIVIL AVIATION BUREAU
+AERONAUTICAL INFORMATION SERVICE CENTER
+AIP SUP
+177/26
+臨時訓練空域の設定について （南九州沖）
+令和 8 年 9 月 3 日 0700JST から令和 8 年 10 月 28 日 2100JST ま
+で、自衛隊の訓練のため、次の と お り 臨時訓練空域が設定 さ れる。
+本件に係るデー タ フ ァ イル （KML フ ァ イル） が AIP フ ァ イルダウ
+ン ロー ド サービ スで入手可能である。
+1. 臨時訓練空域の設定 （ATTACHMENT 参照）
+6/8/26
+177/26
+Establishment of temporary training areas
+(South of Kyushu)
+From 2200UTC 2 SEP 2026 to 1200UTC 28 OCT 2026,
+temporary training areas for training by Japan Self Defense
+Force will be established as follows:
+Data file (KML file) for this subject is available from AIP File
+Download Service.
+1. Establishment of Temporary training areas (See ATTACHMENT)
+名 称
+Name
+範 囲
+Lateral limits
+使用統制機関
+Controlling unit
+南九州沖
+臨時訓練空域 Nr.1
+South of Kyushu
+temporary training
+area Nr.1
+次の各点を結ぶ直線に よ り 囲まれる区域。 ただ し 、 (2) と (3) の地点の間は加治木
+VORを中心 と する半径45NMの劣弧で結んだ線 と し 、(3) と (4)の地点の間は
+314724N/
+1294712E の点を中心 と する半径 16.2NM の劣弧で結んだ線 と する。
+The area bounded by straight lines connecting following points, the line connecting
+point (2) to (3) is the minor arc with a radius of 45NM of Kajiki VOR and
+the line connecting point (3) to (4) is the minor arc with a radius of 16.2NM of
+314724N/1294712E.
+(1)321012N/1294222E (2)321012N/1295736E
+(3)320241N/1295337E (4)320012N/1293452E 西部航空方面隊司令部防
+衛部
+（春日 電話 092-581-4031
+内線 2346, 2203）
+無線呼出符号
+( P r i m a r y ) " D I A L E C T "
+133.9MHz
+(Secondary)Nyuta TWR.
+Headquarters Western Air
+Defence Force JSDF-A
+(Kasuga TEL +81-92-581-
+4031 EXT 2346, 2203)
+Radio Callsign
+( P r i m a r y ) " D I A L E C T "
+133.9MHz
+(Secondary)Nyuta TWR.
+.
+南九州沖
+臨時訓練空域 Nr.2
+South of Kyushu
+temporary training
+area Nr.2
+次の各点を結ぶ直線に よ り 囲まれる区域。 ただ し 、 (5) と (6) の地点の間は加治木
+VOR を中心 と する半径 45NM の劣弧で結んだ線 と し 、 (10) と (5) の地点の間は
+314724N/1294712E の点を中心 と する半径 16.2NM の劣弧で結んだ線 と する。
+The area bounded by straight lines connecting following points, the line connecting
+point (5) to (6) is the minor arc with a radius of 45NM of Kajiki VOR and
+the line connecting point (10) to (5) is the minor arc with a radius of 16.2NM of
+314724N/1294712E.
+(5)313216N/1295404E (6)312239N/1295952E (7)310649N/1295952E
+(8)311053N/1293618E (9)311813N/1293452E (10)313503N/1293452E
+南九州沖
+臨時訓練空域 Nr.3
+South of Kyushu
+temporary training
+area Nr.3
+次の各点を結ぶ直線に よ り 囲まれる区域。
+The area bounded by straight lines connecting following points.
+(9)311813N/1293452E (8)311053N/1293618E
+(11)311215N/1292822E (12)305139N/1292752E
+(13)304420N/1294127E (14)304213N/1294152E
+(15)300013N/1290552E (16)300013N/1281653E
+(17)302213N/1275953E
+南九州沖
+臨時訓練空域 Nr.4
+South of Kyushu
+temporary training
+area Nr.4
+次の各点を結ぶ直線に よ り 囲まれる区域。
+The area bounded by straight lines connecting following points.
+(8)311053N/1293618E (11)311215N/1292822E
+(12)305139N/1292752E (13)304420N/1294127E
+NR177/26
+6 AUG 2026
+2
+2. Procedures for use of temporary training area by ACFT other
+than JSDF training ACFT
+(1) Training ACFT other than JSDF ACFT are required to
+coordinate with the controlling unit in advance for usage of
+the area.
+(2) ACFT not in training should not enter the area without prior
+coordination with the controlling unit, except ACFT flying
+under IFR or ACFT mentioned below (3).
+(3) ACFT except training flying the airways around the temporary
+training area should report to the controlling unit on
+121.5MHz or 243.0MHz in case of emergency, or on
+designated frequency for such as avoiding cumulonimbus,
+etc., when they enter the area.
+3. Remarks
+The altitude, exact date and time will be notified by further
+NOTAM RJJJ by 24 hours before the occupied hours.
+2. 自衛隊の訓練機以外の航空機の当該空域の使用方法
+(1) 自衛隊機以外の航空機が訓練の目的で当該空域を使用する場
+合は、 使用統制機関 と 事前に調整する こ と 。
+(2) 訓練以外の目的で当該空域を飛行する航空機 （計器飛行方式
+によ り 飛行する航空機及び下記 (3) に掲げる航空機を除 く 。）
+は、 使用統制機関 と の事前調整な し に当該空域を飛行 し ない
+こ と 。
+(3) 当該空域周辺の航空路等 を飛行中の訓練機以外の航空機が、
+緊急かつやむ を 得 な い理由に よ り 当該空域に進入す る 場合
+は、 緊急機にあ っ ては周波数 121.5MHz 又は 243.0MHz で、 雷
+雲回避等の航空機にあ っ ては指定 さ れた周波数で使用統制機
+関にその旨通報する こ と 。
+3. 備考
+各空域に係 る 高度及び存続時間につい ては、 24 時間前ま で に
+ノ ー タ ム RJJJ に よ り 通知 さ れる。
+6/8/26
+3 6/8/26
+Nr.1
+Nr.2
+Nr.3
+Nr.4 KS11-2
+KS11-1
+KS14
+KS13
+㔞ἲ࡟ᇶࡃ࡙ᅜᅵᆅ⌮㝔㛗ᢎㄆ ౑⏝ 5-+V
+ATTACHMENT
+(1)321012N
+1294222E
+(4)320012N
+1293452E
+(2)321012N
+1295736E
+(3)320241N
+1295337E
+45NM from KGE VOR/DME
+16.2NM radius of
+314724N1294712E
+(10)313503N
+1293452E
+(9)311813N
+1293452E
+(5)313216N
+1295404E
+(6)312239N
+1295952E
+(7)310649N
+1295952E
+(15)300013N
+1290552E
+(16)300013N
+1281653E
+(17)302213N
+1275953E
+(14)304213N
+1294152E
+(13)304420N
+1294127E
+(12)305139N
+1292752E
+(11)311215N
+1292822E
+(8)311053N
+1293618E

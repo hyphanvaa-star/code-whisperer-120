@@ -4,6 +4,8 @@
 // Network + cache (Japan SWIM login, Australia Airservices / DAH PDFs, Taiwan
 // eAIP HTML, store-backed cache) lives in ../aip_sup.server.ts.
 
+import JP_NAVAIDS from "../data/jp_navaids.json";
+
 export type Pt = [number, number];
 export type RingTable = Record<string, { name: string; ring: Pt[] }>;
 
@@ -210,6 +212,10 @@ function prefixOf(text: string): string {
 export function parse_japan_sup_text(text: string, supKey = ""): RingTable {
   const blob = String(text || "");
   const prefix = prefixOf(blob);
+  // Numbered-point areas (with their published arcs) come first: an arc clause
+  // "radius of 45NM of Kajiki VOR" is a boundary segment, never a whole circle.
+  const labelled = parseJapanLabelledAreas(blob, prefix, supKey);
+  if (Object.keys(labelled).length) return labelled;
   const radii = parseJapanRadiusAreas(blob, prefix);
   if (Object.keys(radii).length) return radii;
   let out: RingTable = {};
@@ -300,6 +306,132 @@ function jpAreaTitle(blob: string, pos: number): string {
   return title ? title.slice(0, 40) : "";
 }
 
+// ---------- numbered-point areas with published arcs (SUP 005/023/177) ----------
+type NavaidDb = Record<string, Record<string, { id: string; pt: [number, number] }>>;
+const _JP_NAV = (JP_NAVAIDS as unknown as { navaids: NavaidDb }).navaids;
+
+/** Published GEN 2.5 / ENR 4.1 / AD 2.19 position of ``Kajiki VOR``; null when unknown. */
+export function jp_navaid(name: string, kind: string): Pt | null {
+  const st = _JP_NAV[String(name || "").replace(/\s+/g, " ").trim().toUpperCase()];
+  if (!st) return null;
+  const k = String(kind || "").toUpperCase();
+  const order = k === "NDB" ? ["NDB"] : k === "TACAN" ? ["TACAN", "VORTAC"] : k === "DME" ? ["DME", "VOR/DME", "VORTAC"] : ["VOR", "VORTAC", "VOR/DME"];
+  for (const o of order) if (st[o]) return [st[o]!.pt[0], st[o]!.pt[1]];
+  return null;
+}
+
+const _JP_LPT = /\s*\(\s*(\d{1,3})\s*\)\s*(\d{2})(\d{2})(\d{2}(?:\.\d+)?)\s*N\s*\/?\s*(\d{3})(\d{2})(\d{2}(?:\.\d+)?)\s*E/y;
+const _JP_ARC =
+  /\(\s*(\d{1,3})\s*\)\s*(?:to|and)\s*\(\s*(\d{1,3})\s*\)\s*is\s+(?:the\s+)?(minor|major)\s+arc\s+(?:with\s+)?(?:a\s+)?radius\s+of\s+([\d.]+)\s*NM\s+(?:of|from|cent(?:er|re)d?\s+(?:on|at))\s+(?:(\d{2})(\d{2})(\d{2}(?:\.\d+)?)\s*N\s*\/?\s*(\d{3})(\d{2})(\d{2}(?:\.\d+)?)\s*E|([A-Z][A-Za-z.\-]*(?:\s+[A-Z][A-Za-z.\-]*){0,2})\s+(VORTAC|VOR\s*\/\s*DME|VOR|TACAN|DME|NDB))/gi;
+const _JP_AREA_NAME = /\b((?:ITRA|LION|MOOSE|TIGER|EAGLE|EDIX)(?:\s*-\s*[A-Z0-9]+)+)/g;
+const _JP_AREA_NR = /(?:temporary\s+training\s+area|training\s+area|臨時訓練空域)\s*Nr\.?\s*(\d+)/gi;
+
+function dmsPt(d1: string, m1: string, s1: string, d2: string, m2: string, s2: string): Pt {
+  return [round6(+d1 + +m1 / 60 + +s1 / 3600), round6(+d2 + +m2 / 60 + +s2 / 3600)];
+}
+
+/** Area title in the text just before ``The area bounded by``: the one followed by 次の/The area wins. */
+function jpLabelledName(gap: string): { kind: "named" | "nr"; id: string } | null {
+  const hits: { pos: number; end: number; kind: "named" | "nr"; id: string }[] = [];
+  for (const m of gap.matchAll(new RegExp(_JP_AREA_NAME.source, "g"))) {
+    hits.push({ pos: m.index!, end: m.index! + m[0].length, kind: "named", id: m[1]!.replace(/\s+/g, "").toUpperCase() });
+  }
+  for (const m of gap.matchAll(new RegExp(_JP_AREA_NR.source, "gi"))) {
+    hits.push({ pos: m.index!, end: m.index! + m[0].length, kind: "nr", id: String(parseInt(m[1]!, 10)) });
+  }
+  if (!hits.length) return null;
+  hits.sort((a, b) => a.pos - b.pos);
+  const lead = hits.filter((h) => /^\s*(?:次の|The area)/.test(gap.slice(h.end)));
+  const pick = (lead.length ? lead : hits)[(lead.length ? lead : hits).length - 1]!;
+  return { kind: pick.kind, id: pick.id };
+}
+
+/**
+ * ``The area bounded by straight lines connecting following points, the line
+ * connecting point (2) to (3) is the minor arc with a radius of 45NM of Kajiki VOR …
+ * (1)…N/…E (2)…``. Arcs use the published centre (coordinate or AIP navaid). An
+ * area whose arc centre is unknown or inconsistent with its end points is skipped,
+ * never drawn with a guessed boundary.
+ */
+export function parseJapanLabelledAreas(blob: string, prefix: string, supKey = ""): RingTable {
+  const text = String(blob || "");
+  const starts = [...text.matchAll(/The area bounded by/gi)].map((m) => m.index!);
+  const out: RingTable = {};
+  let prevEnd = 0;
+  let anon = 0;
+  for (let si = 0; si < starts.length; si++) {
+    const start = starts[si]!;
+    const stop = si + 1 < starts.length ? starts[si + 1]! : text.length;
+    const seg = text.slice(start, stop);
+    const first = /\(\s*\d{1,3}\s*\)\s*\d{6}(?:\.\d+)?\s*N\s*\/?\s*\d{7}(?:\.\d+)?\s*E/.exec(seg);
+    const gap = text.slice(prevEnd, start);
+    if (!first) continue;
+    const labels: string[] = [];
+    const pts: Pt[] = [];
+    const rx = new RegExp(_JP_LPT.source, "y");
+    rx.lastIndex = first.index;
+    let m: RegExpExecArray | null;
+    let runEnd = first.index;
+    while ((m = rx.exec(seg))) {
+      labels.push(String(parseInt(m[1]!, 10)));
+      pts.push(dmsPt(m[2]!, m[3]!, m[4]!, m[5]!, m[6]!, m[7]!));
+      runEnd = rx.lastIndex;
+    }
+    prevEnd = start + runEnd;
+    if (pts.length < 3) continue;
+    // ``… (4)…E MAX 61m(199ft) 1 crane`` — an obstacle footprint, not airspace.
+    if (/^\s*MAX\s+\d/i.test(seg.slice(runEnd))) continue;
+    const clause = seg.slice(0, first.index);
+    const arcs = new Map<string, { major: boolean; rad: number; ctr: Pt | null }>();
+    for (const a of clause.matchAll(new RegExp(_JP_ARC.source, "gi"))) {
+      const ctr = a[5] ? dmsPt(a[5], a[6]!, a[7]!, a[8]!, a[9]!, a[10]!) : jp_navaid(a[11]!, a[12]!.replace(/\s+/g, ""));
+      const info = { major: /major/i.test(a[3]!), rad: parseFloat(a[4]!), ctr };
+      arcs.set(`${parseInt(a[1]!, 10)}>${parseInt(a[2]!, 10)}`, info);
+      arcs.set(`${parseInt(a[2]!, 10)}>${parseInt(a[1]!, 10)}`, info);
+    }
+    // An arc sentence the regex could not read means the boundary is incomplete.
+    const arcWords = (clause.match(/\b(?:minor|major)\s+arc\b/gi) || []).length;
+    if (arcWords * 2 !== arcs.size) continue;
+    let ok = true;
+    const ring: Pt[] = [];
+    for (let k = 0; k < pts.length; k++) {
+      const a = pts[k]!, b = pts[(k + 1) % pts.length]!;
+      ring.push(a);
+      const arc = arcs.get(`${labels[k]}>${labels[(k + 1) % pts.length]}`);
+      if (!arc) continue;
+      if (!arc.ctr || arc.rad <= 0) { ok = false; break; }
+      const da = nmApart(arc.ctr, a), db = nmApart(arc.ctr, b);
+      const tol = Math.max(1.5, arc.rad * 0.05);
+      if (Math.abs(da - arc.rad) > tol || Math.abs(db - arc.rad) > tol) { ok = false; break; }
+      const cwSpan = (bearingTo(arc.ctr, b) - bearingTo(arc.ctr, a) + 360) % 360;
+      const clockwise = arc.major ? cwSpan > 180 : cwSpan <= 180;
+      ring.push(...arcPoints(arc.ctr, a, b, arc.rad, clockwise, 180));
+    }
+    if (!ok) continue;
+    // Crane / obstacle footprints (metres wide) are not airspace areas.
+    if (Math.max(...ring.map((q) => nmApart(q, ring[0]!))) < 0.3) continue;
+    const nm = jpLabelledName(gap);
+    let key: string;
+    let name: string;
+    if (nm?.kind === "named") {
+      key = nm.id;
+      name = nm.id;
+    } else if (nm?.kind === "nr") {
+      key = `NR.${nm.id}`;
+      name = prefix ? `${prefix}-NR.${nm.id}` : `SUP-${supKey}-NR.${nm.id}`;
+    } else {
+      anon += 1;
+      key = `NR.${anon}`;
+      name = prefix || (supKey ? `SUP-${supKey}` : "SUP");
+      if (anon > 1) name = `${name}-${anon}`;
+    }
+    let uniq = key, n = 2;
+    while (out[uniq]) uniq = `${key}#${n++}`;
+    out[uniq] = { name, ring };
+  }
+  return out;
+}
+
 // SUP 055/26 Kinkasan: ``radius of 18km(10NM) from … (381641N1413447E),
 // excluding fan-shaped … between 225° MAG and 360° MAG``.
 const _JP_RADIUS =
@@ -309,7 +441,14 @@ const _JP_RADIUS =
 function parseJapanRadiusAreas(blob: string, prefix: string): RingTable {
   const out: RingTable = {};
   let i = 0;
-  for (const hit of (blob || "").matchAll(new RegExp(_JP_RADIUS.source, "gis"))) {
+  const rx = new RegExp(_JP_RADIUS.source, "gis");
+  let hit: RegExpExecArray | null;
+  while ((hit = rx.exec(blob || ""))) {
+    const before = (blob || "").slice(Math.max(0, hit.index - 40), hit.index);
+    if (/\barc\s+(?:with\s+)?(?:a\s+)?$/i.test(before) || /\barc\b|劣弧|優弧|line connecting/i.test(hit[0])) {
+      rx.lastIndex = hit.index + 6;
+      continue;
+    }
     i += 1;
     const ctr = jpPt(hit as unknown as RegExpExecArray);
     const rad = parseFloat(hit.groups!.nm!);

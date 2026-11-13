@@ -127,8 +127,11 @@ async function enrichWithSup(ctx: Ctx, places: Place[]): Promise<void> {
           const pending = supRequests.get(cacheKey);
           const table = saved ? Object.fromEntries(Object.entries(saved).map(([nr, [name, ring]]) => [nr, { name, ring }])) : pending ? await pending : {};
           const wanted = new Set([...blob.matchAll(/\bNR\.?\s*(\d+)\b|\bAREA\s*:?\s*\(\s*(\d+)\s*\)/gi)].map(m => `NR.${Number(m[1] || m[2])}`));
+          // Named SUP areas (ITRA-S12, MOOSE-SOUTH-LO): draw only those the NOTAM names.
+          const namedHit = Object.keys(table).filter((k) => /^[A-Z]+-[A-Z0-9-]+(?:#\d+)?$/.test(k) && new RegExp(`(?<![A-Z0-9])${k.replace(/#\d+$/, '').split('-').join('\\s*-\\s*')}(?![A-Z0-9])`, 'i').test(blob));
           for (const [nr, item] of Object.entries(table)) {
-            if (wanted.size && !wanted.has(nr)) continue;
+            if (namedHit.length) { if (!namedHit.includes(nr)) continue; }
+            else if (wanted.size && !wanted.has(nr)) continue;
             if (item.ring.length >= 3) geoms.push({ name: item.name || nr, shape: "polygon", ring: item.ring, source: 'aip' });
           }
           if (geoms.length) n.sup_geoms = geoms;

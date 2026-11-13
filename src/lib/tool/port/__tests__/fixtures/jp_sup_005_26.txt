@@ -1,0 +1,342 @@
+Tel: +81-50-3146-3195
+AFTN:RJAAYNYX
+E-mail:
+helpdesk@ais.mlit.go.jp
+1
+JAPAN
+MINISTRY OF LAND, INFRASTRUCTURE,
+TRANSPORT AND TOURISM
+CIVIL AVIATION BUREAU
+AERONAUTICAL INFORMATION SERVICE CENTER
+AIP SUP
+005/26
+臨時訓練空域の設定について （沖縄）
+令和 8 年 2 月 19 日 0600JST から 令和 9 年 2 月 17 日 2200JST ま
+で、自衛隊の訓練のため、次の と お り 臨時訓練空域が設定 さ れる。
+1. 臨時訓練空域の設定
+22/1/26
+005/26
+Establishment of temporary training areas
+(Okinawa)
+From 2100UTC 18 FEB 2026 to 1300UTC 17 FEB 2027,
+temporary training areas for training by Japan Self Defense
+Force will be established as follows:
+1. Establishment of Temporary training areas
+名称
+Name
+範 囲
+Lateral limits
+連絡先
+Point of contact
+MOOSE
+-NORTH
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(1)265833N/1245721E (2)282843N/1270315E (3)274812N/1271916E
+(4)271755N/1271315E (5)270503N/1265939E (6)264143N/1251240E
+(See ATTACHMENT-1)
+南西航空方面隊司令部防衛部
+(TEL 098-857-1191 内線 2235, 2361)
+無線呼出符号
+"RODERICK" 133.9MHz
+Headquarters Southwestern Air
+Defence Force JSDF-A
+(Naha Tel +81-98-857-1191
+EXT 2235, 2361)
+Radio Callsign
+"RODERICK" 133.9MHz
+MOOSE
+-SOUTH
+-LO
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(6)264143N/1251240E (5)270503N/1265939E
+(8)261603N/1260835E (7)261420N/1253719E
+(See ATTACHMENT-1)
+MOOSE
+-SOUTH
+-HI
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(6)264143N/1251240E (5)270503N/1265939E
+(8)261603N/1260835E (7)261420N/1253719E
+(See ATTACHMENT-1)
+TIGER
+-CENTER
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(9)262209N/1283442E (10)264724N/1290402E (16)273846N/1303351E
+(12)273835N/1305554E (13)273741N/1320215E (14)272637N/1315941E
+(15)261056N/1305036E
+(See ATTACHMENT-2)
+TIGER
+-WEST
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(10)264724N/1290402E (18)272807N/1293023E (16)273846N/1303351E
+(See ATTACHMENT-2)
+TIGER
+-EAST
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(14)272637N/1315941E (21)264746N/1315044E (20)262726N/1313418E
+(19)260830N/1311653E (15)261056N/1305036E
+(See ATTACHMENT-2)
+EAGLE
+-CENTER
+次の各地点を順次結ぶ直線によ っ て囲まれる区域。 ただ し 、 (29) と (22) の地
+点の間は、 那覇 VORTAC を中心 と する半径 50NM の劣弧で結んだ線 と する。
+The area bounded by straight lines connecting following points, the line
+connecting point (29) to (22) is the minor arc with a radius of 50NM of Naha
+VORTAC.
+(22)255335N/1283000E (23)254837N/1290219E (24)254415N/1292552E
+(25)254445N/1302413E (26)254423N/1303001E (27)243950N/1293955E
+(28)242328N/1292737E (29)253107N/1280953E
+(See ATTACHMENT-3)
+NR005/26
+22 JAN 2026
+2
+2.Procedures for Use of temporary training area by ACFT other
+than JSDF training ACFT
+(1) Training ACFT other than JSDF ACFT are required to
+coordinate with the point of contact in advance for usage of
+the area.
+(2) ACFT not in training should not enter the area without prior
+coordination with the point of contact, except ACFT flying
+under IFR or ACFT mentioned below (3).
+(3) ACFT except training flying the airways around the temporary
+training area should report to the point of contact on
+121.5MHz or 243.0MHz in case of emergency, or on
+designated frequency for such as avoiding cumulonimbus
+etc., when they enter the area.
+3. Remarks
+The altitude, exact date and time will be notified by further
+NOTAM RJJJ by 24 hours before the occupied hours.
+EAGLE
+-EAST
+次の各地点を順次結ぶ直線に よ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(26)254423N/1303001E (32)254239N/1305528E (31)250914N/1302929E
+(30)245628N/1301753E (27)243950N/1293955E
+(See ATTACHMENT-3)
+南西航空方面隊司令部防衛部
+(TEL 098-857-1191 内線 2235, 2361)
+無線呼出符号
+"RODERICK" 133.9MHz
+Headquarters Southwestern Air
+Defence Force JSDF-A
+(Naha Tel +81-98-857-1191
+EXT 2235, 2361)
+Radio Callsign
+"RODERICK" 133.9MHz
+LION
+-CENTER
+次の各地点を順次結ぶ直線に よ っ て囲まれる区域。 ただ し 、 (33) と (29) の地
+点の間は、 那覇 VORTAC を中心 と する半径 50NM の劣弧で結んだ線 と する。
+The area bounded by straight lines connecting following points, the line
+connecting point (33) to (29) is the minor arc with a radius of 50NM of Naha
+VORTAC.
+(29)253107N/1280953E (28)242328N/1292737E (35)234201N/1285647E
+(34)242247N/1271822E (33)252745N/1280336E
+(See ATTACHMENT-3)
+LION
+-WEST
+次の各地点を順次結ぶ直線に よ っ て囲まれる区域。 ただ し 、 (37) と (33) の地
+点の間は、 那覇 VORTAC を中心 と する半径 50NM の劣弧で結んだ線 と する。
+The area bounded by straight lines connecting following points, the line
+connecting point (37) to (33) is the minor arc with a radius of 50NM of Naha
+VORTAC.
+(33)252745N/1280336E (34)242247N/1271822E
+(63)242755N/1270543E (37)252234N/1274335E
+(See ATTACHMENT-3)
+EDIX
+-TIGER
+次の各地点を順次結ぶ直線に よ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(38)281217N/1305619E (39)281121N/1320301E
+(13)273741N/1320215E (12)273835N/1305554E
+(See ATTACHMENT-2)
+EDIX
+-LION
+次の各地点を順次結ぶ直線に よ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(36)242908N/1270242E (40)240502N/1280139E
+(41)233416N/1274637E (42)235817N/1264752E
+(See ATTACHMENT-3)
+EDIX
+-MOOSE
+次の各地点を順次結ぶ直線に よ っ て囲まれる区域。
+The area bounded by straight lines connecting following points:
+(43)284131N/1262540E (44)281732N/1264719E
+(45)274036N/1255521E (46)280412N/1253353E
+(See ATTACHMENT-1)
+名称
+Name
+範 囲
+Lateral limits
+連絡先
+Point of contact
+2. 自衛隊の訓練機以外の航空機の当該空域の使用方法
+（1） 自衛隊機以外の航空機が訓練の目的で当該空域を使用する場
+合は、 連絡先 と 事前に調整する こ と 。
+（2） 訓練以外の目的で当該空域を飛行する航空機 （計器飛行方式
+によ り 飛行する航空機及び下記 （3） に掲げる航空機を除 く 。）
+は、 連絡先 と の事前調整な し に当該空域を飛行 し ない こ と 。
+（3） 当該空域周辺の航空路等を飛行中の訓練機以外の航空機が、
+緊急かつやむ を 得な い理由に よ り 当該空域に進入す る 場合
+は、 緊急機にあ っ ては、 周波数 121.5MHz 又は 243.0MHz で、
+雷雲回避等の航空機にあ っ ては、 指定 さ れた周波数で連絡先
+にその旨通報する こ と 。
+3. 備考
+高度及び使用時間については、24 時間前までに ノ ー タ ム RJJJ
+に よ り 通知 さ れる。
+22/1/26
+3
+265833N
+1245721E
+282843N
+1270315E
+274812N
+1271916E
+271755N
+1271315E
+270503N
+1265939E
+264143N
+1251240E
+261603N
+1260835E
+261420N
+1253719E
+284131N
+1262540E
+281732N
+1264719E
+274036N
+1255521E
+280412N
+1253353E
+(1)
+(2)
+(3)
+(4)
+(6)
+(5)
+(8)(7)
+(43)
+(44)
+(45)
+(46)
+㔞ἲ࡟ᇶࡃ࡙ᅜᅵᆅ⌮㝔㛗ᢎㄆ ౑⏝ 5-+V
+262209N
+1283442E
+264724N
+1290402E
+273846N
+1303351E
+273835N
+1305554E
+273741N
+1320215E
+272637N
+1315941E
+261056N
+1305036E
+272807N
+1293023E
+264746N
+1315044E
+262726N
+1313418E
+260830N
+1311653E
+281217N
+1305619E
+281121N
+1320301E
+(9)
+(16)
+(10)
+(18) (14)
+(21)
+(20)
+(19)(15)
+(38) (39)
+(13)
+(12)
+㔞ἲ࡟ᇶࡃ࡙ᅜᅵᆅ⌮㝔㛗ᢎㄆ ౑⏝ 5-+V
+ATTACHMENT-1
+ATTACHMENT-2
+EDIX-MOOSE
+MOOSE-NORTH
+MOOSE-SOUTH-LO
+MOOSE-SOUTH-HI
+EDIX-TIGER
+TIGER-CENTER
+TIGER-WEST
+TIGER-EAST
+22/1/26
+4
+255335N
+1283000E 254837N
+1290219E
+254415N
+1292552E
+254445N
+1302413E
+254423N
+1303001E
+243950N
+1293955E
+242328N
+1292737E
+253107N
+1280953E 254239N
+1305528E
+250914N
+1302929E
+245628N
+1301753E
+234201N
+1285647E
+242247N
+1271822E
+252745N
+1280336E
+242755N
+1270543E
+252234N
+1274335E
+242908N
+1270242E
+240502N
+1280139E
+233416N
+1274637E
+235817N
+1264752E
+(22) (23) (24) (25)
+(27)
+(28)
+(32)
+(31)
+(30)
+(35)
+(33)
+(34)
+(63)
+(37)
+(36)
+(40)
+(41)
+(42)
+(26)
+(29)
+㔞ἲ࡟ᇶࡃ࡙ᅜᅵᆅ⌮㝔㛗ᢎㄆ ౑⏝ 5-+V
+ATTACHMENT-3
+LION-CENTER
+EAGLE-CENTER
+LION-WEST
+EDIX-LION
+EAGLE-EAST
+22/1/26
