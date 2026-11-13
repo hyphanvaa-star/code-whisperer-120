@@ -150,7 +150,8 @@ const AD_SURFACE = /\b(TWY|TAXIWAYS?|TAXILANES?|TXL|STANDS?|ACFT\s+STANDS|APRONS
 export function obstacleHeightFt(n: Notam, E: string): number | null {
   const blob = `${E}\n${String(n.g_field ?? "")}\n${/G\)\s*([^\n]*)/.exec(String(n.text ?? ""))?.[1] ?? ""}`.toUpperCase();
   let best: number | null = null;
-  for (const m of blob.matchAll(/(\d+(?:\.\d+)?)\s*(FT|M)\b(?!\s*(?:FM|FROM|RADIUS|EAST|WEST|NORTH|SOUTH))/g)) {
+  const clean = blob.replace(/DEG\s*\/\s*\d+(?:\.\d+)?\s*(?:M|NM|KM)\b/g, " ").replace(/\b(?:DIST|RADIUS|RADIUS\s+OF\s+[A-Z ]*?)\s*\d+(?:\.\d+)?\s*M\b/g, " ");
+  for (const m of clean.matchAll(/(\d+(?:\.\d+)?)\s*(FT|M)\b(?!\s*(?:FM|FROM|RADIUS|EAST|WEST|NORTH|SOUTH))/g)) {
     const v = m[2] === "M" ? Math.round(+m[1]! * 3.281) : Math.round(+m[1]!);
     if (best === null || v > best) best = v;
   }
@@ -444,9 +445,8 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   // never change a diversion plan, even when an AIP SUP is cited. Hard content keeps grading.
   if ((role === "ALT" || role === "RALT") && isAirport && !hasHardContent(E) && !/\bRWY\b|\bRUNWAY/.test(E)) {
     const isObstAlt = /\b(OBST|OBSTACLE|CRANE|MAST|TOWER|POLE|CHIMNEY|ANTENNA)\b/.test(E);
-    const hFt = obstacleHeightFt(n, E);
-    if (isObstAlt && hFt !== null && hFt < 1000)
-      return no("ALT-LOW-OBST", `Chướng ngại ${hFt} FT tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay.`);
+    if (isObstAlt && !/\b(MINIMA|MNM|OCA|OCH|MDA|DA\/H)\b/.test(E))
+      return no("ALT-OBST", `Chướng ngại vật/cẩu tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay divert.`);
     if (AD_SURFACE.test(E) || /\bGROUND\s+MAN(?:OE|E)UV/.test(E) || /^QM[XPAN]/.test(qCodeOf(n)))
       return no("AD-SURFACE-" + role, `Taxiway/stand/lăn mặt đất tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay.`);
   }

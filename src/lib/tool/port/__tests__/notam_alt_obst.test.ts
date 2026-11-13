@@ -30,3 +30,15 @@ describe("NOTAMs at an en-route alternate", () => {
     expect(run("QMRLC", "RWY 05L/23R CLSD").level).not.toBe("NO IMPACT");
   });
 });
+
+describe("crane NOTAMs at a destination alternate (VABB, VJC1805)", () => {
+  const g: AssessFlight = { ...f, roles: { VVTS: "DEP", VAAH: "ARR", VABB: "ALT" }, ralt_arr: {} };
+  const runB = (e: string, gg: string) => assessNotam({ start: "2026-08-01 00:00", end: "2027-07-01 00:00", qfir: "VABF", scope: "A", lower: "0", upper: "999", g_field: gg,
+    text: `Q)VABF/QOBCE/IV/M/A/0/2/1905N07251E\nA)VABB\nE)${e}\nF)SFC G)${gg}`, e_field: e }, "VABB", "A", g, DEFAULT_ASSESS_CFG);
+  it("A1443 crane with ARP distance in metres is NO IMPACT", () => {
+    expect(runB("TEMPO OBST CRANE ERECTED AT LCA 190444.65N 0725042.60E. RADIUS OF CRANE OPS 52M. BRG DIST FM VABB ARP IS 237.64DEG/2589M.UPPER HGT 170.6FT AMSL.", "200FT AMSL").level).toBe("NO IMPACT");
+  });
+  it("A1258 crane is NO IMPACT", () => {
+    expect(runB("TEMPO OBST CRANE ERECTED AT LCA 190609.69N 0725229.01E. RADIUS OF CRANE OPS 55M. BRG DIST FM VABB ARP IS 36.52DEG/1539.91M. UPPER HGT 354.33FT AMSL.", "400FT AMSL").level).toBe("NO IMPACT");
+  });
+});
