@@ -81,6 +81,30 @@ const AD_CLSD = /\b(AD|AERODROME|AIRPORT)\s+(?:CLSD|CLOSED)\b/;
 const HARD_AIRSPACE = /\b(?:RESTRICTED|PROHIBITED|DANGER)\s+(?:AREA|ZONE|AIRSPACE)S?\b|\b(?:TRA|TSA|TIBA|MOA)\b|\bMIL(?:ITARY)?\s+(?:EXER\w*|ACT\w*|OPS|TRG|FLYING)\b|\b(?:FIRING|GUNFIRE|ROCKET|MISSILE|LAUNCH|SPACE\s+DEBRIS|LIVE\s+FIRE)\b|\bAIRSPACE\s+(?:CLSD|CLOSED|RESTRICTED|ACT\w*)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{2,4}[A-Z]?\s+(?:ACT\w*|ACTIVE)\b/;
 const HARD_ROUTE = /\b(?:ATS\s+)?(?:RTE|ROUTE|AWY|AIRWAY)S?\b[^]*\b(?:CLSD|CLOSED|NOT\s+AVBL|SUSPENDED|UNAVBL)\b|\b(?:CLSD|CLOSED)\b[^]*\b(?:ATS\s+)?(?:RTE|ROUTE|AWY|AIRWAY)S?\b/;
 const REFERS_ELSEWHERE = /\b(?:REF(?:ER)?\s+(?:TO\s+)?(?:AIP|SUP|MAP|CHART|DAH|AIC|HTTP)|SEE\s+(?:AIP|SUP|MAP|CHART|AIC|DAH)|AIP\s+SUP|HTTPS?:\/\/|WWW\.|SERVICE\s+VARIATION\s+MAP)/;
+const NAMED_AREA = (E: string) => /\b(DANGER|RESTRICTED|PROHIBITED|TRA|TSA)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{1,4}[A-Z]?\b/.test(E) && /\b(AREA|ZONE|ACT|ACTIVE)\b/.test(E);
+/**
+ * NOTAM that concerns an airspace area (restricted/danger/prohibited, warnings, CTR/TMA…) — only these
+ * can be an "unidentified area". ATS route (QAR/QAN/QAU), reporting point, flow/procedure (QP…) and
+ * navaid/comms NOTAMs are not areas even when they cite an AIP SUP or have no coordinates.
+ */
+export function isAirspaceAreaNotam(n: Notam, E: string = eOf(n)): boolean {
+  if (HARD_AIRSPACE.test(E) || NAMED_AREA(E)) return true;
+  const q = qCodeOf(n);
+  if (/^Q[RW]/.test(q)) return true;
+  if (/^QA/.test(q)) return !/^QA[RNUPL]/.test(q);
+  if (q && !/^QXX/.test(q)) return false;
+  return REFERS_ELSEWHERE.test(E);
+}
+const AWY_DESIG = "(?!FL\\d)[A-Z]{1,2}\\d{1,4}[A-Z]?";
+const ROUTE_LIST_RE = new RegExp(`\\b(?:ATS\\s+)?(?:ROUTES?|RTES?|AWYS?|AIRWAYS?)\\s*(?:ON\\s+|:\\s*)?(${AWY_DESIG}(?:\\s*(?:,|\\/|&|\\bAND\\b)\\s*${AWY_DESIG})*)\\b`, "g");
+/** ATS route designators named after ROUTES/RTE/AWY, e.g. "APPLIED ON ROUTES L642, N892, M771 AND L625". */
+export function atsRouteList(E: string): string[] {
+  const out = new Set<string>();
+  for (const m of E.matchAll(ROUTE_LIST_RE)) {
+    for (const t of m[1]!.match(new RegExp(`\\b${AWY_DESIG}\\b`, "g")) ?? []) out.add(t);
+  }
+  return [...out];
+}
 export function hasHardContent(E: string): boolean {
   return HARD_AIRSPACE.test(E) || HARD_ROUTE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E) || ALL_MOVE.test(E);
 }
@@ -409,6 +433,15 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     if (!f.tokens.size && !f.points.length) return unk("ROUTE-SEGMENT", `Không có route của chuyến để so đoạn ${awy} ${a}-${b}.`);
     return evalSeg(f, awy, a, b);
   }
+  // 7b listed ATS routes without segments: "APPLIED ON ROUTES L642, N892, M771 AND L625".
+  // Only decides when the NOTAM has no airspace area of its own (an area is measured by geometry).
+  const rteList = atsRouteList(E);
+  if (rteList.length && !HARD_AIRSPACE.test(E) && !notamGeoms(n).some((g) => g.shape !== "dot")) {
+    if (!f.tokens.size && !f.points.length) return unk("ATS-ROUTE-LIST", `Không có route của chuyến để so ATS route ${rteList.join(", ")}.`);
+    const flown = rteList.filter((r) => onRoute(f, r));
+    if (!flown.length) return no("ATS-ROUTE-LIST", `ATS route ${rteList.join(", ")} không nằm trên route FPL.`);
+    return unk("ATS-ROUTE-LIST", `Chuyến bay trên ATS route ${flown.join(", ")} nêu trong NOTAM — kiểm tra đoạn/FL áp dụng.`);
+  }
   // 8 advisory route
   const adr = /ADVISORY\s+ROUTE\s+([A-Z]{1,2}\d{1,4})/.exec(E);
   if (adr && (f.tokens.size || f.points.length) && !onRoute(f, adr[1]!))
@@ -615,7 +648,7 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
   const UNID = new Set(["NAMED-AIRSPACE", "CENTRE-ONLY", "AIP-SUP", "FIR-ONLY", "GEOMETRY"]);
   // Only a NOTAM whose area has no resolved boundary (text, AIP SUP/DAH or ENR catalogue) is unidentified.
   const hasBoundary = notamGeoms(n).some((g) => g.shape !== "dot");
-  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary && !isAerodromeGround(n, E)) {
+  if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary && !isAerodromeGround(n, E) && isAirspaceAreaNotam(n, E)) {
     res.unidentified_area = true;
     if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
   }
