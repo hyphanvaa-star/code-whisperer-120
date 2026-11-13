@@ -534,9 +534,12 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   const qRadius = q && q[2] > 0 && q[2] < 500 ? q[2] : 0;
   const geoms = notamGeoms(n).filter((g) => !(g.shape === "circle" && (g.radius_nm || 0) >= 500));
   const areaGeoms = geoms.filter((g) => g.shape !== "dot");
-  if (areaGeoms.length || (q && qRadius && !(scope === "A" && !role))) {
+  // Point coordinates written in item E (release point, launch site…) locate the activity; measured
+  // only off our own airports so airport NOTAMs keep their airport grading.
+  const ptGeoms = !role ? geoms.filter(isEPoint) : [];
+  if (areaGeoms.length || ptGeoms.length || (q && qRadius && !(scope === "A" && !role))) {
     if (!f.points.length) return unk("GEOMETRY", "Chưa có điểm route (track) để đo khoảng cách tới vùng NOTAM.");
-    const list = areaGeoms.length ? areaGeoms : [{ name: "Q", shape: "circle" as const, lat: q![0], lon: q![1], radius_nm: qRadius, ring: [] }];
+    const list = areaGeoms.length ? areaGeoms : ptGeoms.length ? ptGeoms : [{ name: "Q", shape: "circle" as const, lat: q![0], lon: q![1], radius_nm: qRadius, ring: [] }];
     let best: { d: number; idx: number } | null = null;
     for (const g of list) {
       const near = geomTrackNear(g, f.points);
@@ -545,7 +548,7 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     }
     if (!best) return unk("GEOMETRY", "Không đo được khoảng cách tới vùng NOTAM.");
     const p = f.points[best.idx];
-    const src = areaGeoms.length ? "hình trong NOTAM" : `Q-line bán kính ${qRadius} NM`;
+    const src = areaGeoms.length ? "hình trong NOTAM" : ptGeoms.length ? "toạ độ điểm trong item E" : `Q-line bán kính ${qRadius} NM`;
     if (best.d <= cfg.corridor_nm) {
       const base = { fl: p ? Math.round(Number(p.fl_ft || 0) / 100) : null, at: pointTime(f, p) };
       if ((isUa || isObst) && !prohibit)
@@ -589,6 +592,9 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   if ((qfir && f.firs[qfir]) || f.firs[code]) return unk("FIR-ONLY", `NOTAM thuộc FIR ${qfir || code} của chuyến, không có toạ độ/đoạn route.`);
   return no("NO-GEOMETRY", "Không trùng sân, không có hình, không thuộc FIR của chuyến.");
 }
+
+/** A single coordinate written in item E (not the Q-line centre pin). */
+function isEPoint(g: { shape: string; source?: string }): boolean { return g.shape === "dot" && g.source === "e-field"; }
 
 function stem(p: string): string { return (/^([A-Z]{2,5})/.exec(p) || [, p])[1]!; }
 function procNames(E: string): string[] {
@@ -654,7 +660,7 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
   }
   const UNID = new Set(["NAMED-AIRSPACE", "CENTRE-ONLY", "AIP-SUP", "FIR-ONLY", "GEOMETRY"]);
   // Only a NOTAM whose area has no resolved boundary (text, AIP SUP/DAH or ENR catalogue) is unidentified.
-  const hasBoundary = notamGeoms(n).some((g) => g.shape !== "dot");
+  const hasBoundary = notamGeoms(n).some((g) => g.shape !== "dot" || isEPoint(g));
   if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary && !isAerodromeGround(n, E) && isAirspaceAreaNotam(n, E)) {
     res.unidentified_area = true;
     if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
