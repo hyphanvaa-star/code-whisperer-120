@@ -92,12 +92,33 @@ export function ageHours(createdText: string, now: Date = new Date(), name = "")
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
 
-const SITE_CREDENTIALS: Record<string, { username: string; password: string; airline: string }> = {
-  tsn: { username: "vietjet", password: "Vietjet@air", airline: "VJC - VJ Vietjet Air" },
-  tsn2: { username: "vietjet", password: "Vietjet@air", airline: "VJC - VJ Vietjet Air" },
-  noibai: { username: "dbv-01", password: "Amc@1234", airline: "VJC - VJ Vietjet Air" },
-  danang: { username: "vietjet", password: "Omc@123456", airline: "VJC - VietJet Air" },
+/** Tên hãng trên form đài (không bí mật). Tài khoản đăng nhập do máy chủ truyền
+ * vào từ secret MET_ACCOUNTS_JSON — không bao giờ ghi trong mã nguồn. */
+const SITE_AIRLINE: Record<string, string> = {
+  tsn: "VJC - VJ Vietjet Air",
+  tsn2: "VJC - VJ Vietjet Air",
+  noibai: "VJC - VJ Vietjet Air",
+  danang: "VJC - VietJet Air",
 };
+
+export type MetCredential = { username: string; password: string };
+export type MetCredentials = Record<string, MetCredential>;
+
+/** Đọc JSON {site: {username, password}}; bỏ qua mục không hợp lệ. */
+export function parseMetCredentials(raw: string | undefined | null): MetCredentials {
+  const out: MetCredentials = {};
+  if (!raw) return out;
+  try {
+    const obj = JSON.parse(raw) as Record<string, unknown>;
+    for (const [k, v] of Object.entries(obj ?? {})) {
+      const c = v as Partial<MetCredential> | null;
+      if (c && typeof c.username === "string" && typeof c.password === "string" && c.username && c.password) {
+        out[k] = { username: c.username, password: c.password };
+      }
+    }
+  } catch { /* JSON hỏng → coi như chưa cấu hình */ }
+  return out;
+}
 
 export type WxDoc = {
   site: string;
@@ -199,7 +220,7 @@ export type MetTransport = (req: {
 export class MetSession {
   private jar = new CookieJar();
   private loggedIn = false;
-  constructor(public site: MetSite, private transport?: MetTransport) {}
+  constructor(public site: MetSite, private transport?: MetTransport, private creds: MetCredentials = {}) {}
 
   private async req(url: string, init: RequestInit = {}, timeoutMs = 120_000): Promise<Response> {
     const headers = new Headers(init.headers);
@@ -226,7 +247,8 @@ export class MetSession {
   async login(): Promise<void> {
     if (this.loggedIn) return;
     const st = this.site;
-    const cred = SITE_CREDENTIALS[st.key] ?? SITE_CREDENTIALS.tsn;
+    const cred = this.creds[st.key] ?? this.creds.tsn;
+    if (!cred) throw new MetError(`${st.name}: chưa cấu hình tài khoản đài (MET_ACCOUNTS_JSON)`);
     // Lấy PHPSESSID trước, sau đó mới post form
     await this.req(`${st.base}/index.php?cat=${st.cat}&sub=${st.sub}`, {}, 15_000);
     const body = new URLSearchParams({
@@ -255,12 +277,11 @@ export class MetSession {
 
   private listParams(d: Date): URLSearchParams {
     const st = this.site;
-    const cred = SITE_CREDENTIALS[st.key] ?? SITE_CREDENTIALS.tsn;
     return new URLSearchParams({
       cat: String(st.cat),
       sub: String(st.sub),
       type: "0",
-      cboAirlines: cred.airline,
+      cboAirlines: SITE_AIRLINE[st.key] ?? SITE_AIRLINE.tsn,
       cboUser: "All Users",
       cboday: String(d.getUTCDate()),
       cbomonth: String(d.getUTCMonth() + 1),
@@ -370,6 +391,7 @@ export async function download(
     onProgress?: WxProgress;
     hasFile?: (filename: string) => Promise<boolean>;
     transport?: MetTransport;
+    credentials?: MetCredentials;
   } = {},
 ): Promise<WxResult> {
   const now = new Date();
@@ -400,7 +422,7 @@ export async function download(
     for (const t of tries) {
       if (!left.size) break;
       try {
-        const ms = new MetSession(t.site, t.transport);
+        const ms = new MetSession(t.site, t.transport, opts.credentials ?? {});
         for (const day of days) {
           if (!left.size) break;
           const docs = await ms.listDocs(day);

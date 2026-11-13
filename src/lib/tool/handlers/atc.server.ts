@@ -23,6 +23,8 @@ const ATC_DIR = "atc";
 // "/api/atc/upload" still parses the uploaded ATC text into FPL blocks fully
 // offline (readFplBlocks/fplName) — that half never needed a browser.
 
+const ATC_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
+
 export const routes: Routes = {
   "GET /api/atc/files": async (ctx) => {
     const files = await listFiles(ctx, ATC_DIR).catch(() => []);
@@ -77,7 +79,12 @@ export const routes: Routes = {
   },
 
   "POST /api/atc/upload": async (ctx) => {
+    // File FPL/ATC là văn bản nhỏ: chặn trước khi đọc nếu khai báo quá lớn.
+    const declared = Number(ctx.request.headers.get("Content-Length") || 0);
+    if (declared > ATC_UPLOAD_MAX_BYTES) return { error: "File FPL quá lớn (> 5 MB)" };
     const buf = await ctx.request.arrayBuffer();
+    if (!buf.byteLength) return { error: "File trống" };
+    if (buf.byteLength > ATC_UPLOAD_MAX_BYTES) return { error: "File FPL quá lớn (> 5 MB)" };
     const text = new TextDecoder("utf-8").decode(buf);
     const blocks = readFplBlocks(text);
     if (!blocks.length) {

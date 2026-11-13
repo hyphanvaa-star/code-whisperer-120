@@ -64,6 +64,13 @@
       "when": 1794457968063,
       "tag": "0008_bind_chat_files_to_visible_rooms",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794537760627,
+      "tag": "0009_restrict_has_role_execute",
+      "breakpoints": true
     }
   ]
 }

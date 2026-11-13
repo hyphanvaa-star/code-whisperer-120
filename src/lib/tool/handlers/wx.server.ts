@@ -8,6 +8,7 @@ import {
   DEFAULT_ORDER,
   type WxResult,
   type MetTransport,
+  parseMetCredentials,
 } from "../port/metwx";
 import * as pc from "../pcagent.server";
 import type { Ctx } from "../types";
@@ -276,6 +277,7 @@ export const wxJobs: Jobs = {
         maxAgeH,
         onProgress: (text, cs) => emit({ type: "line", text: `  ${text}`, found: cs || undefined }),
         transport: pcTransport(ctx),
+        credentials: parseMetCredentials(process.env.MET_ACCOUNTS_JSON),
         // Không dùng lại file cũ — luôn tải bản mới.
         hasFile: async () => false,
       });

@@ -45,6 +45,10 @@ async function briefingPreview(ctx: Parameters<Routes[string]>[0], days: number)
   };
 }
 
+const REGNOTICE_MAX_FILE = 20 * 1024 * 1024;
+const REGNOTICE_MAX_TOTAL = 100 * 1024 * 1024;
+const REGNOTICE_MAX_FILES = 400;
+
 export const routes: Routes = {
   "GET /api/briefing/preview": async (ctx) => {
     const days = Number(ctx.params.get("days") ?? "1") || 1;
@@ -125,20 +129,33 @@ export const routes: Routes = {
 
   // One request with every per-aircraft file (FormData) — avoids dozens of small uploads.
   "POST /api/regnotice/put-all": async (ctx) => {
+    const declared = Number(ctx.request.headers.get("Content-Length") || 0);
+    if (declared > REGNOTICE_MAX_TOTAL) return { error: "Tổng dung lượng quá lớn (> 100 MB)" };
     const fd = await ctx.request.formData();
     const items: { name: string; file: File }[] = [];
+    const rejected: { name: string; error: string }[] = [];
+    let total = 0;
     for (const [k, v] of fd.entries()) {
       const name = k.toUpperCase();
-      if (typeof v !== "string" && /^VNA\d{3}\.PDF$/.test(name) && v.size > 0) items.push({ name, file: v as File });
+      if (typeof v === "string" || !/^VNA\d{3}\.PDF$/.test(name) || v.size <= 0) continue;
+      const f = v as File;
+      if (f.size > REGNOTICE_MAX_FILE) { rejected.push({ name, error: "File quá lớn (> 20 MB)" }); continue; }
+      total += f.size;
+      if (total > REGNOTICE_MAX_TOTAL) return { error: "Tổng dung lượng quá lớn (> 100 MB)" };
+      if (items.length >= REGNOTICE_MAX_FILES) return { error: `Quá nhiều file (> ${REGNOTICE_MAX_FILES})` };
+      items.push({ name, file: f });
     }
-    if (!items.length) return { error: "Không có file nào" };
-    const saved: string[] = [], failed: { name: string; error: string }[] = [];
+    if (!items.length) return rejected.length ? { ok: true, saved: [], failed: rejected, pc_dir: null } : { error: "Không có file nào" };
+    const saved: string[] = [], failed: { name: string; error: string }[] = [...rejected];
     const local: { name: string; bytes: Uint8Array }[] = [];
     for (let i = 0; i < items.length; i += 6) {
       await Promise.all(items.slice(i, i + 6).map(async ({ name, file }) => {
         const fname = name.replace(".PDF", ".pdf");
         try {
           const bytes = new Uint8Array(await file.arrayBuffer());
+          // Chỉ nhận PDF thật (chữ ký %PDF-), không lưu file khác đuôi .pdf.
+          if (bytes.byteLength > REGNOTICE_MAX_FILE) throw new Error("File quá lớn (> 20 MB)");
+          if (!(bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46)) throw new Error("Không phải file PDF");
           local.push({ name: fname, bytes });
           await store.putFile(ctx, `${regDir(ctx)}/${fname}`, bytes, "application/pdf");
           saved.push(fname);
