@@ -55,6 +55,12 @@ export function namedEnrIds(text: string, fir = ""): string[] {
       if (region || /\bLK\s*T[RS]A/.test(m[0])) out.add(`LK${m[1]}${m[2]}`);
     }
   }
+  // Korea ENR 5.2 MOA / ENR 5.3 CATA: "MOA 2H", "RK MOA-2H", "CATA 4A" inside RKRR (or with explicit RK prefix).
+  if (!region || region.startsWith("RK")) {
+    for (const m of blob.matchAll(/\b(RK\s*)?(MOA|CATA)\s*[-/]?\s*(\d{1,3}[A-Z]?)(?![A-Z0-9])/g)) {
+      if (region || m[1]) out.add(`${m[2]}${m[3]}`);
+    }
+  }
   // Bare W-/R-/D-/P- codes are country-local: never resolve them outside Japan.
   if (/^(RJ|RO)/.test(region)) {
     for (const m of blob.matchAll(/\b([WRDP])\s*-\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g)) {
@@ -99,7 +105,7 @@ export function enrCatalogue() {
     VV: ["VN", "Việt Nam"], RK: ["KR", "Hàn Quốc"], VT: ["TH", "Thái Lan"],
     WM: ["MY", "Malaysia"], WB: ["MY", "Malaysia"], WS: ["SG", "Singapore"],
     VI: ["IN", "Ấn Độ"], VA: ["IN", "Ấn Độ"], VE: ["IN", "Ấn Độ"], VO: ["IN", "Ấn Độ"],
-    CA: ["KH", "Campuchia"], MO: ["MO", "Macau"], RP: ["PH", "Philippines"],
+    RP: ["PH", "Philippines"],
     RJ: ["JP", "Nhật Bản"], RC: ["TW", "Đài Loan"], VL: ["LA", "Lào"],
     WI: ["ID", "Indonesia"], WA: ["ID", "Indonesia"],
     UA: ["KZ", "Kazakhstan"], LK: ["CZ", "Cộng hoà Séc"],
@@ -110,9 +116,10 @@ export function enrCatalogue() {
     const geoms = enrGeoms(id);
     if (!geoms.length) return [];
     const area = AREAS[id];
-    const country = countries[id.slice(0, 2)] || [/^Z/.test(id) ? "CN" : "OTHER", /^Z/.test(id) ? "Trung Quốc" : "Khác"];
+    const korean = /^(MOA|CATA)\d/.test(id);
+    const country = korean ? countries.RK : countries[id.slice(0, 2)] || [/^Z/.test(id) ? "CN" : "OTHER", /^Z/.test(id) ? "Trung Quốc" : "Khác"];
     return [{ id, countryCode: country[0], country: country[1], name: area?.name || id,
-      fir: area?.fir || "", source: area?.source || "", document: area?.document || "",
+      fir: area?.fir || (korean ? "RKRR" : ""), source: area?.source || "", document: area?.document || "",
       effective: area?.effective || "", lower: area?.lower || "", upperFt: area?.upperFt ?? null,
       activation: area?.activation || "", geometry: geoms[0] }];
   });
