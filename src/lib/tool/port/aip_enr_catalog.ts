@@ -7,6 +7,7 @@ import EXTRA from "../data/aip_enr_extra.json";
 import RU from "../data/aip_enr_ru.json";
 import JP from "../data/aip_enr_jp.json";
 import IN from "../data/aip_enr_in.json";
+import SG from "../data/aip_enr_sg.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
@@ -21,7 +22,9 @@ const JP_AREAS = Object.fromEntries(Object.entries(JP.areas as unknown as Record
 const JP_KEYS = Object.keys(JP_AREAS);
 const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as Record<string, VerifiedArea>), ...(EXTRA.areas as unknown as Record<string, VerifiedArea>), ...RU_AREAS, ...JP_AREAS,
   // India ENR 5.2 TRA/TSA + ENR 5.3 balloon areas (scripts/gen_aip_enr_in.py); border-following areas skipped.
-  ...(IN.areas as unknown as Record<string, VerifiedArea>) };
+  ...(IN.areas as unknown as Record<string, VerifiedArea>),
+  // Singapore ENR 5.1/5.2/5.3 incl. sub-areas (WSD11A/B) and WM areas published in AIP Singapore (scripts/gen_aip_enr_sg.py).
+  ...(SG.areas as unknown as Record<string, VerifiedArea>) };
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
   ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
@@ -39,7 +42,9 @@ const RU_FIR = /^U[EHILNORSUW]/;
 function matchesFir(country: string, region: string): boolean {
   if (!region) return true;
   if (country === "RJ") return /^(RJ|RO)/.test(region);
-  if (/^W[ABIM]$/.test(country)) return /^(WI|WA)/.test(country) ? /^(WI|WA)/.test(region) : /^(WM|WB)/.test(region);
+  if (/^W[ABIM]$/.test(country)) return /^(WI|WA)/.test(country) ? /^(WI|WA)/.test(region) : /^(WM|WB|WS)/.test(region);
+  // AIP Singapore publishes Malaysian areas inside WSJC; Singapore areas are cited in WMFC NOTAMs.
+  if (country === "WS") return /^(WS|WM)/.test(region);
   if (/^V[AEIO]$/.test(country)) return /^(VA|VE|VI|VO)/.test(region);
   // Russian area prefixes are subregions that span several FIR codes (UN* also covers UIII…).
   if (RU_PREFIX.test(country)) return RU_FIR.test(region);
