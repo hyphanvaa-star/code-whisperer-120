@@ -588,6 +588,20 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
     if (role !== "DEP" || !twy)
       return no("AD-SURFACE-" + role, `Stand/taxiway một phần tại sân ${role} ${code} — không ảnh hưởng kế hoạch bay.`);
   }
+  // 15c information-only airport NOTAMs at our airports: wildlife, AD beacon, chart/ERSA amendments,
+  // and obstacles/cranes at DEP/ARR that close nothing and change no declared distance or minima.
+  if (!hardOnly && isAirport && role && !prohibit && !RWY_CLSD.test(E) && !AD_CLSD.test(E) && !ALL_MOVE.test(E)
+      && !/\b(TORA|TODA|ASDA|LDA|MINIMA|MNM|OCA|OCH|MDA|DA\/H|NOT\s+AVBL|U\/S|CLSD|CLOSED)\b/.test(E)) {
+    const qc = qCodeOf(n);
+    if (/\b(WILDLIFE|FLYING\s+FOX|ANIMALS?|BATS)\b/.test(E) || /^Q..HX/.test(qc))
+      return brief("BRIEFING-INFO", "Chim/động vật hoang dã quanh sân — briefing.");
+    if (/\b(AD\s+BEACON|AERODROME\s+BEACON|ABN|BEACON)\b/.test(E) || /^QLB/.test(qc))
+      return brief("BRIEFING-INFO", "Đèn hiệu sân bay — briefing.");
+    if (/\bCHARTS?\b[^]*\b(AMD|AMENDED|AMENDMENT)\b|\b(AMD|AMENDED)\b[^]*\bCHARTS?\b|\bERSA\b/.test(E))
+      return brief("BRIEFING-INFO", "Tu chỉnh sơ đồ/ấn phẩm sân bay — briefing.");
+    if ((role === "DEP" || role === "ARR" || role === "TALT") && /\b(OBST|OBSTACLES?|CRANES?|MAST|TOWER|POLE|CHIMNEY|ANTENNA)\b/.test(E))
+      return brief("OBSTACLE-BRIEFING", "Chướng ngại/cẩu tại sân, không đóng RWY, không đổi cự ly công bố/minima — briefing.");
+  }
   // 16 airport briefing patterns
   if (!hardOnly && isAirport && /\b(BIRD|BIRDS|WIP|WORK IN PROGRESS|WORKS|ATIS|FRICTION|LGT|LIGHTS?|LIGHTING|PAPI|APAPI|CRANE OPS|GRASS CUTTING)\b/.test(E)
       && !RWY_CLSD.test(E) && !AD_CLSD.test(E) && !ALL_MOVE.test(E) && !(role === "ALT" || role === "RALT" ? prohibit && /WIP|WORK/.test(E) : false)

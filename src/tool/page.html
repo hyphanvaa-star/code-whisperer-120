@@ -17116,7 +17116,7 @@ function nmApplyTune(pack, dropped, extra){
         patch.unidentified_area = !!as.unidentified_area;
         patch.window = as.window || "";
       }
-      if(as && as.level === "NO IMPACT" && critIds.has(ident)){
+      if(!as && critIds.has(ident)){
         patch.level = "CRITICAL"; patch.match_type = "TRACKING-HIT";
         patch.reasons = ["Tracking route/sân của chuyến trúng NOTAM này trong giờ bay."];
       }
