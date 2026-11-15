@@ -3091,11 +3091,11 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.40')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.41')
     .replace('</body>', () => `<style>
-body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside{display:none!important}
-body.nm-full .app>.body{height:100vh!important;max-height:100vh!important}
-body.nm-full .app>.body>main{max-width:none!important;width:100%!important;height:100vh!important}
+body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside>.aside-head{display:none!important}
+body.nm-full .app>.body{display:grid!important;grid-template-columns:6fr 4fr!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important}
+body.nm-full .app>.body>aside,body.nm-full .app>.body>main{display:flex!important;max-width:none!important;width:auto!important;height:calc(100vh - 15px)!important;min-height:0!important}
 #nmFullBtn{position:fixed;top:6px;right:70px;z-index:9000;display:none;padding:5px 12px;border:0;border-radius:14px;background:#E31937;color:#fff;font:700 12px/1.3 system-ui;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 body.nm-on #nmFullBtn{display:block}
 </style><script>(function(){
