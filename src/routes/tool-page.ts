@@ -3091,7 +3091,23 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.39')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.40')
+    .replace('</body>', () => `<style>
+body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside{display:none!important}
+body.nm-full .app>.body{height:100vh!important;max-height:100vh!important}
+body.nm-full .app>.body>main{max-width:none!important;width:100%!important;height:100vh!important}
+#nmFullBtn{position:fixed;top:6px;right:70px;z-index:9000;display:none;padding:5px 12px;border:0;border-radius:14px;background:#E31937;color:#fff;font:700 12px/1.3 system-ui;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+body.nm-on #nmFullBtn{display:block}
+</style><script>(function(){
+var K='nm.fullscreen.off',b=document.createElement('button');b.id='nmFullBtn';b.type='button';document.body.appendChild(b);
+function off(){try{return localStorage.getItem(K)==='1'}catch(e){return false}}
+function fix(){if(window.nmMap&&nmMap.invalidateSize)setTimeout(function(){nmMap.invalidateSize()},120);window.dispatchEvent(new Event('resize'))}
+function apply(){var m=document.getElementById('mNotam'),on=!!(m&&m.classList.contains('on'));document.body.classList.toggle('nm-on',on);var f=on&&!off();if(document.body.classList.contains('nm-full')!==f){document.body.classList.toggle('nm-full',f);fix()}b.textContent=f?'⤡ Thoát toàn màn hình':'⤢ Toàn màn hình NOTAM'}
+b.onclick=function(){try{localStorage.setItem(K,document.body.classList.contains('nm-full')?'1':'0')}catch(e){}apply()};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('nm-full')&&!document.querySelector('[role=dialog]:not([hidden]),.modal.open')){try{localStorage.setItem(K,'1')}catch(x){}apply()}});
+document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#mNotam')){try{localStorage.setItem(K,'0')}catch(x){}}setTimeout(apply,30)},true);
+var m=document.getElementById('mNotam');if(m)new MutationObserver(apply).observe(m,{attributes:true,attributeFilter:['class']});apply();
+})();</script></body>`)
     // V 6.17: ERA hợp lệ khi có trong OFP và không bị cảnh báo AIR OPS; chỉ báo lỗi ERA với chuyến ≥ 3h.
     .replace('ERA: chuyến 3PCT phải có sân enroute và TIME dưới 60p.', 'ERA: có ERA và không bị cảnh báo AIR OPS → hợp lệ; chỉ chuyến ≥ 3h thiếu/không đạt ERA mới báo lỗi.')
     // V 6.16: NOTAM map box 'Ẩn vùng xa route (>50 NM)' keeps every area (incl. MINOR) within 50 NM of the route.
