@@ -117,29 +117,63 @@ const ROUTE_CTX = /\b(?:ROUTES?|RTES?|AWYS?|AIRWAYS?|CDRS?|PDRS?|SEGMENTS?)\b/;
 const NOT_ROUTE_AFTER = /^\s*(?:ACFT|AIRCRAFT|TYPE|SERIES|FAMILY|\d{2}\s+\d{2})/;
 /** Taxiway/stand/gate names ("TWY A1, B2", "STAND C3", "TAXI ROUTE A1") look like airways but are not. */
 const GROUND_BEFORE = /\b(?:TWY|TWYS|TAXIWAYS?|TXL|TAXILANES?|TAXI\s+(?:ROUTES?|RTES?)|STANDS?|STD|APRONS?|APN|BAYS?|GATES?|SPOTS?|PSN|POSITIONS?|HOLDING\s+POINTS?|RWY|RUNWAY)\s*(?:[:\-]\s*)?(?:[A-Z]{1,2}\d{1,4}[A-Z]?\s*(?:,|\/|&|\bAND\b|\bOR\b)?\s*)*$/;
+/** "PIKAS-G330-UNTAN", "NDB'ZJ'-G345-PIMUS": an FPL-style FIX-AWY-FIX chain is route content by itself. */
+const CHAIN_RE = new RegExp(`(?:\\b[A-Z]{2,5}|'[A-Z]{2,5}')\\s*-\\s*${AWY_DESIG}\\s*-\\s*(?:[A-Z]{2,5}\\b|'[A-Z]{2,5}')`);
+const AWY_TOKEN_RE = new RegExp(`\\b${AWY_DESIG}\\b`, "g");
+/** ICAO aircraft type designators shaped like airways (A321, B738…) — never routes unless written inside a chain. */
+const ACFT_TYPES = new Set(["A318", "A319", "A320", "A321", "A330", "A332", "A333", "A337", "A338", "A339", "A340", "A342", "A343", "A345", "A346", "A350", "A359", "A380", "A388", "B712", "B717", "B727", "B737", "B738", "B739", "B744", "B747", "B748", "B752", "B753", "B757", "B762", "B763", "B764", "B767", "B772", "B773", "B777", "B778", "B779", "B787", "B788", "B789", "E170", "E175", "E190", "E195", "C172", "C208", "Q400", "H24"]);
+/** Route-context NOTAM: ATS route Q-code, route wording or an FPL-style chain — never aerodrome ground Q-codes. */
+function routeContext(E: string, qcode: string): boolean {
+  if (/^Q[MLFIOC]/.test(qcode)) return false;
+  const ctxE = E.replace(/\bTAXI\s+(?:ROUTES?|RTES?)\b/g, "TAXI");
+  return /^QA[RNUP]/.test(qcode) || ROUTE_CTX.test(ctxE) || CHAIN_RE.test(E);
+}
+/** A designator-shaped token that is a coordinate part, NOTAM/SUP reference, aircraft type or ground name. */
+function notRouteToken(t: string, src: string, i: number): boolean {
+  const after = src.slice(i + t.length, i + t.length + 14);
+  const before = src.slice(Math.max(0, i - 60), i);
+  if (NOT_ROUTE_AFTER.test(after) || GROUND_BEFORE.test(before)) return true;
+  if (/^\/\d{2}\b/.test(after)) return true; // NOTAM/SUP references A3194/26, H12/26
+  if (/^[NSEW]\d/.test(t) && (/^\s*[.,]?\d/.test(after) || /[NS]\d{2,6}(?:\.\d+)?\s*$/.test(before) || (/^[NS]/.test(t) && /^\s*[EW]\d/.test(after)))) return true;
+  if (ACFT_TYPES.has(t) && !/^\s*-/.test(after) && !/-\s*$/.test(before)) return true;
+  return false;
+}
 /**
- * ATS route designators an item E concerns. Keyword lists ("APPLIED ON ROUTES L642, N892 AND L625")
- * always count; numbered/bulleted lists, CDR period tables, "ON/VIA A1" and "A1, B2 CLSD/ACTIVATED"
- * count only in a route NOTAM (route Q-code or route wording) so area/coordinate text is never taken as a route.
+ * Every ATS route designator an item E concerns. Keyword lists ("APPLIED ON ROUTES L642, N892 AND L625")
+ * always count; in a route NOTAM (route Q-code, route wording or FIX-AWY-FIX chain) the whole text is
+ * scanned token by token — lists, chains, tables, line breaks — so no listed route is ever missed.
+ * Coordinates, NOTAM references, aircraft types and taxiway/stand names are excluded.
  */
 export function atsRouteList(E: string, qcode = ""): string[] {
   const out = new Set<string>();
   const take = (list: string, at: number, src: string) => {
     for (const t of list.match(new RegExp(`\\b${AWY_DESIG}\\b`, "g")) ?? []) {
       const i = src.indexOf(t, at);
-      const after = src.slice(i + t.length, i + t.length + 12);
-      if (NOT_ROUTE_AFTER.test(after) || GROUND_BEFORE.test(src.slice(Math.max(0, i - 60), i))) continue;
+      if (notRouteToken(t, src, i)) continue;
       out.add(t);
     }
   };
   for (const m of E.matchAll(ROUTE_LIST_RE)) take(m[1]!, m.index ?? 0, E);
-  const groundQ = /^Q[MLFIOC]/.test(qcode);
-  const ctxE = E.replace(/\bTAXI\s+(?:ROUTES?|RTES?)\b/g, "TAXI");
-  if (!groundQ && (/^QA[RNUP]/.test(qcode) || ROUTE_CTX.test(ctxE))) {
-    for (const re of [ROUTE_ON_RE, ROUTE_STATUS_RE, ROUTE_LINE_RE, ROUTE_NUM_RE, ROUTE_PERIOD_RE])
-      for (const m of E.matchAll(re)) take(m[1]!, m.index ?? 0, E);
+  if (routeContext(E, qcode)) {
+    for (const m of E.matchAll(AWY_TOKEN_RE)) if (!notRouteToken(m[0], E, m.index ?? 0)) out.add(m[0]);
   }
   return [...out];
+}
+/** Fix/navaid names in item E (5-letter fixes, quoted navaid idents, "HFE VOR") that the flight overflies. */
+function flownFixes(E: string, f: AssessFlight): string[] {
+  const names = new Set<string>();
+  for (const m of E.matchAll(/\b([A-Z]{5})\b/g)) names.add(m[1]!);
+  for (const m of E.matchAll(/'([A-Z]{2,5})'/g)) names.add(m[1]!);
+  for (const m of E.matchAll(/\b([A-Z]{2,3})\s*(?:VOR|NDB|DME|VORDME|VOR\/DME|TACAN|VORTAC)\b/g)) names.add(m[1]!);
+  return [...names].filter((x) => onRoute(f, x));
+}
+/** Routes and fixes of a route NOTAM that are on the flight's FPL — any hit means it must be read by hand. */
+export function routeMentionHits(n: Notam, f: AssessFlight): { routes: string[]; fixes: string[] } | null {
+  const E = eOf(n);
+  if (!routeContext(E, qCodeOf(n)) || isAerodromeGround(n, E)) return null;
+  const routes = atsRouteList(E, qCodeOf(n)).filter((r) => onRoute(f, r));
+  const fixes = flownFixes(E, f);
+  return routes.length || fixes.length ? { routes, fixes } : null;
 }
 export function hasHardContent(E: string): boolean {
   return HARD_AIRSPACE.test(E) || HARD_ROUTE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E) || ALL_MOVE.test(E);
@@ -423,7 +457,23 @@ function airportHit(code: string, f: AssessFlight, type: string, reason: string,
   return { matched: true, type, reason, fl: 0, expStart: role === "ALT" ? f.eta : f.etd, expEnd: f.eta, briefing };
 }
 
+/** Route-matching verdicts that a flown route/fix named elsewhere in the same NOTAM must override. */
+const ROUTE_DROP_TYPES = new Set(["ROUTE-SEGMENT", "ATS-ROUTE-LIST", "ADVISORY-ROUTE", "NAVAID", "ADMIN", "GEOMETRY", "NO-GEOMETRY", "PROCEDURE-OTHER", "CHART-ROUTE-RESTRICTION"]);
+/**
+ * Fail-safe: a route NOTAM is never dropped while any route or fix it names is on the flight's FPL —
+ * a single segment/navaid/far-area check cannot clear the rest of the text.
+ */
 export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg, hardOnly = false): Spatial {
+  const sp = spatialMatchOne(n, code, kind, f, cfg, hardOnly);
+  if (sp.matched !== false || !ROUTE_DROP_TYPES.has(sp.type)) return sp;
+  const qfir = normIcao(String(n.qfir ?? ""));
+  if (!f.roles[code] && !f.firs[qfir] && !f.firs[code]) return sp;
+  const hit = routeMentionHits(n, f);
+  if (!hit) return sp;
+  const what = [hit.routes.length ? `ATS route ${hit.routes.join(", ")}` : "", hit.fixes.length ? `điểm ${hit.fixes.join(", ")}` : ""].filter(Boolean).join(" và ");
+  return { matched: null, type: "ATS-ROUTE-MENTION", reason: `${sp.reason} Nhưng NOTAM còn nhắc ${what} trên route FPL — kiểm tra tay toàn bộ nội dung.` };
+}
+function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg, hardOnly = false): Spatial {
   const E = eOf(n), B = blobOf(n);
   const role = f.roles[code];
   const isAirport = kind !== "FIR" && !!role;
@@ -505,8 +555,10 @@ export function spatialMatch(n: Notam, code: string, kind: string, f: AssessFlig
   if (rteList.length && !HARD_AIRSPACE.test(E) && !notamGeoms(n).some((g) => g.shape !== "dot")) {
     if (!f.tokens.size && !f.points.length) return unk("ATS-ROUTE-LIST", `Không có route của chuyến để so ATS route ${rteList.join(", ")}.`);
     const flown = rteList.filter((r) => onRoute(f, r));
-    if (!flown.length) return no("ATS-ROUTE-LIST", `ATS route ${rteList.join(", ")} không nằm trên route FPL.`);
-    return unk("ATS-ROUTE-LIST", `Chuyến bay trên ATS route ${flown.join(", ")} nêu trong NOTAM — kiểm tra đoạn/FL áp dụng.`);
+    if (flown.length) return unk("ATS-ROUTE-LIST", `Chuyến bay trên ATS route ${flown.join(", ")} nêu trong NOTAM — kiểm tra đoạn/FL áp dụng.`);
+    const fixes = flownFixes(E, f);
+    if (fixes.length) return unk("ATS-ROUTE-LIST", `NOTAM nhắc điểm ${fixes.join(", ")} trên route FPL (route NOTAM: ${rteList.join(", ")}) — kiểm tra tay.`);
+    return no("ATS-ROUTE-LIST", `Đã quét đủ ${rteList.length} ATS route (${rteList.join(", ")}) và các điểm trong NOTAM — không có route/điểm nào trên FPL.`);
   }
   // 8 advisory route
   const adr = /ADVISORY\s+ROUTE\s+([A-Z]{1,2}\d{1,4})/.exec(E);
