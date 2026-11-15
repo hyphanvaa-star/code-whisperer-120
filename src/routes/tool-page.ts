@@ -393,7 +393,7 @@ const SHIM = `<script>
       if(acctBtn)acctBtn.addEventListener('click',function(e){ e.stopPropagation(); setAcctOpen(acctMenu.hidden); });
       if(acctMenu)acctMenu.addEventListener('click',function(e){ e.stopPropagation(); });
       document.addEventListener('click',function(){ setAcctOpen(false); });
-      document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!acctMenu.hidden){setAcctOpen(false);acctBtn.focus();}});
+      window.addEventListener('keydown',function(e){if(e.key==='Escape'&&!acctMenu.hidden){setAcctOpen(false);acctBtn.focus();}});
       window.addEventListener('resize',placeAcctMenu);
       window.addEventListener('scroll',placeAcctMenu);
       var acctEd=document.getElementById('opsAcctEdit'); if(acctEd)acctEd.addEventListener('click',function(){ setAcctOpen(false); try{ window.parent.postMessage({type:'sohee-account-edit'},window.location.origin); }catch(e){} });
@@ -3091,10 +3091,10 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.43')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.44')
     .replace('</body>', () => `<style>
 body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside>.aside-head{display:none!important}
-body.nm-full .app>.body{display:grid!important;grid-template-columns:minmax(0,1fr) calc(40% + 3cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px!important;gap:8px!important;box-sizing:border-box!important}
+body.nm-full .app>.body{display:grid!important;grid-template-columns:minmax(0,1fr) calc(40% + 6cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px!important;gap:8px!important;box-sizing:border-box!important}
 body.nm-full .app{height:100vh!important;max-height:100vh!important;padding:0!important;margin:0!important}
 body.nm-full .app>.body>aside,body.nm-full .app>.body>main{display:flex!important;max-width:none!important;width:auto!important;height:calc(100vh - 16px)!important;min-height:0!important}
 body.nm-full #nmList>.nm-item{zoom:1.22}
@@ -3107,7 +3107,7 @@ function off(){try{return localStorage.getItem(K)==='1'}catch(e){return false}}
 function fix(){if(window.nmMap&&nmMap.invalidateSize)setTimeout(function(){nmMap.invalidateSize()},120);window.dispatchEvent(new Event('resize'))}
 function apply(){var m=document.getElementById('mNotam'),on=!!(m&&m.classList.contains('on'));document.body.classList.toggle('nm-on',on);var f=on&&!off();if(document.body.classList.contains('nm-full')!==f){document.body.classList.toggle('nm-full',f);fix()}b.textContent=f?'⤡ Thoát toàn màn hình':'⤢ Toàn màn hình NOTAM'}
 b.onclick=function(){try{localStorage.setItem(K,document.body.classList.contains('nm-full')?'1':'0')}catch(e){}apply()};
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('nm-full')&&!document.querySelector('[role=dialog]:not([hidden]),.modal.open')){try{localStorage.setItem(K,'1')}catch(x){}apply()}});
+window.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('nm-full')){try{localStorage.setItem(K,'1')}catch(x){}apply()}},true);
 document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#mNotam')){try{localStorage.setItem(K,'0')}catch(x){}}setTimeout(apply,30)},true);
 var m=document.getElementById('mNotam');if(m)new MutationObserver(apply).observe(m,{attributes:true,attributeFilter:['class']});apply();
 })();</script></body>`)
