@@ -3095,7 +3095,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.62')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.63')
+    // V 6.63: cột EXTRA ở Flight Supervisor gọn gàng: ô giữa, phút trên kg dưới, thiếu extra do WX hiện NEED xxM.
     // V 6.62: tách MEL mới tự xoá MEL cũ (máy chủ + folder PC); reload khi đang online không xoá file; popup đổi tàu ghi rõ bước lỗi.
     // V 6.61: REG AIMS viền đỏ khi file tàu attach khác tàu Crewlist dù FliteBrief đã đúng tàu.
     // V 6.60: cột Validation chỉ ghi Margin/Violation, chi tiết xem khi hover.
@@ -3317,10 +3318,61 @@ function nmHlKeys(root){
     { const fx = (typeof cmpActionFlight === "function" && cmpActionFlight(r)) || null;
       const tt = document.createElement("td"); tt.className = "taf-cell";
       const xt = document.createElement("td"); xt.className = "num extra-cell";
-      if(fx){ try{ paintTafWx(tt, fx); }catch(_){ tt.textContent = "—"; } try{ paintExtra(xt, fx); }catch(_){ xt.textContent = "—"; } }
+      if(fx){ try{ paintTafWx(tt, fx); }catch(_){ tt.textContent = "—"; } try{ paintExtra(xt, fx); cmpExtraTidy(xt, fx); }catch(_){ xt.textContent = "—"; } }
       else { tt.textContent = "—"; xt.textContent = "—"; }
       tr.appendChild(tt); tr.appendChild(xt); }
 `)
+    // Compare EXTRA: one tidy centred badge per row (minutes on top, kg below);
+    // WX shortfall becomes a readable NEED badge instead of a tiny blinking dash.
+    .replace('function paintExtra(td, f){', `function cmpExtraTidy(td, f){
+  const v = Number(f.extra_fuel) || 0;
+  const w = (typeof W_CACHE !== "undefined" && W_CACHE[f.id]) || null;
+  const kg = v || Number((w && w.extra_fuel) || 0);
+  const raw = String((w && w.extra_time) || f.extra_time || "");
+  const phut = raw && raw !== "0:00" ? raw : "";
+  const need = extraNeedMin(f), low = need > 0 && extraHaveMin(f) < need;
+  td.className = "num extra-cell cmp-xt";
+  td.innerHTML = "";
+  if(!kg && !low){
+    const n = document.createElement("span"); n.className = "cx-none"; n.textContent = "—";
+    td.appendChild(n); if(!td.title) td.title = "Không có extra fuel"; return;
+  }
+  const box = document.createElement("span");
+  box.className = "cx-box" + (low ? " cx-low" : kg >= 1000 ? " cx-hi" : "");
+  if(low){
+    const t = document.createElement("span"); t.className = "cx-need"; t.textContent = "NEED " + need + "M";
+    box.appendChild(t);
+  }
+  if(phut){
+    const m = document.createElement("b"); m.className = "cx-min"; m.textContent = phut;
+    box.appendChild(m);
+  }
+  const k = document.createElement("span"); k.className = "cx-kg" + (phut || low ? "" : " cx-solo");
+  k.textContent = kg ? kg.toLocaleString("en-US") : "NO EXTRA";
+  if(kg){ const u = document.createElement("small"); u.textContent = (f.fuel_units || "KG").toLowerCase(); k.appendChild(u); }
+  box.appendChild(k);
+  td.appendChild(box);
+}
+function paintExtra(td, f){`)
+    .replace('</head>', `<style>
+#cmpBody td.cmp-xt{text-align:center;vertical-align:middle;padding:4px 6px;min-width:80px;white-space:nowrap}
+#cmpBody .cx-none{color:#cbd5e1;font-weight:700}
+#cmpBody .cx-box{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  min-width:66px;padding:3px 9px;border-radius:9px;background:#f1f5ff;border:1px solid #d9e2fb;
+  line-height:1.15;font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+#cmpBody .cx-min{font-size:12.5px;font-weight:800;color:#1e3a8a;letter-spacing:.02em}
+#cmpBody .cx-kg{font-size:10.5px;font-weight:600;color:#475569}
+#cmpBody .cx-kg.cx-solo{font-size:12px;font-weight:800;color:#1e3a8a}
+#cmpBody .cx-kg small{font-size:9px;margin-left:3px;color:#94a3b8;font-weight:700}
+#cmpBody .cx-box.cx-hi{background:#fff7ed;border-color:#fdba74}
+#cmpBody .cx-box.cx-hi .cx-min{color:#9a3412}
+#cmpBody .cx-box.cx-low{background:#fef2f2;border-color:#fca5a5;animation:cx-pulse 1.6s ease-in-out infinite}
+#cmpBody .cx-box.cx-low .cx-min{color:#b91c1c}
+#cmpBody .cx-box.cx-low .cx-kg{color:#991b1b}
+#cmpBody .cx-need{font-size:10px;font-weight:800;letter-spacing:.04em;color:#fff;background:#dc2626;
+  border-radius:999px;padding:1px 7px;margin-bottom:1px}
+@keyframes cx-pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.35)}50%{box-shadow:0 0 0 4px rgba(220,38,38,0)}}
+</style></head>`)
     // General-table weather belongs to the whole cell, not just its small icon.
     // Read current flight data on entry and distinguish missing TAF from good WX.
     .replace(`  if(!segs && !raw && !t.tip) return;
