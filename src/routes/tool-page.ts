@@ -39,6 +39,7 @@ import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
 import { patchDefectSourcePage } from '@/lib/tool/port/defect_source_page';
 import { assessedVerdict } from '@/lib/tool/port/notam_summary';
 import { isVipMovement } from '@/lib/tool/port/notam_vip';
+import { EXTRA_CFG_JS } from '@/lib/tool/extra-cfg-shim';
 const NM_TRACK_UNID = 'if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; u.title = "Không xác định được vùng ảnh hưởng — cần xem NOTAM/tài liệu tham chiếu"; tag.appendChild(u); }';
 const NM_VIP_BADGE = 'if(n.vip_hold || (window.nmIsVip && window.nmIsVip([n.e_field, n.text].join(" ")))){ const v = document.createElement("i"); v.className = "nm-vip" + (n.vip_hold ? " on" : ""); v.textContent = n.vip_hold ? "⚠ VIP MOV · CẦN EXTRA FUEL HOLDING" : "⚠ VIP MOV"; v.title = n.vip_hold ? "Chuyến hạ cánh trùng giờ VIP — có thể phải holding, cần nạp extra fuel" : "VIP MOV: chuyến nào hạ cánh trong khung giờ này cần extra fuel để holding (xem mục VIP MOV ở Thông tin chung)"; tag.appendChild(v); }';
 
@@ -3100,7 +3101,10 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.68')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.69')
+    // V 6.69: Extra fuel (TAF sân đến) chỉnh được trong ⚙ Filter setting — admin cho team, người khác bản riêng.
+    .replace('<div class="nm-assess-btns"><button type="button" class="btn t-undo" data-act="reset">Về mặc định</button>', () => '<div class="nm-assess-btns"><button type="button" class="btn t-undo" onclick="exFuelCfgOpen()">⛽ Extra fuel</button><button type="button" class="btn t-undo" data-act="reset">Về mặc định</button>')
+    .replace('</body>', () => EXTRA_CFG_JS + '</body>')
     // V 6.68: Check NOTAM quốc nội tự phân loại 5 mức theo từng chuyến — 4 ô CRUCIAL/MANUAL CHECK/BRIEFING INFO/MINOR có số, bấm để lọc.
     // V 6.67: NOTAM VIP MOV — chuyến đáp trùng giờ VIP (ETA ±30′) báo CẦN EXTRA FUEL HOLDING, có mục riêng ở Thông tin chung.
     .replace(NM_TRACK_UNID, () => NM_TRACK_UNID + ' ' + NM_VIP_BADGE)

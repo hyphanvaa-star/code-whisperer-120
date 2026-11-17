@@ -6,7 +6,7 @@ import type { Ctx } from "./types";
 /** Team config tables: admin saves the team copy; other users save a private copy at `<key>@u:<uid>`. */
 export const LAYERED_KEYS = new Set([
   "notice_rules", "fpl.cost_index", "fpl.taxi_fuel", "fpl.route_suffix",
-  "fpl.alt_route", "fpl.era", "fpl.pcr_limits",
+  "fpl.alt_route", "fpl.era", "fpl.pcr_limits", "extra_wx_cfg",
 ]);
 const userKey = (ctx: Ctx, key: string) => `${key}@u:${ctx.userId}`;
 const adminCache = new WeakMap<object, Promise<boolean>>();

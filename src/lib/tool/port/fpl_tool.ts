@@ -1,3 +1,4 @@
+import type { ExtraWxCfg } from "./extra_wx";
 // Port of fpl_tool.py (pure parts) — sinh khoi FPL.req theo cong thuc sheet TOOL.
 import { IATA_ICAO } from "./limits_check";
 import * as taf from "./taf";
@@ -572,10 +573,10 @@ function _icaoOf(code: string): string {
   return IATA_ICAO[raw] || "";
 }
 
-export function taf_at(code: string, when: Date | null, tafs: Record<string, TafRec>, role: string): Raw | null {
+export function taf_at(code: string, when: Date | null, tafs: Record<string, TafRec>, role: string, cfg?: ExtraWxCfg): Raw | null {
   const icao = _icaoOf(code);
   if (!icao || when === null) return null;
-  const advice = taf.adviceWindow(icao, when, tafs);
+  const advice = taf.adviceWindow(icao, when, tafs, cfg);
   const hh = String(when.getUTCHours()).padStart(2, "0");
   const mm = String(when.getUTCMinutes()).padStart(2, "0");
   return {
@@ -596,14 +597,14 @@ export function eta_utc_hhmm(db: Db, flight: Raw): string {
 }
 
 export function extra_from_taf(
-  db: Db, flight: Raw, tafs: Record<string, TafRec>, alts?: (string | undefined)[],
+  db: Db, flight: Raw, tafs: Record<string, TafRec>, alts?: (string | undefined)[], cfg?: ExtraWxCfg,
 ): [string, string, Raw[]] {
   const arrived = eta_utc_when(db, flight);
   const departed = etd_utc_when(db, flight);
   const places: Raw[] = [];
   const seen = new Set<string>();
   const take = (code: string, when: Date | null, role: string): Raw | null => {
-    const pack = taf_at(code, when, tafs, role);
+    const pack = taf_at(code, when, tafs, role, cfg);
     if (!pack) return null;
     const key = pack.icao + "|" + pack.when;
     if (seen.has(key)) return pack;

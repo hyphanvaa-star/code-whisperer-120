@@ -337,7 +337,7 @@ function segmentsForSta(rec: TafRec, when: Date): { text: string; hit: boolean }
   return segs;
 }
 
-export function advise(icao0: string, when0: Date, tafs: Record<string, TafRec>): TafAdvice {
+export function advise(icao0: string, when0: Date, tafs: Record<string, TafRec>, cfg?: extraWx.ExtraWxCfg): TafAdvice {
   const icao = (icao0 || "").toUpperCase().trim();
   const when = when0;
   const rec = tafs[icao];
@@ -389,7 +389,7 @@ export function advise(icao0: string, when0: Date, tafs: Record<string, TafRec>)
     }
   }
 
-  const need = extraWx.needOfTexts([mainText, ...overlays.map((g) => g.text)]);
+  const need = extraWx.needOfTexts([mainText, ...overlays.map((g) => g.text)], cfg);
   const extraKw = { extra_need: Math.trunc(need.minutes || 0), extra_why: String(need.why || "") };
 
   if (reasons.length) {
@@ -595,7 +595,7 @@ function badSoonAfter(dest: string, windowEnd: Date, tafs: Record<string, TafRec
   return `⚠ ngoài khung — ${pad2(start.getUTCHours())}:${pad2(start.getUTCMinutes())}Z (sau khung ${gap} phút) mới có: ${item.tip}`;
 }
 
-export function adviceForFlight(dest: string, staIso: string | null | undefined, tafs: Record<string, TafRec> | null): Record<string, unknown> {
+export function adviceForFlight(dest: string, staIso: string | null | undefined, tafs: Record<string, TafRec> | null, cfg?: extraWx.ExtraWxCfg): Record<string, unknown> {
   if (!dest || !staIso) return { ...mkAdvice(dest || "?", "missing", "—", { tip: "Thiếu sân đáp hoặc STA" }) };
   const when = new Date(staIso.replace("Z", "+00:00"));
   if (Number.isNaN(when.getTime())) return { ...mkAdvice(dest, "missing", "—", { tip: "STA không đọc được" }) };
@@ -606,7 +606,7 @@ export function adviceForFlight(dest: string, staIso: string | null | undefined,
   const windowEnd = new Date(when.getTime() + 60 * 60000);
 
   const checks: TafAdvice[] = [];
-  for (let i = 0; i < 13; i++) checks.push(advise(dest, new Date(windowStart.getTime() + 10 * i * 60000), tafs));
+  for (let i = 0; i < 13; i++) checks.push(advise(dest, new Date(windowStart.getTime() + 10 * i * 60000), tafs, cfg));
   const center = checks[6];
   const bad = checks.filter((it) => it.status === "bad");
   const result: TafAdvice = { ...(bad[0] || center) };
@@ -636,10 +636,10 @@ export function adviceForFlight(dest: string, staIso: string | null | undefined,
 }
 
 /** Same ETA ±1h window as advice_for_flight, but for the tooltip tab (center check). */
-export function adviceWindow(icao: string, when: Date, tafs: Record<string, TafRec>): TafAdvice {
+export function adviceWindow(icao: string, when: Date, tafs: Record<string, TafRec>, cfg?: extraWx.ExtraWxCfg): TafAdvice {
   const windowStart = new Date(when.getTime() - 60 * 60000);
   const checks: TafAdvice[] = [];
-  for (let i = 0; i < 13; i++) checks.push(advise(icao, new Date(windowStart.getTime() + 10 * i * 60000), tafs));
+  for (let i = 0; i < 13; i++) checks.push(advise(icao, new Date(windowStart.getTime() + 10 * i * 60000), tafs, cfg));
   const center: TafAdvice = { ...checks[6] };
   const usable = checks.filter((it) => it.status !== "missing" && it.label !== "ngoài TAF");
   const pool = usable.length ? usable : checks;

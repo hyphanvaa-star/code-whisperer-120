@@ -228,6 +228,8 @@ export const routes: Routes = {
       ctx, "wx.taf", { tafs: {}, count: 0 },
     );
     const tafs = tafCache.tafs || {};
+    const { normalizeExtraWxCfg } = await import("../port/extra_wx");
+    const wxCfg = normalizeExtraWxCfg(await getJson<unknown>(ctx, "extra_wx_cfg", null).catch(() => null));
     if (!Object.keys(tafs).length) {
       return { error: "Chưa có TAF. Bấm nút TAF trên thanh lọc." };
     }
@@ -253,7 +255,7 @@ export const routes: Routes = {
         continue;
       }
       const alts = [spec.talt, spec.alt1, spec.alt2];
-      const [minutes, why, places] = ft.extra_from_taf(db, flight, tafs as any, alts as any);
+      const [minutes, why, places] = ft.extra_from_taf(db, flight, tafs as any, alts as any, wxCfg);
       if (minutes === "") {
         missed += 1;
         missedList.push(`${label(flight)}: ${why || "không có TAF"}`);

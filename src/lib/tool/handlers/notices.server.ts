@@ -30,6 +30,18 @@ export const routes: Routes = {
     await resetToTeam(ctx, key);
     return { ok: true };
   },
+  "GET /api/extra/cfg": async (ctx) => {
+    const { normalizeExtraWxCfg, DEFAULT_EXTRA_WX } = await import("../port/extra_wx");
+    return { ok: true, cfg: normalizeExtraWxCfg(await getJson<unknown>(ctx, "extra_wx_cfg", null)), def: DEFAULT_EXTRA_WX, admin: await isAdmin(ctx) };
+  },
+  "POST /api/extra/cfg": async (ctx) => {
+    const { normalizeExtraWxCfg } = await import("../port/extra_wx");
+    const body = (await ctx.json()) as { cfg?: unknown; reset?: boolean };
+    if (body.reset) {
+      if (await isAdmin(ctx)) await setJson(ctx, "extra_wx_cfg", null); else await resetToTeam(ctx, "extra_wx_cfg");
+    } else await setJson(ctx, "extra_wx_cfg", normalizeExtraWxCfg(body.cfg));
+    return { ok: true, cfg: normalizeExtraWxCfg(await getJson<unknown>(ctx, "extra_wx_cfg", null)) };
+  },
   "GET /api/settings/scope": async (ctx) => ({ ok: true, admin: await isAdmin(ctx) }),
 
   "POST /api/notices/rules": async (ctx) => {

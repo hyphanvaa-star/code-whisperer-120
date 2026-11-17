@@ -295,3 +295,4 @@
 - [x] V 6.30: sân dọc đường trong gói NOTAM không còn OUT-OF-SCOPE; hiện khung giờ chuyến trên từng NOTAM
 - [x] V 6.31: lịch D) của NOTAM sân/FIR xét trong đúng khung giờ của sân/FIR đó
 - [x] V 6.32: stand/taxiway NOTAM ở DEP/ALT/ENRT → MINOR
+- [x] V 6.69 Extra fuel rules editable in Filter setting

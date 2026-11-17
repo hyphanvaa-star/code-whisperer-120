@@ -1,7 +1,18 @@
 // Port of extra_wx.py — extra phút lõi theo TAF dest: MAX(wx, trần, gió), trần công ty 60.
 export const CAP = 60;
 
-const WX: Record<string, [number, number, number, number]> = {
+type Row4 = [number, number, number, number];
+/** Editable rules (Filter setting); missing parts fall back to DEFAULT_EXTRA_WX. */
+export type ExtraWxCfg = {
+  cap: number;
+  vis: [number, number, number]; // A >= vis[0], B >= vis[1], C >= vis[2], else D
+  wx: Record<string, Row4>;
+  minus: number; plus: number;
+  ceil: [number, number][]; // [below ft, minutes], checked from highest ft
+  wind: [number, number, number][]; // [mean kt, gust kt, minutes], strongest first
+};
+
+const WX: Record<string, Row4> = {
   NSW: [0, 0, 15, 20], BR: [0, 20, 30, 45], HZ: [0, 20, 30, 45],
   DU: [20, 30, 45, 60], SA: [20, 30, 45, 60], DZ: [20, 30, 45, 60],
   RA: [20, 30, 45, 60], SHRA: [20, 30, 45, 60], SH: [20, 30, 45, 60],
@@ -11,6 +22,39 @@ const WX: Record<string, [number, number, number, number]> = {
   FZRA: [30, 45, 60, 60], SS: [30, 45, 60, 60], DS: [30, 45, 60, 60],
   VA: [0, 0, 0, 0],
 };
+export const DEFAULT_EXTRA_WX: ExtraWxCfg = {
+  cap: CAP, vis: [5000, 3500, 1500], wx: WX, minus: 10, plus: 15,
+  ceil: [[1000, 15], [700, 30], [500, 45], [300, 60]],
+  wind: [[35, 45, 30], [25, 35, 15]],
+};
+
+const num = (v: unknown, lo: number, hi: number): number | null => {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n))) : null;
+};
+/** Clamp user input; unknown keys dropped, thresholds sorted descending. */
+export function normalizeExtraWxCfg(raw: unknown): ExtraWxCfg {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const d = DEFAULT_EXTRA_WX;
+  const cap = num(r.cap, 0, 240) ?? d.cap;
+  const visIn = Array.isArray(r.vis) ? r.vis : [];
+  const vis = d.vis.map((v, i) => num(visIn[i], 0, 9999) ?? v).sort((a, b) => b - a) as [number, number, number];
+  const wx: Record<string, Row4> = {};
+  const wxIn = (r.wx && typeof r.wx === "object" ? r.wx : {}) as Record<string, unknown>;
+  for (const k of Object.keys(d.wx)) {
+    const row = Array.isArray(wxIn[k]) ? (wxIn[k] as unknown[]) : [];
+    wx[k] = d.wx[k].map((v, i) => num(row[i], 0, cap) ?? v) as Row4;
+  }
+  const pairs = (v: unknown, w: number): number[][] | null =>
+    Array.isArray(v) ? v.filter(Array.isArray).map((x) => (x as unknown[]).slice(0, w).map((y) => Number(y)))
+      .filter((x) => x.length === w && x.every((y) => Number.isFinite(y) && y >= 0)) : null;
+  const ceil = (pairs(r.ceil, 2) ?? d.ceil).map(([a, b]) => [Math.round(a), Math.min(cap, Math.round(b))] as [number, number])
+    .sort((a, b) => b[0] - a[0]);
+  const wind = (pairs(r.wind, 3) ?? d.wind).map(([a, b, c]) => [Math.round(a), Math.round(b), Math.min(cap, Math.round(c))] as [number, number, number])
+    .sort((a, b) => b[2] - a[2]);
+  return { cap, vis, wx, minus: num(r.minus, 0, 60) ?? d.minus, plus: num(r.plus, 0, 60) ?? d.plus, ceil, wind };
+}
+
 const ALIAS: Record<string, string> = {
   TSSN: "TSRA", TSGR: "TSRA", TSGS: "TSRA", TSPL: "TSRA",
   SHSN: "SN", SHGR: "GR", SHGS: "GS",
@@ -29,11 +73,11 @@ const RE_RVR = /\bR\d{2}[A-Z]?\/([PM])?(\d{4})\b/gi;
 const RE_CLOUD = /\b(FEW|SCT|BKN|OVC|VV)(\d{3})(CB|TCU)?\b/gi;
 const RE_WIND = /\b(?:VRB|\d{3})(\d{2,3})(?:G(\d{2,3}))?KT\b/gi;
 
-export function visBand(meters: number | null): "A" | "B" | "C" | "D" {
+export function visBand(meters: number | null, cfg: ExtraWxCfg = DEFAULT_EXTRA_WX): "A" | "B" | "C" | "D" {
   if (meters === null) return "A";
-  if (meters >= 5000) return "A";
-  if (meters >= 3500) return "B";
-  if (meters >= 1500) return "C";
+  if (meters >= cfg.vis[0]) return "A";
+  if (meters >= cfg.vis[1]) return "B";
+  if (meters >= cfg.vis[2]) return "C";
   return "D";
 }
 
@@ -89,7 +133,8 @@ function windKt(text: string): [number, number] {
   return [mean, gust];
 }
 
-function wxMin(text: string, band: string): [number, string[]] {
+function wxMin(text: string, band: string, cfg: ExtraWxCfg): [number, string[]] {
+  const WX = cfg.wx, CAP = cfg.cap;
   const u = String(text || "").toUpperCase();
   const idx = bandIdx(band);
   let best = 0;
@@ -107,8 +152,8 @@ function wxMin(text: string, band: string): [number, string[]] {
     if (code === "TS" || code === "TSRA") ts = true;
     let n = row[idx];
     if (code === "VA") n = 0;
-    else if (sign === "-") n = Math.max(0, n - 10);
-    else if (sign === "+") n = Math.min(CAP, n + 15);
+    else if (sign === "-") n = Math.max(0, n - cfg.minus);
+    else if (sign === "+") n = Math.min(CAP, n + cfg.plus);
     if (n >= best) {
       best = n;
       const tag = sign + raw;
@@ -127,22 +172,18 @@ function wxMin(text: string, band: string): [number, string[]] {
   return [best, why];
 }
 
-function ceilMin(ft: number | null): [number, string] {
+function ceilMin(ft: number | null, cfg: ExtraWxCfg): [number, string] {
   if (ft === null) return [0, ""];
-  if (ft >= 1000) return [0, ""];
-  let n: number;
-  if (ft >= 700) n = 15;
-  else if (ft >= 500) n = 30;
-  else if (ft >= 300) n = 45;
-  else n = 60;
+  let n = 0;
+  for (const [below, m] of cfg.ceil) if (ft < below) n = Math.max(n, m);
+  if (!n) return [0, ""];
   return [n, `trần ${ft} ft = ${n}p`];
 }
 
-function windMin(mean: number, gust: number): [number, string] {
-  let n: number;
-  if (mean >= 35 || gust >= 45) n = 30;
-  else if (mean >= 25 || gust >= 35) n = 15;
-  else return [0, ""];
+function windMin(mean: number, gust: number, cfg: ExtraWxCfg): [number, string] {
+  let n = 0;
+  for (const [m, g, v] of cfg.wind) if ((m > 0 && mean >= m) || (g > 0 && gust >= g)) n = Math.max(n, v);
+  if (!n) return [0, ""];
   const bit = `${mean}KT` + (gust ? ` G${gust}` : "");
   return [n, `gió ${bit} = ${n}p`];
 }
@@ -152,15 +193,15 @@ export type Need = {
   vis: number | null; band: string; why: string;
 };
 
-export function needOfText(text: string): Need {
+export function needOfText(text: string, cfg: ExtraWxCfg = DEFAULT_EXTRA_WX): Need {
   const blob = String(text || "");
   const vis = visM(blob);
-  const band = visBand(vis);
-  const [wxN, wxWhy] = wxMin(blob, band);
-  const [ceilN, ceilWhy] = ceilMin(ceilFt(blob));
+  const band = visBand(vis, cfg);
+  const [wxN, wxWhy] = wxMin(blob, band, cfg);
+  const [ceilN, ceilWhy] = ceilMin(ceilFt(blob), cfg);
   const [mean, gust] = windKt(blob);
-  const [windN, windWhy] = windMin(mean, gust);
-  const minutes = Math.min(CAP, Math.max(wxN, ceilN, windN));
+  const [windN, windWhy] = windMin(mean, gust, cfg);
+  const minutes = Math.min(cfg.cap, Math.max(wxN, ceilN, windN));
   const parts = [...wxWhy, ...(ceilWhy ? [ceilWhy] : []), ...(windWhy ? [windWhy] : [])].filter(Boolean);
   return {
     minutes, wx: wxN, ceil: ceilN, wind: windN, vis, band,
@@ -168,11 +209,11 @@ export function needOfText(text: string): Need {
   };
 }
 
-export function needOfTexts(chunks: string[]): Need {
+export function needOfTexts(chunks: string[], cfg: ExtraWxCfg = DEFAULT_EXTRA_WX): Need {
   let best: Need = { minutes: 0, wx: 0, ceil: 0, wind: 0, vis: null, band: "A", why: "0p" };
   for (const ch of chunks) {
     if (!String(ch || "").trim()) continue;
-    const got = needOfText(ch);
+    const got = needOfText(ch, cfg);
     if (got.minutes >= best.minutes) best = got;
   }
   return best;

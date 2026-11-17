@@ -86,3 +86,21 @@ describe("advice extra need", () => {
     expect(item.extra_need).toBe(0);
   });
 });
+
+describe("extra_wx editable cfg", () => {
+  it("defaults keep current minutes", () => {
+    const c = extraWx.normalizeExtraWxCfg(null);
+    expect(extraWx.needOfText("24012KT 2000 TSRA BKN020", c).minutes).toBe(60);
+    expect(extraWx.needOfText("24012KT 9999 BKN006", c).ceil).toBe(30);
+    expect(extraWx.needOfText("24020G35KT 9999 FEW020", c).wind).toBe(15);
+  });
+  it("custom TSRA band C = 45", () => {
+    const wx = { ...extraWx.DEFAULT_EXTRA_WX.wx, TSRA: [30, 45, 45, 60] };
+    const c = extraWx.normalizeExtraWxCfg({ wx });
+    expect(extraWx.needOfText("24012KT 2000 TSRA BKN020", c).minutes).toBe(45);
+  });
+  it("custom cap limits minutes", () => {
+    const c = extraWx.normalizeExtraWxCfg({ cap: 30 });
+    expect(extraWx.needOfText("24012KT 0800 +TSRA BKN002", c).minutes).toBe(30);
+  });
+});
