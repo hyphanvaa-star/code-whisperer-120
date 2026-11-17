@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 6.68: Check NOTAM quốc nội tự phân loại từng NOTAM theo chuyến (CRUCIAL / MANUAL CHECK / BRIEFING INFO / MINOR có số, bấm ô để lọc danh sách)
 - [x] V 6.64: Trợ lý PC 6.8 — mọi file ưu tiên ổ D, chỉ dự phòng C khi máy thật sự không có D (kiểm 3 nhịp, nhật ký ghi rõ khi dự phòng)
 - [x] V 6.67: NOTAM VIP MOV — chuyến đáp trùng giờ VIP (ETA ±30′) có mục "VIP MOV · Extra fuel holding" theo chuyến và nhãn cảnh báo trên thẻ NOTAM
 - [x] V 6.63: cột EXTRA (Flight Supervisor) trình bày gọn: ô căn giữa, phút trên, kg dưới; >1000 kg màu cam; WX thiếu extra hiện nhãn NEED xxM

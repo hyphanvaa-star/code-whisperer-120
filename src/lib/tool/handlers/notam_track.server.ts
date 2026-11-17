@@ -339,6 +339,7 @@ export const routes: Routes = {
         fetchPlaces: async (f) => { const p = await fetchPlacesFor([f]); await enrichWithSup(ctx, p); return p; },
         fetchTrack,
         fetchAllPlaces: async (fs, texts) => { const p = await fetchPlacesFor(fs, '', texts); await enrichWithSup(ctx, p); return p; },
+        assessCfg: (() => { try { return JSON.parse(q(ctx.params, "cfg") || "{}"); } catch { return {}; } })(),
         onProgress: (text) => void (tid && setNotamProgress(ctx, tid, text)),
       });
       if (tid) await setNotamProgress(ctx, tid, "Xong");

@@ -16,6 +16,7 @@ import { applyOfpHead, buildTuneCtx, extraOfpTokens, stampOfpHeads, stampSidStar
 import { fleetVerdict, verdictOf, type FleetItem } from './notam_verdict';
 import type { Chart } from './aip_vn_chart';
 import { parseSchedule, scheduleActiveAt } from "./notam_assess";
+import { assessDomesticPlaces, type FleetAssessInput } from "./notam_fleet_assess";
 export { fleetVerdict } from './notam_verdict';
 
 export const EARTH_NM = 3440.065;
@@ -1070,7 +1071,7 @@ export async function run(flight: Flight, deps: RunDeps) {
   };
 }
 
-export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetchAllPlaces: (flights: Flight[], ofpTexts?: Record<number, string>) => Promise<Place[]> }) {
+export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetchAllPlaces: (flights: Flight[], ofpTexts?: Record<number, string>) => Promise<Place[]>; assessCfg?: unknown }) {
   const wanted = flights.filter(isDomesticFlight);
   if (!wanted.length) return { ok: false, error: "không có chuyến quốc nội", places: [] };
   deps.onProgress?.("Đang lấy NOTAM sân và FIR");
@@ -1090,6 +1091,7 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
   const pack: (FleetItem & { tracked: boolean; kml_error: string })[] = [];
   const fleetTokens = new Set<string>();
   const fleetPoints: Record<string, unknown>[] = [];
+  const assessInputs: FleetAssessInput[] = [];
   // Tải track song song (pool 8) — tuần tự từng chuyến quá chậm với cả đội bay.
   const trackResults = new Map<number, { track: Track; error: string }>();
   let nextIdx = 0, doneCount = 0;
@@ -1111,6 +1113,7 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
     const ofpText = texts[flight.id] || '';
     const hits = compare(flight, places, track, ofpText);
     const points = track.points as unknown as Record<string, unknown>[];
+    assessInputs.push({ flight, ofpText, points: (track.points || []) as TrackPoint[] });
     const tokens = new Set([...(buildTuneCtx(flight, ofpText).tokens as Set<string>), ...extraOfpTokens(points)]);
     for (const token of tokens) fleetTokens.add(token);
     fleetPoints.push(...points);
@@ -1133,8 +1136,11 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
     };
   }
   stampOfpHeads(places, fleetTokens, fleetPoints);
+  // Grade every NOTAM against the fleet so the CRUCIAL/MANUAL/BRIEFING/MINOR counters are filled.
+  deps.onProgress?.("Đang phân loại NOTAM theo chuyến");
+  const levelCounts = assessDomesticPlaces(places, assessInputs, deps.assessCfg);
   return {
     ok: true, fleet: true, scope: "domestic-track", places, tracks, fleet_rows: pack,
-    fleet_verdict: fleetVerdict(pack),
+    fleet_verdict: fleetVerdict(pack), level_counts: levelCounts, assessed: true,
   };
 }

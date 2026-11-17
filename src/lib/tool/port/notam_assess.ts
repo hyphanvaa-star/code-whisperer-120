@@ -5,7 +5,7 @@
 // tri-state (true = overlap, false = no overlap, null = not enough data): only
 // `false` yields NO IMPACT, `null` yields NEED MANUAL CHECK, and a concluded gate
 // is never reversed by a later one.
-import { notamGeoms, notamAltBand, geomTrackNear, qCoordsOf, type Notam, type TrackPoint } from "./notam_track";
+import { notamGeoms as notamGeomsRaw, notamAltBand, geomTrackNear, qCoordsOf, type Notam, type TrackPoint } from "./notam_track";
 import { parseNotamWhen, normIcao } from "./notam_check";
 import { isVipMovement, vipLabel, vipOverlaps, VIP_ARR_BEFORE_MIN, VIP_ARR_AFTER_MIN } from "./notam_vip";
 
@@ -73,6 +73,16 @@ export interface Assessment {
   window?: string;
 }
 
+// Geometry depends only on the NOTAM; the fleet check grades one NOTAM against many flights.
+const geomCache = new WeakMap<object, { key: string; g: ReturnType<typeof notamGeomsRaw> }>();
+function notamGeoms(n: Notam): ReturnType<typeof notamGeomsRaw> {
+  const key = `${String(n.e_field ?? "")}|${String(n.text ?? "")}|${String(n.q_line ?? "")}|${Array.isArray(n.sup_geoms) ? n.sup_geoms.length : 0}`;
+  const hit = geomCache.get(n);
+  if (hit && hit.key === key) return hit.g;
+  const g = notamGeomsRaw(n);
+  geomCache.set(n, { key, g });
+  return g;
+}
 const MIN = 60_000;
 const add = (d: Date, m: number) => new Date(d.getTime() + m * MIN);
 const hhmm = (d: Date) => d.toISOString().slice(11, 16).replace(":", "") + "Z";

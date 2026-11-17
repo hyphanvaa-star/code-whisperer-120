@@ -2696,6 +2696,7 @@ function nmPaintListAll(place, q){
     if(l === "CRITICAL" || l === "DELAY-ONLY") return "impact";
     if(l === "NEED MANUAL CHECK") return "manual";
     if(l === "BRIEFING INFO") return "brief";
+    if(l === "NO IMPACT") return "noimpact";
     return "brief";
   };
   const allRows = [];
@@ -3099,7 +3100,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.67')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.68')
+    // V 6.68: Check NOTAM quốc nội tự phân loại 5 mức theo từng chuyến — 4 ô CRUCIAL/MANUAL CHECK/BRIEFING INFO/MINOR có số, bấm để lọc.
     // V 6.67: NOTAM VIP MOV — chuyến đáp trùng giờ VIP (ETA ±30′) báo CẦN EXTRA FUEL HOLDING, có mục riêng ở Thông tin chung.
     .replace(NM_TRACK_UNID, () => NM_TRACK_UNID + ' ' + NM_VIP_BADGE)
     .replace('        patch.unidentified_area = !!as.unidentified_area;', '        patch.unidentified_area = !!as.unidentified_area;\n        patch.vip_hold = !!as.vip_hold;')
@@ -3299,6 +3301,8 @@ function nmHlKeys(root){
     tn.parentNode.replaceChild(f,tn);
   });
 }</script></body>`)
+    // Check NOTAM quốc nội gửi cấu hình ⚙ Filter setting để server phân loại 5 mức theo chuyến.
+    .replace('    p.set("tid", tid);\n    const r = await fetch("/api/notam/check?" + p.toString(), {signal: controller.signal});', '    p.set("tid", tid);\n    try{ p.set("cfg", JSON.stringify(nmAssessCfg())); }catch(_e){}\n    const r = await fetch("/api/notam/check?" + p.toString(), {signal: controller.signal});')
     .replace('const nmGrpName = {impact:"IMPACT", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"NO IMPACT"};', 'const nmGrpName = {impact:"CRUCIAL", manual:"MANUAL CHECK", brief:"BRIEFING INFO", noimpact:"MINOR"};')
     .replace('      tag.textContent = n.level + (n.level === "DELAY-ONLY"', '      tag.textContent = (n.level === "NO IMPACT" ? "MINOR" : n.level) + (n.level === "DELAY-ONLY"')
     .replace('BRIEFING INFO, NO IMPACT. Không xoá NOTAM nào; NO IMPACT nằm', 'BRIEFING INFO, MINOR. Không xoá NOTAM nào; MINOR nằm')
