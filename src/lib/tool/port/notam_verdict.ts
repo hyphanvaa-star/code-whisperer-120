@@ -312,6 +312,12 @@ export function verdictOf(
         tags = tags.filter((t) => t !== "ad_closed");
       if (!level && tags.includes("rwy_closed") && !rwyInFlightWin(n, rwyRoleOf(role, p, ctx), ctx))
         tags = tags.filter((t) => t !== "rwy_closed");
+      if (
+        !level &&
+        tags.some((t) => ["gps", "rffs", "note"].includes(t)) &&
+        !bcOk(n, ...placeWindow(p, ctx))
+      )
+        tags = tags.filter((t) => !["gps", "rffs", "note"].includes(t));
       const base = {
         ident: str(n.ident),
         icao: str(p.code || n.icao),

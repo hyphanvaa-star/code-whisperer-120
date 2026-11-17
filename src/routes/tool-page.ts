@@ -3095,7 +3095,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.65')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.66')
     // V 6.65: Thông tin chung NOTAM quốc nội — mỗi mục liệt kê NOTAM theo từng chuyến.
     // V 6.64: Trợ lý PC 6.8 — mọi file ưu tiên ổ D, chỉ dự phòng C khi máy thật sự không có D (kiểm tra 3 nhịp, nhật ký ghi rõ khi dự phòng).
     // V 6.63: cột EXTRA ở Flight Supervisor gọn gàng: ô giữa, phút trên kg dưới, thiếu extra do WX hiện NEED xxM.
