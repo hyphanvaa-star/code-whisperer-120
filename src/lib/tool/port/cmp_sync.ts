@@ -27,6 +27,17 @@ export function cmpChgFbReady(reg: { excel?: unknown; flite?: unknown } | null |
   return !norm(newReg) || norm(newReg) === excel;
 }
 
+/** Attached aircraft file names another tail than the Crewlist aircraft already on FliteBrief. */
+export function cmpAttachMismatch(reg: { excel?: unknown; flite?: unknown } | null | undefined, atch: unknown): { changed: true; attach: true; old: string; new: string } | null {
+  const norm = (v: unknown) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const excel = norm(reg && reg.excel), flite = norm(reg && reg.flite);
+  const code = String(atch || '').replace(/[^0-9]/g, '');
+  const tail = (excel.match(/(\d{3})$/) || [])[1] || '';
+  if (!tail || code.length !== 3 || code === tail) return null;
+  if (flite && flite !== excel) return null;
+  return { changed: true, attach: true, old: 'VN-A' + code, new: String(reg && reg.excel).trim() };
+}
+
 /** REQ is driven by Crewlist changes, not FPL revisions or sync acknowledgement. */
 export function cmpReqChange(rows: ChangeRow[], id: unknown, std: unknown): ChangeRow | null {
   const row = cmpSourceChange(rows, id, std);
@@ -162,6 +173,7 @@ const cmpCellCrewChanges = ${cmpCellCrewChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpChgFbReady = ${cmpChgFbReady.toString()};
+const cmpAttachMismatch = ${cmpAttachMismatch.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0, cmpSyncDiffJob = null;
 const CMP_SYNC_CHUNK = 20;
@@ -318,7 +330,12 @@ function cmpSyncEvidence(r, kind){
   if(kind === "aims" && !(row && cmpAircraftChange(row.reg))){
     // Crewlist aircraft differs from FliteBrief now, even without a Crewlist-to-Crewlist change.
     const live = cmpLiveChange(r);
-    if(!live || !live.reg.changed) return null;
+    if(!live || !live.reg.changed){
+      // FliteBrief already on the Crewlist aircraft but the attached aircraft file is another tail.
+      const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
+      const a = xls && xls.file && g && g.verdict ? cmpAttachMismatch(g, f.reg_atch) : null;
+      return a ? {f, kind, changes:[], row:{sector_id:f.id, reg:a, crew:{}}} : null;
+    }
     return {f, kind, changes:[], row:{sector_id:f.id, reg:live.reg, crew:{}}};
   }
   if(!row || !(kind === "crew" ? row.crew && row.crew.changed : cmpAircraftChange(row.reg))) return null;
@@ -414,7 +431,7 @@ function cmpSyncPaint(r, kind){
   }
   b.disabled = (!ok && cmpSyncBusy) || (kind === "crew" && !e.changes.length);
   b.setAttribute("aria-label", (kind === "crew" ? "Đổi crew " : "Đổi tàu ") + e.f.callsign + " theo " + (kind === "fpl" ? "FPL mới" : "Crewlist mới"));
-  b.dataset.tip = (kind === "crew" ? String(e.row.crew.raw_old || "") + " → " + String(e.row.crew.raw_new || "") : e.row.reg.old + " → " + e.row.reg.new)
+  b.dataset.tip = (kind === "crew" ? String(e.row.crew.raw_old || "") + " → " + String(e.row.crew.raw_new || "") : (e.row.reg.attach ? "File tàu attach sai: " : "") + e.row.reg.old + " → " + e.row.reg.new)
     + (kind !== "crew" && checked && !ok && checked.regOk ? " · OFP đã đúng tàu mới" : "")
     + (kind !== "crew" && checked && !ok ? " · File tàu trên FliteBrief: " + (checked.file || "chưa có") + " — chưa khớp tàu mới" : "") + (ok ? " · Đã khớp file tàu FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
   if(ok) b.dataset.tip += " · Bấm để xác nhận đã biết";
@@ -532,7 +549,7 @@ async function cmpSyncOpen(r, kind){
     if(!response.ok || d.error) throw new Error(d.error || "Không xem trước được thay đổi.");
     if(crew && (d.not_found || []).length) throw new Error("Không tìm thấy phi công: " + d.not_found.map(x=>x.username).join(", "));
     const L = [e.f.callsign + " · " + new Date(e.f.std).toISOString().slice(0,10) + " · " + (e.f.dep_icao || r.dep) + " → " + (e.f.dest_icao || r.arr),
-      crew ? "Crewlist: " + e.row.crew.raw_old + " → " + e.row.crew.raw_new : "Tàu: " + e.row.reg.old + " → " + e.row.reg.new];
+      crew ? "Crewlist: " + e.row.crew.raw_old + " → " + e.row.crew.raw_new : (e.row.reg.attach ? "File tàu attach: " : "Tàu: ") + e.row.reg.old + " → " + e.row.reg.new];
     for(const x of (crew ? d.remove : d.delete) || []) L.push("− " + (x.label || x.username || x.filename));
     for(const x of d.add || []) L.push("+ " + (x.label || x.username || x.title) + (x.found === false ? " (thiếu file)" : ""));
     if(!crew) L.push("Thao tác giống tab Dữ liệu thay đổi: cập nhật file đính kèm theo tàu mới; không sửa tàu của OFP.");

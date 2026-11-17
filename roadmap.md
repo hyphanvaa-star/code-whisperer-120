@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 6.61: REG AIMS viền đỏ bấm đổi khi file tàu attach (VNA640.pdf) khác tàu Crewlist dù FliteBrief đã đúng tàu (VJC1832)
 - [x] V 6.55: NOTAM ATS route (W8 VVHM) chỉ tô route trùng tên trong quốc gia của FIR phát hành và cắt đúng đoạn (PQU - TUNPO); thử bằng mẫu đạt. Chưa publish.
 - [x] V 6.56: NOTAM nhắc đoạn route (A - B) chỉ tô đúng đoạn, cả trên chặng bay
 - [x] V 6.57: NOTAM WIIF nhắc vùng WS(D) Singapore vẽ được, bỏ nhãn UNIDENTIFIED
