@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 6.64: Trợ lý PC 6.8 — mọi file ưu tiên ổ D, chỉ dự phòng C khi máy thật sự không có D (kiểm 3 nhịp, nhật ký ghi rõ khi dự phòng)
 - [x] V 6.63: cột EXTRA (Flight Supervisor) trình bày gọn: ô căn giữa, phút trên, kg dưới; >1000 kg màu cam; WX thiếu extra hiện nhãn NEED xxM
 - [x] V 6.62: tách MEL mới tự xoá MEL cũ trên máy chủ và folder PC (Trợ lý 6.7); Ctrl+Shift+R khi online không xoá file; popup đổi tàu ghi rõ đã xoá/chưa thêm và lý do
 - [x] V 6.61: REG AIMS viền đỏ bấm đổi khi file tàu attach (VNA640.pdf) khác tàu Crewlist dù FliteBrief đã đúng tàu (VJC1832)

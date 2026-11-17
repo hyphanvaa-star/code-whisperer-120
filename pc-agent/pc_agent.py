@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.7"
+VERSION = "6.8"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -399,10 +399,17 @@ def print_sheets(path: Path, printer: str, say) -> None:
 
 
 def _has_d() -> bool:
-    try:
-        return Path("D:/").exists()
-    except OSError:
-        return False
+    """Ổ D còn đó không — thử 3 nhịp (ổ mạng/USB đôi khi 'ngủ' tích tắc rồi tỉnh lại).
+    Chỉ khi cả 3 lần đều không thấy mới coi là máy không có ổ D."""
+    for i in range(3):
+        try:
+            if os.path.exists("D:\\") or Path("D:/").exists():
+                return True
+        except OSError:
+            pass
+        if i < 2:
+            time.sleep(0.5)
+    return False
 
 
 def _fix_drive(p) -> Path:
@@ -634,7 +641,10 @@ def prune_old_mel(folder: Path, keep: list, say) -> list:
 
 
 def do_save_file(payload: dict, say) -> dict:
-    d = _fix_drive(str(payload.get("dir") or "D:/"))
+    want = str(payload.get("dir") or "D:/")
+    d = _fix_drive(want)
+    if want[:2].upper() == "D:" and str(d)[:2].upper() != "D:":
+        say(f"! máy không thấy ổ D — ghi dự phòng sang {d}")
     name = str(payload.get("name") or "file.bin")
     raw = base64.b64decode(str(payload.get("data_b64") or ""))
     d.mkdir(parents=True, exist_ok=True)

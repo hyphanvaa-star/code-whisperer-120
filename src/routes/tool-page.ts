@@ -260,7 +260,7 @@ const SHIM = `<script>
         var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
         var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
         var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
-        board.title='Trợ lý 6.7 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
+        board.title='Trợ lý 6.8 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
         board.style.position='relative';
         var dot=document.createElement('span'); dot.className='agent-dot';
         dot.style.cssText='position:absolute;top:4px;right:5px;width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none';
@@ -289,7 +289,7 @@ const SHIM = `<script>
               return;
             }
           }
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.7'; a.download='tro-ly-pc-6.7.zip';
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.8'; a.download='tro-ly-pc-6.8.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -3095,7 +3095,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.63')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.64')
+    // V 6.64: Trợ lý PC 6.8 — mọi file ưu tiên ổ D, chỉ dự phòng C khi máy thật sự không có D (kiểm tra 3 nhịp, nhật ký ghi rõ khi dự phòng).
     // V 6.63: cột EXTRA ở Flight Supervisor gọn gàng: ô giữa, phút trên kg dưới, thiếu extra do WX hiện NEED xxM.
     // V 6.62: tách MEL mới tự xoá MEL cũ (máy chủ + folder PC); reload khi đang online không xoá file; popup đổi tàu ghi rõ bước lỗi.
     // V 6.61: REG AIMS viền đỏ khi file tàu attach khác tàu Crewlist dù FliteBrief đã đúng tàu.
