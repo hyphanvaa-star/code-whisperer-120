@@ -119,14 +119,12 @@ describe("Original NOTAM verdict parity", () => {
     ]);
     expect(v.risk).toBe(1);
     expect(v.headline).toContain("có RWY đóng");
-    expect(v.sections.find((s) => s.key === "rwy")?.rows).toEqual([r]);
-    expect(v.sections.find((s) => s.key === "ats")?.groups?.map((g) => g.title)).toEqual([
-      "VJC439 VVNB–VVPC:",
-      "VJC145 VVNB–VVTS:",
-    ]);
-    expect(v.sections.find((s) => s.key === "gps")?.groups).toEqual([
-      { title: "VVHM", rows: [{ ...g, label: "" }] },
-    ]);
+    for (const key of ["rwy", "ats", "gps"])
+      expect(v.sections.find((s) => s.key === key)?.groups?.map((g) => g.title)).toEqual([
+        "VJC439 VVNB–VVPC:",
+        "VJC145 VVNB–VVTS:",
+      ]);
+    expect(v.sections.find((s) => s.key === "rwy")?.groups?.[0].rows).toEqual([r]);
   });
   it("reads airport closures independently from military geometry and respects per-flight airport scope/time", () => {
     const p = {

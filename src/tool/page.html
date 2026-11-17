@@ -14009,7 +14009,7 @@ function nmPaintVerdictSection(sec, items){
       const grows = uniqRows(g.rows);
       if(!grows.length) continue;
       const gli = document.createElement("li");
-      gli.className = "nm-vd-g" + ((sec.key || "") === "ats" || (sec.key || "") === "gps" ? " nm-vd-flt" : "");
+      gli.className = "nm-vd-g" + (/:$/.test(String(g.title || "")) ? " nm-vd-flt" : "");
       const gh = document.createElement("span");
       gh.className = "nm-vd-h";
       gh.textContent = g.title || "";

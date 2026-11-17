@@ -445,56 +445,26 @@ export function verdictOf(
   };
 }
 export function fleetVerdict(items: FleetItem[]) {
-  const rows: Record<string, VerdictRow[]> = Object.fromEntries(ORDER.map((k) => [k, []]));
+  // Mỗi mục liệt kê theo từng chuyến: "VJC139 VVNB–VVTS:" rồi các NOTAM của chuyến đó.
   const flags: Record<string, boolean> = Object.fromEntries(ORDER.map((k) => [k, false]));
-  const ats = new Map<string, { id: string; rows: VerdictRow[] }>(),
-    gps = new Map<string, VerdictRow[]>();
+  const byKey: Record<string, Map<string, { id: string; rows: VerdictRow[] }>> = Object.fromEntries(
+    ORDER.map((k) => [k, new Map()]),
+  );
   for (const it of items) {
-    const prefix = [it.cs.trim(), it.dep || it.dest ? `${it.dep}–${it.dest}` : ""]
-      .filter(Boolean)
-      .join(" ");
+    const title =
+      [it.cs.trim(), it.dep || it.dest ? `${it.dep}–${it.dest}` : ""].filter(Boolean).join(" ") || "—";
     for (const sec of it.verdict?.sections || []) {
       const key = sec.key;
-      if (!(key in rows) || !sec.hit) continue;
+      if (!(key in byKey) || !sec.hit) continue;
+      const add: VerdictRow[] = [];
+      for (const g of [{ title: "", rows: sec.rows || [] }, ...(sec.groups || [])])
+        for (const r of g.rows)
+          add.push(g.title && key === "area" ? { ...r, label: [g.title, r.label].filter(Boolean).join(" ") } : r);
+      if (!add.length) continue;
       flags[key] = true;
-      if (key === "ats") {
-        const title = prefix || "—",
-          held = ats.get(title) || { id: String(it.id || ""), rows: [] };
-        held.rows = uniq([
-          ...held.rows,
-          ...(sec.rows || []),
-          ...(sec.groups || []).flatMap((g) => g.rows),
-        ]);
-        ats.set(title, held);
-        continue;
-      }
-      if (key === "gps") {
-        for (const r of sec.rows || []) {
-          const place =
-            str(r.icao || r.label)
-              .trim()
-              .toUpperCase() || "—";
-          gps.set(
-            place,
-            uniq([
-              ...(gps.get(place) || []),
-              { ...r, label: "", icao: place === "—" ? str(r.icao) : place },
-            ]),
-          );
-        }
-        continue;
-      }
-      for (const g of [{ title: "", rows: sec.rows || [] }, ...(sec.groups || [])]) {
-        const pre = [prefix, g.title].filter(Boolean).join("  ");
-        const add = ["ad", "rwy"].includes(key)
-          ? g.rows
-          : g.rows.map((r) => ({
-              ...r,
-              label: [pre, r.label || r.value].filter(Boolean).join("  ").trim(),
-            }));
-        rows[key].push(...add);
-        if (["ad", "rwy"].includes(key)) rows[key] = uniq(rows[key]);
-      }
+      const held = byKey[key].get(title) || { id: String(it.id || ""), rows: [] };
+      held.rows = uniq([...held.rows, ...add]);
+      byKey[key].set(title, held);
     }
   }
   const sections: VerdictSection[] = ORDER.map((key, i) => ({
@@ -502,20 +472,8 @@ export function fleetVerdict(items: FleetItem[]) {
     title: TITLES[i],
     answer: answer(key, flags[key]),
     hit: flags[key],
-    rows: rows[key],
-    ...(key === "ats"
-      ? {
-          groups: [...ats]
-            .filter(([, g]) => g.rows.length)
-            .map(([title, g]) => ({ title: title + ":", id: g.id, rows: g.rows })),
-        }
-      : key === "gps"
-        ? {
-            groups: [...gps]
-              .filter(([, rs]) => rs.length)
-              .map(([title, rs]) => ({ title, rows: rs })),
-          }
-        : {}),
+    rows: [],
+    groups: [...byKey[key]].map(([title, g]) => ({ title: title + ":", id: g.id, rows: g.rows })),
   }));
   const risk = items.filter((it) => it.verdict?.status === "risk").length;
   const bits = [`${items.length} chuyến quốc nội`];
