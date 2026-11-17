@@ -3095,7 +3095,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.54')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.55')
+    // V 6.55: NOTAM ATS route chỉ tô route trùng tên trong quốc gia của FIR phát hành, cắt đúng đoạn (A - B) nếu có.
     // V 6.54: NOTAM núi lửa: một điểm toạ độ → vòng đệm 10 NM; nhiều toạ độ nối nhau → vẽ đủ đa giác.
     // V 6.53: nạp đủ vùng ENR 5.1 Thái Lan kể cả tiểu khu (VT D30W AREA 1/2); mã vùng nguy hiểm không còn bị đọc nhầm thành ATS route.
     // V 6.52: Esc chỉ đóng popup / thoát toàn màn hình, không huỷ việc đang chạy (dùng nút Stop); huỷ chủ động không báo "mất kết nối".

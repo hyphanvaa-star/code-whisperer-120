@@ -14578,6 +14578,81 @@ function nmFleetIdOf(title){
   const hit = rows.find(r => String(r.cs || "").toUpperCase() === cs);
   return hit ? String(hit.id || "") : "";
 }
+function nmNotamCc(n){
+  /* Quốc gia quản lý FIR phát hành NOTAM: chỉ tô ATS route trùng tên trong
+     đúng quốc gia đó (W8 VVHM không được tô W8 của Trung Quốc/Philippines). */
+  const blob = String((n && (n.text || n.e_field)) || "").toUpperCase();
+  const cands = [];
+  const q = /Q\)\s*([A-Z]{4})\//.exec(blob);
+  if(q) cands.push(q[1]);
+  if(n && n.qfir) cands.push(n.qfir);
+  const a = /\bA\)\s*([A-Z]{4})\b/.exec(blob);
+  if(a) cands.push(a[1]);
+  if(n && n.icao) cands.push(n.icao);
+  if(n && n.fir) cands.push(n.fir);
+  for(let i = 0; i < cands.length; i++){
+    const cc = nmIcaoCc(String(cands[i] || "").toUpperCase(), "");
+    if(cc) return cc;
+  }
+  return "";
+}
+function nmNotamRouteSegs(n){
+  /* "W8 (PQU - TUNPO)", "W8 PQU - TUNPO", "W8 BTN PQU AND TUNPO", "W8 FM PQU TO TUNPO" */
+  const blob = String((n && (n.text || n.e_field)) || "").toUpperCase();
+  const out = {};
+  const res = [
+    /\b([A-Z]{1,2}\d{1,4})\s*\(\s*([A-Z]{2,5})\s*[-\u2013\/]\s*([A-Z]{2,5})\s*\)/g,
+    /\b([A-Z]{1,2}\d{1,4})\s*(?:SEGMENT\s*|SEG\s*)?(?:BTN|BETWEEN)\s+([A-Z]{2,5})\s+(?:AND|-)\s+([A-Z]{2,5})\b/g,
+    /\b([A-Z]{1,2}\d{1,4})\s*(?:SEGMENT\s*|SEG\s*)?(?:FM|FROM)\s+([A-Z]{2,5})\s+TO\s+([A-Z]{2,5})\b/g,
+    /\b([A-Z]{1,2}\d{1,4})\s*:?\s+([A-Z]{2,5})\s*[-\u2013]\s*([A-Z]{2,5})\b/g
+  ];
+  res.forEach(function(re){
+    let m;
+    while((m = re.exec(blob))){
+      const k = nmAwyKey(m[1]);
+      if(!k || out[k]) continue;
+      if(/^(AND|TO|FM|FROM|BTN|SFC|GND|UNL|FL)$/.test(m[2]) || /^(AND|TO|FM|FROM|SFC|GND|UNL|FL)$/.test(m[3])) continue;
+      out[k] = [m[2], m[3]];
+    }
+  });
+  return out;
+}
+function nmScopedAts(want, cc, segs){
+  /* ATS route trùng tên chỉ lấy trong quốc gia FIR của NOTAM; có đoạn (A - B)
+     thì cắt đúng đoạn đó. full: toàn tuyến trong nước (để so chặng của chuyến). */
+  const full = {}, clip = {};
+  nmAtsEach(function(layer){
+    const name = nmAwyKey(layer._vnName);
+    if(!want[name]) return;
+    if(cc && String(layer._vnCc || "").toUpperCase() !== cc) return;
+    const ll = nmLatLngsOf(layer);
+    if(ll.length < 2) return;
+    (full[name] = full[name] || []).push(ll);
+    let part = ll;
+    const sg = segs && segs[name];
+    const fx = layer._vnFixes;
+    if(sg && fx && fx.length === ll.length){
+      const up = fx.map(f => String(f || "").toUpperCase());
+      const i = up.indexOf(sg[0]), j = up.indexOf(sg[1]);
+      if(i >= 0 && j >= 0 && i !== j) part = ll.slice(Math.min(i, j), Math.max(i, j) + 1);
+    }
+    (clip[name] = clip[name] || []).push(part);
+  });
+  return {full: full, clip: clip};
+}
+function nmNearScoped(lls, scoped, awy){
+  const lines = (scoped && scoped.full && scoped.full[awy]) || [];
+  if(!lines.length) return false;
+  for(let i = 0; i < lls.length; i++){
+    const a = L.latLng(lls[i]);
+    for(let k = 0; k < lines.length; k++){
+      for(let j = 0; j < lines[k].length; j++){
+        if(a.distanceTo(lines[k][j]) < 25000) return true;
+      }
+    }
+  }
+  return false;
+}
 function nmFlashFleetNotam(n, flightId){
   if(!(nmData && nmData.fleet) || !nmMap || !n) return;
   if(nmNotamFlash){
@@ -14588,6 +14663,13 @@ function nmFlashFleetNotam(n, flightId){
   const want = {};
   tokens.forEach(function(t){ want[t] = 1; });
   const tracks = nmData.tracks || {};
+  const cc = nmNotamCc(n);
+  const scoped = nmScopedAts(want, cc, nmNotamRouteSegs(n));
+  /* Có dữ liệu route của đúng quốc gia thì chỉ nhận chặng nằm trên route đó. */
+  const inScope = function(awy, lls){
+    if(!cc || !(scoped.full[awy] || []).length) return true;
+    return nmNearScoped(lls, scoped, awy);
+  };
   const only = nmResolveFleetId(flightId);
   const ids = [];
   let changed = false;
@@ -14601,7 +14683,12 @@ function nmFlashFleetNotam(n, flightId){
   }else if(!tokens.length) return;
   else Object.keys(tracks).forEach(function(id){
     const used = (tracks[id].track || []).some(function(p){
-      return !!(want[nmAwyKey(p.airway)] || want[String(p.name || "").toUpperCase()]);
+      if(want[String(p.name || "").toUpperCase()]) return true;
+      const awy = nmAwyKey(p.airway);
+      if(!want[awy]) return false;
+      const lat = Number(p.lat), lon = Number(p.lon);
+      if(!Number.isFinite(lat) || !Number.isFinite(lon)) return !cc;
+      return inScope(awy, [[lat, lon]]);
     });
     if(!used) return;
     ids.push(id);
@@ -14624,24 +14711,25 @@ function nmFlashFleetNotam(n, flightId){
       const awy = layer._nmAwy || "";
       if(!awy || !want[awy]) return;
       if(ids.length && layer._nmFid && ids.indexOf(String(layer._nmFid)) < 0) return;
+      if(!inScope(awy, nmLatLngsOf(layer))) return;
       blink.push(layer);
       seenAwy[awy] = 1;
       if(layer.getBounds) bounds.push(layer.getBounds());
     });
   }
   nmNotamFlash = L.layerGroup().addTo(nmMap);
-  if(!only) nmAtsEach(function(layer){
-    const name = nmAwyKey(layer._vnName);
-    if(!want[name] || seenAwy[name]) return;
-    const ll = nmLatLngsOf(layer);
-    if(ll.length < 2) return;
-    const copy = L.polyline(ll, {
-      color: "#c62828", weight: 5, opacity: 1,
-      pane: "nmRoute", interactive: false
+  if(!only) Object.keys(scoped.clip).forEach(function(name){
+    if(seenAwy[name]) return;
+    scoped.clip[name].forEach(function(ll){
+      if(ll.length < 2) return;
+      const copy = L.polyline(ll, {
+        color: "#c62828", weight: 5, opacity: 1,
+        pane: "nmRoute", interactive: false
+      });
+      copy.addTo(nmNotamFlash);
+      blink.push(copy);
+      if(copy.getBounds) bounds.push(copy.getBounds());
     });
-    copy.addTo(nmNotamFlash);
-    blink.push(copy);
-    if(copy.getBounds) bounds.push(copy.getBounds());
   });
   const dot = function(lat, lon){
     const mk = L.circleMarker([lat, lon], {
@@ -14722,10 +14810,13 @@ function nmFlashTrackNotam(n, keepView){
     nmNotamFlash = null;
   }
   const blink = [], bounds = [];
+  const cc = nmNotamCc(n);
+  const scoped = cc ? nmScopedAts(want, cc, null) : null;
   if(nmDrawGroup){
     nmDrawGroup.eachLayer(function(layer){
       const awy = layer._nmAwy || "";
       if(!awy || !want[awy]) return;
+      if(scoped && (scoped.full[awy] || []).length && !nmNearScoped(nmLatLngsOf(layer), scoped, awy)) return;
       blink.push(layer);
       if(layer.getBounds) bounds.push(layer.getBounds());
     });
