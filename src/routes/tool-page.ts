@@ -125,6 +125,9 @@ const SHIM = `<script>
     // scrollWidth — measure the real right edge of every element instead.
     var els = b.querySelectorAll('*');
     for (var i = 0; i < els.length; i++) {
+      // Leaflet pre-loads tiles far outside the map box; the map clips them
+      // (overflow:hidden), so they never widen the page — skip them.
+      if (els[i].closest && els[i].closest('.leaflet-container')) continue;
       var r = els[i].getBoundingClientRect();
       if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
     }
@@ -3091,7 +3094,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.49')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.50')
     .replace('</body>', () => `<style>
 body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside>.aside-head{display:none!important}
 body.nm-full .app>.body,body.nm-full .app>.body:has(#wrapNotam:not([style*="none"])){display:grid!important;grid-template-columns:minmax(0,1fr) calc(50% - 5cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px!important;gap:8px!important;box-sizing:border-box!important}
