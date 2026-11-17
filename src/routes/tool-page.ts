@@ -3095,7 +3095,11 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.51')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.52')
+    // V 6.52: Esc chỉ đóng popup / thoát toàn màn hình, không huỷ việc đang chạy (dùng nút Stop); huỷ chủ động không báo "mất kết nối".
+    .replace('    if($("#pathModal").classList.contains("open")){ $("#pathModal").classList.remove("open"); return; }\n    stopRunningJobs();', '    if($("#pathModal").classList.contains("open")){ $("#pathModal").classList.remove("open"); return; }')
+    .replace('try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){}', 'window.__userStop = true; try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){} window.__userStop = false;')
+    .replace('function write(text, cls){\n  try{', 'function write(text, cls){\n  if(window.__userStop && /mất kết nối/.test(String(text))){ text = "— đã dừng theo yêu cầu —"; cls = "sys"; }\n  try{')
     .replace('</body>', () => `<style>
 body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside>.aside-head{display:none!important}
 body.nm-full .app>.body,body.nm-full .app>.body:has(#wrapNotam:not([style*="none"])){display:grid!important;grid-template-columns:minmax(0,1fr) calc(50% - 5cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px!important;gap:8px!important;box-sizing:border-box!important}
