@@ -18,6 +18,15 @@ export function cmpAircraftChange(reg: ChangeRow['reg']): boolean {
   return !!reg?.changed && !!norm(reg.old) && !!norm(reg.new) && norm(reg.old) !== norm(reg.new);
 }
 
+/** CHG turns green once FliteBrief carries the Crewlist aircraft (fresh OFP read or live Compare match). */
+export function cmpChgFbReady(reg: { excel?: unknown; flite?: unknown } | null | undefined, newReg: unknown, freshRegOk: boolean): boolean {
+  if (freshRegOk) return true;
+  const norm = (v: unknown) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const excel = norm(reg && reg.excel), flite = norm(reg && reg.flite);
+  if (!excel || !flite || excel !== flite) return false;
+  return !norm(newReg) || norm(newReg) === excel;
+}
+
 /** REQ is driven by Crewlist changes, not FPL revisions or sync acknowledgement. */
 export function cmpReqChange(rows: ChangeRow[], id: unknown, std: unknown): ChangeRow | null {
   const row = cmpSourceChange(rows, id, std);
@@ -152,6 +161,7 @@ const cmpPilotChanges = ${cmpPilotChanges.toString()};
 const cmpCellCrewChanges = ${cmpCellCrewChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
+const cmpChgFbReady = ${cmpChgFbReady.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0, cmpSyncDiffJob = null;
 const CMP_SYNC_CHUNK = 20;
@@ -493,7 +503,14 @@ function cmpMsgPaint(r){
   if(cmpAckHas(ackKey)) return;
   const b = document.createElement("button"); b.type = "button"; b.className = "cmp-msg-quick";
   b.textContent = kind === "CHG A/C" ? "CHG" : kind;
-  b.dataset.tip = (raw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : "Crewlist đổi tàu: ") + kind + " · Bấm để soạn điện văn";
+  const bound = cmpBind[String(r.sector_id)];
+  const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
+  const newReg = (crewRow && cmpAircraftChange(crewRow.reg) && crewRow.reg.new) || (row && cmpAircraftChange(row.reg) && row.reg.new) || "";
+  const aimsEv = cmpSyncEvidence(r, "aims"), aimsChk = aimsEv ? cmpSyncChecks.get(cmpSyncKey(aimsEv)) : null;
+  const fbOk = kind.indexOf("CHG") === 0 && !(liveRow && liveRow.reg.changed) && cmpChgFbReady(g, newReg, !!(aimsChk && aimsChk.regOk));
+  if(fbOk) b.classList.add("cmp-msg-ok");
+  b.dataset.tip = (raw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : "Crewlist đổi tàu: ") + kind
+    + (fbOk ? " · FliteBrief đã lên đúng tàu Crewlist " + ((g && g.excel) || newReg) : kind.indexOf("CHG") === 0 ? " · FliteBrief chưa lên đúng tàu Crewlist" : "") + " · Bấm để soạn điện văn";
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
   b.onclick = ev => {ev.stopPropagation(); cmpAckAdd(ackKey); b.remove(); menu.value = kind; menu.onchange();};
@@ -612,6 +629,7 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-sync-action:focus-visible,.cmptbl .cmp-sync-pick:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 .cmptbl .cmp-msg-quick{display:block;margin:0 auto 4px;min-width:70px;min-height:30px;padding:4px 10px;border:0;border-radius:7px;background:var(--red);color:#fff;font:800 12px/1.3 inherit;cursor:pointer}
 .cmptbl .cmp-msg-quick:disabled{opacity:.55}
+.cmptbl .cmp-msg-quick.cmp-msg-ok{background:#16a34a;color:#fff}
 .cmptbl .cmp-sync-pick{border:0;background:transparent;color:var(--text);font-size:18px;padding:4px;cursor:pointer;vertical-align:middle}
 </style></head>`);
 }
