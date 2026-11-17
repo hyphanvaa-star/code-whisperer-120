@@ -134,6 +134,8 @@ function notRouteToken(t: string, src: string, i: number): boolean {
   const before = src.slice(Math.max(0, i - 60), i);
   if (NOT_ROUTE_AFTER.test(after) || GROUND_BEFORE.test(before)) return true;
   if (/^\/\d{2}\b/.test(after)) return true; // NOTAM/SUP references A3194/26, H12/26
+  // Restricted/danger/prohibited area designators "VT D30W", "VV R16", "WS(D)-44" are areas, not airways.
+  if (/^[DRPW]\d/.test(t) && /(?:^|[^A-Z])(?!(?:TO|ON|OF|IN|AT|BY|OR|FM|BE|IS|IF|NO|UP|SO|AS)\b)[A-Z]{2}\s*[-/]?\(?\s*$/.test(before)) return true;
   if (/^[NSEW]\d/.test(t) && (/^\s*[.,]?\d/.test(after) || /[NS]\d{2,6}(?:\.\d+)?\s*$/.test(before) || (/^[NS]/.test(t) && /^\s*[EW]\d/.test(after)))) return true;
   if (ACFT_TYPES.has(t) && !/^\s*-/.test(after) && !/-\s*$/.test(before)) return true;
   return false;

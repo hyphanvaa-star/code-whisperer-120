@@ -8,6 +8,7 @@ import RU from "../data/aip_enr_ru.json";
 import JP from "../data/aip_enr_jp.json";
 import IN from "../data/aip_enr_in.json";
 import SG from "../data/aip_enr_sg.json";
+import TH from "../data/aip_enr_th.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
@@ -24,7 +25,9 @@ const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as R
   // India ENR 5.2 TRA/TSA + ENR 5.3 balloon areas (scripts/gen_aip_enr_in.py); border-following areas skipped.
   ...(IN.areas as unknown as Record<string, VerifiedArea>),
   // Singapore ENR 5.1/5.2/5.3 incl. sub-areas (WSD11A/B) and WM areas published in AIP Singapore (scripts/gen_aip_enr_sg.py).
-  ...(SG.areas as unknown as Record<string, VerifiedArea>) };
+  ...(SG.areas as unknown as Record<string, VerifiedArea>),
+  // Thailand ENR 5.1/5.2/5.3 incl. sub-areas (VTD30W1/2, VTD341) (scripts/gen_aip_enr_th.py).
+  ...(TH.areas as unknown as Record<string, VerifiedArea>) };
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
   ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
@@ -61,6 +64,17 @@ export function namedEnrIds(text: string, fir = ""): string[] {
     if (kind === "W" && country !== "RJ") continue;
     if (!matchesFir(country, region)) continue;
     out.add(`${country}${kind}${m[3]}`);
+  }
+  // Thailand "VT D30W AREA 2", "VTD64 (SOUTH AREA)": a named sub-area replaces its parent.
+  if (/^VT/.test(region)) {
+    for (const m of blob.matchAll(/\bVT\s*[-/]?\(?\s*([DPR])\s*\)?\s*-?\s*(\d{1,3})\s*([A-Z]?)(?![A-Z0-9])(?:\s*[,(]?\s*(?:SUB-?)?AREA\s*(\d{1,2})\b|\s*\(?\s*(NORTH|SOUTH)\s+AREA)?/g)) {
+      const k = m[1]!, num = m[2]!, suf = m[3] || "", sub = m[4] || (m[5] ? m[5][0] : "");
+      const bases = [`VT${k}${num}${suf}`, `VT${k}${num}`].filter((b, i, a) => a.indexOf(b) === i);
+      const subKey = sub ? bases.map((b) => b + sub).find((x) => AREAS[x] || RINGS[x]) : undefined;
+      if (subKey) { for (const b of bases) out.delete(b); out.add(subKey); continue; }
+      const base = bases.find((b) => AREAS[b] || RINGS[b]);
+      if (base) { for (const b of bases) if (b !== base) out.delete(b); out.add(base); }
+    }
   }
   // Czech TRA/TSA: "LKTRA35", "LKTSA 21", "TSA21" inside LKAA.
   if (!region || region.startsWith("LK")) {

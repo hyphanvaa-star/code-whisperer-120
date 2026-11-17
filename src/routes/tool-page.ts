@@ -3095,7 +3095,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.52')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.53')
+    // V 6.53: nạp đủ vùng ENR 5.1 Thái Lan kể cả tiểu khu (VT D30W AREA 1/2); mã vùng nguy hiểm không còn bị đọc nhầm thành ATS route.
     // V 6.52: Esc chỉ đóng popup / thoát toàn màn hình, không huỷ việc đang chạy (dùng nút Stop); huỷ chủ động không báo "mất kết nối".
     .replace('    if($("#pathModal").classList.contains("open")){ $("#pathModal").classList.remove("open"); return; }\n    stopRunningJobs();', '    if($("#pathModal").classList.contains("open")){ $("#pathModal").classList.remove("open"); return; }')
     .replace('try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){}', 'window.__userStop = true; try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){} window.__userStop = false;')
