@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.6"
+VERSION = "6.7"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -610,11 +610,37 @@ def do_gd_print(payload: dict, say) -> dict:
 # Các lệnh khác
 # --------------------------------------------------------------------------- #
 
+MEL_NAME = re.compile(r"^VNA\d{3}\.pdf$", re.I)
+
+
+def prune_old_mel(folder: Path, keep: list, say) -> list:
+    """Tách MEL mới: xoá VNAxxx.pdf cũ trong folder (không đệ quy) không có trong bộ mới."""
+    want = {k.upper() for k in keep}
+    removed = []
+    try:
+        entries = list(folder.iterdir())
+    except OSError:
+        return removed
+    for fp in entries:
+        try:
+            if fp.is_file() and MEL_NAME.match(fp.name) and fp.name.upper() not in want:
+                fp.unlink()
+                removed.append(fp.name)
+        except OSError as exc:
+            say(f"! không xoá được MEL cũ {fp.name}: {exc}")
+    if removed:
+        say(f"· đã xoá {len(removed)} MEL cũ trong {folder}")
+    return removed
+
+
 def do_save_file(payload: dict, say) -> dict:
     d = _fix_drive(str(payload.get("dir") or "D:/"))
     name = str(payload.get("name") or "file.bin")
     raw = base64.b64decode(str(payload.get("data_b64") or ""))
     d.mkdir(parents=True, exist_ok=True)
+    keep = payload.get("prune_mel_keep")
+    if isinstance(keep, list):
+        prune_old_mel(d, [str(k) for k in keep], say)
     path = d / name
     path.write_bytes(raw)
     say(f"· đã ghi {path} ({len(raw):,} bytes)")

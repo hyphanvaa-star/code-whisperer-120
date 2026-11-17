@@ -28354,6 +28354,8 @@ $("#splitPdfFile").onchange = async e => {
     if(!d) throw lastErr || new Error("Không gửi được");
     if(d.error) throw new Error(d.error);
     const bad = new Set((d.failed || []).map(x => x.name));
+    // Bộ MEL mới thay hẳn bộ cũ: chỉ còn các tàu vừa tách được.
+    if((d.saved || []).length) regPdfAvail.clear();
     for(const x of info){
       if(bad.has(x.fname)) continue;
       regPdfAvail.add(x.code.replace(/-/g, "").toUpperCase());
@@ -28361,7 +28363,8 @@ $("#splitPdfFile").onchange = async e => {
     const ok = info.length - bad.size;
     write("✂ Tách xong 1 lần: " + ok + "/" + info.length + " tàu bay", bad.size ? "fail" : "ok");
     for(const x of d.failed || []) write("  ✗ " + x.name + ": " + x.error, "fail");
-    if(d.pc_dir) write("💾 Trợ lý PC đang chép " + info.length + " file vào " + d.pc_dir, "ok");
+    if((d.removed || []).length) write("🗑 Đã xoá " + d.removed.length + " MEL cũ trên máy chủ: " + d.removed.join(", "), "hint");
+    if(d.pc_dir) write("💾 Trợ lý PC đang xoá MEL cũ và chép " + info.length + " file mới vào " + d.pc_dir + " (cần Trợ lý PC bản 6.7 để tự xoá file cũ)", "ok");
     else write("⚠ Trợ lý PC chưa bật — chưa chép được vào D:\\MEL (web vẫn dùng được file)", "hint");
   }catch(err){
     write("✗ Lỗi: " + err.message, "fail");

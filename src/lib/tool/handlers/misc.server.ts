@@ -54,11 +54,20 @@ export const routes: Routes = {
     out.sort((a, b2) => (b2.updated || "").localeCompare(a.updated || ""));
     return { files: out };
   },
-  // Mở web: dọn file khai thác của các phiên trước chỉ file của chính user, sau khi offline quá 1 giờ.
+  // Tab đang mở báo "còn online" mỗi 5 phút — máy chủ tự biết user có thật sự offline hay chỉ reload.
+  "POST /api/files/alive": async (ctx) => {
+    await stampAlive(ctx, Date.now());
+    return { ok: true };
+  },
+  // Mở web: dọn file khai thác của các phiên trước chỉ file của chính user, sau khi offline quá 1 giờ
+  // (máy chủ không thấy tab nào của user quá 1 giờ). Reload/Ctrl+Shift+R khi đang online không xoá gì.
   "POST /api/files/session-cleanup": async (ctx) => {
-    const b = await fileAdmin(ctx);
-    const { staleOnOpen, SESSION_TOPS } = await import("../port/file_retention");
+    const { staleOnOpen, SESSION_TOPS, offlineLongEnough } = await import("../port/file_retention");
     const now = Date.now();
+    const last = await readAlive(ctx);
+    await stampAlive(ctx, now);
+    if (!offlineLongEnough(last, now)) return { ok: true, removed: 0, online: true };
+    const b = await fileAdmin(ctx);
     const owners = await fileOwners();
     const doomed: string[] = [];
     const queue = [...SESSION_TOPS];
@@ -315,3 +324,14 @@ export const routes: Routes = {
 };
 
 export const jobs: Jobs = {};
+
+const aliveKey = (ctx: { userId: string }) => `files.alive@u:${ctx.userId}`;
+async function readAlive(ctx: Parameters<Routes[string]>[0]): Promise<number | null> {
+  const { data } = await ctx.supabase.from("app_settings").select("value").eq("key", aliveKey(ctx)).maybeSingle();
+  const at = Number((data?.value as { at?: unknown } | null)?.at);
+  return Number.isFinite(at) && at > 0 ? at : null;
+}
+async function stampAlive(ctx: Parameters<Routes[string]>[0], at: number): Promise<void> {
+  // Direct upsert (not setJson): a presence stamp must not fill the admin change history.
+  await ctx.supabase.from("app_settings").upsert({ key: aliveKey(ctx), value: { at } as never, updated_by: ctx.userId, updated_at: new Date(at).toISOString() });
+}

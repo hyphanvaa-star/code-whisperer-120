@@ -286,6 +286,7 @@
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
 
-;(function(){ try{ var K="filesAlive", last=+localStorage.getItem(K)||0, beat=function(){localStorage.setItem(K,String(Date.now()));};
-  beat(); setInterval(beat,30000); if(last && Date.now()-last<3600000)return;
-  setTimeout(function(){ fetch("/api/files/session-cleanup",{method:"POST",cache:"no-store"}).catch(function(){}); },3000); }catch(e){} })();
+;(function(){ try{
+  // Máy chủ tự xét offline: cleanup chỉ xoá khi không thấy tab nào của user quá 1 giờ; tab mở báo online mỗi 5 phút.
+  var beat=function(){ fetch("/api/files/alive",{method:"POST",cache:"no-store"}).catch(function(){}); };
+  setTimeout(function(){ fetch("/api/files/session-cleanup",{method:"POST",cache:"no-store"}).catch(function(){}).then(function(){ setInterval(beat,5*60000); }); },3000); }catch(e){} })();

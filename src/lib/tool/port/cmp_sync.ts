@@ -107,6 +107,30 @@ export function cmpCellCrewChanges(excelRaw: unknown, detail: unknown) {
   return pilots.map((p, i) => ({key: p.key, from: pair ? extra[i] || '' : '', to: p.id}));
 }
 
+/** Plain-language result of a FliteBrief aircraft/crew swap job, built from its streamed log lines.
+ *  Lists what was done and why each failed step failed, so a partial update is never reported as one vague error. */
+export function cmpSwapReport(lines: Array<{ text?: unknown; cls?: unknown }>, ended: boolean): string {
+  const done: string[] = [], bad: string[] = [];
+  const name = (t: string) => t.replace(/\s+\(.*\)\s*$/, '').trim();
+  for (const l of lines) {
+    const t = String((l && l.text) || '').trim();
+    let m: RegExpExecArray | null;
+    if ((m = /^✓ đã xoá\s+(.+)$/.exec(t))) done.push('✓ Đã xoá: ' + name(m[1] || ''));
+    else if ((m = /^✓ đã thêm\s+(.+)$/.exec(t))) done.push('✓ Đã thêm: ' + name(m[1] || ''));
+    else if ((m = /^· (.+): chuyến đã có file này$/.exec(t))) done.push('✓ Đã có sẵn: ' + m[1]);
+    else if ((m = /^! thiếu file "(.+?)"/.exec(t)) || (m = /^✗ thêm (.+?): thiếu file/.exec(t)))
+      bad.push('✗ Chưa thêm được: ' + m[1] + ' — thiếu file trong kho MEL/notice (bấm ✂ Tách MEL lại hoặc tải file lên rồi thử)');
+    else if (/^✗ tài khoản không có quyền XOÁ/i.test(t)) bad.push('✗ Tài khoản FliteBrief không có quyền xoá file cũ — chưa đổi gì');
+    else if (/^✗ tài khoản không có quyền đính kèm/i.test(t)) bad.push('✗ Tài khoản FliteBrief không có quyền đính kèm file — chưa đổi gì');
+    else if ((m = /^✗ không xoá được (.+)$/.exec(t))) bad.push('✗ Chưa xoá được: ' + m[1] + ' (FliteBrief từ chối xoá)');
+    else if ((m = /^✗ thêm (.+?): (.*)$/.exec(t))) bad.push('✗ Chưa thêm được: ' + m[1] + ' — FliteBrief báo: ' + (m[2] || 'lỗi không rõ'));
+    else if (/^✗ /.test(t) && !/^✗ xoá /.test(t)) bad.push(t);
+  }
+  if (!ended) bad.push('✗ Mất kết nối khi đang cập nhật — kiểm tra lại FliteBrief trước khi bấm lại');
+  if (!bad.length) bad.push('✗ FliteBrief chưa xác nhận xong — kiểm tra lại chuyến trên FliteBrief');
+  return [...done, ...bad].join('\n');
+}
+
 export function patchCmpSyncPage(html: string): string {
   return html.replace(/async function applyFplVer\(ver\)\{[\s\S]*?(?=\nfunction setOwaState)/, `async function applyFplVer(ver){
   const old = String(ver && ver.old || ""), neu = String(ver && ver.new || "");
@@ -175,6 +199,16 @@ const cmpReqChange = ${cmpReqChange.toString()};
 const cmpChgFbReady = ${cmpChgFbReady.toString()};
 const cmpAttachMismatch = ${cmpAttachMismatch.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
+const cmpSwapReport = ${cmpSwapReport.toString()};
+function cmpSwapStream(id){
+  return new Promise(resolve => {
+    const lines = [], es = new EventSource("/api/stream?id=" + id);
+    es.onmessage = ev => { try{ const m = JSON.parse(ev.data);
+      if(m.type === "line") lines.push(m);
+      if(m.type === "end"){ es.close(); resolve({complete: !m.failed && !m.error, ended: true, lines}); } }catch(_){} };
+    es.onerror = () => { es.close(); resolve({complete: false, ended: false, lines}); };
+  });
+}
 let cmpSyncSources = {stamp:"", crew:[], fpl:[]}, cmpSyncBusy = false, cmpSyncSeq = 0, cmpSyncDiffJob = null;
 const CMP_SYNC_CHUNK = 20;
 function cmpSourceTip(kind){
@@ -558,8 +592,8 @@ async function cmpSyncOpen(r, kind){
     if(await cmpSyncCheck(e)) return;
     const run = await fetch(base + "/run",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)});
     const job = await run.json(); if(!run.ok || job.error || !job.id) throw new Error(job.error || "Không gửi được thay đổi.");
-    const complete = await ftStream(job.id); await cmpSyncCheck(e);
-    if(!complete) throw new Error("Chưa cập nhật xong — xem nhật ký.");
+    const run2 = await cmpSwapStream(job.id); await cmpSyncCheck(e);
+    if(!run2.complete) throw new Error(e.f.callsign + " — chưa cập nhật xong:\\n" + cmpSwapReport(run2.lines, run2.ended));
     if(!cmpSyncChecks.get(cmpSyncKey(e)).ok) alert(kind === "crew" ? "Đã xử lý; FliteBrief chưa khớp crew mới." : "Đã xử lý; file tàu trên FliteBrief chưa khớp tàu mới.");
   }catch(error){alert(error.message || "Không cập nhật được.");}
   finally{cmpSyncBusy=false;cmpSyncRepaint();}

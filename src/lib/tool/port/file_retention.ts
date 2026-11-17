@@ -11,12 +11,24 @@ export function shouldDelete(path: string, updated: number, now: number): boolea
   const top = path.split("/")[0];
   if (top === "excel") return updated < vnYesterdayStart(now); // keep yesterday/today/tomorrow
   if (top === "atc" || top === "merged" || top === "briefing") return now - updated > 2 * H; // exports: after use
-  if (top === "regnotice" || top === "notices-tmp") return now - updated > 12 * H; // session PDFs
+  if (top === "regnotice") return now - updated > 24 * H; // MEL: replaced by the next split; 24 h is only a safety net
+  if (top === "notices-tmp") return now - updated > 12 * H; // session PDFs
   return false; // pibwx has own cleanup; notices/ is the admin shared library
 }
 /** Operational folders that only live for the current working session. */
 export const SESSION_TOPS = ["excel", "atc", "merged", "briefing", "regnotice", "notices-tmp", "pibwx"];
-/** On web open: drop operational files from earlier sessions (older than `graceMs`, default 1 h offline). */
+/** On web open: drop operational files from earlier sessions (older than `graceMs`, default 1 h offline).
+ *  Split MEL files (regnotice/) stay until the next split replaces them. */
 export function staleOnOpen(path: string, updated: number, now: number, graceMs = 60 * 60_000): boolean {
-  return SESSION_TOPS.includes(path.split("/")[0]) && now - updated > graceMs;
+  const top = path.split("/")[0];
+  return top !== "regnotice" && SESSION_TOPS.includes(top) && now - updated > graceMs;
+}
+/** Offline means the server saw no open tab of this user for longer than `graceMs` (reloads keep files). */
+export function offlineLongEnough(lastAlive: number | null | undefined, now: number, graceMs = 60 * 60_000): boolean {
+  return !lastAlive || !Number.isFinite(lastAlive) || now - lastAlive > graceMs;
+}
+/** MEL files a new split makes obsolete: every per-aircraft file not in the new set. */
+export function staleMelFiles(existing: string[], fresh: string[]): string[] {
+  const keep = new Set(fresh.map((n) => n.toUpperCase()));
+  return existing.filter((n) => /^VNA\d{3}\.pdf$/i.test(n) && !keep.has(n.toUpperCase()));
 }

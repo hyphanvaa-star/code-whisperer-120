@@ -162,12 +162,14 @@ export const routes: Routes = {
         } catch (e) { failed.push({ name: fname, error: (e as Error).message }); }
       }));
     }
+    // Tách MEL mới thay hẳn bộ cũ: xoá mọi file tàu không có trong lần tách này (cả trên máy chủ lẫn folder máy).
+    const removed = saved.length ? await pruneOldMel(ctx, saved) : [];
     let pc_dir: string | null = null;
     try {
       const { queueFilesToPc } = await import("./pc.server");
-      pc_dir = await queueFilesToPc(ctx, "mel", local);
+      pc_dir = await queueFilesToPc(ctx, "mel", local, { pruneMel: true });
     } catch { pc_dir = null; }
-    return { ok: true, saved, failed, pc_dir };
+    return { ok: true, saved, failed, pc_dir, removed };
   },
 
   // web.py split_regnotice_pdf: split a combined PDF by "Status of VN-Axxx" page headers.
@@ -205,12 +207,23 @@ export const routes: Routes = {
         await store.putFile(ctx, `${regDir(ctx)}/${fname}`, bytes, "application/pdf");
         results.push({ code, file: fname, pages: pages.length });
       }
-      return { total: results.length, output_dir: "MEL của bạn (lưu riêng)", files: results };
+      const removed = results.length ? await pruneOldMel(ctx, results.map((r) => r.file)) : [];
+      return { total: results.length, output_dir: "MEL của bạn (lưu riêng)", files: results, removed };
     } catch (e) {
       return { error: `${e instanceof Error ? e.constructor.name : "Error"}: ${e instanceof Error ? e.message : String(e)}` };
     }
   },
 };
+
+/** Delete this user's MEL files that the new split did not produce; returns removed names. */
+async function pruneOldMel(ctx: Parameters<Routes[string]>[0], fresh: string[]): Promise<string[]> {
+  const { staleMelFiles } = await import("../port/file_retention");
+  const existing = (await store.listFiles(ctx, regDir(ctx)).catch(() => [] as Array<{ name: string }>)).map((e) => e.name);
+  const doomed = staleMelFiles(existing, fresh);
+  if (!doomed.length) return [];
+  await store.removeFiles(ctx, doomed.map((n) => `${regDir(ctx)}/${n}`));
+  return doomed;
+}
 
 /** Upload a PDF to FliteBrief's notice store and attach it to a sector.
  *  Shared by briefing_attach above and briefswap.server.ts's swap job. */
