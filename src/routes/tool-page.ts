@@ -45,18 +45,10 @@ import { assessedVerdict } from '@/lib/tool/port/notam_summary';
 const SHIM = `<script>
 (function(){
   window.__WEB_AUTH = true;
-  // Tự co giao diện theo độ rộng màn hình (màn hình nhỏ / Windows scale 125–150%).
-  (function(){
-    var BASE = 1800;
-    function fit(){
-      var w = window.innerWidth || BASE;
-      var z = Math.max(0.67, Math.min(1, w / BASE));
-      document.documentElement.style.zoom = z < 0.99 ? String(z) : "";
-      document.documentElement.style.setProperty('--taf-read-scale', String(z < 0.99 ? 1 / z : 1));
-    }
-    fit();
-    window.addEventListener("resize", fit);
-  })();
+  // Desktop zoom is handled once by fit() below; a second fixed-width
+  // html zoom compounded with it and left a grey band under 100vh layouts.
+  document.documentElement.style.zoom = '';
+  document.documentElement.style.setProperty('--taf-read-scale', '1');
   if (window.parent === window) { location.replace('/tool'); return; }
   function tok(){ try { return window.parent.__fbToken ? window.parent.__fbToken() : null; } catch(e){ return null; } }
   function isApi(u){ return typeof u === 'string' && (u.indexOf('/api/') === 0 || u.indexOf(location.origin + '/api/') === 0); }
@@ -116,6 +108,15 @@ const SHIM = `<script>
   // is measured from the real content (not assumed), so late-loading fonts
   // or images cannot push buttons off-screen.
   var BASE_W = 1440;
+  // Content inside a scrolling/clipping box (wide tables, panels) scrolls
+  // there and never widens the page, so it must not trigger page zoom.
+  function clipped(el){
+    for (var p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+      var ox = getComputedStyle(p).overflowX;
+      if (ox && ox !== 'visible') return true;
+    }
+    return false;
+  }
   function fit(){
     var de = document.documentElement, b = document.body;
     if (!b) return;
@@ -129,7 +130,7 @@ const SHIM = `<script>
       // (overflow:hidden), so they never widen the page — skip them.
       if (els[i].closest && els[i].closest('.leaflet-container')) continue;
       var r = els[i].getBoundingClientRect();
-      if (r.width > 0 && r.width < 4000 && r.right > need) need = r.right;
+      if (r.width > 0 && r.width < 4000 && r.right > need && !clipped(els[i])) need = r.right;
     }
     var z = Math.min(1, window.innerWidth / need);
     // Điện thoại: không thu nhỏ quá mức đọc được — giữ sàn zoom và cho
@@ -3094,7 +3095,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.50')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.51')
     .replace('</body>', () => `<style>
 body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside>.aside-head{display:none!important}
 body.nm-full .app>.body,body.nm-full .app>.body:has(#wrapNotam:not([style*="none"])){display:grid!important;grid-template-columns:minmax(0,1fr) calc(50% - 5cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px!important;gap:8px!important;box-sizing:border-box!important}
