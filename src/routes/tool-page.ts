@@ -319,7 +319,7 @@ const SHIM = `<script>
             if(!cs||!String(cs.value||'').trim()){ e.preventDefault(); e.stopPropagation(); t.checked=false; }
           }
         },true);
-        ['hoAllAtc','hoAllEzfw','hoAllAtfm','hoAllEdto'].forEach(function(id){
+        ['hoAllAtc','hoAllEzfw','hoAllAtfm','hoAllEdto','hoAllPib','hoAllWx'].forEach(function(id){
           var el=document.getElementById(id);
           if(el)el.addEventListener('click',function(){ setTimeout(hoGuardBlanks,0); });
         });
@@ -3101,7 +3101,14 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.69')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.70')
+    // V 6.70: Giao ca thêm cột PIB / WX, tự tích khi chuyến đã có file PIB / WX.
+    .replace('<th class="ho-mark">EDTO<label class="ho-tick"><input type="checkbox" id="hoAllEdto" title="Tích cả cột EDTO"></label></th>', () => '<th class="ho-mark">EDTO<label class="ho-tick"><input type="checkbox" id="hoAllEdto" title="Tích cả cột EDTO"></label></th><th class="ho-mark">PIB<label class="ho-tick"><input type="checkbox" id="hoAllPib" title="Tích cả cột PIB"></label></th><th class="ho-mark">WX<label class="ho-tick"><input type="checkbox" id="hoAllWx" title="Tích cả cột WX"></label></th>')
+    .replace('const HO_TICKS = ["atc", "ezfw", "atfm", "edto"];', () => 'const HO_TICKS = ["atc", "ezfw", "atfm", "edto", "pib", "wx"];')
+    .replace('      edto: tick("edto"),', () => '      edto: tick("edto"),\n      pib: tick("pib"),\n      wx: tick("wx"),')
+    .replace('    edto: hit.edto || "",', () => '    edto: hit.edto || "",\n    pib: hit.pib || (f.has_pib ? "✓" : ""),\n    wx: hit.wx || (f.has_wx ? "✓" : ""),')
+    .replace('  hoSetMarkCell(tr, 10, "atfm", na);', () => '  hoSetMarkCell(tr, 10, "atfm", na);\n  ["pib","wx"].forEach(function(k){ const b = tr.querySelector(\'input[data-ho="\' + k + \'"]\'); if(b && f["has_" + k]) b.checked = true; });')
+    .replace('["hoAllEdto","edto"]]', () => '["hoAllEdto","edto"],["hoAllPib","pib"],["hoAllWx","wx"]]')
     // V 6.69: Extra fuel (TAF sân đến) chỉnh được trong ⚙ Filter setting — admin cho team, người khác bản riêng.
     .replace('<div class="nm-assess-btns"><button type="button" class="btn t-undo" data-act="reset">Về mặc định</button>', () => '<div class="nm-assess-btns"><button type="button" class="btn t-undo" onclick="exFuelCfgOpen()">⛽ Extra fuel</button><button type="button" class="btn t-undo" data-act="reset">Về mặc định</button>')
     .replace('</body>', () => EXTRA_CFG_JS + '</body>')
