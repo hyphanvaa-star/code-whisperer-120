@@ -23912,7 +23912,7 @@ function dropStaleOfpCache(){
 const NUM = n => (n === null || n === undefined) ? "—" : Number(n).toLocaleString("en-US");
 
 const W_LABEL = {
-  OVER: "VƯỢT", AT_LIMIT: "CHẠM", MARGIN: "MARGIN", OK: "", NA: "",
+  OVER: "VIOLATION", AT_LIMIT: "VIOLATION", MARGIN: "MARGIN", OK: "", NA: "",
 };
 
 async function fillWeights(rows, force){
@@ -24195,8 +24195,8 @@ function paintWeight(sid, w, why){
       td.appendChild(mk("span", "v q", "—"));
     }else if(st && st !== "OK"){
       const cls = st === "MARGIN" ? "warn" : "bad";
-      const txt = st === "MARGIN" ? "MARGIN · còn " + NUM(margin)
-        : (st === "AT_LIMIT" ? "CHẠM " + name : "VƯỢT " + name + " " + NUM(-margin));
+      // Nhãn gọn: vàng = "Margin", đỏ = "Violation". Chi tiết nằm trong tooltip hover.
+      const txt = st === "MARGIN" ? "Margin" : "Violation";
       td.appendChild(mk("span", "vd " + cls, txt));
     }
     td.title = name + " " + NUM(val) + " / M" + name + " " + NUM(max)
