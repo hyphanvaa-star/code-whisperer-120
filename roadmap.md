@@ -2,6 +2,7 @@
 
 - [x] V 6.55: NOTAM ATS route (W8 VVHM) chỉ tô route trùng tên trong quốc gia của FIR phát hành và cắt đúng đoạn (PQU - TUNPO); thử bằng mẫu đạt. Chưa publish.
 - [x] V 6.56: NOTAM nhắc đoạn route (A - B) chỉ tô đúng đoạn, cả trên chặng bay
+- [x] V 6.57: NOTAM WIIF nhắc vùng WS(D) Singapore vẽ được, bỏ nhãn UNIDENTIFIED
 - [x] V 6.27: NOTAM liệt kê ATS route (ROUTES L642, N892…) so với route FPL — không bay thì NO IMPACT; NOTAM đường bay/flow control không còn nhãn UNIDENTIFIED AREA; 5 kiểm thử mới, 728 kiểm thử đạt. Chưa publish.
 - [x] V 6.29: NOTAM có toạ độ điểm ở mục E (điểm thả bóng…) được đo khoảng cách tới route; xa thì NO IMPACT, không còn nhãn UNIDENTIFIED AREA. Chưa publish.
 

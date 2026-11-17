@@ -3095,7 +3095,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.56')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.57')
+    // V 6.57: NOTAM FIR WIIF nhắc vùng Singapore WS(D)-14/44 nhận đúng ranh giới AIP Singapore, không còn UNIDENTIFIED AREA.
     // V 6.56: NOTAM nhắc đoạn route (A - B) chỉ tô đúng đoạn đó, cả trên chặng bay của chuyến (không tô tới SGN).
     // V 6.55: NOTAM ATS route chỉ tô route trùng tên trong quốc gia của FIR phát hành, cắt đúng đoạn (A - B) nếu có.
     // V 6.54: NOTAM núi lửa: một điểm toạ độ → vòng đệm 10 NM; nhiều toạ độ nối nhau → vẽ đủ đa giác.

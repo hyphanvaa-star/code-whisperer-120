@@ -46,8 +46,9 @@ function matchesFir(country: string, region: string): boolean {
   if (!region) return true;
   if (country === "RJ") return /^(RJ|RO)/.test(region);
   if (/^W[ABIM]$/.test(country)) return /^(WI|WA)/.test(country) ? /^(WI|WA)/.test(region) : /^(WM|WB|WS)/.test(region);
-  // AIP Singapore publishes Malaysian areas inside WSJC; Singapore areas are cited in WMFC NOTAMs.
-  if (country === "WS") return /^(WS|WM)/.test(region);
+  // AIP Singapore publishes Malaysian areas inside WSJC; Singapore areas are cited in WMFC NOTAMs,
+  // and Jakarta FIR (WIIF) NOTAMs activate Singapore danger areas over the Riau islands (WS(D)-14/44).
+  if (country === "WS") return /^(WS|WM|WI)/.test(region);
   if (/^V[AEIO]$/.test(country)) return /^(VA|VE|VI|VO)/.test(region);
   // Russian area prefixes are subregions that span several FIR codes (UN* also covers UIII…).
   if (RU_PREFIX.test(country)) return RU_FIR.test(region);

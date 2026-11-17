@@ -28,4 +28,9 @@ describe("Singapore ENR 5 areas", () => {
   it("never draws areas whose boundary follows another airspace", () => {
     expect(enrIdsInText("RESTRICTED AREA WSR6 ACT", "WSJC")).toEqual([]);
   });
+  it("resolves Singapore danger areas cited by Jakarta FIR NOTAMs (A4288/26, A4290/26)", () => {
+    expect(enrIdsInText("E)DANGER AREA WS(D)-14 ACT.", "WIIF")).toEqual(["WSD14"]);
+    expect(enrIdsInText("E)DANGER AREA WS(D)-44 ACT", "WIIF")).toEqual(["WSD44"]);
+    expect(enrRing("WSD14").length).toBeGreaterThanOrEqual(3);
+  });
 });
