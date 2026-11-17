@@ -3095,7 +3095,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.59')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.60')
+    // V 6.60: cột Validation chỉ ghi Margin/Violation, chi tiết xem khi hover.
     // V 6.59: Flight Supervisor CHG chuyển xanh lá khi FliteBrief đã lên đúng tàu theo Crewlist.
     // V 6.58: nhãn trọng lượng gọn — vàng chỉ ghi "Margin", đỏ chỉ ghi "Violation"; chi tiết xem khi hover.
     // V 6.57: NOTAM FIR WIIF nhắc vùng Singapore WS(D)-14/44 nhận đúng ranh giới AIP Singapore, không còn UNIDENTIFIED AREA.

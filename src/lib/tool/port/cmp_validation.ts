@@ -428,21 +428,12 @@ function cmpValPaint(sid){
   td.innerHTML = "";
   const head = document.createElement("div");
   head.className = "cmp-val-head";
-  head.textContent = v === "good" ? "Good" : v === "bad" ? "Cảnh báo đỏ" : v === "warn" ? "Tiệm cận" : "Chờ dữ liệu";
+  // Compact verdict: yellow reads only "Margin", red only "Violation"; per-item detail lives in the hover tip.
+  head.textContent = v === "good" ? "Good" : v === "bad" ? "Violation" : v === "warn" ? "Margin" : "Chờ dữ liệu";
   td.appendChild(head);
-  for(const i of items) if(i.level === "bad" || i.level === "warn"){
-    const line = document.createElement("div");
-    line.className = "cmp-val-line " + i.level;
-    const parts = String(i.text).split("\\n");
-    let first = parts[0];
-    if(!first.toUpperCase().startsWith(i.label.split("/")[0])) first = i.label + ": " + first;
-    const room = /còn\\s+(-?[\\d,]+)/.exec(parts.slice(0, 3).join(" "));
-    line.textContent = first + (room ? " · còn " + room[1] : "");
-    td.appendChild(line);
-  }
   td.removeAttribute("title");
   const escV = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  const tagTxt = {ok:"OK", warn:"Tiệm cận", bad:"Sai", pending:"Chưa có"};
+  const tagTxt = {ok:"OK", warn:"Margin", bad:"Violation", pending:"Chưa có"};
   td.dataset.ctipW = "1";
   const symbols = {FUEL:"⛽",TOW:"↗",LWT:"↘",ZFW:"⚖","CONT/ERA":"⛨",ETP:"⌖","CI/TAXI":"⚙"};
   td.dataset.ctip = '<div class="cmp-validation-flight">' + escV(td.dataset.cmpValCallsign || "") + '</div><div class="cmp-tip-h">Validation</div><div class="cmp-vs-grid">' + items.map((i, index) => {
