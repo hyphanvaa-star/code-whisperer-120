@@ -202,7 +202,7 @@ describe("Original NOTAM verdict parity", () => {
     );
     expect(texts).toEqual([1]);
     if (!("fleet_verdict" in result)) throw new Error("missing fleet verdict");
-    expect(result.fleet_verdict.sections).toHaveLength(8);
+    expect(result.fleet_verdict.sections).toHaveLength(9);
     expect(result.fleet_verdict.risk).toBe(0);
   });
 });

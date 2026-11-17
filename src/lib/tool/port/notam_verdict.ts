@@ -15,6 +15,8 @@ import {
   rwyRoleOf,
   sidStarHitsOf,
 } from "./notam_check_tune";
+import { parseNotamWhen } from "./notam_check";
+import { isVipMovement, vipLabel, vipOverlaps } from "./notam_vip";
 
 type N = Record<string, unknown>;
 export type VerdictRow = {
@@ -152,6 +154,7 @@ export function classifyEffect(n: N, p: N = {}): string[] {
     )
   )
     tags.push("rffs");
+  if (["", "A", "APT"].includes(kind) && isVipMovement(b)) tags.push("vip");
   if (
     !tags.some((t) => ["ad_closed", "rwy_closed", "fire", "restrict", "route"].includes(t)) &&
     [
@@ -256,10 +259,11 @@ const row = (label: string, value: string, ident = value, icao = label): Verdict
   icao: icao.toUpperCase(),
   hit: true,
 });
-const ORDER = ["ad", "rwy", "area", "ats", "sidstar", "gps", "rffs", "note"];
+const ORDER = ["ad", "rwy", "vip", "area", "ats", "sidstar", "gps", "rffs", "note"];
 const TITLES = [
   "Sân bay",
   "Đường băng (RWY)",
+  "VIP MOV · Extra fuel holding",
   "Vùng hạn chế",
   "ATS Route",
   "SID / STAR",
@@ -272,7 +276,11 @@ const answer = (key: string, yes: boolean) =>
     ? `${yes ? "có" : "không có"} đóng cửa sân bay`
     : key === "rwy"
       ? `${yes ? "có" : "không có"} đóng cửa rwy`
-      : `${yes ? "có" : "không"} ảnh hưởng`;
+      : key === "vip"
+        ? yes
+          ? "chuyến đáp trong giờ VIP — cần extra fuel holding"
+          : "không có chuyến đáp trong giờ VIP"
+        : `${yes ? "có" : "không"} ảnh hưởng`;
 function uniq(rows: VerdictRow[]): VerdictRow[] {
   const seen = new Set<string>();
   return rows.filter((r) => {
@@ -318,6 +326,15 @@ export function verdictOf(
         !bcOk(n, ...placeWindow(p, ctx))
       )
         tags = tags.filter((t) => !["gps", "rffs", "note"].includes(t));
+      // VIP MOV: only arrivals landing inside B)–C) ± margin need holding fuel.
+      let vipAt = "";
+      if (tags.includes("vip")) {
+        const isArr = role === "ARR" || (!role && str(p.code).toUpperCase() === str(ctx.arr).toUpperCase());
+        const vb = parseNotamWhen(n.start),
+          vc = /PERM/i.test(str(n.end)) ? null : parseNotamWhen(n.end, true);
+        if (isArr && (n.vip_hold === true || vipOverlaps(vb, vc, ctx.sta as Date | null))) vipAt = vipLabel(vb, vc);
+        else tags = tags.filter((t) => t !== "vip");
+      }
       const base = {
         ident: str(n.ident),
         icao: str(p.code || n.icao),
@@ -351,6 +368,7 @@ export function verdictOf(
           ...base,
           tags,
           closed: pairRwyLabels(closedRwysOf(n)),
+          vip_at: vipAt,
           rffs_cat: blob(n).match(/\bCAT(?:EGORY)?\s*(\d{1,2})\b/)?.[1] || "",
         });
     }
@@ -394,13 +412,14 @@ export function verdictOf(
     ats.set(r.ident, held);
   }
   const used = new Set(
-    [...ad, ...rwy, ...area, ...route, ...ofp]
+    [...ad, ...rwy, ...tagged("vip"), ...area, ...route, ...ofp]
       .map((r) => r.ident)
       .concat(sid.map((r) => str(r.ident))),
   );
   const rows: Record<string, VerdictRow[]> = {
     ad: ad.map((r) => row(r.icao, r.ident)),
     rwy: rwyRows,
+    vip: uniq(tagged("vip").map((r) => row([r.icao, str(r.vip_at)].filter(Boolean).join(" "), r.ident, r.ident, r.icao))),
     area: [],
     ats: [...ats].map(([id, r]) => row(r.labs.join("-") || r.icao || "—", id, id, r.icao)),
     sidstar: uniq(sid),
@@ -437,7 +456,7 @@ export function verdictOf(
     ...(key === "area" ? { groups } : { rows: rows[key] }),
   }));
   const status =
-    ad.length || area.length || route.length || ofp.length || sid.length
+    ad.length || rows.vip.length || area.length || route.length || ofp.length || sid.length
       ? "risk"
       : rwy.length
         ? "wait"
@@ -447,7 +466,7 @@ export function verdictOf(
     tracked: true,
     status,
     sections,
-    items: [...ad, ...rwy, ...area, ...route, ...ofp],
+    items: [...ad, ...rwy, ...tagged("vip"), ...area, ...route, ...ofp],
   };
 }
 export function fleetVerdict(items: FleetItem[]) {
@@ -484,6 +503,7 @@ export function fleetVerdict(items: FleetItem[]) {
   const risk = items.filter((it) => it.verdict?.status === "risk").length;
   const bits = [`${items.length} chuyến quốc nội`];
   for (const [key, text] of [
+    ["vip", "có VIP MOV — cần extra fuel holding"],
     ["rwy", "có RWY đóng"],
     ["ats", "có ATS"],
     ["sidstar", "có SID/STAR"],

@@ -7,6 +7,7 @@
 // is never reversed by a later one.
 import { notamGeoms, notamAltBand, geomTrackNear, qCoordsOf, type Notam, type TrackPoint } from "./notam_track";
 import { parseNotamWhen, normIcao } from "./notam_check";
+import { isVipMovement, vipLabel, vipOverlaps, VIP_ARR_BEFORE_MIN, VIP_ARR_AFTER_MIN } from "./notam_vip";
 
 export type Level = "CRITICAL" | "DELAY-ONLY" | "NEED MANUAL CHECK" | "BRIEFING INFO" | "NO IMPACT";
 export const LEVELS: Level[] = ["CRITICAL", "DELAY-ONLY", "NEED MANUAL CHECK", "BRIEFING INFO", "NO IMPACT"];
@@ -66,6 +67,8 @@ export interface Assessment {
   reasons: string[];
   /** Airspace/activity NOTAM whose boundary could not be resolved (no coords, or refers elsewhere). */
   unidentified_area?: boolean;
+  /** VIP movement at destination overlapping the arrival: extra holding fuel needed. */
+  vip_hold?: boolean;
   /** Flight's operating window at this airport/FIR, e.g. "ENRT_ALT VVDN 13/11 1110Z–1310Z". */
   window?: string;
 }
@@ -804,6 +807,11 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
   if (res.level === "NEED MANUAL CHECK" && UNID.has(res.match_type) && !hasBoundary && !isAerodromeGround(n, E) && isAirspaceAreaNotam(n, E)) {
     res.unidentified_area = true;
     if (!res.reasons.some((x) => x.includes("UNIDENTIFIED AREA"))) res.reasons.push("UNIDENTIFIED AREA: không xác định được ranh giới vùng ảnh hưởng — cần mở NOTAM/tài liệu tham chiếu để kiểm tra tay.");
+  }
+  // VIP MOV at the destination while this flight lands (ETA ± margin): holding → extra fuel.
+  if (f.roles[code] === "ARR" && isVipMovement(E) && vipOverlaps(b, c, f.eta)) {
+    const note = `${vipLabel(b, c)} tại sân đến ${code} trùng giờ hạ cánh (ETA ±${VIP_ARR_BEFORE_MIN === VIP_ARR_AFTER_MIN ? VIP_ARR_BEFORE_MIN : `${VIP_ARR_BEFORE_MIN}/${VIP_ARR_AFTER_MIN}`}′) — có thể phải holding, cần nạp EXTRA FUEL.`;
+    res = { ...res, level: "CRITICAL", match_type: "VIP-HOLDING", vip_hold: true, reasons: [note, ...res.reasons.filter((x) => x !== note)] };
   }
   const win = selectWindow(code, normIcao(String(n.qfir ?? "")), f, cfg);
   if (win && (win.start || win.end)) res.window = windowLabel(win);

@@ -38,6 +38,9 @@ import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
 import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
 import { patchDefectSourcePage } from '@/lib/tool/port/defect_source_page';
 import { assessedVerdict } from '@/lib/tool/port/notam_summary';
+import { isVipMovement } from '@/lib/tool/port/notam_vip';
+const NM_TRACK_UNID = 'if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; u.title = "Không xác định được vùng ảnh hưởng — cần xem NOTAM/tài liệu tham chiếu"; tag.appendChild(u); }';
+const NM_VIP_BADGE = 'if(n.vip_hold || (window.nmIsVip && window.nmIsVip([n.e_field, n.text].join(" ")))){ const v = document.createElement("i"); v.className = "nm-vip" + (n.vip_hold ? " on" : ""); v.textContent = n.vip_hold ? "⚠ VIP MOV · CẦN EXTRA FUEL HOLDING" : "⚠ VIP MOV"; v.title = n.vip_hold ? "Chuyến hạ cánh trùng giờ VIP — có thể phải holding, cần nạp extra fuel" : "VIP MOV: chuyến nào hạ cánh trong khung giờ này cần extra fuel để holding (xem mục VIP MOV ở Thông tin chung)"; tag.appendChild(v); }';
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -2748,6 +2751,7 @@ function nmPaintListAll(place, q){
       + (n.match_type ? " · " + n.match_type : "")
       + "  ·  " + (p.kind === "FIR" ? "FIR " : "") + (p.code || "");
     if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; tag.appendChild(u); }
+    if(n.vip_hold || (window.nmIsVip && window.nmIsVip([n.e_field, n.text].join(" ")))){ const v = document.createElement("i"); v.className = "nm-vip" + (n.vip_hold ? " on" : ""); v.textContent = n.vip_hold ? "⚠ VIP MOV · CẦN EXTRA FUEL HOLDING" : "⚠ VIP MOV"; v.title = n.vip_hold ? "Chuyến hạ cánh trùng giờ VIP — có thể phải holding, cần nạp extra fuel" : "VIP MOV: chuyến nào hạ cánh trong khung giờ này cần extra fuel để holding (xem mục VIP MOV ở Thông tin chung)"; tag.appendChild(v); }
     if(n.window){ const w = document.createElement("span"); w.className = "nm-win"; w.style.cssText = "display:block;font-weight:700"; w.textContent = "🕒 Khung giờ chuyến: " + n.window; lv.appendChild(w); }
     lv.appendChild(tag);
     const why = (n.reasons || []).length ? n.reasons.join(" ") : (n.skip_why || n.reason || "");
@@ -3095,7 +3099,10 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.66')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.67')
+    // V 6.67: NOTAM VIP MOV — chuyến đáp trùng giờ VIP (ETA ±30′) báo CẦN EXTRA FUEL HOLDING, có mục riêng ở Thông tin chung.
+    .replace(NM_TRACK_UNID, () => NM_TRACK_UNID + ' ' + NM_VIP_BADGE)
+    .replace('        patch.unidentified_area = !!as.unidentified_area;', '        patch.unidentified_area = !!as.unidentified_area;\n        patch.vip_hold = !!as.vip_hold;')
     // V 6.65: Thông tin chung NOTAM quốc nội — mỗi mục liệt kê NOTAM theo từng chuyến.
     // V 6.64: Trợ lý PC 6.8 — mọi file ưu tiên ổ D, chỉ dự phòng C khi máy thật sự không có D (kiểm tra 3 nhịp, nhật ký ghi rõ khi dự phòng).
     // V 6.63: cột EXTRA ở Flight Supervisor gọn gàng: ô giữa, phút trên kg dưới, thiếu extra do WX hiện NEED xxM.
@@ -3237,7 +3244,13 @@ header#mdRoom .filt-actions #btnAims{overflow:visible !important}
 .ma-v{margin-top:3px;font-weight:600}
 .ma-cr{border-color:#c62828}.ma-cr .ma-v{color:#c62828}.ma-br{border-color:#f9a825}.ma-ok{border-color:#16a34a}.ma-ok .ma-v{color:#16a34a}.ma-mu{opacity:.7}
 .nm-unid{cursor:pointer}
-</style><script>window.__ma={parse:${maParse.toString()},band:${maBand.toString()},check:${maCheck.toString()}};</script><script>${manualAreaScript}</script></body>`)
+.nm-vip{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;font:800 11px/1.5 system-ui;font-style:normal;background:#fff7ed;color:#9a3412;border:1px solid #fb923c}
+.nm-vip.on{background:#dc2626;color:#fff;border-color:#991b1b;animation:nmUnidBlink 1s steps(2,start) infinite}
+.nm-verdict .nm-vd-sec[data-key=vip] .nm-vd-ico{background:#ea580c;-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v5.4l4 2.4-.8 1.3L11 13V7z'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v5.4l4 2.4-.8 1.3L11 13V7z'/%3E%3C/svg%3E")}
+.nm-verdict .nm-vd-sec[data-key=vip].hit{background:#fff7ed;border-color:#fdba74}
+.nm-verdict .nm-vd-sec[data-key=vip].hit .nm-vd-h,.nm-verdict .nm-vd-sec[data-key=vip].hit .nm-vd-ans{color:#c2410c}
+.nm-verdict .nm-vd-sec[data-key=vip].hit .nm-vd-ico{background:#dc2626}
+</style><script>window.nmIsVip=${isVipMovement.toString()};window.__ma={parse:${maParse.toString()},band:${maBand.toString()},check:${maCheck.toString()}};</script><script>${manualAreaScript}</script></body>`)
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt({noConfirm: true}); };')

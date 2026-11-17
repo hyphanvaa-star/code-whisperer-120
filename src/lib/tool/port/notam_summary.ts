@@ -22,6 +22,12 @@ export function assessedVerdict(
       if (!ident || !level) continue;
       grades.set(keyOf(icao, ident), level);
       if (!['CRITICAL', 'DELAY-ONLY'].includes(level)) continue;
+      if (n.vip_hold === true) {
+        const rows = additions.get('vip') || [];
+        const when = ((Array.isArray(n.reasons) ? n.reasons : []).map(String).find(r => r.startsWith('VIP ')) || '').split(' tại ')[0] || 'VIP';
+        rows.push({ label: icao + ' ' + when, value: ident, ident, icao, hit: true });
+        additions.set('vip', rows);
+      }
       const tags = classify(n, place);
       const text = [n.e_field, n.text].join(' ').toUpperCase();
       const runwayMatch = text.match(/\bRWY\s+([\dLRC/ ,]+?)(?=\s+(?:CLSD|CLOSED|NOT)|[.\n]|$)/);
@@ -40,7 +46,12 @@ export function assessedVerdict(
     const ids = String(r.ident || '').toUpperCase().match(/\b[A-Z]{1,2}\d{3,5}\/\d{2}\b/g) || [String(r.ident || '').toUpperCase()];
     return ids.some(id => grades.get(keyOf(r.icao || r.label, id)) !== 'NO IMPACT');
   };
-  const sections = (base.sections || []).map(section => {
+  const baseSections = [...(base.sections || [])];
+  if (additions.has('vip') && !baseSections.some(s => s.key === 'vip')) {
+    const at = baseSections.findIndex(s => s.key === 'rwy');
+    baseSections.splice(at >= 0 ? at + 1 : 0, 0, { key: 'vip', title: 'VIP MOV · Extra fuel holding', hit: false, rows: [] });
+  }
+  const sections = baseSections.map(section => {
     let rows = (section.rows || []).filter(keep);
     // Replace each assessed airport/category row, not an entire airport or section.
     const extra = additions.get(section.key) || [];
@@ -57,9 +68,10 @@ export function assessedVerdict(
     return { ...section, rows, ...(section.groups ? { groups } : {}), hit,
       answer: section.key === 'ad' ? `${hit ? 'có' : 'không có'} đóng cửa sân bay`
         : section.key === 'rwy' ? `${hit ? 'có' : 'không có'} đóng cửa rwy`
+        : section.key === 'vip' ? (hit ? 'chuyến đáp trong giờ VIP — cần extra fuel holding' : 'không có chuyến đáp trong giờ VIP')
         : `${hit ? 'có' : 'không'} ảnh hưởng` };
   });
-  const risk = sections.some(s => ['ad', 'area', 'ats', 'sidstar'].includes(s.key) && s.hit);
+  const risk = sections.some(s => ['ad', 'vip', 'area', 'ats', 'sidstar'].includes(s.key) && s.hit);
   const runway = sections.some(s => s.key === 'rwy' && s.hit);
   return { ...base, sections, status: risk ? 'risk' : runway ? 'wait' : 'clear', items: [...(base.items || []), ...items] };
 }
