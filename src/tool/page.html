@@ -14617,10 +14617,62 @@ function nmNotamRouteSegs(n){
   });
   return out;
 }
+function nmSegCands(name){
+  /* Toạ độ điểm đầu/cuối đoạn route NOTAM nhắc (waypoint, đài VOR 3 chữ…). */
+  const out = [];
+  const key = String(name || "").toUpperCase();
+  if(!key) return out;
+  (nmFindRows || []).forEach(function(row){
+    if(row.kind === "Route" || row.keys.indexOf(key) < 0) return;
+    out.push(L.latLng(row.lat, row.lon));
+  });
+  const addTrack = function(track){
+    (track || []).forEach(function(p){
+      if(String(p.name || "").toUpperCase() !== key) return;
+      const lat = Number(p.lat), lon = Number(p.lon);
+      if(Number.isFinite(lat) && Number.isFinite(lon)) out.push(L.latLng(lat, lon));
+    });
+  };
+  const tracks = (nmData && nmData.tracks) || {};
+  Object.keys(tracks).forEach(function(id){ addTrack(tracks[id] && tracks[id].track); });
+  if(nmTrackData) addTrack(nmTrackData.track);
+  return out;
+}
+function nmNearIdx(ll, pt, lim){
+  let best = -1, bd = lim;
+  for(let i = 0; i < ll.length; i++){
+    const d = L.latLng(ll[i]).distanceTo(pt);
+    if(d < bd){ bd = d; best = i; }
+  }
+  return best;
+}
+function nmClipSeg(ll, sg, fx){
+  /* Cắt polyline đúng đoạn A–B: ưu tiên tên điểm của vertex, rồi toạ độ
+     điểm gần vertex (< 20 km). Không tìm đủ hai đầu thì trả null. */
+  if(!sg || !ll || ll.length < 2) return null;
+  let i = -1, j = -1;
+  if(fx && fx.length === ll.length){
+    const up = fx.map(f => String(f || "").toUpperCase());
+    i = up.indexOf(sg[0]); j = up.indexOf(sg[1]);
+  }
+  const pick = function(name){
+    let best = -1, bd = 20000;
+    nmSegCands(name).forEach(function(pt){
+      const k = nmNearIdx(ll, pt, bd);
+      if(k >= 0){ bd = L.latLng(ll[k]).distanceTo(pt); best = k; }
+    });
+    return best;
+  };
+  if(i < 0) i = pick(sg[0]);
+  if(j < 0) j = pick(sg[1]);
+  if(i < 0 || j < 0 || i === j) return null;
+  return ll.slice(Math.min(i, j), Math.max(i, j) + 1);
+}
 function nmScopedAts(want, cc, segs){
   /* ATS route trùng tên chỉ lấy trong quốc gia FIR của NOTAM; có đoạn (A - B)
-     thì cắt đúng đoạn đó. full: toàn tuyến trong nước (để so chặng của chuyến). */
-  const full = {}, clip = {};
+     thì cắt đúng đoạn đó. full: toàn tuyến trong nước (để so chặng của chuyến).
+     cut[name]: đã cắt được đoạn → chỉ tô đoạn đó, không tô cả chặng bay. */
+  const full = {}, clip = {}, cut = {};
   nmAtsEach(function(layer){
     const name = nmAwyKey(layer._vnName);
     if(!want[name]) return;
@@ -14628,20 +14680,26 @@ function nmScopedAts(want, cc, segs){
     const ll = nmLatLngsOf(layer);
     if(ll.length < 2) return;
     (full[name] = full[name] || []).push(ll);
-    let part = ll;
     const sg = segs && segs[name];
-    const fx = layer._vnFixes;
-    if(sg && fx && fx.length === ll.length){
-      const up = fx.map(f => String(f || "").toUpperCase());
-      const i = up.indexOf(sg[0]), j = up.indexOf(sg[1]);
-      if(i >= 0 && j >= 0 && i !== j) part = ll.slice(Math.min(i, j), Math.max(i, j) + 1);
+    let part = ll;
+    if(sg){
+      const c = nmClipSeg(ll, sg, layer._vnFixes);
+      if(c){ part = c; cut[name] = 1; }
+      else return;
     }
     (clip[name] = clip[name] || []).push(part);
   });
-  return {full: full, clip: clip};
+  if(segs) Object.keys(segs).forEach(function(name){
+    if(!want[name] || !full[name] || clip[name]) return;
+    /* Không cắt được trên ATS nào → tô cả tuyến trong nước như trước. */
+    clip[name] = full[name];
+  });
+  return {full: full, clip: clip, cut: cut, segs: segs || {}};
 }
 function nmNearScoped(lls, scoped, awy){
-  const lines = (scoped && scoped.full && scoped.full[awy]) || [];
+  /* Đã cắt được đoạn NOTAM → chuyến phải bay gần đúng đoạn đó. */
+  const src = scoped && scoped.cut && scoped.cut[awy] ? scoped.clip : (scoped && scoped.full);
+  const lines = (src && src[awy]) || [];
   if(!lines.length) return false;
   for(let i = 0; i < lls.length; i++){
     const a = L.latLng(lls[i]);
@@ -14706,20 +14764,39 @@ function nmFlashFleetNotam(n, flightId){
   const blink = [];
   const bounds = [];
   const seenAwy = {};
+  const legCuts = [];
   if(nmDrawGroup){
     nmDrawGroup.eachLayer(function(layer){
       const awy = layer._nmAwy || "";
       if(!awy || !want[awy]) return;
       if(ids.length && layer._nmFid && ids.indexOf(String(layer._nmFid)) < 0) return;
       if(!inScope(awy, nmLatLngsOf(layer))) return;
+      if(scoped.segs[awy]){
+        /* NOTAM chỉ nhắc một đoạn: không tô cả chặng bay trên route đó. */
+        if(!scoped.cut[awy]){
+          const c = nmClipSeg(nmLatLngsOf(layer), scoped.segs[awy], null);
+          if(c) legCuts.push(c);
+        }
+        return;
+      }
       blink.push(layer);
       seenAwy[awy] = 1;
       if(layer.getBounds) bounds.push(layer.getBounds());
     });
   }
   nmNotamFlash = L.layerGroup().addTo(nmMap);
-  if(!only) Object.keys(scoped.clip).forEach(function(name){
+  legCuts.forEach(function(ll){
+    const copy = L.polyline(ll, {
+      color: "#c62828", weight: 5, opacity: 1,
+      pane: "nmRoute", interactive: false
+    });
+    copy.addTo(nmNotamFlash);
+    blink.push(copy);
+    bounds.push(copy.getBounds());
+  });
+  Object.keys(scoped.clip).forEach(function(name){
     if(seenAwy[name]) return;
+    if(only && !scoped.cut[name]) return;
     scoped.clip[name].forEach(function(ll){
       if(ll.length < 2) return;
       const copy = L.polyline(ll, {
@@ -14811,17 +14888,37 @@ function nmFlashTrackNotam(n, keepView){
   }
   const blink = [], bounds = [];
   const cc = nmNotamCc(n);
-  const scoped = cc ? nmScopedAts(want, cc, null) : null;
+  const segs = nmNotamRouteSegs(n);
+  const scoped = nmScopedAts(want, cc, segs);
+  const cuts = [];
   if(nmDrawGroup){
     nmDrawGroup.eachLayer(function(layer){
       const awy = layer._nmAwy || "";
       if(!awy || !want[awy]) return;
-      if(scoped && (scoped.full[awy] || []).length && !nmNearScoped(nmLatLngsOf(layer), scoped, awy)) return;
+      if(cc && (scoped.full[awy] || []).length && !nmNearScoped(nmLatLngsOf(layer), scoped, awy)) return;
+      if(segs[awy]){
+        /* Chỉ tô đúng đoạn NOTAM nhắc trên chặng bay. */
+        const c = nmClipSeg(nmLatLngsOf(layer), segs[awy], null);
+        if(c) cuts.push(c);
+        return;
+      }
       blink.push(layer);
       if(layer.getBounds) bounds.push(layer.getBounds());
     });
   }
   nmNotamFlash = L.layerGroup().addTo(nmMap);
+  if(!cuts.length) Object.keys(scoped.cut).forEach(function(name){
+    (scoped.clip[name] || []).forEach(function(ll){ cuts.push(ll); });
+  });
+  cuts.forEach(function(ll){
+    const copy = L.polyline(ll, {
+      color: "#c62828", weight: 5, opacity: 1,
+      pane: "nmRoute", interactive: false
+    });
+    copy.addTo(nmNotamFlash);
+    blink.push(copy);
+    bounds.push(copy.getBounds());
+  });
   const seen = {};
   track.forEach(function(p){
     const name = String(p.name || "").toUpperCase();
