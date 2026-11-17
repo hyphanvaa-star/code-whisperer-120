@@ -516,7 +516,44 @@ export function parseAreas(text: string): Geom[] {
   return out;
 }
 
+/** Volcano NOTAMs (Q-code WW or volcanic/ash wording) without an explicit radius:
+ * every single summit point becomes a buffer circle; chained coordinates stay a polygon. */
+export const VOLCANO_BUFFER_NM = 10;
+const _LL_CHAIN = /\d{4,7}(?:\.\d+)?\s*[NS]\s*\d{5,8}(?:\.\d+)?\s*[EW]\s*-\s*\d{4,7}(?:\.\d+)?\s*[NS]/i;
+export function isVolcanicNotam(notam: Notam): boolean {
+  const blob = `${String(notam.text ?? "")}\n${String(notam.e_field ?? "")}`;
+  const q = /Q\)\s*[A-Z]{4}\s*\/\s*Q([A-Z]{2})/i.exec(blob);
+  if (q && q[1]!.toUpperCase() === "WW") return true;
+  const e = String(notam.e_field ?? "") || blob.replace(/^\s*Q\).*$/gim, "");
+  return /\bVOLCAN|\bVOLCANIC\s+ASH\b|\bASH\s+CLOUD\b|\bERUPTION\b|\bERUPT(?:ED|ING|S)?\b/i.test(e);
+}
+function volcanoGeoms(notam: Notam): Geom[] | null {
+  if (!isVolcanicNotam(notam)) return null;
+  const ef = String(notam.e_field ?? "");
+  const body = (ef || String(notam.text ?? "")).replace(/^\s*Q\).*$/gim, "");
+  if (eRadiusNm(body) !== null) return null; // the NOTAM gives its own radius
+  if (_LL_CHAIN.test(body) || /BOUNDED|JOINING|STRAIGHT\s+LINES|\bWI\s+AREA\b|\bPOLYGON\b|\bALONG\b/i.test(body)) return null;
+  const up = body.toUpperCase();
+  const names = [...up.matchAll(/\b(?:(?:MT|MOUNT)\.?\s+)?([A-Z]{3,})\s+VOLCANO\b|\bVOLCANO\s+([A-Z]{3,})\b|\b(?:MT|MOUNT)\.?\s+([A-Z]{3,})\b/g)]
+    .map((m) => ({ at: m.index!, name: (m[1] || m[2] || m[3])! }))
+    .filter((x) => !/^(ACTIVITY|ALERT|ASH|LEVEL|THE|ACTIVE|ERUPTION|NEAR|CLOSE|SUMMIT|WARNING)$/.test(x.name));
+  const out: Geom[] = [];
+  const re = /(\d{4,6}(?:\.\d+)?\s*[NS])\s*(\d{5,7}(?:\.\d+)?\s*[EW])/gi;
+  for (const m of body.matchAll(re)) {
+    const p = iterLatLon(m[0])[0];
+    if (!p || out.some((g) => Math.abs(g.lat! - p[0]) < 1e-4 && Math.abs(g.lon! - p[1]) < 1e-4)) continue;
+    const near = names.filter((x) => x.at < m.index! && m.index! - x.at < 160).pop();
+    out.push({ name: `${near ? `${near.name} ` : ""}VOLCANO ${VOLCANO_BUFFER_NM}NM BUFFER`, shape: "circle", lat: p[0], lon: p[1], radius_nm: VOLCANO_BUFFER_NM, ring: [], source: "e-field" });
+  }
+  if (out.length) return out;
+  const origin = qCoordsOf(notam);
+  if (!origin || (origin[2] || 0) >= Q_FIR_RADIUS_NM) return null;
+  return [{ name: `VOLCANO ${Math.max(VOLCANO_BUFFER_NM, origin[2] || 0)}NM BUFFER`, shape: "circle", lat: origin[0], lon: origin[1], radius_nm: Math.max(VOLCANO_BUFFER_NM, origin[2] || 0), ring: [], source: "e-field" }];
+}
+
 function notamGeomsText(notam: Notam): Geom[] {
+  const volc = volcanoGeoms(notam);
+  if (volc) return volc;
   const tx = String(notam.text ?? "");
   const ef = String(notam.e_field ?? "");
   const blob = `${tx}\n${ef}`;
