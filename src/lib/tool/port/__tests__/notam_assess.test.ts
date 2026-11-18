@@ -52,11 +52,28 @@ describe("five-level NOTAM assessment", () => {
     const r = run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 12:00", end: "2026-10-10 14:00" });
     expect(r.level).toBe("NO IMPACT");
   });
-  it("SID on FPL active during SID is CRITICAL, or DELAY-ONLY when only after delay", () => {
+  it("SID on FPL active during SID is CRITICAL, or DELAY-ONLY when only after a delay beyond the buffer", () => {
     expect(run({ e_field: "VIDEN2G SID NOT AVBL" }).level).toBe("CRITICAL");
-    const late = run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 06:30", end: "2026-10-10 07:00" });
+    const late = run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 07:30", end: "2026-10-10 08:00" });
     expect(late.level).toBe("DELAY-ONLY");
-    expect(late.earliest_impact_delay_minutes).toBeGreaterThan(0);
+    expect(late.earliest_impact_delay_minutes).toBeGreaterThan(60);
+  });
+  it("delay inside the 60 min buffer is CRITICAL with the delay noted", () => {
+    expect(DEFAULT_ASSESS_CFG.delay_buffer_minutes).toBe(60);
+    const r = run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 06:40", end: "2026-10-10 07:00" });
+    expect(r.level).toBe("CRITICAL");
+    expect(r.earliest_impact_delay_minutes).toBe(30);
+    expect(r.reasons.join(" ")).toContain("buffer 60");
+  });
+  it("delay of exactly 60 min is still CRITICAL, 61 min is DELAY-ONLY", () => {
+    expect(run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 07:10", end: "2026-10-10 08:00" }).level).toBe("CRITICAL");
+    const r = run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 07:11", end: "2026-10-10 08:00" });
+    expect(r.level).toBe("DELAY-ONLY");
+    expect(r.earliest_impact_delay_minutes).toBe(61);
+  });
+  it("buffer set to 0 keeps any delayed-only hit as DELAY-ONLY", () => {
+    const r = run({ e_field: "VIDEN2G SID NOT AVBL", start: "2026-10-10 06:40", end: "2026-10-10 07:00" }, "VVTS", "AD", flight(), { ...cfg, delay_buffer_minutes: 0 });
+    expect(r.level).toBe("DELAY-ONLY");
   });
   it("navaid not on FPL is not an airport match even when field A is the destination", () => {
     const r = run({ e_field: "DVOR/DME 'XXX' U/S" }, "VVNB");

@@ -25,13 +25,15 @@ export interface AssessCfg {
   fir_before: number; fir_after: number;
   /** Altitude buffer (ft) widening the NOTAM F/G band on both sides. */
   alt_buffer_ft: number;
+  /** Delays up to this many minutes are within the operational buffer and still CRITICAL. */
+  delay_buffer_minutes: number;
 }
 export const DEFAULT_ASSESS_CFG: AssessCfg = {
   corridor_nm: 15, max_delay_minutes: 180,
   dep_before: 60, dep_after: 60, arr_before: 60, arr_after: 60,
   talt_before: 15, talt_after: 60, enrt_alt_before: 60, enrt_alt_after: 60,
   dest_alt_before: 60, dest_alt_after: 60, fir_before: 60, fir_after: 60,
-  alt_buffer_ft: 10000,
+  alt_buffer_ft: 10000, delay_buffer_minutes: 60,
 };
 export function normAssessCfg(raw: unknown): AssessCfg {
   const src = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
@@ -921,7 +923,9 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
     if (r === true) {
       if (sp.briefing) return out("BRIEFING INFO", sp.type, d);
       if (d === 0) { reasons.push("Có hiệu lực đúng giờ kế hoạch."); return out("CRITICAL", sp.type, 0); }
-      reasons.push(`Chỉ ảnh hưởng nếu trễ từ ${d} phút.`); return out("DELAY-ONLY", sp.type, d);
+      const buf = Math.round(cfg.delay_buffer_minutes ?? DEFAULT_ASSESS_CFG.delay_buffer_minutes);
+      if (d <= buf) { reasons.push(`Ảnh hưởng nếu trễ ${d}′ — nằm trong buffer ${buf}′ nên tính CRITICAL.`); return out("CRITICAL", sp.type, d); }
+      reasons.push(`Chỉ ảnh hưởng nếu trễ từ ${d} phút (ngoài buffer ${buf}′).`); return out("DELAY-ONLY", sp.type, d);
     }
     if (r === null) unknown = true;
   }

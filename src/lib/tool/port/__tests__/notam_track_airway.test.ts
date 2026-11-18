@@ -77,3 +77,29 @@ describe("NOTAM tracking airway round-trip", () => {
     expect(coordOnTrack("N401000E1030000", leg)).toBeNull();
   });
 });
+
+import { awySegmentAffects } from "../notam_verdict";
+
+describe("A6035/26 closed W195 segment with a coordinate end", () => {
+  const fullE = "FLW SEGMENT OF ATS RTE CLOSED BTN 7,800M(INCLUSIVE) AND 11,000M(INCLUSIVE): 1. W195: N401609E1024104-MORIT. 2. V162: DENGKOU VOR 'DKO'-DAMRO. 3. W28: KEVOB-LAGEB. 4. B330: MORIT-N401615E1025934.";
+  it("counts the W195 segment as flown for the ATS Route section", () => {
+    expect(awySegmentAffects({ e_field: fullE }, track)).toBe(true);
+  });
+  it("counts it by position when the track carries no airway names", () => {
+    expect(awySegmentAffects({ e_field: fullE }, track.map(({ airway: _a, ...p }) => p))).toBe(true);
+  });
+  it("does not count it when the flight is nowhere near either end", () => {
+    const away = [{ lat: 30, lon: 110, name: "AAAAA", airway: "A1" }, { lat: 31, lon: 111, name: "BBBBB", airway: "A1" }];
+    expect(awySegmentAffects({ e_field: fullE }, away)).toBe(false);
+  });
+  it("closure 32 min after passing MORIT is CRITICAL within the 60 min buffer", () => {
+    // STD 06:00 + 70 min → MORIT 07:10; closure starts 07:42 → 32 min delay.
+    const r = assessment(filter(track, { ...notam, start: "2026-11-18 07:42", end: "2026-11-18 09:50" }));
+    expect(r?.level).toBe("CRITICAL");
+    expect(r?.reasons.join(" ")).toContain("trễ 32′");
+  });
+  it("closure 90 min after passing MORIT stays DELAY-ONLY", () => {
+    const r = assessment(filter(track, { ...notam, start: "2026-11-18 08:40", end: "2026-11-18 09:50" }));
+    expect(r?.level).toBe("DELAY-ONLY");
+  });
+});

@@ -17,6 +17,7 @@ import {
 } from "./notam_check_tune";
 import { parseNotamWhen } from "./notam_check";
 import { isVipMovement, vipLabel, vipOverlaps } from "./notam_vip";
+import { atsSegmentList, coordOnTrack, segCoord } from "./ats_segment_coord";
 
 type N = Record<string, unknown>;
 export type VerdictRow = {
@@ -194,6 +195,16 @@ export function awySegmentAffects(n: N, points?: N[], chart?: Chart | null): boo
   ].map((m) => [m[1], m[2], m[3]]);
   for (const m of b.matchAll(/(?:^|\n)\s*-?\s*([A-Z]{1,2}\d{1,4})\s*(?=\n|$)/g))
     limits.push([m[1], "", ""]);
+  // Listed segments with a coordinate end ("W195: N401609E1024104-MORIT"): flown when the other
+  // end is on this track and the aircraft files the airway or passes the coordinate by position.
+  const names = new Set(points.map((p) => str(p.name).toUpperCase()));
+  for (const [awy, x0, y0] of atsSegmentList(b)) {
+    for (const [x, y] of [[x0, y0], [y0, x0]] as const) {
+      if (!segCoord(x)) continue;
+      const yOn = segCoord(y) ? !!coordOnTrack(y, points) : names.has(y);
+      if (yOn && (points.some((p) => awyKey(p.airway) === awy) || coordOnTrack(x, points))) return true;
+    }
+  }
   if (!limits.length) return true;
   const pool = [...(chart?.waypoints || []), ...(chart?.navaids || [])];
   for (const [awy, start, end] of limits) {
