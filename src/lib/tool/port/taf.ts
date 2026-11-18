@@ -632,6 +632,9 @@ export function adviceForFlight(dest: string, staIso: string | null | undefined,
   const peak = checks.reduce((a, b) => (Math.trunc(b.extra_need || 0) > Math.trunc(a.extra_need || 0) ? b : a));
   result.extra_need = Math.trunc(peak.extra_need || 0);
   result.extra_why = String(peak.extra_why || "");
+  const rec = tafs[dest.toUpperCase().trim()];
+  // Sân có TAF: kèm METAR mới nhất để xem khi rê chuột (sân NIL đã có METAR trong segments).
+  if (rec && !rec.nil && rec.metar?.raw) return { ...result, metar: rec.metar };
   return { ...result };
 }
 

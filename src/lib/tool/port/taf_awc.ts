@@ -88,8 +88,8 @@ export function mergeAwc(
     if (inAddRegion(icao)) { tafs[icao] = rec; stats.added.push(icao); }
   }
   for (const [icao, rec] of Object.entries(tafs)) {
-    if (!rec.nil) continue;
     const mt = metars[icao];
+    if (!rec.nil) { if (mt) tafs[icao] = { ...rec, metar: mt }; continue; }
     if (mt) { tafs[icao] = { ...rec, metar: mt }; stats.metar.push(icao); }
     else if (rec.metar) { const { metar: _drop, ...rest } = rec; tafs[icao] = rest; }
   }

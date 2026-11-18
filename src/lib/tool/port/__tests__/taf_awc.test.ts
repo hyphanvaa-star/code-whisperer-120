@@ -67,3 +67,11 @@ describe("METAR for airports without TAF", () => {
     expect(metars.RJBE).toBeUndefined();
   });
 });
+
+describe("METAR kèm sân có TAF", () => {
+  it("gắn METAR cho sân có TAF hợp lệ", () => {
+    const tafs: Record<string, any> = { VVTS: { icao: "VVTS", nil: false, raw: "TAF VVTS", groups: [] } };
+    mergeAwc(tafs, {}, { VVTS: { raw: "METAR VVTS 180300Z CAVOK", time: "2026-11-18T03:00:00.000Z" } });
+    expect(tafs.VVTS.metar.raw).toBe("METAR VVTS 180300Z CAVOK");
+  });
+});
