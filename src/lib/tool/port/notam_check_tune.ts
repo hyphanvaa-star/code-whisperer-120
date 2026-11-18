@@ -1412,6 +1412,7 @@ export function rwyRoleOf(role: string, place: N, ctx: TuneCtx | null): string {
     if (mapped === "DEP" || mapped === "ARR") return mapped;
     if (code && code === normIcao(String(ctx.dep ?? ""))) return "DEP";
     if (code && code === normIcao(String(ctx.arr ?? ""))) return "ARR";
+    if (!raw && mapped) return mapped;
   }
   return raw;
 }
@@ -1426,6 +1427,16 @@ function rwyWindow(role: string, ctx: TuneCtx | null): [Date | null, Date | null
   const lo = RWY_WIN_LO_H * 3600_000, hi = RWY_WIN_HI_H * 3600_000;
   if (r === "DEP") return std ? [new Date(std.getTime() - lo), new Date(std.getTime() + hi)] : [null, null];
   if (r === "ARR") return sta ? [new Date(sta.getTime() - lo), new Date(sta.getTime() + hi)] : [null, null];
+  // Alternates: a closure only matters while the aircraft could actually divert there.
+  if (r === "TALT") return std ? [new Date(std.getTime() - lo), new Date(std.getTime() + hi)] : [null, null];
+  if (r === "RALT" || r === "ERA" || r === "EDTO") {
+    if (std || sta) return [new Date((std || sta)!.getTime() - lo), new Date((sta || std)!.getTime() + hi)];
+    return [null, null];
+  }
+  if (r === "ALT" || r === "DALT" || r === "ALTN" || r === "DEST ALT") {
+    if (sta) return [new Date(sta.getTime() - lo), new Date(sta.getTime() + hi)];
+    if (std) return [new Date(std.getTime() - lo), new Date(std.getTime() + 2 * hi)];
+  }
   return [null, null];
 }
 
