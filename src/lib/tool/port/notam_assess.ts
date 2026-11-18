@@ -7,6 +7,7 @@
 // is never reversed by a later one.
 import { notamGeoms as notamGeomsRaw, notamAltBand, geomTrackNear, qCoordsOf, type Notam, type TrackPoint } from "./notam_track";
 import { parseNotamWhen, normIcao } from "./notam_check";
+import { atsSegmentList, coordOnTrack, segCoord } from "./ats_segment_coord";
 import { isVipMovement, vipLabel, vipOverlaps, VIP_ARR_BEFORE_MIN, VIP_ARR_AFTER_MIN } from "./notam_vip";
 
 export type Level = "CRITICAL" | "DELAY-ONLY" | "NEED MANUAL CHECK" | "BRIEFING INFO" | "NO IMPACT";
@@ -432,33 +433,21 @@ function pointTime(f: AssessFlight, p: TrackPoint | undefined): Date | null {
 }
 const pointNames = (f: AssessFlight) => new Set(f.points.map((p) => String(p.name ?? "").toUpperCase()).filter(Boolean));
 const onRoute = (f: AssessFlight, tok: string) => f.tokens.has(tok) || pointNames(f).has(tok);
-// Endpoint name in a listed segment: "YINCHUAN VOR'YHD'" -> YHD, "DOMVA" -> DOMVA.
-function segPoint(raw: string): string {
-  const q = /'([A-Z]{2,5})'/.exec(raw);
-  if (q) return q[1]!;
-  const w = raw.trim().split(/\s+/).pop() ?? "";
-  return w.replace(/[^A-Z0-9]/g, "");
-}
-/** Numbered/listed ATS route segments "1. W215 : A - B." (two or more, or one with list numbering). */
-export function atsSegmentList(E: string): [string, string, string][] {
-  const out: [string, string, string][] = [];
-  const re = /(?:^|[\s.])(?:\d{1,2}[.)]\s*)?([A-Z]{1,2}\d{1,4}[A-Z]?)\s*:\s*([A-Z][A-Z0-9' ]*?)\s*-\s*([A-Z][A-Z0-9' ]*?)\s*(?=[.,;\n]|$)/g;
-  for (const m of E.matchAll(re)) {
-    const a = segPoint(m[2]!), b = segPoint(m[3]!);
-    if (a && b) out.push([m[1]!, a, b]);
-  }
-  return out;
-}
+export { atsSegmentList };
 function evalSeg(f: AssessFlight, awy: string, a: string, b: string): Spatial {
   const names = f.points.map((p) => String(p.name ?? "").toUpperCase());
-  const ia = names.indexOf(a), ib = names.indexOf(b);
+  // Coordinate endpoints ("N401609E1024104") resolve by position on the track only.
+  const at = (x: string) => (segCoord(x) ? coordOnTrack(x, f.points as unknown as Record<string, unknown>[]) : null);
+  const ca = at(a), cb = at(b);
+  const ia = ca ? ca.index : names.indexOf(a), ib = cb ? cb.index : names.indexOf(b);
+  const la = ca?.label ? `${a} (${ca.label})` : a, lb = cb?.label ? `${b} (${cb.label})` : b;
   if ((f.tokens.has(awy) || (ia >= 0 && ib >= 0)) && (ia >= 0 || ib >= 0)) {
     const i0 = ia >= 0 && ib >= 0 ? Math.min(ia, ib) : Math.max(ia, ib);
     const i1 = ia >= 0 && ib >= 0 ? Math.max(ia, ib) : i0;
     const fls = f.points.slice(i0, i1 + 1).map((p) => Math.round(Number(p.fl_ft || 0) / 100));
-    return { matched: true, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} trùng route FPL.`, flRange: [Math.min(...fls), Math.max(...fls)], expStart: pointTime(f, f.points[i0]), expEnd: pointTime(f, f.points[i1]) };
+    return { matched: true, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${la}-${lb} trùng route FPL.`, flRange: [Math.min(...fls), Math.max(...fls)], expStart: pointTime(f, f.points[i0]), expEnd: pointTime(f, f.points[i1]) };
   }
-  if (!f.tokens.has(awy) && (ia >= 0 || ib >= 0)) return { matched: null, type: "ROUTE-SEGMENT", reason: `Có điểm ${ia >= 0 ? a : b} trên route nhưng chưa xác nhận đường ${awy}.` };
+  if (!f.tokens.has(awy) && (ia >= 0 || ib >= 0)) return { matched: null, type: "ROUTE-SEGMENT", reason: `Có điểm ${ia >= 0 ? la : lb} trên route nhưng chưa xác nhận đường ${awy}.` };
   return { matched: false, type: "ROUTE-SEGMENT", reason: `Đoạn ${awy} ${a}-${b} không nằm trên route FPL.` };
 }
 

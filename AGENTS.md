@@ -58,3 +58,4 @@
 - Storm warning identities and modern JMA forecast parsing live in browser-safe `port/storms.ts`; retain JTWC RSS names when overlays fail and distinguish unavailable data from confirmed empty feeds. Toolbar changes load through the tool-page shim to preserve the original HTML.
 - Named ENR resolves FIR-scoped AIP IDs before SUP; unknowns stay manual. Database uses this catalogue. All-area Layer changes plotting only. NOTAM counters share pure `notam_counts` over assessed and dropped rows.
 - NOTAM tune round-trips track airway/FIR through the HTML shim and `tuneTrackPoints`; keep leg identity for route-name hits and assessment without bypassing time/altitude gates.
+- Listed closed ATS segments live in `port/ats_segment_coord.ts`: coordinate endpoints resolve only by track position (≤ snap NM) and become route hits/reasons only when the other end is on route, so raw coordinates are flagged without guessing fix names.

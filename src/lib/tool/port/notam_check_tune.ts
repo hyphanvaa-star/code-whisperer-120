@@ -28,6 +28,7 @@ import {
 } from "./notam_track";
 import { assessNotam, normAssessCfg, type AssessFlight, type Assessment, type Role } from "./notam_assess";
 import { routeNameRemote } from "./route_name_scope";
+import { segmentCoordHits } from "./ats_segment_coord";
 
 // --------------------------------------------------------------------------- //
 // api/ofp.py text parsers (minimal subset needed by tune_places)
@@ -1172,7 +1173,11 @@ export function ofpNamedHits(notam: N, tokens: Set<string>, points?: Array<Recor
   }
   const union = new Set([...awys, ...fixes, ...navaids]);
   // Same route/fix name flown only far from this NOTAM's FIR/centre is a different route.
-  return [...union].filter((x) => known.has(x) && !skip.has(x) && !routeNameRemote(notam, x, points)).sort();
+  const hits = new Set([...union].filter((x) => known.has(x) && !skip.has(x) && !routeNameRemote(notam, x, points)));
+  // Coordinate ends of a flown closed segment ("W195: N401609E1024104 - MORIT") are hits too.
+  const pts = (points || null) as Record<string, unknown>[] | null;
+  for (const c of segmentCoordHits(blob, new Set(hits), hits, pts)) hits.add(c);
+  return [...hits].sort();
 }
 
 function atsRouteDropWhy(notam: N, ctx: TuneCtx): string {
