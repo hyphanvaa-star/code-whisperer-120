@@ -206,3 +206,18 @@ describe("Original NOTAM verdict parity", () => {
     expect(result.fleet_verdict.risk).toBe(0);
   });
 });
+
+describe("ATS route time/ceiling gate", () => {
+  const fl = { id: 1, callsign: "VJC718", dep_icao: "VVPQ", dest_icao: "VVDN" } as never;
+  const h = { ident: "A4397/26", icao: "VVHM", kind: "FIR", area: "W8", dist_nm: 0, text: "ATS RTE SEGMENT W8 CLOSED", e_field: "DO NOT USE ATS RTE SEGMENT W8 (PQU - TUNPO) CLOSED", qsubj: "AR", qcond: "LC", fl_ft: 9800, fl_lo: 0, fl_hi: 8000 };
+  const ats = (v: ReturnType<typeof verdictOf>) => v.sections.find((s) => s.key === "ats")?.rows ?? [];
+  it("drops route hit outside D/B–C window", () => {
+    expect(ats(verdictOf([], fl, [{ ...h, eta_ok: false }]))).toHaveLength(0);
+  });
+  it("keeps route hit in window within ceiling + 10000ft buffer", () => {
+    expect(ats(verdictOf([], fl, [{ ...h, eta_ok: true }])).length).toBeGreaterThan(0);
+  });
+  it("drops route hit above ceiling + buffer", () => {
+    expect(ats(verdictOf([], fl, [{ ...h, eta_ok: true, fl_ft: 19000 }]))).toHaveLength(0);
+  });
+});

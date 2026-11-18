@@ -1118,7 +1118,7 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
     for (const token of tokens) fleetTokens.add(token);
     fleetPoints.push(...points);
     for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''), points);
-    const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart);
+    const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart, Number((deps.assessCfg as { alt_buffer_ft?: number } | undefined)?.alt_buffer_ft ?? 10000));
     const row = {
       id: flight.id, cs: flight.callsign || "", dep: flight.dep_icao || "", dest: flight.dest_icao || "",
       tracked: !!(track.points?.length || track.line?.length), hit_count: hits.length, kml_error: trackRes.error, verdict,

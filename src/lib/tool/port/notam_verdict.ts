@@ -297,7 +297,11 @@ export function verdictOf(
   ofpText = "",
   points: N[] = [],
   chart?: Chart | null,
+  altBufFt = 10000,
 ): Verdict {
+  // Route hits only count when the aircraft crosses inside B–C/D (eta_ok) and below ceiling + buffer.
+  const flBad = (h: N) => { const f = Number(h.fl_ft) || 0, top = Number(h.fl_hi); return !!f && Number.isFinite(top) && top < 90000 && f > top + altBufFt; };
+  const liveHit = (h: N) => h.eta_ok !== false && !flBad(h);
   const cs = str(flight.callsign).trim().toUpperCase(),
     ctx = buildTuneCtx(flight, ofpText),
     tokens = ctx.tokens as Set<string>;
@@ -344,7 +348,8 @@ export function verdictOf(
       };
       const named =
         tokens.size && awySegmentAffects(n, points, chart) ? ofpNamedHits(n, tokens, points) : [];
-      if (named.length) ofp.push({ ...base, tags: ["ofp"], area: named.join("/") });
+      const own = hits.filter((h) => str(h.ident) === str(n.ident));
+      if (named.length && !(own.length && !own.some(liveHit))) ofp.push({ ...base, tags: ["ofp"], area: named.join("/") });
       let sh = arr(n.sid_star_hits).filter((h) => !cs || str(h.cs).trim().toUpperCase() === cs);
       if (!sh.length && ofpText) {
         let procs = sidStarHitsOf(n, ofpText, tokens);
@@ -388,7 +393,7 @@ export function verdictOf(
       tags,
     };
     if (hitCutsArea(h) && tags.some((t) => ["restrict", "fire"].includes(t))) area.push(r);
-    if (hitOnRoute(h) && tags.includes("route") && awySegmentAffects(h, points, chart))
+    if (hitOnRoute(h) && liveHit(h) && tags.includes("route") && awySegmentAffects(h, points, chart))
       route.push(r);
   }
   const rwyRows = uniq(rwy.map(r => row(r.icao, (r.closed as string[]).join(", ") || "?", r.ident, r.icao)));

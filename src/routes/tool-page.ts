@@ -3101,7 +3101,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.77')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.78')
     // V 6.76: route KAPLI theo STD UTC + thời gian tới KAPLI (< 1700Z), cột TIME TO KAPLI.
     .replace('UTC đến 1500 lấy cột KAPLI, sau 1500 lấy cột ENVAR.', () => 'STD UTC + TIME TO KAPLI trước 1700Z lấy cột KAPLI, sau đó lấy ENVAR. Route chưa có thời gian thì dùng mốc STD 1500Z.')
     .replace('for(const key of ["route", "kapli", "envar", "opt", "note"]){', () => 'for(const key of ["route", "kapli", "envar", "kapli_time", "opt", "note"]){')
