@@ -264,7 +264,7 @@ const SHIM = `<script>
         var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
         var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
         var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
-        board.title='Trợ lý 6.8 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
+        board.title='Trợ lý 6.9 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
         board.style.position='relative';
         var dot=document.createElement('span'); dot.className='agent-dot';
         dot.style.cssText='position:absolute;top:4px;right:5px;width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none';
@@ -293,7 +293,7 @@ const SHIM = `<script>
               return;
             }
           }
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.8'; a.download='tro-ly-pc-6.8.zip';
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.9'; a.download='tro-ly-pc-6.9.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -3102,7 +3102,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.89')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.90')
+    // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
     // Preserve airway/FIR identity when re-filtering the live JetPlan/OFP track.
     .replace('lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name', () => 'lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name, airway: p.airway || p.awy || "", fir: p.fir')
     // V 6.83: bản đồ đội bay chỉ nháy chuyến bị NOTAM ảnh hưởng thật (theo verdict đã lọc giờ/trần).

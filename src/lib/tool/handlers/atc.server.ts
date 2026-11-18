@@ -3,12 +3,15 @@ import { AVIWEB_NOT_PORTABLE_MESSAGE, readFplBlocks, fplName, checkFlightsOnline
 import { jobId } from "../jobs";
 import { getFile, listFiles, putFile } from "../store.server";
 import * as pc from "../pcagent.server";
+import { env as credEnv } from "../creds.server";
+import { pcVersionBelow } from "../port/pc_version";
 import * as excelMod from "./excel.server";
 import * as ft from "../port/fpl_tool";
 import { loadFlights } from "../core/gantts.server";
 import { selectOperationalFlight, validateOperationalAtc } from "../port/operational_flight";
 
 const ATC_DIR = "atc";
+
 
 // Port of the web.py "/api/atc/*" group (atcfpl.py + atc_check.py).
 //
@@ -214,7 +217,18 @@ export const jobs: Jobs = {
         const matching = candidates.filter(f => { try { validateOperationalAtc(block, f); return true; } catch { return false; } });
         if (matching.length !== 1) throw new Error(`${fplName(block)}: điện văn không khớp duy nhất ngày/chặng trong −6/+24 — không gửi.`);
       }
+      // Gửi kèm tài khoản AviWeb đã lưu trên web (riêng người dùng, rồi mới tới
+      // tài khoản chung) để trợ lý PC không rơi về credentials.json cũ trên máy.
+      // Kênh pc_jobs chỉ đọc bằng PC_AGENT_TOKEN nên mật khẩu không ra trình duyệt.
+      const aviweb_user = credEnv("AVIWEB_USERNAME") || "";
+      const aviweb_pass = credEnv("AVIWEB_PASSWORD") || "";
+      const agent = await pc.agentInfo(ctx);
+      if (aviweb_user && agent && pcVersionBelow(agent.version, "6.9")) {
+        emit({ type: "line", text: `⚠ Trợ lý PC bản ${agent.version || "cũ"} chưa nhận tài khoản AviWeb từ web — sẽ dùng tài khoản lưu trên máy. Bấm biểu tượng Trợ lý để tải bản 6.9.`, cls: "bad" });
+      }
       const id = await pc.enqueue("aviweb_submit", {
+        aviweb_user,
+        aviweb_pass,
         name: path.split("/").pop(),
         text: blocks.join("\n\n"),
         headless: params["headless"] !== false,

@@ -6,6 +6,7 @@
 - [x] V 6.85: Bỏ cơ chế tự phóng to toàn màn hình khi bấm tab NOTAM Tracking — tab mở trong khung bình thường như các tab khác
 - [x] V 6.84: Ô Điện văn thêm 3 loại CHG ALT (kèm dự bị FliteBrief), CHG ROUTE (route OFP mới nhất), CNL
 - [x] V 6.68: Check NOTAM quốc nội tự phân loại từng NOTAM theo chuyến (CRUCIAL / MANUAL CHECK / BRIEFING INFO / MINOR có số, bấm ô để lọc danh sách)
+- [x] V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web (không rơi về credentials.json cũ trên máy); web cảnh báo khi Trợ lý còn bản cũ
 - [x] V 6.64: Trợ lý PC 6.8 — mọi file ưu tiên ổ D, chỉ dự phòng C khi máy thật sự không có D (kiểm 3 nhịp, nhật ký ghi rõ khi dự phòng)
 - [x] V 6.67: NOTAM VIP MOV — chuyến đáp trùng giờ VIP (ETA ±30′) có mục "VIP MOV · Extra fuel holding" theo chuyến và nhãn cảnh báo trên thẻ NOTAM
 - [x] V 6.63: cột EXTRA (Flight Supervisor) trình bày gọn: ô căn giữa, phút trên, kg dưới; >1000 kg màu cam; WX thiếu extra hiện nhãn NEED xxM

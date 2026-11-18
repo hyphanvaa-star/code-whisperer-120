@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.8"
+VERSION = "6.9"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -737,6 +737,43 @@ def _find_tool_dir() -> Path:
     )
 
 
+class _AviwebAccount:
+    """Dùng tạm tài khoản AviWeb web gửi kèm lệnh (AVIWEB_USER/AVIWEB_PASS).
+
+    config.get_aviweb_credentials() đọc env trước credentials.json, nên đặt env
+    trong lúc chạy lệnh là đủ; xong lệnh trả env cũ để không lẫn sang người khác.
+    Thiếu user hoặc pass thì giữ nguyên tài khoản trên máy.
+    """
+
+    _KEYS = ("AVIWEB_USER", "AVIWEB_PASS")
+
+    def __init__(self, payload: dict, say):
+        self.user = str(payload.get("aviweb_user") or "").strip()
+        self.pw = str(payload.get("aviweb_pass") or "")
+        self.say = say
+        self.old: dict = {}
+
+    def __enter__(self):
+        self.old = {k: os.environ.get(k) for k in self._KEYS}
+        if self.user and self.pw:
+            os.environ["AVIWEB_USER"] = self.user
+            os.environ["AVIWEB_PASS"] = self.pw
+            self.say(f"· tài khoản AviWeb: {self.user} (lấy từ tài khoản đã lưu trên web)")
+        else:
+            for k in self._KEYS:
+                os.environ.pop(k, None)
+            self.say("· web chưa lưu tài khoản AviWeb — dùng tài khoản trên máy này")
+        return self
+
+    def __exit__(self, *exc):
+        for k, v in self.old.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        return False
+
+
 def do_aviweb_check(payload: dict, say) -> dict:
     """Check trạng thái FPL trên AviWeb bằng Chrome thật (Selenium) — chạy đúng
     code atc_check.py của tool gốc, tài khoản lấy từ config.py trên máy này."""
@@ -755,7 +792,8 @@ def do_aviweb_check(payload: dict, say) -> dict:
         if isinstance(d, dict) and d.get("type") == "line" and d.get("text"):
             say(str(d["text"]), str(d.get("cls") or ""))
 
-    res = atc_check.check_flights(callsigns, headless=headless, on_progress=on_progress)
+    with _AviwebAccount(payload, say):
+        res = atc_check.check_flights(callsigns, headless=headless, on_progress=on_progress)
     return {
         "ok": res.ok,
         "failed": res.failed,
@@ -801,12 +839,13 @@ def do_aviweb_submit(payload: dict, say) -> dict:
             say(text, "bad" if text.startswith("\u2717") else "")
 
     say("\u00b7 chạy atcfpl.submit_fpl()")
-    res = atcfpl.submit_fpl(
-        fpath, headless=bool(payload.get("headless", True)), on_progress=on_progress,
-        cancel=_NoCancel(),
-        limit=int(payload["limit"]) if payload.get("limit") else None,
-        only_labels=[str(x) for x in (payload.get("only_labels") or [])] or None,
-    )
+    with _AviwebAccount(payload, say):
+        res = atcfpl.submit_fpl(
+            fpath, headless=bool(payload.get("headless", True)), on_progress=on_progress,
+            cancel=_NoCancel(),
+            limit=int(payload["limit"]) if payload.get("limit") else None,
+            only_labels=[str(x) for x in (payload.get("only_labels") or [])] or None,
+        )
     items = list(getattr(res, "items", []) or [])
     return {
         "ok": len([x for x in items if x.ok]),
