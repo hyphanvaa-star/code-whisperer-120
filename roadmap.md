@@ -297,3 +297,4 @@
 - [x] V 6.32: stand/taxiway NOTAM ở DEP/ALT/ENRT → MINOR
 - [x] V 6.69 Extra fuel rules editable in Filter setting
 - V 6.72: ẩn PIB 10h / WX 8h / ghi đè / Tự đính kèm ở Dispatch Tools (vẫn dùng mặc định)
+- [x] V 6.76 route KAPLI theo giờ tới KAPLI

@@ -300,10 +300,11 @@ export function save_route_table(rows: Raw[]): Raw {
     route: String(rec.route || "").trim().toUpperCase(),
     kapli: String(rec.kapli || "").trim(),
     envar: String(rec.envar || "").trim(),
+    kapli_time: String(rec.kapli_time || "").trim(),
     opt: String(rec.opt || "").trim(),
     note: String(rec.note || "").trim(),
   }));
-  return { columns: ["ROUTE", "KAPLI", "ENVAR", "OPT", "NOTE"], rows: out };
+  return { columns: ["ROUTE", "KAPLI", "ENVAR", "TIME TO KAPLI", "OPT", "NOTE"], rows: out };
 }
 
 export function save_alt_rows(oldDoc: Raw, rows: Raw[]): Raw {
@@ -627,6 +628,17 @@ export function extra_from_taf(
   return [String(Math.trunc(dest.extra || 0)), String(dest.why || ""), places];
 }
 
+/** "1:18" / "0118" / "118" → phút; trống/sai → null. */
+export function _kapliMinutes(v: unknown): number | null {
+  const t = String(v ?? "").trim();
+  if (!t) return null;
+  let m = t.match(/^(\d{1,2})[:.hH](\d{2})$/);
+  if (!m) m = t.match(/^(\d{1,2})(\d{2})$/);
+  if (!m) return null;
+  const mm = Number(m[2]); if (mm > 59) return null;
+  return Number(m[1]) * 60 + mm;
+}
+
 export function _suffix(routeTable: Raw[], route: string, etdHhmm: string): string {
   let hit: Raw | null = null;
   for (const rec of routeTable || []) {
@@ -635,7 +647,14 @@ export function _suffix(routeTable: Raw[], route: string, etdHhmm: string): stri
   if (!hit) return "1";
   const number = parseInt(etdHhmm, 10);
   if (!Number.isFinite(number)) return "1";
-  const picked = number > 1500 ? hit.envar : hit.kapli;
+  const tk = _kapliMinutes(hit.kapli_time);
+  let useKapli = number <= 1500;
+  if (tk != null) {
+    const etdMin = Math.floor(number / 100) * 60 + (number % 100);
+    const at = etdMin + tk;
+    useKapli = at < 17 * 60; // qua nửa đêm (>= 1440) coi như sau 1700Z
+  }
+  const picked = useKapli ? hit.kapli : hit.envar;
   const text = String(picked ?? "").trim();
   return text || "1";
 }

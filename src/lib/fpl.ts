@@ -6,7 +6,7 @@ export type FplDb = {
   alt: Record<string, { etp_pod: string; talt: string; fl: string; etp_poa: string; alt1: string; alt2: string }>;
   era: Record<string, string>; tz: Record<string, string>; domestic: string[]; neo: string[];
   ci: { id: string; a320: string; a321ceo: string; a321neo: string; a330: string; airports: string[] }[];
-  suffix: { route: string; kapli: string; envar: string }[];
+  suffix: { route: string; kapli: string; envar: string; kapli_time?: string }[];
   taxi: Record<string, string>; payload: Record<string, number>; payloadDate: string;
   pcrDep: string[]; pcrHead: string[]; pcrGrid: string[][]; pcrReg: Record<string, string>; source: string;
 };
@@ -48,7 +48,10 @@ function suffix(db: FplDb, route: string, utc: string) {
   const hit = db.suffix.find((r) => (r.route || "").toUpperCase() === route);
   if (!hit) return "1";
   const n = Number(utc); if (!Number.isFinite(n) || !utc) return "1";
-  return String((n > 1500 ? hit.envar : hit.kapli) || "").trim() || "1";
+  let useKapli = n <= 1500;
+  const m = String(hit.kapli_time || "").trim().match(/^(\d{1,2})[:.hH]?(\d{2})$/);
+  if (m && Number(m[2]) < 60) useKapli = Math.floor(n / 100) * 60 + (n % 100) + Number(m[1]) * 60 + Number(m[2]) < 1020;
+  return String((useKapli ? hit.kapli : hit.envar) || "").trim() || "1";
 }
 function taxiType(ac: string, reg: string, db: FplDb) {
   if (ac === "330") return "A333"; if (ac === "321") return db.neo.includes(reg) ? "A21N" : "A321"; if (ac === "320") return "A320"; return "";

@@ -241,6 +241,14 @@ describe("FplFormulaTests", () => {
     expect(ft._suffix(routeDoc.rows, "DADICN", "1600")).toBe("1");
     expect(ft._suffix(routeDoc.rows, "CXRICN", "0900")).toBe("3");
     expect(ft._suffix(routeDoc.rows, "SGNPVG", "1300")).toBe("1");
+  });
+  it("KAPLI route by STD UTC + time to KAPLI before 1700Z", () => {
+    const t = [{ route: "VVCRKS", kapli: "2", envar: "1", kapli_time: "1:47" }, { route: "DADICN", kapli: "2", envar: "1", kapli_time: "1:18" }, { route: "X", kapli: "2", envar: "1", kapli_time: "2:00" }, { route: "Y", kapli: "2", envar: "1", kapli_time: "1:00" }];
+    expect(ft._suffix(t, "VVCRKS", "1440")).toBe("2");
+    expect(ft._suffix(t, "DADICN", "1600")).toBe("1");
+    expect(ft._suffix(t, "X", "1500")).toBe("1");
+    expect(ft._suffix(t, "X", "1459")).toBe("2");
+    expect(ft._suffix(t, "Y", "2330")).toBe("1");
     const byId: Record<string, any> = {};
     for (const row of db.ci_rows) byId[row.id] = row;
     expect(byId.kz.a330).toBe("18");
