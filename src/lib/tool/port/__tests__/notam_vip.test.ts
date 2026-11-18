@@ -25,6 +25,19 @@ describe("VIP movement NOTAM → extra holding fuel", () => {
     expect(isVipMovement(vip.e_field)).toBe(true);
     expect(isVipMovement("ILS RWY 11L U/S")).toBe(false);
   });
+  it("maintenance RWY closure whose RMK only stops works for VIP flights is not VIP", () => {
+    const a4390 = "RWY 11R/29L NOT AVBL FOR TKOF AND LDG DUE TO MAINT\nRMK: THE WORKING AREA WILL BE STOPPED WHEN THERE ARE VIP FLT\nOPS OR VIS LESS THAN 2000M OR IN HAZARDOUS WX CONDITIONS.";
+    expect(isVipMovement(a4390)).toBe(false);
+    expect(isVipMovement("TWY E CLSD DUE TO WIP EXC VIP FLT.")).toBe(false);
+  });
+  it("VIP without delay, holding or traffic stop is not VIP", () => {
+    expect(isVipMovement("VIP FLT OPS AT VVNB.")).toBe(false);
+  });
+  it("VIP with holding/delay or AD closure caused by VIP is VIP", () => {
+    expect(isVipMovement("DUE TO VIP MOV. ARR ACFT EXP HOLDING.")).toBe(true);
+    expect(isVipMovement("AD CLSD DUE TO VIP MOV.")).toBe(true);
+    expect(isVipMovement("ALL DEP/ARR SUSPENDED DUE TO VIP FLT")).toBe(true);
+  });
   it("arrival landing inside the window (16:35Z) gets the VIP warning", () => {
     const v = verdictOf(places, arrival("2026-11-17T16:35:00Z"), []);
     expect(vipRows(v).map((r) => r.ident)).toEqual(["A4430/26"]);
