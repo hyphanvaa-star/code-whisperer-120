@@ -3101,7 +3101,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.84')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.85')
     // V 6.83: bản đồ đội bay chỉ nháy chuyến bị NOTAM ảnh hưởng thật (theo verdict đã lọc giờ/trần).
     .replace("  const only = nmResolveFleetId(flightId);\n  const ids = [];\n  let changed = false;", () => "  const only = nmResolveFleetId(flightId);\n  const ids = [];\n  let changed = false;\n  /* V 6.83: chỉ nháy chuyến mà kết quả lọc (đã xét giờ D/B–C và trần) thật sự liệt NOTAM này. */\n  const nmIdent = String((n && n.ident) || \"\").toUpperCase();\n  let hitIds = null;\n  if(nmIdent) Object.keys(tracks).forEach(function(id){\n    const v = tracks[id] && tracks[id].verdict;\n    if(!v || !Array.isArray(v.sections)) return;\n    hitIds = hitIds || {};\n    const has = function(rows){ return (rows || []).some(function(r){ return String((r && r.ident) || \"\").toUpperCase() === nmIdent; }); };\n    if(v.sections.some(function(s){ return has(s.rows) || (s.groups || []).some(function(g){ return has(g.rows); }); })) hitIds[id] = 1;\n  });")
     .replace("    if(!used) return;\n    ids.push(id);", () => "    if(!used || (hitIds && !hitIds[id])) return;\n    ids.push(id);")
@@ -3158,25 +3158,8 @@ function nmRouteLayers(ids){
     .replace('    if($("#pathModal").classList.contains("open")){ $("#pathModal").classList.remove("open"); return; }\n    stopRunningJobs();', '    if($("#pathModal").classList.contains("open")){ $("#pathModal").classList.remove("open"); return; }')
     .replace('try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){}', 'window.__userStop = true; try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){} window.__userStop = false;')
     .replace('function write(text, cls){\n  try{', 'function write(text, cls){\n  if(window.__userStop && /mất kết nối/.test(String(text))){ text = "— đã dừng theo yêu cầu —"; cls = "sys"; }\n  try{')
-    .replace('</body>', () => `<style>
-body.nm-full .app>header#mdRoom{display:none!important}body.nm-full .app>.body>aside>.aside-head{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:270px!important;z-index:8000!important;margin:0!important;padding:8px 6px!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fff!important;border-right:1px solid #e5e9f0!important;box-shadow:2px 0 10px rgba(15,23,42,.08)!important;box-sizing:border-box!important}body.nm-full .aside-head>*:not(.modes){display:none!important}body.nm-full .aside-head .modes{display:flex!important;flex-direction:column!important;gap:6px!important}body.nm-full .aside-head .mode{width:100%!important;height:48px!important;padding:0 12px!important;justify-content:flex-start!important;gap:10px!important;font-size:15.5px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-body.nm-full .app>.body,body.nm-full .app>.body:has(#wrapNotam:not([style*="none"])){display:grid!important;grid-template-columns:minmax(0,1fr) calc(50% - 5cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px 8px 8px 278px!important;gap:8px!important;box-sizing:border-box!important}
-body.nm-full .app{height:100vh!important;max-height:100vh!important;padding:0!important;margin:0!important}
-body.nm-full .app>.body>aside,body.nm-full .app>.body>main{display:flex!important;max-width:none!important;width:auto!important;height:calc(100vh - 16px)!important;min-height:0!important}
-body.nm-full #nmList>.nm-item{zoom:1.22}
-body.nm-full #nmVerdict>*{zoom:1.15}
-#nmFullBtn{position:fixed;top:6px;right:70px;z-index:9000;display:none;padding:5px 12px;border:0;border-radius:14px;background:#E31937;color:#fff;font:700 12px/1.3 system-ui;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-body.nm-on #nmFullBtn{display:block}
-</style><script>(function(){
-var K='nm.fullscreen.off',b=document.createElement('button');b.id='nmFullBtn';b.type='button';document.body.appendChild(b);
-function off(){try{return localStorage.getItem(K)==='1'}catch(e){return false}}
-function fix(){setTimeout(function(){if(!document.body.classList.contains('nm-full')){document.body.style.zoom='';document.documentElement.classList.remove('fit-scaled');window.dispatchEvent(new Event('resize'))}if(window.nmMap&&nmMap.invalidateSize)nmMap.invalidateSize()},150)}
-function apply(){var m=document.getElementById('mNotam'),on=!!(m&&m.classList.contains('on'));document.body.classList.toggle('nm-on',on);var f=on&&!off();if(document.body.classList.contains('nm-full')!==f){document.body.classList.toggle('nm-full',f);fix()}b.textContent=f?'⤡ Thoát toàn màn hình':'⤢ Toàn màn hình NOTAM'}
-b.onclick=function(){try{localStorage.setItem(K,document.body.classList.contains('nm-full')?'1':'0')}catch(e){}apply()};
-window.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.body.classList.contains('nm-full')){try{localStorage.setItem(K,'1')}catch(x){}apply()}},true);
-document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('#mNotam')){try{localStorage.setItem(K,'0')}catch(x){}}setTimeout(apply,30)},true);
-var m=document.getElementById('mNotam');if(m)new MutationObserver(apply).observe(m,{attributes:true,attributeFilter:['class']});apply();
-})();</script></body>`)
+    // V 6.85: bỏ hẳn cơ chế tự phóng to toàn màn hình khi bấm tab NOTAM Tracking — tab mở trong khung bình thường như các tab khác.
+    .replace('</body>', () => `<style>#nmFullBtn{display:none!important}</style><script>(function(){try{localStorage.removeItem('nm.fullscreen.off')}catch(e){}document.body.classList.remove('nm-full');document.body.classList.remove('nm-on')})();</script></body>`)
     // V 6.17: ERA hợp lệ khi có trong OFP và không bị cảnh báo AIR OPS; chỉ báo lỗi ERA với chuyến ≥ 3h.
     .replace('ERA: chuyến 3PCT phải có sân enroute và TIME dưới 60p.', 'ERA: có ERA và không bị cảnh báo AIR OPS → hợp lệ; chỉ chuyến ≥ 3h thiếu/không đạt ERA mới báo lỗi.')
     // V 6.16: NOTAM map box 'Ẩn vùng xa route (>50 NM)' keeps every area (incl. MINOR) within 50 NM of the route.
