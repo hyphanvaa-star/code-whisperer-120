@@ -58,3 +58,4 @@
 - Destination-TAF extra minutes come from `port/extra_wx.ts` with an editable `ExtraWxCfg` (layered key `extra_wx_cfg`, `/api/extra/cfg`), threaded explicitly into `taf.advise`; never keep it in module state, since Worker requests share modules across users.
 - Route FPL suffix: STD UTC + route `kapli_time` < 1700Z picks KAPLI (fallback STD 1500 rule when blank) in `_suffix`, `lib/fpl.ts` and the page shim; keep all three identical.
 - NOTAM ATS route rows in `verdictOf` count only hits with `eta_ok` (B–C/D at crossing) and FL ≤ ceiling + configured `alt_buffer_ft`, so spatial route matches never ignore time/altitude.
+- TAF hover highlight uses `segmentsForWindow` over the same ETA ±1h window as `adviceForFlight`/`adviceWindow`, so lit groups always match the weather that drove the verdict.

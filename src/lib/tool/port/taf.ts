@@ -337,6 +337,38 @@ function segmentsForSta(rec: TafRec, when: Date): { text: string; hit: boolean }
   return segs;
 }
 
+/** Highlight theo cả khung ETA ±1h, khớp đúng logic tính ảnh hưởng của adviceForFlight. */
+export function segmentsForWindow(rec: TafRec, start: Date, end: Date): { text: string; hit: boolean }[] {
+  const base = segmentsForSta(rec, start);
+  if (rec.nil || !rec.groups || rec.groups.length === 0) return base;
+  const t0 = start.getTime(), t1 = end.getTime();
+  const groups = rec.groups;
+  const hits = new Set<number>();
+  let mainI: number | null = null;
+  groups.forEach((g, i) => {
+    if (!["BASE", "FM", "BECMG"].includes(g.kind)) return;
+    const s = new Date(g.start).getTime();
+    if (s <= t0) mainI = i;
+    else if (s <= t1) hits.add(i);
+  });
+  if (mainI !== null) hits.add(mainI);
+  groups.forEach((g, i) => {
+    const kind = g.kind || "";
+    if (!kind.startsWith("TEMPO") && !kind.startsWith("PROB")) return;
+    const s = new Date(g.start).getTime(), e = new Date(g.end).getTime();
+    if (s <= t1 && e > t0) hits.add(i);
+  });
+  // segmentsForSta: [header, ...một đoạn cho mỗi nhóm có nhãn, "=", nguồn?]
+  const out = base.map((x) => ({ ...x }));
+  let k = 1;
+  groups.forEach((g, i) => {
+    if (!groupLabel(g)) return;
+    if (out[k]) out[k].hit = hits.has(i);
+    k++;
+  });
+  return out;
+}
+
 export function advise(icao0: string, when0: Date, tafs: Record<string, TafRec>, cfg?: extraWx.ExtraWxCfg): TafAdvice {
   const icao = (icao0 || "").toUpperCase().trim();
   const when = when0;
@@ -633,6 +665,7 @@ export function adviceForFlight(dest: string, staIso: string | null | undefined,
   result.extra_need = Math.trunc(peak.extra_need || 0);
   result.extra_why = String(peak.extra_why || "");
   const rec = tafs[dest.toUpperCase().trim()];
+  if (rec && !rec.nil && rec.groups?.length) result.segments = segmentsForWindow(rec, windowStart, windowEnd);
   // Sân có TAF: kèm METAR mới nhất để xem khi rê chuột (sân NIL đã có METAR trong segments).
   if (rec && !rec.nil && rec.metar?.raw) return { ...result, metar: rec.metar };
   return { ...result };
@@ -650,5 +683,7 @@ export function adviceWindow(icao: string, when: Date, tafs: Record<string, TafR
   center.extra_need = Math.trunc(peak.extra_need || 0);
   center.extra_why = String(peak.extra_why || "");
   if (center.segments.length === 0 && peak.segments.length) center.segments = peak.segments;
+  const rec = tafs[(icao || "").toUpperCase().trim()];
+  if (rec && !rec.nil && rec.groups?.length) center.segments = segmentsForWindow(rec, windowStart, new Date(when.getTime() + 60 * 60000));
   return center;
 }

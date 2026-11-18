@@ -49,6 +49,26 @@ describe("taf window advice", () => {
     expect(win.segments.some((s) => s.hit)).toBe(true);
   });
 
+  it("highlight follows ETA ±1h window (STA 0717 → TEMPO 0800 lit)", () => {
+    vi.setSystemTime(new Date(Date.UTC(2026, 10, 18, 2, 0)));
+    const raw = "TAF VVNB 180500Z 1806/1912 36008KT 9999 FEW020 " +
+      "BECMG 1807/1808 01012KT SCT020 BKN040 TEMPO 1808/1812 02015G25KT 4000 SHRA BKN015 " +
+      "TEMPO 1814/1818 3000 TSRA=";
+    const rec = taf.parseTafBlock(raw)!;
+    const out = taf.adviceForFlight("VVNB", new Date(Date.UTC(2026, 10, 18, 7, 17)).toISOString(), { VVNB: rec }) as any;
+    const lit = out.segments.filter((s: any) => s.hit).map((s: any) => s.text.trim());
+    expect(out.status).toBe("bad");
+    expect(lit.some((t: string) => t.startsWith("BECMG 1807/1808"))).toBe(true);
+    expect(lit.some((t: string) => t.startsWith("TEMPO 1808/1812"))).toBe(true);
+    expect(lit.some((t: string) => t.startsWith("TEMPO 1814/1818"))).toBe(false);
+  });
+
+  it("tempo just after window is not lit", () => {
+    const out = advice(TAF_TSRA_FROM_0700, at(5, 42));
+    const lit = out.segments.filter((s: any) => s.hit).map((s: any) => s.text.trim());
+    expect(lit.some((t: string) => t.startsWith("TEMPO 1207/1210"))).toBe(false);
+  });
+
   it("landing inside tempo is still flagged", () => {
     const out = advice(TAF_TSRA_FROM_0700, at(8, 0));
     expect(out.status).toBe("bad");

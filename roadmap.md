@@ -298,3 +298,4 @@
 - [x] V 6.69 Extra fuel rules editable in Filter setting
 - V 6.72: ẩn PIB 10h / WX 8h / ghi đè / Tự đính kèm ở Dispatch Tools (vẫn dùng mặc định)
 - [x] V 6.76 route KAPLI theo giờ tới KAPLI
+- [x] V 6.82: TAF highlight theo khung STA ±1h, khớp cách tính ảnh hưởng
