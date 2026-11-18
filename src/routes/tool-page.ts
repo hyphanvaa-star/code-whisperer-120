@@ -3101,7 +3101,9 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.71')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.72')
+    // V 6.72: ẩn PIB ±h / WX h / ghi đè / nút Tự đính kèm (giữ mặc định 10h, 8h, không ghi đè, luôn tự đính kèm).
+    .replace('</head>', () => '<style>label.chk:has(#tlHours),label.chk:has(#tlWxAge),label.chk:has(#tlOver),#tlAttach{display:none!important}</style></head>')
     // V 6.71: nút Xoá FLT / Xoá PIB/WX chuyển lên tiêu đề cột, kiểu chip hiện đại.
     .replace('<button class="btn small" id="tlClearFlt" title="Xoá cột FLT NO (giữ nguyên PIB/WX và vòng lặp)">Xoá FLT</button>', () => '')
     .replace('<button class="btn small" id="tlClearPib" title="Xoá cột PIB/WX và reset trạng thái tải (dừng vòng lặp)">Xoá PIB/WX</button>', () => '')
