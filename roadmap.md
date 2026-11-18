@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 6.86: khôi phục nút File ATC Aviweb, đưa vào hàng FliteBrief cùng In GD/Tạo EZFW (kiểu nút tối đồng bộ)
 - [x] V 6.85: Bỏ cơ chế tự phóng to toàn màn hình khi bấm tab NOTAM Tracking — tab mở trong khung bình thường như các tab khác
 - [x] V 6.84: Ô Điện văn thêm 3 loại CHG ALT (kèm dự bị FliteBrief), CHG ROUTE (route OFP mới nhất), CNL
 - [x] V 6.68: Check NOTAM quốc nội tự phân loại từng NOTAM theo chuyến (CRUCIAL / MANUAL CHECK / BRIEFING INFO / MINOR có số, bấm ô để lọc danh sách)
