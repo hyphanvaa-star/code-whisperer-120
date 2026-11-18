@@ -1,6 +1,6 @@
 import type { Jobs, Routes } from "../types";
 import { loadFlights, filterByWindow, filterByDispatcher, findOperationalFlightById } from "../core/gantts.server";
-import { tunePlaces, tunePlacesDomestic, domesticAirports } from "../port/notam_check_tune";
+import { tunePlaces, tunePlacesDomestic, domesticAirports, tuneTrackPoints } from "../port/notam_check_tune";
 
 // Port of web.py's "/api/notam/tune" (_api_notam_tune): client-side re-filter of
 // an already-fetched NOTAM place list, either "domestic" mode (DSP fleet window,
@@ -51,19 +51,7 @@ export const routes: Routes = {
     if (!flight) return { error: `Không tìm thấy chuyến ${sectorId}.` };
     const ofpText = ""; // load_ofp_text not ported; see note above.
 
-    const points: Array<{ lat: number; lon: number; fl_ft: number; ete_min: number; name: string }> = [];
-    for (const raw of Array.isArray(body.track) ? body.track : []) {
-      if (!raw || typeof raw !== "object") continue;
-      const pt = raw as Record<string, unknown>;
-      const lat = Number(pt.lat), lon = Number(pt.lon);
-      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      points.push({
-        lat, lon,
-        fl_ft: Number.isFinite(Number(pt.fl_ft)) ? Math.trunc(Number(pt.fl_ft)) : 0,
-        ete_min: Number.isFinite(Number(pt.ete_min)) ? Math.trunc(Number(pt.ete_min)) : 0,
-        name: String(pt.name ?? ""),
-      });
-    }
+    const points = tuneTrackPoints(body.track);
     // jetplan_kml fallback (points empty -> fetch track) is not ported here either;
     // the client supplies track points directly (same as web.py's body["track"]).
 

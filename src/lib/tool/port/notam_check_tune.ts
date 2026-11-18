@@ -932,6 +932,26 @@ export function buildTuneCtx(flight: Flight, ofpText = ""): TuneCtx {
   };
 }
 
+/** Preserve flown leg identity when the browser sends a track back for filtering. */
+export function tuneTrackPoints(raw: unknown): Array<Record<string, unknown>> {
+  const points: Array<Record<string, unknown>> = [];
+  for (const value of Array.isArray(raw) ? raw : []) {
+    if (!value || typeof value !== "object") continue;
+    const pt = value as Record<string, unknown>;
+    const lat = Number(pt.lat), lon = Number(pt.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    points.push({
+      lat, lon,
+      fl_ft: Number.isFinite(Number(pt.fl_ft)) ? Math.trunc(Number(pt.fl_ft)) : 0,
+      ete_min: Number.isFinite(Number(pt.ete_min)) ? Math.trunc(Number(pt.ete_min)) : 0,
+      name: String(pt.name ?? ""),
+      airway: String(pt.airway || pt.awy || "").trim().toUpperCase(),
+      fir: String(pt.fir ?? "").trim().toUpperCase(),
+    });
+  }
+  return points;
+}
+
 export function extraOfpTokens(points?: Array<Record<string, unknown>> | null): Set<string> {
   const out = new Set<string>();
   for (const pt of points || []) {

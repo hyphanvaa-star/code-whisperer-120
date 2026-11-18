@@ -57,3 +57,4 @@
 - Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others.
 - Storm warning identities and modern JMA forecast parsing live in browser-safe `port/storms.ts`; retain JTWC RSS names when overlays fail and distinguish unavailable data from confirmed empty feeds. Toolbar changes load through the tool-page shim to preserve the original HTML.
 - Named ENR resolves FIR-scoped AIP IDs before SUP; unknowns stay manual. Database uses this catalogue. All-area Layer changes plotting only. NOTAM counters share pure `notam_counts` over assessed and dropped rows.
+- NOTAM tune round-trips track airway/FIR through the HTML shim and `tuneTrackPoints`; keep leg identity for route-name hits and assessment without bypassing time/altitude gates.

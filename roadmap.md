@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 6.87: giữ airway/FIR của track qua nút lọc và máy chủ; W195/MORIT nhận diện và tô đỏ trên mẫu A6035/26; 50 kiểm thử đạt, giữ quy tắc giờ/độ cao, build OK; chưa publish.
+- [ ] V 6.87: xác nhận tracking/lọc A6035/26 trong phiên JACK — chưa cấp được phiên khớp tài khoản; cần JACK đăng nhập preview và chạy lại chuyến thật.
 - [x] V 6.86: khôi phục nút File ATC Aviweb, đưa vào hàng FliteBrief cùng In GD/Tạo EZFW (kiểu nút tối đồng bộ)
 - [x] V 6.85: Bỏ cơ chế tự phóng to toàn màn hình khi bấm tab NOTAM Tracking — tab mở trong khung bình thường như các tab khác
 - [x] V 6.84: Ô Điện văn thêm 3 loại CHG ALT (kèm dự bị FliteBrief), CHG ROUTE (route OFP mới nhất), CNL
