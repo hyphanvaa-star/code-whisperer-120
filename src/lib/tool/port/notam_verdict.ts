@@ -298,6 +298,7 @@ export function verdictOf(
   points: N[] = [],
   chart?: Chart | null,
   altBufFt = 10000,
+  namedGate?: (n: N, named: string[]) => boolean,
 ): Verdict {
   // Route hits only count when the aircraft crosses inside B–C/D (eta_ok) and below ceiling + buffer.
   const flBad = (h: N) => { const f = Number(h.fl_ft) || 0, top = Number(h.fl_hi); return !!f && Number.isFinite(top) && top < 90000 && f > top + altBufFt; };
@@ -349,7 +350,9 @@ export function verdictOf(
       const named =
         tokens.size && awySegmentAffects(n, points, chart) ? ofpNamedHits(n, tokens, points) : [];
       const own = hits.filter((h) => str(h.ident) === str(n.ident));
-      if (named.length && !(own.length && !own.some(liveHit))) ofp.push({ ...base, tags: ["ofp"], area: named.join("/") });
+      // Text-only route NOTAMs (no geometry hit) still need the crossing time/FL checked.
+      const namedLive = own.length ? own.some(liveHit) : !namedGate || namedGate(n, named);
+      if (named.length && namedLive) ofp.push({ ...base, tags: ["ofp"], area: named.join("/") });
       let sh = arr(n.sid_star_hits).filter((h) => !cs || str(h.cs).trim().toUpperCase() === cs);
       if (!sh.length && ofpText) {
         let procs = sidStarHitsOf(n, ofpText, tokens);

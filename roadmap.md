@@ -299,3 +299,4 @@
 - V 6.72: ẩn PIB 10h / WX 8h / ghi đè / Tự đính kèm ở Dispatch Tools (vẫn dùng mặc định)
 - [x] V 6.76 route KAPLI theo giờ tới KAPLI
 - [x] V 6.82: TAF highlight theo khung STA ±1h, khớp cách tính ảnh hưởng
+- [x] V 6.83: NOTAM route chỉ ghi tên (W8 PQU–TUNPO) xét giờ tàu qua điểm ±1h + trần; bản đồ chỉ nháy chuyến bị ảnh hưởng; sửa lỗi xuống dòng METAR làm hỏng script trang

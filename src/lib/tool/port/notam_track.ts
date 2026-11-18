@@ -852,6 +852,25 @@ export function stampEta(points: TrackPoint[], flight: Flight): TrackPoint[] {
   });
 }
 
+/** Named ATS route/fix NOTAM without geometry: live only if the aircraft passes a named point
+ *  (or, when none is on the track, any point) inside B–C and D ±padH, below ceiling + buffer. */
+export function namedRouteLive(
+  notam: Notam, flight: Flight, points: TrackPoint[], named: string[], altBufFt = 10000, padH = 1,
+): boolean {
+  if (!points.length || !(flight.etd || flight.std)) return true;
+  const blob = String(notam.e_field ?? notam.text ?? "").replace(/^Q\).*$/gm, "").toUpperCase();
+  const words = new Set([...(blob.match(/\b[A-Z]{2,5}\b/g) || []), ...named.map((x) => x.toUpperCase())]);
+  const own = points.filter((p) => words.has(String(p.name || "").toUpperCase()));
+  const cand = own.length ? own : points;
+  const [, top] = notamAltBand(notam);
+  return cand.some((p) => {
+    const when = pointTime(flight, p.ete_min || 0);
+    if (!notamOverlapsEta(notam, when, padH) || !notamDActiveNear(notam, when, padH)) return false;
+    const fl = Number(p.fl_ft) || 0;
+    return !(own.length && fl && top < 90000 && fl > top + altBufFt);
+  });
+}
+
 export function pointTime(flight: Flight, eteMin: number): Date {
   const raw = flight.etd || flight.std || new Date();
   return new Date(raw.getTime() + (eteMin || 0) * 60_000);
@@ -1053,7 +1072,8 @@ export async function run(flight: Flight, deps: RunDeps) {
   const tokens = new Set([...(buildTuneCtx(flight, ofpText).tokens as Set<string>), ...extraOfpTokens(points)]);
   for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''), points);
   stampSidStarHits(places, [flight], { [flight.id]: ofpText });
-  const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart);
+  const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart, 10000,
+    (n, named) => namedRouteLive(n as Notam, flight, (track.points || []) as TrackPoint[], named, 10000));
   stampOfpHeads(places, tokens, points);
   return {
     ok: true,
@@ -1118,7 +1138,9 @@ export async function runDomesticFleet(flights: Flight[], deps: RunDeps & { fetc
     for (const token of tokens) fleetTokens.add(token);
     fleetPoints.push(...points);
     for (const h of hits) applyOfpHead(h, tokens, String(h.icao || ''), points);
-    const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart, Number((deps.assessCfg as { alt_buffer_ft?: number } | undefined)?.alt_buffer_ft ?? 10000));
+    const altBuf = Number((deps.assessCfg as { alt_buffer_ft?: number } | undefined)?.alt_buffer_ft ?? 10000);
+    const verdict = verdictOf(places, flight, hits, ofpText, points, deps.chart, altBuf,
+      (n, named) => namedRouteLive(n as Notam, flight, (track.points || []) as TrackPoint[], named, altBuf));
     const row = {
       id: flight.id, cs: flight.callsign || "", dep: flight.dep_icao || "", dest: flight.dest_icao || "",
       tracked: !!(track.points?.length || track.line?.length), hit_count: hits.length, kml_error: trackRes.error, verdict,
