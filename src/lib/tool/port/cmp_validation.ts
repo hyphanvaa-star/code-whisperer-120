@@ -126,7 +126,7 @@ export function patchCmpValidationPage(html: string): string {
       const menu = document.createElement("select");
       menu.className = "cmp-message-select";
       menu.setAttribute("aria-label", "Điện văn " + actionFlight.callsign);
-      for(const kind of ["", "CHG A/C", "DLA", "CHG DLA"]){
+      for(const kind of ["", "CHG A/C", "DLA", "CHG DLA", "CHG ALT", "CHG ROUTE", "CNL"]){
         const option = document.createElement("option");
         option.value = kind; option.textContent = kind || "Điện văn…";
         menu.appendChild(option);
@@ -144,6 +144,7 @@ export function patchCmpValidationPage(html: string): string {
             body: JSON.stringify({kind, items: [{sector_id: f.id, flt: f.callsign,
               date: new Date(f.std).toISOString().slice(0,10), dep: r.dep, arr: r.arr,
               avi_eobt: (atcHit && atcHit.status && atcHit.eobt) || "",
+              alt1: ((f.alternates || []).filter(Boolean)[0]) || "", alt2: ((f.alternates || []).filter(Boolean)[1]) || "", ofp_alt: true,
               etd_local: r.crew_etd || "", std_local: r.crew_std || ""}]})});
           const d = await response.json();
           if(!response.ok || d.error) throw new Error(d.error || "Không lấy được điện văn");

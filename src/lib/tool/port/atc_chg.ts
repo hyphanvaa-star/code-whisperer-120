@@ -281,7 +281,9 @@ export function render_msg(kindRaw: string, fields: FplFields, spec: Record<stri
       const code = icaoApt_(spec[key] ?? "");
       if (code && !alts.includes(code) && code !== dest8.slice(0, 4)) alts.push(code);
     }
-    lines.push("-16/" + [dest8, ...alts].join(" ").trim());
+    // Compare gửi ofp_alt: không có sân dự bị FliteBrief thì giữ nguyên mục 16 của OFP mới.
+    if (!alts.length && spec.ofp_alt && base) lines.push("-16/" + base.trim());
+    else lines.push("-16/" + [dest8, ...alts].join(" ").trim());
   } else if (k === KIND_CHG_ROUTE) {
     const body = String(fields.item15 || "").trim();
     if (body) lines.push("-15/" + body);

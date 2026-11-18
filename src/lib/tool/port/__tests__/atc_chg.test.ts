@@ -126,6 +126,21 @@ describe("render_msg", () => {
     expect(html).toContain("-13/VVTS0500");
   });
 
+  it("CHG ALT from Compare keeps OFP item16 when no FliteBrief alternates", () => {
+    const got = atcChg.render_msg("CHG ALT", fields, { ofp_alt: true });
+    expect(got).toContain("-16/" + fields.item16);
+  });
+
+  it("CHG ALT from Compare uses FliteBrief alternates", () => {
+    const got = atcChg.render_msg("CHG ALT", fields, { alt1: "VVDN", alt2: "VVCR", ofp_alt: true });
+    expect(got).toContain("-16/VVNB0155 VVDN VVCR)");
+  });
+
+  it("CNL has only the identity line", () => {
+    const got = atcChg.render_msg("CNL", fields, {});
+    expect(got).toMatch(/^\(CNL-VJC136-VVTS0500-VVNB-DOF\/261003\)$/);
+  });
+
   it("CHG ROUTE copies full OFP item15", () => {
     const got = atcChg.render_msg("CHG ROUTE", fields, { route: "JUNK", fl: "100" });
     expect(got).toContain("-15/N0456F330 BIXEX5U BIXEX");

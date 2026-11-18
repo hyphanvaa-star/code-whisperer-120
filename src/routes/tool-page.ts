@@ -3101,7 +3101,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.83')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.84')
     // V 6.83: bản đồ đội bay chỉ nháy chuyến bị NOTAM ảnh hưởng thật (theo verdict đã lọc giờ/trần).
     .replace("  const only = nmResolveFleetId(flightId);\n  const ids = [];\n  let changed = false;", () => "  const only = nmResolveFleetId(flightId);\n  const ids = [];\n  let changed = false;\n  /* V 6.83: chỉ nháy chuyến mà kết quả lọc (đã xét giờ D/B–C và trần) thật sự liệt NOTAM này. */\n  const nmIdent = String((n && n.ident) || \"\").toUpperCase();\n  let hitIds = null;\n  if(nmIdent) Object.keys(tracks).forEach(function(id){\n    const v = tracks[id] && tracks[id].verdict;\n    if(!v || !Array.isArray(v.sections)) return;\n    hitIds = hitIds || {};\n    const has = function(rows){ return (rows || []).some(function(r){ return String((r && r.ident) || \"\").toUpperCase() === nmIdent; }); };\n    if(v.sections.some(function(s){ return has(s.rows) || (s.groups || []).some(function(g){ return has(g.rows); }); })) hitIds[id] = 1;\n  });")
     .replace("    if(!used) return;\n    ids.push(id);", () => "    if(!used || (hitIds && !hitIds[id])) return;\n    ids.push(id);")
