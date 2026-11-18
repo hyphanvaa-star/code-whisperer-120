@@ -3101,7 +3101,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.73')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.74')
     // V 6.73: ẩn Paths + File ATC Aviweb, In GD/Tạo EZFW xuống hàng FliteBrief, skin hàng công cụ mới.
     .replace("<button class=\"btn small\" type=\"button\" title=\"In GD (giống nút In GD ở Print GD)\" onclick=\"document.getElementById('gdPrint').click()\">🖨 In GD</button>", () => '')
     .replace("<button class=\"btn small\" type=\"button\" title=\"Tạo ATC + EZFW nháp Outlook (giống nút Soạn nháp)\" onclick=\"document.getElementById('aeDraft').click()\">✉ Tạo EZFW</button>", () => '')
@@ -3147,8 +3147,8 @@ function nmRouteLayers(ids){
     .replace('try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){}', 'window.__userStop = true; try{ if(typeof es.onerror === "function") es.onerror(new Event("error")); }catch(e){} window.__userStop = false;')
     .replace('function write(text, cls){\n  try{', 'function write(text, cls){\n  if(window.__userStop && /mất kết nối/.test(String(text))){ text = "— đã dừng theo yêu cầu —"; cls = "sys"; }\n  try{')
     .replace('</body>', () => `<style>
-body.nm-full .app>header#mdRoom,body.nm-full .app>.body>aside>.aside-head{display:none!important}
-body.nm-full .app>.body,body.nm-full .app>.body:has(#wrapNotam:not([style*="none"])){display:grid!important;grid-template-columns:minmax(0,1fr) calc(50% - 5cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px!important;gap:8px!important;box-sizing:border-box!important}
+body.nm-full .app>header#mdRoom{display:none!important}body.nm-full .app>.body>aside>.aside-head{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:64px!important;z-index:8000!important;margin:0!important;padding:8px 6px!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fff!important;border-right:1px solid #e5e9f0!important;box-shadow:2px 0 10px rgba(15,23,42,.08)!important;box-sizing:border-box!important}body.nm-full .aside-head>*:not(.modes){display:none!important}body.nm-full .aside-head .modes{display:flex!important;flex-direction:column!important;gap:6px!important}body.nm-full .aside-head .mode{width:50px!important;height:44px!important;padding:0!important;justify-content:center!important;font-size:0!important;overflow:hidden!important}body.nm-full .aside-head .mode *{display:none!important}body.nm-full .aside-head .mode::before{margin:0!important}
+body.nm-full .app>.body,body.nm-full .app>.body:has(#wrapNotam:not([style*="none"])){display:grid!important;grid-template-columns:minmax(0,1fr) calc(50% - 5cm)!important;height:100vh!important;max-height:100vh!important;max-width:none!important;width:100%!important;margin:0!important;padding:8px 8px 8px 72px!important;gap:8px!important;box-sizing:border-box!important}
 body.nm-full .app{height:100vh!important;max-height:100vh!important;padding:0!important;margin:0!important}
 body.nm-full .app>.body>aside,body.nm-full .app>.body>main{display:flex!important;max-width:none!important;width:auto!important;height:calc(100vh - 16px)!important;min-height:0!important}
 body.nm-full #nmList>.nm-item{zoom:1.22}
