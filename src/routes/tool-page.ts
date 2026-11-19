@@ -3102,7 +3102,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.96')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.97')
+    // V 6.97: NOTES by Dispatcher mặc định có Link AIP Việt Nam.
     // V 6.96: bảng AIMS thiết kế lại, chọn giờ 24h (00–23), bỏ SA/CH.
     // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
     // V 6.91: dọn lệnh tạm Trợ lý PC (giữ 48h), tự xoá lệnh quá 10 ngày; chat hiện tin ngay khi gửi.

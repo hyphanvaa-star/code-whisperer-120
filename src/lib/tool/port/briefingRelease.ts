@@ -16,6 +16,9 @@ export const OPS_SIDE = "A/C OPS\nLimitations";
 export const PERMIT_SIDE = "Flight\nPermits";
 export const NOTES_SIDE = "NOTES by\nDispatcher";
 
+export const AIP_VN_URL = "https://aim.vatm.vn/images/stories/vnaic.vn/SanPhamDichVu/AIPVietNam/AIP/history-vi-VN.html";
+export const AIP_NOTE = `Link AIP Việt Nam : ${AIP_VN_URL}`;
+
 export const NOTES_RED =
   "FOR PILOTS WHO HAVE CERTIFIED CATIIIS:\n" +
   "ALL FLIGHT EXPECTED TO LAND IN HAN/SGN AND CAT II/III DESTINATION: " +
@@ -282,7 +285,7 @@ export interface ReleaseSheet {
 export function newSheet(partial: Partial<ReleaseSheet> & Pick<ReleaseSheet, "callsign" | "published_at" | "dep" | "dest" | "dest_alts" | "enroute_alts" | "reg" | "defects" | "wx">): ReleaseSheet {
   return {
     ofp_note: "",
-    notes: "",
+    notes: AIP_NOTE,
     permit_addr: PERMIT_ADDR,
     permit_kind: PERMIT_KIND,
     sig_wx: "",
@@ -443,7 +446,7 @@ export function toHtml(sheet: ReleaseSheet): string {
     </tr>
     <tr>
       <td class="br-c1">${htmlLines(NOTES_SIDE)}</td>
-      <td class="br-c23 br-notes" colspan="2">${htmlLines(sheet.notes)}</td>
+      <td class="br-c23 br-notes" colspan="2">${htmlLines(sheet.notes).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`)}</td>
     </tr>
     ${picAckRows()}
   </table>
@@ -949,7 +952,7 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
   const identity = editIdentity(flight);
   if (opts.applyEdits !== false && opts.loadEdits && identity) {
     const saved = await opts.loadEdits(identity);
-    if (saved) sheet = applyFields(sheet, { ...saved, ...(saved.notes === NOTES_RED ? { notes: "" } : {}) });
+    if (saved) sheet = applyFields(sheet, { ...saved, ...(saved.notes === NOTES_RED ? { notes: AIP_NOTE } : {}) });
   }
   if (opts.pins) {
     const ctx = await opts.pinContext?.(sheet, text) ?? {};

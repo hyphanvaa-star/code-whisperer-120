@@ -1,4 +1,4 @@
-import type { ReleaseSheet } from "./briefingRelease";
+import { AIP_NOTE, type ReleaseSheet } from "./briefingRelease";
 export type PreviousBriefing = Pick<ReleaseSheet, "notams" | "notes" | "permit_addr" | "permit_kind">;
 type Item = { str: string; x: number; y: number };
 const linesOf = (items: Item[]) => {
@@ -90,5 +90,5 @@ export async function readPreviousBriefing(bytes: Uint8Array, callsign: string):
 }
 /** Preserve only the old NOTAM cells AFTER fresh weather and pins; NOTES stay empty and Permits follow the normal build. */
 export function restorePreviousBriefing(sheet: ReleaseSheet, previous: PreviousBriefing): ReleaseSheet {
-  return { ...sheet, notes: "", notams: [...previous.notams] };
+  return { ...sheet, notes: AIP_NOTE, notams: [...previous.notams] };
 }
