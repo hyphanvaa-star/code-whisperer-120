@@ -71,6 +71,20 @@
       "when": 1794537760627,
       "tag": "0009_restrict_has_role_execute",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795068296440,
+      "tag": "0010_migration",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795068649481,
+      "tag": "0011_migration",
+      "breakpoints": true
     }
   ]
 }

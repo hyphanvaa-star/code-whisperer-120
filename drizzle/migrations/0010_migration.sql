@@ -1,0 +1,2 @@
+CREATE INDEX IF NOT EXISTS pc_jobs_created_at_idx ON public.pc_jobs USING btree (created_at);
+CREATE INDEX IF NOT EXISTS pc_jobs_kind_status_created_idx ON public.pc_jobs USING btree (kind, status, created_at DESC);
