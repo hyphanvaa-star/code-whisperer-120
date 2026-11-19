@@ -192,6 +192,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     };
   }, [me, open, loadProfiles]);
 
+  const pendingRef = useRef<Msg[]>([]);
   const loadMessages = useCallback(async (roomId: string) => {
     const { data, error } = await supabase
       .from("chat_messages")
@@ -201,7 +202,9 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       .limit(200);
     if (activeRoomRef.current !== roomId || error) return;
     const nextMessages = (data as Msg[] | null) ?? [];
-    setMessages(nextMessages);
+    // Giữ tin vừa gửi (chưa lưu xong) để lượt tải định kỳ không làm nó biến mất.
+    const pending = pendingRef.current.filter((m) => m.room_id === roomId);
+    setMessages(pending.length ? [...nextMessages, ...pending] : nextMessages);
     if (!nextMessages.length) {
       setReactions([]);
       return;
@@ -345,25 +348,29 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
 
   const send = async (sticker?: StickerId) => {
     const body = sticker ? stickerBody(sticker) : draft.trim();
-    if (!body || !active || sending) return;
+    if (!body || !active) return;
     const roomId = active.id;
-    setSending(true);
+    // Hiện tin ngay khi bấm gửi, lưu lên máy chủ ở nền (kiểu Messenger).
+    const temp: Msg = { id: `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`, room_id: roomId, user_id: me, body, created_at: new Date().toISOString() };
+    pendingRef.current = [...pendingRef.current, temp];
+    setMessages((prev) => [...prev, temp]);
+    if (!sticker) setDraft("");
+    setPicker(null);
     setChatError("");
+    inputRef.current?.focus();
+    const drop = () => { pendingRef.current = pendingRef.current.filter((m) => m.id !== temp.id); };
     try {
       const { error } = await supabase
         .from("chat_messages")
         .insert({ room_id: roomId, user_id: me, body });
       if (error) throw error;
-      if (activeRoomRef.current === roomId) {
-        if (!sticker) setDraft("");
-        setPicker(null);
-        await loadMessages(roomId);
-        inputRef.current?.focus();
-      }
+      drop();
+      if (activeRoomRef.current === roomId) await loadMessages(roomId);
     } catch {
+      drop();
+      setMessages((prev) => prev.filter((m) => m.id !== temp.id));
+      if (!sticker) setDraft((d) => d || body);
       setChatError("Chưa gửi được tin nhắn. Vui lòng thử lại.");
-    } finally {
-      setSending(false);
     }
   };
 

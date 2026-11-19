@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.pc_jobs_new IS 'DEPRECATED: one-off staging copy used to shrink pc_jobs on 2026-11-19; unused by the app.';

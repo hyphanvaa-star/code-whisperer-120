@@ -3102,8 +3102,9 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.90')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.91')
     // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
+    // V 6.91: dọn lệnh tạm Trợ lý PC (giữ 48h), tự xoá lệnh quá 10 ngày; chat hiện tin ngay khi gửi.
     // Preserve airway/FIR identity when re-filtering the live JetPlan/OFP track.
     .replace('lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name', () => 'lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name, airway: p.airway || p.awy || "", fir: p.fir')
     // V 6.83: bản đồ đội bay chỉ nháy chuyến bị NOTAM ảnh hưởng thật (theo verdict đã lọc giờ/trần).
