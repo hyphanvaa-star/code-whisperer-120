@@ -286,6 +286,9 @@ const SHIM = `<script>
           }).catch(function(){});
         };
         agentPoll(); setInterval(agentPoll,20000);
+        /* Bộ cài luôn ghi đúng bản mới nhất theo manifest, không ghi cứng số bản. */
+        var agentZipVer=function(){ fetch('/agent/manifest.json',{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(m){ if(m && m.version) window.__agentZipVer=m.version; }).catch(function(){}); };
+        agentZipVer(); setInterval(agentZipVer,600000);
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
           if(agentOn){
@@ -294,7 +297,8 @@ const SHIM = `<script>
               return;
             }
           }
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.10'; a.download='tro-ly-pc-6.10.zip';
+          var zv=String(window.__agentZipVer||'latest');
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v='+encodeURIComponent(zv)+'&t='+Date.now(); a.download='tro-ly-pc-'+zv+'.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -3103,7 +3107,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.99')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.00')
+    // V 7.00: nút tải Trợ lý PC lấy số bản từ manifest (không còn ghi cứng 6.10), chống cache trình duyệt.
     // V 6.98: SIGMET + Tro bụi núi lửa trên bản đồ NOTAM.
     // V 6.97: NOTES by Dispatcher mặc định có Link AIP Việt Nam.
     // V 6.96: bảng AIMS thiết kế lại, chọn giờ 24h (00–23), bỏ SA/CH.
