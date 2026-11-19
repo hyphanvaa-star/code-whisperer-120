@@ -3102,10 +3102,11 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.93')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.94')
     // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
     // V 6.91: dọn lệnh tạm Trợ lý PC (giữ 48h), tự xoá lệnh quá 10 ngày; chat hiện tin ngay khi gửi.
     // V 6.92: chat mở ở tin mới nhất, khay xem trước tệp/ảnh, thẻ tệp màu theo loại, thanh công cụ màu.
+    // V 6.94: chat nhớ tin đã tải, không còn báo "Chưa có tin nhắn" khi mạng chậm; đếm tin chưa đọc gộp một lượt.
     // V 6.93: Dán toạ độ hiểu nhiều kiểu viết (chữ trước/sau số, độ-phút-giây, thập phân, Q-line); 1 điểm vẽ ghim, 2 điểm vẽ đoạn.
     // Preserve airway/FIR identity when re-filtering the live JetPlan/OFP track.
     .replace('lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name', () => 'lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name, airway: p.airway || p.awy || "", fir: p.fir')

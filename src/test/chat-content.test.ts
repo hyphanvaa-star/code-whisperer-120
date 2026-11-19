@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  countUnread,
   groupReactions,
   insertEmoji,
   readSticker,
@@ -72,5 +73,24 @@ describe('chat file kind', () => {
     expect(fileKind('a.png', 'image/png')).toBe('image');
     expect(fileKind('noext')).toBe('other');
     expect(fileExt('crewlist.xlsx')).toBe('XLSX');
+  });
+});
+
+describe("countUnread", () => {
+  it("counts only other users' messages newer than each room's read mark", () => {
+    const rows = [
+      { room_id: "a", user_id: "u2", created_at: "2026-11-19T06:00:00Z" },
+      { room_id: "a", user_id: "u2", created_at: "2026-11-19T07:00:00Z" },
+      { room_id: "a", user_id: "me", created_at: "2026-11-19T07:05:00Z" },
+      { room_id: "b", user_id: "u3", created_at: "2026-11-19T05:00:00Z" },
+      { room_id: "x", user_id: "u3", created_at: "2026-11-19T09:00:00Z" },
+    ];
+    const since = { a: "2026-11-19T06:30:00Z", b: "2026-11-19T04:00:00Z", c: "2026-11-19T00:00:00Z" };
+    expect(countUnread(rows, since, "me")).toEqual({ a: 1, b: 1, c: 0 });
+  });
+  it("treats Postgres-style timestamps the same as ISO marks", () => {
+    const rows = [{ room_id: "a", user_id: "u2", created_at: "2026-11-19T06:40:42.209044+00:00" }];
+    expect(countUnread(rows, { a: "2026-11-19T06:40:42.000Z" }, "me")).toEqual({ a: 1 });
+    expect(countUnread(rows, { a: "2026-11-19T06:41:00.000Z" }, "me")).toEqual({ a: 0 });
   });
 });

@@ -76,3 +76,20 @@ export function fileKind(name: string, type = ""): FileKind {
   if (type === "application/pdf") return "pdf";
   return "other";
 }
+
+// Đếm tin chưa đọc cho mọi phòng từ MỘT lượt đọc (thay vì mỗi phòng một yêu cầu).
+// Chỉ tính tin của người khác, mới hơn mốc "đã đọc" riêng của từng phòng.
+export function countUnread(
+  rows: { room_id: string; user_id: string; created_at: string }[],
+  sinceByRoom: Record<string, string>,
+  me: string,
+) {
+  const out: Record<string, number> = {};
+  for (const id of Object.keys(sinceByRoom)) out[id] = 0;
+  for (const r of rows) {
+    const since = sinceByRoom[r.room_id];
+    if (since === undefined || r.user_id === me) continue;
+    if (Date.parse(r.created_at) > Date.parse(since)) out[r.room_id] += 1;
+  }
+  return out;
+}

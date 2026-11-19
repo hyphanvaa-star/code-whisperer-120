@@ -8,6 +8,7 @@ import { ChatPicker, STICKERS } from "./ChatPicker";
 import { ChatFileBubble, FileTypeIcon } from "./ChatFileBubble";
 import {
   REACTIONS,
+  countUnread,
   groupReactions,
   insertEmoji,
   messageParts,
@@ -194,39 +195,75 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   }, [me, open, loadProfiles]);
 
   const pendingRef = useRef<Msg[]>([]);
-  const loadMessages = useCallback(async (roomId: string) => {
-    const { data, error } = await supabase
-      .from("chat_messages")
-      .select("id,room_id,user_id,body,created_at")
-      .eq("room_id", roomId)
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (activeRoomRef.current !== roomId || error) return;
-    // Lấy 200 tin MỚI NHẤT rồi xếp cũ → mới để đáy khung luôn là tin gần nhất.
-    const nextMessages = ((data as Msg[] | null) ?? [])
-      .slice()
-      .sort((a, b) => a.created_at.localeCompare(b.created_at));
-    // Giữ tin vừa gửi (chưa lưu xong) để lượt tải định kỳ không làm nó biến mất.
-    const pending = pendingRef.current.filter((m) => m.room_id === roomId);
-    setMessages(pending.length ? [...nextMessages, ...pending] : nextMessages);
-    if (!nextMessages.length) {
-      setReactions([]);
-      return;
+  // Bộ nhớ đệm theo phòng: mở lại phòng hiện ngay tin đã có, không trắng khung khi mạng chậm.
+  const cacheRef = useRef<Record<string, { msgs: Msg[]; reactions: Reaction[] }>>({});
+  const inFlightRef = useRef<Record<string, boolean>>({});
+  // Phòng nào đã tải thành công ít nhất một lần, và lượt tải gần nhất có lỗi không.
+  const [loadedRoom, setLoadedRoom] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const loadMessages = useCallback(async (roomId: string, force = false) => {
+    // Không chồng lượt tải: lượt cũ còn chạy thì lượt định kỳ bỏ qua (gửi tin vẫn ép tải).
+    if (inFlightRef.current[roomId] && !force) return;
+    inFlightRef.current[roomId] = true;
+    try {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("id,room_id,user_id,body,created_at")
+        .eq("room_id", roomId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (activeRoomRef.current !== roomId) return;
+      if (error || !data) {
+        // Giữ nguyên tin đang hiện; chỉ báo mạng chậm, lượt sau tự thử lại.
+        setLoadFailed(true);
+        return;
+      }
+      // Lấy 200 tin MỚI NHẤT rồi xếp cũ → mới để đáy khung luôn là tin gần nhất.
+      const nextMessages = (data as Msg[])
+        .slice()
+        .sort((a, b) => a.created_at.localeCompare(b.created_at));
+      const prev = cacheRef.current[roomId];
+      const same =
+        prev &&
+        prev.msgs.length === nextMessages.length &&
+        prev.msgs.every((m, i) => m.id === nextMessages[i].id && m.body === nextMessages[i].body);
+      cacheRef.current[roomId] = { msgs: nextMessages, reactions: prev?.reactions ?? [] };
+      setLoadFailed(false);
+      setLoadedRoom(roomId);
+      // Giữ tin vừa gửi (chưa lưu xong) để lượt tải định kỳ không làm nó biến mất.
+      const pending = pendingRef.current.filter((m) => m.room_id === roomId);
+      if (!same || pending.length || force)
+        setMessages(pending.length ? [...nextMessages, ...pending] : nextMessages);
+      if (!nextMessages.length) {
+        setReactions([]);
+        return;
+      }
+      const result = await supabase
+        .from("chat_reactions")
+        .select("message_id,user_id,emoji")
+        .in(
+          "message_id",
+          nextMessages.map((m) => m.id),
+        );
+      if (activeRoomRef.current === roomId && !result.error) {
+        const rows = result.data ?? [];
+        cacheRef.current[roomId] = { msgs: nextMessages, reactions: rows };
+        setReactions(rows);
+      }
+    } catch {
+      if (activeRoomRef.current === roomId) setLoadFailed(true);
+    } finally {
+      inFlightRef.current[roomId] = false;
     }
-    const result = await supabase
-      .from("chat_reactions")
-      .select("message_id,user_id,emoji")
-      .in(
-        "message_id",
-        nextMessages.map((m) => m.id),
-      );
-    if (activeRoomRef.current === roomId && !result.error) setReactions(result.data ?? []);
   }, []);
 
   useEffect(() => {
     activeRoomRef.current = active?.id ?? null;
-    setMessages([]);
-    setReactions([]);
+    const cached = active ? cacheRef.current[active.id] : undefined;
+    setMessages(cached?.msgs ?? []);
+    setReactions(cached?.reactions ?? []);
+    setLoadedRoom(cached && active ? active.id : null);
+    setLoadFailed(false);
     setPicker(null);
     setReactionMenu(null);
     setChatError("");
@@ -234,11 +271,11 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       prev.forEach((f) => f.url && URL.revokeObjectURL(f.url));
       return [];
     });
-    if (!active) return;
+    if (!active || !open) return;
     loadMessages(active.id);
     const t = setInterval(() => loadMessages(active.id), 4000);
     return () => clearInterval(t);
-  }, [active, loadMessages]);
+  }, [active, open, loadMessages]);
 
   // Neo đáy kiểu Messenger: mở chat/đổi phòng luôn ở tin mới nhất, kể cả khi ảnh/avatar tải xong
   // làm danh sách cao thêm. Người dùng kéo lên đọc tin cũ thì không bị giật xuống.
@@ -297,24 +334,28 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     const tick = async () => {
       const list = await loadRooms();
       if (!alive) return;
-      const next: Record<string, number> = {};
-      await Promise.all(
-        list.map(async (r) => {
-          const key = `chat.read.${me}.${r.id}`;
-          let since = localStorage.getItem(key);
-          if (!since) {
-            since = new Date().toISOString();
-            localStorage.setItem(key, since);
-          }
-          const { count } = await supabase
-            .from("chat_messages")
-            .select("id", { count: "exact", head: true })
-            .eq("room_id", r.id)
-            .neq("user_id", me)
-            .gt("created_at", since);
-          next[r.id] = count ?? 0;
-        }),
-      );
+      // Một lượt đọc cho mọi phòng (trước đây mỗi phòng một yêu cầu → ~38 yêu cầu mỗi 6 giây).
+      const sinceByRoom: Record<string, string> = {};
+      for (const r of list) {
+        const key = `chat.read.${me}.${r.id}`;
+        let since = localStorage.getItem(key);
+        if (!since) {
+          since = new Date().toISOString();
+          localStorage.setItem(key, since);
+        }
+        sinceByRoom[r.id] = since;
+      }
+      const marks = Object.values(sinceByRoom).sort();
+      if (!marks.length) return;
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("room_id,user_id,created_at")
+        .neq("user_id", me)
+        .gt("created_at", marks[0])
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      if (!alive || error || !data) return;
+      const next = countUnread(data, sinceByRoom, me);
       if (alive) setUnread(next);
     };
     void tick();
@@ -405,7 +446,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
         .insert({ room_id: roomId, user_id: me, body });
       if (error) throw error;
       drop();
-      if (activeRoomRef.current === roomId) await loadMessages(roomId);
+      if (activeRoomRef.current === roomId) await loadMessages(roomId, true);
     } catch {
       drop();
       setMessages((prev) => prev.filter((m) => m.id !== temp.id));
@@ -488,7 +529,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       }
       pendingRef.current = pendingRef.current.filter((m) => m.id !== msg.id);
     }
-    if (activeRoomRef.current === roomId) await loadMessages(roomId);
+    if (activeRoomRef.current === roomId) await loadMessages(roomId, true);
     setMessages((prev) => prev.filter((m) => !temps.some((t) => t.msg.id === m.id)));
     setLocalPreview((prev) => {
       const next = { ...prev };
@@ -539,7 +580,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       if (result.error) throw result.error;
       if (activeRoomRef.current === roomId) {
         setReactionMenu(null);
-        await loadMessages(roomId);
+        await loadMessages(roomId, true);
       }
     } catch {
       setChatError("Chưa lưu được cảm xúc. Vui lòng thử lại.");
@@ -566,7 +607,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   const remove = async (id: string) => {
     if (!isAdmin || !active) return;
     await supabase.from("chat_messages").delete().eq("id", id);
-    loadMessages(active.id);
+    loadMessages(active.id, true);
   };
 
   const fmt = (iso: string) =>
@@ -722,7 +763,16 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                 <div ref={contentRef} className="space-y-4">
                 {messages.length === 0 && (
                   <div className="pt-12 text-center text-xs text-[var(--chat-sub)]">
-                    Chưa có tin nhắn. Gửi tin đầu tiên nhé.
+                    {loadedRoom === active.id && !loadFailed
+                      ? "Chưa có tin nhắn. Gửi tin đầu tiên nhé."
+                      : loadFailed
+                        ? "Mạng đang chậm, đang tải lại tin nhắn…"
+                        : "Đang tải tin nhắn…"}
+                  </div>
+                )}
+                {messages.length > 0 && loadFailed && (
+                  <div className="text-center text-[11px] text-[var(--chat-sub)]">
+                    Mạng đang chậm — đang thử tải tin mới…
                   </div>
                 )}
                 {messages.map((m) => {
