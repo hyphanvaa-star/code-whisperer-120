@@ -2292,9 +2292,9 @@ function cmpFileCheckCell(f){
 }
 `;
 const FILE_CHECK_CSS = `<style id="cmp-file-check">
-.cmp-tip:has(.fc-tip){padding:0!important;max-width:380px!important;background:#fff!important;color:#0f172a!important;border:1px solid #e2e8f0}
+.cmp-tip:has(.fc-tip){box-sizing:border-box;width:min(380px,calc(100vw - 24px))!important;padding:0!important;max-width:380px!important;overflow:hidden!important;background:#fff!important;color:#0f172a!important;border:1px solid #e2e8f0}
 .fc-row .fc-n{color:#0f172a}.fc-row.miss .fc-n{color:#991b1b;font-weight:600}
-.fc-tip{min-width:300px;font:13px/1.4 system-ui,sans-serif;color:#0f172a}
+.fc-tip{min-width:0;width:100%;font:13px/1.4 system-ui,sans-serif;color:#0f172a}
 .fc-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#f8fafc,#eef2ff);border-bottom:1px solid #e2e8f0;border-radius:10px 10px 0 0}
 .fc-cs{font-weight:800;font-size:15px;letter-spacing:.02em}.fc-sub{font-size:11.5px;color:#64748b}
 .fc-badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
@@ -3107,7 +3107,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.00')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.01')
+    // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.
     // V 7.00: nút tải Trợ lý PC lấy số bản từ manifest (không còn ghi cứng 6.10), chống cache trình duyệt.
     // V 6.98: SIGMET + Tro bụi núi lửa trên bản đồ NOTAM.
     // V 6.97: NOTES by Dispatcher mặc định có Link AIP Việt Nam.
