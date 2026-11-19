@@ -282,18 +282,74 @@ def _profile_dir_of(options) -> Path | None:
     return None
 
 
+def _norm_path(text: str) -> str:
+    return str(text).strip().strip('"').replace("/", "\\").rstrip("\\").casefold()
+
+
+def profile_pids(rows, profile: Path | None) -> list[int]:
+    """PID Chrome đang dùng ĐÚNG hồ sơ riêng của tool (không bao giờ là Chrome của người dùng).
+
+    rows: [(pid, commandline)]. Chỉ khớp khi commandline có --user-data-dir trùng
+    hồ sơ tool; Chrome thường của người dùng không có cờ này nên không bị đụng tới.
+    """
+    if profile is None:
+        return []
+    want = _norm_path(str(profile))
+    if not want:
+        return []
+    out: list[int] = []
+    for pid, cmd in rows:
+        m = re.search(r'--user-data-dir=("([^"]+)"|(\S+))', str(cmd or ""))
+        if not m:
+            continue
+        got = _norm_path(m.group(2) or m.group(3) or "")
+        if got == want:
+            try:
+                out.append(int(pid))
+            except (TypeError, ValueError):
+                pass
+    return out
+
+
+def _chrome_rows() -> list[tuple[int, str]]:
+    """Liệt kê chrome.exe kèm commandline (Windows)."""
+    if os.name != "nt":
+        return []
+    ps = ("Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+          "ForEach-Object { \"$($_.ProcessId)`t$($_.CommandLine)\" }")
+    try:
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps],
+            capture_output=True, text=True, timeout=20, creationflags=_CREATE_NO_WINDOW,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    rows: list[tuple[int, str]] = []
+    for line in (res.stdout or "").splitlines():
+        pid, _, cmd = line.partition("\t")
+        if pid.strip().isdigit():
+            rows.append((int(pid.strip()), cmd))
+    return rows
+
+
 def _cleanup_chrome_profile(profile: Path | None) -> None:
-    """Dọn Chrome treo + file khóa hồ sơ trước khi mở lại (máy công ty hay kẹt)."""
-    if os.name == "nt":
-        try:
-            subprocess.run(
-                ["taskkill", "/F", "/IM", "chrome.exe", "/T"],
-                capture_output=True, timeout=15, creationflags=_CREATE_NO_WINDOW,
-            )
-        except (OSError, subprocess.TimeoutExpired):
-            pass
+    """Chỉ đóng Chrome treo của hồ sơ riêng tool + xoá file khoá hồ sơ đó.
+
+    TUYỆT ĐỐI không taskkill chrome.exe toàn máy: lệnh đó tắt luôn Chrome
+    người dùng đang làm việc (Outlook, FliteBrief...).
+    """
     if profile is None:
         return
+    if os.name == "nt":
+        for pid in profile_pids(_chrome_rows(), profile):
+            try:
+                subprocess.run(
+                    ["taskkill", "/F", "/PID", str(pid), "/T"],
+                    capture_output=True, timeout=15, creationflags=_CREATE_NO_WINDOW,
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        time.sleep(1)
     for name in ("SingletonLock", "SingletonSocket", "SingletonCookie", "DevToolsActivePort"):
         try:
             (profile / name).unlink(missing_ok=True)
@@ -301,8 +357,19 @@ def _cleanup_chrome_profile(profile: Path | None) -> None:
             pass
 
 
+# Cờ khởi động an toàn ngay từ lần mở đầu (máy công ty hay chặn cổng DevTools).
+SAFE_START_FLAGS = ("--no-sandbox", "--disable-dev-shm-usage", "--remote-debugging-port=0")
+
+
+def add_safe_flags(options, extra: tuple[str, ...] = ()) -> None:
+    for flag in SAFE_START_FLAGS + tuple(extra):
+        if flag not in options.arguments:
+            options.add_argument(flag)
+
+
 def attach_chrome(webdriver, options):
     """Mở Chrome: Selenium Manager tự khớp bản; local chỉ khi Manager thất bại."""
+    add_safe_flags(options)
     try:
         log.info("mở Chrome bằng Selenium Manager (không ghim chromedriver)")
         driver = webdriver.Chrome(options=options)
@@ -310,10 +377,7 @@ def attach_chrome(webdriver, options):
         if is_start_crash(exc):
             log.warning("Chrome crash khi khởi động — dọn hồ sơ rồi thử lại: %s", exc)
             _cleanup_chrome_profile(_profile_dir_of(options))
-            for flag in ("--no-sandbox", "--disable-dev-shm-usage",
-                         "--remote-debugging-port=0", "--disable-extensions"):
-                if flag not in options.arguments:
-                    options.add_argument(flag)
+            add_safe_flags(options, ("--disable-extensions",))
             try:
                 driver = webdriver.Chrome(options=options)
                 remember_from_driver(driver)

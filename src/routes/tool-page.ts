@@ -3103,7 +3103,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.98')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.99')
     // V 6.98: SIGMET + Tro bụi núi lửa trên bản đồ NOTAM.
     // V 6.97: NOTES by Dispatcher mặc định có Link AIP Việt Nam.
     // V 6.96: bảng AIMS thiết kế lại, chọn giờ 24h (00–23), bỏ SA/CH.
