@@ -263,6 +263,8 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       if (stickRef.current) toBottom();
     });
     ro.observe(el);
+    // Khung danh sách co lại khi hiện khay tệp/bảng emoji → vẫn giữ đáy.
+    if (listRef.current) ro.observe(listRef.current);
     return () => ro.disconnect();
   }, [active?.id, open, toBottom]);
   const onListScroll = () => {
