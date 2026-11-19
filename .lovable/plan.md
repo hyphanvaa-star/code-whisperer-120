@@ -9,7 +9,11 @@
    - Chỉ cập nhật khi không có lệnh đang chạy (in, lưu EZFW, gửi ATC).
    - Lỗi tải/giải nén → giữ nguyên bản cũ đang chạy, thử lại sau.
 2. **Tự chạy khi bật máy**: bộ cài thêm lối tắt vào Startup của Windows (không cần quyền admin). Tắt Trợ lý bằng nút Tắt như cũ.
-3. **Cài đúng 1 lần**: bộ cài lần đầu cài vào thư mục cố định (`%LOCALAPPDATA%\TroLyPC`), không phụ thuộc chỗ giải nén ZIP.
+3. **Cài đúng 1 lần, vào thư mục riêng của tài khoản Windows**: `C:\Users\<tên bạn>\AppData\Local\TroLyPC`.
+   - Thư mục này nằm trên ổ C nhưng là **của riêng tài khoản bạn**, Windows luôn cho ghi mà **không cần quyền admin** (giống Chrome, Zalo, Teams cài vào đây).
+   - Người khác đăng nhập máy bằng tài khoản khác không thấy và không xoá được; không dùng ổ D (ổ chung) hay Z (OneDrive đồng bộ gây khoá/xung đột file).
+   - Bộ cài thử ghi trước; nếu công ty chặn cả thư mục này thì báo rõ và cho chọn thư mục khác.
+   - Nếu thư mục bị xoá mất: bản tự cập nhật trên máy chủ vẫn còn, bấm chạy lại bộ cài là khôi phục, file EZFW vẫn lưu D:\ATC-EZFW như cũ.
 4. **Trên web**: chấm AGENT hiện phiên bản đang chạy; nếu cũ hiện nhãn vàng "Đang tự cập nhật…" thay vì bắt cài lại.
 
 ## Kỹ thuật
