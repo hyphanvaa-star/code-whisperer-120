@@ -281,7 +281,7 @@ const SHIM = `<script>
             var on=!!(d&&d.online); agentOn=on;
             dot.style.background=on?'#16a34a':'#9ca3af';
             dot.style.boxShadow=on?'0 0 0 1px rgba(0,0,0,.15),0 0 6px #16a34a':'0 0 0 1px rgba(0,0,0,.15)';
-            board.title=on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm để tải bộ cài, giải nén và bấm cai-tro-ly một lần (sau đó tự chạy khi mở máy).';
+            board.title=on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly (trên màn hình/ổ Z) để bật. Chưa có thì bấm đây tải bộ cài, giải nén, chạy cai-tro-ly một lần cuối; từ đó trợ lý tự cập nhật.';
           }).catch(function(){});
         };
         agentPoll(); setInterval(agentPoll,20000);
@@ -293,7 +293,7 @@ const SHIM = `<script>
               return;
             }
           }
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.9'; a.download='tro-ly-pc-6.9.zip';
+          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v=6.10'; a.download='tro-ly-pc-6.10.zip';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -3102,11 +3102,12 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.94')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.95')
     // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
     // V 6.91: dọn lệnh tạm Trợ lý PC (giữ 48h), tự xoá lệnh quá 10 ngày; chat hiện tin ngay khi gửi.
     // V 6.92: chat mở ở tin mới nhất, khay xem trước tệp/ảnh, thẻ tệp màu theo loại, thanh công cụ màu.
     // V 6.94: chat nhớ tin đã tải, không còn báo "Chưa có tin nhắn" khi mạng chậm; đếm tin chưa đọc gộp một lượt.
+    // V 6.95: Trợ lý PC 6.10 — nút Bat-Tro-Ly tự tải/tự phục hồi khi ổ bị xoá, tự cập nhật giữa các lệnh.
     // V 6.93: Dán toạ độ hiểu nhiều kiểu viết (chữ trước/sau số, độ-phút-giây, thập phân, Q-line); 1 điểm vẽ ghim, 2 điểm vẽ đoạn.
     // Preserve airway/FIR identity when re-filtering the live JetPlan/OFP track.
     .replace('lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name', () => 'lat: p.lat, lon: p.lon, fl_ft: p.fl_ft, ete_min: p.ete_min, name: p.name, airway: p.airway || p.awy || "", fir: p.fir')

@@ -93,11 +93,20 @@ rem Ghi lai dung Python vua dung de Chay-Ngam.vbs chay ngam bang chinh Python na
 %PYCMD% -c "import sys,os;e=sys.executable;w=os.path.join(os.path.dirname(e),'pythonw.exe');open(r'%~dp0app\python-path.txt','w').write(w if os.path.exists(w) else e)" >nul 2>&1
 if exist "%~dp0app" attrib +h "%~dp0app" >nul 2>&1
 
-rem --- Tu chay cung Windows: dat loi tat vao thu muc Startup cua nguoi dung ---
-"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut([Environment]::GetFolderPath('Startup')+'\Sohee-Agent.lnk'); $s.TargetPath='wscript.exe'; $s.Arguments='\"%~dp0Chay-Ngam.vbs\"'; $s.WorkingDirectory='%~dp0'; $s.Save()" >nul 2>&1
-echo [3/3] Da bat tu chay khi mo may.
+rem --- Dat nut bat "Bat-Tro-Ly" o noi khong bi xoa (Desktop OneDrive > o Z > thu muc nay) ---
+set "KEEP="
+if defined OneDriveCommercial if exist "%OneDriveCommercial%\Desktop" set "KEEP=%OneDriveCommercial%\Desktop"
+if not defined KEEP if defined OneDrive if exist "%OneDrive%\Desktop" set "KEEP=%OneDrive%\Desktop"
+if not defined KEEP if exist "Z:\" set "KEEP=Z:"
+if defined KEEP (
+    copy /y "%~dp0Bat-Tro-Ly.vbs" "%KEEP%\Bat-Tro-Ly.vbs" >nul 2>&1
+    echo [3/3] Da dat nut Bat-Tro-Ly tai: %KEEP%
+    echo       Moi lan mo may / vao ca: bam dup Bat-Tro-Ly la xong, tu cap nhat.
+) else (
+    echo [3/3] Khong thay OneDrive/o Z - dung file Bat-Tro-Ly.vbs trong thu muc nay.
+)
 
-rem --- 3. Chay ngam, khong de lai cua so CMD ---
 echo [3/3] Dang mo tro ly chay ngam...
-wscript.exe "%~dp0Chay-Ngam.vbs"
+wscript.exe "%~dp0Bat-Tro-Ly.vbs"
+timeout /t 8 >nul
 exit /b 0

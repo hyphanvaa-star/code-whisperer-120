@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.9"
+VERSION = "6.10"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1710,6 +1710,39 @@ def _report_ok(jid: str, result: dict) -> None:
     raise requests.ConnectionError("mạng cắt kết nối khi gửi kết quả")
 
 
+_UPDATE_CHECK = [0.0]
+
+
+def _maybe_self_update() -> None:
+    """Giữa hai lượt lệnh (không có lệnh nào đang chạy): có bản mới trên web thì
+    giao cho bootstrap.py cạnh thư mục app tải + thay, rồi thoát để nó chạy lại."""
+    if time.time() - _UPDATE_CHECK[0] < 600:
+        return
+    _UPDATE_CHECK[0] = time.time()
+    boot = Path(__file__).resolve().parent.parent / "bootstrap.py"
+    if not boot.exists():
+        return  # bản cài kiểu cũ (giải nén ZIP) — không tự cập nhật
+    try:
+        import urllib.request
+        with urllib.request.urlopen(f"{BASE_URL}/agent/manifest.json?t={int(time.time())}", timeout=15) as r:
+            remote = str(json.loads(r.read()).get("version") or "")
+    except Exception:
+        return
+    if not _version_newer(remote, VERSION):
+        return
+    log(f"⟳ Có bản mới {remote} — trợ lý tự cập nhật và khởi động lại")
+    import subprocess
+    subprocess.Popen([sys.executable, str(boot), "--after", str(os.getpid())],
+                     cwd=str(boot.parent), close_fds=True,
+                     creationflags=0x00000008 | 0x08000000 if os.name == "nt" else 0)
+    os._exit(0)
+
+
+def _version_newer(remote: str, local: str) -> bool:
+    t = lambda v: tuple(int(x) if x.isdigit() else 0 for x in str(v).strip().split(".")) if str(v).strip() else ()
+    return t(remote) > t(local)
+
+
 def main() -> int:
     global TOKEN
     if not TOKEN:
@@ -1731,6 +1764,7 @@ def main() -> int:
     threading.Thread(target=_owa_keeper, name="owa-keeper", daemon=True).start()
     while True:
         try:
+            _maybe_self_update()
             paths_exist = {"D:\\": _has_d()}
             for p in check_paths:
                 try:

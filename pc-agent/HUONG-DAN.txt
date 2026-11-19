@@ -1,0 +1,9 @@
+TRỢ LÝ SOHEE 6.9
+1. Tắt trợ lý cũ bằng Tat-Tro-Ly trước khi nâng cấp.
+2. Giải nén toàn bộ gói mới vào thư mục riêng, bấm cai-tro-ly một lần.
+3. Cho phép kết nối thiết bị trên máy nếu trình duyệt hỏi.
+4. Trợ lý tự nhận người đăng nhập web, tự chạy cùng Windows.
+Không cần nhập tên đăng nhập hay chọn thư mục tool gốc.
+Không di chuyển/xóa thư mục đã cài.
+Chay-Ngam: bật lại; Tat-Tro-Ly: tắt.
+Mã .pyc chỉ làm khó đọc, không mã hóa tuyệt đối.

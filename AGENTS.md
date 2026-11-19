@@ -28,7 +28,7 @@
 - Every server fn/route touching flight data calls `assertDispatcher`; route guards are UX only.
 - PC helper pairs by login (`_uid` tag); IP match is only a fallback (office NAT splits IPs).
 - PC helper tool discovery prefers bundled `app/tool` and accepts both source `.py` and sourceless `.pyc` for required modules; discovery errors stay noninteractive so background retries cannot open folder prompts.
-- PC helper runs hidden via `pc-agent/background.py` (pythonw/VBS, session mutex, stop event); ZIP keeps launchers at root and code under `app/`, compiled by `cai-tro-ly.bat` to .pyc matching the user's Python. AGENT dot polls `GET /api/pc/status` (<90s). Repackage `public/agent/tro-ly-pc.zip` from an explicit allowlist whenever helper files change.
+- PC helper: frozen C:/shared D: machines use OneDrive `Bat-Tro-Ly.vbs` → `/agent/bootstrap.py`, which repairs and hash-checked self-updates code (old kept on failure); rebuild with `python3 pc-agent/pack.py`. Details in `pc-agent/AGENTS.md`.
 - Roles: `user_roles` (`admin`, `dispatcher`); first signup becomes admin via `handle_new_user`.
 - Port groups follow `roadmap.md`: handlers in `src/lib/tool/handlers/<group>.server.ts` preserve web.py JSON; `router.server.ts` owns bearer/GET-cookie auth and `{error, not_ported}`. Pure ports and tests live in `port/` and `port/__tests__/`.
 - KHB labels/REQ share browser-safe `khb-pilot-name` via the HTML shim and FPL port; preserve full source names for identity matching.
