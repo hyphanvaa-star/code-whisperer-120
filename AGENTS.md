@@ -38,7 +38,6 @@
 - PIB/WX attachment validation is centralized in `port/pibwx_time.ts` and receives only first-page text plus document kind, so body timestamps cannot authorize a stale file.
 - Defect PDFs share `defect-limits.server.ts`: persist summary/manual ownership, replace summary rows, preserve manual/LOW EGT; edits become manual via tool-page shim.
 - PC-only work (RICOH printing, Outlook COM, D:\ drive, folder pickers) runs in the Python helper `pc-agent/pc_agent.py`: web enqueues rows in service-role-only `pc_jobs` via `src/lib/tool/pcagent.server.ts`; the helper polls `/api/public/pc-agent/poll` and posts to `/report` with `PC_AGENT_TOKEN` — a Worker cannot reach LAN devices.
-- `pc_jobs` rows are transient delivery envelopes: a daily pg_cron job (`pc-jobs-cleanup-10d`) deletes finished rows past the retention window, because file/fetch payloads otherwise fill the database disk; `pc_jobs_new` is a deprecated empty staging table.
 - Server-side Excel reading uses SheetJS (`xlsx` CDN tarball) — ExcelJS crashes on files with pictures/drawings; ExcelJS stays only for writing, via `src/lib/exceljs-load.ts`.
 - Airport flags: bundled ICAO-country data.
 - Per-user account overrides (FliteBrief/Omni/OWA/Outlook/AviWeb) live encrypted in service-role-only `user_credentials`; code reads logins via `env()` from `src/lib/tool/creds.server.ts` (request-scoped, falls back to team secrets) — each dispatcher may use their own login.
