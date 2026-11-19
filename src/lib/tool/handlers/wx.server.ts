@@ -127,6 +127,11 @@ import {
 import { unzipSync, strFromU8 } from "fflate";
 import { jmaCode, jmaStorm, jtwcStorms, mergeStorms, type Storm } from '../port/storms';
 
+import { sigmetItems } from "../port/sigmet";
+const AWC_ISIGMET = "https://aviationweather.gov/api/data/isigmet?format=json";
+const SIGMET_TTL_MS = 180_000;
+let sigmetCacheAt = 0;
+let sigmetCache: unknown = null;
 let stormsCacheAt = 0;
 let stormsCache: unknown = null;
 const STORM_TTL_MS = 300_000;
@@ -237,6 +242,24 @@ Object.assign(routes, {
       return await stormsPayload(force, ctx);
     } catch (exc) {
       return { features: [], storms: [], error: String((exc as Error)?.message ?? exc) };
+    }
+  },
+
+  // SIGMET quốc tế (TS/TURB/ICE/MTW/TC/VA) từ NOAA AWC, đã có sẵn đa giác.
+  "GET /api/wx/sigmet": async (ctx: Parameters<Routes[string]>[0]) => {
+    const force = ctx.params.get("refresh") === "1";
+    if (!force && sigmetCache && Date.now() - sigmetCacheAt < SIGMET_TTL_MS) return sigmetCache;
+    try {
+      const r = await fetch(AWC_ISIGMET, { headers: UA_HEADERS, signal: AbortSignal.timeout(15000) });
+      if (!r.ok) throw new Error(`AWC SIGMET ${r.status}`);
+      const items = sigmetItems(await r.json(), Math.floor(Date.now() / 1000));
+      sigmetCache = { items, source: "NOAA AWC", at: new Date().toISOString() };
+      sigmetCacheAt = Date.now();
+      return sigmetCache;
+    } catch (exc) {
+      const error = String((exc as Error)?.message ?? exc);
+      if (sigmetCache) return { ...(sigmetCache as Record<string, unknown>), warning: "Chưa làm mới được SIGMET: " + error };
+      return { items: [], error };
     }
   },
 

@@ -17,6 +17,7 @@ import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import manualAreaScript from '@/tool/manual-area.js?raw';
+import sigmetLayerScript from '@/tool/sigmet-layer.js?raw';
 import aimsCrewlistScript from '@/tool/aims-crewlist.js?raw';
 import ofpCheckModalScript from '@/tool/ofp-check-modal.js?raw';
 import { maParse, maBand, maCheck } from '@/lib/tool/port/manual_area';
@@ -3102,7 +3103,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.97')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.98')
+    // V 6.98: SIGMET + Tro bụi núi lửa trên bản đồ NOTAM.
     // V 6.97: NOTES by Dispatcher mặc định có Link AIP Việt Nam.
     // V 6.96: bảng AIMS thiết kế lại, chọn giờ 24h (00–23), bỏ SA/CH.
     // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
@@ -3291,7 +3293,7 @@ header#mdRoom .filt-actions #btnAims{overflow:visible !important}
 .nm-verdict .nm-vd-sec[data-key=vip].hit{background:#fff7ed;border-color:#fdba74}
 .nm-verdict .nm-vd-sec[data-key=vip].hit .nm-vd-h,.nm-verdict .nm-vd-sec[data-key=vip].hit .nm-vd-ans{color:#c2410c}
 .nm-verdict .nm-vd-sec[data-key=vip].hit .nm-vd-ico{background:#dc2626}
-</style><script>window.nmIsVip=${isVipMovement.toString()};window.__ma={parse:${maParse.toString()},band:${maBand.toString()},check:${maCheck.toString()}};</script><script>${manualAreaScript}</script></body>`)
+</style><script>window.nmIsVip=${isVipMovement.toString()};window.__ma={parse:${maParse.toString()},band:${maBand.toString()},check:${maCheck.toString()}};</script><script>${manualAreaScript}</script><script>${sigmetLayerScript}</script></body>`)
     .replaceAll('btn.textContent = "Xuất briefing"', 'btn.textContent = "Tạo briefing + Add"')
     .replace('title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), lưu vào folder briefing trên server">Xuất briefing</button>', 'title="Soạn PDF Official Briefing cho các chuyến trong cột FLT NO (dùng bản đã Lưu nếu có), rồi tự Add lên FliteBrief">Tạo briefing + Add</button>')
     .replace('$("#tlExportBrief").onclick = tlExportBrief;', '$("#tlExportBrief").onclick = async () => { const ex = await tlExportBrief(); if(ex && ex.ok && !ex.cancelled) await tlAddBriefFromFlt({noConfirm: true}); };')
