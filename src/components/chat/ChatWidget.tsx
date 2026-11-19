@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getChatAvatars } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageCircle, X, Trash2, ArrowLeft, Send, Users, Smile, Sticker, Paperclip, ImageIcon } from "lucide-react";
+import { MessageCircle, X, Trash2, ArrowLeft, Send, Users, Smile, SmilePlus, Sticker, Paperclip, ImagePlus, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatPicker, STICKERS } from "./ChatPicker";
-import { ChatFileBubble } from "./ChatFileBubble";
+import { ChatFileBubble, FileTypeIcon } from "./ChatFileBubble";
 import {
   REACTIONS,
   groupReactions,
@@ -23,6 +23,7 @@ import {
 
 type Room = { id: string; kind: string; name: string; dm_key: string | null };
 type Msg = { id: string; room_id: string; user_id: string; body: string; created_at: string };
+type Staged = { id: string; file: File; url: string };
 type Profile = { id: string; email: string | null; display_name: string | null; last_seen_at?: string | null };
 // Online = heartbeat (every 40s while the tool tab is open) within the last 2 minutes.
 const isOnline = (p: Profile) => !!p.last_seen_at && Date.now() - new Date(p.last_seen_at).getTime() < 120_000;
@@ -117,12 +118,12 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
   const [active, setActive] = useState<Room | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
   const [picker, setPicker] = useState<"emoji" | "stickers" | null>(null);
   const [reactionMenu, setReactionMenu] = useState<string | null>(null);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [reactionBusy, setReactionBusy] = useState(false);
   const [chatError, setChatError] = useState("");
+  const [staged, setStaged] = useState<Staged[]>([]);
   const activeRoomRef = useRef<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -198,10 +199,13 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
       .from("chat_messages")
       .select("id,room_id,user_id,body,created_at")
       .eq("room_id", roomId)
-      .order("created_at", { ascending: true })
+      .order("created_at", { ascending: false })
       .limit(200);
     if (activeRoomRef.current !== roomId || error) return;
-    const nextMessages = (data as Msg[] | null) ?? [];
+    // Lấy 200 tin MỚI NHẤT rồi xếp cũ → mới để đáy khung luôn là tin gần nhất.
+    const nextMessages = ((data as Msg[] | null) ?? [])
+      .slice()
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
     // Giữ tin vừa gửi (chưa lưu xong) để lượt tải định kỳ không làm nó biến mất.
     const pending = pendingRef.current.filter((m) => m.room_id === roomId);
     setMessages(pending.length ? [...nextMessages, ...pending] : nextMessages);
@@ -226,15 +230,48 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     setPicker(null);
     setReactionMenu(null);
     setChatError("");
+    setStaged((prev) => {
+      prev.forEach((f) => f.url && URL.revokeObjectURL(f.url));
+      return [];
+    });
     if (!active) return;
     loadMessages(active.id);
     const t = setInterval(() => loadMessages(active.id), 4000);
     return () => clearInterval(t);
   }, [active, loadMessages]);
 
+  // Neo đáy kiểu Messenger: mở chat/đổi phòng luôn ở tin mới nhất, kể cả khi ảnh/avatar tải xong
+  // làm danh sách cao thêm. Người dùng kéo lên đọc tin cũ thì không bị giật xuống.
+  const stickRef = useRef(true);
+  const [showJump, setShowJump] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const toBottom = useCallback(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+  useLayoutEffect(() => {
+    stickRef.current = true;
+    setShowJump(false);
+  }, [active?.id, open]);
+  useLayoutEffect(() => {
+    if (stickRef.current) toBottom();
+  }, [messages, active?.id, open, toBottom]);
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
-  }, [messages.length, active?.id]);
+    const el = contentRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      if (stickRef.current) toBottom();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [active?.id, open, toBottom]);
+  const onListScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    const near = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    stickRef.current = near;
+    setShowJump(!near);
+  };
 
   useEffect(() => {
     if (active) inputRef.current?.focus();
@@ -357,6 +394,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
     if (!sticker) setDraft("");
     setPicker(null);
     setChatError("");
+    stickRef.current = true;
     inputRef.current?.focus();
     const drop = () => { pendingRef.current = pendingRef.current.filter((m) => m.id !== temp.id); };
     try {
@@ -376,36 +414,101 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
 
   const fileRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
-  const sendFiles = async (files: File[]) => {
-    if (!active || !files.length) return;
+  const [localPreview, setLocalPreview] = useState<Record<string, string>>({});
+  /** Chọn/dán/kéo thả tệp → vào khay xem trước, bấm Gửi mới gửi. */
+  const stageFiles = (files: File[]) => {
+    if (!files.length) return;
+    const ok: Staged[] = [];
+    const tooBig: string[] = [];
+    for (const f of files) {
+      if (f.size > CHAT_FILE_MAX) tooBig.push(f.name);
+      else
+        ok.push({
+          id: crypto.randomUUID(),
+          file: f,
+          url: f.type.startsWith("image/") ? URL.createObjectURL(f) : "",
+        });
+    }
+    setChatError(tooBig.length ? `${tooBig.join(", ")} quá 20 MB, chưa gửi được.` : "");
+    if (ok.length) setStaged((prev) => [...prev, ...ok]);
+    inputRef.current?.focus();
+  };
+  const unstage = (id: string) =>
+    setStaged((prev) => {
+      const hit = prev.find((f) => f.id === id);
+      if (hit?.url) URL.revokeObjectURL(hit.url);
+      return prev.filter((f) => f.id !== id);
+    });
+
+  const sendFiles = async (items: Staged[]) => {
+    if (!active || !items.length) return;
     const roomId = active.id;
-    setSending(true);
     setChatError("");
-    try {
-      for (const f of files) {
-        if (f.size > CHAT_FILE_MAX) {
-          setChatError(`${f.name} quá 20 MB, chưa gửi được.`);
-          continue;
-        }
-        const name = f.name || `anh-${Date.now()}.png`;
+    stickRef.current = true;
+    // Hiện ngay bong bóng tệp "Đang gửi…" rồi tải lên ở nền.
+    const temps = items.map((it) => {
+      const name = it.file.name || `anh-${Date.now()}.png`;
+      const msg: Msg = {
+        id: `pending-${it.id}`,
+        room_id: roomId,
+        user_id: me,
+        body: fileBody({ path: `local/${it.id}`, name, size: it.file.size, type: it.file.type || "" }),
+        created_at: new Date().toISOString(),
+      };
+      return { it, name, msg };
+    });
+    pendingRef.current = [...pendingRef.current, ...temps.map((t) => t.msg)];
+    setMessages((prev) => [...prev, ...temps.map((t) => t.msg)]);
+    setLocalPreview((prev) => {
+      const next = { ...prev };
+      temps.forEach((t) => t.it.url && (next[t.msg.id] = t.it.url));
+      return next;
+    });
+    const failed: Staged[] = [];
+    const done: string[] = [];
+    for (const { it, name, msg } of temps) {
+      try {
         const safe = name.replace(/[^\w.\-]+/g, "_").slice(-80);
         const path = `${roomId}/${me}/${crypto.randomUUID()}-${safe}`;
         const up = await supabase.storage
           .from("chat-files")
-          .upload(path, f, { contentType: f.type || "application/octet-stream" });
+          .upload(path, it.file, { contentType: it.file.type || "application/octet-stream" });
         if (up.error) throw up.error;
         const { error } = await supabase.from("chat_messages").insert({
           room_id: roomId,
           user_id: me,
-          body: fileBody({ path, name, size: f.size, type: f.type || "" }),
+          body: fileBody({ path, name, size: it.file.size, type: it.file.type || "" }),
         });
         if (error) throw error;
+        done.push(msg.id);
+      } catch {
+        failed.push(it);
       }
-      if (activeRoomRef.current === roomId) await loadMessages(roomId);
-    } catch {
-      setChatError("Chưa gửi được tệp. Vui lòng thử lại.");
-    } finally {
-      setSending(false);
+      pendingRef.current = pendingRef.current.filter((m) => m.id !== msg.id);
+    }
+    if (activeRoomRef.current === roomId) await loadMessages(roomId);
+    setMessages((prev) => prev.filter((m) => !temps.some((t) => t.msg.id === m.id)));
+    setLocalPreview((prev) => {
+      const next = { ...prev };
+      temps.forEach((t) => delete next[t.msg.id]);
+      return next;
+    });
+    temps.forEach((t) => done.includes(t.msg.id) && t.it.url && URL.revokeObjectURL(t.it.url));
+    if (failed.length) {
+      // Trả tệp lỗi về khay để bấm gửi lại, không mất tệp đã chọn.
+      if (activeRoomRef.current === roomId) setStaged((prev) => [...failed, ...prev]);
+      setChatError(
+        `Chưa gửi được ${failed.map((f) => f.file.name).join(", ")}. Tệp vẫn nằm trong khay — bấm Gửi để thử lại.`,
+      );
+    }
+  };
+
+  const submit = () => {
+    const files = staged;
+    if (draft.trim()) void send();
+    if (files.length) {
+      setStaged([]);
+      void sendFiles(files);
     }
   };
 
@@ -603,15 +706,18 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
+              <div className="relative flex min-h-0 flex-1 flex-col">
               <div
                 ref={listRef}
+                onScroll={onListScroll}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
-                  void sendFiles(Array.from(e.dataTransfer.files));
+                  stageFiles(Array.from(e.dataTransfer.files));
                 }}
-                className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-[var(--chat-bg)] p-4"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[var(--chat-bg)] p-4"
               >
+                <div ref={contentRef} className="space-y-4">
                 {messages.length === 0 && (
                   <div className="pt-12 text-center text-xs text-[var(--chat-sub)]">
                     Chưa có tin nhắn. Gửi tin đầu tiên nhé.
@@ -647,7 +753,12 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                           className={`relative ${sticker || emojiOnly || attached ? "px-1 py-1 text-[var(--chat-ink)]" : `rounded-2xl px-4 py-2.5 text-base leading-relaxed ${mine ? "bg-[var(--chat-bubble-me)] text-[var(--chat-bubble-me-ink)]" : "bg-[var(--chat-bubble-other)] text-[var(--chat-ink)]"}`}`}
                         >
                           {attached ? (
-                            <ChatFileBubble file={attached} mine={mine} />
+                            <ChatFileBubble
+                              file={attached}
+                              mine={mine}
+                              localUrl={localPreview[m.id]}
+                              uploading={m.id.startsWith("pending-")}
+                            />
                           ) : sticker ? (
                             <img
                               src={STICKERS[sticker].src}
@@ -748,6 +859,22 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                     </div>
                   );
                 })}
+                </div>
+              </div>
+              {showJump && (
+                <button
+                  type="button"
+                  aria-label="Xuống tin mới nhất"
+                  onClick={() => {
+                    stickRef.current = true;
+                    setShowJump(false);
+                    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+                  }}
+                  className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-[var(--chat-line)] bg-[var(--chat-panel)] px-3 py-1.5 text-xs font-semibold text-[var(--chat-accent)] shadow-[var(--chat-card-shadow)]"
+                >
+                  <ChevronDown className="h-4 w-4" /> Tin mới nhất
+                </button>
+              )}
               </div>
               {chatError && (
                 <div role="alert" className="px-3 py-1 text-xs text-[var(--chat-danger)]">
@@ -757,10 +884,45 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
               {picker && (
                 <ChatPicker
                   mode={picker}
-                  busy={sending}
+                  busy={false}
                   onEmoji={addEmoji}
                   onSticker={(id) => void send(id)}
                 />
+              )}
+              {staged.length > 0 && (
+                <div className="shrink-0 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] px-3 pt-2.5">
+                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--chat-sub)]">
+                    Sẵn sàng gửi {staged.length} tệp
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {staged.map((f) => (
+                      <div
+                        key={f.id}
+                        title={f.file.name}
+                        className="relative flex h-16 shrink-0 items-center gap-2 rounded-xl border border-[var(--chat-line)] bg-[var(--chat-bg)] p-1.5 pr-3 shadow-[var(--chat-card-shadow)]"
+                      >
+                        {f.url ? (
+                          <img src={f.url} alt={f.file.name} className="h-[52px] w-[52px] rounded-lg object-cover" />
+                        ) : (
+                          <FileTypeIcon name={f.file.name} type={f.file.type} size={44} />
+                        )}
+                        {!f.url && (
+                          <span className="max-w-[8rem] truncate text-xs font-semibold text-[var(--chat-ink)]">
+                            {f.file.name}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          aria-label={`Bỏ ${f.file.name}`}
+                          onClick={() => unstage(f.id)}
+                          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--chat-ink)] text-[var(--chat-panel)] shadow-[var(--chat-card-shadow)]"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
               <div className="flex shrink-0 items-center gap-1.5 border-t border-[var(--chat-line)] bg-[var(--chat-panel)] px-3 py-3">
                 <Button
@@ -770,9 +932,9 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   aria-label="Emoji"
                   aria-expanded={picker === "emoji"}
                   onClick={() => setPicker(picker === "emoji" ? null : "emoji")}
-                  className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"
+                  className={`h-9 w-9 shrink-0 rounded-xl bg-[var(--chat-tool-emoji-soft)] text-[var(--chat-tool-emoji)] transition hover:-translate-y-0.5 hover:bg-[var(--chat-tool-emoji-soft)] hover:text-[var(--chat-tool-emoji)] hover:brightness-95 ${picker === "emoji" ? "ring-2 ring-[var(--chat-tool-emoji)]" : ""}`}
                 >
-                  <Smile />
+                  <SmilePlus className="h-5 w-5" strokeWidth={2.2} />
                 </Button>
                 <Button
                   variant="ghost"
@@ -781,9 +943,9 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   aria-label="Nhãn dán"
                   aria-expanded={picker === "stickers"}
                   onClick={() => setPicker(picker === "stickers" ? null : "stickers")}
-                  className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"
+                  className={`h-9 w-9 shrink-0 rounded-xl bg-[var(--chat-tool-sticker-soft)] text-[var(--chat-tool-sticker)] transition hover:-translate-y-0.5 hover:bg-[var(--chat-tool-sticker-soft)] hover:text-[var(--chat-tool-sticker)] hover:brightness-95 ${picker === "stickers" ? "ring-2 ring-[var(--chat-tool-sticker)]" : ""}`}
                 >
-                  <Sticker />
+                  <Sticker className="h-5 w-5" strokeWidth={2.2} />
                 </Button>
                 <input
                   ref={imageRef}
@@ -792,7 +954,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   multiple
                   hidden
                   onChange={(e) => {
-                    void sendFiles(Array.from(e.target.files ?? []));
+                    stageFiles(Array.from(e.target.files ?? []));
                     e.target.value = "";
                   }}
                 />
@@ -802,7 +964,7 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   multiple
                   hidden
                   onChange={(e) => {
-                    void sendFiles(Array.from(e.target.files ?? []));
+                    stageFiles(Array.from(e.target.files ?? []));
                     e.target.value = "";
                   }}
                 />
@@ -811,44 +973,42 @@ export function ChatWidget({ userId: me }: { userId: string | null }) {
                   size="icon"
                   title="Gửi ảnh"
                   aria-label="Gửi ảnh"
-                  disabled={sending}
                   onClick={() => imageRef.current?.click()}
-                  className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"
+                  className="h-9 w-9 shrink-0 rounded-xl bg-[var(--chat-tool-image-soft)] text-[var(--chat-tool-image)] transition hover:-translate-y-0.5 hover:bg-[var(--chat-tool-image-soft)] hover:text-[var(--chat-tool-image)] hover:brightness-95"
                 >
-                  <ImageIcon />
+                  <ImagePlus className="h-5 w-5" strokeWidth={2.2} />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   title="Đính kèm tệp"
                   aria-label="Đính kèm tệp"
-                  disabled={sending}
                   onClick={() => fileRef.current?.click()}
-                  className="h-10 w-10 shrink-0 rounded-full text-[var(--chat-accent)] hover:bg-[var(--chat-hover)]"
+                  className="h-9 w-9 shrink-0 rounded-xl bg-[var(--chat-tool-file-soft)] text-[var(--chat-tool-file)] transition hover:-translate-y-0.5 hover:bg-[var(--chat-tool-file-soft)] hover:text-[var(--chat-tool-file)] hover:brightness-95"
                 >
-                  <Paperclip />
+                  <Paperclip className="h-5 w-5" strokeWidth={2.2} />
                 </Button>
                 <input
                   onPaste={(e) => {
                     const files = Array.from(e.clipboardData.files);
                     if (files.length) {
                       e.preventDefault();
-                      void sendFiles(files);
+                      stageFiles(files);
                     }
                   }}
                   ref={inputRef}
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.nativeEvent.isComposing) void send();
+                    if (e.key === "Enter" && !e.nativeEvent.isComposing) submit();
                   }}
                   placeholder="Nhập tin nhắn…"
                   className="h-11 min-w-0 flex-1 rounded-full border border-transparent bg-[var(--chat-bubble-other)] px-4 text-base text-[var(--chat-ink)] outline-none transition-shadow focus:border-[var(--chat-accent)] focus:ring-2 focus:ring-[var(--chat-accent)]/25"
                 />
                 <Button
                   aria-label="Gửi"
-                  onClick={() => void send()}
-                  disabled={sending || !draft.trim()}
+                  onClick={submit}
+                  disabled={!draft.trim() && !staged.length}
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--chat-accent)] p-0 text-[var(--chat-accent-ink)] transition-colors hover:brightness-95 disabled:opacity-40"
                 >
                   <Send className="h-5 w-5" />

@@ -61,3 +61,16 @@ describe("Chat content", () => {
     expect(insertEmoji("Ca trực", "👍", 3, 7)).toEqual({ text: "Ca 👍", caret: 5 });
   });
 });
+
+import { fileKind, fileExt } from '@/components/chat/chat-content';
+describe('chat file kind', () => {
+  it('maps attachment extensions to their card type', () => {
+    expect(fileKind('OFP.pdf')).toBe('pdf');
+    expect(fileKind('crewlist.XLSX')).toBe('sheet');
+    expect(fileKind('memo.docx')).toBe('doc');
+    expect(fileKind('pack.zip')).toBe('archive');
+    expect(fileKind('a.png', 'image/png')).toBe('image');
+    expect(fileKind('noext')).toBe('other');
+    expect(fileExt('crewlist.xlsx')).toBe('XLSX');
+  });
+});

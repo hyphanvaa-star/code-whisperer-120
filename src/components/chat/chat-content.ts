@@ -54,3 +54,25 @@ export function fileSize(n: number) {
   return n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(1)} MB`;
 }
 export const CHAT_FILE_MAX = 20 * 1024 * 1024;
+
+export type FileKind = "image" | "pdf" | "sheet" | "doc" | "slide" | "archive" | "text" | "other";
+const KIND_EXT: Record<Exclude<FileKind, "image" | "other">, string[]> = {
+  pdf: ["pdf"],
+  sheet: ["xls", "xlsx", "xlsm", "csv", "ods"],
+  doc: ["doc", "docx", "odt", "rtf"],
+  slide: ["ppt", "pptx", "odp"],
+  archive: ["zip", "rar", "7z", "gz", "tar"],
+  text: ["txt", "log", "json", "xml", "md"],
+};
+export function fileExt(name: string) {
+  const m = /\.([a-z0-9]{1,5})$/i.exec(name.trim());
+  return m ? m[1].toUpperCase() : "FILE";
+}
+/** Loại tệp để chọn biểu tượng/màu thẻ đính kèm. */
+export function fileKind(name: string, type = ""): FileKind {
+  if (type.startsWith("image/")) return "image";
+  const ext = fileExt(name).toLowerCase();
+  for (const [kind, list] of Object.entries(KIND_EXT)) if (list.includes(ext)) return kind as FileKind;
+  if (type === "application/pdf") return "pdf";
+  return "other";
+}
