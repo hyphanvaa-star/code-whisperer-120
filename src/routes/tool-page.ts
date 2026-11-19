@@ -3102,7 +3102,8 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.95')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 6.96')
+    // V 6.96: bảng AIMS thiết kế lại, chọn giờ 24h (00–23), bỏ SA/CH.
     // V 6.90: Trợ lý PC 6.9 — Gửi ATC dùng tài khoản AviWeb đã lưu trên web thay vì credentials.json cũ trên máy.
     // V 6.91: dọn lệnh tạm Trợ lý PC (giữ 48h), tự xoá lệnh quá 10 ngày; chat hiện tin ngay khi gửi.
     // V 6.92: chat mở ở tin mới nhất, khay xem trước tệp/ảnh, thẻ tệp màu theo loại, thanh công cụ màu.
@@ -3215,18 +3216,24 @@ function nmRouteLayers(ids){
     .replace('$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");', '$("#acOpscoreSave").onclick = () => acSave("opscore", "Opscore");\n$("#acAimsSave").onclick = () => acSave("aims", "Aims");')
     .replace('Aviweb:"aviweb",Opscore:"opscore"}[pf] || "";', 'Aviweb:"aviweb",Opscore:"opscore",Aims:"aims"}[pf] || "";')
     .replace('</body>', () => `<style>
-.aims-pop{position:fixed;z-index:5000;width:340px;background:var(--x-card,#fff);color:var(--x-ink,#222);border:1px solid var(--x-line,#ddd);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.25);padding:14px;font:14px/1.45 system-ui}
+.aims-pop{position:fixed;z-index:5000;width:360px;background:var(--x-card,#fff);color:var(--x-ink,#1e293b);border:1px solid rgba(148,163,184,.35);border-radius:16px;box-shadow:0 24px 60px -12px rgba(15,23,42,.35),0 0 0 1px rgba(255,255,255,.6) inset;padding:0 0 14px;font:14px/1.45 system-ui;max-height:calc(100vh - 140px);overflow:auto}
 .aims-pop[hidden]{display:none}
-.aims-hd{display:flex;justify-content:space-between;align-items:center;font-size:16px;margin-bottom:6px}
-.aims-x{border:0;background:none;cursor:pointer;font-size:15px;color:inherit}
-.aims-hint{margin:0 0 10px;font-size:12.5px;opacity:.8}
-.aims-row{display:flex;gap:10px;margin-bottom:10px}.aims-row label{flex:1;font-weight:600;font-size:13px}
-.aims-row input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:7px 8px;border:1px solid var(--x-line,#ccc);border-radius:7px;font:14px system-ui;background:transparent;color:inherit}
-.aims-go{width:100%;padding:9px;border:0;border-radius:8px;background:var(--pp-red,#E31937);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
-.aims-go:disabled{opacity:.6;cursor:wait}
+.aims-pop>*:not(.aims-hd){margin-left:16px;margin-right:16px}
+.aims-hd{display:flex;justify-content:space-between;align-items:center;font-size:16px;padding:12px 16px;margin-bottom:12px;background:linear-gradient(135deg,var(--pp-red,#E31937),#b3122b);color:#fff;border-radius:16px 16px 0 0;position:sticky;top:0;z-index:1}
+.aims-ic{display:inline-grid;place-items:center;width:26px;height:26px;margin-right:8px;border-radius:8px;background:rgba(255,255,255,.2);font-size:14px}
+.aims-x{border:0;background:rgba(255,255,255,.15);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;color:#fff}.aims-x:hover{background:rgba(255,255,255,.3)}
+.aims-hint{margin:0 0 12px;font-size:12.5px;color:#64748b;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 10px}
+.aims-row{display:flex;gap:10px;margin-bottom:12px}.aims-row label{flex:1;font-weight:700;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:#64748b}
+.aims-row input[type=date]{display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;font:600 14px system-ui;background:#fff;color:#0f172a}
+.aims-hm{display:flex;align-items:center;gap:4px;margin-top:5px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:10px;background:#fff}
+.aims-hm:focus-within,.aims-row input:focus{border-color:var(--pp-red,#E31937);box-shadow:0 0 0 3px rgba(227,25,55,.15);outline:0}
+.aims-hm i{font-style:normal;font-weight:800;color:#0f172a}
+.aims-hm select{flex:1;display:block !important;width:auto !important;margin:0 !important;border:0 !important;background:transparent !important;font:700 15px ui-monospace,monospace !important;color:#0f172a;padding:4px 2px !important;text-align:center;cursor:pointer;outline:0}
+.aims-go{width:100%;padding:11px;border:0;border-radius:10px;background:linear-gradient(135deg,var(--pp-red,#E31937),#b3122b);color:#fff;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 8px 18px -8px rgba(227,25,55,.6);transition:transform .1s}
+.aims-go:hover{transform:translateY(-1px)}
+.aims-go:disabled{opacity:.6;cursor:wait;transform:none}
 .aims-msg{min-height:18px;margin-top:8px;font-size:13px;font-weight:600;color:#15803d}.aims-msg.bad{color:#c62828}
-.aims-pop{max-height:calc(100vh - 140px);overflow:auto}
-.aims-watch{margin-top:12px;padding-top:10px;border-top:1px solid var(--x-line,#ddd)}
+.aims-watch{margin-top:12px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}
 .aims-wrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .aims-sw{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;cursor:pointer}.aims-sw input{width:17px;height:17px;accent-color:var(--pp-red,#E31937)}
 .aims-ev{font-size:13px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:4px}.aims-ev select{display:inline-block !important;width:auto !important;margin:0 !important;padding:3px 4px;border:1px solid var(--x-line,#ccc);border-radius:6px;font:13px system-ui;background:transparent;color:inherit}

@@ -6,10 +6,10 @@
   const box = document.createElement('div');
   box.className = 'aims-pop'; box.hidden = true;
   box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Tải Crewlist từ AIMS');
-  box.innerHTML = '<div class="aims-hd"><b>Tải Crewlist từ AIMS</b><button type="button" class="aims-x" aria-label="Đóng">✕</button></div>'
+  box.innerHTML = '<div class="aims-hd"><b><span class="aims-ic">✈</span>Tải Crewlist từ AIMS</b><button type="button" class="aims-x" aria-label="Đóng">✕</button></div>'
     + '<p class="aims-hint">Lấy báo cáo Daily Flight Schedule (1.2.1) bằng tài khoản AIMS đã lưu trong 🔑 Tài khoản, giữ nguyên các cột bạn đã chọn trên AIMS.</p>'
     + '<div class="aims-row"><label>Từ ngày<input type="date" class="aims-from"></label><label>Đến ngày<input type="date" class="aims-to"></label></div>'
-    + '<div class="aims-row"><label>Từ giờ<input type="time" step="60" class="aims-tfrom"></label><label>Đến giờ<input type="time" step="60" class="aims-tto"></label></div>'
+    + '<div class="aims-row"><label>Từ giờ (24h)<span class="aims-hm"><select class="aims-h" data-for="aims-tfrom"></select><i>:</i><select class="aims-m" data-for="aims-tfrom"></select></span><input type="hidden" class="aims-tfrom"></label><label>Đến giờ (24h)<span class="aims-hm"><select class="aims-h" data-for="aims-tto"></select><i>:</i><select class="aims-m" data-for="aims-tto"></select></span><input type="hidden" class="aims-tto"></label></div>'
     + '<button type="button" class="aims-go">⬇ Tải & nạp vào So sánh</button><div class="aims-msg" aria-live="polite"></div>'
     + '<div class="aims-watch"><div class="aims-wrow"><label class="aims-sw"><input type="checkbox" class="aims-auto"> 🔔 Tự động quét AIMS</label>'
     + '<label class="aims-ev">mỗi <select class="aims-every"><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="30">30</option></select> phút</label></div>'
@@ -18,11 +18,17 @@
   document.body.appendChild(box);
   const tFrom = box.querySelector('.aims-tfrom'), tTo = box.querySelector('.aims-tto');
   const TKEY = 'aims.timeRange';
+  const opts = n => Array.from({length: n}, (_, i) => '<option value="' + pad(i) + '">' + pad(i) + '</option>').join('');
+  box.querySelectorAll('.aims-h').forEach(x => { x.innerHTML = opts(24); });
+  box.querySelectorAll('.aims-m').forEach(x => { x.innerHTML = opts(60); });
+  function syncSel(){ [tFrom, tTo].forEach(inp => { const [h, m] = (inp.value || '00:00').split(':'); const w = inp.parentNode; w.querySelector('.aims-h').value = h; w.querySelector('.aims-m').value = m; }); }
+  box.querySelectorAll('.aims-hm select').forEach(sel => sel.addEventListener('change', () => { const w = sel.closest('label'), inp = w.querySelector('input'); inp.value = w.querySelector('.aims-h').value + ':' + w.querySelector('.aims-m').value; inp.dispatchEvent(new Event('change')); }));
   function loadTimes(){
     let t = null; try{ t = JSON.parse(localStorage.getItem(TKEY) || 'null'); }catch(_){}
     const ok = v => typeof v === 'string' && /^\d{2}:\d{2}$/.test(v);
     tFrom.value = t && ok(t.from) ? t.from : '04:55';
     tTo.value = t && ok(t.to) ? t.to : '04:55';
+    syncSel();
   }
   function saveTimes(){ try{ localStorage.setItem(TKEY, JSON.stringify({from: tFrom.value, to: tTo.value})); }catch(_){} }
   tFrom.addEventListener('change', saveTimes); tTo.addEventListener('change', saveTimes);
