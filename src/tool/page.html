@@ -26093,35 +26093,7 @@ function ftMarkChg(td, st, key, f){
   const tip = ftChgTip(c, ok);
   el.title = tip; td.title = tip;
   c.el = el;
-  if(f && (key === "reg" || key === "cptText" || key === "foText")){
-    const b = document.createElement("button");
-    b.type = "button"; b.textContent = "⚡";
-    b.addEventListener("click", ev => { ev.stopPropagation(); ftBoltClick(f, st, key, c); });
-    td.style.position = "relative";
-    td.appendChild(b); c.bolt = b; ftBoltPaint(c, st);
-  }
-  if(f && key === "reg"){
-    const a = document.createElement("button");
-    a.type = "button"; a.className = "ft-chgac"; a.textContent = "✈";
-    a.title = "Xuất điện CHG A/C theo tàu hiện tại trên FliteBrief";
-    a.addEventListener("click", async ev => {
-      ev.stopPropagation();
-      if(a.disabled) return;
-      a.disabled = true; a.textContent = "…";
-      try{
-        const item = {flt: f.flt, date: st.date || f.date || "", dep: st.dep || f.dep || "", arr: st.arr || f.arr || "",
-          etd: st.etd || f.etd || "", utc: st.utc || f.utc || "", ac: st.ac || ""};
-        const d = await (await fetch("/api/fpltext/msg", {method: "POST", headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({items: [item], kind: "CHG A/C"})})).json();
-        if(d.error){ alert(d.error); return; }
-        ftOpenAtcReview(d);
-        if((d.missed || []).length) alert(d.missed.join("\n"));
-      }catch(e){ alert("Không gọi được: " + e.message); }
-      finally{ a.disabled = false; a.textContent = "✈"; }
-    });
-    td.style.position = "relative";
-    td.appendChild(a);
-  }
+  // Nút ⚡ (đổi tàu/crew lên FliteBrief) và ✈ (CHG A/C) đã gỡ theo yêu cầu (V 7.15).
   return td;
 }
 // FPL VER đổi tàu/giờ: ghép vào dấu thay đổi của KHB (tím nếu chỉ FPL đổi,
