@@ -14,6 +14,7 @@ import aftnBookScript from '@/tool/aftn-book.js?raw';
 import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import notamPinBarScript from '@/lib/notam-pin-bar.js?raw';
+import owaAutoLoginScript from '@/lib/owa-auto-login.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
@@ -3219,7 +3220,35 @@ function nmPaintPinBar(n, place){`)
   btnFlt.__pinPaint = paintTags;
   paintTags();`)
     .replace('    if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }', '    if(btn && btn.__pinPaint) btn.__pinPaint();\n    else if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.11')
+    // V 7.12: mở web 30s tự đăng nhập Outlook Web; trạng thái không OK thì tự đăng nhập lại (giãn cách khi lỗi, 1 tab).
+    .replace('$("#owaLogin").onclick = () => { owaEnsureLogin({force: true}); };', '$("#owaLogin").onclick = () => { owaEnsureLogin({force: true}); };\n' + owaAutoLoginScript.replaceAll('export function', 'function').replaceAll('export const', 'const') + `
+(function(){
+  var opened = Date.now(), last = 0, fails = 0, booted = false, running = false;
+  var LOCK = "owa_auto_at";
+  async function agentOnline(){
+    try{ var d = await (await fetch("/api/pc/status", {cache: "no-store"})).json(); return !!(d && d.online); }catch(e){ return false; }
+  }
+  async function tick(){
+    var btn = $("#owaLogin");
+    if(!btn || running) return;
+    var other = 0; try{ other = Number(localStorage.getItem(LOCK) || 0); }catch(e){}
+    if(other === last) other = 0;
+    var plan = owaAutoPlan({now: Date.now(), openedAt: opened, state: btn.dataset.state || "unknown",
+      busy: !!owaJob || btn.disabled, booted: booted, lastTryAt: last, fails: fails, otherTabAt: other});
+    if(!plan.run) return;
+    running = true;
+    try{
+      if(!(await agentOnline())) return;
+      last = Date.now(); booted = true;
+      try{ localStorage.setItem(LOCK, String(last)); }catch(e){}
+      if(plan.why === "relogin") write("🌐 Outlook Web chưa OK — tự đăng nhập lại.", "sys");
+      var ok = await owaEnsureLogin({quiet: true, force: true});
+      fails = ok ? 0 : fails + 1;
+    }finally{ running = false; }
+  }
+  setInterval(tick, 15000);
+})();`)
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.12')
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.
