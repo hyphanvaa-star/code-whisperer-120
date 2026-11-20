@@ -16,14 +16,14 @@ export function wxMark(p: WxPlace): WxMark {
 
 const CSS = `<style>
 #wrapFplText .fttbl td.ft-wx-bad,#wrapFplText .fttbl td.ft-wx-nil,#wrapFplText .fttbl td.ft-wx-missing{position:relative}
-#wrapFplText .fttbl td.ft-wx-bad>input{box-shadow:inset 0 0 0 2px #DC2626 !important;background:#FEE2E2 !important}
+#wrapFplText .fttbl td.ft-wx-bad>input{box-shadow:inset 0 0 0 2px #DC2626 !important}
 #wrapFplText .fttbl td.ft-wx-bad.ft-wx-new>input{animation:ftWxBlink .8s ease-in-out 4}
 #wrapFplText .fttbl td.ft-wx-nil>input{box-shadow:inset 0 0 0 2px #EA580C !important}
 #wrapFplText .fttbl td.ft-wx-missing>input{outline:1px dashed #94A3B8;outline-offset:-2px}
 #wrapFplText .fttbl td[data-wx-label]::after{content:attr(data-wx-label);position:absolute;top:0;right:2px;font-size:10px;font-weight:900;line-height:1;pointer-events:none}
 #wrapFplText .fttbl td.ft-wx-bad::after{color:#DC2626}
 #wrapFplText .fttbl td.ft-wx-nil::after{color:#EA580C}
-@keyframes ftWxBlink{50%{background:#FCA5A5}}
+@keyframes ftWxBlink{50%{box-shadow:inset 0 0 0 4px #DC2626 !important}}
 .taf-tip .ft-wx-sum{font-weight:800;margin-bottom:8px}.taf-tip .ft-wx-sum.bad{color:#F87171}.taf-tip .ft-wx-sum.nil{color:#FB923C}.taf-tip .ft-wx-sum.missing{color:#94A3B8}
 </style>`;
 
