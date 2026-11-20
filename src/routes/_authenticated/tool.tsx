@@ -124,11 +124,33 @@ function ToolPage() {
       if (r.data.session) keep(r.data.session);
       return r.data.session?.access_token ?? null;
     };
+    // A 401 while tokens rotate (many requests at once, tab just woke up) is not
+    // proof the login ended: confirm with the auth server before leaving.
+    let checking = false;
     let expiredOnce = false;
     window.__fbExpired = () => {
-      if (expiredOnce) return;
-      expiredOnce = true;
-      void navigate({ to: "/auth", replace: true });
+      if (expiredOnce || checking) return;
+      checking = true;
+      void (async () => {
+        try {
+          let { data, error } = await supabase.auth.getUser();
+          if (!data.user) {
+            await supabase.auth.refreshSession().catch(() => null);
+            ({ data, error } = await supabase.auth.getUser());
+          }
+          const status = (error as { status?: number } | null)?.status;
+          const definitelyGone = !data.user && (!error || status === 401 || status === 403 || error.name === "AuthSessionMissingError");
+          if (data.user) {
+            const { data: s } = await supabase.auth.getSession();
+            keep(s.session);
+          } else if (definitelyGone) {
+            expiredOnce = true;
+            void navigate({ to: "/auth", replace: true });
+          }
+        } finally {
+          checking = false;
+        }
+      })();
     };
     // Quay lại tab / máy thức dậy: làm mới sớm nếu token sắp hết hạn.
     const wake = () => {
