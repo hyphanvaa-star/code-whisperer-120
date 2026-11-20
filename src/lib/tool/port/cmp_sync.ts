@@ -27,6 +27,24 @@ export function cmpChgFbReady(reg: { excel?: unknown; flite?: unknown } | null |
   return !norm(newReg) || norm(newReg) === excel;
 }
 
+/** Pick the ATC message for a sector: DLA from the FPL diff plus any aircraft change becomes CHG DLA. */
+export function cmpMsgKind(raw: unknown, acChg: boolean): string {
+  const k = String(raw || '').toUpperCase().trim();
+  if (k === 'CHG DLA') return 'CHG DLA';
+  if (k === 'CHG') return 'CHG A/C';
+  if (k === 'DLA') return acChg ? 'CHG DLA' : 'DLA';
+  return acChg ? 'CHG A/C' : '';
+}
+
+/** Remember a live Crewlist≠FliteBrief aircraft change so CHG survives once the new CFP carries the Crewlist aircraft. */
+export function cmpRegMemory(prev: { old: string; new: string } | null | undefined, live: { changed?: boolean; old?: unknown; new?: unknown } | null | undefined, reg: { verdict?: unknown; excel?: unknown } | null | undefined): { old: string; new: string } | null {
+  const norm = (v: unknown) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (live && live.changed && norm(live.old) && norm(live.new) && norm(live.old) !== norm(live.new)) return { old: String(live.old).trim(), new: String(live.new).trim() };
+  if (!prev) return null;
+  if (!reg || !reg.verdict || !norm(reg.excel)) return prev;
+  return norm(reg.excel) === norm(prev.new) ? prev : null;
+}
+
 /** Attached aircraft file names another tail than the Crewlist aircraft already on FliteBrief. */
 export function cmpAttachMismatch(reg: { excel?: unknown; flite?: unknown } | null | undefined, atch: unknown): { changed: true; attach: true; old: string; new: string } | null {
   const norm = (v: unknown) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -197,6 +215,8 @@ const cmpCellCrewChanges = ${cmpCellCrewChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpChgFbReady = ${cmpChgFbReady.toString()};
+const cmpMsgKind = ${cmpMsgKind.toString()};
+const cmpRegMemory = ${cmpRegMemory.toString()};
 const cmpAttachMismatch = ${cmpAttachMismatch.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 const cmpSwapReport = ${cmpSwapReport.toString()};
@@ -325,6 +345,8 @@ async function cmpVerOpen(){
 const cmpSyncChecks = new Map();
 const cmpAckStore = (()=>{ try{return new Set(JSON.parse(localStorage.getItem("cmp_ack_v1")||"[]"));}catch(_){return new Set();} })();
 function cmpAckHas(k){ return cmpAckStore.has(k); }
+const cmpRegMem = (()=>{ try{return JSON.parse(localStorage.getItem("cmp_regmem_v1")||"{}") || {};}catch(_){return {};} })();
+function cmpRegMemSave(k, v){ if(v) cmpRegMem[k] = v; else delete cmpRegMem[k]; const keys = Object.keys(cmpRegMem); for(const x of keys.slice(0, Math.max(0, keys.length - 300))) delete cmpRegMem[x]; try{localStorage.setItem("cmp_regmem_v1", JSON.stringify(cmpRegMem));}catch(_){} }
 function cmpAckAdd(k){ cmpAckStore.add(k); try{localStorage.setItem("cmp_ack_v1", JSON.stringify([...cmpAckStore].slice(-500)));}catch(_){} }
 let cmpSyncRowSource = null, cmpSyncRowIndex = new Map();
 function cmpSyncRow(sid){
@@ -547,20 +569,24 @@ function cmpMsgPaint(r){
   const raw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
   const crewRow = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.crew, f.id, f.std) : null;
   const liveRow = f ? cmpLiveChange(r) : null;
-  const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg)) || !!(liveRow && liveRow.reg.changed);
-  const kind = raw === "CHG DLA" ? "CHG DLA" : raw === "CHG" ? "CHG A/C" : raw === "DLA" ? (acChg ? "CHG DLA" : "DLA") : acChg ? "CHG A/C" : "";
+  const bound = cmpBind[String(r.sector_id)];
+  const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
+  // Live aircraft change is remembered per sector: pushing the corrected CFP must not turn CHG DLA back into DLA.
+  const memKey = JSON.stringify([f && f.id, f && f.callsign, f && f.std]);
+  const mem = f ? cmpRegMemory(cmpRegMem[memKey], liveRow && liveRow.reg, liveRow ? g : null) : null;
+  if(f && JSON.stringify(mem || null) !== JSON.stringify(cmpRegMem[memKey] || null)) cmpRegMemSave(memKey, mem);
+  const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg)) || !!(liveRow && liveRow.reg.changed) || !!mem;
+  const kind = cmpMsgKind(raw, !!acChg);
   if(!kind) return;
-  const ackKey = "m|" + JSON.stringify([f.id, f.callsign, f.std, kind, row && row.reg, crewRow && crewRow.reg, liveRow && liveRow.reg.changed ? liveRow.reg : null]);
+  const ackKey = "m|" + JSON.stringify([f.id, f.callsign, f.std, kind, row && row.reg, crewRow && crewRow.reg, mem || (liveRow && liveRow.reg.changed ? liveRow.reg : null)]);
   if(cmpAckHas(ackKey)) return;
   const b = document.createElement("button"); b.type = "button"; b.className = "cmp-msg-quick";
   b.textContent = kind === "CHG A/C" ? "CHG" : kind;
-  const bound = cmpBind[String(r.sector_id)];
-  const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
-  const newReg = (crewRow && cmpAircraftChange(crewRow.reg) && crewRow.reg.new) || (row && cmpAircraftChange(row.reg) && row.reg.new) || "";
+  const newReg = (crewRow && cmpAircraftChange(crewRow.reg) && crewRow.reg.new) || (row && cmpAircraftChange(row.reg) && row.reg.new) || (mem && mem.new) || "";
   const aimsEv = cmpSyncEvidence(r, "aims"), aimsChk = aimsEv ? cmpSyncChecks.get(cmpSyncKey(aimsEv)) : null;
   const fbOk = kind.indexOf("CHG") === 0 && !(liveRow && liveRow.reg.changed) && cmpChgFbReady(g, newReg, !!(aimsChk && aimsChk.regOk));
   if(fbOk) b.classList.add("cmp-msg-ok");
-  b.dataset.tip = (raw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : "Crewlist đổi tàu: ") + kind
+  b.dataset.tip = (raw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : mem ? "Crewlist đổi tàu " + mem.old + " → " + mem.new + ": " : "Crewlist đổi tàu: ") + kind
     + (fbOk ? " · FliteBrief đã lên đúng tàu Crewlist " + ((g && g.excel) || newReg) : kind.indexOf("CHG") === 0 ? " · FliteBrief chưa lên đúng tàu Crewlist" : "") + " · Bấm để soạn điện văn";
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
