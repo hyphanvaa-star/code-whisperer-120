@@ -37,3 +37,34 @@ describe("owaAutoPlan", () => {
     expect(owaAutoPlan({ ...failed, now: T0 + 120_000 }).run).toBe(true);
   });
 });
+
+// @ts-expect-error plain browser JS module
+import { defAutoPlan } from "../owa-auto-login.js";
+
+describe("defAutoPlan", () => {
+  const d = { openedAt: T0, owaState: "healthy", want: true, busy: false, dirty: false, lastAt: 0, lastOk: false };
+
+  it("pulls the defect summary once Outlook Web is OK", () => {
+    expect(defAutoPlan({ ...d, now: T0 + 60_000 })).toEqual({ run: true, why: "pull" });
+    expect(defAutoPlan({ ...d, now: T0 + 60_000, owaState: "stale" }).run).toBe(false);
+    expect(defAutoPlan({ ...d, now: T0 + 60_000, owaState: "checking" }).run).toBe(false);
+  });
+
+  it("skips when another tab pulled OK within 30 minutes", () => {
+    const last = { ...d, lastOk: true, lastAt: T0 };
+    expect(defAutoPlan({ ...last, now: T0 + 29 * 60_000 }).run).toBe(false);
+    expect(defAutoPlan({ ...last, now: T0 + 30 * 60_000 }).run).toBe(true);
+  });
+
+  it("retries a failed automatic pull after 10 minutes", () => {
+    const failed = { ...d, lastOk: false, lastAt: T0 };
+    expect(defAutoPlan({ ...failed, now: T0 + 9 * 60_000 }).run).toBe(false);
+    expect(defAutoPlan({ ...failed, now: T0 + 10 * 60_000 }).run).toBe(true);
+  });
+
+  it("never overwrites unsaved edits or runs twice", () => {
+    expect(defAutoPlan({ ...d, now: T0 + 60_000, dirty: true }).run).toBe(false);
+    expect(defAutoPlan({ ...d, now: T0 + 60_000, busy: true }).run).toBe(false);
+    expect(defAutoPlan({ ...d, now: T0 + 60_000, want: false }).run).toBe(false);
+  });
+});

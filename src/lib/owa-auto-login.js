@@ -24,3 +24,20 @@ export function owaAutoPlan(s){
   if(s.booted && now - (Number(s.lastTryAt) || 0) < owaAutoBackoff(Number(s.fails) || 0)) return {run: false, why: "backoff"};
   return {run: true, why: s.booted ? "relogin" : "boot"};
 }
+/* Defect summary pulled automatically once Outlook Web is OK. */
+export const DEF_AUTO_COOLDOWN_MS = 30 * 60000; // any tab pulled OK recently → skip
+export const DEF_AUTO_RETRY_MS = 10 * 60000;    // last automatic pull failed → wait
+/* s: {now, openedAt, owaState, want, busy, dirty, lastAt, lastOk} — lastAt/lastOk shared across tabs */
+export function defAutoPlan(s){
+  const now = Number(s.now) || 0;
+  if(!s.want) return {run: false, why: "done"};
+  if(now - (Number(s.openedAt) || 0) < OWA_AUTO_BOOT_MS) return {run: false, why: "boot-wait"};
+  if(String(s.owaState || "") !== "healthy") return {run: false, why: "owa-not-ok"};
+  if(s.busy) return {run: false, why: "busy"};
+  // Đang sửa tay bảng Tàu/Defect chưa lưu: không ghi đè.
+  if(s.dirty) return {run: false, why: "editing"};
+  const since = now - (Number(s.lastAt) || 0);
+  if(s.lastOk && since < DEF_AUTO_COOLDOWN_MS) return {run: false, why: "recent"};
+  if(!s.lastOk && since < DEF_AUTO_RETRY_MS) return {run: false, why: "retry-wait"};
+  return {run: true, why: "pull"};
+}

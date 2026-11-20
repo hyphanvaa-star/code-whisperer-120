@@ -3244,11 +3244,39 @@ function nmPaintPinBar(n, place){`)
       if(plan.why === "relogin") write("🌐 Outlook Web chưa OK — tự đăng nhập lại.", "sys");
       var ok = await owaEnsureLogin({quiet: true, force: true});
       fails = ok ? 0 : fails + 1;
+      if(ok) defWant = true;
     }finally{ running = false; }
   }
-  setInterval(tick, 15000);
+  /* V 7.13: Outlook Web OK → tự tải defect summary (1 tab, 30 phút/lần, lỗi thử lại sau 10 phút). */
+  var DEF_LOCK = "def_auto_pull", defWant = true, defRunning = false, prevState = "";
+  function defLast(){ try{ return JSON.parse(localStorage.getItem(DEF_LOCK) || "{}") || {}; }catch(e){ return {}; } }
+  function defMark(ok){ try{ localStorage.setItem(DEF_LOCK, JSON.stringify({at: Date.now(), ok: !!ok})); }catch(e){} }
+  var defBtn = $("#defPdfPick");
+  if(defBtn) defBtn.addEventListener("click", function(){ defMark(true); defWant = false; });
+  async function defTick(){
+    var btn = $("#owaLogin");
+    if(!btn || defRunning) return;
+    var st = btn.dataset.state || "unknown";
+    if(st === "healthy" && prevState && prevState !== "healthy") defWant = true;
+    prevState = st;
+    var last = defLast(), db = $("#defPdfPick");
+    var plan = defAutoPlan({now: Date.now(), openedAt: opened, owaState: st, want: defWant,
+      busy: running || !!owaJob || (db && db.disabled), dirty: typeof limDirty !== "undefined" && limDirty,
+      lastAt: last.at, lastOk: last.ok});
+    if(plan.why === "recent"){ defWant = false; return; }
+    if(!plan.run) return;
+    defRunning = true; defMark(false);
+    try{
+      write("📄 Outlook Web OK — tự tải defect summary.", "sys");
+      var ok = await defPullSummary({quiet: true});
+      defMark(ok);
+      if(ok) defWant = false;
+    }finally{ defRunning = false; }
+  }
+  setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.12')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.13')
+    // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.
