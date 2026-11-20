@@ -1363,6 +1363,7 @@ header#mdRoom .hishaku,header#mdRoom .wagashi,header#mdRoom .yunomi,header#mdRoo
 header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom .md-sign,
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
+header#mdRoom::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:var(--airport-clean) calc(50% + 113px) center/85% auto no-repeat;backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1)}
 header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:max(15.2%,390px);height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
 .ops-header-brand{display:block !important;position:absolute;left:1.25%;top:12px;width:12.4%;height:150px;z-index:16;color:#fff;text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:center;gap:9px}.ops-vj-mark .ops-vj-logo{display:block;width:138px;height:41px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 11px/1.2 var(--x-sans);color:#fff;letter-spacing:.06em}
@@ -3189,7 +3190,7 @@ function nmPaintPinBar(n, place){`)
   btnFlt.__pinPaint = paintTags;
   paintTags();`)
     .replace('    if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }', '    if(btn && btn.__pinPaint) btn.__pinPaint();\n    else if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.06')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.07')
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.
