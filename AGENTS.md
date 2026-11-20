@@ -26,9 +26,7 @@
 - KHB Validation/PLD presentation is patched through `port/khb_payload.ts`; Validation consumes the live Compare verdicts and missing states without duplicating its thresholds. Keep OFP weights and raw Omni EST separate, and match a unique in-window sector by flight/UTC date (computed from local ETD + ETD UTC)/route/REG before reading weights so Crewlist row IDs never address another sector. Validation matches without REG to expose mismatches; explicit EST downloads use existing endpoints in raw mode to avoid independent rounding rules.
 - FliteBrief access lives only in `src/lib/flitebrief.server.ts`; cookies persist in service-role-only `fb_session` so workers share one login. PDFs download via `/api/fb/file` with a bearer token so external credentials never reach the browser.
 - Every server fn/route touching flight data calls `assertDispatcher`; route guards are UX only.
-- PC helper job routing lives in `port/pc_claim.ts` (machine id → account → IP fallback); see `pc-agent/AGENTS.md`.
-- PC helper tool discovery prefers bundled `app/tool` and accepts both source `.py` and sourceless `.pyc` for required modules; discovery errors stay noninteractive so background retries cannot open folder prompts.
-- PC helper: frozen C:/shared D: machines use OneDrive `Bat-Tro-Ly.vbs` → `/agent/bootstrap.py`, which repairs and hash-checked self-updates code (old kept on failure); rebuild with `python3 pc-agent/pack.py`. Details in `pc-agent/AGENTS.md`.
+- PC helper job routing (`port/pc_claim.ts`), bootstrap/self-update and tool discovery: see `pc-agent/AGENTS.md`.
 - Roles: `user_roles` (`admin`, `dispatcher`); first signup becomes admin via `handle_new_user`.
 - Port groups follow `roadmap.md`: handlers in `src/lib/tool/handlers/<group>.server.ts` preserve web.py JSON; `router.server.ts` owns bearer/GET-cookie auth and `{error, not_ported}`. Pure ports and tests live in `port/` and `port/__tests__/`.
 - KHB labels/REQ share browser-safe `khb-pilot-name` via the HTML shim and FPL port; preserve full source names for identity matching.
