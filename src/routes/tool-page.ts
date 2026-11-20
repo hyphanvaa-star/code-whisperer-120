@@ -37,6 +37,7 @@ import { patchCmpValidationPage } from '@/lib/tool/port/cmp_validation';
 import { patchCmpBatchPage } from '@/lib/tool/port/cmp_batch';
 import { patchCmpDspFastPage } from '@/lib/tool/port/cmp_dsp_fast';
 import { patchKhbAirportHoverPage } from '@/lib/tool/port/khb_airport_hover';
+import { patchKhbAirportWxPage } from '@/lib/tool/port/khb_airport_wx';
 import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
 import { patchNotamChangePopupPage } from '@/lib/tool/port/notam_change_popup';
 import { patchDefectSourcePage } from '@/lib/tool/port/defect_source_page';
@@ -3275,7 +3276,7 @@ function nmPaintPinBar(n, place){`)
   }
   setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.15')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.16')
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
@@ -3640,7 +3641,7 @@ function paintExtra(td, f){`)
     .replace('function renderCompareTable(d, opts){', FILE_CHECK_FN + 'function renderCompareTable(d, opts){')
     .replace('</head>', FILE_CHECK_CSS + '</head>')
     ;
-  cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportHoverPage(cached))))
+  cached = patchDefectSourcePage(patchNotamChangePopupPage(patchCmpCrewHoverPage(patchKhbAirportWxPage(patchKhbAirportHoverPage(cached)))))
     // Compare re-run button label: "Reload" (runs last so earlier patches still find "Cmp").
     .replace('data-talk="so lại FliteBrief / OFP.">Cmp</button>', 'data-talk="so lại FliteBrief / OFP.">Reload</button>')
     // V 6.13: Check OFP results open in a floating modal; the general tab is hidden.
