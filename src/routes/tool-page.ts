@@ -382,7 +382,7 @@ const SHIM = `<script>
       var brand=document.createElement('div');
       brand.id='opsHeaderBrand'; brand.className='ops-header-brand';
       var _v=(document.getElementById('appVersion')||{}).textContent||'';
-      brand.innerHTML='<div class="ops-vj-mark"><span class="ops-vj-logo" aria-label="Vietjet Air"></span><span>OPERATION<br>CONTROL</span></div><div class="ops-sohee"><strong>Sohee</strong><span>— Dispatch Board</span>'+(_v?'<b title="Phiên bản tool" style="margin-left:8px;font:700 12px/1.4 monospace;padding:2px 8px;border-radius:10px;background:#fff;color:#E31937;vertical-align:middle">'+_v+'</b>':'')+'</div>';
+      brand.innerHTML='<div class="ops-vj-mark"><span class="ops-vj-logo" aria-label="Vietjet Air"></span><span>OPERATION<br>CONTROL</span></div><div class="ops-sohee"><div class="ops-brand-title"><strong>OMC</strong><i aria-hidden="true"></i><span>Dispatcher Board</span>'+(_v?'<b class="ops-brand-ver" title="Phiên bản tool">'+_v+'</b>':'')+'</div><div class="ops-brand-credit">A product design by <em>Hy &amp; Huy</em></div><a class="ops-brand-contact" href="mailto:hyphanthanh@vietjetair.com" title="Liên hệ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><span><small>Contact</small>hyphanthanh@vietjetair.com</span></a></div>';
       var live=document.createElement('div');
       live.className='ops-header-live';
       live.innerHTML='<div class="ops-weather" title="Thời tiết hiện tại tại TP. Hồ Chí Minh"><span class="ops-weather-icon">☀</span><strong id="opsWeatherTemp">--°C</strong><span><b>HO CHI MINH</b><small id="opsWeatherText">Đang cập nhật…</small></span></div><div class="ops-clock-wrap"><span class="ops-clock-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div class="ops-clock" title="Giờ địa phương TP. Hồ Chí Minh"><strong id="opsClockTime">--:--</strong><span id="opsClockDate">-- --- ----</span></div></div><div class="ops-account"><button type="button" class="ops-account-btn" id="opsAccountBtn" aria-haspopup="true" aria-expanded="false" title="Tài khoản đang đăng nhập"><span class="ops-avatar" id="opsAvatar">••</span><span class="ops-account-chevron" aria-hidden="true"></span></button></div>';
@@ -1363,12 +1363,26 @@ header#mdRoom .hishaku,header#mdRoom .wagashi,header#mdRoom .yunomi,header#mdRoo
 header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom .md-sign,
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
-header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:15.2%;height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
+header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:max(15.2%,296px);height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
 .ops-header-brand{display:block !important;position:absolute;left:1.25%;top:12px;width:12.4%;height:150px;z-index:16;color:#fff;text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:center;gap:9px}.ops-vj-mark .ops-vj-logo{display:block;width:138px;height:41px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 11px/1.2 var(--x-sans);color:#fff;letter-spacing:.06em}
-.ops-sohee{display:flex;align-items:baseline;gap:8px;margin-top:10px;padding-top:8px;border-top:2px solid var(--x-yel);text-transform:none;white-space:nowrap}
-.ops-sohee strong{color:#fff;font:900 26px/1 var(--x-sans);letter-spacing:.02em;text-shadow:0 1px 6px rgba(15,23,42,.45)}
-.ops-sohee span{color:rgba(255,255,255,.94);font:600 14px/1 var(--x-sans);letter-spacing:.04em;text-shadow:0 1px 5px rgba(15,23,42,.4)}
+/* Brand stack must end above the filter row (header 172px, filters start at 58%). */
+.ops-header-brand{top:8px !important}
+.ops-header-brand .ops-vj-mark .ops-vj-logo{width:104px;height:30px}
+.ops-header-brand .ops-vj-mark>span:last-child{font-size:10px}
+.ops-sohee{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-top:4px;padding-top:4px;border-top:2px solid var(--x-yel);text-transform:none;white-space:nowrap}
+.ops-brand-title{display:flex;align-items:center;gap:7px;height:22px}
+.ops-brand-title strong{color:#fff;font:900 22px/1 var(--x-sans);letter-spacing:.07em;text-shadow:0 2px 8px rgba(15,23,42,.4)}
+.ops-brand-title i{display:block;width:3px;height:17px;border-radius:2px;background:var(--x-yel);box-shadow:0 0 8px rgba(255,201,0,.6)}
+.ops-brand-title span{color:#fff;font:800 12px/1 var(--x-sans);letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 5px rgba(15,23,42,.45)}
+.ops-brand-ver{margin-left:2px;padding:3px 7px;border-radius:999px;background:#fff;color:#E31937;font:800 10.5px/1 var(--x-mono);letter-spacing:.02em;box-shadow:0 2px 8px rgba(15,23,42,.22)}
+.ops-brand-credit{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.88);font:500 10.5px/12px var(--x-sans);letter-spacing:.05em;text-shadow:0 1px 4px rgba(15,23,42,.5)}
+.ops-brand-credit::before{content:"";width:10px;height:1px;background:rgba(255,255,255,.7)}
+.ops-brand-credit em{font-style:normal;font-weight:800;color:#fff;letter-spacing:.03em}
+.ops-brand-contact{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;font:600 10.5px/13px var(--x-sans);letter-spacing:.02em;text-shadow:0 1px 4px rgba(15,23,42,.5);pointer-events:auto}
+.ops-brand-contact svg{flex:none;width:14px;height:14px;padding:2px;box-sizing:border-box;border-radius:4px;background:var(--x-yel);color:#16181d}
+.ops-brand-contact small{font:800 8.5px/1 var(--x-sans);letter-spacing:.14em;text-transform:uppercase;color:var(--x-yel);margin-right:5px}
+.ops-brand-contact:hover span{text-decoration:underline;text-underline-offset:2px}
 .ops-header-live{position:absolute;right:0;top:0;height:78px;display:flex;align-items:center;gap:0;z-index:24;color:#fff;padding:0 17px 0 21px;border:0;border-radius:0 0 0 18px;background:linear-gradient(90deg,rgba(20,30,40,.68),rgba(12,22,32,.84));box-shadow:-10px 10px 28px rgba(20,36,52,.18);backdrop-filter:blur(10px) saturate(1.16)}
 .ops-weather{height:56px;display:grid;grid-template-columns:36px auto auto;align-items:center;gap:9px;padding-right:20px;border-right:1px solid rgba(255,255,255,.5)}.ops-weather-icon{font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}.ops-weather>strong{font:800 22px/1 var(--x-sans);color:#fff}.ops-weather>span:last-child{display:flex;flex-direction:column;gap:6px}.ops-weather b,.ops-weather small{font:900 12px/1.05 var(--x-sans);letter-spacing:.02em;color:#fff}.ops-weather small{font-weight:600;font-size:11px;color:rgba(255,255,255,.85);text-transform:none}
 .ops-clock-wrap{height:56px;display:flex;align-items:center;gap:10px;padding:0 20px;border-right:1px solid rgba(255,255,255,.5)}.ops-clock-icon{display:grid;place-items:center;width:28px;height:28px;color:#fff}.ops-clock-icon svg{width:100%;height:100%}.ops-clock{display:flex;flex-direction:column;align-items:center;min-width:96px}.ops-clock strong{font:800 22px/1 var(--x-mono);color:#fff}.ops-clock span{margin-top:6px;font:800 12px/1 var(--x-sans);letter-spacing:.02em;color:#fff}
@@ -3108,6 +3122,7 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
+    // V 7.05: header đổi tên OMC - Dispatcher Board, thêm credit Hy & Huy và email liên hệ.
     // V 7.04: nút ghim NOTAM luôn nhắm chuyến đang tracking; chuyến đã ghim trước hiện thành nhãn riêng có nút gỡ.
     .replace('#wrapNotam .nm-pin-msg.bad{color:#b71c1c}', '#wrapNotam .nm-pin-msg.bad{color:#b71c1c}\n#wrapNotam .nm-pin-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;font-size:11px}\n#wrapNotam .nm-pin-tags[hidden]{display:none}\n#wrapNotam .nm-pin-tags .lab{font-weight:800;color:#6b6f7b}\n#wrapNotam .nm-pin-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 4px 2px 9px;border-radius:999px;border:1px solid #e6b3c8;background:#fff5f9;color:#9c1a5c;font-weight:800}\n#wrapNotam .nm-pin-chip.cur{background:#16a34a;border-color:#16a34a;color:#fff}\n#wrapNotam .nm-pin-chip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:11px;line-height:1;padding:2px 4px;border-radius:999px}\n#wrapNotam .nm-pin-chip button:hover{background:rgba(0,0,0,.12)}\nhtml.night #wrapNotam .nm-pin-chip{background:#2a1818;color:#ff8ab8;border-color:#c62a72}\nhtml.night #wrapNotam .nm-pin-chip.cur{background:#16a34a;border-color:#16a34a;color:#fff}')
     .replace('function nmPaintPinBar(n, place){', notamPinBarScript.replaceAll('export function', 'function') + `
@@ -3174,7 +3189,7 @@ function nmPaintPinBar(n, place){`)
   btnFlt.__pinPaint = paintTags;
   paintTags();`)
     .replace('    if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }', '    if(btn && btn.__pinPaint) btn.__pinPaint();\n    else if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.04')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.05')
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.

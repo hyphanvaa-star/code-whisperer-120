@@ -87,7 +87,7 @@ export function AuthScreen() {
         </svg>
         <section className="sakura-brand">
           <div className="sakura-wordmark">VietJet<span>Air.com</span></div>
-          <h1>Sohee<br />Dispatch Board</h1>
+          <h1>OMC<br />Dispatcher Board</h1>
           <div className="sakura-brand-rule" />
           <p>Connecting People,<br />Flying Further Together</p>
           <div className="sakura-tags"><span>✈ Safety</span><span>⏱ On-time</span><span>🌸 Teamwork</span></div>
