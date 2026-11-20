@@ -297,6 +297,28 @@ export function render_msg(kindRaw: string, fields: FplFields, spec: Record<stri
 
 export const NEED_13 = [KIND_CHG_TIME, KIND_CHG_AC_DLA];
 
+/** Loại điện có giờ mới (DLA dòng đầu, CHG TIME / CHG DLA ở -13/). */
+export const TIME_KINDS = [KIND_DLA, KIND_CHG_TIME, KIND_CHG_AC_DLA];
+
+/**
+ * Giờ cho điện CNL/DLA/CHG (UTC HHMM).
+ * - base: giờ định danh chuyến đã nộp — AviWeb EOBT; thiếu thì điện đổi giờ lấy STD gốc,
+ *   các điện khác lấy ETD hiện tại (FPL thường đã nộp theo ETD).
+ * - fresh: giờ mới cho điện đổi giờ = ETD hiện tại (Crewlist); rỗng với điện khác.
+ */
+export function msg_eobts(kindRaw: string, t: { avi?: string; etd?: string; std?: string }): {
+  base: string; fresh: string; src: "AVI" | "ETD" | "STD" | "";
+} {
+  const ok = (v: unknown) => (/^\d{4}$/.test(String(v ?? "")) ? String(v) : "");
+  const avi = ok(t.avi), etd = ok(t.etd), std = ok(t.std);
+  const timed = TIME_KINDS.includes(normalize_msg_kind(kindRaw));
+  const order: ["AVI" | "ETD" | "STD", string][] = timed
+    ? [["AVI", avi], ["STD", std], ["ETD", etd]]
+    : [["AVI", avi], ["ETD", etd], ["STD", std]];
+  const hit = order.find(([, v]) => v);
+  return { base: hit ? hit[1] : "", fresh: timed ? etd : "", src: hit ? hit[0] : "" };
+}
+
 function escapeHtml_(s: string): string {
   return s
     .replace(/&/g, "&amp;")
