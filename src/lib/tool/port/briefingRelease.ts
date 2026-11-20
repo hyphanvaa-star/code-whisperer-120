@@ -1,7 +1,7 @@
 // Port of briefing_release.py — Official Briefing for Flight Release sheet
 // (text/HTML/PDF rendering + edit-field round trip). No DB/Flask/FliteBrief
 // here; handlers/briefing_release.server.ts wires this into the web app.
-import { IATA_ICAO } from "./limits_check";
+import { icaoFromIata } from "./airport_icao";
 import { applyToSheet, isNotamPlaceholder, type PinStore, type SheetPinContext } from "./notam_pin";
 
 export class BriefReleaseError extends Error {}
@@ -62,7 +62,7 @@ const _NOT_ICAO = new Set([
 export function toIcao(code: unknown): string {
   const raw = String(code ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (raw.length === 4 && /^[A-Z]+$/.test(raw) && !_NOT_ICAO.has(raw)) return raw;
-  if (raw.length === 3) return IATA_ICAO[raw] ?? "";
+  if (raw.length === 3) return icaoFromIata(raw);
   return "";
 }
 

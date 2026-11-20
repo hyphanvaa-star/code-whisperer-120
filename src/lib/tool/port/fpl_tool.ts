@@ -1,6 +1,7 @@
 import type { ExtraWxCfg } from "./extra_wx";
 // Port of fpl_tool.py (pure parts) — sinh khoi FPL.req theo cong thuc sheet TOOL.
 import { IATA_ICAO } from "./limits_check";
+import { icaoFromIata } from "./airport_icao";
 import * as taf from "./taf";
 import type { TafRec } from "./taf";
 import { limitKhbPilotName } from "../../khb-pilot-name";
@@ -570,8 +571,7 @@ export function etd_utc_when(db: Db, flight: Raw): Date | null {
 function _icaoOf(code: string): string {
   const raw = String(code || "").trim().toUpperCase();
   if (raw.length === 4 && /^[A-Z]+$/.test(raw)) return raw;
-  if (raw.length !== 3 || !/^[A-Z]+$/.test(raw)) return "";
-  return IATA_ICAO[raw] || "";
+  return icaoFromIata(raw);
 }
 
 export function taf_at(code: string, when: Date | null, tafs: Record<string, TafRec>, role: string, cfg?: ExtraWxCfg): Raw | null {
