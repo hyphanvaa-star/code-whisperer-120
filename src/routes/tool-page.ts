@@ -273,7 +273,7 @@ const SHIM = `<script>
         board.appendChild(dot);
         var agentOn=false,pairTok='',pairAt=0,LOCAL='http://127.0.0.1:47321';
         var agentPair=function(){
-          var send=function(){ if(pairTok) fetch(LOCAL+'/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:pairTok})}).catch(function(){}); };
+          var send=function(){ if(pairTok) fetch(LOCAL+'/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:pairTok})}).then(function(r){return r.json();}).then(function(d){ /* Máy nào bấm thì lệnh về đúng máy đó (không sang máy khác cùng mạng/cùng tài khoản). */ if(d&&typeof d.aid==='string'&&/^[0-9a-f]{12,64}$/.test(d.aid)) document.cookie='pc_aid='+d.aid+'; path=/; max-age=2592000; SameSite=Lax'+(location.protocol==='https:'?'; Secure':''); }).catch(function(){}); };
           if(pairTok && Date.now()-pairAt<3600000){ send(); return; }
           fetch('/api/pc/pair-token',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){ if(d&&d.token){pairTok=d.token;pairAt=Date.now();send();} }).catch(function(){});
         };
@@ -3219,7 +3219,7 @@ function nmPaintPinBar(n, place){`)
   btnFlt.__pinPaint = paintTags;
   paintTags();`)
     .replace('    if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }', '    if(btn && btn.__pinPaint) btn.__pinPaint();\n    else if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.10')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.11')
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.

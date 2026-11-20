@@ -59,6 +59,11 @@ async function myIp(): Promise<string> {
   return currentIp();
 }
 
+async function myAid(): Promise<string> {
+  const { currentAgentId } = await import("./creds.server");
+  return currentAgentId();
+}
+
 async function myUid(): Promise<string> {
   const { currentUserId } = await import("./creds.server");
   return currentUserId();
@@ -68,7 +73,8 @@ async function myUid(): Promise<string> {
 async function tag(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
   const ip = await myIp();
   const uid = await myUid();
-  return { ...payload, ...(ip ? { _ip: ip } : {}), ...(uid ? { _uid: uid } : {}) };
+  const aid = await myAid();
+  return { ...payload, ...(ip ? { _ip: ip } : {}), ...(uid ? { _uid: uid } : {}), ...(aid ? { _aid: aid } : {}) };
 }
 
 const uidCache = new Map<string, { id: string; at: number }>();
@@ -186,11 +192,12 @@ export async function waitResult(
 }
 
 /** Agent heartbeat, written by the public poll route (no user session). */
-export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid = "", offline = false): Promise<void> {
+export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid = "", offline = false, aid = ""): Promise<void> {
   const value = { ...info, at: offline ? 0 : Date.now() } as never;
   const updated_at = new Date().toISOString();
   const rows = [{ key: ip ? `pc.agent:${ip}` : "pc.agent", value, updated_at }];
   if (uid) rows.push({ key: `pc.agent:u:${uid}`, value, updated_at });
+  if (aid) rows.push({ key: `pc.agent:a:${aid}`, value, updated_at });
   const { error } = await (await admin()).from("app_settings").upsert(rows);
   if (error) throw new Error(error.message);
 }
@@ -198,6 +205,9 @@ export async function recordHeartbeat(info: Omit<AgentInfo, "at">, ip = "", uid 
 export async function agentInfo(ctx: Ctx): Promise<AgentInfo | null> {
   const ip = await myIp();
   const uid = ctx.userId || (await myUid());
+  // The browser knows which helper runs on its own PC: show that machine, not another one of the same account.
+  const aid = await myAid();
+  if (aid) return await getJson<AgentInfo | null>(ctx, `pc.agent:a:${aid}`, null);
   // Signed-in users only see their own paired machine — never a colleague's on the same office IP.
   if (uid) return await getJson<AgentInfo | null>(ctx, `pc.agent:u:${uid}`, null);
   return await getJson<AgentInfo | null>(ctx, ip ? `pc.agent:${ip}` : "pc.agent", null);
@@ -208,41 +218,55 @@ export function agentOnline(info: AgentInfo | null): boolean {
   return !!info && Date.now() - info.at < 90_000;
 }
 
-/** Claim pending jobs for the agent (public poll route, service role). */
-export async function claimPending(limit = 5, ip = "", printers: unknown[] = [], uid = ""): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
+/** Claim pending jobs for the agent (public poll route, service role). Rules: `port/pc_claim.ts`. */
+export async function claimPending(limit = 5, ip = "", printers: unknown[] = [], uid = "", aid = ""): Promise<Array<{ id: string; kind: string; payload: Record<string, unknown> }>> {
   const a = await admin();
-  let q = a
-    .from("pc_jobs")
-    .select("id, kind, payload")
-    .eq("status", "pending");
-  // Only jobs created from the helper's own network; untagged legacy jobs stay claimable.
-  // Paired helper: jobs of its own account (any network). Otherwise legacy same-IP matching.
   const conds = ["payload->>_ip.is.null"];
   if (uid) conds.push(`payload->>_uid.eq.${uid}`);
-  if (ip) conds.push(`and(payload->>_ip.eq.${ip},payload->>_uid.is.null)`, ...(uid ? [] : [`payload->>_ip.eq.${ip}`]));
-  q = q.or(conds.join(","));
-  const { data, error } = await q
+  if (aid) conds.push(`payload->>_aid.eq.${aid}`);
+  if (ip) conds.push(`payload->>_ip.eq.${ip}`);
+  const { data, error } = await a
+    .from("pc_jobs")
+    .select("id, kind, payload")
+    .eq("status", "pending")
+    .or(conds.join(","))
     .order("created_at", { ascending: true })
-    .limit(limit);
+    .limit(limit * 4);
   if (error) throw new Error(error.message);
+  const cand = (data ?? []) as Array<{ id: string; kind: string; payload: Record<string, unknown> }>;
+  // Unpaired helpers may only fall back to same-network jobs while the owner's own helper is offline.
+  const online = new Set<string>();
+  if (!uid) {
+    const owners = [...new Set(cand.map((r) => String(r.payload?.["_uid"] ?? "")).filter(Boolean))];
+    if (owners.length) {
+      const { data: hb } = await a.from("app_settings").select("key, value").in("key", owners.map((u) => `pc.agent:u:${u}`));
+      for (const r of (hb ?? []) as Array<{ key: string; value: unknown }>) {
+        if (agentOnline(r.value as AgentInfo)) online.add(r.key.slice("pc.agent:u:".length));
+      }
+    }
+  }
+  const { canClaim } = await import("./port/pc_claim");
   // In GD chỉ giao cho máy thật sự có máy in đích (RICOH) — máy ở nhà cùng
   // token/cùng mạng nhưng không có RICOH sẽ không nhận lệnh in.
   const names = printers
     .map((p) => String((p as { name?: unknown })?.name ?? p ?? "").toUpperCase())
     .filter(Boolean);
-  const rows = ((data ?? []) as Array<{ id: string; kind: string; payload: Record<string, unknown> }>).filter((r) => {
+  const rows = cand.filter((r) => canClaim(r, { ip, uid, aid }, (u) => online.has(u))).filter((r) => {
     if (r.kind !== "gd_print") return true;
     const want = String(r.payload?.["printer"] || "RICOH").toUpperCase();
     return names.some((n) => n.includes(want) || (want.includes("RICOH") && n.includes("RICOH")));
-  });
-  if (rows.length) {
-    await a
-      .from("pc_jobs")
-      .update({ status: "running" })
-      .in("id", rows.map((r) => r.id))
-      .eq("status", "pending");
-  }
-  return rows;
+  }).slice(0, limit);
+  if (!rows.length) return [];
+  // Only hand back jobs this poll actually flipped to running, so two PCs never run the same job.
+  const { data: won, error: upErr } = await a
+    .from("pc_jobs")
+    .update({ status: "running" })
+    .in("id", rows.map((r) => r.id))
+    .eq("status", "pending")
+    .select("id");
+  if (upErr) throw new Error(upErr.message);
+  const ids = new Set(((won ?? []) as Array<{ id: string }>).map((r) => r.id));
+  return rows.filter((r) => ids.has(r.id));
 }
 
 export async function finishJob(id: string, ok: boolean, result: Record<string, unknown>): Promise<void> {

@@ -163,8 +163,9 @@ export async function handleToolApi(request: Request): Promise<Response> {
       const run = job && JOBS[job.k];
       if (!job || !run) return json({ error: "job không tồn tại" }, 404);
       const { runWithUserCreds, requestIp } = await import("./creds.server");
+      const { agentIdFromCookie } = await import("./port/pc_claim");
       const c = ctx;
-      return runWithUserCreds(c.userId, async () => stream(run, job.p, c), requestIp(c.request));
+      return runWithUserCreds(c.userId, async () => stream(run, job.p, c), requestIp(c.request), agentIdFromCookie(c.request.headers.get("cookie")));
     }
     const h = find(method, route);
     if (!h) {
@@ -175,8 +176,9 @@ export async function handleToolApi(request: Request): Promise<Response> {
       });
     }
     const { runWithUserCreds, requestIp } = await import("./creds.server");
+    const { agentIdFromCookie } = await import("./port/pc_claim");
     const c = ctx;
-    const out = await runWithUserCreds(c.userId, () => Promise.resolve(h(c)), requestIp(c.request));
+    const out = await runWithUserCreds(c.userId, () => Promise.resolve(h(c)), requestIp(c.request), agentIdFromCookie(c.request.headers.get("cookie")));
     if (out instanceof Response) return out;
     return json(out);
   } catch (e) {

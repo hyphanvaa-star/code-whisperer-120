@@ -38,13 +38,14 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
         const login = String(body["user"] || request.headers.get("x-pc-agent-user") || "");
         const paired = typeof body["pair"] === "string" ? await pc.verifyPairToken(body["pair"] as string) : "";
         const uid = paired || (login ? await pc.resolveAgentUser(login) : "");
+        const aid = /^[0-9a-f]{12,64}$/.test(String(body["aid"] ?? "")) ? String(body["aid"]) : "";
         await pc.recordHeartbeat({
           version: String(body["version"] || ""),
           printers: printers as never,
           paths_exist: pathsExist,
-        }, ip, uid, body["offline"] === true);
+        }, ip, uid, body["offline"] === true, aid);
         if (body["offline"] === true) return Response.json({ jobs: [], paired: !!uid, check_paths: [] });
-        const jobs = await pc.claimPending(10, ip, printers, uid);
+        const jobs = await pc.claimPending(10, ip, printers, uid, aid);
         // Paths the UI cares about, so the agent can report existence.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data } = await supabaseAdmin

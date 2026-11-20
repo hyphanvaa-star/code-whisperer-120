@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.11"
+VERSION = "6.12"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -75,6 +75,14 @@ _CFG = _load_config()
 BASE_URL = _CFG["url"]
 TOKEN = _CFG["token"]
 USER = _CFG["user"]
+def _machine_id() -> str:
+    """Mã máy cố định (tên máy + MAC) — web dùng để giao lệnh đúng máy đã bấm, không sang máy khác cùng mạng."""
+    import hashlib
+    import uuid
+    return hashlib.sha256(f"{socket.gethostname()}|{uuid.getnode():012x}".encode()).hexdigest()[:24]
+
+
+AGENT_ID = _machine_id()
 PAIR = [""]  # mã ghép do trình duyệt trên chính máy này gửi tới (tài khoản đang ngồi máy)
 LOCAL_PORT = 47321
 _ALLOWED_ORIGINS = ("https://soheedispatch.cloud", "http://localhost:8080")
@@ -124,13 +132,13 @@ def _local_server() -> None:
                     if tok.split(".")[1] != (PAIR[0].split(".")[1] if PAIR[0] else ""):
                         log("✓ đã nhận tài khoản đang ngồi máy từ trình duyệt")
                     PAIR[0] = tok
-                self.wfile.write(json.dumps({"ok": True, "version": VERSION}).encode())
+                self.wfile.write(json.dumps({"ok": True, "version": VERSION, "aid": AGENT_ID}).encode())
             elif self.path == "/stop":
                 self.wfile.write(b'{"ok": true}')
                 self.wfile.flush()
                 log("Trợ lý tắt theo lệnh từ web.")
                 try:
-                    post(POLL_URL, {"version": VERSION, "offline": True, "pair": PAIR[0], "user": USER})
+                    post(POLL_URL, {"version": VERSION, "offline": True, "pair": PAIR[0], "user": USER, "aid": AGENT_ID})
                 except Exception:
                     pass
                 os._exit(0)
@@ -1777,6 +1785,7 @@ def main() -> int:
                 "paths_exist": paths_exist,
                 "user": USER,
                 "pair": PAIR[0],
+                "aid": AGENT_ID,
             })
             if USER and not PAIR[0] and d.get("paired") is False and not warned:
                 warned = True
