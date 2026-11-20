@@ -28,7 +28,11 @@ export function nmPinBarPlan(current, pinned){
     current: cur,
     pinnedHere: here,
     label: cur ? (here ? "Đã ghim " + cur + " ✓" : "+ Ghim " + cur) : "Add chuyến",
-    input: cur,
+    /* One tap pins the tracked flight directly; the white box is only for
+       other flights, so it never comes prefilled. */
+    oneTap: !!cur && !here,
+    input: "",
+    placeholder: cur ? "Gõ số hiệu chuyến khác, ví dụ: 918, 869..." : "918 869 VJC210 …",
     pinned: list
   };
 }

@@ -7,7 +7,8 @@ describe("NOTAM pin bar targets the tracked flight", () => {
   it("does not show or prefill an older pinned flight (VJC5880) while tracking VJC5230", () => {
     const p = nmPinBarPlan("VJC5230", ["VJC5880"]);
     expect(p.label).toBe("+ Ghim VJC5230");
-    expect(p.input).toBe("VJC5230");
+    expect(p.input).toBe("");
+    expect(p.oneTap).toBe(true);
     expect(p.pinnedHere).toBe(false);
     expect(p.pinned).toEqual(["VJC5880"]);
   });
@@ -16,12 +17,20 @@ describe("NOTAM pin bar targets the tracked flight", () => {
     const p = nmPinBarPlan("5230", ["VJC5880", "VJC5230"]);
     expect(p.label).toBe("Đã ghim VJC5230 ✓");
     expect(p.pinnedHere).toBe(true);
+    expect(p.oneTap).toBe(false);
   });
 
   it("falls back to a blank Add chuyến without a tracked flight", () => {
     const p = nmPinBarPlan("", ["VJC5880"]);
     expect(p.label).toBe("Add chuyến");
     expect(p.input).toBe("");
+  });
+
+  it("never prefills the white box with the tracked flight (VJC978)", () => {
+    const p = nmPinBarPlan("VJC978", []);
+    expect(p.input).toBe("");
+    expect(p.oneTap).toBe(true);
+    expect(p.label).toBe("+ Ghim VJC978");
   });
 
   it("normalises callsigns like the server", () => {

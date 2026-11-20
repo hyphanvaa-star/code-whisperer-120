@@ -3151,7 +3151,34 @@ function nmPaintPinBar(n, place){`)
     : "Add chuyến";`, `  const plan = nmPinBarPlan(nmTrackPinFlight(), st.flights);
   btnFlt.className = "nm-pin-btn" + (plan.pinnedHere ? " on" : "");
   btnFlt.textContent = plan.label;`)
-    .replace('  if(st.flights.length) inp.value = st.flights.join(" ");', '  inp.value = plan.input;')
+    .replace('  if(st.flights.length) inp.value = st.flights.join(" ");', '  inp.value = plan.input;\n  inp.placeholder = plan.placeholder;')
+    // V 7.10: "+ Ghim <chuyến>" ghim 1 chạm; ô trắng để trống, chỉ dùng cho chuyến khác (mở bằng nút "Chuyến khác…").
+    .replace(`  btnFlt.onclick = ev => {
+    ev.stopPropagation();
+    box.hidden = !box.hidden;
+    if(!box.hidden) inp.focus();
+  };`, `  const btnOther = document.createElement("button");
+  btnOther.type = "button";
+  btnOther.className = "nm-pin-btn cloud nm-pin-other";
+  btnOther.hidden = !nmTrackPinFlight();
+  btnOther.textContent = "Chuyến khác…";
+  btnOther.title = "Ghim NOTAM này vào chuyến khác ngoài chuyến đang tracking.";
+  bar.insertBefore(btnOther, btnCloud);
+  const toggleBox = () => {
+    box.hidden = !box.hidden;
+    if(!box.hidden) inp.focus();
+  };
+  btnOther.onclick = ev => { ev.stopPropagation(); toggleBox(); };
+  btnFlt.onclick = ev => {
+    ev.stopPropagation();
+    const now = nmPinBarPlan(nmTrackPinFlight(), nmPinState(n, place).flights);
+    if(now.oneTap){
+      btnFlt.disabled = true;
+      Promise.resolve(nmPinFlights(n, place, now.current, msg, btnFlt, null)).finally(() => { btnFlt.disabled = false; });
+      return;
+    }
+    toggleBox();
+  };`)
     .replace('  bar.appendChild(box);', `  bar.appendChild(box);
   const tags = document.createElement("div");
   tags.className = "nm-pin-tags";
@@ -3160,7 +3187,9 @@ function nmPaintPinBar(n, place){`)
     const now = nmPinBarPlan(nmTrackPinFlight(), nmPinState(n, place).flights);
     btnFlt.textContent = now.label;
     btnFlt.classList.toggle("on", now.pinnedHere);
-    if(now.current && !inp.value.trim()) inp.value = now.current;
+    inp.placeholder = now.placeholder;
+    const other = bar.querySelector(".nm-pin-other");
+    if(other) other.hidden = !now.current;
     tags.innerHTML = "";
     tags.hidden = !now.pinned.length;
     if(!now.pinned.length) return;
@@ -3190,7 +3219,7 @@ function nmPaintPinBar(n, place){`)
   btnFlt.__pinPaint = paintTags;
   paintTags();`)
     .replace('    if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }', '    if(btn && btn.__pinPaint) btn.__pinPaint();\n    else if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.09')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.10')
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.
