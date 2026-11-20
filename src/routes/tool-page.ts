@@ -13,6 +13,7 @@ import aftnAddresses from '@/tool/aftn-addresses.txt?raw';
 import aftnBookScript from '@/tool/aftn-book.js?raw';
 import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
+import notamPinBarScript from '@/lib/notam-pin-bar.js?raw';
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
@@ -3107,7 +3108,73 @@ function nmRouteLayers(ids){
     .replaceAll('A product by Rosie', 'Dispatch Board')
     .replace('Roise x HN', 'Hy x HN')
     .replace('["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"]\n];', '["prefix_or_touches","Prefix quốc gia / sân bay"], ["touches_or_alt","Đi/đến/alternate"],\n  ["prefix_touches_alt","Vùng/quốc gia (đi/đến/dự bị, !XX loại trừ)"]\n];')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.03')
+    // V 7.04: nút ghim NOTAM luôn nhắm chuyến đang tracking; chuyến đã ghim trước hiện thành nhãn riêng có nút gỡ.
+    .replace('#wrapNotam .nm-pin-msg.bad{color:#b71c1c}', '#wrapNotam .nm-pin-msg.bad{color:#b71c1c}\n#wrapNotam .nm-pin-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;font-size:11px}\n#wrapNotam .nm-pin-tags[hidden]{display:none}\n#wrapNotam .nm-pin-tags .lab{font-weight:800;color:#6b6f7b}\n#wrapNotam .nm-pin-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 4px 2px 9px;border-radius:999px;border:1px solid #e6b3c8;background:#fff5f9;color:#9c1a5c;font-weight:800}\n#wrapNotam .nm-pin-chip.cur{background:#16a34a;border-color:#16a34a;color:#fff}\n#wrapNotam .nm-pin-chip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:11px;line-height:1;padding:2px 4px;border-radius:999px}\n#wrapNotam .nm-pin-chip button:hover{background:rgba(0,0,0,.12)}\nhtml.night #wrapNotam .nm-pin-chip{background:#2a1818;color:#ff8ab8;border-color:#c62a72}\nhtml.night #wrapNotam .nm-pin-chip.cur{background:#16a34a;border-color:#16a34a;color:#fff}')
+    .replace('function nmPaintPinBar(n, place){', notamPinBarScript.replaceAll('export function', 'function') + `
+async function nmPinDropFlight(n, place, cs, msg){
+  const p = nmPinPayload(n, place);
+  try{
+    const r = await fetch("/api/notam/pins/remove", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({scope: "flight", flight: cs, ident: p.ident, code: p.code, kind: p.kind})
+    });
+    const d = await r.json();
+    if(d.error){ if(msg){ msg.textContent = d.error; msg.classList.add("bad"); } return false; }
+    await nmLoadPins();
+    if(msg){ msg.textContent = "Đã gỡ NOTAM khỏi " + cs + "."; msg.classList.remove("bad"); }
+    return true;
+  }catch(err){
+    if(msg){ msg.textContent = "Không gỡ được: " + err.message; msg.classList.add("bad"); }
+    return false;
+  }
+}
+function nmPaintPinBar(n, place){`)
+    .replace(`  btnFlt.textContent = st.flights.length
+    ? ("Add chuyến · " + st.flights.join(" "))
+    : "Add chuyến";`, `  const plan = nmPinBarPlan(nmTrackPinFlight(), st.flights);
+  btnFlt.className = "nm-pin-btn" + (plan.pinnedHere ? " on" : "");
+  btnFlt.textContent = plan.label;`)
+    .replace('  if(st.flights.length) inp.value = st.flights.join(" ");', '  inp.value = plan.input;')
+    .replace('  bar.appendChild(box);', `  bar.appendChild(box);
+  const tags = document.createElement("div");
+  tags.className = "nm-pin-tags";
+  bar.appendChild(tags);
+  const paintTags = () => {
+    const now = nmPinBarPlan(nmTrackPinFlight(), nmPinState(n, place).flights);
+    btnFlt.textContent = now.label;
+    btnFlt.classList.toggle("on", now.pinnedHere);
+    if(now.current && !inp.value.trim()) inp.value = now.current;
+    tags.innerHTML = "";
+    tags.hidden = !now.pinned.length;
+    if(!now.pinned.length) return;
+    const lab = document.createElement("span");
+    lab.className = "lab";
+    lab.textContent = "Đã ghim:";
+    tags.appendChild(lab);
+    for(const cs of now.pinned){
+      const chip = document.createElement("span");
+      chip.className = "nm-pin-chip" + (cs === now.current ? " cur" : "");
+      chip.textContent = cs;
+      const x = document.createElement("button");
+      x.type = "button";
+      x.textContent = "✕";
+      x.title = "Gỡ NOTAM này khỏi " + cs;
+      x.setAttribute("aria-label", x.title);
+      x.onclick = async ev => {
+        ev.stopPropagation();
+        x.disabled = true;
+        if(await nmPinDropFlight(n, place, cs, msg)) paintTags();
+        else x.disabled = false;
+      };
+      chip.appendChild(x);
+      tags.appendChild(chip);
+    }
+  };
+  btnFlt.__pinPaint = paintTags;
+  paintTags();`)
+    .replace('    if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }', '    if(btn && btn.__pinPaint) btn.__pinPaint();\n    else if(btn){ btn.textContent = "Add chuyến · " + labs; btn.classList.add("on"); }')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.04')
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).
     // V 7.01: khung hover FILE CHECK rộng đủ nội dung, không còn bị cột bên phải che.
