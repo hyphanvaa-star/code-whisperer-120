@@ -311,3 +311,5 @@
 - [x] V 7.19 / Trợ lý PC 6.13: không tự tắt giữa ca để cập nhật; nhãn cam ⚠ khi bản cũ/cập nhật lỗi, bấm cập nhật ngay; nhịp tim riêng giữ chấm xanh khi chạy lệnh dài. Chưa publish.
 
 - [x] V 7.20 / Trợ lý PC 6.14: Outlook Web chạy Chrome ẩn; chỉ hiện cửa sổ khi Microsoft đòi đăng nhập/MFA, xong tự đóng. Chưa publish.
+
+- [x] V 7.21 / Trợ lý PC 6.15: màn Pick an account tự chọn đúng tài khoản hoặc bấm Use another account. Chưa publish.

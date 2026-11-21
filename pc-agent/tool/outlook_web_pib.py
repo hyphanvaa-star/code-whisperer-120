@@ -603,6 +603,48 @@ def _set_input(driver, el, value: str) -> None:
     time.sleep(0.1)
 
 
+_PICKER_JS = r"""
+const sel = '[data-test-id],[data-testid],.table,.tile-container,#otherTile,#otherTileText,'
+  + 'div[role="button"],div[role="listitem"],div[role="option"],button,[role="link"],a';
+const out = [];
+for (const el of document.querySelectorAll(sel)) {
+  const r = el.getBoundingClientRect();
+  if (r.width < 1 || r.height < 1) continue;
+  const t = (el.innerText || '').trim();
+  if (!t || t.length > 200) continue;
+  out.push(el);
+  if (out.length >= 60) break;
+}
+return out;
+"""
+_OTHER_ACCOUNT = (
+    "use another account", "sign in with another account", "another account",
+    "sử dụng tài khoản khác", "dùng tài khoản khác", "tài khoản khác",
+)
+_PICKER_MARKERS = ("pick an account", "chọn tài khoản", "choose an account")
+
+
+def _pick_account_choice(texts: list[str], username: str, page_text: str = ""):
+    """Chọn ô trên màn Pick an account.
+
+    Trả ("match", i) khi có ô chứa đúng email đã lưu (ô ngắn nhất = đúng tile,
+    không phải khung bao), ("other", i) cho "Use another account" khi trang là
+    picker mà không có email đó, hoặc None khi không phải picker.
+    """
+    want = (username or "").strip().lower()
+    # Chỉ trên màn picker — trang mật khẩu cũng hiện email nhưng không được bấm.
+    if not want or not any(m in (page_text or "").lower() for m in _PICKER_MARKERS):
+        return None
+    low = [(t or "").strip().lower() for t in texts]
+    hits = [i for i, t in enumerate(low) if want in t]
+    if hits:
+        return ("match", min(hits, key=lambda i: len(low[i])))
+    others = [i for i, t in enumerate(low) if any(m in t for m in _OTHER_ACCOUNT)]
+    if not others:
+        return None
+    return ("other", min(others, key=lambda i: len(low[i])))
+
+
 def _try_auto_login(
     driver,
     username: str,
@@ -619,8 +661,11 @@ def _try_auto_login(
     except Exception:
         pass
 
-    # Chọn tài khoản đã lưu trên picker
-    if username and not done.get("pick") and any(
+    # Màn "Pick an account": bấm đúng tài khoản đã lưu; nếu picker chỉ có tài
+    # khoản người khác (máy dùng chung) thì bấm "Use another account".
+    if username and int(done.get("pick_tries") or 0) < 4 and time.monotonic() - float(
+        done.get("pick_at") or 0
+    ) > 4.0 and any(
         host in url
         for host in (
             "login.microsoftonline.com",
@@ -630,19 +675,27 @@ def _try_auto_login(
         )
     ):
         try:
-            for el in driver.find_elements(
-                By.CSS_SELECTOR,
-                "[data-test-id], .tile-container, div[role='listitem'], .table",
-            ):
-                txt = (el.text or "").lower()
-                if username.lower() in txt and _visible(el):
-                    if _robust_click(driver, el):
-                        done["pick"] = True
-                        say("Đã chọn tài khoản Outlook…")
-                        time.sleep(0.15)
-                        return
-        except Exception:
-            pass
+            els = driver.execute_script(_PICKER_JS) or []
+            texts = []
+            for el in els:
+                try:
+                    texts.append(el.text or "")
+                except Exception:
+                    texts.append("")
+            choice = _pick_account_choice(texts, username, _login_body_text(driver))
+            if choice is not None:
+                kind, idx = choice
+                if _robust_click(driver, els[idx]):
+                    done["pick_at"] = time.monotonic()
+                    done["pick_tries"] = int(done.get("pick_tries") or 0) + 1
+                    say(
+                        "Đã chọn tài khoản Outlook…" if kind == "match"
+                        else f"Chọn tài khoản khác → {username}…"
+                    )
+                    time.sleep(0.3)
+                    return
+        except Exception as exc:
+            log.debug("auto pick: %s", exc)
 
     # Email
     if username and not done.get("email"):
@@ -751,7 +804,7 @@ def _try_auto_login(
 _HEADLESS_LOGIN_GRACE_S = 15.0
 _MFA_MARKERS = (
     "authenticator", "approve sign in", "approve the request", "verify your identity",
-    "enter code", "pick an account", "chọn tài khoản", "xác minh", "phê duyệt",
+    "enter code", "xác minh", "phê duyệt",
     "more information required", "cần thêm thông tin",
 )
 
