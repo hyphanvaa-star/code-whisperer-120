@@ -309,3 +309,5 @@
 - [x] V 6.88: NOTAM đóng đoạn airway có đầu mút là toạ độ (W195: N401609E1024104 - MORIT) tô đỏ cả toạ độ và ghi điểm tương ứng trên route (~BUVEM)
 - V 6.89: NOTAM trễ ≤ buffer 60′ tính CRITICAL (nháy đỏ, vào ATS Route); ô cài đặt "Buffer trễ tính CRITICAL"; ATS Route nhận đoạn có đầu là toạ độ (A6035/26 W195). Chờ JACK thử trên chuyến thật.
 - [x] V 7.19 / Trợ lý PC 6.13: không tự tắt giữa ca để cập nhật; nhãn cam ⚠ khi bản cũ/cập nhật lỗi, bấm cập nhật ngay; nhịp tim riêng giữ chấm xanh khi chạy lệnh dài. Chưa publish.
+
+- [x] V 7.20 / Trợ lý PC 6.14: Outlook Web chạy Chrome ẩn; chỉ hiện cửa sổ khi Microsoft đòi đăng nhập/MFA, xong tự đóng. Chưa publish.

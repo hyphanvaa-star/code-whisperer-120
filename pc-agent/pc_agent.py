@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.13"
+VERSION = "6.14"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -527,6 +527,7 @@ def _owa_silent_refresh(say, timeout_s: float = 90.0) -> str:
             try:
                 tok = ow.ensure_session(
                     timeout_s=timeout_s, on_status=lambda m: None, creds=_OWA_CREDS,
+                    show_on_login=False,
                 )
             finally:
                 ow._make_driver = orig
@@ -974,8 +975,8 @@ def do_owa_login(payload: dict, say) -> dict:
         global _OWA_CREDS
         _OWA_CREDS = creds
 
-    say("▶ Mở Chrome Outlook Web — auto-login nếu đã lưu owa_username/owa_password "
-        "(MFA thì xác nhận tay).")
+    say("▶ Mở Chrome ẩn Outlook Web — tự đăng nhập; nếu Microsoft đòi đăng nhập/MFA "
+        "sẽ hiện cửa sổ Chrome để xác nhận, xong tự đóng.")
     try:
         outlook_web_pib.ensure_session(
             timeout_s=420.0, on_status=lambda m: say(m), cancel=cancel,

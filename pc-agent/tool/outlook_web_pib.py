@@ -746,6 +746,39 @@ def _try_auto_login(
             pass
 
 
+# Chrome luôn chạy ẨN trước; chỉ khi Microsoft giữ ở trang đăng nhập (profile
+# mới, phiên hết hạn, MFA/chọn tài khoản) mới mở cửa sổ thật để người dùng thấy.
+_HEADLESS_LOGIN_GRACE_S = 15.0
+_MFA_MARKERS = (
+    "authenticator", "approve sign in", "approve the request", "verify your identity",
+    "enter code", "pick an account", "chọn tài khoản", "xác minh", "phê duyệt",
+    "more information required", "cần thêm thông tin",
+)
+
+
+def _login_body_text(driver) -> str:
+    """Chỉ chữ hiển thị (không lấy HTML — script Microsoft chứa sẵn chữ MFA)."""
+    try:
+        return str(driver.execute_script(
+            "return ((document.body && document.body.innerText) || '').slice(0, 8000);"
+        ) or "").lower()
+    except Exception:
+        return ""
+
+
+def _should_show_login(
+    *, headless: bool, show_on_login: bool, login_since: float | None,
+    now: float, page_text: str = "",
+) -> bool:
+    """True khi phải chuyển Chrome ẩn sang cửa sổ hiển thị để đăng nhập."""
+    if not headless or not show_on_login or login_since is None:
+        return False
+    text = (page_text or "").lower()
+    if any(m in text for m in _MFA_MARKERS):
+        return True
+    return now - login_since >= _HEADLESS_LOGIN_GRACE_S
+
+
 def ensure_session(
     *,
     timeout_s: float = 300.0,
@@ -754,21 +787,26 @@ def ensure_session(
     creds: tuple[str, str] | None = None,
     profile_dir: Path | None = None,
     token_cache: Path | None = None,
+    show_on_login: bool = True,
 ) -> str:
     """Mở OWA bằng profile bền, lấy token mới rồi xác nhận được mailbox.
 
-    Profile còn đăng nhập sẽ tự đi thẳng vào mail. Nếu Microsoft yêu cầu MFA thì
-    Chrome vẫn hiện và hàm chờ người dùng xác nhận trong ``timeout_s``.
+    Luôn mở Chrome ẩn trước: profile còn đăng nhập sẽ đi thẳng vào mail rồi tự
+    đóng. Nếu Microsoft giữ ở trang đăng nhập/MFA và ``show_on_login`` bật thì
+    đóng Chrome ẩn, mở cửa sổ Chrome thật để người dùng xác nhận; lấy xong token
+    cửa sổ tự đóng. ``show_on_login=False`` (gia hạn ngầm) không bao giờ hiện.
     """
     say = on_status or (lambda m: None)
     with _SESSION_LOCK:
         if cancel is not None and cancel.is_set():
             raise OwaCancelled("Đã huỷ làm mới phiên Outlook Web.")
         user, password = creds if creds is not None else config.get_owa_credentials()
+        headless = True
         driver = _make_driver(headless=True, profile_dir=profile_dir)
         if cancel is not None and hasattr(cancel, "add_abort"):
             cancel.add_abort(driver.quit)
         done: dict[str, Any] = {}
+        login_since: float | None = None
         try:
             say("Đang mở Outlook Web để làm mới phiên…")
             if user:
@@ -796,13 +834,40 @@ def ensure_session(
                     )
                 )
                 if login_page:
+                    if login_since is None:
+                        login_since = time.time()
+                    if _should_show_login(
+                        headless=headless, show_on_login=show_on_login,
+                        login_since=login_since, now=time.time(),
+                        page_text=(
+                            _login_body_text(driver)
+                            if headless and show_on_login else ""
+                        ),
+                    ):
+                        say("Cần đăng nhập / xác nhận — đang mở cửa sổ Chrome…")
+                        try:
+                            driver.quit()
+                        except Exception:
+                            pass
+                        headless = False
+                        driver = _make_driver(headless=False, profile_dir=profile_dir)
+                        if cancel is not None and hasattr(cancel, "add_abort"):
+                            cancel.add_abort(driver.quit)
+                        done = {}
+                        driver.get(OWA_URL)
+                        # Chừa đủ thời gian để người dùng xác nhận MFA.
+                        deadline = max(deadline, time.time() + 300.0)
+                        last_auto = 0.0
+                        last_hint = time.time()
+                        continue
                     if time.time() - last_auto > 0.25:
                         _try_auto_login(driver, user, password, done, say)
                         last_auto = time.time()
-                    if time.time() - last_hint > 15:
+                    if not headless and time.time() - last_hint > 15:
                         say("Cần xác nhận MFA/đăng nhập trên cửa sổ Chrome…")
                         last_hint = time.time()
                 else:
+                    login_since = None
                     # Trang OWA bình thường không cần dò/click login. Chỉ xử lý
                     # khi nội dung thật sự có prompt xác nhận (KMSI/trust); tránh
                     # gọi find_elements vô ích và giúp driver mock tối giản.
