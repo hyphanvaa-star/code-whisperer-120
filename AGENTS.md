@@ -52,7 +52,7 @@
 - Account edits use profiles/claims, not sessionless getUser; avatars: owner-only writes, signed URLs. Mount account menu on body to avoid header clipping.
 - Ver tab crew changes diff the two newest non-VER crewlists (`port/crewlist_diff.ts`); FPL VER files have no crew column.
 - KHB REG/CPT/FO change cells only paint markers/tips in `ftMarkChg`; the legacy `ftBoltClick` write path stays in page.html unattached so existing patches/tests keep applying.
-- Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others.
+- Team config tables (notice rules, KHB CI/taxi/route/alt/era/PCR) are two-tier via `LAYERED_KEYS` in `src/lib/tool/store.server.ts`: admin writes the team key, others write `<key>@u:<uid>` — so one dispatcher edit never changes others. `PERSONAL_KEYS` (ALT route) are per-user for admins too; the team key is only the untouched starting default, so a role change never swaps someone's table.
 - Storm warning identities and modern JMA forecast parsing live in browser-safe `port/storms.ts`; retain JTWC RSS names when overlays fail and distinguish unavailable data from confirmed empty feeds. Toolbar changes load through the tool-page shim to preserve the original HTML.
 - Named ENR resolves FIR-scoped AIP IDs before SUP; unknowns stay manual. Database uses this catalogue. All-area Layer changes plotting only. NOTAM counters share pure `notam_counts` over assessed and dropped rows.
 - NOTAM tune round-trips track airway/FIR through the HTML shim and `tuneTrackPoints`; keep leg identity for route-name hits and assessment without bypassing time/altitude gates.
