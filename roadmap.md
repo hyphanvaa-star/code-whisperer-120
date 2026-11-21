@@ -313,3 +313,4 @@
 - [x] V 7.20 / Trợ lý PC 6.14: Outlook Web chạy Chrome ẩn; chỉ hiện cửa sổ khi Microsoft đòi đăng nhập/MFA, xong tự đóng. Chưa publish.
 
 - [x] V 7.21 / Trợ lý PC 6.15: màn Pick an account tự chọn đúng tài khoản hoặc bấm Use another account. Chưa publish.
+- [x] V 7.22: Trợ lý PC chỉ còn 1 file Bat-Tro-Ly (web tải thẳng), bỏ bộ cài zip và các file phụ; chấm AGENT hỏi 4s khi chưa kết nối.

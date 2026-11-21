@@ -270,7 +270,7 @@ const SHIM = `<script>
         var llab=board.querySelector('.hdr-switch-lab.l'); if(llab)llab.style.display='none';
         var sui=board.querySelector('.hdr-switch-ui'); if(sui)sui.style.display='none';
         var hsw=document.getElementById('hdrSwitch'); if(hsw)hsw.style.display='none';
-        board.title='Trợ lý 6.9 — tải về, giải nén, bấm cai-tro-ly một lần; sau đó tự chạy khi mở máy';
+        board.title='Trợ lý PC — bấm để tải Bat-Tro-Ly (1 file duy nhất), bấm đúp là chạy ngầm';
         board.style.position='relative';
         var dot=document.createElement('span'); dot.className='agent-dot';
         dot.style.cssText='position:absolute;top:4px;right:5px;width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none';
@@ -296,10 +296,11 @@ const SHIM = `<script>
             dot.style.background=col;
             dot.style.boxShadow=on?'0 0 0 1px rgba(0,0,0,.15),0 0 6px '+col:'0 0 0 1px rgba(0,0,0,.15)';
             agentTag.style.display=warn?'':'none'; agentTag.textContent=bd.label;
-            board.title=warn?bd.title:on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly (trên màn hình/ổ Z) để bật. Chưa có thì bấm đây tải bộ cài, giải nén, chạy cai-tro-ly một lần cuối; từ đó trợ lý tự cập nhật.';
+            board.title=warn?bd.title:on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly (trên màn hình/ổ Z) để bật. Chưa có thì bấm đây tải đúng 1 file Bat-Tro-Ly; bấm đúp là tự cài, tự chạy ngầm và tự cập nhật.';
           }).catch(function(){});
         };
-        agentPoll(); setInterval(agentPoll,20000);
+        /* Chưa kết nối thì hỏi nhanh (4s) để vừa bật Bat-Tro-Ly là chấm xanh ngay; đã xanh thì 20s. */
+        var agentTick=function(){ agentPoll(); setTimeout(agentTick, agentOn?20000:4000); }; agentTick();
         /* Bộ cài luôn ghi đúng bản mới nhất theo manifest, không ghi cứng số bản. */
         var agentZipVer=function(){ fetch('/agent/manifest.json',{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(m){ if(m && m.version){ var was=window.__agentZipVer; window.__agentZipVer=m.version; if(was!==m.version) agentPoll(); } }).catch(function(){}); };
         agentZipVer(); setInterval(agentZipVer,600000);
@@ -317,13 +318,13 @@ const SHIM = `<script>
             }
           }
           if(agentOn){
-            if(confirm('Tắt trợ lý PC trên máy này?\\n(Bấm Cancel để tải bộ cài mới)')){
+            if(confirm('Tắt trợ lý PC trên máy này?\\n(Bấm Cancel để tải lại file Bat-Tro-Ly)')){
               fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
               return;
             }
           }
-          var zv=String(window.__agentZipVer||'latest');
-          var a=document.createElement('a'); a.href='/agent/tro-ly-pc.zip?v='+encodeURIComponent(zv)+'&t='+Date.now(); a.download='tro-ly-pc-'+zv+'.zip';
+          /* Chỉ 1 file: Bat-Tro-Ly tự tải mã nguồn về thư mục ẩn, tự chạy ngầm, tự cập nhật. */
+          var a=document.createElement('a'); a.href='/agent/Bat-Tro-Ly.vbs?t='+Date.now(); a.download='Bat-Tro-Ly.vbs';
           document.body.appendChild(a); a.click(); a.remove();
         },true);
       }
@@ -3298,7 +3299,7 @@ function nmPaintPinBar(n, place){`)
   }
   setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.21')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.22')
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).

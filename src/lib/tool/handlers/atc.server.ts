@@ -161,7 +161,7 @@ export const routes: Routes = {
     if (!path.startsWith(ATC_DIR + "/")) return { error: "Chưa chọn file ATC." };
     const agent = await pc.agentInfo(ctx);
     if (!pc.agentOnline(agent)) {
-      return { error: "Trợ lý PC chưa kết nối — mở cai-tro-ly.bat trên máy công ty rồi bấm Gửi FPL lại." };
+      return { error: "Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly trên máy công ty rồi bấm Gửi FPL lại." };
     }
     return {
       id: jobId("atc_submit", {
