@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.12"
+VERSION = "6.13"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -142,6 +142,12 @@ def _local_server() -> None:
                 except Exception:
                     pass
                 os._exit(0)
+            elif self.path == "/update":
+                ok, why = _start_update_now()
+                self.wfile.write(json.dumps({"ok": ok, "reason": why, "version": VERSION}).encode())
+                self.wfile.flush()
+                if ok:
+                    os._exit(0)
             else:
                 self.wfile.write(b'{"ok": false}')
 
@@ -1719,31 +1725,103 @@ def _report_ok(jid: str, result: dict) -> None:
 
 
 _UPDATE_CHECK = [0.0]
+_UPD_REMOTE = [""]
+_LAST_BEAT = [0.0]
+_BEAT_CACHE: dict = {"printers": [], "paths_exist": {}}
+
+
+def _base_dir() -> Path:
+    return Path(__file__).resolve().parent.parent
+
+
+def _read_update_status() -> dict:
+    """Kết quả lần tự cập nhật gần nhất (bootstrap.py ghi update_status.json)."""
+    try:
+        d = json.loads((_base_dir() / "update_status.json").read_text(encoding="utf-8"))
+        return d if isinstance(d, dict) else {}
+    except Exception:
+        return {}
+
+
+def _update_fields() -> dict:
+    """Gửi kèm nhịp tim: web hiện nhãn cam khi bản trên máy cũ hơn / cập nhật lỗi."""
+    st = _read_update_status()
+    out = {"latest": _UPD_REMOTE[0]}
+    if st.get("ok") is False and _version_newer(str(st.get("want") or ""), VERSION):
+        out["update_error"] = str(st.get("error") or "không rõ lỗi")[:300]
+        out["update_want"] = str(st.get("want") or "")
+    return out
 
 
 def _maybe_self_update() -> None:
-    """Giữa hai lượt lệnh (không có lệnh nào đang chạy): có bản mới trên web thì
-    giao cho bootstrap.py cạnh thư mục app tải + thay, rồi thoát để nó chạy lại."""
+    """Chỉ GHI NHẬN có bản mới (mỗi 10 phút) — không bao giờ tự tắt giữa ca.
+    Bản mới được cài lúc bật trợ lý đầu ca (bootstrap.py), hoặc khi người dùng
+    bấm "Cập nhật ngay" trên web (cổng nội bộ /update)."""
     if time.time() - _UPDATE_CHECK[0] < 600:
         return
     _UPDATE_CHECK[0] = time.time()
-    boot = Path(__file__).resolve().parent.parent / "bootstrap.py"
-    if not boot.exists():
-        return  # bản cài kiểu cũ (giải nén ZIP) — không tự cập nhật
     try:
         import urllib.request
         with urllib.request.urlopen(f"{BASE_URL}/agent/manifest.json?t={int(time.time())}", timeout=15) as r:
             remote = str(json.loads(r.read()).get("version") or "")
     except Exception:
         return
-    if not _version_newer(remote, VERSION):
-        return
-    log(f"⟳ Có bản mới {remote} — trợ lý tự cập nhật và khởi động lại")
+    if remote and remote != _UPD_REMOTE[0] and _version_newer(remote, VERSION):
+        log(f"ⓘ Có bản mới {remote} — sẽ cài khi bật lại trợ lý (đầu ca) hoặc bấm Cập nhật trên web")
+    _UPD_REMOTE[0] = remote
+
+
+def _start_update_now() -> tuple[bool, str]:
+    """Người dùng bấm cập nhật: chỉ khi không có lệnh nào đang chạy."""
+    if _CURRENT_JOB[0]:
+        return False, "busy"
+    boot = _base_dir() / "bootstrap.py"
+    if not boot.exists():
+        return False, "no_bootstrap"
     import subprocess
     subprocess.Popen([sys.executable, str(boot), "--after", str(os.getpid())],
                      cwd=str(boot.parent), close_fds=True,
                      creationflags=0x00000008 | 0x08000000 if os.name == "nt" else 0)
-    os._exit(0)
+    log("⟳ Cập nhật theo yêu cầu từ web — trợ lý khởi động lại")
+    return True, ""
+
+
+def _beat_body() -> dict:
+    return {"version": VERSION, "printers": _BEAT_CACHE["printers"], "paths_exist": _BEAT_CACHE["paths_exist"],
+            "user": USER, "pair": PAIR[0], "aid": AGENT_ID, **_update_fields()}
+
+
+def _heartbeat_keeper() -> None:
+    """Luồng nhịp tim riêng: lệnh dài (Chrome Outlook, tải file nặng) không làm chấm AGENT xám."""
+    while True:
+        time.sleep(15)
+        if time.time() - _LAST_BEAT[0] < 30:
+            continue
+        try:
+            # Kết nối riêng, không đụng phiên keep-alive của vòng lệnh chính.
+            r = requests.post(BASE_URL + POLL_URL, json={**_beat_body(), "heartbeat_only": True}, timeout=20,
+                              headers={"User-Agent": _UA, "x-pc-agent-token": TOKEN})
+            if r.ok:
+                _LAST_BEAT[0] = time.time()
+        except Exception:
+            pass
+
+
+def _warn_update_failed() -> None:
+    """Đầu ca cập nhật lỗi: báo một hộp thông báo (không chặn trợ lý), vẫn chạy bản cũ."""
+    f = _update_fields()
+    if not f.get("update_error") or os.name != "nt":
+        return
+    msg = (f"Trợ lý Sohee chưa cập nhật được lên bản {f['update_want']}.\n"
+           f"Lý do: {f['update_error']}\n\nĐang tiếp tục chạy bản {VERSION} bình thường.")
+    log("⚠ " + msg.replace("\n", " "))
+    def show():
+        try:
+            import ctypes
+            ctypes.windll.user32.MessageBoxW(None, msg, "Trợ lý Sohee", 0x30 | 0x40000)
+        except Exception:
+            pass
+    threading.Thread(target=show, name="update-warn", daemon=True).start()
 
 
 def _version_newer(remote: str, local: str) -> bool:
@@ -1770,6 +1848,8 @@ def main() -> int:
     check_paths: list[str] = []
     threading.Thread(target=_cancel_watcher, daemon=True).start()
     threading.Thread(target=_owa_keeper, name="owa-keeper", daemon=True).start()
+    threading.Thread(target=_heartbeat_keeper, name="heartbeat", daemon=True).start()
+    _warn_update_failed()
     while True:
         try:
             _maybe_self_update()
@@ -1779,14 +1859,18 @@ def main() -> int:
                     paths_exist[p] = _fix_drive(p).is_dir()
                 except OSError:
                     paths_exist[p] = False
+            _BEAT_CACHE["printers"] = list_printers()
+            _BEAT_CACHE["paths_exist"] = paths_exist
             d = post(POLL_URL, {
                 "version": VERSION,
-                "printers": list_printers(),
+                "printers": _BEAT_CACHE["printers"],
                 "paths_exist": paths_exist,
                 "user": USER,
                 "pair": PAIR[0],
                 "aid": AGENT_ID,
+                **_update_fields(),
             })
+            _LAST_BEAT[0] = time.time()
             if USER and not PAIR[0] and d.get("paired") is False and not warned:
                 warned = True
                 log(f"⚠ Không tìm thấy tài khoản '{USER}' — xoá dòng \"user\" trong pc_agent_config.json rồi mở lại trợ lý để nhập lại.")

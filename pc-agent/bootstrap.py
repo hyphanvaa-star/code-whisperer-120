@@ -113,6 +113,19 @@ def install_update(base: Path, data: bytes, manifest: dict, python: str) -> None
     (base / "version.txt").write_text(str(manifest.get("version", "")), encoding="utf-8")
 
 
+STATUS_FILE = "update_status.json"
+
+
+def write_status(base: Path, ok: bool, want, have, error="") -> None:
+    """Trợ lý đọc file này và báo lên web (nhãn cam cạnh AGENT) khi cập nhật lỗi."""
+    try:
+        (base / STATUS_FILE).write_text(json.dumps({
+            "ok": bool(ok), "want": str(want or ""), "have": str(have or ""),
+            "error": str(error or "")[:300], "at": int(time.time())}, ensure_ascii=False), encoding="utf-8")
+    except OSError:
+        pass
+
+
 def console_python() -> str:
     exe = Path(sys.executable)
     if exe.name.lower() == "pythonw.exe" and (exe.parent / "python.exe").exists():
@@ -169,14 +182,18 @@ def main(argv) -> int:
         pass
     python = console_python()
     have = local_version(base)
+    want = ""
     try:
         manifest = json.loads(fetch(f"{BASE_URL}/agent/manifest.json?t={int(time.time())}"))
-        if newer(manifest.get("version"), have) or not have:
-            log(f"Cập nhật {have or '(chưa có)'} → {manifest.get('version')}")
-            install_update(base, fetch(f"{BASE_URL}/agent/app.zip?v={manifest.get('version')}", 120), manifest, python)
+        want = str(manifest.get("version") or "")
+        if newer(want, have) or not have:
+            log(f"Cập nhật {have or '(chưa có)'} → {want}")
+            install_update(base, fetch(f"{BASE_URL}/agent/app.zip?v={want}", 120), manifest, python)
             log("Cập nhật xong")
+        write_status(base, True, want, local_version(base))
     except Exception as exc:  # mất mạng / gói lỗi → giữ bản đang có
         log(f"Không cập nhật được: {exc}")
+        write_status(base, False, want, have, exc)
         if not have:
             if os.name == "nt":
                 import ctypes

@@ -39,12 +39,15 @@ export const Route = createFileRoute("/api/public/pc-agent/poll")({
         const paired = typeof body["pair"] === "string" ? await pc.verifyPairToken(body["pair"] as string) : "";
         const uid = paired || (login ? await pc.resolveAgentUser(login) : "");
         const aid = /^[0-9a-f]{12,64}$/.test(String(body["aid"] ?? "")) ? String(body["aid"]) : "";
+        const short = (v: unknown, n: number) => String(v ?? "").slice(0, n);
         await pc.recordHeartbeat({
-          version: String(body["version"] || ""),
+          version: short(body["version"], 20),
           printers: printers as never,
           paths_exist: pathsExist,
+          ...(body["update_error"] ? { update_error: short(body["update_error"], 300), update_want: short(body["update_want"], 20) } : {}),
         }, ip, uid, body["offline"] === true, aid);
-        if (body["offline"] === true) return Response.json({ jobs: [], paired: !!uid, check_paths: [] });
+        // Separate heartbeat thread (helper ≥ 6.13) keeps the dot green during long jobs; it never claims jobs.
+        if (body["offline"] === true || body["heartbeat_only"] === true) return Response.json({ jobs: [], paired: !!uid, check_paths: [] });
         const jobs = await pc.claimPending(10, ip, printers, uid, aid);
         // Paths the UI cares about, so the agent can report existence.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

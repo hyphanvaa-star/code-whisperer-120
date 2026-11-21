@@ -211,6 +211,8 @@ export const routes: Routes = {
     return {
       online: pc.agentOnline(agent),
       version: agent?.version ?? "",
+      update_error: agent?.update_error ?? "",
+      update_want: agent?.update_want ?? "",
       printers: (agent?.printers ?? []).map((p) => p.name),
       seen_ago: agent ? Math.round((Date.now() - agent.at) / 1000) : null,
     };

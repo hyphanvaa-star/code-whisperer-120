@@ -15,6 +15,8 @@ import khbEzfwScript from '@/tool/khb-ezfw.js?raw';
 import khbPilotNameScript from '@/lib/khb-pilot-name.js?raw';
 import notamPinBarScript from '@/lib/notam-pin-bar.js?raw';
 import owaAutoLoginScript from '@/lib/owa-auto-login.js?raw';
+import agentUpdateScript from '@/lib/agent-update.js?raw';
+const AGENT_UPDATE_JS = agentUpdateScript.replaceAll('export function', 'function');
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
@@ -273,7 +275,12 @@ const SHIM = `<script>
         var dot=document.createElement('span'); dot.className='agent-dot';
         dot.style.cssText='position:absolute;top:4px;right:5px;width:10px;height:10px;border-radius:50%;background:#9ca3af;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15);pointer-events:none';
         board.appendChild(dot);
-        var agentOn=false,pairTok='',pairAt=0,LOCAL='http://127.0.0.1:47321';
+        ${AGENT_UPDATE_JS}
+        /* V 7.19: nhãn cam cạnh AGENT khi trợ lý chạy bản cũ / cập nhật đầu ca lỗi — bấm để cập nhật ngay. */
+        var agentTag=document.createElement('span'); agentTag.className='agent-upd';
+        agentTag.style.cssText='display:none;position:absolute;top:-9px;right:-6px;padding:1px 6px;border-radius:9px;background:#f97316;color:#fff;font:800 10.5px/1.5 system-ui,sans-serif;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none;z-index:2';
+        board.appendChild(agentTag);
+        var agentOn=false,agentBadgeState='off',pairTok='',pairAt=0,LOCAL='http://127.0.0.1:47321';
         var agentPair=function(){
           var send=function(){ if(pairTok) fetch(LOCAL+'/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:pairTok})}).then(function(r){return r.json();}).then(function(d){ /* Máy nào bấm thì lệnh về đúng máy đó (không sang máy khác cùng mạng/cùng tài khoản). */ if(d&&typeof d.aid==='string'&&/^[0-9a-f]{12,64}$/.test(d.aid)) document.cookie='pc_aid='+d.aid+'; path=/; max-age=2592000; SameSite=Lax'+(location.protocol==='https:'?'; Secure':''); }).catch(function(){}); };
           if(pairTok && Date.now()-pairAt<3600000){ send(); return; }
@@ -283,17 +290,32 @@ const SHIM = `<script>
           agentPair();
           fetch('/api/pc/status',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
             var on=!!(d&&d.online); agentOn=on;
-            dot.style.background=on?'#16a34a':'#9ca3af';
-            dot.style.boxShadow=on?'0 0 0 1px rgba(0,0,0,.15),0 0 6px #16a34a':'0 0 0 1px rgba(0,0,0,.15)';
-            board.title=on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly (trên màn hình/ổ Z) để bật. Chưa có thì bấm đây tải bộ cài, giải nén, chạy cai-tro-ly một lần cuối; từ đó trợ lý tự cập nhật.';
+            var bd=agentBadge({online:on,version:d&&d.version,latest:window.__agentZipVer||'',updateError:d&&d.update_error,updateWant:d&&d.update_want});
+            agentBadgeState=bd.state;
+            var warn=bd.state==='old'||bd.state==='fail', col=warn?'#f97316':(on?'#16a34a':'#9ca3af');
+            dot.style.background=col;
+            dot.style.boxShadow=on?'0 0 0 1px rgba(0,0,0,.15),0 0 6px '+col:'0 0 0 1px rgba(0,0,0,.15)';
+            agentTag.style.display=warn?'':'none'; agentTag.textContent=bd.label;
+            board.title=warn?bd.title:on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly (trên màn hình/ổ Z) để bật. Chưa có thì bấm đây tải bộ cài, giải nén, chạy cai-tro-ly một lần cuối; từ đó trợ lý tự cập nhật.';
           }).catch(function(){});
         };
         agentPoll(); setInterval(agentPoll,20000);
         /* Bộ cài luôn ghi đúng bản mới nhất theo manifest, không ghi cứng số bản. */
-        var agentZipVer=function(){ fetch('/agent/manifest.json',{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(m){ if(m && m.version) window.__agentZipVer=m.version; }).catch(function(){}); };
+        var agentZipVer=function(){ fetch('/agent/manifest.json',{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(m){ if(m && m.version){ var was=window.__agentZipVer; window.__agentZipVer=m.version; if(was!==m.version) agentPoll(); } }).catch(function(){}); };
         agentZipVer(); setInterval(agentZipVer,600000);
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
+          if(agentOn && (agentBadgeState==='old'||agentBadgeState==='fail')){
+            if(confirm('Cập nhật Trợ lý PC lên bản '+(window.__agentZipVer||'mới')+' ngay?\\n(Trợ lý khởi động lại khoảng 30 giây; nếu đang chạy lệnh thì đợi lệnh xong)')){
+              fetch(LOCAL+'/update',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(function(r){return r.json();}).then(function(d){
+                if(d&&d.ok){ agentTag.textContent='⟳ đang cập nhật'; setTimeout(agentPoll,40000); }
+                else if(d&&d.reason==='busy') alert('Trợ lý đang chạy lệnh — đợi lệnh xong rồi bấm lại.');
+                else if(d&&d.reason==='no_bootstrap') alert('Máy này cài trợ lý kiểu cũ — bấm đúp Bat-Tro-Ly một lần để chuyển sang bản tự cập nhật.');
+                else alert('Bản trợ lý trên máy chưa hỗ trợ cập nhật từ web — tắt và bật lại trợ lý (Bat-Tro-Ly) để cài bản mới.');
+              }).catch(function(){ alert('Không gọi được trợ lý trên máy này — tắt và bật lại trợ lý (Bat-Tro-Ly).'); });
+              return;
+            }
+          }
           if(agentOn){
             if(confirm('Tắt trợ lý PC trên máy này?\\n(Bấm Cancel để tải bộ cài mới)')){
               fetch(LOCAL+'/stop',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){}).then(function(){ setTimeout(agentPoll,2500); });
@@ -3276,7 +3298,7 @@ function nmPaintPinBar(n, place){`)
   }
   setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.18')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.19')
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).

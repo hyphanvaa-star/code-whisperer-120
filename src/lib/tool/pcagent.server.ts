@@ -22,6 +22,9 @@ export interface AgentInfo {
   printers: AgentPrinter[];
   /** path -> exists on the company PC. */
   paths_exist: Record<string, boolean>;
+  /** Last start-of-shift self-update failed: reason + version it tried to install. */
+  update_error?: string;
+  update_want?: string;
 }
 
 async function admin() {
