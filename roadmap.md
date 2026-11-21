@@ -314,3 +314,4 @@
 
 - [x] V 7.21 / Trợ lý PC 6.15: màn Pick an account tự chọn đúng tài khoản hoặc bấm Use another account. Chưa publish.
 - [x] V 7.22: Trợ lý PC chỉ còn 1 file Bat-Tro-Ly (web tải thẳng), bỏ bộ cài zip và các file phụ; chấm AGENT hỏi 4s khi chưa kết nối.
+- [x] V 7.23 / Trợ lý PC 6.16: bấm cập nhật trên web không còn báo bận — trợ lý cập nhật ngay khi lệnh đang chạy xong; bản cũ ≤6.15 được web tự hỏi lại mỗi 3 giây.

@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.15"
+VERSION = "6.16"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -143,11 +143,9 @@ def _local_server() -> None:
                     pass
                 os._exit(0)
             elif self.path == "/update":
+                # Không tắt ở đây: vòng chính tự cài ở điểm an toàn (giữa hai lượt nhận lệnh).
                 ok, why = _start_update_now()
                 self.wfile.write(json.dumps({"ok": ok, "reason": why, "version": VERSION}).encode())
-                self.wfile.flush()
-                if ok:
-                    os._exit(0)
             else:
                 self.wfile.write(b'{"ok": false}')
 
@@ -1772,19 +1770,37 @@ def _maybe_self_update() -> None:
     _UPD_REMOTE[0] = remote
 
 
+_UPDATE_WANTED = threading.Event()
+
+
 def _start_update_now() -> tuple[bool, str]:
-    """Người dùng bấm cập nhật: chỉ khi không có lệnh nào đang chạy."""
+    """Người dùng bấm cập nhật trên web: không bao giờ báo bận.
+    Chỉ ghi nhận yêu cầu; vòng chính cài ngay ở lượt kế (rảnh thì trong ~1 giây),
+    đang chạy lệnh thì cài ngay khi lệnh đó xong — không cắt ngang lệnh nào,
+    cũng không nhận lệnh mới trước khi cập nhật."""
+    if not (_base_dir() / "bootstrap.py").exists():
+        return False, "no_bootstrap"
+    _UPDATE_WANTED.set()
     if _CURRENT_JOB[0]:
-        return False, "busy"
+        log("⟳ Có yêu cầu cập nhật từ web — cài ngay khi lệnh đang chạy xong")
+        return True, "queued"
+    return True, ""
+
+
+def _run_requested_update() -> None:
+    """Gọi ở đầu vòng chính (không có lệnh nào đang chạy hay vừa nhận)."""
+    if not _UPDATE_WANTED.is_set() or _CURRENT_JOB[0]:
+        return
     boot = _base_dir() / "bootstrap.py"
     if not boot.exists():
-        return False, "no_bootstrap"
+        _UPDATE_WANTED.clear()
+        return
     import subprocess
     subprocess.Popen([sys.executable, str(boot), "--after", str(os.getpid())],
                      cwd=str(boot.parent), close_fds=True,
                      creationflags=0x00000008 | 0x08000000 if os.name == "nt" else 0)
     log("⟳ Cập nhật theo yêu cầu từ web — trợ lý khởi động lại")
-    return True, ""
+    os._exit(0)
 
 
 def _beat_body() -> dict:
@@ -1853,6 +1869,7 @@ def main() -> int:
     _warn_update_failed()
     while True:
         try:
+            _run_requested_update()
             _maybe_self_update()
             paths_exist = {"D:\\": _has_d()}
             for p in check_paths:
@@ -1938,7 +1955,7 @@ def main() -> int:
             log(f"lỗi kết nối: {exc} — thử lại sau 10s")
             time.sleep(10)
             continue
-        time.sleep(POLL_INTERVAL_S)
+        _UPDATE_WANTED.wait(POLL_INTERVAL_S)
 
 
 if __name__ == "__main__":

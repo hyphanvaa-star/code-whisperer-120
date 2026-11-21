@@ -280,7 +280,7 @@ const SHIM = `<script>
         var agentTag=document.createElement('span'); agentTag.className='agent-upd';
         agentTag.style.cssText='display:none;position:absolute;top:-9px;right:-6px;padding:1px 6px;border-radius:9px;background:#f97316;color:#fff;font:800 10.5px/1.5 system-ui,sans-serif;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none;z-index:2';
         board.appendChild(agentTag);
-        var agentOn=false,agentBadgeState='off',pairTok='',pairAt=0,LOCAL='http://127.0.0.1:47321';
+        var agentOn=false,agentBadgeState='off',agentUpdMsg='',agentUpdUntil=0,pairTok='',pairAt=0,LOCAL='http://127.0.0.1:47321';
         var agentPair=function(){
           var send=function(){ if(pairTok) fetch(LOCAL+'/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:pairTok})}).then(function(r){return r.json();}).then(function(d){ /* Máy nào bấm thì lệnh về đúng máy đó (không sang máy khác cùng mạng/cùng tài khoản). */ if(d&&typeof d.aid==='string'&&/^[0-9a-f]{12,64}$/.test(d.aid)) document.cookie='pc_aid='+d.aid+'; path=/; max-age=2592000; SameSite=Lax'+(location.protocol==='https:'?'; Secure':''); }).catch(function(){}); };
           if(pairTok && Date.now()-pairAt<3600000){ send(); return; }
@@ -295,7 +295,7 @@ const SHIM = `<script>
             var warn=bd.state==='old'||bd.state==='fail', col=warn?'#f97316':(on?'#16a34a':'#9ca3af');
             dot.style.background=col;
             dot.style.boxShadow=on?'0 0 0 1px rgba(0,0,0,.15),0 0 6px '+col:'0 0 0 1px rgba(0,0,0,.15)';
-            agentTag.style.display=warn?'':'none'; agentTag.textContent=bd.label;
+            agentTag.style.display=warn?'':'none'; agentTag.textContent=(warn&&agentUpdMsg&&Date.now()<agentUpdUntil)?agentUpdMsg:bd.label; if(!warn){agentUpdMsg='';}
             board.title=warn?bd.title:on?('Trợ lý PC đã kết nối'+(d.version?' (bản '+d.version+')':'')+((d.printers||[]).length?' — máy in: '+d.printers.join(', '):'')+'. Bấm để tắt trợ lý.'):'Trợ lý PC chưa kết nối — bấm đúp Bat-Tro-Ly (trên màn hình/ổ Z) để bật. Chưa có thì bấm đây tải đúng 1 file Bat-Tro-Ly; bấm đúp là tự cài, tự chạy ngầm và tự cập nhật.';
           }).catch(function(){});
         };
@@ -307,13 +307,21 @@ const SHIM = `<script>
         board.addEventListener('click',function(e){
           e.preventDefault(); e.stopPropagation();
           if(agentOn && (agentBadgeState==='old'||agentBadgeState==='fail')){
-            if(confirm('Cập nhật Trợ lý PC lên bản '+(window.__agentZipVer||'mới')+' ngay?\\n(Trợ lý khởi động lại khoảng 30 giây; nếu đang chạy lệnh thì đợi lệnh xong)')){
-              fetch(LOCAL+'/update',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(function(r){return r.json();}).then(function(d){
-                if(d&&d.ok){ agentTag.textContent='⟳ đang cập nhật'; setTimeout(agentPoll,40000); }
-                else if(d&&d.reason==='busy') alert('Trợ lý đang chạy lệnh — đợi lệnh xong rồi bấm lại.');
-                else if(d&&d.reason==='no_bootstrap') alert('Máy này cài trợ lý kiểu cũ — bấm đúp Bat-Tro-Ly một lần để chuyển sang bản tự cập nhật.');
-                else alert('Bản trợ lý trên máy chưa hỗ trợ cập nhật từ web — tắt và bật lại trợ lý (Bat-Tro-Ly) để cài bản mới.');
-              }).catch(function(){ alert('Không gọi được trợ lý trên máy này — tắt và bật lại trợ lý (Bat-Tro-Ly).'); });
+            if(agentUpdMsg && Date.now()<agentUpdUntil) return;
+            if(confirm('Cập nhật Trợ lý PC lên bản '+(window.__agentZipVer||'mới')+' ngay?\\n(Trợ lý tự khởi động lại trong vài giây; đang chạy lệnh thì cập nhật ngay khi lệnh đó xong)')){
+              /* Không báo bận: trợ lý cũ đang quét nền thì tự hỏi lại mỗi 3 giây. */
+              var setUpd=function(m,ms){ agentUpdMsg=m; agentUpdUntil=Date.now()+ms; agentTag.textContent=m; };
+              var after=function(){ [6000,12000,20000,30000,45000,70000,100000].forEach(function(t){ setTimeout(agentPoll,t); }); };
+              var ask=function(tries){
+                fetch(LOCAL+'/update',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).then(function(r){return r.json();}).catch(function(){return null;}).then(function(d){
+                  var st=agentUpdateStep(d,tries);
+                  if(st.action==='retry'){ setUpd(st.label,15000); setTimeout(function(){ ask(tries+1); },3000); return; }
+                  if(st.action==='wait'){ setUpd(st.label,600000); var n=0,iv=setInterval(function(){ agentPoll(); if(++n>60||!agentUpdMsg) clearInterval(iv); },10000); return; }
+                  if(st.action==='done'){ setUpd(st.label,120000); after(); return; }
+                  agentUpdMsg=''; agentPoll(); alert(st.msg);
+                });
+              };
+              ask(0);
               return;
             }
           }
@@ -3299,7 +3307,7 @@ function nmPaintPinBar(n, place){`)
   }
   setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.22')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.23')
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).

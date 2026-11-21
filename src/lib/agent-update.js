@@ -29,3 +29,18 @@ export function agentBadge(s){
   }
   return {state: "ok", label: "", title: ""};
 }
+/* Reply of the helper's local /update → next step for the AGENT button.
+   d: JSON reply (null when the call failed) · tries: retries already made.
+   Helpers ≤ 6.15 answer "busy" while a short background job runs: retry quietly
+   (every few seconds, up to 40 times) instead of telling the user to click again. */
+export function agentUpdateStep(d, tries){
+  if(d && d.ok && d.reason === "queued") return {action: "wait", label: "⟳ chờ lệnh xong"};
+  if(d && d.ok) return {action: "done", label: "⟳ đang cập nhật"};
+  if(d && d.reason === "busy"){
+    if((tries || 0) < 40) return {action: "retry", label: "⟳ chờ trợ lý rảnh"};
+    return {action: "fail", msg: "Trợ lý bận liên tục nên chưa cập nhật được — bấm đúp Bat-Tro-Ly một lần, nó tự lên bản mới."};
+  }
+  if(d && d.reason === "no_bootstrap") return {action: "fail", msg: "Máy này cài trợ lý kiểu cũ — bấm đúp Bat-Tro-Ly một lần để chuyển sang bản tự cập nhật."};
+  if(d) return {action: "fail", msg: "Bản trợ lý trên máy chưa hỗ trợ cập nhật từ web — bấm đúp Bat-Tro-Ly một lần để cài bản mới."};
+  return {action: "fail", msg: "Không gọi được trợ lý trên máy này — bấm đúp Bat-Tro-Ly một lần."};
+}
