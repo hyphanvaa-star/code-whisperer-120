@@ -1397,7 +1397,7 @@ header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
 header#mdRoom{background-image:var(--airport-clean) !important;background-size:85% auto !important;background-position:calc(50% + 113px) center !important;background-repeat:no-repeat !important;background-color:#eef3f8 !important}
-header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:max(15.2%,390px);height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
+header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:max(18.4%,470px);height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
 .ops-header-brand{display:block !important;position:absolute;left:1.25%;top:12px;width:12.4%;height:150px;z-index:16;color:#fff;text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:center;gap:9px}.ops-vj-mark .ops-vj-logo{display:block;width:138px;height:41px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 11px/1.2 var(--x-sans);color:#fff;letter-spacing:.06em}
 /* Brand stack must end above the filter row (header 172px, filters start at 58%). */
@@ -1410,12 +1410,12 @@ header#mdRoom::before{content:"";display:block !important;position:absolute;left
 .ops-brand-title i{display:block;width:3px;height:17px;border-radius:2px;background:var(--x-yel);box-shadow:0 0 8px rgba(255,201,0,.6)}
 .ops-brand-title span{color:#fff;font:800 12px/1 var(--x-sans);letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 5px rgba(15,23,42,.45)}
 .ops-brand-ver{margin-left:2px;padding:3px 7px;border-radius:999px;background:#fff;color:#E31937;font:800 10.5px/1 var(--x-mono);letter-spacing:.02em;box-shadow:0 2px 8px rgba(15,23,42,.22)}
-.ops-brand-credit{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.88);font:500 10.5px/12px var(--x-sans);letter-spacing:.05em;text-shadow:0 1px 4px rgba(15,23,42,.5)}
+.ops-brand-credit{display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.88);font:500 12.5px/14px var(--x-sans);letter-spacing:.05em;text-shadow:0 1px 4px rgba(15,23,42,.5)}
 .ops-brand-credit::before{content:"";width:10px;height:1px;background:rgba(255,255,255,.7)}
 .ops-brand-credit em{font-style:normal;font-weight:800;color:#fff;letter-spacing:.03em}
-.ops-brand-contact{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;font:600 10.5px/13px var(--x-sans);letter-spacing:.02em;text-shadow:0 1px 4px rgba(15,23,42,.5);pointer-events:auto}
-.ops-brand-contact svg{flex:none;width:14px;height:14px;padding:2px;box-sizing:border-box;border-radius:4px;background:var(--x-yel);color:#16181d}
-.ops-brand-contact small{font:800 8.5px/1 var(--x-sans);letter-spacing:.14em;text-transform:uppercase;color:var(--x-yel);margin-right:5px}
+.ops-brand-contact{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;font:600 12.5px/15px var(--x-sans);letter-spacing:.02em;text-shadow:0 1px 4px rgba(15,23,42,.5);pointer-events:auto}
+.ops-brand-contact svg{flex:none;width:16px;height:16px;padding:2px;box-sizing:border-box;border-radius:4px;background:var(--x-yel);color:#16181d}
+.ops-brand-contact small{font:800 10px/1 var(--x-sans);letter-spacing:.14em;text-transform:uppercase;color:var(--x-yel);margin-right:5px}
 .ops-brand-contact a{color:#fff;text-decoration:none}.ops-brand-contact a:hover{text-decoration:underline;text-underline-offset:2px}
 .ops-header-live{position:absolute;right:0;top:0;height:78px;display:flex;align-items:center;gap:0;z-index:24;color:#fff;padding:0 17px 0 21px;border:0;border-radius:0 0 0 18px;background:linear-gradient(90deg,rgba(20,30,40,.68),rgba(12,22,32,.84));box-shadow:-10px 10px 28px rgba(20,36,52,.18);backdrop-filter:blur(10px) saturate(1.16)}
 .ops-weather{height:56px;display:grid;grid-template-columns:36px auto auto;align-items:center;gap:9px;padding-right:20px;border-right:1px solid rgba(255,255,255,.5)}.ops-weather-icon{font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}.ops-weather>strong{font:800 22px/1 var(--x-sans);color:#fff}.ops-weather>span:last-child{display:flex;flex-direction:column;gap:6px}.ops-weather b,.ops-weather small{font:900 12px/1.05 var(--x-sans);letter-spacing:.02em;color:#fff}.ops-weather small{font-weight:600;font-size:11px;color:rgba(255,255,255,.85);text-transform:none}
@@ -1456,7 +1456,7 @@ header#mdRoom .ops-account-btn:focus-visible{outline:2px solid var(--ops-panel-a
 @media(prefers-reduced-motion:reduce){#opsAcctMenu{animation:none}}
 /* Sáu bộ lọc thật, cùng một hàng trên panel trắng. */
 header#mdRoom .md-stage{
-  display:block !important;position:absolute !important;left:38px !important;top:58% !important;
+  display:block !important;position:absolute !important;left:38px !important;top:calc(58% + 10px) !important;
   width:calc(37% - 41px) !important;height:35.08% !important;padding:0 !important;margin:0 !important;z-index:18 !important;
 }
 header#mdRoom .md-denpyo{
@@ -3310,7 +3310,8 @@ function nmPaintPinBar(n, place){`)
     // ALT Route là bản riêng của từng người (cả Admin): bỏ nút "Khôi phục theo Admin", ghi rõ bản riêng.
     .replace('"#ftAltMsg":"fpl.alt_route",', '')
     .replace('<span class="status" id="ftAltMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftAltMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.25')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.26')
+    // V 7.26: header — vùng đỏ rộng hơn chứa đủ email, chữ credit/contact to hơn, thanh lọc hạ 10px.
     // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
