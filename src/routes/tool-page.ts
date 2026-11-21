@@ -1397,7 +1397,7 @@ header#mdRoom .sensu,header#mdRoom .grain,header#mdRoom .md-kanban,header#mdRoom
 header#mdRoom .md-set,header#mdRoom .md-open{display:none !important}
 header#mdRoom .md-fit{display:block !important;position:static !important;width:100% !important;height:100% !important}
 header#mdRoom{background-image:var(--airport-clean) !important;background-size:85% auto !important;background-position:calc(50% + 113px) center !important;background-repeat:no-repeat !important;background-color:#eef3f8 !important}
-header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:max(18.4%,470px);height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
+header#mdRoom::before{content:"";display:block !important;position:absolute;left:0;top:0;width:max(23%,546px);height:100%;z-index:10;background:linear-gradient(118deg,var(--x-red) 0 76%,var(--x-yel) 76% 80%,rgba(255,255,255,.92) 80% 84%,transparent 84%);pointer-events:none}
 .ops-header-brand{display:block !important;position:absolute;left:1.25%;top:12px;width:12.4%;height:150px;z-index:16;color:#fff;text-transform:uppercase}
 .ops-vj-mark{display:flex;align-items:center;gap:9px}.ops-vj-mark .ops-vj-logo{display:block;width:138px;height:41px;background:var(--vj-logo) center/contain no-repeat;filter:brightness(0) invert(1)}.ops-vj-mark>span:last-child{font:800 11px/1.2 var(--x-sans);color:#fff;letter-spacing:.06em}
 /* Brand stack must end above the filter row (header 172px, filters start at 58%). */
@@ -3310,7 +3310,7 @@ function nmPaintPinBar(n, place){`)
     // ALT Route là bản riêng của từng người (cả Admin): bỏ nút "Khôi phục theo Admin", ghi rõ bản riêng.
     .replace('"#ftAltMsg":"fpl.alt_route",', '')
     .replace('<span class="status" id="ftAltMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftAltMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.27')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.28')
     // V 7.26: header — vùng đỏ rộng hơn chứa đủ email, chữ credit/contact to hơn, thanh lọc hạ 10px.
     // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
