@@ -3,7 +3,7 @@
 // Files (uploaded Excel, PDFs, generated files): private storage bucket "tool-files".
 import type { Ctx } from "./types";
 
-/** Team config tables: admin saves the team copy; other users save a private copy at `<key>@u:<uid>`. */
+/** Team config tables: admin saves the team copy; other users save a private copy at `<key>@u:<uid>` (PERSONAL_KEYS: everyone, admin included). */
 export const LAYERED_KEYS = new Set([
   "notice_rules", "fpl.cost_index", "fpl.taxi_fuel", "fpl.route_suffix",
   "fpl.alt_route", "fpl.era", "fpl.pcr_limits", "extra_wx_cfg",
@@ -26,8 +26,19 @@ async function rawGet(ctx: Ctx, key: string): Promise<{ found: boolean; value: u
   return { found: !!data, value: data?.value };
 }
 
+/** Tables every user (admin included) keeps as their own copy; the team key is only the starting default. */
+export const PERSONAL_KEYS = new Set(["fpl.alt_route"]);
+
+/** Which app_settings row a save goes to: personal tables always the user's own row, layered tables only for non-admins. */
+export function settingsTarget(key: string, admin: boolean, userId: string | null | undefined): string {
+  if (!userId) return key;
+  if (PERSONAL_KEYS.has(key)) return `${key}@u:${userId}`;
+  if (LAYERED_KEYS.has(key) && !admin) return `${key}@u:${userId}`;
+  return key;
+}
+
 export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T> {
-  if (LAYERED_KEYS.has(key) && ctx.userId && !(await isAdmin(ctx))) {
+  if (LAYERED_KEYS.has(key) && ctx.userId && (PERSONAL_KEYS.has(key) || !(await isAdmin(ctx)))) {
     const own = await rawGet(ctx, userKey(ctx, key));
     if (own.found && own.value != null && !(own.value as { __team?: boolean }).__team) return own.value as T;
   }
@@ -40,7 +51,8 @@ export const ADMIN_ONLY_KEYS = new Set(["notice_rules"]);
 
 export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<void> {
   if (ADMIN_ONLY_KEYS.has(key) && !(await isAdmin(ctx))) throw new Error("Chỉ Admin được lưu thiết lập file add");
-  const target = LAYERED_KEYS.has(key) && !(await isAdmin(ctx)) ? userKey(ctx, key) : key;
+  const layeredTeam = LAYERED_KEYS.has(key) && !PERSONAL_KEYS.has(key);
+  const target = settingsTarget(key, layeredTeam ? await isAdmin(ctx) : false, ctx.userId);
   const track = !/^(ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|chg:|.*token|.*session|.*cookie)/i.test(target);
   const prev = track ? (await rawGet(ctx, target).catch(() => ({ value: null }))).value : null;
   const { error } = await ctx.supabase.from("app_settings").upsert({

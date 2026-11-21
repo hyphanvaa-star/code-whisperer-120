@@ -1,5 +1,5 @@
 import type { Jobs, Routes } from "../types";
-import { getJson, setJson, isAdmin, resetToTeam, LAYERED_KEYS } from "../store.server";
+import { getJson, setJson, isAdmin, resetToTeam, LAYERED_KEYS, PERSONAL_KEYS } from "../store.server";
 import { jobId } from "../jobs";
 import {
   defaultRuleData, cleanRuleData, preview as noticesPreview,
@@ -26,7 +26,7 @@ export const routes: Routes = {
     const body = (await ctx.json()) as { key?: string };
     const key = String(body.key || "");
     if (!LAYERED_KEYS.has(key)) return { error: "Bảng không hợp lệ." };
-    if (await isAdmin(ctx)) return { ok: true, admin: true };
+    if (!PERSONAL_KEYS.has(key) && (await isAdmin(ctx))) return { ok: true, admin: true };
     await resetToTeam(ctx, key);
     return { ok: true };
   },

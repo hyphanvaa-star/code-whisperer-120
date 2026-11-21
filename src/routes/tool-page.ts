@@ -3307,7 +3307,11 @@ function nmPaintPinBar(n, place){`)
   }
   setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.24')
+    // ALT Route là bản riêng của từng người (cả Admin): bỏ nút "Khôi phục theo Admin", ghi rõ bản riêng.
+    .replace('"#ftAltMsg":"fpl.alt_route",', '')
+    .replace('<span class="status" id="ftAltMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftAltMsg"></span>')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.25')
+    // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
