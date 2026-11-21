@@ -1403,7 +1403,7 @@ header#mdRoom::before{content:"";display:block !important;position:absolute;left
 /* Brand stack must end above the filter row (header 172px, filters start at 58%). */
 .ops-header-brand{top:8px !important}
 .ops-header-brand .ops-vj-mark .ops-vj-logo{width:104px;height:30px}
-.ops-header-brand .ops-vj-mark>span:last-child{font-size:10px}
+.ops-header-brand .ops-vj-mark>span:last-child{font-size:14px;line-height:1.15}
 .ops-sohee{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin-top:4px;padding-top:4px;border-top:2px solid var(--x-yel);text-transform:none;white-space:nowrap}
 .ops-brand-title{display:flex;align-items:center;gap:7px;height:22px}
 .ops-brand-title strong{color:#fff;font:900 22px/1 var(--x-sans);letter-spacing:.07em;text-shadow:0 2px 8px rgba(15,23,42,.4)}
@@ -3310,7 +3310,7 @@ function nmPaintPinBar(n, place){`)
     // ALT Route là bản riêng của từng người (cả Admin): bỏ nút "Khôi phục theo Admin", ghi rõ bản riêng.
     .replace('"#ftAltMsg":"fpl.alt_route",', '')
     .replace('<span class="status" id="ftAltMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftAltMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.26')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.27')
     // V 7.26: header — vùng đỏ rộng hơn chứa đủ email, chữ credit/contact to hơn, thanh lọc hạ 10px.
     // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
