@@ -441,6 +441,16 @@ export async function saveToPc(ctx: Ctx, kind: string, name: string, bytes: Uint
   }
 }
 
+/** Ca mới (web tắt > 2 giờ): xếp lệnh cho Trợ lý xoá VNAxxx.pdf cũ hơn `olderThanMs` trong folder MEL. Trợ lý tắt → null. */
+export async function clearMelOnPc(ctx: Ctx, olderThanMs: number): Promise<string | null> {
+  const agent = await pc.agentInfo(ctx);
+  if (!agent || Date.now() - agent.at > 30 * 60_000) return null;
+  const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
+  const dest = driveFix((saved["mel"] || "").trim() || PATH_KEYS["mel"]![1], agent);
+  await pc.enqueue("mel_clear", { dir: dest, older_than_s: Math.round(olderThanMs / 1000) });
+  return dest;
+}
+
 /** Xếp hàng ghi nhiều file xuống folder `kind` (D:, không có D thì C:), không chờ. Trợ lý tắt → null. */
 export async function queueFilesToPc(ctx: Ctx, kind: string, files: { name: string; bytes: Uint8Array }[], opts: { pruneMel?: boolean } = {}): Promise<string | null> {
   const agent = await pc.agentInfo(ctx);

@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.16"
+VERSION = "6.17"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -633,9 +633,12 @@ def do_gd_print(payload: dict, say) -> dict:
 MEL_NAME = re.compile(r"^VNA\d{3}\.pdf$", re.I)
 
 
-def prune_old_mel(folder: Path, keep: list, say) -> list:
-    """Tách MEL mới: xoá VNAxxx.pdf cũ trong folder (không đệ quy) không có trong bộ mới."""
+def prune_old_mel(folder: Path, keep: list, say, older_than_s: float = 0, now: float = 0) -> list:
+    """Tách MEL mới: xoá VNAxxx.pdf cũ trong folder (không đệ quy) không có trong bộ mới.
+    older_than_s > 0: chỉ xoá file sửa lần cuối cũ hơn ngần ấy giây (dọn MEL ca trước)."""
+    import time as _time
     want = {k.upper() for k in keep}
+    cutoff = (now or _time.time()) - older_than_s if older_than_s > 0 else None
     removed = []
     try:
         entries = list(folder.iterdir())
@@ -643,6 +646,8 @@ def prune_old_mel(folder: Path, keep: list, say) -> list:
         return removed
     for fp in entries:
         try:
+            if cutoff is not None and fp.is_file() and fp.stat().st_mtime > cutoff:
+                continue
             if fp.is_file() and MEL_NAME.match(fp.name) and fp.name.upper() not in want:
                 fp.unlink()
                 removed.append(fp.name)
@@ -651,6 +656,17 @@ def prune_old_mel(folder: Path, keep: list, say) -> list:
     if removed:
         say(f"· đã xoá {len(removed)} MEL cũ trong {folder}")
     return removed
+
+
+def do_mel_clear(payload: dict, say) -> dict:
+    """Ca mới (web tắt > 2 giờ): xoá VNAxxx.pdf của ca trước trong folder MEL, giữ file vừa tách gần đây."""
+    d = _fix_drive(str(payload.get("dir") or "D:/MEL"))
+    if not d.is_dir():
+        return {"removed": [], "dir": str(d)}
+    removed = prune_old_mel(d, [], say, float(payload.get("older_than_s") or 7200))
+    if not removed:
+        say(f"· {d}: không có MEL ca trước")
+    return {"removed": removed, "dir": str(d)}
 
 
 def do_save_file(payload: dict, say) -> dict:
@@ -1644,6 +1660,7 @@ HANDLERS = {
     "http_fetch": do_http_fetch,
     "gd_print": do_gd_print,
     "save_file": do_save_file,
+    "mel_clear": do_mel_clear,
     "pick_folder": do_pick_folder,
     "aviweb_check": do_aviweb_check,
     "aviweb_submit": do_aviweb_submit,

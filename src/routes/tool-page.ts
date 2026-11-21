@@ -3307,7 +3307,8 @@ function nmPaintPinBar(n, place){`)
   }
   setInterval(function(){ tick().then(defTick, defTick); }, 15000);
 })();`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.23')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.24')
+    // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
     // V 7.13: Outlook Web OK thì tự tải defect summary (chạy êm, 1 tab, giãn 30 phút).
     // V 7.03: CHG DLA/DLA/CHG TIME lấy ETD mới (Crewlist → UTC) cho giờ mới; đầu điện giữ EOBT AviWeb.
     // V 7.02: điện văn giữ CHG DLA sau khi đẩy CFP đúng tàu (nhớ đổi tàu theo từng chuyến).

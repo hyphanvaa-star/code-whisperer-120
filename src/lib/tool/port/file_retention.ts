@@ -15,16 +15,18 @@ export function shouldDelete(path: string, updated: number, now: number): boolea
   if (top === "notices-tmp") return now - updated > 12 * H; // session PDFs
   return false; // pibwx has own cleanup; notices/ is the admin shared library
 }
+/** A shift ends when the web was closed longer than this: then every operational file is dropped, MEL included. */
+export const SESSION_GRACE_MS = 2 * H;
 /** Operational folders that only live for the current working session. */
 export const SESSION_TOPS = ["excel", "atc", "merged", "briefing", "regnotice", "notices-tmp", "pibwx"];
-/** On web open: drop operational files from earlier sessions (older than `graceMs`, default 1 h offline).
- *  Split MEL files (regnotice/) stay until the next split replaces them. */
-export function staleOnOpen(path: string, updated: number, now: number, graceMs = 60 * 60_000): boolean {
+/** On web open after the web was closed > 2 h: drop operational files from earlier sessions, split MEL included,
+ *  so yesterday's MEL can never be attached by mistake. Midnight alone never deletes anything (night shifts). */
+export function staleOnOpen(path: string, updated: number, now: number, graceMs = SESSION_GRACE_MS): boolean {
   const top = path.split("/")[0];
-  return top !== "regnotice" && SESSION_TOPS.includes(top) && now - updated > graceMs;
+  return SESSION_TOPS.includes(top) && now - updated > graceMs;
 }
 /** Offline means the server saw no open tab of this user for longer than `graceMs` (reloads keep files). */
-export function offlineLongEnough(lastAlive: number | null | undefined, now: number, graceMs = 60 * 60_000): boolean {
+export function offlineLongEnough(lastAlive: number | null | undefined, now: number, graceMs = SESSION_GRACE_MS): boolean {
   return !lastAlive || !Number.isFinite(lastAlive) || now - lastAlive > graceMs;
 }
 /** MEL files a new split makes obsolete: every per-aircraft file not in the new set. */

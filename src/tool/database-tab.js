@@ -287,6 +287,41 @@
 })();
 
 ;(function(){ try{
-  // Máy chủ tự xét offline: cleanup chỉ xoá khi không thấy tab nào của user quá 1 giờ; tab mở báo online mỗi 5 phút.
+  // Máy chủ tự xét offline: cleanup chỉ xoá khi không thấy tab nào của user quá 2 giờ (cả MEL đã tách); tab mở báo online mỗi 5 phút.
   var beat=function(){ fetch("/api/files/alive",{method:"POST",cache:"no-store"}).catch(function(){}); };
-  setTimeout(function(){ fetch("/api/files/session-cleanup",{method:"POST",cache:"no-store"}).catch(function(){}).then(function(){ setInterval(beat,5*60000); }); },3000); }catch(e){} })();
+  var melReload=function(){
+    return fetch("/api/regnotice/list",{cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+      if(typeof regPdfAvail === "undefined") return;
+      regPdfAvail.clear(); (d.files || []).forEach(function(f){ regPdfAvail.add(f); });
+    }).catch(function(){});
+  };
+  setTimeout(function(){ fetch("/api/files/session-cleanup",{method:"POST",cache:"no-store"}).then(function(r){ return r.json(); }).then(function(d){
+    if(d && (d.mel_removed > 0 || d.pc_mel)){
+      melReload();
+      try{ if(typeof write === "function") write("🧹 Ca mới (web tắt quá 2 giờ): đã xoá MEL ca trước" + (d.mel_removed ? " (" + d.mel_removed + " file trên web)" : "") + (d.pc_mel ? " và MEL cũ trong " + d.pc_mel : "") + " — bấm ✂ Tách MEL bộ mới.", "fail"); }catch(e){}
+    }
+  }).catch(function(){}).then(function(){ setInterval(beat,5*60000); }); },3000); }catch(e){} })();
+
+;(function(){ try{
+  // Cảnh báo đỏ cạnh nút ✂ Tách MEL khi ca này chưa có bộ MEL nào (không bao giờ dùng MEL ca trước).
+  function paint(){
+    var btn = document.getElementById("splitPdfPick");
+    if(!btn || typeof regPdfAvail === "undefined") return;
+    var w = document.getElementById("melWarn");
+    if(!w){
+      w = document.createElement("span");
+      w.id = "melWarn";
+      w.setAttribute("role", "status");
+      w.title = "Ca này chưa tách MEL. MEL ca trước đã tự xoá khi web tắt quá 2 giờ — bấm ✂ Tách MEL với file PDF mới nhất.";
+      w.textContent = "⚠ Chưa có MEL ca này";
+      w.style.cssText = "display:none;margin-left:6px;padding:2px 8px;border-radius:10px;font:700 11px/1.6 system-ui,sans-serif;color:#fff;background:#E31937;vertical-align:middle;cursor:pointer;animation:melWarnPulse 1.6s ease-in-out infinite";
+      w.onclick = function(){ btn.click(); };
+      btn.insertAdjacentElement("afterend", w);
+      var st = document.createElement("style");
+      st.textContent = "@keyframes melWarnPulse{0%,100%{opacity:1}50%{opacity:.55}}";
+      document.head.appendChild(st);
+    }
+    w.style.display = regPdfAvail.size ? "none" : "inline-block";
+  }
+  setTimeout(function(){ paint(); setInterval(paint, 3000); }, 4000);
+}catch(e){} })();

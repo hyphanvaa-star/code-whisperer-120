@@ -59,10 +59,10 @@ export const routes: Routes = {
     await stampAlive(ctx, Date.now());
     return { ok: true };
   },
-  // Mở web: dọn file khai thác của các phiên trước chỉ file của chính user, sau khi offline quá 1 giờ
-  // (máy chủ không thấy tab nào của user quá 1 giờ). Reload/Ctrl+Shift+R khi đang online không xoá gì.
+  // Mở web: dọn file khai thác (cả MEL đã tách) của các phiên trước, chỉ file của chính user, sau khi offline quá 2 giờ
+  // (máy chủ không thấy tab nào của user quá 2 giờ). Reload/Ctrl+Shift+R khi đang online không xoá gì; qua 00:00 cũng không.
   "POST /api/files/session-cleanup": async (ctx) => {
-    const { staleOnOpen, SESSION_TOPS, offlineLongEnough } = await import("../port/file_retention");
+    const { staleOnOpen, SESSION_TOPS, offlineLongEnough, SESSION_GRACE_MS } = await import("../port/file_retention");
     const now = Date.now();
     const last = await readAlive(ctx);
     await stampAlive(ctx, now);
@@ -87,7 +87,11 @@ export const routes: Routes = {
       }
     }
     for (let i = 0; i < doomed.length; i += 100) await b.remove(doomed.slice(i, i + 100));
-    return { ok: true, removed: doomed.length };
+    const melRemoved = doomed.filter((p) => p.startsWith("regnotice/")).length;
+    // Folder MEL trên máy (D:\MEL) cũng là file ca trước: nhờ Trợ lý xoá VNAxxx.pdf cũ hơn 2 giờ.
+    let pcMel: string | null = null;
+    try { const { clearMelOnPc } = await import("./pc.server"); pcMel = await clearMelOnPc(ctx, SESSION_GRACE_MS); } catch { /* trợ lý tắt: lần tách sau sẽ dọn */ }
+    return { ok: true, removed: doomed.length, mel_removed: melRemoved, pc_mel: pcMel };
   },
   "GET /api/files/get": async (ctx) => {
     const b = await fileAdmin(ctx);
