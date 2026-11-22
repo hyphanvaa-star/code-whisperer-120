@@ -740,6 +740,36 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
 /** A single coordinate written in item E (not the Q-line centre pin). */
 function isEPoint(g: { shape: string; source?: string }): boolean { return g.shape === "dot" && g.source === "e-field"; }
 
+/** An en-route FIR NOTAM below FL100 is kept when its area lies within this distance of DEP or ARR. */
+export const ENROUTE_LOW_PORT_NM = 50;
+/** Shortest distance (NM) from the NOTAM area to the DEP/ARR airports; null when it cannot be measured. */
+export function lowEnroutePortDistNm(n: Notam, f: AssessFlight): number | null {
+  const pts = f.points;
+  if (!pts.length) return null;
+  const ports: TrackPoint[] = [];
+  for (const [code, role] of Object.entries(f.roles)) {
+    if (role !== "DEP" && role !== "ARR") continue;
+    const p = pts.find((x) => String(x.name ?? "").toUpperCase() === code.toUpperCase()) ?? (role === "DEP" ? pts[0] : pts[pts.length - 1]);
+    if (p) ports.push(p);
+  }
+  if (!ports.length) ports.push(pts[0]!, pts[pts.length - 1]!);
+  // The Q-line centre pin says nothing about the area; fall back to the Q-line circle instead.
+  let geoms = notamGeoms(n).filter((g) => !(g.shape === "dot" && g.source === "pin"));
+  if (!geoms.length) {
+    const q = qCoordsOf(n);
+    if (q) geoms = [{ name: "Q", shape: "circle", lat: q[0], lon: q[1], radius_nm: q[2] || 0, ring: [] }];
+  }
+  let best: number | null = null;
+  for (const g of geoms) {
+    // One airport at a time: a multi-point "track" would measure the segment between DEP and ARR.
+    for (const p of ports) {
+      const d = geomTrackNear(g, [p]).dist_nm;
+      if (d !== null && Number.isFinite(d) && (best === null || d < best)) best = d;
+    }
+  }
+  return best;
+}
+
 function stem(p: string): string { return (/^([A-Z]{2,5})/.exec(p) || [, p])[1]!; }
 function procNames(E: string): string[] {
   const out = new Set<string>();
@@ -879,8 +909,15 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
     const firKeys = Object.keys(f.firs);
     const firCode = qfir || normIcao(code);
     if (kind === "FIR" && band && band[1] < 100 && firKeys.length > 2 && firKeys.indexOf(firCode) > 0 && firKeys.indexOf(firCode) < firKeys.length - 1) {
-      reasons.push(`FIR ${firCode} là FIR enroute; NOTAM trần FL${band[1]} dưới FL100 không tính.`);
-      return out("NO IMPACT", sp.type);
+      // Climb/descent can cross a neighbouring FIR below FL100: only areas far from DEP/ARR are dropped.
+      const dPort = lowEnroutePortDistNm(n, f);
+      if (dPort !== null && dPort > ENROUTE_LOW_PORT_NM) {
+        reasons.push(`FIR ${firCode} là FIR enroute, vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (> ${ENROUTE_LOW_PORT_NM} NM); trần FL${band[1]} dưới FL100 không tính.`);
+        return out("NO IMPACT", sp.type);
+      }
+      reasons.push(dPort === null
+        ? `FIR ${firCode} là FIR enroute nhưng không đo được cự ly vùng NOTAM tới DEP/ARR — vẫn xét tiếp NOTAM trần FL${band[1]}.`
+        : `FIR ${firCode} là FIR enroute nhưng vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (≤ ${ENROUTE_LOW_PORT_NM} NM, đang leo/hạ) — vẫn xét tiếp NOTAM trần FL${band[1]}.`);
     }
     if (!band || !fr) { reasons.push("Thiếu cao độ NOTAM hoặc FL của chuyến tại điểm giao."); return out("NEED MANUAL CHECK", sp.type); }
     const pad = Math.round((cfg.alt_buffer_ft ?? 0) / 100);
