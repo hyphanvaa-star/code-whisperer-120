@@ -3310,7 +3310,7 @@ function nmPaintPinBar(n, place){`)
     // ALT Route là bản riêng của từng người (cả Admin): bỏ nút "Khôi phục theo Admin", ghi rõ bản riêng.
     .replace('"#ftAltMsg":"fpl.alt_route",', '')
     .replace('<span class="status" id="ftAltMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftAltMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.30')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.31')
     // V 7.26: header — vùng đỏ rộng hơn chứa đủ email, chữ credit/contact to hơn, thanh lọc hạ 10px.
     // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
