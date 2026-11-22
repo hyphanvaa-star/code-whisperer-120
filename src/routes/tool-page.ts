@@ -3340,7 +3340,8 @@ function nmPaintPinBar(n, place){`)
     .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
     .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
     .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.33')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.34')
+    // V 7.34: tự quét AIMS dùng đúng Từ ngày/Đến ngày đã chọn, không tự cộng thêm ngày.
     // V 7.33: bản đồ SkyVector tự nhận edition AIRAC mới (hết bị trắng khi SkyVector sang chu kỳ mới).
     .replace('return "https://t.skyvector.com/ABPNMzP6pI9L/" + this.options.svLayer + "/2610/" +', 'const g = window.__svGet(); return g.base + "/" + this.options.svLayer + "/" + g.edition + "/" +')
     .replace('<head>', '<head><script>' + SV_SHIM + '</script>')

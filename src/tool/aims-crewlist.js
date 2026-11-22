@@ -13,7 +13,7 @@
     + '<button type="button" class="aims-go">⬇ Tải & nạp vào So sánh</button><div class="aims-msg" aria-live="polite"></div>'
     + '<div class="aims-watch"><div class="aims-wrow"><label class="aims-sw"><input type="checkbox" class="aims-auto"> 🔔 Tự động quét AIMS</label>'
     + '<label class="aims-ev">mỗi <select class="aims-every"><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="30">30</option></select> phút</label></div>'
-    + '<p class="aims-hint">Khi bật, web tự lấy AIMS theo chu kỳ (ngày khai thác hiện tại, theo giờ bên trên), so với Crewlist đang dùng; thấy đổi tàu / crew / giờ là rung chuông, báo chuyến và tự nạp bản mới. Cần mở ít nhất một tab web.</p>'
+    + '<p class="aims-hint">Khi bật, web tự lấy AIMS theo chu kỳ (đúng Từ ngày / Đến ngày và giờ bên trên; khoảng ngày đã qua thì lấy ngày khai thác hiện tại), so với Crewlist đang dùng; thấy đổi tàu / crew / giờ là rung chuông, báo chuyến và tự nạp bản mới. Cần mở ít nhất một tab web.</p>'
     + '<div class="aims-wst" aria-live="polite"></div><div class="aims-log"></div></div>';
   document.body.appendChild(box);
   const tFrom = box.querySelector('.aims-tfrom'), tTo = box.querySelector('.aims-tto');
@@ -33,14 +33,28 @@
   function saveTimes(){ try{ localStorage.setItem(TKEY, JSON.stringify({from: tFrom.value, to: tTo.value})); }catch(_){} }
   tFrom.addEventListener('change', saveTimes); tTo.addEventListener('change', saveTimes);
   const from = box.querySelector('.aims-from'), to = box.querySelector('.aims-to'), go = box.querySelector('.aims-go'), msg = box.querySelector('.aims-msg');
+  [from, to].forEach(inp => inp.addEventListener('change', () => { saveDates(); try{ paintStatus(); }catch(_){} }));
   function place(){
     const r = pick.getBoundingClientRect();
     box.style.top = Math.round(r.bottom + 8) + 'px';
     box.style.left = Math.round(Math.max(8, Math.min(window.innerWidth - 348, r.right - 340))) + 'px';
   }
+  // Ngày người dùng chọn được nhớ để tự quét AIMS dùng đúng khoảng đó (không tự cộng thêm ngày).
+  const DKEY = 'aims.dateRange';
+  const okD = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  function savedDates(){
+    let d = null; try{ d = JSON.parse(localStorage.getItem(DKEY) || 'null'); }catch(_){}
+    return d && okD(d.start) && okD(d.end) && d.start <= d.end ? d : null;
+  }
+  function saveDates(){
+    if(okD(from.value) && okD(to.value) && from.value <= to.value){
+      try{ localStorage.setItem(DKEY, JSON.stringify({start: from.value, end: to.value})); }catch(_){}
+    }
+  }
   function open(){
-    if(!from.value) from.value = vnDay(0);
-    if(!to.value) to.value = vnDay(1);
+    const sd = savedDates();
+    if(!from.value) from.value = sd ? sd.start : vnDay(0);
+    if(!to.value) to.value = sd ? sd.end : vnDay(1);
     if(!tFrom.value || !tTo.value) loadTimes();
     box.hidden = false; place();
   }
@@ -62,7 +76,7 @@
     if(!from.value || !to.value){ say('Chọn đủ hai ngày.', true); return; }
     if(from.value > to.value){ say('Ngày bắt đầu phải trước ngày kết thúc.', true); return; }
     if(!/^\d{2}:\d{2}$/.test(tFrom.value) || !/^\d{2}:\d{2}$/.test(tTo.value)){ say('Chọn đủ giờ bắt đầu và kết thúc.', true); return; }
-    saveTimes();
+    saveTimes(); saveDates();
     go.disabled = true; pick.disabled = true;
     const t0 = Date.now();
     const tick = setInterval(() => say('Đang lấy từ AIMS… ' + Math.round((Date.now() - t0) / 1000) + 's'), 1000);
@@ -114,7 +128,11 @@
     const [h, m] = ft.split(':').map(Number);
     const startMs = Date.UTC(vn.getUTCFullYear(), vn.getUTCMonth(), vn.getUTCDate()) - (vn.getUTCHours() * 60 + vn.getUTCMinutes() < h * 60 + m ? 864e5 : 0);
     const iso = ms => new Date(ms).toISOString().slice(0, 10);
-    return {start: iso(startMs), end: iso(startMs + 864e5), fromTime: ft, toTime: /^\d{2}:\d{2}$/.test(tTo.value) ? tTo.value : ft};
+    const tt = /^\d{2}:\d{2}$/.test(tTo.value) ? tTo.value : ft;
+    // Ưu tiên đúng "Từ ngày"/"Đến ngày" người dùng đã chọn; chỉ khi khoảng đó đã qua hẳn mới quay về ngày khai thác hiện tại.
+    const sd = savedDates();
+    if(sd && sd.end >= iso(startMs)) return {start: sd.start, end: sd.end, fromTime: ft, toTime: tt};
+    return {start: iso(startMs), end: iso(startMs + 864e5), fromTime: ft, toTime: tt};
   }
   function paintBell(ring){
     const c = cfg(), n = +rd(K.unread, 0) || 0;
@@ -221,6 +239,7 @@
     if(Date.now() - (+rd(K.last, 0) || 0) >= c.every * 60e3) check();
   }
   function setCfg(on){
+    if(on){ saveTimes(); saveDates(); }
     wr(K.cfg, {on, every: +every.value || 10});
     if(on){
       try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); }catch(_){}
