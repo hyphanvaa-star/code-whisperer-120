@@ -1,0 +1,50 @@
+PHONE
+FAX
+AFS address
+E-mail
++852 2910 6174
++852 2910 1180
+VHHHYOYX
+aic@cad.gov.hk
+HONG KONG SPECIAL ADMINISTRATIVE REGION
+PEOPLE'S REPUBLIC OF CHINA
+AERONAUTICAL INFORMATION SERVICE
+(ISO 9001 CERTIFIED)
+AIR TRAFFIC MANAGEMENT DIVISION
+CIVIL AVIATION DEPARTMENT
+HONG KONG INTERNATIONAL AIRPORT
+MASS SMALL UNMANNED AIRCRAFT (SUA) OPERATION AT HUNG HOM (SOUTH) FERRY PIER
+1 A Mass SUA operation (i.e. drone show) is conducted according to the following parameters:
+2 All traffic should exercise caution when operating in the vicinity of the above area.
+3 Contents of this AIP SUP will remain effective until the end of operation on 1 January 2028.
+4 AIP Supplement 12/26 is hereby cancelled.
+Date: From now until 26 December 2026
+Every Friday and Saturday
+1 January 2027 – 1 January 2028
+Every Friday, Saturday and Sunday
+Time (UTC): 08:00-15:00 11:30 – 15:00
+Location: Hung Hom (South) Ferry Pier, Kowloon
+Description of the
+site:
+The SUA operation is geofenced and operates within the following coordinates:
+221803N 1141123E
+221758N 1141126E
+221754N 1141118E
+221800N 1141115E
+Maximum operating
+altitude:
+90m AMSL (296ft AMSL) 300m AMSL (985ft AMSL)
+Remarks: Drone show rehearsal every Friday
+Drone show performance every Saturday
+Drone show rehearsal every Friday
+Drone show performance every Saturday
+Drone show fallback every Sunday
+17 NOV 26
+AIP SUPPLEMENT
+25/26
+INTENTIONALLY
+LEFT
+BLANK
+AIP HONG KONG
+Civil Aviation Department
+Hong Kong

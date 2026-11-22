@@ -21,6 +21,7 @@ import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
 import dbAccessScript from '@/tool/db-access.js?raw';
+import aipSupDbScript from '@/tool/aip-sup-db.js?raw';
 import manualAreaScript from '@/tool/manual-area.js?raw';
 import sigmetLayerScript from '@/tool/sigmet-layer.js?raw';
 import aimsCrewlistScript from '@/tool/aims-crewlist.js?raw';
@@ -2668,7 +2669,7 @@ function ftRender(){
 .dbx-t{font-size:17px;font-weight:800;color:#0f172a}
 .dbx-d{font-size:13px;color:#64748b;line-height:1.4;flex:1}
 .dbx-go{font-size:12px;font-weight:700;color:var(--c);margin-top:4px}
-</style><script>window.__namedAirspaceCatalogue=${JSON.stringify([...enrCatalogue(), ...auDahCatalogue()]).replace(/</g, '\\u003c')};</script><script>window.__airportCatalogue=${JSON.stringify(airportCatalogue())};</script><script>${databaseTabScript}</script><script>window.__aftnSuppliedBook=${JSON.stringify(aftnAddresses).replace(/</g, '\\u003c')};</script><script>${dbAccessScript}</script></body>`)
+</style><script>window.__namedAirspaceCatalogue=${JSON.stringify([...enrCatalogue(), ...auDahCatalogue()]).replace(/</g, '\\u003c')};</script><script>window.__airportCatalogue=${JSON.stringify(airportCatalogue())};</script><script>${databaseTabScript}</script><script>${aipSupDbScript}</script><script>window.__aftnSuppliedBook=${JSON.stringify(aftnAddresses).replace(/</g, '\\u003c')};</script><script>${dbAccessScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
@@ -3340,7 +3341,8 @@ function nmPaintPinBar(n, place){`)
     .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
     .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
     .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.35')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.36')
+    // V 7.36: AIP SUP Singapore / Hàn Quốc / Hồng Kông / Malaysia tự đọc vùng; tab Database có mục AIP SUP theo quốc gia.
     // V 7.35: AIP SUP Thái Lan (CAAT eAIP) tự tải và vẽ vùng, gồm cung tròn quanh VOR.
     // V 7.34: tự quét AIMS dùng đúng Từ ngày/Đến ngày đã chọn, không tự cộng thêm ngày.
     // V 7.33: bản đồ SkyVector tự nhận edition AIRAC mới (hết bị trắng khi SkyVector sang chu kỳ mới).

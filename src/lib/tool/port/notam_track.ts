@@ -334,12 +334,12 @@ export function namedAreaIds(text: string): string[] {
   return out;
 }
 
-/** AIP SUP numbers referenced by a NOTAM: "AIP SUP 055/26", "SUP H141/26", "AIP SUPPLEMENT 12/26". */
+/** AIP SUP numbers referenced by a NOTAM: "AIP SUP 055/26", "SUP H141/26", "AIP SUPPLEMENT 12/26", "AIP SUP 175/2026". */
 export function supKeys(blob: string): string[] {
   const out: string[] = [];
-  const re = /\b(?:AIP\s+)?SUP(?:PLEMENT)?\s*(?:NR\.?|NO\.?)?\s*([A-Z]?)\s*(\d{1,3})\s*\/\s*(\d{2})\b/gi;
+  const re = /\b(?:AIP\s+)?SUP(?:PLEMENT)?\s*(?:NR\.?|NO\.?)?\s*([A-Z]?)\s*(\d{1,3})\s*\/\s*(20\d{2}|\d{2})\b/gi;
   for (const m of String(blob || "").matchAll(re)) {
-    const norm = `${(m[1] || "").toUpperCase()}${Number(m[2])}/${m[3]}`;
+    const norm = `${(m[1] || "").toUpperCase()}${Number(m[2])}/${m[3]!.slice(-2)}`;
     if (!out.includes(norm)) out.push(norm);
   }
   return out;

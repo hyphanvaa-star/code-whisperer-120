@@ -1,0 +1,111 @@
+5 - 1
+TEL : 82-53-668-0286
+FAX : 82-53-668-0277
+AFS : RKRRYNYX
+E-mail : aisd@korea.kr
+Web : https://aim.koca.go.kr
+REPUBLIC OF KOREA
+Ministry of Land, Infrastructure and Transport
+Office of Civil Aviation
+11, Doum 6-ro, Sejong-si, 30103, Republic of Korea
+A I P
+Supplement 89/26
+12 NOV 2026
+GEN : NIL
+ENR : Enroute
+A D : NIL
+TEMPORARY PROHIBITED AREAS ESTABLISHED
+1. INTRODUCTION
+Temporary prohibited areas will be established over the nuclear power plants as follows.
+2. PERIOD
+From 1500 UTC 16 SEP 2026 To 1459 UTC 16 SEP 2027
+3. TEMPORARY PROHIBITED AREAS
+NR Name Lateral Limits Vertical Limits Remarks
+1 P61A
+(Gori)
+A circle radius 2 NM
+centered on
+35°19'29"N 129°18'07"E
+SFC ~ 10 000 ft AMSL
+H24
+2 P61B
+(Gori)
+A circle radius 10 NM
+centered on
+35°19'29"N 129°18'07"E,
+except P61A area
+SFC ~ FL 180
+3 P62A
+(Wolseong)
+A circle radius 2 NM
+centered on
+35°43'04"N 129°28'34"E
+SFC ~ 10 000 ft AMSL
+4 P62B
+(Wolseong)
+A circle radius 10 NM
+centered on
+35°43'04"N 129°28'34"E,
+except P62A area
+SFC ~ FL 180
+5 - 2
+4. REMARKS
+(1) Control Unit
+- 'A' area : MCRC
+- 'B' area : MOLIT
+(2) Exceptions
+- 'A' area : ROKAF operation ACFT
+- 'B' area : SKED and Non SKED civil airlines, authorized by ATC, other ACFT authorized by MOLIT,
+life guard, police, SAR, military operation flight and fire fighting ACFT
+(3) The temporary prohibited areas are shown in the below diagrams.
+(4) Any change to the contents of these pages will be notified by NOTAM.
+(AIP SUP 72/26 is hereby superseded)
+NR Name Lateral Limits Vertical Limits Remarks
+5 P63A
+(Hanbit)
+A circle radius 2 NM
+centered on
+35°24'41"N 126°25'10"E
+SFC ~ 10 000 ft AMSL
+H24
+6 P63B
+(Hanbit)
+A circle radius 10 NM
+centered on
+35°24'41"N 126°25'10"E,
+except P63A area
+SFC ~ FL 180
+7 P64A
+(Hanul)
+A circle radius 2 NM
+centered on
+37°06'00"N 129°23'00"E
+SFC ~ 8 000 ft AMSL
+8 P64B
+(Hanul)
+A circle radius 10 NM
+centered on
+37°06'00"N 129°23'00"E,
+except P64A area
+SFC ~ FL 180
+9 P65A
+A circle radius 1 NM
+centered on
+36°25'36"N 127°22'11"E
+SFC ~ 8 000 ft AMSL
+10 P65B
+A circle radius 10 NM
+centered on
+36°25'36"N 127°22'11"E,
+except P65A area and
+UA41 area
+SFC ~ FL 180
+5 - 3
+5. DIAGRAMS
+P61A/B
+P62A/B
+5 - 4
+P63A/B
+P64A/B
+5 - 5
+P65A/B

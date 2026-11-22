@@ -912,4 +912,260 @@ export function th_cycles(homeHtml: string): string[] {
   return out.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
 }
 
+// ---------- Generic eAIP SUP text (Singapore, Korea, Hong Kong, Malaysia) ----------
+// Symbol DMS/DDM (35°19'29"N, 01°23.47'N) is rewritten to the compact form read by _TH_LL.
+const _SYM_LL = /(\d{1,3})\s*°\s*(\d{1,2}(?:\.\d+)?)\s*['′’`]\s*(?:(\d{1,2}(?:\.\d+)?)\s*(?:"|″|”|''|’’)\s*)?([NSEW])(?![A-Za-z])/g;
+
+function padNum(n: string, w: number): string {
+  const [i, f] = String(n).split(".");
+  return i!.padStart(w, "0") + (f ? `.${f}` : "");
+}
+
+/** 35°19'29"N 129°18'07"E → 351929N 1291807E; 01°23.47'N → 0123.47N. */
+export function sup_norm_coords(text: string): string {
+  return String(text || "").replace(new RegExp(_SYM_LL.source, "g"), (_m, d: string, mm: string, ss: string | undefined, h: string) => {
+    const dd = d.padStart(h === "N" || h === "S" ? 2 : 3, "0");
+    if (ss == null) return `${dd}${padNum(mm, 2)}${h}`;
+    return `${dd}${padNum(mm.split(".")[0]!, 2)}${padNum(ss, 2)}${h}`;
+  });
+}
+
+/** eAIP HTML page → plain text with line breaks at block ends. */
+export function sup_html_text(html: string): string {
+  return String(html || "")
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<br\s*\/?[^>]*>/gi, "\n")
+    .replace(/<\/(?:p|tr|td|th|div|li|h\d)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&deg;|&#176;/gi, "°")
+    .replace(/&quot;|&#34;|&Prime;|&#8243;/gi, '"')
+    .replace(/&#39;|&apos;|&rsquo;|&prime;|&#8217;|&#8242;/gi, "'")
+    .replace(/&ndash;|&mdash;|&#8211;|&#8212;/gi, "-")
+    .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&amp;/gi, "&")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n\s*\n+/g, "\n");
+}
+
+type CoordHit = { p: Pt; at: number; end: number };
+function coordHits(blob: string): CoordHit[] {
+  return [...blob.matchAll(new RegExp(_TH_LL.source, "g"))].map((m) => {
+    const lat = thDms(m[1]!, 2) * (m[2] === "S" ? -1 : 1);
+    const lon = thDms(m[3]!, 3) * (m[4] === "W" ? -1 : 1);
+    return { p: [round6(lat), round6(lon)] as Pt, at: m.index ?? 0, end: (m.index ?? 0) + m[0].length };
+  }).filter((h) => Math.abs(h.p[0]) <= 90 && Math.abs(h.p[1]) <= 180);
+}
+
+const _RADIUS = /radius\s*(?:of\s*)?(\d+(?:\.\d+)?)\s*(NM|KM|M)\b|(\d+(?:\.\d+)?)\s*(NM|KM|M)\s*(?:\([^)]{0,20}\)\s*)?radius/i;
+/** "radius 10 NM", "250m radius", "radius of 2 KM" → NM (0 when none). */
+export function sup_radius_nm(text: string): number {
+  const m = _RADIUS.exec(String(text || ""));
+  if (!m) return 0;
+  const v = parseFloat(m[1] || m[3] || "0");
+  const unit = (m[2] || m[4] || "NM").toUpperCase();
+  const nm = unit === "KM" ? v / 1.852 : unit === "M" ? v / 1852 : v;
+  return nm > 0 && nm < 300 ? nm : 0;
+}
+
+const _OBSTACLE_SUP = /\b(?:CRANES?|OBSTACLES?|FRANGIBLE|SCAFFOLD(?:ING)?)\b/i;
+const _AREA_SUP = /\b(?:AIRSPACE|BOUNDED|LATERAL\s+LIMITS?|RADIUS|CIRCLE|CORRIDOR|GEOFENCED?|TRA|TSA|DANGER|RESTRICTED|PROHIBITED|EXERCISE|FIRING|UNMANNED|DRONE|SUA|UAS)\b/i;
+const _DESIG = /\b([A-Z]{2}[PRDTW]\s?\d{1,4}[A-Z]?|[PRD]\s?-?\d{1,4}[A-Z]?|TC\s?-\s?\d+|TRA\s?-?\s?\d+[A-Z]?|TSA\s?-?\s?\d+[A-Z]?|(?:AREA|ZONE|SECTOR)\s+(?:[A-Z]\d{0,2}|\d{1,3}))\b/g;
+const _NOT_DESIG = /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|SUP|AIP|NR|NO)/;
+const _HEIGHT_GAP = /\b(?:FT|AMSL|AGL|ELEV(?:ATION)?|HEIGHT|HGT)\b/i;
+
+/** Closest area designator before a boundary (P61B, WMR416D, TC-1, AREA A); dates and "SUP 72" never count. */
+function supLabel(window: string): string {
+  const u = window.toUpperCase();
+  let best = "";
+  for (const m of u.matchAll(new RegExp(_DESIG.source, "g"))) {
+    const v = m[1]!.replace(/\s+/g, "");
+    if (_NOT_DESIG.test(v) && !/^(?:AREA|ZONE|SECTOR)/.test(v)) continue;
+    // "WMR416D bounded by … WMR416 boundary": a shorter mention of the same area keeps the full name.
+    if (best && best.startsWith(v)) continue;
+    best = v.replace(/^(AREA|ZONE|SECTOR)/, "$1 ");
+  }
+  return best;
+}
+
+const _WPT_GAP = /(?:^|\n)\s*[A-Z]{5}\s*(?:\n|$)/;
+
+/**
+ * SUP text (HTML-stripped or PDF) → one ring per published boundary: polygons (≥3 points, arcs
+ * drawn only when both ends sit on the stated radius) and "circle radius N NM/KM/M centred on X".
+ * Obstacle-only SUPs (cranes, frangible towers) never become areas, and lists whose points are
+ * separated by heights are treated as obstacle tables, not boundaries.
+ */
+export function parse_generic_sup_text(text: string, supKey = ""): RingTable {
+  const blob = sup_norm_coords(String(text || "").replace(/\r/g, ""));
+  const hits = coordHits(blob);
+  if (!hits.length) return {};
+  if (_OBSTACLE_SUP.test(blob) && !_AREA_SUP.test(blob)) return {};
+  type Item = { p: Pt; centre?: { r: number; cw: boolean | null } };
+  type Grp = { start: number; items: Item[]; gaps: string[]; circle?: { c: Pt; r: number }; label: string };
+  const groups: Grp[] = [];
+  let cur: Grp | null = null;
+  let prevEnd = 0;
+  let lastGroupEnd = 0;
+  const close = () => { if (cur) { groups.push(cur); lastGroupEnd = prevEnd; } cur = null; };
+  const labelAt = (at: number) => supLabel(blob.slice(Math.max(lastGroupEnd, at - 220), at));
+  for (let i = 0; i < hits.length; i++) {
+    const h = hits[i]!;
+    const gap = blob.slice(prevEnd, h.at);
+    const near = gap.slice(-180);
+    const next = hits[i + 1];
+    const after = blob.slice(h.end, next ? next.at : Math.min(blob.length, h.end + 120));
+    if (cur && !cur.circle && cur.items.length && next && /\barc\b/i.test(near)) {
+      const dir = `${near} ${after.slice(0, 80)}`;
+      const ccw = /(?:counter|anti)[\s-]*clock\s*wise/i.test(dir);
+      const cw = !ccw && /\bclock\s*wise/i.test(dir);
+      const r = sup_radius_nm(near) || sup_radius_nm(after) || parseFloat((/(\d+(?:\.\d+)?)\s*NM\b/i.exec(near) || [])[1] || "0");
+      cur.items.push({ p: h.p, centre: { r, cw: ccw ? false : cw ? true : null } });
+      cur.gaps.push(gap);
+      prevEnd = h.end;
+      continue;
+    }
+    const r = sup_radius_nm(near);
+    if (r > 0 && /\b(?:radius|circle)\b/i.test(near) && !/\barc\b/i.test(near)) {
+      close();
+      groups.push({ start: h.at, items: [], gaps: [], circle: { c: h.p, r }, label: labelAt(h.at) });
+      prevEnd = h.end;
+      lastGroupEnd = prevEnd;
+      continue;
+    }
+    if (cur && gap.replace(/\s+/g, " ").length > 200) close();
+    if (!cur) cur = { start: h.at, items: [], gaps: [], label: labelAt(h.at) };
+    const pts = cur.items.filter((it) => !it.centre);
+    const last = pts[pts.length - 1];
+    // The same vertex repeated (DMS then DDM side by side) is one point.
+    if (last && (ptsEqual(h.p, last.p) || nmApart(h.p, last.p) < 0.05)) { prevEnd = h.end; continue; }
+    if (pts.length >= 3 && ptsEqual(h.p, pts[0]!.p)) { prevEnd = h.end; close(); continue; }
+    if (cur.items.length) cur.gaps.push(gap);
+    cur.items.push({ p: h.p });
+    prevEnd = h.end;
+  }
+  close();
+  const out: RingTable = {};
+  const seen = new Set<string>();
+  let n = 0;
+  for (const g of groups) {
+    let ring: Pt[] = [];
+    if (g.circle) ring = thCircle(g.circle.c, g.circle.r);
+    else {
+      if (g.gaps.length && g.gaps.filter((x) => _HEIGHT_GAP.test(x)).length * 2 > g.gaps.length) continue;
+      // Waypoint tables (RUSSO / SUMEG … with coordinates) are not boundaries.
+      if (g.gaps.filter((x) => _WPT_GAP.test(x)).length >= 2) continue;
+      for (let i = 0; i < g.items.length; i++) {
+        const it = g.items[i]!;
+        if (!it.centre) { ring.push(it.p); continue; }
+        const prev = ring[ring.length - 1];
+        const nxt = g.items.slice(i + 1).find((x) => !x.centre);
+        const { r, cw } = it.centre;
+        if (!prev || !nxt || !(r > 0) || cw === null) continue;
+        const ok = (q: Pt) => Math.abs(nmApart(it.p, q) - r) <= Math.max(0.5, r * 0.15);
+        if (ok(prev) && ok(nxt.p)) for (const q of arcPoints(it.p, prev, nxt.p, r, cw, 72)) ring.push([round6(q[0]), round6(q[1])]);
+      }
+    }
+    if (ring.length < 3) continue;
+    const sig = ring.map((q) => `${q[0].toFixed(2)},${q[1].toFixed(2)}`).join(";");
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    n += 1;
+    out[`NR.${n}`] = { name: g.label || (supKey ? `SUP ${supKey} NR.${n}` : `NR.${n}`), ring };
+  }
+  return out;
+}
+
+// ---------- eAIP SUP index pages ----------
+export type SupIndexRow = { sup: string; label: string; subject: string; from: string; to: string; url: string };
+
+/** "AIRAC 174/2024", "083/2024", "12/26", "A 37/26" → "174/24", "83/24", "12/26", "37/26". */
+export function sup_key_of(raw: string): string {
+  const m = /([A-Z]?)\s*(\d{1,3})\s*\/\s*(\d{4}|\d{2})\b/.exec(String(raw || "").toUpperCase());
+  return m ? `${Number(m[2])}/${m[3]!.slice(-2)}` : "";
+}
+
+function absUrl(href: string, pageUrl: string): string {
+  // CAAM index hrefs carry stray list numbers: "../../../12. 2026-03-19-AIRAC/html/…".
+  const clean = String(href || "").trim().replace(/\/\d{1,3}\.\s+(?=\d{4}-)/g, "/").replace(/\\/g, "/");
+  try { return new URL(clean, pageUrl).toString(); } catch { return clean; }
+}
+
+function txt(html: string): string {
+  return sup_html_text(html).replace(/\s+/g, " ").trim();
+}
+
+/** Eurocontrol eAIP "SupTable" (Singapore, Malaysia, Korea): NR/Year link, period, subject row. */
+export function parse_eaip_sup_index(html: string, pageUrl: string): SupIndexRow[] {
+  const out: SupIndexRow[] = [];
+  const chunks = String(html || "").split(/class="SupTable-NRYear-td"/i).slice(1);
+  for (const ch of chunks) {
+    const a = /<a\b[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/i.exec(ch);
+    if (!a) continue;
+    const label = txt(a[2]!);
+    const sup = sup_key_of(label);
+    if (!sup) continue;
+    const period = /class="SupTable-Period[^"]*"[^>]*>([\s\S]*?)<\/td>/i.exec(ch);
+    const pm = /From\s+(.+?)\s+to\s+(.+)$/i.exec(period ? txt(period[1]!) : "");
+    const subj = /class="SupTable-Subject-td"[^>]*>([\s\S]*?)<\/td>/i.exec(ch);
+    out.push({ sup, label, subject: subj ? txt(subj[1]!) : "", from: pm ? pm[1]!.trim() : "", to: pm ? pm[2]!.trim() : "", url: absUrl(a[1]!, pageUrl) });
+  }
+  return out;
+}
+
+/** CAAT eSUP index: `<div class="SUP-Subject-" title="Published on …"><a href><strong>37/26</strong></a> <span>subject</span>`. */
+export function parse_th_sup_index(html: string, pageUrl: string): SupIndexRow[] {
+  const out: SupIndexRow[] = [];
+  const seen = new Set<string>();
+  for (const m of String(html || "").matchAll(/<a\b[^>]*href="([^"]*VT-eSUP-(\d{2})-0*(\d{1,3})-([A-Z])-en-GB\.html)"[^>]*>[\s\S]*?<\/a>\s*(?:<span[^>]*>([\s\S]*?)<\/span>)?/gi)) {
+    const sup = `${Number(m[3])}/${m[2]}`;
+    const series = m[4]!.toUpperCase();
+    if (seen.has(sup) && series !== "A") continue;
+    if (seen.has(sup)) { const i = out.findIndex((r) => r.sup === sup); if (i >= 0) out.splice(i, 1); }
+    seen.add(sup);
+    out.push({ sup, label: `${series} ${sup}`, subject: txt(m[5] || ""), from: "", to: "", url: absUrl(m[1]!, pageUrl) });
+  }
+  return out;
+}
+
+/** Hong Kong CAD `ais.json` → SUP rows (PDF per SUP). */
+export function parse_hk_sup_index(js: unknown, base = "https://www.ais.gov.hk/"): SupIndexRow[] {
+  const rows = (js as { supDetail?: unknown[] } | null)?.supDetail;
+  if (!Array.isArray(rows)) return [];
+  const out: SupIndexRow[] = [];
+  for (const r of rows as Record<string, unknown>[]) {
+    const sup = sup_key_of(String(r.docRef || ""));
+    const f = String(r.fName || "");
+    if (!sup || !f) continue;
+    out.push({ sup, label: String(r.docRef), subject: String(r.sTitle || "").trim(), from: String(r.lastUpdate || ""), to: "", url: absUrl(f, base) });
+  }
+  return out;
+}
+
+/** eAIP history page → package folders (2026-11-12, 2026-11-26-AIRAC…) newest first, at most `aheadDays` in the future. */
+export function eaip_cycles(historyHtml: string, today: string, aheadDays = 70): string[] {
+  const limit = new Date(Date.parse(`${today}T00:00:00Z`) + aheadDays * 86400_000).toISOString().slice(0, 10);
+  const out: string[] = [];
+  for (const m of String(historyHtml || "").matchAll(/href=["'](\d{4}-\d{2}-\d{2}(?:-AIRAC)?)\/html\/index-[a-z]{2}-[A-Z]{2}\.html["']/gi)) {
+    if (m[1]!.slice(0, 10) <= limit && !out.includes(m[1]!)) out.push(m[1]!);
+  }
+  return out.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+}
+
+const _MON: Record<string, number> = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
+/** "03 JAN 2028" / "01 APR 27" → ms (UTC end of day); NaN for UFN/PERM/blank. */
+export function sup_date_ms(s: string): number {
+  const m = /(\d{1,2})\s+([A-Z]{3})[A-Z]*\s+(\d{2,4})/.exec(String(s || "").toUpperCase());
+  if (!m || _MON[m[2]!] == null) return NaN;
+  const y = m[3]!.length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+  return Date.UTC(y, _MON[m[2]!]!, Number(m[1]), 23, 59);
+}
+
+/** Merge index pages newest first: first entry per SUP wins; drop SUPs whose end date has passed. */
+export function merge_sup_rows(lists: SupIndexRow[][], nowMs: number): SupIndexRow[] {
+  const out = new Map<string, SupIndexRow>();
+  for (const rows of lists) for (const r of rows) if (!out.has(r.sup)) out.set(r.sup, r);
+  return [...out.values()].filter((r) => { const t = sup_date_ms(r.to); return !(t < nowMs); })
+    .sort((a, b) => { const [na, ya] = a.sup.split("/").map(Number); const [nb, yb] = b.sup.split("/").map(Number); return (yb! - ya!) || (nb! - na!); });
+}
+
 export const _internal = { destPoint, arcPoints, coords, auRing, auCoords };

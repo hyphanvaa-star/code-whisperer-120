@@ -5,6 +5,17 @@ import * as aipRffs from "../port/aip_rffs";
 // identical to web.py. Open-in-Chrome needs a real Chrome on the dispatcher's
 // PC and is not available in this Worker runtime.
 export const routes: Routes = {
+  // Database → AIP SUP: current SUP lists per country + boundaries already read.
+  "GET /api/aipsup/catalog": async (ctx) => {
+    const { aipSupCatalog } = await import("../aip_sup.server");
+    return aipSupCatalog(ctx, ctx.params.get("force") === "1");
+  },
+
+  "GET /api/aipsup/read": async (ctx) => {
+    const { aipSupRead } = await import("../aip_sup.server");
+    return aipSupRead(ctx, ctx.params.get("cc") ?? "", ctx.params.get("sup") ?? "", ctx.params.get("force") === "1");
+  },
+
   "GET /api/aip/lookup": async (ctx) => {
     const icao = ctx.params.get("icao") ?? "";
     const query = ctx.params.get("q") ?? ctx.params.get("query") ?? ctx.params.get("topic") ?? "";

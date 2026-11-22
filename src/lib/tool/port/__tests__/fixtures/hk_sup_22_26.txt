@@ -1,0 +1,37 @@
+PHONE
+FAX
+AFS address
+E-mail
++852 2910 6174
++852 2910 1180
+VHHHYOYX
+aic@cad.gov.hk
+HONG KONG SPECIAL ADMINISTRATIVE REGION
+PEOPLE'S REPUBLIC OF CHINA
+AERONAUTICAL INFORMATION SERVICE
+(ISO 9001 CERTIFIED)
+AIR TRAFFIC MANAGEMENT DIVISION
+CIVIL AVIATION DEPARTMENT
+HONG KONG INTERNATIONAL AIRPORT
+MASS SMALL UNMANNED AIRCRAFT (SUA) OPERATION IN HONG KONG DISNEYLAND
+1 Mass SUA operation is conducted in Hong Kong Disneyland (within VHR12) according to the following parameters:
+2 Approved helicopter operation in VHR12 should exercise caution when operating in the vicinity of the above area.
+3 Contents of this AIP SUP will remain effective until the end of operation on 3 January 2027.
+4 AIP Supplement 20/26 is hereby superseded.
+Date: From now until 18 November 2026 16 November 2026 – 3 January 2027
+Time (UTC): 14:00 – 19:00 10:00 – 13:00
+Location: Phase 2 Back of House, Hong Kong Disneyland
+Description of the site: The SUA operation is geofenced and operates within 250m radius of 221848N
+1140248E
+Maximum operating
+altitude:
+260m AGL / 882ft AMSL
+2 NOV 26
+AIP SUPPLEMENT
+22/26
+INTENTIONALLY
+LEFT
+BLANK
+AIP HONG KONG
+Civil Aviation Department
+Hong Kong
