@@ -969,14 +969,23 @@ export function sup_radius_nm(text: string): number {
 
 const _OBSTACLE_SUP = /\b(?:CRANES?|OBSTACLES?|FRANGIBLE|SCAFFOLD(?:ING)?)\b/i;
 const _AREA_SUP = /\b(?:AIRSPACE|BOUNDED|LATERAL\s+LIMITS?|RADIUS|CIRCLE|CORRIDOR|GEOFENCED?|TRA|TSA|DANGER|RESTRICTED|PROHIBITED|EXERCISE|FIRING|UNMANNED|DRONE|SUA|UAS)\b/i;
-const _DESIG = /\b([A-Z]{2}[PRDTW]\s?\d{1,4}[A-Z]?|[PRD]\s?-?\d{1,4}[A-Z]?|TC\s?-\s?\d+|TRA\s?-?\s?\d+[A-Z]?|TSA\s?-?\s?\d+[A-Z]?|(?:AREA|ZONE|SECTOR)\s+[A-Z0-9]{1,3})\b/;
+const _DESIG = /\b([A-Z]{2}[PRDTW]\s?\d{1,4}[A-Z]?|[PRD]\s?-?\d{1,4}[A-Z]?|TC\s?-\s?\d+|TRA\s?-?\s?\d+[A-Z]?|TSA\s?-?\s?\d+[A-Z]?|(?:AREA|ZONE|SECTOR)\s+(?:[A-Z]\d{0,2}|\d{1,3}))\b/g;
+const _NOT_DESIG = /^(?:JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|SUP|AIP|NR|NO)/;
 const _HEIGHT_GAP = /\b(?:FT|AMSL|AGL|ELEV(?:ATION)?|HEIGHT|HGT)\b/i;
 
+/** Closest area designator before a boundary (P61B, WMR416D, TC-1, AREA A); dates and "SUP 72" never count. */
 function supLabel(window: string): string {
   const u = window.toUpperCase();
-  const m = _DESIG.exec(u);
-  return m ? m[1]!.replace(/\s+/g, "").replace(/^(AREA|ZONE|SECTOR)/, "$1 ") : "";
+  let best = "";
+  for (const m of u.matchAll(new RegExp(_DESIG.source, "g"))) {
+    const v = m[1]!.replace(/\s+/g, "");
+    if (_NOT_DESIG.test(v) && !/^(?:AREA|ZONE|SECTOR)/.test(v)) continue;
+    best = v.replace(/^(AREA|ZONE|SECTOR)/, "$1 ");
+  }
+  return best;
 }
+
+const _WPT_GAP = /(?:^|\n)\s*[A-Z]{5}\s*(?:\n|$)/;
 
 /**
  * SUP text (HTML-stripped or PDF) → one ring per published boundary: polygons (≥3 points, arcs
@@ -1007,7 +1016,7 @@ export function parse_generic_sup_text(text: string, supKey = ""): RingTable {
       const dir = `${near} ${after.slice(0, 80)}`;
       const ccw = /(?:counter|anti)[\s-]*clock\s*wise/i.test(dir);
       const cw = !ccw && /\bclock\s*wise/i.test(dir);
-      const r = sup_radius_nm(near) || sup_radius_nm(after);
+      const r = sup_radius_nm(near) || sup_radius_nm(after) || parseFloat((/(\d+(?:\.\d+)?)\s*NM\b/i.exec(near) || [])[1] || "0");
       cur.items.push({ p: h.p, centre: { r, cw: ccw ? false : cw ? true : null } });
       cur.gaps.push(gap);
       prevEnd = h.end;
@@ -1025,7 +1034,8 @@ export function parse_generic_sup_text(text: string, supKey = ""): RingTable {
     if (!cur) cur = { start: h.at, items: [], gaps: [], label: labelAt(h.at) };
     const pts = cur.items.filter((it) => !it.centre);
     const last = pts[pts.length - 1];
-    if (last && ptsEqual(h.p, last.p)) { prevEnd = h.end; continue; }
+    // The same vertex repeated (DMS then DDM side by side) is one point.
+    if (last && (ptsEqual(h.p, last.p) || nmApart(h.p, last.p) < 0.05)) { prevEnd = h.end; continue; }
     if (pts.length >= 3 && ptsEqual(h.p, pts[0]!.p)) { prevEnd = h.end; close(); continue; }
     if (cur.items.length) cur.gaps.push(gap);
     cur.items.push({ p: h.p });
@@ -1040,6 +1050,8 @@ export function parse_generic_sup_text(text: string, supKey = ""): RingTable {
     if (g.circle) ring = thCircle(g.circle.c, g.circle.r);
     else {
       if (g.gaps.length && g.gaps.filter((x) => _HEIGHT_GAP.test(x)).length * 2 > g.gaps.length) continue;
+      // Waypoint tables (RUSSO / SUMEG … with coordinates) are not boundaries.
+      if (g.gaps.filter((x) => _WPT_GAP.test(x)).length >= 2) continue;
       for (let i = 0; i < g.items.length; i++) {
         const it = g.items[i]!;
         if (!it.centre) { ring.push(it.p); continue; }
