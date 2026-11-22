@@ -128,7 +128,7 @@
         .then(function(r){ return r.json(); }).then(function(d){
           var c = data && data.countries.find(function(x){ return x.cc === cc; });
           var s = c && c.sups.find(function(x){ return x.sup === sup; });
-          if(s && d && !d.error_route) s.read = { ok: !!d.ok, ts: d.ts, areas: d.areas || [], error: d.error };
+          if(s && d) s.read = { ok: !!d.ok, ts: d.ts, areas: d.areas || [], error: d.error };
         });
     }
     function show(){ grid.style.display = "none"; wrap.querySelectorAll("#dbxBookPane,#dbxFilePane,#dbxDefPane,#dbxAirPane,#dbxAptPane").forEach(function(x){ x.style.display = "none"; }); pane.style.display = "flex"; if(!data) load(false); else draw(); }

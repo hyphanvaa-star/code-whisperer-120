@@ -12,7 +12,8 @@
     ["dbxAftnBook","AFTN Address","Danh bạ CODE → địa chỉ AFTN","📡","#0f766e"],
     ["dbxFiles","Quản lí file","Các file đang lưu trên máy chủ: xem, tìm, tải về, xoá (admin)","🗂️","#4f46e5"],
     ["dbxAirports","Airport","Sân bay theo quốc gia · giờ Local time hiện tại","🛫","#0369a1"],
-    ["dbxAirspace","Named Airspace","Danh mục vùng theo quốc gia · AIP ENR","🌐","var(--x-red)"]
+    ["dbxAirspace","Named Airspace","Danh mục vùng theo quốc gia · AIP ENR","🌐","var(--x-red)"],
+    ["dbxAipSup","AIP SUP","AIP SUP hiện hành theo quốc gia · vùng tự đọc từ eAIP","📑","#b45309"]
   ];
   function init(){
     var aftn = document.getElementById("mAftn"), ref = document.getElementById("wrapAftn");
