@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessNotam, DEFAULT_ASSESS_CFG, ENROUTE_LOW_PORT_NM, lowEnroutePortDistNm, type AssessFlight } from "../notam_assess";
+import { assessNotam, DEFAULT_ASSESS_CFG, ENROUTE_LOW_PORT_NM, lowEnroutePortDistNm, normAssessCfg, type AssessCfg, type AssessFlight } from "../notam_assess";
 
 // VVTS → VTBS crossing VDPP (Phnom Penh FIR) as an en-route FIR.
 const etd = new Date("2026-11-22T06:00:00Z");
@@ -21,14 +21,21 @@ const f: AssessFlight = {
   ],
   tokens: new Set(), sid: null, star: null, acType: "A321",
 };
-const run = (coords: string, e: string) => assessNotam({
+const run = (coords: string, e: string, cfg: AssessCfg = DEFAULT_ASSESS_CFG) => assessNotam({
   start: "2026-11-22 00:00", end: "2026-11-23 00:00", lower: "0", upper: "080", qfir: "VDPP", coords,
   text: `Q)VDPP/QRDCA/IV/BO/W/000/080/${coords}\nE)${e}`, e_field: e,
-}, "VDPP", "FIR", f, DEFAULT_ASSESS_CFG);
+}, "VDPP", "FIR", f, cfg);
 
 describe("en-route FIR NOTAM below FL100 near DEP/ARR", () => {
   it("uses 50 NM as the keep radius", () => {
     expect(ENROUTE_LOW_PORT_NM).toBe(50);
+    expect(DEFAULT_ASSESS_CFG.enroute_low_port_nm).toBe(50);
+  });
+  it("Filter setting radius is user-adjustable: 20 NM drops the ~35 NM area, 200 NM keeps the mid-route one", () => {
+    const near = "DANGER AREA ACT WI 5NM RADIUS OF 1105N10607E SFC-FL080";
+    expect(run("1105N10607E005", near, normAssessCfg({ enroute_low_port_nm: 20 })).level).toBe("NO IMPACT");
+    const mid = "DANGER AREA ACT WI 5NM RADIUS OF 1212N10330E SFC-FL080";
+    expect(run("1212N10330E005", mid, normAssessCfg({ enroute_low_port_nm: 200 })).level).not.toBe("NO IMPACT");
   });
   it("area ~35 NM from DEP VVTS in en-route FIR VDPP is kept and graded (not dropped)", () => {
     const r = run("1105N10607E005", "DANGER AREA ACT WI 5NM RADIUS OF 1105N10607E SFC-FL080");

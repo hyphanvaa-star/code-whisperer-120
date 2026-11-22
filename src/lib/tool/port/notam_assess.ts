@@ -27,13 +27,15 @@ export interface AssessCfg {
   alt_buffer_ft: number;
   /** Delays up to this many minutes are within the operational buffer and still CRITICAL. */
   delay_buffer_minutes: number;
+  /** En-route FIR NOTAMs below FL100 are kept when their area is within this many NM of DEP/ARR. */
+  enroute_low_port_nm: number;
 }
 export const DEFAULT_ASSESS_CFG: AssessCfg = {
   corridor_nm: 15, max_delay_minutes: 180,
   dep_before: 60, dep_after: 60, arr_before: 60, arr_after: 60,
   talt_before: 15, talt_after: 60, enrt_alt_before: 60, enrt_alt_after: 60,
   dest_alt_before: 60, dest_alt_after: 60, fir_before: 60, fir_after: 60,
-  alt_buffer_ft: 10000, delay_buffer_minutes: 60,
+  alt_buffer_ft: 10000, delay_buffer_minutes: 60, enroute_low_port_nm: 50,
 };
 export function normAssessCfg(raw: unknown): AssessCfg {
   const src = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
@@ -41,7 +43,7 @@ export function normAssessCfg(raw: unknown): AssessCfg {
   for (const k of Object.keys(out) as (keyof AssessCfg)[]) {
     const v = Number(src[k]);
     if (src[k] !== undefined && src[k] !== "" && Number.isFinite(v) && v >= 0) {
-      out[k] = Math.min(k === "corridor_nm" ? 200 : k === "alt_buffer_ft" ? 20000 : 1440, v);
+      out[k] = Math.min(k === "corridor_nm" ? 200 : k === "enroute_low_port_nm" ? 500 : k === "alt_buffer_ft" ? 20000 : 1440, v);
     }
   }
   if (out.corridor_nm === 5) out.corridor_nm = 15; // legacy default
@@ -740,7 +742,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
 /** A single coordinate written in item E (not the Q-line centre pin). */
 function isEPoint(g: { shape: string; source?: string }): boolean { return g.shape === "dot" && g.source === "e-field"; }
 
-/** An en-route FIR NOTAM below FL100 is kept when its area lies within this distance of DEP or ARR. */
+/** Default distance (NM, Filter setting `enroute_low_port_nm`) within which a low en-route FIR NOTAM is kept. */
 export const ENROUTE_LOW_PORT_NM = 50;
 /** Shortest distance (NM) from the NOTAM area to the DEP/ARR airports; null when it cannot be measured. */
 export function lowEnroutePortDistNm(n: Notam, f: AssessFlight): number | null {
@@ -911,13 +913,14 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
     if (kind === "FIR" && band && band[1] < 100 && firKeys.length > 2 && firKeys.indexOf(firCode) > 0 && firKeys.indexOf(firCode) < firKeys.length - 1) {
       // Climb/descent can cross a neighbouring FIR below FL100: only areas far from DEP/ARR are dropped.
       const dPort = lowEnroutePortDistNm(n, f);
-      if (dPort !== null && dPort > ENROUTE_LOW_PORT_NM) {
-        reasons.push(`FIR ${firCode} là FIR enroute, vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (> ${ENROUTE_LOW_PORT_NM} NM); trần FL${band[1]} dưới FL100 không tính.`);
+      const keepNm = Number.isFinite(Number(cfg.enroute_low_port_nm)) ? Number(cfg.enroute_low_port_nm) : ENROUTE_LOW_PORT_NM;
+      if (dPort !== null && dPort > keepNm) {
+        reasons.push(`FIR ${firCode} là FIR enroute, vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (> ${keepNm} NM); trần FL${band[1]} dưới FL100 không tính.`);
         return out("NO IMPACT", sp.type);
       }
       reasons.push(dPort === null
         ? `FIR ${firCode} là FIR enroute nhưng không đo được cự ly vùng NOTAM tới DEP/ARR — vẫn xét tiếp NOTAM trần FL${band[1]}.`
-        : `FIR ${firCode} là FIR enroute nhưng vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (≤ ${ENROUTE_LOW_PORT_NM} NM, đang leo/hạ) — vẫn xét tiếp NOTAM trần FL${band[1]}.`);
+        : `FIR ${firCode} là FIR enroute nhưng vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (≤ ${keepNm} NM, đang leo/hạ) — vẫn xét tiếp NOTAM trần FL${band[1]}.`);
     }
     if (!band || !fr) { reasons.push("Thiếu cao độ NOTAM hoặc FL của chuyến tại điểm giao."); return out("NEED MANUAL CHECK", sp.type); }
     const pad = Math.round((cfg.alt_buffer_ft ?? 0) / 100);
