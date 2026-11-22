@@ -19,6 +19,7 @@ const FETCH_TO_MS = 15_000;
 const AUTH_URL = "https://top.swim.mlit.go.jp/swim/webapi/login";
 const AIP_BASE = "https://web.swim.mlit.go.jp";
 const TW_EAIP = "https://ais.caa.gov.tw/eaip/";
+const TH_EAIP = "https://aip.caat.or.th/";
 const DAH_PDF = [
   "https://www.airservicesaustralia.com/aip/current/dah/DAH_09JUL2026.pdf",
   "https://www.airservicesaustralia.com/aip/current/dah/DAH_26NOV2026.pdf",
@@ -125,6 +126,7 @@ function adapterFor(fir: string): string {
   const ad = String(row?.adapter || "");
   if (ad) return ad;
   if (code === "RCAA" || code.startsWith("RC")) return "tw_eaip";
+  if (code.startsWith("VT")) return "th_eaip";
   if (!code || code.startsWith("RJ") || code === "RJJJ") return "jp_swim";
   return "";
 }
@@ -376,6 +378,49 @@ async function fetchTaiwan(sup: string): Promise<RingTable> {
   throw new Error(`không lấy được SUP Đài Loan ${sup}: ${last}`);
 }
 
+// Thailand: CAAT eAIP is public. Non-AIRAC SUPs appear only in the newest published package's
+// index, so scan publication folders newest first; index pages are reused for an hour per isolate.
+let _thCycles: { at: number; list: string[] } | null = null;
+const _thIndex = new Map<string, { at: number; html: string }>();
+const TH_TTL_MS = 60 * 60 * 1000;
+
+async function thCycleList(): Promise<string[]> {
+  if (_thCycles && Date.now() - _thCycles.at < TH_TTL_MS) return _thCycles.list;
+  const { status, body } = await httpFetch(TH_EAIP);
+  if (status >= 400) throw new Error(`CAAT eAIP HTTP ${status}`);
+  const list = p.th_cycles(new TextDecoder().decode(body)).slice(0, 3);
+  if (!list.length) throw new Error("CAAT eAIP không có danh sách chu kỳ");
+  _thCycles = { at: Date.now(), list };
+  return list;
+}
+
+async function thIndexHtml(cycle: string): Promise<string> {
+  const hit = _thIndex.get(cycle);
+  if (hit && Date.now() - hit.at < TH_TTL_MS) return hit.html;
+  const { status, body } = await httpFetch(`${TH_EAIP}${cycle}/html/eSUP/VT-eSUPs-en-GB.html`);
+  const html = status < 400 ? new TextDecoder().decode(body) : "";
+  _thIndex.set(cycle, { at: Date.now(), html });
+  return html;
+}
+
+export async function fetchThailand(sup: string): Promise<RingTable> {
+  if (!/^[A-Z]?\d{1,3}\/\d{2}$/.test(sup.toUpperCase())) throw new Error(`SUP Thái Lan không hiểu: ${sup}`);
+  let last = "";
+  for (const cycle of await thCycleList()) {
+    const index = `${TH_EAIP}${cycle}/html/eSUP/VT-eSUPs-en-GB.html`;
+    const href = p.th_sup_href(await thIndexHtml(cycle), sup);
+    if (!href) { last = `không thấy ${sup} trong ${cycle}`; continue; }
+    const page = new URL(href, index).toString();
+    const resp = await httpFetch(page);
+    if (resp.status >= 400) { last = `SUP HTTP ${resp.status}`; continue; }
+    const table = p.parse_thailand_sup_html(new TextDecoder().decode(resp.body), sup);
+    if (Object.keys(table).length) return table;
+    // The SUP exists but publishes no boundary coordinates (e.g. apron/procedure changes).
+    throw new Error(`SUP Thái Lan ${sup} không có tọa độ vùng`);
+  }
+  throw new Error(`không lấy được SUP Thái Lan ${sup}: ${last}`);
+}
+
 async function fetchDah(): Promise<Record<string, Pt[]>> {
   let body: ArrayBuffer | null = null;
   for (const url of DAH_PDF) {
@@ -443,7 +488,7 @@ export async function rings_of(sup: string, fir = "", requestCtx?: Ctx): Promise
   const cached = await readCache(ctx, scoped);
   if (cached !== null) return cached;
   const kind = adapterFor(fir);
-  const fetchFn = ({ jp_swim: fetchJapan, au_airservices: fetchAustralia, tw_eaip: fetchTaiwan } as Record<string, (s: string) => Promise<RingTable>>)[kind];
+  const fetchFn = ({ jp_swim: fetchJapan, au_airservices: fetchAustralia, tw_eaip: fetchTaiwan, th_eaip: fetchThailand } as Record<string, (s: string) => Promise<RingTable>>)[kind];
   if (!fetchFn) return {};
   if (netPaused()) return {};
   try {

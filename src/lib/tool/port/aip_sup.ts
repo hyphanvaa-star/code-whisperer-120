@@ -790,4 +790,126 @@ export function parse_taiwan_sup_hours(text: string): string {
   return `${head}${m.groups!.fm}-${m.groups!.to}`;
 }
 
+// ---------- Thailand (CAAT eAIP, Eurocontrol HTML) ----------
+// Coordinates: 161700N1002200E, 164613.2N 1001728.9E, 1617N 10022E.
+const _TH_LL = /(?<![\d.])(\d{4}(?:\d{2})?(?:\.\d+)?)\s*([NS])\s*\/?\s*(\d{5}(?:\d{2})?(?:\.\d+)?)\s*([EW])(?![A-Z])/g;
+
+function thDms(v: string, deg: number): number {
+  const [ip, fp] = v.split(".");
+  const d = +ip!.slice(0, deg), mm = +ip!.slice(deg, deg + 2), ss = ip!.slice(deg + 2);
+  if (!ss) return d + (mm + (fp ? parseFloat(`0.${fp}`) : 0)) / 60;
+  return d + mm / 60 + parseFloat(fp ? `${ss}.${fp}` : ss) / 3600;
+}
+
+function thCellText(html: string): string {
+  return String(html || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/[ \t]+/g, " ");
+}
+
+function thCircle(ctr: Pt, radNm: number, n = 36): Pt[] {
+  const out: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const p = destPoint(ctr[0], ctr[1], (360 * i) / n, radNm);
+    out.push([round6(p[0]), round6(p[1])]);
+  }
+  return out;
+}
+
+/**
+ * One boundary description → ring. "Then follow the arc 30 NM counter clockwise from PSL VOR
+ * (164613.2N 1001728.9E) to 163500N 1004600E": the bracketed centre is never a vertex; the arc
+ * is drawn only when both ends lie on the stated radius (±15 %), otherwise the published chord.
+ */
+export function th_boundary_ring(text: string): Pt[] {
+  const blob = String(text || "");
+  const hits = [...blob.matchAll(new RegExp(_TH_LL.source, "g"))];
+  const items = hits.map((m) => {
+    const lat = thDms(m[1]!, 2) * (m[2] === "S" ? -1 : 1);
+    const lon = thDms(m[3]!, 3) * (m[4] === "W" ? -1 : 1);
+    const before = blob.slice(Math.max(0, (m.index ?? 0) - 1), m.index ?? 0);
+    return { p: [round6(lat), round6(lon)] as Pt, at: m.index ?? 0, end: (m.index ?? 0) + m[0].length, bracket: before === "(" };
+  });
+  if (!items.length) return [];
+  // Single centre + "radius N NM" → circle.
+  const circ = /\b(?:circle|radius)\b[^.]*?(\d+(?:\.\d+)?)\s*NM\b|(\d+(?:\.\d+)?)\s*NM\s+radius/i.exec(blob);
+  if (items.length === 1 && circ && /\b(?:centred|centered|center|centre)\b/i.test(blob)) {
+    const r = parseFloat(circ[1] || circ[2] || "0");
+    return r > 0 && r < 300 ? thCircle(items[0]!.p, r) : [];
+  }
+  const ring: Pt[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i]!;
+    const gap = blob.slice(i ? items[i - 1]!.end : 0, it.at);
+    const isCentre = it.bracket && /\barc\b/i.test(gap);
+    if (isCentre) {
+      const prev = ring[ring.length - 1];
+      const next = items[i + 1];
+      const rm = /(\d+(?:\.\d+)?)\s*NM/i.exec(gap);
+      const ccw = /(?:counter|anti)[\s-]*clock\s*wise/i.test(gap);
+      const cw = !ccw && /\bclock\s*wise/i.test(gap);
+      if (prev && next && rm && (ccw || cw)) {
+        const r = parseFloat(rm[1]!);
+        const ok = (q: Pt) => Math.abs(nmApart(it.p, q) - r) <= Math.max(1, r * 0.15);
+        if (ok(prev) && ok(next.p)) for (const q of arcPoints(it.p, prev, next.p, r, cw, 72)) ring.push([round6(q[0]), round6(q[1])]);
+      }
+      continue;
+    }
+    if (ring.length && ptsEqual(it.p, ring[ring.length - 1]!)) continue;
+    if (ring.length >= 3 && ptsEqual(it.p, ring[0]!)) break;
+    ring.push(it.p);
+  }
+  return ring.length >= 3 ? ring : [];
+}
+
+/**
+ * CAAT eSUP HTML (VT-eSUP-26-37-A-en-GB.html) → one ring per table cell that describes a boundary.
+ * The cell's first line ("ATOE AREA") names the area; route/frequency tables have no coordinates.
+ */
+export function parse_thailand_sup_html(html: string, supKey = ""): RingTable {
+  const src = String(html || "").replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, " ");
+  const cells = [...src.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)].map((m) => m[1]!);
+  // Boundaries written as plain paragraphs (no table) still count.
+  if (!cells.some((c) => (thCellText(c).match(new RegExp(_TH_LL.source, "g")) || []).length >= 3)) {
+    cells.push(...[...src.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => m[1]!));
+  }
+  const out: RingTable = {};
+  const seen = new Set<string>();
+  let n = 0;
+  for (const cell of cells) {
+    const text = thCellText(cell);
+    const ring = th_boundary_ring(text);
+    if (ring.length < 3) continue;
+    const sig = ring.map((q) => q.join(",")).join(";");
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+    n += 1;
+    const first = text.split("\n").map((x) => x.trim()).find(Boolean) || "";
+    const named = first && first.length <= 60 && !new RegExp(_TH_LL.source).test(first) && !/^(start|the area|from|area bounded)/i.test(first);
+    out[`NR.${n}`] = { name: named ? first.toUpperCase().replace(/\s+/g, " ") : (supKey ? `SUP ${supKey} NR.${n}` : `NR.${n}`), ring };
+  }
+  return out;
+}
+
+/** Index page (VT-eSUPs-en-GB.html) → href of the wanted SUP, e.g. 37/26 series A. */
+export function th_sup_href(indexHtml: string, sup: string): string {
+  const m = /^([A-Z]?)(\d{1,3})\/(\d{2})$/.exec(String(sup || "").toUpperCase());
+  if (!m) return "";
+  const series = m[1] || "[A-Z]";
+  const rx = new RegExp(`href=["']([^"']*VT-eSUP-${m[3]}-0*${parseInt(m[2]!, 10)}-${series}-en-GB\\.html)["']`, "i");
+  return rx.exec(String(indexHtml || ""))?.[1] || "";
+}
+
+/** CAAT home page → publication folders newest first (2026-12-24-AIRAC, 2026-11-23…). */
+export function th_cycles(homeHtml: string): string[] {
+  const out: string[] = [];
+  for (const m of String(homeHtml || "").matchAll(/href=["'](\d{4}-\d{2}-\d{2}(?:-AIRAC)?)\/html\/index-en-GB\.html["']/gi)) {
+    if (!out.includes(m[1]!)) out.push(m[1]!);
+  }
+  return out.sort((a, b) => (a < b ? 1 : a > b ? -1 : 0));
+}
+
 export const _internal = { destPoint, arcPoints, coords, auRing, auCoords };
