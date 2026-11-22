@@ -128,6 +128,10 @@ import { unzipSync, strFromU8 } from "fflate";
 import { jmaCode, jmaStorm, jtwcStorms, mergeStorms, type Storm } from '../port/storms';
 
 import { sigmetItems } from "../port/sigmet";
+import { svAiracCycle, svParseInit, SV_DEFAULT_BASE, type SvConfig } from "../port/skyvector";
+const SV_TTL_MS = 3_600_000;
+let svCacheAt = 0;
+let svCache: SvConfig | null = null;
 const AWC_ISIGMET = "https://aviationweather.gov/api/data/isigmet?format=json";
 const SIGMET_TTL_MS = 180_000;
 let sigmetCacheAt = 0;
@@ -242,6 +246,26 @@ Object.assign(routes, {
       return await stormsPayload(force, ctx);
     } catch (exc) {
       return { features: [], storms: [], error: String((exc as Error)?.message ?? exc) };
+    }
+  },
+
+  // SkyVector đổi edition theo chu kỳ AIRAC (28 ngày); edition cũ trả 404 làm
+  // bản đồ NOTAM trắng. Lấy edition/tile server hiện hành từ SkyVector.
+  "GET /api/map/skyvector": async (ctx: Parameters<Routes[string]>[0]) => {
+    const force = ctx.params.get("refresh") === "1";
+    if (!force && svCache && Date.now() - svCacheAt < SV_TTL_MS) return { ...svCache, source: "skyvector" };
+    try {
+      const r = await fetch("https://skyvector.com/api/init?c=302", { headers: UA_HEADERS, signal: AbortSignal.timeout(10000) });
+      if (!r.ok) throw new Error(`SkyVector ${r.status}`);
+      const cfg = svParseInit(await r.json());
+      if (!cfg) throw new Error("SkyVector: không đọc được edition");
+      svCache = cfg;
+      svCacheAt = Date.now();
+      return { ...cfg, source: "skyvector" };
+    } catch (exc) {
+      const error = String((exc as Error)?.message ?? exc);
+      if (svCache) return { ...svCache, source: "cache", warning: error };
+      return { base: SV_DEFAULT_BASE, edition: svAiracCycle(Date.now()), source: "airac", warning: error };
     }
   },
 

@@ -26,6 +26,7 @@ import sigmetLayerScript from '@/tool/sigmet-layer.js?raw';
 import aimsCrewlistScript from '@/tool/aims-crewlist.js?raw';
 import ofpCheckModalScript from '@/tool/ofp-check-modal.js?raw';
 import { maParse, maBand, maCheck } from '@/lib/tool/port/manual_area';
+import { svAiracCycle, svPrevCycle, SV_DEFAULT_BASE } from '@/lib/tool/port/skyvector';
 import { enrCatalogue } from '@/lib/tool/port/aip_enr_catalog';
 import { auDahCatalogue } from '@/lib/tool/port/au_dah_catalog';
 import { airportCatalogue } from '@/lib/tool/port/airport_catalogue';
@@ -49,6 +50,30 @@ import { isVipMovement } from '@/lib/tool/port/notam_vip';
 import { EXTRA_CFG_JS } from '@/lib/tool/extra-cfg-shim';
 const NM_TRACK_UNID = 'if(n.unidentified_area){ const u = document.createElement("i"); u.className = "nm-unid"; u.textContent = "⚠ UNIDENTIFIED AREA"; u.title = "Không xác định được vùng ảnh hưởng — cần xem NOTAM/tài liệu tham chiếu"; tag.appendChild(u); }';
 const NM_VIP_BADGE = 'if(n.vip_hold || (window.nmIsVip && window.nmIsVip([n.e_field, n.text].join(" ")))){ const v = document.createElement("i"); v.className = "nm-vip" + (n.vip_hold ? " on" : ""); v.textContent = n.vip_hold ? "⚠ VIP MOV · CẦN EXTRA FUEL HOLDING" : "⚠ VIP MOV"; v.title = n.vip_hold ? "Chuyến hạ cánh trùng giờ VIP — có thể phải holding, cần nạp extra fuel" : "VIP MOV: chuyến nào hạ cánh trong khung giờ này cần extra fuel để holding (xem mục VIP MOV ở Thông tin chung)"; tag.appendChild(v); }';
+
+// SkyVector tiles: edition from /api/map/skyvector (SkyVector's own init),
+// computed AIRAC until it answers; if every tile 404s, step back one cycle once.
+const SV_SHIM = `(function(){
+  var airac = ${svAiracCycle.toString()};
+  var prev = ${svPrevCycle.toString()};
+  var cfg = {base: ${JSON.stringify(SV_DEFAULT_BASE)}, edition: airac(Date.now())};
+  window.__svGet = function(){ return cfg; };
+  window.__svSync = function(layers){
+    var ok = 0, bad = 0, stepped = false;
+    function redraw(){ ok = 0; bad = 0; layers.forEach(function(l){ try { l.redraw(); } catch(e){} }); }
+    layers.forEach(function(l){
+      l.on("tileload", function(){ ok++; });
+      l.on("tileerror", function(){
+        bad++;
+        if (!stepped && ok === 0 && bad >= 6) { stepped = true; cfg = {base: cfg.base, edition: prev(cfg.edition, Date.now())}; redraw(); }
+      });
+    });
+    fetch("/api/map/skyvector").then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+      if (!j || !j.edition || !j.base) return;
+      if (j.edition !== cfg.edition || j.base !== cfg.base) { cfg = {base: j.base, edition: j.edition}; stepped = true; redraw(); }
+    }).catch(function(){});
+  };
+})();`;
 
 // Serves the original Dispatch Board screen (web.py PAGE) unchanged, plus a tiny
 // shim that attaches the signed-in user's token to every /api/ call. The old
@@ -3315,7 +3340,11 @@ function nmPaintPinBar(n, place){`)
     .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
     .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
     .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.32')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.33')
+    // V 7.33: bản đồ SkyVector tự nhận edition AIRAC mới (hết bị trắng khi SkyVector sang chu kỳ mới).
+    .replace('return "https://t.skyvector.com/ABPNMzP6pI9L/" + this.options.svLayer + "/2610/" +', 'const g = window.__svGet(); return g.base + "/" + this.options.svLayer + "/" + g.edition + "/" +')
+    .replace('<head>', '<head><script>' + SV_SHIM + '</script>')
+    .replace('  svLo.addTo(nmMap);\n', '  svLo.addTo(nmMap);\n  window.__svSync([svLo, svVfr]);\n')
     // V 7.26: header — vùng đỏ rộng hơn chứa đủ email, chữ credit/contact to hơn, thanh lọc hạ 10px.
     // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.
