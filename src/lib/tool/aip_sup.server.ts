@@ -6,7 +6,7 @@ import type { Ctx } from "./types";
 import { getJson, setJson } from "./store.server";
 import * as p from "./port/aip_sup";
 import AU_DAH from "./data/au_dah.json";
-import type { RingTable, Pt } from "./port/aip_sup";
+import type { RingTable, Pt, SupIndexRow } from "./port/aip_sup";
 import { parseEnr53Text, parseEnr51Text, idsInText } from './port/aip_jp';
 import { parseKrEnrHtml } from './port/aip_enr';
 
@@ -127,6 +127,10 @@ function adapterFor(fir: string): string {
   if (ad) return ad;
   if (code === "RCAA" || code.startsWith("RC")) return "tw_eaip";
   if (code.startsWith("VT")) return "th_eaip";
+  if (code.startsWith("WS")) return "sg_eaip";
+  if (code.startsWith("RK")) return "kr_eaip";
+  if (code.startsWith("VH")) return "hk_ais";
+  if (code.startsWith("WM") || (code.startsWith("WB") && !code.startsWith("WBS"))) return "my_eaip";
   if (!code || code.startsWith("RJ") || code === "RJJJ") return "jp_swim";
   return "";
 }
@@ -454,6 +458,167 @@ async function dahRings(ctx: Ctx): Promise<Record<string, Pt[]>> {
   }
 }
 
+// ---------- Index-driven adapters: Singapore, Korea, Hong Kong, Malaysia (+ Thailand list) ----------
+// Each portal publishes a public SUP list; the SUP number from the NOTAM is looked up there and the
+// linked HTML/PDF is parsed with the generic boundary reader. Index pages are reused for an hour.
+const SG_HOME = "https://aim-sg.caas.gov.sg/aip/";
+const MY_BASE = "https://aip.caam.gov.my/aip/eAIP/";
+const KR_BASE = "https://aim.koca.go.kr/eaipPub/Package/";
+const KR_HISTORY = `${KR_BASE}history-en-GB.html`;
+const HK_JSON = "https://www.ais.gov.hk/ais.json";
+const IDX_MEM_MS = 60 * 60 * 1000;
+
+export type SupCountry = { cc: string; name: string; adapter: string; firs: string[]; portal: string; live: boolean };
+/** Countries whose AIP SUP boundaries are read automatically; `live` = the current SUP list is fetched from the portal. */
+export const SUP_COUNTRIES: SupCountry[] = [
+  { cc: "SG", name: "Singapore", adapter: "sg_eaip", firs: ["WSJC"], portal: SG_HOME, live: true },
+  { cc: "KR", name: "Hàn Quốc", adapter: "kr_eaip", firs: ["RKRR"], portal: "https://aim.koca.go.kr/", live: true },
+  { cc: "HK", name: "Hồng Kông", adapter: "hk_ais", firs: ["VHHK"], portal: "https://www.ais.gov.hk/", live: true },
+  { cc: "MY", name: "Malaysia", adapter: "my_eaip", firs: ["WMFC", "WBFC"], portal: "https://aip.caam.gov.my/", live: true },
+  { cc: "TH", name: "Thái Lan", adapter: "th_eaip", firs: ["VTBB"], portal: TH_EAIP, live: true },
+  { cc: "JP", name: "Nhật Bản", adapter: "jp_swim", firs: ["RJJJ"], portal: "https://web.swim.mlit.go.jp/", live: false },
+  { cc: "TW", name: "Đài Loan", adapter: "tw_eaip", firs: ["RCAA"], portal: TW_EAIP, live: false },
+  { cc: "AU", name: "Úc", adapter: "au_airservices", firs: ["YMMM", "YBBB"], portal: "https://www.airservicesaustralia.com/aip/", live: false },
+];
+
+async function getText(url: string): Promise<string> {
+  const r = await httpFetch(url);
+  if (r.status >= 400) throw new Error(`HTTP ${r.status}`);
+  return new TextDecoder().decode(r.body);
+}
+
+const _idxMem = new Map<string, { at: number; rows: SupIndexRow[]; src: string }>();
+
+async function packageLists(history: string, base: string, page: string, today: string): Promise<{ lists: SupIndexRow[][]; src: string }> {
+  const cycles = p.eaip_cycles(history, today).slice(0, 3);
+  if (!cycles.length) throw new Error("không thấy gói eAIP");
+  const lists: SupIndexRow[][] = [];
+  let src = "";
+  for (const c of cycles) {
+    const url = `${base}${c}/html/eSUP/${page}`;
+    try {
+      const rows = p.parse_eaip_sup_index(await getText(url), url);
+      if (rows.length) { lists.push(rows); src ||= url; }
+    } catch { /* older package next */ }
+  }
+  if (!lists.length) throw new Error("không đọc được danh sách SUP");
+  return { lists, src };
+}
+
+/** Current SUP list of one country (live portals only). */
+export async function loadSupIndex(cc: string, force = false): Promise<{ rows: SupIndexRow[]; src: string }> {
+  const hit = _idxMem.get(cc);
+  if (!force && hit && Date.now() - hit.at < IDX_MEM_MS) return hit;
+  const today = new Date().toISOString().slice(0, 10);
+  let lists: SupIndexRow[][] = [];
+  let src = "";
+  if (cc === "SG") {
+    const home = await getText(SG_HOME);
+    const m = /href="(\/aim-content\/uploads\/aip\/[^"]+?\/html\/)index-en-GB\.html"/i.exec(home);
+    if (!m) throw new Error("không thấy gói eAIP Singapore");
+    src = new URL(`${m[1]}eSUP/SG-eSUPs-en-GB.html`, SG_HOME).toString();
+    lists = [p.parse_eaip_sup_index(await getText(src), src)];
+  } else if (cc === "MY") {
+    ({ lists, src } = await packageLists(await getText(`${MY_BASE}history-en-MS.html`), MY_BASE, "WM-eSUPs-en-MS.html", today));
+  } else if (cc === "KR") {
+    ({ lists, src } = await packageLists(await getText(KR_HISTORY), KR_BASE, "KR-eSUPs-en-GB.html", today));
+  } else if (cc === "HK") {
+    src = HK_JSON;
+    lists = [p.parse_hk_sup_index(JSON.parse(await getText(HK_JSON)))];
+  } else if (cc === "TH") {
+    for (const c of await thCycleList()) {
+      const url = `${TH_EAIP}${c}/html/eSUP/VT-eSUPs-en-GB.html`;
+      const rows = p.parse_th_sup_index(await thIndexHtml(c), url);
+      if (rows.length) { lists.push(rows); src ||= url; }
+    }
+  } else throw new Error(`chưa có danh sách SUP tự động cho ${cc}`);
+  const rows = p.merge_sup_rows(lists, Date.now());
+  if (!rows.length) throw new Error("danh sách SUP trống");
+  const rec = { at: Date.now(), rows, src };
+  _idxMem.set(cc, rec);
+  return rec;
+}
+
+function countryOf(adapter: string): SupCountry | undefined {
+  return SUP_COUNTRIES.find((c) => c.adapter === adapter);
+}
+
+async function fetchIndexed(cc: string, sup: string): Promise<RingTable> {
+  const key = p.sup_key_of(sup);
+  const name = SUP_COUNTRIES.find((c) => c.cc === cc)?.name || cc;
+  const { rows } = await loadSupIndex(cc);
+  const row = rows.find((r) => r.sup === key);
+  if (!row) throw new Error(`không thấy SUP ${key} trong danh sách ${name}`);
+  const resp = await httpFetch(row.url);
+  if (resp.status >= 400) throw new Error(`SUP ${name} ${key} HTTP ${resp.status}`);
+  const bytes = new Uint8Array(resp.body);
+  const text = bytes[0] === 0x25 ? await pdfText(resp.body) : p.sup_html_text(new TextDecoder().decode(resp.body));
+  const table = p.parse_generic_sup_text(text, key);
+  if (!Object.keys(table).length) throw new Error(`SUP ${name} ${key} không có tọa độ vùng`);
+  return table;
+}
+
+function fetcherFor(kind: string): ((s: string) => Promise<RingTable>) | undefined {
+  const fixed: Record<string, (s: string) => Promise<RingTable>> = { jp_swim: fetchJapan, au_airservices: fetchAustralia, tw_eaip: fetchTaiwan, th_eaip: fetchThailand };
+  if (fixed[kind]) return fixed[kind];
+  const c = countryOf(kind);
+  return c?.live ? (s: string) => fetchIndexed(c.cc, s) : undefined;
+}
+
+type SupRead = { ok: boolean; ts: number; areas: { nr: string; name: string; ring: Pt[] }[]; error?: string };
+
+function recToRead(rec: CacheRec | null): SupRead | null {
+  if (!rec) return null;
+  const areas = Object.entries(rec.rings || {}).map(([nr, it]) => ({ nr, name: String(it.name || nr), ring: (it.ring || []) as Pt[] }));
+  return { ok: !rec.error && areas.length > 0, ts: rec.ts || 0, areas, ...(rec.error ? { error: rec.error } : {}) };
+}
+
+/** Database → AIP SUP: per-country current SUP list joined with what was already read (areas or error). */
+export async function aipSupCatalog(ctx: Ctx, force = false) {
+  const { data } = await ctx.supabase.from("app_settings").select("key,value").like("key", "aip_sup:%").limit(3000);
+  const reads = new Map<string, SupRead>();
+  for (const row of (data || []) as { key: string; value: unknown }[]) {
+    const r = recToRead(row.value as CacheRec);
+    if (r) reads.set(row.key.slice("aip_sup:".length).toLowerCase(), r);
+  }
+  const countries = await Promise.all(SUP_COUNTRIES.map(async (c) => {
+    const readOf = (sup: string) => reads.get(`${c.adapter}:${sup}`.toLowerCase()) || null;
+    const base = { cc: c.cc, name: c.name, firs: c.firs, portal: c.portal, live: c.live };
+    const cachedRows = () => [...reads.entries()].filter(([k]) => k.startsWith(`${c.adapter}:`))
+      .map(([k, read]) => ({ sup: k.slice(c.adapter.length + 1).toUpperCase(), label: k.slice(c.adapter.length + 1).toUpperCase(), subject: "", from: "", to: "", url: "", read }));
+    if (!c.live) return { ...base, src: c.portal, sups: cachedRows() };
+    try {
+      const idxKey = `aip_sup_index:${c.cc}`;
+      let rec = force ? null : await getJson<{ ts: number; rows: SupIndexRow[]; src: string } | null>(ctx, idxKey, null);
+      if (!rec || Date.now() - rec.ts > 6 * 3600_000) {
+        const live = await loadSupIndex(c.cc, force);
+        rec = { ts: Date.now(), rows: live.rows, src: live.src };
+        await setJson(ctx, idxKey, rec).catch(() => {});
+      }
+      return { ...base, src: rec.src, updated: rec.ts, sups: rec.rows.map((r) => ({ ...r, read: readOf(r.sup) })) };
+    } catch (exc) {
+      return { ...base, src: c.portal, error: String((exc as Error)?.message || exc), sups: cachedRows() };
+    }
+  }));
+  return { countries };
+}
+
+/** Read (or re-read with force) one SUP's boundaries for the Database view. */
+export async function aipSupRead(ctx: Ctx, cc: string, sup: string, force = false): Promise<SupRead & { sup: string }> {
+  const c = SUP_COUNTRIES.find((x) => x.cc === cc.toUpperCase());
+  const key = String(sup || "").trim().toUpperCase();
+  if (!c || !/^[A-Z]?\d{1,3}\/\d{2}$/.test(key)) return { sup: key, ok: false, ts: 0, areas: [], error: "SUP không hợp lệ" };
+  const scoped = `${c.adapter}:${key}`;
+  if (force) {
+    _mem.delete(scoped);
+    _idxMem.delete(c.cc);
+    await setJson(ctx, cacheKey(scoped), { ts: 0, v: 0 }).catch(() => {});
+  }
+  await rings_of(key, c.firs[0], ctx);
+  const rec = await getJson<CacheRec | null>(ctx, cacheKey(scoped), null);
+  return { sup: key, ...(recToRead(rec) || { ok: false, ts: 0, areas: [], error: "chưa đọc được" }) };
+}
+
 /** Ctx is bound per-request; call bindCtx once per request before dah_ring/dah_named/rings_of. */
 let _boundCtx: Ctx | null = null;
 export function bindCtx(ctx: Ctx): void {
@@ -488,7 +653,7 @@ export async function rings_of(sup: string, fir = "", requestCtx?: Ctx): Promise
   const cached = await readCache(ctx, scoped);
   if (cached !== null) return cached;
   const kind = adapterFor(fir);
-  const fetchFn = ({ jp_swim: fetchJapan, au_airservices: fetchAustralia, tw_eaip: fetchTaiwan, th_eaip: fetchThailand } as Record<string, (s: string) => Promise<RingTable>>)[kind];
+  const fetchFn = fetcherFor(kind);
   if (!fetchFn) return {};
   if (netPaused()) return {};
   try {
@@ -545,9 +710,11 @@ export async function koreaRestrictedRings(ctx: Ctx): Promise<Record<string, Pt[
   const key = 'aip_enr:kr:5.1:v1';
   const cached = await getJson<{ ts: number; rings: Record<string, Pt[]> } | null>(ctx, key, null);
   if (cached && Date.now() - cached.ts < 7 * 24 * 3600_000 && Object.keys(cached.rings).length) return cached.rings;
-  for (const cycle of ['2026-10-01', '2026-06-25', '2026-05-14']) {
+  let cycles: string[] = [];
+  try { cycles = p.eaip_cycles(await getText(KR_HISTORY), new Date().toISOString().slice(0, 10), 0).slice(0, 3); } catch { /* fall back below */ }
+  for (const cycle of cycles.length ? cycles : ['2026-11-12', '2026-10-15']) {
     try {
-      const response = await httpFetch(`https://aim.koca.go.kr/eaipPub/Package/${cycle}/html/eAIP/KR-ENR-5.1-en-GB.html`);
+      const response = await httpFetch(`${KR_BASE}${cycle}/html/eAIP/KR-ENR-5.1-en-GB.html`);
       if (response.status >= 400) continue;
       const rings = parseKrEnrHtml(new TextDecoder().decode(response.body));
       if (!Object.keys(rings).length) continue;
