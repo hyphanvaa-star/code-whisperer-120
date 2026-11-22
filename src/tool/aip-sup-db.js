@@ -37,6 +37,10 @@
       #dbxSupCountries button span{font-size:12px;color:var(--x-ink2)}
       #dbxSupCountries button.on{border-color:var(--x-red);box-shadow:inset 3px 0 0 var(--x-red)}
       #dbxSupCountries button.auto b::after{content:" · tự động";font-weight:600;font-size:11px;color:var(--x-red)}
+      #dbxSupCountries button.pending b::after{content:" · chưa xác định";font-weight:600;font-size:11px;color:var(--x-ink2)}
+      #dbxSupCountries button.pending{opacity:.85}
+      #dbxSupPane .sup-pend{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--x-line);background:var(--x-bg);color:var(--x-ink2);font-weight:700;font-size:12px}
+      #dbxSupPane .sup-pend-box{padding:10px 4px;font-size:14px;line-height:1.7;color:var(--x-ink)}
       #dbxSupPane .sup-content{display:flex;flex-direction:column;min-width:0;min-height:0;gap:10px}
       #dbxSupPane .sup-heading{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
       #dbxSupPane .sup-heading a{color:var(--x-red);font-size:13px}
@@ -68,12 +72,13 @@
       var h = "";
       (data ? data.countries : []).forEach(function(c){
         var withArea = c.sups.filter(areaCount).length;
-        var sub = c.error ? "lỗi tải danh sách" : (c.live ? c.sups.length + " SUP · " + withArea + " có vùng" : withArea + " SUP đã đọc vùng");
-        h += '<button type="button" data-cc="'+c.cc+'" class="'+(c.cc===country?"on ":"")+(c.live?"auto":"")+'"><b>'+esc(c.name)+'</b><span>'+esc(c.firs.join(" · "))+' — '+esc(sub)+'</span></button>';
+        var sub = c.pending ? "chưa xác định được" : c.error ? "lỗi tải danh sách" : (c.live ? c.sups.length + " SUP · " + withArea + " có vùng" : withArea + " SUP đã đọc vùng");
+        h += '<button type="button" data-cc="'+c.cc+'" class="'+(c.cc===country?"on ":"")+(c.live?"auto":"")+(c.pending?" pending":"")+'"><b>'+esc(c.name)+'</b><span>'+esc(c.firs.join(" · "))+' — '+esc(sub)+'</span></button>';
       });
       $("dbxSupCountries").innerHTML = h;
       var tot = data ? data.countries.reduce(function(a, c){ return a + c.sups.length; }, 0) : 0;
-      $("dbxSupTotal").textContent = data ? tot + " SUP · " + data.countries.length + " quốc gia" : "";
+      var nPend = data ? data.countries.filter(function(c){ return c.pending; }).length : 0;
+      $("dbxSupTotal").textContent = data ? tot + " SUP · " + (data.countries.length - nPend) + " quốc gia tự đọc · " + nPend + " chưa xác định được" : "";
     }
     function readCell(s){
       if(!s.read) return '<span class="sup-none">Chưa đọc</span>';
@@ -88,6 +93,14 @@
       var c = cur(); var body = $("dbxSupRows");
       if(!c){ body.innerHTML = '<tr><td colspan="5" class="sup-none">'+(data ? "Không có dữ liệu" : "Đang tải danh sách AIP SUP…")+'</td></tr>'; return; }
       $("dbxSupCountry").textContent = c.name;
+      if(c.pending){
+        $("dbxSupInfo").innerHTML = '<span class="sup-pend">CHƯA XÁC ĐỊNH ĐƯỢC</span> ' + esc(c.note || "") + (c.src ? ' · <a href="'+esc(c.src)+'" target="_blank" rel="noopener">Cổng AIP ↗</a>' : "");
+        $("dbxSupReadAll").style.display = "none";
+        body.innerHTML = '<tr><td colspan="5"><div class="sup-pend-box"><b>Sân bay khai thác:</b> '+esc((c.airports || []).join(", "))
+          + '<br><b>FIR:</b> '+esc(c.firs.join(", "))
+          + '<br><b>Trạng thái:</b> chưa xác định được vùng AIP SUP tự động — NOTAM nhắc AIP SUP của nước này luôn ở mức NEED MANUAL CHECK, dispatcher đối chiếu thủ công (có thể dán toạ độ vào bản đồ).</div></td></tr>';
+        return;
+      }
       var info = c.error ? "⚠ " + c.error : (c.live ? "Cập nhật " + fmtTs(c.updated) : "SUP được đọc tự động khi check NOTAM");
       $("dbxSupInfo").innerHTML = esc(info) + (c.src ? ' · <a href="'+esc(c.src)+'" target="_blank" rel="noopener">Nguồn eAIP ↗</a>' : "");
       $("dbxSupReadAll").style.display = c.live ? "" : "none";

@@ -3341,7 +3341,8 @@ function nmPaintPinBar(n, place){`)
     .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
     .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
     .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.36')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.37')
+    // V 7.37: Database → AIP SUP liệt kê thêm các nước chưa có bộ đọc, ghi "chưa xác định được".
     // V 7.36: AIP SUP Singapore / Hàn Quốc / Hồng Kông / Malaysia tự đọc vùng; tab Database có mục AIP SUP theo quốc gia.
     // V 7.35: AIP SUP Thái Lan (CAAT eAIP) tự tải và vẽ vùng, gồm cung tròn quanh VOR.
     // V 7.34: tự quét AIMS dùng đúng Từ ngày/Đến ngày đã chọn, không tự cộng thêm ngày.

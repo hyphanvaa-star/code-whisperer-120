@@ -481,6 +481,23 @@ export const SUP_COUNTRIES: SupCountry[] = [
   { cc: "AU", name: "Úc", adapter: "au_airservices", firs: ["YMMM", "YBBB"], portal: "https://www.airservicesaustralia.com/aip/", live: false },
 ];
 
+/** Countries in the network without an automatic SUP reader: listed in Database → AIP SUP as "chưa xác định được"; NOTAMs citing their SUPs stay manual. */
+export type PendingSupCountry = { cc: string; name: string; firs: string[]; airports: string[]; portal: string; note: string };
+export const PENDING_SUP_COUNTRIES: PendingSupCountry[] = [
+  { cc: "VN", name: "Việt Nam", firs: ["VVHN", "VVHM"], airports: ["SGN", "HAN", "DAD", "CXR", "PQC", "HPH", "VII", "HUI", "BMV", "DLI", "PXU", "UIH", "VCA", "VCL", "VDH", "THD"], portal: "https://vnaic.vn/", note: "AIP SUP phát hành dạng PDF scan, không có eAIP chuẩn để đọc toạ độ" },
+  { cc: "RU", name: "Nga", firs: ["UUWV", "UNNT", "UIII", "UNKL", "USSV", "UWKD", "UWUU", "UHHH", "UHWW"], airports: ["SVO", "OVB", "IKT", "KJA", "SVX", "KZN", "UFA", "BAX", "BQS", "KHV", "NOZ", "VVO"], portal: "https://www.caiga.ru/", note: "Cổng AIP chặn truy cập quốc tế, văn bản tiếng Nga" },
+  { cc: "CN", name: "Trung Quốc", firs: ["ZSHA", "ZBPE", "ZGZU", "ZJSA", "ZPKM", "ZYSH"], airports: ["PVG", "PKX", "CAN", "HGH", "TSN", "HAK", "CZX", "DYG", "ENH", "TXN"], portal: "https://www.aipchina.org/", note: "eAIP CAAC yêu cầu tài khoản nội địa, chặn IP quốc tế" },
+  { cc: "IN", name: "Ấn Độ", firs: ["VIDF", "VABF", "VOMF"], airports: ["DEL", "BOM", "AMD", "BLR", "HYD"], portal: "https://aim-india.aai.aero/", note: "eAIP cần phiên đăng nhập, chưa có bộ đọc SUP" },
+  { cc: "PH", name: "Philippines", firs: ["RPHI"], airports: ["MNL", "CEB", "CRK"], portal: "https://ais.caap.gov.ph/", note: "Không có eAIP chuẩn, SUP là PDF rời rạc" },
+  { cc: "ID", name: "Indonesia", firs: ["WAAF", "WIIF"], airports: ["DPS", "CGK"], portal: "https://aim-indonesia.dephub.go.id/", note: "SUP chủ yếu là PDF scan / sơ đồ" },
+  { cc: "KZ", name: "Kazakhstan", firs: ["UAAX", "UACN"], airports: ["ALA", "NQZ"], portal: "https://www.ans.kz/", note: "Chỉ có snapshot ENR 5.1/5.2, cổng SUP không mở" },
+  { cc: "MO", name: "Ma Cao", firs: ["VHHK"], airports: ["MFM"], portal: "https://www.aacm.gov.mo/", note: "Chưa có bộ đọc SUP" },
+  { cc: "KH", name: "Campuchia", firs: ["VDPF"], airports: ["SAI"], portal: "https://www.ssca.gov.kh/", note: "Không có eAIP trực tuyến mở" },
+  { cc: "LA", name: "Lào", firs: ["VLVT"], airports: ["VTE"], portal: "https://www.dca.gov.la/", note: "Không có eAIP trực tuyến mở" },
+  { cc: "LK", name: "Sri Lanka", firs: ["VCCF"], airports: ["CMB"], portal: "https://www.airport.lk/aasl/aim/", note: "Chưa có bộ đọc SUP" },
+  { cc: "CZ", name: "Cộng hòa Séc", firs: ["LKAA"], airports: ["PRG"], portal: "https://aim.rlp.cz/", note: "Chỉ có snapshot ENR 5.1/5.2, chưa có bộ đọc SUP" },
+];
+
 async function getText(url: string): Promise<string> {
   const r = await httpFetch(url);
   if (r.status >= 400) throw new Error(`HTTP ${r.status}`);
@@ -600,7 +617,8 @@ export async function aipSupCatalog(ctx: Ctx, force = false) {
       return { ...base, src: c.portal, error: String((exc as Error)?.message || exc), sups: cachedRows() };
     }
   }));
-  return { countries };
+  const pending = PENDING_SUP_COUNTRIES.map((c) => ({ cc: c.cc, name: c.name, firs: c.firs, portal: c.portal, live: false, pending: true, airports: c.airports, note: c.note, src: c.portal, sups: [] }));
+  return { countries: [...countries, ...pending] };
 }
 
 /** Read (or re-read with force) one SUP's boundaries for the Database view. */
