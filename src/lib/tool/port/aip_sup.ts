@@ -980,6 +980,8 @@ function supLabel(window: string): string {
   for (const m of u.matchAll(new RegExp(_DESIG.source, "g"))) {
     const v = m[1]!.replace(/\s+/g, "");
     if (_NOT_DESIG.test(v) && !/^(?:AREA|ZONE|SECTOR)/.test(v)) continue;
+    // "WMR416D bounded by … WMR416 boundary": a shorter mention of the same area keeps the full name.
+    if (best && best.startsWith(v)) continue;
     best = v.replace(/^(AREA|ZONE|SECTOR)/, "$1 ");
   }
   return best;
