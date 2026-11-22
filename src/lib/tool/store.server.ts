@@ -3,10 +3,9 @@
 // Files (uploaded Excel, PDFs, generated files): private storage bucket "tool-files".
 import type { Ctx } from "./types";
 
-/** Team config tables: admin saves the team copy; other users save a private copy at `<key>@u:<uid>` (PERSONAL_KEYS: everyone, admin included). */
+/** Tables with a private copy at `<key>@u:<uid>`: admin saves the team copy, others their own (PERSONAL_KEYS: everyone, admin included). */
 export const LAYERED_KEYS = new Set([
-  "notice_rules", "fpl.cost_index", "fpl.taxi_fuel", "fpl.route_suffix",
-  "fpl.alt_route", "fpl.era", "fpl.pcr_limits", "extra_wx_cfg",
+  "notice_rules", "fpl.alt_route", "fpl.era", "extra_wx_cfg", "aftn.book",
 ]);
 const userKey = (ctx: Ctx, key: string) => `${key}@u:${ctx.userId}`;
 const adminCache = new WeakMap<object, Promise<boolean>>();
@@ -27,7 +26,7 @@ async function rawGet(ctx: Ctx, key: string): Promise<{ found: boolean; value: u
 }
 
 /** Tables every user (admin included) keeps as their own copy; the team key is only the starting default. */
-export const PERSONAL_KEYS = new Set(["fpl.alt_route"]);
+export const PERSONAL_KEYS = new Set(["fpl.alt_route", "fpl.era", "aftn.book"]);
 
 /** Which app_settings row a save goes to: personal tables always the user's own row, layered tables only for non-admins. */
 export function settingsTarget(key: string, admin: boolean, userId: string | null | undefined): string {
@@ -46,11 +45,24 @@ export async function getJson<T>(ctx: Ctx, key: string, fallback: T): Promise<T>
   return (r.value as T) ?? fallback;
 }
 
-/** File-add rules are one team copy: only admin may save them. */
-export const ADMIN_ONLY_KEYS = new Set(["notice_rules"]);
+/** One team copy that only admin may save; dispatchers read it (view-only). */
+export const ADMIN_ONLY_KEYS = new Map<string, string>([
+  ["notice_rules", "thiết lập file add"],
+  ["fpl.cost_index", "Cost Index"],
+  ["fpl.taxi_fuel", "Taxi fuel"],
+  ["fpl.route_suffix", "Route"],
+  ["fpl.pcr_limits", "PCR"],
+  ["fpl.atc_fix", "Data Convert"],
+]);
+
+/** Error text when a non-admin tries to save an admin-only table, else null. */
+export function adminOnlyError(key: string, admin: boolean): string | null {
+  const label = ADMIN_ONLY_KEYS.get(key);
+  return label && !admin ? `Chỉ Admin được sửa ${label} — tài khoản của bạn chỉ xem.` : null;
+}
 
 export async function setJson(ctx: Ctx, key: string, value: unknown): Promise<void> {
-  if (ADMIN_ONLY_KEYS.has(key) && !(await isAdmin(ctx))) throw new Error("Chỉ Admin được lưu thiết lập file add");
+  if (ADMIN_ONLY_KEYS.has(key)) { const e = adminOnlyError(key, await isAdmin(ctx)); if (e) throw new Error(e); }
   const layeredTeam = LAYERED_KEYS.has(key) && !PERSONAL_KEYS.has(key);
   const target = settingsTarget(key, layeredTeam ? await isAdmin(ctx) : false, ctx.userId);
   const track = !/^(ofp\.|excel\.current|aip_sup|owa_|fb_|omni_|chg:|.*token|.*session|.*cookie)/i.test(target);

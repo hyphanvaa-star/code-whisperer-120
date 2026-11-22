@@ -20,6 +20,7 @@ const AGENT_UPDATE_JS = agentUpdateScript.replaceAll('export function', 'functio
 import specialRulesScript from '@/lib/special-rules.js?raw';
 import stormToolbarScript from '@/tool/storm-toolbar.js?raw';
 import databaseTabScript from '@/tool/database-tab.js?raw';
+import dbAccessScript from '@/tool/db-access.js?raw';
 import manualAreaScript from '@/tool/manual-area.js?raw';
 import sigmetLayerScript from '@/tool/sigmet-layer.js?raw';
 import aimsCrewlistScript from '@/tool/aims-crewlist.js?raw';
@@ -2642,7 +2643,7 @@ function ftRender(){
 .dbx-t{font-size:17px;font-weight:800;color:#0f172a}
 .dbx-d{font-size:13px;color:#64748b;line-height:1.4;flex:1}
 .dbx-go{font-size:12px;font-weight:700;color:var(--c);margin-top:4px}
-</style><script>window.__namedAirspaceCatalogue=${JSON.stringify([...enrCatalogue(), ...auDahCatalogue()]).replace(/</g, '\\u003c')};</script><script>window.__airportCatalogue=${JSON.stringify(airportCatalogue())};</script><script>${databaseTabScript}</script></body>`)
+</style><script>window.__namedAirspaceCatalogue=${JSON.stringify([...enrCatalogue(), ...auDahCatalogue()]).replace(/</g, '\\u003c')};</script><script>window.__airportCatalogue=${JSON.stringify(airportCatalogue())};</script><script>${databaseTabScript}</script><script>window.__aftnSuppliedBook=${JSON.stringify(aftnAddresses).replace(/</g, '\\u003c')};</script><script>${dbAccessScript}</script></body>`)
     .replace(/function moveTafTip\(ev\)\{[\s\S]*?\n\}/, `function moveTafTip(ev){
   const el = tafTipEl();
   if(!el.classList.contains("show")) return;
@@ -3310,7 +3311,11 @@ function nmPaintPinBar(n, place){`)
     // ALT Route là bản riêng của từng người (cả Admin): bỏ nút "Khôi phục theo Admin", ghi rõ bản riêng.
     .replace('"#ftAltMsg":"fpl.alt_route",', '')
     .replace('<span class="status" id="ftAltMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftAltMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.31')
+    // V 7.32: Cost Index/Taxi/Route/PCR/Data Convert chỉ Admin sửa (DSP chỉ xem); ERA thành bản riêng như ALT route.
+    .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
+    .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
+    .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.32')
     // V 7.26: header — vùng đỏ rộng hơn chứa đủ email, chữ credit/contact to hơn, thanh lọc hạ 10px.
     // V 7.25: ALT Route lưu riêng từng tài khoản, kể cả Admin; Admin không còn sửa bản chung.
     // V 7.24: web tắt quá 2 giờ thì ca mới xoá hết file cũ, cả MEL trên web và D:\\MEL; cảnh báo đỏ khi chưa tách MEL.

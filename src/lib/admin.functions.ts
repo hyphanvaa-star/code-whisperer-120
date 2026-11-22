@@ -180,7 +180,7 @@ export const updateAccountInfo = createServerFn({ method: "POST" })
 const DATA_LABEL: Record<string, string> = {
   notice_rules: "Notice Rules", "fpl.cost_index": "KHB · Cost Index", "fpl.taxi_fuel": "KHB · Taxi fuel",
   "fpl.route_suffix": "KHB · Route suffix", "fpl.alt_route": "KHB · Alternate route", "fpl.era": "KHB · ERA route",
-  "fpl.pcr_limits": "KHB · PCR",
+  "fpl.pcr_limits": "KHB · PCR", "fpl.atc_fix": "KHB · Data Convert", "aftn.book": "AFTN Address",
 };
 
 // Ảnh đại diện + mọi dữ liệu do người này chỉnh (bản riêng và bản chung họ sửa gần nhất).

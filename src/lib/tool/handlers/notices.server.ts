@@ -42,7 +42,20 @@ export const routes: Routes = {
     } else await setJson(ctx, "extra_wx_cfg", normalizeExtraWxCfg(body.cfg));
     return { ok: true, cfg: normalizeExtraWxCfg(await getJson<unknown>(ctx, "extra_wx_cfg", null)) };
   },
-  "GET /api/settings/scope": async (ctx) => ({ ok: true, admin: await isAdmin(ctx) }),
+  "GET /api/settings/scope": async (ctx) => ({ ok: true, admin: await isAdmin(ctx), uid: ctx.userId }),
+
+  /** AFTN Address book: each account keeps its own copy (PERSONAL_KEYS), shared across that user's PCs. */
+  "GET /api/aftn/book": async (ctx) => {
+    const v = await getJson<{ text?: unknown } | null>(ctx, "aftn.book", null);
+    return { ok: true, text: v && typeof v.text === "string" ? v.text : null };
+  },
+  "POST /api/aftn/book": async (ctx) => {
+    const body = (await ctx.json()) as { text?: unknown };
+    if (typeof body.text !== "string") return { error: "Danh bạ không hợp lệ." };
+    if (body.text.length > 400_000) return { error: "Danh bạ quá lớn." };
+    await setJson(ctx, "aftn.book", { text: body.text });
+    return { ok: true };
+  },
 
   "POST /api/notices/rules": async (ctx) => {
     try {
