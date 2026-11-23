@@ -3341,7 +3341,8 @@ function nmPaintPinBar(n, place){`)
     .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
     .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
     .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.38')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.39')
+    // V 7.39: bảng So sánh giữ CHG DLA khi chuyến vừa đổi tàu vừa delay (nhận delay từ Crewlist, nhớ đổi tàu không theo giờ STD).
     // V 7.38: nháp ATC + EZFW trên Outlook Web có chữ ký OMC + banner Vietjet (trợ lý PC 6.18).
     // V 7.37: Database → AIP SUP liệt kê thêm các nước chưa có bộ đọc, ghi "chưa xác định được".
     // V 7.36: AIP SUP Singapore / Hàn Quốc / Hồng Kông / Malaysia tự đọc vùng; tab Database có mục AIP SUP theo quốc gia.

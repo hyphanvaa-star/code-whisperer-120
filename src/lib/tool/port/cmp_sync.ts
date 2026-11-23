@@ -45,6 +45,42 @@ export function cmpRegMemory(prev: { old: string; new: string } | null | undefin
   return norm(reg.excel) === norm(prev.new) ? prev : null;
 }
 
+/** Crewlist ETD later than STD (local HH:MM, same day or past midnight) by at least 15 min → delay minutes, else 0. */
+export function cmpCrewDelayMin(std: unknown, etd: unknown): number {
+  const hm = (v: unknown) => { const m = /(\d{1,2}):(\d{2})/.exec(String(v || '')); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
+  const a = hm(std), b = hm(etd);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+  const d = (b - a + 1440) % 1440;
+  return d >= 15 && d <= 720 ? d : 0;
+}
+
+/** ATC delay kind: the FPL diff wins; otherwise a Crewlist delay (diff row or live STD→ETD) means DLA. */
+export function cmpDelayKind(raw: unknown, crewDelay: { changed?: boolean } | null | undefined, crewStd: unknown, crewEtd: unknown): string {
+  const k = String(raw || '').toUpperCase().trim();
+  if (k) return k;
+  return (crewDelay && crewDelay.changed) || cmpCrewDelayMin(crewStd, crewEtd) > 0 ? 'DLA' : '';
+}
+
+/** Aircraft-change memory is keyed by sector ID + callsign, so a delay that moves the FliteBrief STD keeps it.
+ *  Older keys also carried the STD: accept one for the same sector within 24 h so existing memory survives. */
+export function cmpRegMemFind(store: Record<string, { old: string; new: string } | undefined> | null | undefined, id: unknown, callsign: unknown, std: unknown): { key: string; value: { old: string; new: string } } | null {
+  if (!store) return null;
+  const key = JSON.stringify([id, callsign]);
+  const own = store[key];
+  if (own) return { key, value: own };
+  const time = new Date(String(std || '')).getTime();
+  const hits: { key: string; value: { old: string; new: string } }[] = [];
+  for (const k of Object.keys(store)) {
+    let a: unknown;
+    try { a = JSON.parse(k); } catch { continue; }
+    if (!Array.isArray(a) || a.length !== 3 || String(a[0]) !== String(id) || String(a[1]) !== String(callsign)) continue;
+    const t = new Date(String(a[2] || '')).getTime();
+    const value = store[k];
+    if (value && Number.isFinite(t) && Number.isFinite(time) && Math.abs(t - time) < 24 * 3600e3) hits.push({ key: k, value });
+  }
+  return hits.length === 1 ? hits[0] ?? null : null;
+}
+
 /** Attached aircraft file names another tail than the Crewlist aircraft already on FliteBrief. */
 export function cmpAttachMismatch(reg: { excel?: unknown; flite?: unknown } | null | undefined, atch: unknown): { changed: true; attach: true; old: string; new: string } | null {
   const norm = (v: unknown) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -217,6 +253,9 @@ const cmpReqChange = ${cmpReqChange.toString()};
 const cmpChgFbReady = ${cmpChgFbReady.toString()};
 const cmpMsgKind = ${cmpMsgKind.toString()};
 const cmpRegMemory = ${cmpRegMemory.toString()};
+const cmpCrewDelayMin = ${cmpCrewDelayMin.toString()};
+const cmpDelayKind = ${cmpDelayKind.toString()};
+const cmpRegMemFind = ${cmpRegMemFind.toString()};
 const cmpAttachMismatch = ${cmpAttachMismatch.toString()};
 const cmpReqKey = ${cmpReqKey.toString()};
 const cmpSwapReport = ${cmpSwapReport.toString()};
@@ -566,14 +605,20 @@ function cmpMsgPaint(r){
   menu.hidden = false;
   const f = cmpActionFlight(r);
   const row = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.fpl, f.id, f.std) : null;
-  const raw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
+  const fplRaw = String((row && row.atc && row.atc.kind) || "").toUpperCase();
   const crewRow = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.crew, f.id, f.std) : null;
+  // Delay also comes from the Crewlist (diff row or the live STD→ETD shown in the table), not only the FPL pair.
+  const raw = cmpDelayKind(fplRaw, crewRow && crewRow.delay, r.crew_std, r.crew_etd);
+  const crewDly = !fplRaw && raw === "DLA";
   const liveRow = f ? cmpLiveChange(r) : null;
   const bound = cmpBind[String(r.sector_id)];
   const g = (bound && bound.reg && bound.reg.verdict) ? bound.reg : r.reg_cmp;
   // Live aircraft change is remembered per sector: pushing the corrected CFP must not turn CHG DLA back into DLA.
-  const memKey = JSON.stringify([f && f.id, f && f.callsign, f && f.std]);
-  const mem = f ? cmpRegMemory(cmpRegMem[memKey], liveRow && liveRow.reg, liveRow ? g : null) : null;
+  // Keyed by sector + callsign (no STD): a delay moves the FliteBrief STD and must not drop the remembered change.
+  const memKey = JSON.stringify([f && f.id, f && f.callsign]);
+  const memPrev = f ? cmpRegMemFind(cmpRegMem, f.id, f.callsign, f.std) : null;
+  const mem = f ? cmpRegMemory(memPrev && memPrev.value, liveRow && liveRow.reg, liveRow ? g : null) : null;
+  if(f && memPrev && memPrev.key !== memKey) cmpRegMemSave(memPrev.key, null);
   if(f && JSON.stringify(mem || null) !== JSON.stringify(cmpRegMem[memKey] || null)) cmpRegMemSave(memKey, mem);
   const acChg = (row && cmpAircraftChange(row.reg)) || (crewRow && cmpAircraftChange(crewRow.reg)) || !!(liveRow && liveRow.reg.changed) || !!mem;
   const kind = cmpMsgKind(raw, !!acChg);
@@ -586,7 +631,7 @@ function cmpMsgPaint(r){
   const aimsEv = cmpSyncEvidence(r, "aims"), aimsChk = aimsEv ? cmpSyncChecks.get(cmpSyncKey(aimsEv)) : null;
   const fbOk = kind.indexOf("CHG") === 0 && !(liveRow && liveRow.reg.changed) && cmpChgFbReady(g, newReg, !!(aimsChk && aimsChk.regOk));
   if(fbOk) b.classList.add("cmp-msg-ok");
-  b.dataset.tip = (raw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : mem ? "Crewlist đổi tàu " + mem.old + " → " + mem.new + ": " : "Crewlist đổi tàu: ") + kind
+  b.dataset.tip = (crewDly ? "Crewlist delay " + ((crewRow && crewRow.delay && crewRow.delay.changed && crewRow.delay.from) || r.crew_std || "") + " → " + ((crewRow && crewRow.delay && crewRow.delay.changed && crewRow.delay.to) || r.crew_etd || "") + (mem ? " · đổi tàu " + mem.old + " → " + mem.new : "") + ": " : fplRaw ? "FPL mới so với FPL cũ: " : liveRow && liveRow.reg.changed ? "Crewlist " + liveRow.reg.new + " khác FliteBrief " + liveRow.reg.old + ": " : mem ? "Crewlist đổi tàu " + mem.old + " → " + mem.new + ": " : "Crewlist đổi tàu: ") + kind
     + (fbOk ? " · FliteBrief đã lên đúng tàu Crewlist " + ((g && g.excel) || newReg) : kind.indexOf("CHG") === 0 ? " · FliteBrief chưa lên đúng tàu Crewlist" : "") + " · Bấm để soạn điện văn";
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
