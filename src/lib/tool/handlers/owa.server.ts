@@ -192,7 +192,12 @@ export const jobs: Jobs = {
               emit({ type: "line", text: `  ↳ chưa lưu được ${a.name}: ${se instanceof Error ? se.message : String(se)}`, cls: "bad" });
             }
           }
-          const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, attachments, ...mail });
+          // Chữ ký OMC + banner inline (trợ lý ≥ 6.18 dùng html/inline; bản cũ vẫn soạn text thuần).
+          const { mailHtmlWithSignature, SIG_BANNER_CID } = await import("../port/mail_signature");
+          const banner = (await import("../data/mail_signature_banner.json")).default as { name: string; width: number; height: number; data_b64: string };
+          const html = mailHtmlWithSignature(ae.BODY, undefined, banner);
+          const inline = [{ cid: SIG_BANNER_CID, name: banner.name, data_b64: banner.data_b64 }];
+          const id = await pc.enqueue("owa_draft", { subject, body: ae.BODY, html, inline, attachments, ...mail });
           const r = (await pc.waitResult(id, 120_000)) as { draft_id?: string; mailbox?: string } | null;
           emit({ type: "line", text: `✓ ${subject}` });
           ok += 1;

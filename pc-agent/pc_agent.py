@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.17"
+VERSION = "6.18"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -1292,6 +1292,10 @@ def do_owa_draft(payload: dict, say) -> dict:
     to = str(payload.get("to") or "")
     cc = str(payload.get("cc") or "")
     attachments = payload.get("attachments") or []
+    # Web gửi kèm thân thư HTML có chữ ký OMC + banner inline (cid:) — REST
+    # không tự gắn chữ ký như khi soạn trên giao diện Outlook.
+    html = str(payload.get("html") or "")
+    inline_atts = payload.get("inline") or []
     mailbox = str(payload.get("mailbox") or getattr(config, "SHARED_MAILBOX", "") or "omc@vietjetair.com")
 
     # Tài khoản riêng cho nháp (nếu web gửi kèm) — dùng profile Chrome/token
@@ -1312,6 +1316,7 @@ def do_owa_draft(payload: dict, say) -> dict:
     tmp_dir = Path(os.environ.get("TEMP", ".")) / "pc-agent-owa-draft"
     tmp_dir.mkdir(parents=True, exist_ok=True)
     paths = []
+    inline_paths = []
     try:
         for i, att in enumerate(attachments):
             name = str((att or {}).get("name") or f"attachment_{i}.txt")
@@ -1319,14 +1324,28 @@ def do_owa_draft(payload: dict, say) -> dict:
             fp = tmp_dir / name
             fp.write_bytes(base64.b64decode(str((att or {}).get("data_b64") or "")))
             paths.append(fp)
+        inline = {}
+        for i, att in enumerate(inline_atts if html else []):
+            cid = str((att or {}).get("cid") or "").strip()
+            data_b64 = str((att or {}).get("data_b64") or "")
+            if not cid or not data_b64:
+                continue
+            name = re.sub(r'[<>:"/\\|?*]', "_", str((att or {}).get("name") or f"inline_{i}.jpg"))
+            fp = tmp_dir / f"inline_{i}_{name}"
+            fp.write_bytes(base64.b64decode(data_b64))
+            inline[cid] = fp
+            inline_paths.append(fp)
         draft_id = outlook_web_pib.create_draft(
-            token, subject=subject, body=body,
+            token, subject=subject, body=html or body,
             to=[a.strip() for a in to.split(";") if a.strip()],
             cc=[a.strip() for a in cc.split(";") if a.strip()],
             attachments=paths, mailbox=mailbox,
+            html=bool(html), inline=inline or None,
         )
+        if html:
+            say("· đã chèn chữ ký OMC")
     finally:
-        for fp in paths:
+        for fp in paths + inline_paths:
             try:
                 fp.unlink()
             except Exception:
