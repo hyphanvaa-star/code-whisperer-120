@@ -134,6 +134,14 @@ export function crewId(username: string): string {
   return m ? m[1]!.replace(/^0+/, "") : "";
 }
 
+/** Start of the crew verdict when FliteBrief has no working crew yet (freshly pushed flight). */
+export const CREW_FB_EMPTY = "FliteBrief chưa gán tổ bay";
+
+/** True when the crew verdict means "nothing assigned on FliteBrief yet" — not a mismatch. */
+export function crewFbEmpty(detail: unknown): boolean {
+  return String(detail || "").startsWith(CREW_FB_EMPTY);
+}
+
 export function crewVerdict(raw: unknown, flightCrews: Crew[]): [number, string] {
   const ex = staffIds(raw);
   const boEx = dhdIds(raw);
@@ -164,6 +172,8 @@ export function crewVerdict(raw: unknown, flightCrews: Crew[]): [number, string]
     }
     return [fb.size, `Excel không ghi ai, FliteBrief có ${fb.size} người${ghiChu}`];
   }
+  // A newly pushed flight has no crew on FliteBrief yet: that is not a wrong crew, so never flag it.
+  if (!fb.size) return [0, `${CREW_FB_EMPTY} — chưa so sánh (Crewlist có ${ex.size} người)${ghiChu}`];
   const missing = [...ex].filter((i) => !fb.has(i));
   let extra = [...fb].filter((i) => !ex.has(i));
   const lamViec = extra.filter((i) => boEx.has(i));
@@ -333,7 +343,7 @@ export function detectMapping(header: string[]): Record<string, string> {
 
 // ---------------- compare ----------------
 export interface Diff { field: string; label: string; excel: string; flite: string }
-export interface Cell { excel: string; flite: string; same: boolean | null; mapped: boolean; verdict: string; detail: string }
+export interface Cell { excel: string; flite: string; same: boolean | null; mapped: boolean; verdict: string; detail: string; fb_empty?: boolean }
 export interface RowResult {
   row_no: number;
   callsign: string;
@@ -650,7 +660,7 @@ export function cellsForRow(flight: Flight, rowdict: Record<string, unknown>, ma
     }
     const showA = raw != null && raw !== "" ? String(raw).trim() : "—";
     const showB = real != null && real !== "" ? String(real).trim() : "—";
-    cells[key] = { excel: showA, flite: showB, same, mapped: true, verdict: same ? "TRUE" : `FALSE ${mismatch}`, detail };
+    cells[key] = { excel: showA, flite: showB, same, mapped: true, verdict: same ? "TRUE" : `FALSE ${mismatch}`, detail, ...(fd.kind === "crew" && crewFbEmpty(detail) ? { fb_empty: true } : {}) };
   }
   return cells;
 }
@@ -746,7 +756,7 @@ export function compare(sheet: Sheet, flights: Flight[], opts: { mapping?: Recor
         showA = raw != null && raw !== "" ? String(raw).trim() : "—";
         showB = real != null && real !== "" ? String(real).trim() : "—";
       }
-      cells[key] = { excel: showA, flite: showB, same, mapped: true, verdict: same ? "TRUE" : `FALSE ${mismatch}`, detail };
+      cells[key] = { excel: showA, flite: showB, same, mapped: true, verdict: same ? "TRUE" : `FALSE ${mismatch}`, detail, ...(fd.kind === "crew" && crewFbEmpty(detail) ? { fb_empty: true } : {}) };
       if (!same) diffs.push({ field: key, label: fd.label, excel: showA, flite: showB });
     }
 

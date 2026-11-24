@@ -164,6 +164,7 @@ export function crewVerdict(raw: unknown, crews: Crew[]): [number, string] {
     }
     return [fb.size, `Excel không ghi ai, FliteBrief có ${fb.size} người` + note];
   }
+  if (!fb.size) return [0, `FliteBrief chưa gán tổ bay — chưa so sánh (Crewlist có ${ex.size} người)` + note];
   const missing = minus(ex, fb);
   let extra = minus(fb, ex);
   const lamViec = new Set([...extra].filter((x) => boEx.has(x)));

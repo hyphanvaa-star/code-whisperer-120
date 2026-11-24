@@ -103,9 +103,10 @@ function tipHover(ev){`)
     cmpRegHoverShow(ev,regCell); return;
   }`)
     .replace('  el.classList.remove("show", "pcr-wide");', '  el.classList.remove("show", "pcr-wide", "cmp-crew-tip");')
-    .replace('  if(!inExcel || !cell || !cell.verdict){\n    const sidK', `  td._cmpCrewDisplay = {excel:inExcel && cell ? cell.excel || "" : "",flite:(cell && cell.flite) || CREW_NAMES[String(td.dataset.crewSid || "")] || "",same:cell && cell.verdict ? !!cell.same : null,detail:(cell && cell.detail) || ""};
+    .replace('  if(!inExcel || !cell || !cell.verdict){\n    const sidK', `  td._cmpCrewDisplay = {excel:inExcel && cell ? cell.excel || "" : "",flite:(cell && cell.flite) || CREW_NAMES[String(td.dataset.crewSid || "")] || "",same:cell && cell.verdict && !cell.fb_empty ? !!cell.same : null,detail:(cell && cell.detail) || ""};
   if(!inExcel || !cell || !cell.verdict){
     const sidK`)
+    .replace('  ic.className = "cmp-crew " + (cell.same ? "ok" : "bad");', '  ic.className = "cmp-crew " + (cell.fb_empty ? "wait" : cell.same ? "ok" : "bad");')
     .replace('  const pickReg = v => {', `  td._cmpRegDisplay = {kind:"aims",excel:inExcel && cell ? cell.excel || "" : "",flite:(cell && cell.flite) || fallback || "",same:cell && cell.verdict ? !!cell.same : null,detail:(cell && cell.detail) || ""};
   const pickReg = v => {`)
     .replace('  td.classList.toggle("cmp-fpl-match", state.same);', `  td._cmpRegDisplay = {kind:"fpl",excel:excelReg || "",flite:(f && f.reg) || "",same:excelReg && f && f.reg ? state.same : null,fallback:!excelReg ? reg || "" : ""};
@@ -116,6 +117,7 @@ function tipHover(ev){`)
 .crew-hover-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .crew-hover-heading{font-size:1.2em;font-weight:800}
 .crew-hover-status{color:var(--crew-hover-excel);background:var(--crew-hover-excel-soft);border-radius:6px;padding:.25em .6em;font-weight:700;font-size:.85em;flex-shrink:0}
+.cmp-crew.wait{color:var(--crew-hover-muted)}
 .crew-hover-status.mismatch{color:var(--crew-hover-danger);background:var(--crew-hover-danger-soft)}
 .crew-hover-file{font-size:.85em;color:var(--crew-hover-muted);margin:.5em 0 1em;overflow-wrap:anywhere}
 .crew-hover-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1em}

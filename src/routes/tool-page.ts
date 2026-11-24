@@ -3341,7 +3341,10 @@ function nmPaintPinBar(n, place){`)
     .replace('"#ftCostMsg":"fpl.cost_index","#ftTaxiMsg":"fpl.taxi_fuel","#ftRouteMsg":"fpl.route_suffix",', '')
     .replace('"#ftEraMsg":"fpl.era","#ftPcrMsg":"fpl.pcr_limits"', '')
     .replace('<span class="status" id="ftEraMsg"></span>', '<span style="opacity:.7;font-size:12px;margin-left:6px">(Bản riêng của bạn — chỉ bạn thấy và tự quản lý)</span> <span class="status" id="ftEraMsg"></span>')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.39')
+    // Đổi hàng loạt (EFF): xem trước từng chuyến, chuyến FliteBrief đã đúng crew thì đánh dấu xong và bỏ qua, không gửi lệnh đổi.
+    .replace('        await csRun(j.r, j.r._crewBtn, html);', '        let csNeed = true;\n        try{ const cp = new URLSearchParams({sector_id: j.r.sector_id, days: DAYS, out: (j.r.crew.out || []).join(","), in: (j.r.crew.in || []).join(",")}); const cd = await (await fetch("/api/crewswap/preview?" + cp.toString())).json(); if(cd && !cd.error && !(cd.remove || []).length && !(cd.add || []).length && !(cd.not_found || []).length){ csNeed = false; vMarkDone("crew", j.r, j.r._crewBtn); j.r._crewBtn.title = "Crew trên FliteBrief đã đúng — không cần đổi"; } }catch(_){ }\n        if(csNeed) await csRun(j.r, j.r._crewBtn, html);')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.40')
+    // V 7.40: chuyến mới đẩy lên FliteBrief chưa có crew không còn bị báo sai crew; Đổi hàng loạt bỏ qua chuyến crew đã đúng.
     // V 7.39: bảng So sánh giữ CHG DLA khi chuyến vừa đổi tàu vừa delay (nhận delay từ Crewlist, nhớ đổi tàu không theo giờ STD).
     // V 7.38: nháp ATC + EZFW trên Outlook Web có chữ ký OMC + banner Vietjet (trợ lý PC 6.18).
     // V 7.37: Database → AIP SUP liệt kê thêm các nước chưa có bộ đọc, ghi "chưa xác định được".
