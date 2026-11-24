@@ -37,3 +37,36 @@ describe("verify button placement", () => {
     expect(done).toContain('vMarkDone("verify", actionRow, quick)');
   });
 });
+
+describe("verify button re-opens while the red triangle stays", () => {
+  function harness() {
+    const start = page.indexOf("function vDoneKey(kind, row){");
+    const end = page.indexOf("/* DSP có chuyến đổi tàu");
+    const src = "const vDone = new Set();\n" + page.slice(start, end)
+      + "\n;({vMarkDone, vPaintDone, vDone});";
+    const now = { t: 1_000_000 };
+    const api = new Script(src).runInNewContext({ Date: { now: () => now.t } });
+    const btn = () => ({ classList: { add() {}, remove() {} }, disabled: false, title: "" });
+    return { api, now, btn };
+  }
+
+  it("keeps a just-verified flight disabled within 90 seconds", () => {
+    const { api, now, btn } = harness();
+    const row = { sector_id: 1602, ofp_ack: true };
+    api.vMarkDone("verify", row, btn());
+    now.t += 60_000;
+    const b = btn();
+    api.vPaintDone("verify", row, b);
+    expect(b.disabled).toBe(true);
+  });
+
+  it("enables Verify again when FliteBrief still shows the red triangle after 90 seconds", () => {
+    const { api, now, btn } = harness();
+    const row = { sector_id: 1602, ofp_ack: true };
+    api.vMarkDone("verify", row, btn());
+    now.t += 91_000;
+    const b = btn();
+    api.vPaintDone("verify", row, b);
+    expect(b.disabled).toBe(false);
+  });
+});

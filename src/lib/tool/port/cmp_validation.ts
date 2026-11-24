@@ -33,6 +33,9 @@ export function cmpAtcStatus(result: { callsign?: string; dof?: string; status?:
   return result.error ? '' : result.status || '';
 }
 
+/** Sau bao lâu một chuyến đã verify mà FliteBrief vẫn báo tam giác đỏ thì cho Verify lại. */
+export const CMP_VF_RECHECK_MS = 90_000;
+
 export function patchCmpValidationPage(html: string): string {
   return patchCmpSyncPage(patchCmpHandoverPage(html)
     .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 3.70')
@@ -56,6 +59,9 @@ export function patchCmpValidationPage(html: string): string {
       const lc = document.createElement("td"); lc.className = "lim-warn-cell cmp-lim-cell"; lc.dataset.cmpLimSid = r.sector_id;
       try{ if(lf) paintLimitWarns(lc, lf.limit_warns || [], lf); else lc.textContent = "—"; }catch(_){ lc.textContent = "—"; }
       tr.appendChild(lc); }`)
+    // V 7.52: "đã verify" chỉ giữ CMP_VF_RECHECK_MS; FliteBrief vẫn còn tam giác đỏ sau đó (OFP mới / verify chưa ăn) thì nút Verify bấm lại được.
+    .replace('function vMarkDone(kind, row, btn){\n  vDone.add(vDoneKey(kind, row));', 'const vDoneAt = new Map();\nfunction vMarkDone(kind, row, btn){\n  vDone.add(vDoneKey(kind, row));\n  if(kind === "verify") vDoneAt.set(vDoneKey(kind, row), Date.now());')
+    .replace('function vPaintDone(kind, row, btn){\n  if(!btn || !vDone.has(vDoneKey(kind, row))) return;', 'function vPaintDone(kind, row, btn){\n  if(btn && kind === "verify" && row && row.ofp_ack){\n    const vk = vDoneKey(kind, row);\n    if(vDone.has(vk) && Date.now() - (vDoneAt.get(vk) || 0) > ' + CMP_VF_RECHECK_MS + '){ vDone.delete(vk); vDoneAt.delete(vk); }\n  }\n  if(!btn || !vDone.has(vDoneKey(kind, row))) return;')
     .replace('    tr.onclick = () => {\n      current = r.sector_id;', `    const actionFlight = cmpActionFlight(r);
     const briefCell = document.createElement("td");
     const verifyCell = document.createElement("td");
