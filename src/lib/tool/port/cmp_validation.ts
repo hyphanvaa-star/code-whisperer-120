@@ -72,6 +72,12 @@ export function patchCmpValidationPage(html: string): string {
         briefButton.title = "Đổi Briefing " + actionFlight.callsign + " · " + actionFlight.reg;
         briefButton.onclick = ev => { ev.stopPropagation(); if(!briefButton.disabled) bsOpen(actionRow, briefButton); };
         vPaintDone("brief", actionRow, briefButton);
+        briefButton.dataset.twoLabel = "Đổi BF";
+        briefButton._cmpAck = () => {
+          vMarkDone("brief", actionRow, briefButton);
+          try{ cmpAckAdd("b|" + vDoneKey("brief", actionRow)); }catch(_){}
+        };
+        try{ if(typeof cmpAckHas === "function" && cmpAckHas("b|" + vDoneKey("brief", actionRow))) vMarkDone("brief", actionRow, briefButton); }catch(_){}
         briefCell.appendChild(briefButton);
         briefCell._cmpBrief = {row: actionRow, button: briefButton};
       }else briefCell.textContent = "—";
@@ -365,7 +371,7 @@ function cmpRegPaint(r){
   const action = cell && cell._cmpBrief;
   if(action){
     action.row.reg.changed = state.changed;
-    action.button.disabled = !state.changed;
+    action.button.disabled = !state.changed || action.button.classList.contains("done");
     action.button.title = state.changed ? "Đổi Briefing theo tàu hiện tại " + f.reg : "Không đổi tàu — không cần đổi Briefing";
   }
 }

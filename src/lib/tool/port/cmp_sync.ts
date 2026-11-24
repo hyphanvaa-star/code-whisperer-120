@@ -492,7 +492,7 @@ function cmpSyncPaint(r, kind){
   const attr = kind === "crew" ? "data-crew-sid" : kind === "aims" ? "data-reg-sid" : "data-fpl-reg-sid";
   const td = document.querySelector('#cmpBody td[' + attr + '="' + r.sector_id + '"]');
   if(!td) return;
-  td.querySelectorAll(".cmp-sync-action,.cmp-sync-pick").forEach(b => b.remove());
+  td.querySelectorAll(".cmp-sync-action,.cmp-sync-pick,.cmp-two").forEach(b => b.remove());
   cmpSyncWrapText(td);
   Array.from(td.children).forEach(el => {el.hidden = false;});
   const e = cmpSyncEvidence(r, kind);
@@ -507,6 +507,7 @@ function cmpSyncPaint(r, kind){
   const b = document.createElement("button"); b.type = "button";
   const ok = checked && checked.ok;
   if(ok && cmpAckHas("s|" + cmpSyncKey(e))) return;
+  if(!ok && cmpAckHas("x|" + cmpSyncKey(e))) return;
   b.className = "regbtn cmp-sync-action" + (ok ? " synced" : "");
   b.textContent = kind === "crew" ? (ok ? "✓ Crew" : "↻ Crew") : (ok ? "✓ " : "⚠ ") + e.row.reg.new;
   if(ok && kind !== "crew" && checked && !checked.regOk){
@@ -531,6 +532,7 @@ function cmpSyncPaint(r, kind){
     + (kind !== "crew" && checked && !ok ? " · File tàu trên FliteBrief: " + (checked.file || "chưa có") + " — chưa khớp tàu mới" : "") + (ok ? " · Đã khớp file tàu FliteBrief" : kind === "crew" && !e.changes.length ? " · Chưa đọc được mã/vai trò phi công" : " · Bấm xem trước và xác nhận");
   if(ok) b.dataset.tip += " · Bấm để xác nhận đã biết";
   b.onclick = ev => {ev.stopPropagation(); if(ok){cmpAckAdd("s|" + cmpSyncKey(e)); cmpSyncPaint(r, kind); return;} cmpSyncOpen(r, kind);};
+  if(!ok){ b.dataset.twoLabel = kind === "crew" ? "Đổi crew" : "Đổi tàu"; b._cmpAck = () => { cmpAckAdd("x|" + cmpSyncKey(e)); cmpSyncPaint(r, kind); }; }
   if(kind === "crew" && !e.changes.length && !ok) b.disabled = true;
   if(kind === "crew") td.prepend(b);
   else if(kind === "fpl") { Array.from(td.children).forEach(el => {el.hidden = true;}); td.prepend(b); }
@@ -562,7 +564,7 @@ function cmpReqEvidence(r){
 function cmpReqPaint(r){
   const td = document.querySelector('#cmpBody td[data-w="cfp"][data-sid="' + r.sector_id + '"]');
   if(!td) return;
-  td.querySelectorAll(".cmp-cfp-req").forEach(b=>b.remove());
+  td.querySelectorAll(".cmp-cfp-req,.cmp-two").forEach(b=>b.remove());
   const value = td.querySelector(".v");
   if(value) value.hidden = false;
   const e = cmpReqEvidence(r);
@@ -594,6 +596,12 @@ function cmpReqPaint(r){
     }catch(error){alert(error.message || "Không xuất được REQ.");}
     finally{cmpReqBusy.delete(e.key);cmpReqPaint(r);}
   };
+  b.dataset.twoLabel = "REQ";
+  b._cmpAck = () => {
+    cmpReqDone.add(e.key);
+    if(e.uid){try{localStorage.setItem("sohee:compare-req:v1:" + e.key,"1");}catch(_){}}
+    cmpReqPaint(r);
+  };
   if(value) value.hidden = true;
   td.prepend(b);
 }
@@ -601,7 +609,7 @@ function cmpMsgPaint(r){
   const td = document.querySelector('#cmpBody td[data-cmp-msg-sid="' + r.sector_id + '"]');
   const menu = td && td.querySelector("select.cmp-message-select");
   if(!menu) return;
-  td.querySelectorAll(".cmp-msg-quick").forEach(b => b.remove());
+  td.querySelectorAll(".cmp-msg-quick,.cmp-two").forEach(b => b.remove());
   menu.hidden = false;
   const f = cmpActionFlight(r);
   const row = f && cmpSyncSources.current === ((xls && xls.file) || cmpSyncSources.current) ? cmpSourceChange(cmpSyncSources.fpl, f.id, f.std) : null;
@@ -636,8 +644,44 @@ function cmpMsgPaint(r){
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
   b.onclick = ev => {ev.stopPropagation(); cmpAckAdd(ackKey); b.remove(); menu.value = kind; menu.onchange();};
+  b._cmpAck = () => { cmpAckAdd(ackKey); cmpMsgPaint(r); };
   td.prepend(b);
 }
+/* Pop-up action buttons: a real click splits the button into Ack (hide the warning for this change) and the main action.
+   Programmatic clicks (batch "Tất cả") keep running the main action directly. */
+const CMP_TWO_SEL = ".cmp-msg-quick,.cmp-sync-action,.cmp-cfp-req,td[data-cmp-brief-sid] .briefbtn";
+function cmpTwoClose(keep){
+  document.querySelectorAll("#cmpBody .cmp-two").forEach(w => {
+    if(w === keep) return;
+    const o = w._cmpFor; w.remove();
+    if(o) o.style.display = "";
+  });
+}
+function cmpTwoOpen(b){
+  cmpTwoClose();
+  const w = document.createElement("span"); w.className = "cmp-two"; w._cmpFor = b;
+  const ack = document.createElement("button"); ack.type = "button"; ack.className = "cmp-two-ack"; ack.textContent = "Ack";
+  ack.title = "Đã biết — tắt cảnh báo này, ô trở về bình thường";
+  const go = document.createElement("button"); go.type = "button"; go.className = "cmp-two-go";
+  go.textContent = b.dataset.twoLabel || (b.textContent || "").trim() || "Làm";
+  go.title = b.dataset.tip || b.title || "";
+  ack.onclick = ev => { ev.stopPropagation(); w.remove(); b.style.display = ""; b._cmpAck(); };
+  go.onclick = ev => { ev.stopPropagation(); w.remove(); b.style.display = ""; if(typeof b.onclick === "function") b.onclick(ev); };
+  w.append(ack, go);
+  b.style.display = "none";
+  b.after(w);
+}
+document.addEventListener("click", ev => {
+  const t = ev.target;
+  if(!ev.isTrusted || !t || !t.closest) return;
+  const inTwo = t.closest(".cmp-two");
+  if(inTwo){ cmpTwoClose(inTwo); return; }
+  const b = t.closest(CMP_TWO_SEL);
+  if(!b || !b.closest("#cmpBody") || b.disabled || b.classList.contains("done") || typeof b._cmpAck !== "function"){ cmpTwoClose(); return; }
+  ev.stopPropagation(); ev.preventDefault();
+  cmpTwoOpen(b);
+}, true);
+document.addEventListener("keydown", ev => { if(ev.key === "Escape") cmpTwoClose(); });
 function cmpSyncRepaint(rows){ for(const r of (rows || ((lastCmp && lastCmp.table) || []))){ for(const kind of ["crew","aims","fpl"]) cmpSyncPaint(r,kind); cmpMsgPaint(r); if(typeof cmpReqPaint === "function") cmpReqPaint(r); } }
 async function cmpSyncOpen(r, kind){
   if(cmpSyncBusy) return;
@@ -752,6 +796,10 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-msg-quick{display:block;margin:0 auto 4px;min-width:70px;min-height:30px;padding:4px 10px;border:0;border-radius:7px;background:var(--red);color:#fff;font:800 12px/1.3 inherit;cursor:pointer}
 .cmptbl .cmp-msg-quick:disabled{opacity:.55}
 .cmptbl .cmp-msg-quick.cmp-msg-ok{background:#16a34a;color:#fff}
+.cmptbl .cmp-two{display:flex;gap:4px;justify-content:center;align-items:center;margin:0 auto 4px;flex-wrap:nowrap}
+.cmptbl .cmp-two button{min-height:26px;padding:3px 8px;border-radius:6px;font:800 11px/1.2 inherit;cursor:pointer;white-space:nowrap}
+.cmptbl .cmp-two .cmp-two-ack{border:1.5px solid var(--green);background:var(--panel);color:var(--green)}
+.cmptbl .cmp-two .cmp-two-go{border:0;background:var(--red);color:#fff}
 .cmptbl .cmp-sync-pick{border:0;background:transparent;color:var(--text);font-size:18px;padding:4px;cursor:pointer;vertical-align:middle}
 </style></head>`);
 }
