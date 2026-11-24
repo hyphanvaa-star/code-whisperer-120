@@ -70,3 +70,13 @@ describe("verify button re-opens while the red triangle stays", () => {
     expect(b.disabled).toBe(false);
   });
 });
+
+describe("verify from the VERIFY cell clears the red triangle locally", () => {
+  it("drops ofp_ack on the row and flight after a successful run", () => {
+    const body = page.slice(page.indexOf("async function vfCmpOpen("), page.indexOf("async function vfCmpOpen(") + 3000);
+    const ok = body.slice(body.indexOf("if(okAll){"), body.indexOf("vfCmpEs.close()"));
+    expect(ok).toContain('vMarkDone("verify", row, btn)');
+    expect(ok).toContain("row.ofp_ack = false");
+    expect(ok).toContain("f.ofp_ack = false");
+  });
+});
