@@ -2311,6 +2311,7 @@ const KHB_RESULT_SKIN = `<style id="khb-result-skin">
 .ft-pld-input{width:100%;box-sizing:border-box;border:1px solid transparent;border-radius:6px;background:transparent;text-align:center;font:inherit;color:inherit;padding:1px 2px;outline:none}
 .ft-pld-input:hover{border-color:var(--atc-line)}
 .ft-pld-input:focus{border-color:var(--atc-accent,#2563eb);background:var(--atc-paper)}
+.ft-pld-input.ft-pld-manual{border:2px solid var(--atc-danger)!important;color:var(--atc-danger)!important;-webkit-text-fill-color:currentColor!important;font-weight:800}
 .ft-pld-input[data-empty="true"]{color:var(--atc-missing)}
 .ft-pld-input.ft-pld-ok{color:var(--atc-success)!important;-webkit-text-fill-color:currentColor!important}
 .ft-pld-input.ft-pld-bad{color:var(--atc-danger)!important;-webkit-text-fill-color:currentColor!important}
@@ -3345,7 +3346,7 @@ function nmPaintPinBar(n, place){`)
     .replace('        await csRun(j.r, j.r._crewBtn, html);', '        let csNeed = true;\n        try{ const cp = new URLSearchParams({sector_id: j.r.sector_id, days: DAYS, out: (j.r.crew.out || []).join(","), in: (j.r.crew.in || []).join(",")}); const cd = await (await fetch("/api/crewswap/preview?" + cp.toString())).json(); if(cd && !cd.error && !(cd.remove || []).length && !(cd.add || []).length && !(cd.not_found || []).length){ csNeed = false; vMarkDone("crew", j.r, j.r._crewBtn); j.r._crewBtn.title = "Crew trên FliteBrief đã đúng — không cần đổi"; } }catch(_){ }\n        if(csNeed) await csRun(j.r, j.r._crewBtn, html);')
     // V 7.41: popup có ô nhập chỉ đóng bằng nút ✕ (hoặc Esc) — bấm ra nền mờ / lỡ kéo chuột khi đang nhập không còn tắt popup.
     .replace('</body>', () => `<script>(function(){function isOv(el){if(!el||el.nodeType!==1||el===document.body||el===document.documentElement)return false;if(el.classList.contains('modal')||el.classList.contains('ftlib-modal'))return true;var cs=getComputedStyle(el);if(cs.position!=='fixed')return false;var r=el.getBoundingClientRect();return r.width>=window.innerWidth*0.9&&r.height>=window.innerHeight*0.9;}window.addEventListener('click',function(e){var t=e.target;if(isOv(t)&&t.querySelector('input,textarea,select')){e.stopImmediatePropagation();}},true);})();</script></body>`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.41')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.42')
     // V 7.40: chuyến mới đẩy lên FliteBrief chưa có crew không còn bị báo sai crew; Đổi hàng loạt bỏ qua chuyến crew đã đúng.
     // V 7.39: bảng So sánh giữ CHG DLA khi chuyến vừa đổi tàu vừa delay (nhận delay từ Crewlist, nhớ đổi tàu không theo giờ STD).
     // V 7.38: nháp ATC + EZFW trên Outlook Web có chữ ký OMC + banner Vietjet (trợ lý PC 6.18).

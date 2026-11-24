@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.42: ô PLD KHB giữ số nhập tay (sửa lỗi bộ lọc xoá hết số), viền đỏ + nhãn PLD đỏ ngay, Auto Rounding/EST không đè, REQ xuất đúng số nhập; 7 kiểm thử mới đạt; chưa publish.
 - [x] V 6.87: giữ airway/FIR của track qua nút lọc và máy chủ; W195/MORIT nhận diện và tô đỏ trên mẫu A6035/26; 50 kiểm thử đạt, giữ quy tắc giờ/độ cao, build OK; chưa publish.
 - [ ] V 6.87: xác nhận tracking/lọc A6035/26 trong phiên JACK — chưa cấp được phiên khớp tài khoản; cần JACK đăng nhập preview và chạy lại chuyến thật.
 - [x] V 6.86: khôi phục nút File ATC Aviweb, đưa vào hàng FliteBrief cùng In GD/Tạo EZFW (kiểu nút tối đồng bộ)

@@ -36,6 +36,10 @@ export function patchKhbPayloadPage(html: string): string {
     .replace('if(ftPldOn && st.pay) items[items.length - 1].pay = st.pay;', 'if(st.pay != null && String(st.pay).trim() !== "") items[items.length - 1].pay = st.pay;')
     .replace('<button type="button" class="btn small" id="ftPldRound"', '<button type="button" class="btn small" id="ftEstLoad" title="Lấy EST Omni cho các chuyến đã tick">↓ EST Omni</button><button type="button" class="btn small" id="ftPldRound"')
     .replace('      st.pay = String(row.pay);', '      st.est = row.est == null ? st.est : String(row.est);\n      st.pay = String(row.pay);')
+    .replace('for(const f of ftRows) if(f){ const st = ftSt(f); st.pay = ""; st.payManual = false; }', 'for(const f of ftRows) if(f && !ftSt(f).pldManual){ const st = ftSt(f); st.pay = ""; st.payManual = false; }')
+    .replace('      const st = ftSt(f);\n      if(!row || !row.pay){', '      const st = ftSt(f);\n      if(st.pldManual && st.pay != null && String(st.pay).trim() !== ""){ st.payManual = true; ftPldKept++; continue; }\n      if(!row || !row.pay){')
+    .replace('    const byId = {};\n    for(const row of d.rows || []) byId[String(row.id)] = row;', '    const byId = {};\n    let ftPldKept = 0;\n    for(const row of d.rows || []) byId[String(row.id)] = row;')
+    .replace('$("#ftStat").textContent = "Đã làm tròn " + n + " chuyến"', '$("#ftStat").textContent = "Đã làm tròn " + n + " chuyến" + (ftPldKept ? " · giữ " + ftPldKept + " số nhập tay" : "")')
     .replace('function ftRender(){', `
 const ftPayloadPair = ${payloadPair.toString()};
 const ftKhbUtcDay = ${khbUtcDay.toString()};
@@ -71,6 +75,24 @@ function ftPayloadSector(f, requireReg = true){
   const utc = base.filter(g => shifted(g.std, 0) === day);
   return utc.length === 1 ? utc[0] : null;
 }
+let ftPldFocusId = "";
+function ftPldTagSync(td, st){
+  const tr = td.closest && td.closest("tr");
+  if(!tr) return;
+  let tag = tr.querySelector(".ft-pay");
+  const has = st.pay != null && String(st.pay).trim() !== "" && st.payManual;
+  if(!has){ if(tag) tag.remove(); return; }
+  if(!tag){
+    const fltInp = tr.querySelector('input[title^="Gõ số hiệu"]');
+    const host = fltInp && fltInp.parentElement;
+    if(!host) return;
+    tag = document.createElement("span");
+    host.appendChild(tag);
+  }
+  tag.className = "ft-pay manual";
+  tag.textContent = "PLD " + st.pay;
+  tag.title = st.pldManual ? "Payload nhập tay — REQ xuất đúng số này" : "Payload tạm — tự kiểm tra/điều chỉnh trước khi gửi";
+}
 function ftPldCell(f){
   const td = document.createElement("td");
   td.className = "ft-pld-cell";
@@ -99,20 +121,37 @@ function ftPldCell(f){
       const kg = (n) => Math.abs(n).toLocaleString("en-US") + " kg";
       value.title = "EST Omni " + Number(b).toLocaleString("en-US") + " kg · OFP " + Number(a).toLocaleString("en-US") + " kg · " + (v > 0 ? "còn dư " + kg(v) : v < 0 ? "vượt " + kg(v) : "khớp");
     }
+    const manual = !!(f && ftSt(f).pldManual && b !== "—");
+    estEl.classList.toggle("ft-pld-manual", manual);
+    if(manual) value.title = "Payload nhập tay " + Number(b).toLocaleString("en-US") + " kg — REQ xuất đúng số này" + (a !== "—" ? " · OFP " + Number(a).toLocaleString("en-US") + " kg" : "");
   };
   if(!f){ paint(null,null); estEl.disabled = true; return td; }
   ftEstAutoLater();
   const st = ftSt(f), identity = ftEstIdentity(f), sector = ftPayloadSector(f);
   const commit = () => {
-    const raw = estEl.value.replace(/[^\d]/g, "");
-    if(!raw){ st.est = ""; st.pay = ""; st.pldManual = false; paint(lastPld, null); return; }
+    const raw = estEl.value.replace(/[^\\d]/g, "");
+    if(!raw){ st.est = ""; st.pay = ""; st.payManual = false; st.pldManual = false; paint(lastPld, null); ftPldTagSync(td, st); return; }
     st.est = raw;
     st.pay = raw;
     st.payManual = true;
     st.pldManual = true;
     paint(lastPld, raw);
+    ftPldTagSync(td, st);
   };
+  // Ghi ngay khi gõ: bảng vẽ lại nền (TAF, Crewlist, OFP) không còn xoá số đang nhập.
+  estEl.addEventListener("input", commit);
   estEl.addEventListener("change", commit);
+  estEl.addEventListener("focus", () => { ftPldFocusId = String(f.id); });
+  estEl.addEventListener("blur", () => { setTimeout(() => { if(estEl.isConnected && ftPldFocusId === String(f.id)) ftPldFocusId = ""; }, 0); });
+  if(ftPldFocusId === String(f.id)){
+    requestAnimationFrame(() => {
+      const a = document.activeElement;
+      if(!estEl.isConnected || (a && a !== document.body && a.tagName !== "HTML")) return;
+      estEl.focus();
+      const n = estEl.value.length;
+      try{ estEl.setSelectionRange(n, n); }catch(_){}
+    });
+  }
   estEl.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); estEl.blur(); } });
   const update = w => { paint(w && w.pld, (st.pay != null && String(st.pay).trim() !== "") ? st.pay : st.est); };
   td._repaint = () => { const s2 = ftPayloadSector(f); const w = s2 && W_CACHE[s2.id]; update(w && ofpFitsFlight(s2,w) ? w : null); };
@@ -168,7 +207,8 @@ async function ftLoadEst(flights, btn, auto){
     if(!response.ok || d.error) throw new Error(d.error || "Không lấy được EST Omni");
     const notes = []; let count = 0;
     for(const snap of snapshots){
-      if(!ftRows.includes(snap.f) || ftSt(snap.f) !== snap.st || ftEstIdentity(snap.f) !== snap.identity || snap.st.pay !== snap.pay || snap.st.pldManual){
+      if(snap.st.pldManual){ notes.push("VJ" + snap.f.flt + ": giữ payload nhập tay " + snap.st.pay + "."); continue; }
+      if(!ftRows.includes(snap.f) || ftSt(snap.f) !== snap.st || ftEstIdentity(snap.f) !== snap.identity || snap.st.pay !== snap.pay){
         notes.push("VJ" + snap.f.flt + ": đã đổi dữ liệu trong lúc tải; giữ ô PLD hiện tại."); continue;
       }
       const row = (d.rows || []).find(r => String(r.id) === String(snap.f.id));
