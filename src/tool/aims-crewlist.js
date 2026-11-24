@@ -61,7 +61,7 @@
   pick.addEventListener('click', e => { e.stopPropagation(); box.hidden ? open() : (box.hidden = true); });
   box.querySelector('.aims-x').onclick = () => { box.hidden = true; };
   box.addEventListener('click', e => e.stopPropagation());
-  document.addEventListener('click', () => { if(!go.disabled) box.hidden = true; });
+  // Chỉ đóng bằng nút ✕ hoặc bấm lại nút AIMS — bấm ra ngoài không tắt khi đang nhập.
   window.addEventListener('resize', () => { if(!box.hidden) place(); });
   function say(t, bad){ msg.textContent = t; msg.className = 'aims-msg' + (bad ? ' bad' : ''); }
   const curXls = () => { try{ return typeof xls !== 'undefined' ? xls : null; }catch(_){ return null; } };

@@ -153,7 +153,6 @@
   window.ofpCkOpen = openModal;
   window.ofpCkClose = closeModal;
 
-  ov.addEventListener("mousedown", function(ev){ if(ev.target === ov) closeModal(); });
   q("#ockClose").onclick = closeModal;
   q("#ockDone").onclick = closeModal;
   q("#ockRerun").onclick = function(){

@@ -5,3 +5,4 @@
 - NOTAM Tracking opens in the normal layout like every other tab; the old auto-fullscreen (`body.nm-full`) mechanism was removed in V 6.85 — do not reintroduce it.
 - Inside tool-page shim template literals, JS string newlines must be written `\\n`; a bare `\n` becomes a raw newline and breaks the whole page script.
 - NOTAM "Add chuyến" bar targets only the tracked flight via browser-safe `src/lib/notam-pin-bar.js` (inlined by the shim); flights pinned earlier render as separate removable chips, so an old pin is never prefilled or re-pinned to the wrong sector.
+- Popups that contain input fields close only via their ✕/close buttons (or Esc): a capture-phase click guard in the tool-page shim swallows backdrop clicks on overlays holding inputs, so accidental outside clicks never discard typing.
