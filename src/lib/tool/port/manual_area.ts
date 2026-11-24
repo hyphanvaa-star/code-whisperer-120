@@ -25,7 +25,9 @@ export function maParse(text: string): MaArea | null {
   // NOTAM line wrap can split one coordinate mid-number ("-54\n2700N…", "543200N\n010000E"): re-join chains first.
   T = T.replace(/([\d.NSEW-]*\d[\d.NSEW-]*)[ \t]*\r?\n[ \t]*(?=[\d-]|[EW](?![A-Z]))/g, (all, tok: string) =>
     /\d{4,}[NSEW]|^-|-\d+$|^\d{4,}[NS]?\d*$/.test(tok) ? tok : all)
-    .replace(/(?<!\d)(\d{6}[NS])(0\d{5})([EW])/g, "$1$20$3");
+    .replace(/(?<!\d)(\d{6}[NS])(0\d{5})([EW])/g, "$1$20$3")
+    // European decimal-comma seconds: "495750,21N0172420,95E".
+    .replace(/(?<![\d.,])(\d{4,7}),(\d{1,3})(?=\s*[NSEW])/g, "$1.$2");
   const comp = (raw: string, degLen: number): number | null => {
     const [int = "", dec = ""] = raw.split(".");
     const f = dec ? "." + dec : "";

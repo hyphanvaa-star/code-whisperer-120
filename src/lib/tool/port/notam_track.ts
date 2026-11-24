@@ -191,10 +191,15 @@ export function iterLatLon(text: string, keepRepeats = false): Pt[] {
   return out;
 }
 
+/** European NOTAMs write decimal seconds with a comma ("495750,21N0172420,95E"): read it as a decimal point. */
+export function decimalCommaCoords(text: string): string {
+  return text.replace(/(?<![\d.,])(\d{4,7}),(\d{1,3})(?=\s*[NSEW])/gi, "$1.$2");
+}
+
 /** Re-join coordinates that the NOTAM line wrap split mid-number
  * (e.g. "-54\n2700N0130000E", "545000N010000\n0E", "543200N\n010000E"). */
 export function unwrapCoordLines(text: string): string {
-  return text.replace(/(\S+)[ \t]*\r?\n[ \t]*(?=[\d-]|[EW](?![A-Z]))/g, (all, tok: string) => {
+  return decimalCommaCoords(text).replace(/(\S+)[ \t]*\r?\n[ \t]*(?=[\d-]|[EW](?![A-Z]))/g, (all, tok: string) => {
     const chain = /\d{4,}[NSEW]|^-|-\d+$/i.test(tok) || /^[\d-]*\d{4,}[NS]?\d*$/i.test(tok);
     const coordish = /^[\d.NSEW-]+$/i.test(tok) && /\d/.test(tok);
     return chain && coordish ? tok : all;
@@ -483,7 +488,7 @@ function applyArcs(ring: Pt[], arcs: ArcSpec[]): Pt[] {
 
 /** The original parse_areas order: radius sites, deployment points, separate boundaries. */
 export function parseAreas(text: string): Geom[] {
-  const raw = text.replace(/^\s*Q\).*$/gim, '');
+  const raw = decimalCommaCoords(text.replace(/^\s*Q\).*$/gim, ''));
   const pts = iterLatLon(raw);
   const boundary = /BOUNDED|JOINING|STRAIGHT\s+LINES|\bWI\s+AREA\b|\bALONG\b|\bPOLYGON\b/i.test(raw);
   const rad = /\bARC\b/i.test(raw) ? null : eRadiusNm(raw);
@@ -573,7 +578,7 @@ function notamGeomsText(notam: Notam): Geom[] {
   const blob = `${tx}\n${ef}`;
   const areas: Geom[] = parseAreas(ef) || [];
   if (!areas.length) areas.push(...parseAreas(tx));
-  const { text: raw, arcs } = extractArcs(blob.replace(/^Q\).*$/gm, ""));
+  const { text: raw, arcs } = extractArcs(decimalCommaCoords(blob.replace(/^Q\).*$/gm, "")));
   const along = /\bALONG\b/i.test(raw);
   const ring = applyArcs(iterLatLon(raw), arcs);
   if (!areas.length && ring.length >= 3 && !along) areas.push({ name: "", shape: "polygon", ring, source: 'e-field' });

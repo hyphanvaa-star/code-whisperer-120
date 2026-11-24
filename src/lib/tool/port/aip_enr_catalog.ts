@@ -9,6 +9,8 @@ import JP from "../data/aip_enr_jp.json";
 import IN from "../data/aip_enr_in.json";
 import SG from "../data/aip_enr_sg.json";
 import TH from "../data/aip_enr_th.json";
+import LR from "../data/aip_enr_lr.json";
+import LH from "../data/aip_enr_lh.json";
 import type { Geom } from "./notam_track";
 
 type Pt = [number, number];
@@ -27,14 +29,18 @@ const AREAS: Record<string, VerifiedArea> = { ...(VERIFIED.areas as unknown as R
   // Singapore ENR 5.1/5.2/5.3 incl. sub-areas (WSD11A/B) and WM areas published in AIP Singapore (scripts/gen_aip_enr_sg.py).
   ...(SG.areas as unknown as Record<string, VerifiedArea>),
   // Thailand ENR 5.1/5.2/5.3 incl. sub-areas (VTD30W1/2, VTD341) (scripts/gen_aip_enr_th.py).
-  ...(TH.areas as unknown as Record<string, VerifiedArea>) };
+  ...(TH.areas as unknown as Record<string, VerifiedArea>),
+  // Romania ENR 5.1/5.2 (LRP/LRR/LRD/LRTRA/LRTSA, scripts/gen_aip_enr_lr.py) and Hungary ENR 5.1/5.2/5.5
+  // (LHP/LHR/LHD/LHTRA/LHSG/LHSA, scripts/gen_aip_enr_lh.py); border-following/arc areas skipped.
+  ...(LR.areas as unknown as Record<string, VerifiedArea>),
+  ...(LH.areas as unknown as Record<string, VerifiedArea>) };
 const RINGS: Record<string, Pt[]> = {
   ...(DATA as unknown as { rings: Record<string, Pt[]> }).rings,
   ...Object.fromEntries(Object.entries(AREAS).filter(([, area]) => area.ring.length >= 3).map(([key, area]) => [key, area.ring])),
 };
 
-const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|UA|LK|UH|UL|UN|UR|US|UU|UW|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
-const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key) && !(key in JP_AREAS) && !/^IN/.test(key)).map(([key, area]) => ({
+const ID_RE = /\b(WS|WM|WB|VV|VT|VI|VA|VE|VO|RK|WI|WA|RP|RJ|RC|VL|UA|LK|LR|LH|UH|UL|UN|UR|US|UU|UW|Z[A-Z])\s*[-/]?\s*\(?\s*([DRPW])\s*\)?\s*-?\s*(\d{1,4}[A-Z]?)(?![A-Z0-9])/g;
+const NAMED = Object.entries(AREAS).filter(([key]) => !/^\w{2}[DRPW]\d/.test(key) && !/^LKT[RS]A\d/.test(key) && !/^L[RH]/.test(key) && !(key in JP_AREAS) && !/^IN/.test(key)).map(([key, area]) => ({
   key, country: area.fir.slice(0, 2),
   pattern: new RegExp(`(?<![A-Z0-9])${area.name.toUpperCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}(?![A-Z0-9])`),
 }));
@@ -53,6 +59,19 @@ function matchesFir(country: string, region: string): boolean {
   // Russian area prefixes are subregions that span several FIR codes (UN* also covers UIII…).
   if (RU_PREFIX.test(country)) return RU_FIR.test(region);
   return region.startsWith(country);
+}
+
+/** Published keys for a Romanian/Hungarian area mention: exact, zero-padding variant, else all sub-areas. */
+function eastEuropeKeys(cc: string, kind: string, num: string, suf: string): string[] {
+  const nums = [...new Set([num, String(+num), String(+num).padStart(2, "0")])];
+  for (const n of nums) if (AREAS[`${cc}${kind}${n}${suf}`]) return [`${cc}${kind}${n}${suf}`];
+  if (suf) return [];
+  for (const n of nums) {
+    const base = `${cc}${kind}${n}`;
+    const subs = Object.keys(AREAS).filter((k) => k.startsWith(base) && /^[A-Z]{1,2}$/.test(k.slice(base.length)));
+    if (subs.length) return subs;
+  }
+  return [];
 }
 
 /** Resolve spelling separately from boundary availability; unknown areas stay unresolved. */
@@ -81,6 +100,17 @@ export function namedEnrIds(text: string, fir = ""): string[] {
   if (!region || region.startsWith("LK")) {
     for (const m of blob.matchAll(/\b(?:LK\s*)?(TRA|TSA)\s*-?\s*(\d{1,3}[A-Z]?)(?![A-Z0-9])/g)) {
       if (region || /\bLK\s*T[RS]A/.test(m[0])) out.add(`LK${m[1]}${m[2]}`);
+    }
+  }
+  // Romania/Hungary: "LRTRA20G", "LH TRA 22A", "LHSG100", bare "TRA20G"/"TSA 59" inside LRBB/LHCC.
+  // AIP numbering may be zero-padded ("LRD03A") while NOTAMs drop the zero, and a parent
+  // name ("LHTRA22") stands for every published sub-area.
+  if (!region || /^L[RH]/.test(region)) {
+    const own = region.slice(0, 2);
+    for (const m of blob.matchAll(/\b(LR|LH)?\s*(TRA|TSA|CBA|SG|SA|[DRP])\s*-?\s*(\d{1,3})\s*([A-Z]{0,2})(?![A-Z0-9])/g)) {
+      const cc = m[1] || ((m[2] === "TRA" || m[2] === "TSA") ? own : "");
+      if (!cc || (region && cc !== own)) continue;
+      for (const key of eastEuropeKeys(cc, m[2]!, m[3]!, m[4] || "")) { out.add(key); }
     }
   }
   // India ENR 5.2 "TRA503(A)", "TRA 508C", "TSA801 (B)" inside VABF/VECF/VIDF/VOMF.
@@ -160,6 +190,7 @@ export function enrCatalogue() {
     RJ: ["JP", "Nhật Bản"], RC: ["TW", "Đài Loan"], VL: ["LA", "Lào"],
     WI: ["ID", "Indonesia"], WA: ["ID", "Indonesia"],
     UA: ["KZ", "Kazakhstan"], LK: ["CZ", "Cộng hoà Séc"],
+    LR: ["RO", "Romania"], LH: ["HU", "Hungary"],
     UH: ["RU", "Nga"], UL: ["RU", "Nga"], UN: ["RU", "Nga"], UR: ["RU", "Nga"],
     US: ["RU", "Nga"], UU: ["RU", "Nga"], UW: ["RU", "Nga"],
   };
