@@ -155,7 +155,7 @@ export function iterLatLon(text: string, keepRepeats = false): Pt[] {
     seen.add(key);
     out.push([lat, lon]);
   };
-  const raw = String(text || "").replace(/^Q\).*$/gm, "");
+  const raw = unwrapCoordLines(String(text || "").replace(/^Q\).*$/gm, ""));
   for (const m of raw.matchAll(new RegExp(_LL_COMPACT, "gi"))) {
     at = m.index ?? 0;
     const [latNum, ns, lonNum, ew] = [m[1], m[2], m[3], m[4]];
@@ -191,6 +191,18 @@ export function iterLatLon(text: string, keepRepeats = false): Pt[] {
   return out;
 }
 
+/** Re-join coordinates that the NOTAM line wrap split mid-number
+ * (e.g. "-54\n2700N0130000E", "545000N010000\n0E", "543200N\n010000E"). */
+export function unwrapCoordLines(text: string): string {
+  return text.replace(/(\S+)[ \t]*\r?\n[ \t]*(?=[\d-]|[EW](?![A-Z]))/g, (all, tok: string) => {
+    const chain = /\d{4,}[NSEW]|^-|-\d+$/i.test(tok) || /^[\d-]*\d{4,}[NS]?\d*$/i.test(tok);
+    const coordish = /^[\d.NSEW-]+$/i.test(tok) && /\d/.test(tok);
+    return chain && coordish ? tok : all;
+  })
+    // DDMMSSN + 6-digit longitude starting with 0 dropped one seconds digit: 010000E → 0100000E.
+    .replace(/(?<!\d)(\d{6}[NS])(0\d{5})([EW])/gi, "$1$20$3");
+}
+
 function splitCompact(num: string, isLat: boolean): [number, number, number] {
   let whole: string, fracS: string;
   if (num.includes(".")) [whole, fracS] = num.split(".", 2);
@@ -206,7 +218,8 @@ function splitCompact(num: string, isLat: boolean): [number, number, number] {
     else if (whole.length === 5) [d, m, s] = [whole.slice(0, 3), whole.slice(3, 5), "0"];
     else if (whole.length === 6) {
       const deg3 = +whole.slice(0, 3), minDD = +whole.slice(2, 4);
-      if (deg3 > 180 || (deg3 < 100 && minDD < 60)) [d, m, s] = [whole.slice(0, 2), whole.slice(2, 4), whole.slice(4, 6)];
+      if (whole[0] === "0" && +whole.slice(3, 5) < 60) [d, m, s] = [whole.slice(0, 3), whole.slice(3, 5), String(+whole.slice(5) * 10)];
+      else if (deg3 > 180 || (deg3 < 100 && minDD < 60)) [d, m, s] = [whole.slice(0, 2), whole.slice(2, 4), whole.slice(4, 6)];
       else [d, m, s] = [whole.slice(0, 3), whole.slice(3, 4), whole.slice(4, 6)];
     }
     else throw new Error(num);
