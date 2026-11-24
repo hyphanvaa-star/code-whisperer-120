@@ -5,6 +5,7 @@ import {
   bcOk,
   buildTuneCtx,
   closedRwysOf,
+  extraOfpTokens,
   isExerciseArea,
   isFireArea,
   isProhibitedArea,
@@ -18,6 +19,7 @@ import {
 import { parseNotamWhen } from "./notam_check";
 import { isVipMovement, vipLabel, vipOverlaps } from "./notam_vip";
 import { atsSegmentList, coordOnTrack, segCoord } from "./ats_segment_coord";
+import { isRouteFlLimitOnly } from "./route_fl_limit";
 
 type N = Record<string, unknown>;
 export type VerdictRow = {
@@ -26,6 +28,8 @@ export type VerdictRow = {
   ident?: string;
   icao?: string;
   hit?: boolean;
+  /** Informational only (route FL limit): shown green, never raises the flight status. */
+  soft?: boolean;
 };
 export type VerdictSection = {
   key: string;
@@ -316,7 +320,7 @@ export function verdictOf(
   const liveHit = (h: N) => h.eta_ok !== false && !flBad(h);
   const cs = str(flight.callsign).trim().toUpperCase(),
     ctx = buildTuneCtx(flight, ofpText),
-    tokens = ctx.tokens as Set<string>;
+    tokens = new Set([...((ctx.tokens as Set<string>) || []), ...extraOfpTokens(points)]);
   const found: (N & { tags: string[]; ident: string; icao: string; kind: string; area: string })[] =
       [],
     ofp: typeof found = [],
@@ -363,7 +367,10 @@ export function verdictOf(
       const own = hits.filter((h) => str(h.ident) === str(n.ident));
       // Text-only route NOTAMs (no geometry hit) still need the crossing time/FL checked.
       const namedLive = own.length ? own.some(liveHit) : !namedGate || namedGate(n, named);
-      if (named.length && namedLive) ofp.push({ ...base, tags: ["ofp"], area: named.join("/") });
+      if (named.length && namedLive) {
+        const soft = isRouteFlLimitOnly(n);
+        ofp.push({ ...base, tags: soft ? ["ofp", "fl_limit"] : ["ofp"], area: named.join("/"), soft });
+      }
       let sh = arr(n.sid_star_hits).filter((h) => !cs || str(h.cs).trim().toUpperCase() === cs);
       if (!sh.length && ofpText) {
         let procs = sidStarHitsOf(n, ofpText, tokens);
@@ -411,10 +418,11 @@ export function verdictOf(
       route.push(r);
   }
   const rwyRows = uniq(rwy.map(r => row(r.icao, (r.closed as string[]).join(", ") || "?", r.ident, r.icao)));
-  const ats = new Map<string, { labs: string[]; icao: string }>();
+  const ats = new Map<string, { labs: string[]; icao: string; soft: boolean }>();
   for (const r of [...ofp, ...route]) {
     if (!r.ident) continue;
-    const held = ats.get(r.ident) || { labs: [], icao: r.icao };
+    const held = ats.get(r.ident) || { labs: [], icao: r.icao, soft: true };
+    if (r.soft !== true) held.soft = false;
     const labs = r.area
       .toUpperCase()
       .split(/[/,]+/)
@@ -440,7 +448,10 @@ export function verdictOf(
     rwy: rwyRows,
     vip: uniq(tagged("vip").map((r) => row([r.icao, str(r.vip_at)].filter(Boolean).join(" "), r.ident, r.ident, r.icao))),
     area: [],
-    ats: [...ats].map(([id, r]) => row(r.labs.join("-") || r.icao || "—", id, id, r.icao)),
+    ats: [...ats].map(([id, r]) => {
+      const lab = r.labs.join("-") || r.icao || "—";
+      return r.soft ? { ...row(lab + " · giới hạn FL", id, id, r.icao), soft: true } : row(lab, id, id, r.icao);
+    }),
     sidstar: uniq(sid),
     gps: uniq(tagged("gps").map((r) => row(r.icao, r.ident))),
     rffs: uniq(
@@ -467,15 +478,17 @@ export function verdictOf(
       ),
     }))
     .filter((g) => g.rows.length);
+  const atsSoft = rows.ats.length > 0 && rows.ats.every((r) => r.soft);
   const sections = ORDER.map((key, i) => ({
     key,
     title: TITLES[i],
-    answer: answer(key, key === "area" ? area.length > 0 : rows[key].length > 0),
+    answer: key === "ats" && atsSoft ? "giới hạn FL" : answer(key, key === "area" ? area.length > 0 : rows[key].length > 0),
     hit: key === "area" ? area.length > 0 : rows[key].length > 0,
     ...(key === "area" ? { groups } : { rows: rows[key] }),
   }));
+  const ofpHard = ofp.filter((r) => r.soft !== true);
   const status =
-    ad.length || rows.vip.length || area.length || route.length || ofp.length || sid.length
+    ad.length || rows.vip.length || area.length || route.length || ofpHard.length || sid.length
       ? "risk"
       : rwy.length
         ? "wait"

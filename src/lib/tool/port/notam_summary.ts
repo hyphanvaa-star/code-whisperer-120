@@ -69,9 +69,12 @@ export function assessedVerdict(
       answer: section.key === 'ad' ? `${hit ? 'có' : 'không có'} đóng cửa sân bay`
         : section.key === 'rwy' ? `${hit ? 'có' : 'không có'} đóng cửa rwy`
         : section.key === 'vip' ? (hit ? 'chuyến đáp trong giờ VIP — cần extra fuel holding' : 'không có chuyến đáp trong giờ VIP')
+        : section.key === 'ats' && hit && rows.every(r => r.soft) ? 'giới hạn FL'
         : `${hit ? 'có' : 'không'} ảnh hưởng` };
   });
-  const risk = sections.some(s => ['ad', 'vip', 'area', 'ats', 'sidstar'].includes(s.key) && s.hit);
+  // Route FL-limit rows are informational: they never make the flight "risk" on their own.
+  const hard = (s: (typeof sections)[number]) => s.key === 'ats' ? (s.rows || []).some(r => !r.soft) : s.hit;
+  const risk = sections.some(s => ['ad', 'vip', 'area', 'ats', 'sidstar'].includes(s.key) && hard(s));
   const runway = sections.some(s => s.key === 'rwy' && s.hit);
   return { ...base, sections, status: risk ? 'risk' : runway ? 'wait' : 'clear', items: [...(base.items || []), ...items] };
 }

@@ -26,7 +26,7 @@ import {
   type Notam,
   type TrackPoint,
 } from "./notam_track";
-import { assessNotam, normAssessCfg, type AssessFlight, type Assessment, type Role } from "./notam_assess";
+import { assessNotam, atsRouteList, normAssessCfg, type AssessFlight, type Assessment, type Role } from "./notam_assess";
 import { routeNameRemote } from "./route_name_scope";
 import { segmentCoordHits } from "./ats_segment_coord";
 
@@ -1156,13 +1156,24 @@ function isAtsRouteNotam(notam: N): boolean {
   return false;
 }
 
+/** ATS route designators named anywhere in item E (layout-independent), via the assessment's scanner. */
+function namedRoutesOf(notam: N): string[] {
+  const text = String(notam.text ?? "").toUpperCase();
+  const E = String(notam.e_field ?? "").toUpperCase() || text.replace(/^Q\).*$/gm, "");
+  const q = /Q\)\s*[A-Z]{4}\s*\/\s*(Q[A-Z]{4})/.exec(text)?.[1]
+    || (qLetters(notam.qsubj) && qLetters(notam.qcond) ? `Q${qLetters(notam.qsubj)}${qLetters(notam.qcond)}` : "");
+  return atsRouteList(E, q);
+}
+
 export function ofpNamedHits(notam: N, tokens: Set<string>, points?: Array<Record<string, unknown>> | null): string[] {
   if (isTaxiwayNotam(notam)) return [];
   const known = new Set([...tokens].filter(Boolean).map((t) => String(t).toUpperCase()));
   if (!known.size) return [];
   const blob = notamBlob(notam);
   const listed = flowListedAwys(blob);
-  const awys = listed.size ? listed : flowAwyTokens(blob);
+  // Every ATS route the NOTAM names, whatever the layout ("RTE: L642", "- L642: FL320", "ON ROUTES
+  // L642 AND M771", numbered tables, FIX-AWY-FIX chains) — the same scan the assessment uses.
+  const awys = new Set([...listed, ...namedRoutesOf(notam), ...(listed.size ? [] : flowAwyTokens(blob))]);
   const fixes = new Set([...blob.matchAll(FPL_FIX)].map((m) => m[1]).filter((t) => !FLOW_STOP_5.has(t)));
   const navaids = navaidTokens(blob);
   const skip = new Set<string>();

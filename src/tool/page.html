@@ -13935,7 +13935,7 @@ function nmIdentShouldFlash(ident, secKey, items){
   if(secKey === "ad" || secKey === "area" || secKey === "sidstar") return true;
   if(secKey !== "ats") return false;
   const it = (items || []).find(x => x.ident === ident);
-  if(it && (it.tags || []).indexOf("flow") >= 0) return false;
+  if(it && (it.tags || []).some(t => t === "flow" || t === "fl_limit")) return false;
   return !nmIsFlowControl(nmNotamByIdent(ident) || {});
 }
 function nmPaintVerdictValue(parent, row, items, secKey, flightId){

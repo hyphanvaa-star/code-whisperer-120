@@ -35,6 +35,9 @@ export function notamQ(n: P): NotamQ {
 }
 
 const key = (v: unknown) => String(v ?? "").toUpperCase().replace(/\s+/g, "");
+/** Retired FIR codes still printed by some flight-plan databases (Ho Chi Minh VVTS → VVHM, Hanoi VVNB → VVHN). */
+const FIR_ALIAS: Record<string, string> = { VVTS: "VVHM", VVNB: "VVHN" };
+export const firKey = (v: unknown) => { const k = key(v); return FIR_ALIAS[k] || k; };
 
 /** Track points where the flight flies `token` (airway legs incl. their entry point, or a named fix/navaid). */
 export function flownPoints(token: string, points: P[]): P[] {
@@ -61,9 +64,15 @@ export function routeNameRemote(n: P, token: string, points?: P[] | null): boole
   const ours = flownPoints(token, points);
   if (!ours.length) return false;
   const q = notamQ(n);
-  const firs = new Set(ours.map((p) => key(p.fir)).filter((f) => ICAO4.test(f)));
-  const firKnown = !!q.fir && firs.size > 0;
-  if (firKnown && firs.has(q.fir)) return false;
+  const qFir = firKey(q.fir);
+  const firs = new Set(ours.map((p) => firKey(p.fir)).filter((f) => ICAO4.test(f)));
+  const firKnown = !!qFir && firs.size > 0;
+  if (firKnown && firs.has(qFir)) return false;
+  // The flight crosses the NOTAM's FIR and flies this name right next to it: same route,
+  // even when the leg's own FIR label differs (boundary points, other naming).
+  const inFir = qFir ? points.filter((p) => firKey(p.fir) === qFir && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lon))) : [];
+  if (inFir.length && ours.some((a) => inFir.some((b) =>
+    gcNm([Number(a.lat), Number(a.lon)], [Number(b.lat), Number(b.lon)]) <= ROUTE_NAME_MARGIN_NM))) return false;
   if (q.lat != null && q.lon != null) {
     if (q.radius >= 999 && firKnown) return true;
     const limit = (q.radius >= 999 ? 999 : q.radius) + ROUTE_NAME_MARGIN_NM;
