@@ -19,3 +19,12 @@ describe("line-wrapped NOTAM coordinates", () => {
     }
   });
 });
+
+import { maParse } from "../manual_area";
+describe("manual paste of line-wrapped coordinates", () => {
+  it("keeps the pasted EDWW Baltic area in northern Germany", () => {
+    const ring = maParse(E)!.ring;
+    expect(ring.length).toBe(10);
+    for (const [lat, lon] of ring) { expect(lat).toBeGreaterThan(53.5); expect(lon).toBeGreaterThan(9.9); expect(lon).toBeLessThan(14.5); }
+  });
+});

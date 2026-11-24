@@ -22,6 +22,10 @@ export interface MaResult { dist_nm: number | null; inside: boolean; name: strin
  */
 export function maParse(text: string): MaArea | null {
   let T = String(text || "").toUpperCase().replace(/[°º˚'"’‘”“′″]/g, " ");
+  // NOTAM line wrap can split one coordinate mid-number ("-54\n2700N…", "543200N\n010000E"): re-join chains first.
+  T = T.replace(/([\d.NSEW-]*\d[\d.NSEW-]*)[ \t]*\r?\n[ \t]*(?=[\d-]|[EW](?![A-Z]))/g, (all, tok: string) =>
+    /\d{4,}[NSEW]|^-|-\d+$|^\d{4,}[NS]?\d*$/.test(tok) ? tok : all)
+    .replace(/(?<!\d)(\d{6}[NS])(0\d{5})([EW])/g, "$1$20$3");
   const comp = (raw: string, degLen: number): number | null => {
     const [int = "", dec = ""] = raw.split(".");
     const f = dec ? "." + dec : "";

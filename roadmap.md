@@ -318,3 +318,5 @@
 - [x] V 7.23 / Trợ lý PC 6.16: bấm cập nhật trên web không còn báo bận — trợ lý cập nhật ngay khi lệnh đang chạy xong; bản cũ ≤6.15 được web tự hỏi lại mỗi 3 giây.
 
 - [x] ALT Route của hienpham: dùng bản sửa chiều 21/11 (bản chung lúc 14:53) làm bản riêng; giữ bản 18/11 dự phòng.
+- [x] NOTAM toạ độ ngắt dòng (V 7.47)
+- [x] Enter ở FLT NO nhảy vào ô tick (V 7.48)
