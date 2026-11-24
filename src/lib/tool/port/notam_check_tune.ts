@@ -1198,7 +1198,9 @@ function atsRouteDropWhy(notam: N, ctx: TuneCtx): string {
   if (!tokens.size) return "";
   if (ofpNamedHits(notam, tokens).length) return "";
   const blob = notamBlob(notam);
-  const awys = flowListedAwys(blob).size ? flowListedAwys(blob) : flowAwyTokens(blob);
+  const listed = flowListedAwys(blob);
+  // Same layout-independent route list as the highlight, so a flown route written outside "RTE:" never drops the NOTAM.
+  const awys = new Set([...listed, ...namedRoutesOf(notam), ...(listed.size ? [] : flowAwyTokens(blob))]);
   if (awys.size && [...awys].every((a) => !tokens.has(a))) {
     return "ATS route khác OFP (" + [...awys].sort().join("/") + ")";
   }

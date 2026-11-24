@@ -60,3 +60,13 @@ describe("route FL limit is informational", () => {
     expect(assessedVerdict(base, [], () => []).status).toBe("risk");
   });
 });
+
+import { tuneWhy } from "../notam_check_tune";
+describe("route drop uses the same route list", () => {
+  it("a flown route named outside 'RTE:' keeps the NOTAM", () => {
+    const e = "ATS RTE: W1 NOT AVBL. ALSO APPLIED ON ROUTES L642 AND M771.";
+    const n = { ident: "A2/26", qfir: "VVHM", text: `Q)VVHM/QARLC/IV/NBO/E/0/999\nE)${e}`, e_field: e, subject: "AR" };
+    expect(String(tuneWhy(n, { code: "VVHM", kind: "FIR" }, { mode: "track", tokens: new Set(["L642"]) } as never) || "")).not.toMatch(/ATS route khác OFP/);
+    expect(String(tuneWhy(n, { code: "VVHM", kind: "FIR" }, { mode: "track", tokens: new Set(["Y11"]) } as never) || "")).toMatch(/ATS route khác OFP/);
+  });
+});
