@@ -200,11 +200,12 @@ export const jobs: Jobs = {
       for (const n of fn.needs) {
         const cand = [n.title, ...n.alt].find((t) => lib.has(normTitle(t)));
         if (!cand) continue;
-        if (have.has(normTitle(cand))) { skipped++; continue; }
+        // FliteBrief tự ghi đè file cùng tên → đẩy lại bản mới cho đúng sector này.
+        if (have.has(normTitle(cand))) skipped++;
         work.push({ f: fn.flight, title: cand, path: lib.get(normTitle(cand))! });
       }
     }
-    emit({ type: "line", text: `▶ ${flights.length} chuyến · ${work.length} file cần add · ${skipped} đã có sẵn` });
+    emit({ type: "line", text: `▶ ${flights.length} chuyến · ${work.length} file cần add · ${skipped} ghi đè bản cũ` });
     let ok = 0, failed = 0;
     const cache = new Map<string, Uint8Array>();
     for (let i = 0; i < work.length; i++) {
@@ -328,13 +329,11 @@ export const jobs: Jobs = {
       const have = new Set(f.attachments.flatMap((a) => [normTitle(a.title), normTitle(a.original_filename)]));
       if (have.has(normTitle(name))) {
         skipped++;
-        done.push(name);
-        emit({ type: "line", text: `· đã có trên FliteBrief: ${name}`, found: f.callsign, doc_kind: kind, attached: true, new: false });
-        continue;
+        emit({ type: "line", text: `↻ ghi đè trên FliteBrief: ${name} → ${f.callsign} ${f.route}`, found: f.callsign, doc_kind: kind });
       }
       work.push({ f, name, kind });
     }
-    emit({ type: "line", text: `▶ ${work.length} file cần add · ${skipped} đã có sẵn · ${needRoute.length} chờ chọn route` });
+    emit({ type: "line", text: `▶ ${work.length} file cần add · ${skipped} ghi đè bản cũ · ${needRoute.length} chờ chọn route` });
     let ok = 0, failed = 0;
     const { extractText, getDocumentProxy } = await import("unpdf");
     for (let i = 0; i < work.length; i++) {
