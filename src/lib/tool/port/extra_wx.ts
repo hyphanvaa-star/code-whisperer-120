@@ -194,7 +194,8 @@ export type Need = {
 };
 
 export function needOfText(text: string, cfg: ExtraWxCfg = DEFAULT_EXTRA_WX): Need {
-  const blob = String(text || "");
+  // Bỏ RMK và cặp giờ DDHH/DDHH (vd INTER 2403/2404) để giờ không bị đọc thành tầm nhìn.
+  const blob = String(text || "").replace(/\bRMK\b[\s\S]*$/i, " ").replace(/\b\d{4}\/\d{4}\b/g, " ");
   const vis = visM(blob);
   const band = visBand(vis, cfg);
   const [wxN, wxWhy] = wxMin(blob, band, cfg);

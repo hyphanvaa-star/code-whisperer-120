@@ -14,6 +14,21 @@ const RE_FM = /\bFM(\d{6})\b/g;
 const RE_BECMG = /\bBECMG\s+(\d{4}\/\d{4})\b/g;
 const RE_TEMPO = /\bTEMPO\s+(\d{4}\/\d{4})\b/g;
 const RE_PROB = /\bPROB(\d{2})\s+(\d{4}\/\d{4})\b/g;
+/** Úc (BOM) dùng INTER = biến động ngắt quãng (<30′), xử lý như TEMPO. */
+const RE_INTER = /\bINTER\s+(\d{4}\/\d{4})\b/g;
+
+/** Nhóm chồng lên nền (TEMPO/PROB/INTER), chỉ tác động khi giờ đáp nằm trong khung. */
+export function isOverlayKind(kind: string): boolean {
+  const k = String(kind || "");
+  return k.startsWith("TEMPO") || k.startsWith("PROB") || k === "INTER";
+}
+
+/** Bỏ RMK (vd Q/T của Úc) và cặp giờ DDHH/DDHH để số giờ không bị đọc thành tầm nhìn. */
+export function stripNonVisNumbers(text: string): string {
+  return String(text || "")
+    .replace(/\bRMK\b[\s\S]*$/i, " ")
+    .replace(/\b\d{4}\/\d{4}\b/g, " ");
+}
 const RE_VIS_M = /\b(\d{4})\b/g;
 const RE_VIS_SM = /\b(P?\d+(?:\s+\d+\/\d+)?)\s*SM\b/i;
 const RE_CLOUD = /\b(FEW|SCT|BKN|OVC|VV)(\d{3})(CB|TCU)?\b/gi;
@@ -111,7 +126,8 @@ export function parsePair(token: string, ref: Date): [Date, Date] {
   return [start, end];
 }
 
-function visMeters(text: string): number | null {
+function visMeters(text0: string): number | null {
+  const text = stripNonVisNumbers(text0);
   const m = RE_VIS_SM.exec(text);
   if (m) {
     const raw = m[1].toUpperCase().replace(/\s+/g, "");
@@ -171,7 +187,7 @@ function maxGustKt(text: string): number | null {
 
 function isBadWx(text: string): [boolean, string[]] {
   const reasons: string[] = [];
-  const u = text.toUpperCase();
+  const u = stripNonVisNumbers(text).toUpperCase();
   if (/\bTS(RA|GR)?\b|\+?TS\b/.test(u)) reasons.push("dông/TSRA");
   if (/CB\b/.test(u)) reasons.push("có CB");
   if (/\bFG\b|\+FZ/.test(u)) reasons.push("sương mù/băng");
@@ -230,6 +246,8 @@ export function parseTafBlock(raw: string): TafRec | null {
   while ((mm = RE_TEMPO.exec(body))) markers.push([mm.index, "TEMPO", mm[1]]);
   RE_PROB.lastIndex = 0;
   while ((mm = RE_PROB.exec(body))) markers.push([mm.index, `PROB${mm[1]}`, mm[2]]);
+  RE_INTER.lastIndex = 0;
+  while ((mm = RE_INTER.exec(body))) markers.push([mm.index, "INTER", mm[1]]);
   markers.sort((a, b) => a[0] - b[0]);
 
   const parts: [string, string, string][] = [];
@@ -243,7 +261,7 @@ export function parseTafBlock(raw: string): TafRec | null {
       const [pos, kind, win] = markers[i];
       const end = i + 1 < markers.length ? markers[i + 1][0] : body.length;
       let chunk = body.slice(pos, end);
-      chunk = chunk.trim().replace(/^(FM\d{6}|BECMG\s+\d{4}\/\d{4}|TEMPO\s+\d{4}\/\d{4}|PROB\d{2}\s+\d{4}\/\d{4})\s*/i, "");
+      chunk = chunk.trim().replace(/^(FM\d{6}|BECMG\s+\d{4}\/\d{4}|TEMPO\s+\d{4}\/\d{4}|PROB\d{2}\s+\d{4}\/\d{4}|INTER\s+\d{4}\/\d{4})\s*/i, "");
       parts.push([kind, win, chunk]);
     }
   }
@@ -311,7 +329,7 @@ function segmentsForSta(rec: TafRec, when: Date): { text: string; hit: boolean }
   if (mainI !== null) hits.add(mainI);
   groups.forEach((g, i) => {
     const kind = g.kind || "";
-    if (!kind.startsWith("TEMPO") && !kind.startsWith("PROB")) return;
+    if (!isOverlayKind(kind)) return;
     const s = new Date(g.start), e = new Date(g.end);
     if (s.getTime() - 20 * 60000 <= when.getTime() && when.getTime() <= e.getTime() + 10 * 60000) hits.add(i);
   });
@@ -354,7 +372,7 @@ export function segmentsForWindow(rec: TafRec, start: Date, end: Date): { text: 
   if (mainI !== null) hits.add(mainI);
   groups.forEach((g, i) => {
     const kind = g.kind || "";
-    if (!kind.startsWith("TEMPO") && !kind.startsWith("PROB")) return;
+    if (!isOverlayKind(kind)) return;
     const s = new Date(g.start).getTime(), e = new Date(g.end).getTime();
     if (s <= t1 && e > t0) hits.add(i);
   });
@@ -399,7 +417,7 @@ export function advise(icao0: string, when0: Date, tafs: Record<string, TafRec>,
 
   const overlays: TafGroup[] = [];
   for (const g of rec.groups) {
-    if (!g.kind.startsWith("TEMPO") && !g.kind.startsWith("PROB")) continue;
+    if (!isOverlayKind(g.kind)) continue;
     const s = new Date(g.start), e = new Date(g.end);
     if (s.getTime() <= when.getTime() && when.getTime() < e.getTime()) overlays.push(g);
   }

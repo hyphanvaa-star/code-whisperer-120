@@ -112,7 +112,7 @@ export function notamOf(sheet: ReleaseSheet, idx: number): string {
 
 export function wrapTaf(text: string, width = 86): string {
   let blob = String(text ?? "").split(/\s+/).filter(Boolean).join(" ");
-  blob = blob.replace(/\s+(TEMPO|BECMG|PROB\d{0,2}|FM\d{0,6})\b/g, "  $1");
+  blob = blob.replace(/\s+(TEMPO|BECMG|INTER|PROB\d{0,2}|FM\d{0,6})\b/g, "  $1");
   return wrapText(blob, width);
 }
 
