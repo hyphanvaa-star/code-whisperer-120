@@ -327,13 +327,15 @@ export const jobs: Jobs = {
       }
       const f = cands[0]!;
       const have = new Set(f.attachments.flatMap((a) => [normTitle(a.title), normTitle(a.original_filename)]));
+      // PIB/WX: không ghi đè — chuyến đã có file cùng tên thì bỏ qua như cũ.
       if (have.has(normTitle(name))) {
         skipped++;
-        emit({ type: "line", text: `↻ ghi đè trên FliteBrief: ${name} → ${f.callsign} ${f.route}`, found: f.callsign, doc_kind: kind });
+        emit({ type: "line", text: `⊘ ${name}: chuyến đã có file này — bỏ qua`, found: f.callsign, doc_kind: kind });
+        continue;
       }
       work.push({ f, name, kind });
     }
-    emit({ type: "line", text: `▶ ${work.length} file cần add · ${skipped} ghi đè bản cũ · ${needRoute.length} chờ chọn route` });
+    emit({ type: "line", text: `▶ ${work.length} file cần add · ${skipped} đã có sẵn · ${needRoute.length} chờ chọn route` });
     let ok = 0, failed = 0;
     const { extractText, getDocumentProxy } = await import("unpdf");
     for (let i = 0; i < work.length; i++) {
