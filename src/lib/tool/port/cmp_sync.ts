@@ -38,6 +38,12 @@ export function cmpMsgKind(raw: unknown, acChg: boolean): string {
   return acChg ? 'CHG A/C' : '';
 }
 
+/** AviWeb supports aircraft/equipment/EOBT changes, never routes, alternates or CNL. */
+export function cmpAviOperation(kind: string): 'CHG' | 'DLA' | null {
+  if (kind === 'DLA') return 'DLA';
+  return ['CHG', 'CHG A/C', 'CHG DLA', 'CHG A/C AND DLA', 'CHG TIME'].includes(kind) ? 'CHG' : null;
+}
+
 /** Remember a live Crewlist≠FliteBrief aircraft change so CHG survives once the new CFP carries the Crewlist aircraft. */
 export function cmpRegMemory(prev: { old: string; new: string } | null | undefined, live: { changed?: boolean; old?: unknown; new?: unknown } | null | undefined, reg: { verdict?: unknown; excel?: unknown } | null | undefined): { old: string; new: string } | null {
   const norm = (v: unknown) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -270,6 +276,7 @@ const cmpCrewPair = ${cmpCrewPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpChgFbReady = ${cmpChgFbReady.toString()};
 const cmpMsgKind = ${cmpMsgKind.toString()};
+const cmpAviOperation = ${cmpAviOperation.toString()};
 const cmpRegMemory = ${cmpRegMemory.toString()};
 const cmpCrewDelayMin = ${cmpCrewDelayMin.toString()};
 const cmpDelayKind = ${cmpDelayKind.toString()};
@@ -661,7 +668,8 @@ function cmpMsgPaint(r){
     + (fbOk ? " · FliteBrief đã lên đúng tàu Crewlist " + ((g && g.excel) || newReg) : kind.indexOf("CHG") === 0 ? " · FliteBrief chưa lên đúng tàu Crewlist" : "") + " · Bấm để soạn điện văn";
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
-  b.onclick = ev => {ev.stopPropagation(); cmpAckAdd(ackKey); b.remove(); menu.value = kind; menu.onchange();};
+  b._cmpMessageOpen = channel => menu._cmpMessageOpen(kind, channel);
+  b.onclick = ev => {ev.stopPropagation(); return b._cmpMessageOpen("AMHS");};
   b._cmpAck = () => { cmpAckAdd(ackKey); cmpMsgPaint(r); };
   td.prepend(b);
 }
@@ -686,6 +694,14 @@ function cmpTwoOpen(b){
   ack.onclick = ev => { ev.stopPropagation(); w.remove(); b.style.display = ""; b._cmpAck(); };
   go.onclick = ev => { ev.stopPropagation(); w.remove(); b.style.display = ""; if(typeof b.onclick === "function") b.onclick(ev); };
   w.append(ack, go);
+  if(typeof b._cmpMessageOpen === "function"){
+    w.classList.add("cmp-two-message");
+    go.textContent = "AMHS"; go.title = "Soạn " + b.textContent + " để copy/xuất điện văn AMHS";
+    const avi = document.createElement("button"); avi.type = "button"; avi.className = "cmp-two-go cmp-two-avi";
+    avi.textContent = "AviWeb"; avi.title = "Chỉnh và xác nhận gửi " + b.textContent + " qua AviWeb";
+    avi.onclick = ev => { ev.stopPropagation(); w.remove(); b.style.display = ""; b._cmpMessageOpen("AviWeb"); };
+    w.appendChild(avi);
+  }
   b.style.display = "none";
   b.after(w);
 }
@@ -817,6 +833,12 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-two button{min-height:26px;padding:3px 8px;border-radius:6px;font:800 11px/1.2 inherit;cursor:pointer;white-space:nowrap}
 .cmptbl .cmp-two .cmp-two-ack{border:1.5px solid var(--green);background:var(--panel);color:var(--green)}
 .cmptbl .cmp-two .cmp-two-go{border:0;background:var(--red);color:#fff}
+.cmptbl .cmp-two-message{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:98px;max-width:150px}
+.cmptbl .cmp-two-message .cmp-two-ack{grid-column:1/-1}
+.cmptbl .cmp-two-message button{padding:4px;min-width:0;min-height:28px;letter-spacing:0}
+.cmptbl .cmp-two-message .cmp-two-go{background:var(--red)!important;color:var(--atc-on-color)!important;-webkit-text-fill-color:currentColor!important}
+.cmptbl .cmp-two-message .cmp-two-avi{background:var(--panel)!important;border:1px solid var(--red)!important;color:var(--red)!important}
+.cmptbl .cmp-two-message button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
 .cmptbl .cmp-sync-pick{border:0;background:transparent;color:var(--text);font-size:18px;padding:4px;cursor:pointer;vertical-align:middle}
 </style></head>`);
 }

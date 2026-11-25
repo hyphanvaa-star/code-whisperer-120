@@ -140,19 +140,25 @@ export function patchCmpValidationPage(html: string): string {
       const menu = document.createElement("select");
       menu.className = "cmp-message-select";
       menu.setAttribute("aria-label", "Điện văn " + actionFlight.callsign);
-      for(const kind of ["", "CHG A/C", "DLA", "CHG DLA", "CHG ALT", "CHG ROUTE", "CNL"]){
+      for(const kind of ["", "CHG A/C", "DLA", "CHG DLA", "CHG ALT", "CHG ROUTE", "CNL", "DLA AviWeb", "CHG AviWeb"]){
         const option = document.createElement("option");
         option.value = kind; option.textContent = kind || "Điện văn…";
         menu.appendChild(option);
       }
       menu.onclick = ev => ev.stopPropagation();
-      menu.onchange = async () => {
-        const kind = menu.value; menu.value = "";
-        if(!kind) return;
+      menu._cmpMessageOpen = async (kind, channel) => {
+        if(!kind || menu.disabled) return;
         const f = cmpActionFlight(r);
         if(!f){ alert("Chưa xác định được đúng chuyến trong khung khai thác"); return; }
         menu.disabled = true;
         try{
+          if(channel === "AviWeb"){
+            const operation = cmpAviOperation(kind);
+            if(!operation || typeof window.__aviwebOpen !== "function") throw new Error("Loại điện này chưa hỗ trợ AviWeb.");
+            await window.__aviwebOpen(operation, [{sector_id:f.id,flt:f.callsign,
+              date:new Date(f.std).toISOString().slice(0,10),dep:r.dep,arr:r.arr}]);
+            return;
+          }
           const atcHit = cmpAtcCache.get(cmpAtcKey(f));
           const response = await fetch("/api/fpltext/msg", {method: "POST", headers: {"Content-Type": "application/json"},
             body: JSON.stringify({kind, items: [{sector_id: f.id, flt: f.callsign,
@@ -165,6 +171,11 @@ export function patchCmpValidationPage(html: string): string {
           ftOpenAtcReview(d);
         }catch(error){ alert(error.message || "Không lấy được điện văn"); }
         finally{ menu.disabled = false; }
+      };
+      menu.onchange = () => {
+        const value = menu.value; menu.value = "";
+        const avi = value.endsWith(" AviWeb");
+        return menu._cmpMessageOpen(avi ? value.slice(0,-7) : value, avi ? "AviWeb" : "AMHS");
       };
       messageCell.appendChild(menu);
       messageCell.dataset.cmpMsgSid = r.sector_id;

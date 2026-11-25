@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.64: CHG/DLA tại Flight Supervisor mở Ack + AMHS + AviWeb; menu thủ công có AviWeb, chỉ nạp chuyến của dòng vừa bấm, giữ xác nhận trước khi gửi. 102 kiểm thử đạt; thử tài khoản kiểm tra với chuyến mô phỏng VJC849/901 trên desktop/610px: AMHS mở text, DLA/CHG chỉnh–xem lại–đọc kết quả giả lập đúng chuyến; Ack độc lập, không gửi điện thật, build OK; chưa publish.
+- [ ] V 7.64: xác nhận trên chuyến và Trợ lý PC của JACK — chưa cấp được phiên JACK và không gửi thử điện khai thác thật.
 - [x] V 7.62: mở Account Management cho huydoan như hyphan, giữ kiểm tra Admin và chặn tài khoản khác; 27 kiểm thử đạt, phiên huydoan thật mở được danh sách, hồ sơ bản thân và lịch sử rồi quay lại tool, không sửa dữ liệu; build OK, chưa publish. Dữ liệu chỉnh sửa trong lần kiểm tra tải chậm nên chưa xác nhận đọc hết mục đó.
 - [x] V 7.61: giữ xanh KHB qua Crewlist mới cho đến Ack; Ack riêng từng ô hoặc các chuyến đã tick, giữ receipt theo từng thay đổi trong bản lưu tài khoản; 101 kiểm thử đạt, thử 5 bản Crewlist qua giao diện với dữ liệu mô phỏng VJ901/902, Ack riêng ô/từng chuyến và reload đạt, desktop/mobile/đêm đã kiểm tra, build OK; chưa publish.
 - [ ] V 7.61: xác nhận VJ901 và lưu Ack trên tài khoản JACK — không cấp được phiên JACK, tài khoản thử không có quyền dispatcher; công cụ chỉ đọc nên các phản hồi Crewlist/FliteBrief/workspace ở bài thử giao diện được mô phỏng.

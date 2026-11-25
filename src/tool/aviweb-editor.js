@@ -118,12 +118,14 @@
     } catch(e) { error(e); el('aviStatus').textContent = 'Chưa xác nhận giao lệnh · kiểm tra trạng thái trước khi gửi lại'; await status(); }
     finally { submitting = false; controls(); }
   };
-  window.__aviwebOpen = async operation => {
-    if (!['CHG','DLA'].includes(operation) || loading) return;
+  window.__aviwebOpen = async (operation, explicitItems) => {
+    if (!['CHG','DLA'].includes(operation)) return;
+    if (loading) throw new Error('Đang đọc chuyến AviWeb; chờ bảng hiện tại nạp xong.');
+    if (explicitItems !== undefined && job && plan && owner === uid() && timer) throw new Error('Có lệnh AviWeb đang chạy; chờ có kết quả trước khi mở chuyến khác.');
     if (job && plan && owner === uid() && timer) { fitDialog(); if (!dialog.open) dialog.showModal(); await status(); return; }
     if (typeof ftMsgClose === 'function') ftMsgClose();
-    const items = typeof ftPickedItems === 'function' ? ftPickedItems() : [];
-    if (!items.length) { alert('Tick ít nhất một chuyến trong Flight Planning.'); return; }
+    const items = explicitItems !== undefined ? explicitItems : (typeof ftPickedItems === 'function' ? ftPickedItems() : []);
+    if (!Array.isArray(items) || !items.length) { alert(explicitItems !== undefined ? 'Chưa chọn được đúng chuyến.' : 'Tick ít nhất một chuyến trong Flight Planning.'); return; }
     clearTimeout(timer); timer = null; plan = null; messages = []; index = 0; reviewed = false; submitting = false; job = false; owner = uid(); activeOp = operation; loading = true;
     el('aviTitle').textContent = operation + ' AviWeb'; el('aviFlights').innerHTML = ''; el('aviSource').innerHTML = ''; el('aviFields').innerHTML = ''; el('aviTokens').innerHTML = ''; el('aviPreview').textContent = ''; el('aviLog').textContent = ''; error(''); el('aviStatus').textContent = 'Đang đọc OFP và Crewlist của ' + items.length + ' chuyến đã chọn…';
     fitDialog(); if (!dialog.open) dialog.showModal(); controls();
@@ -134,5 +136,5 @@
     finally { loading = false; controls(); }
   };
   const menu = document.getElementById('ftMsgMenu');
-  if (menu) ['DLA','CHG'].forEach(op => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn avi-menu'; b.textContent = op + ' AviWeb'; b.onclick = e => { e.preventDefault(); e.stopPropagation(); window.__aviwebOpen(op); }; menu.appendChild(b); });
+  if (menu) ['DLA','CHG'].forEach(op => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn avi-menu'; b.textContent = op + ' AviWeb'; b.onclick = e => { e.preventDefault(); e.stopPropagation(); window.__aviwebOpen(op).catch(error); }; menu.appendChild(b); });
 })();
