@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.59: lưu KHB riêng theo tài khoản trên đám mây; chờ đăng nhập, chuyển bản lưu cũ, giữ sửa tay/cảnh báo, xóa chủ động lưu bảng trống, kiểm tra revision chặn tab cũ. 65 kiểm thử đạt; tài khoản thử nạp 2 Crewlist thật, lưu PLD 21500/note/ALT/extra rồi đọc lại; cửa sổ mới và reload không cache khôi phục từ Cloud đạt; Clear đọc lại bảng trống đạt, build OK; chưa publish.
+- [ ] V 7.59: xác nhận bảng thực của JACK — chưa cấp được phiên JACK; chống ghi đè hai cửa sổ đã kiểm thử tự động, bài thử trình duyệt hai cửa sổ chưa hoàn tất vì phiên thử đổi token.
 - [x] V 7.58: giữ cam/đỏ/tím chưa khớp qua Crewlist mới và reload, chuyển xanh riêng từng ô, chỉ bỏ xanh ở bản mới ổn định; kiểm thử và nạp 4 file thật trên tài khoản thử đạt, FliteBrief read-back mô phỏng; chưa publish.
 - [ ] V 7.58: xác nhận read-back trên chuyến JACK — không cấp được phiên JACK, tài khoản thử chưa đăng nhập FliteBrief thật.
 - [x] V 7.57: popup Tất cả hiện đại, Ack all chỉ chuyến tick (không Verify), kéo tick liên tiếp, không đóng khi bấm nền; 27 kiểm thử đạt, thử trên tài khoản thử với 85 dòng và Ack thật, màn 1280/610/390 và đêm đạt; chưa thử chuyến JACK, chưa publish.

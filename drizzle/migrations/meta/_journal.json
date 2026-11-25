@@ -92,6 +92,13 @@
       "when": 1795069064270,
       "tag": "0012_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795573083844,
+      "tag": "0013_khb_private_workspace",
+      "breakpoints": true
     }
   ]
 }

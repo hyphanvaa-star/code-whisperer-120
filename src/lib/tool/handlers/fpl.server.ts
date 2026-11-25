@@ -18,6 +18,7 @@ import { crewChangeMatches } from '../port/khb_crew_sync';
 import { jobId } from '../jobs';
 import { cutVerifiedEzfw, pickEzfwByFlight, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
 import { parseOpsDate, sameOpsDay, selectOperationalFlight, validateOperationalAtc } from '../port/operational_flight';
+import { readKhbWorkspace, saveKhbWorkspace } from '../khb-workspace.server';
 export { parseOpsDate, sameOpsDay } from '../port/operational_flight';
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
@@ -101,6 +102,8 @@ function readRows(body: Record<string, unknown>): Raw[] {
 }
 
 export const routes: Routes = {
+  "GET /api/fpltext/workspace": readKhbWorkspace,
+  "POST /api/fpltext/workspace": saveKhbWorkspace,
   "POST /api/fpltext/ezfw": async (ctx) => {
     const body = await ctx.json();
     const input = String(body.flight || '').trim();

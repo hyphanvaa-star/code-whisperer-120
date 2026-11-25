@@ -198,6 +198,27 @@ export type Database = {
         }
         Relationships: []
       }
+      khb_workspaces: {
+        Row: {
+          revision: number
+          state: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          revision?: number
+          state?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          revision?: number
+          state?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       omni_session: {
         Row: {
           exp: string | null
@@ -365,6 +386,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      save_khb_workspace: {
+        Args: { _expected_revision: number; _state: Json }
+        Returns: Json
       }
       tool_file_owners: {
         Args: never
