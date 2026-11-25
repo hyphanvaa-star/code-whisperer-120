@@ -19,6 +19,7 @@ import { jobId } from '../jobs';
 import { cutVerifiedEzfw, pickEzfwByFlight, pickEzfwSector, type EzfwSector } from '../port/khb_ezfw';
 import { parseOpsDate, sameOpsDay, selectOperationalFlight, validateOperationalAtc } from '../port/operational_flight';
 import { readKhbWorkspace, saveKhbWorkspace } from '../khb-workspace.server';
+import { reqOfpAlternates } from '../port/req_ofp_alternates';
 export { parseOpsDate, sameOpsDay } from '../port/operational_flight';
 
 // Port of web.py "/api/fpltext*" endpoints (fpl_tool.py). Persistence replaces the
@@ -552,7 +553,7 @@ export const routes: Routes = {
     const fileB64 = btoa(binary);
     return { ok: true, text, path: "", file_error: "", file: fileB64, filename: "FPL.req" };
   },
-  /** Đổi tàu: REQ mới theo crewlist mới (tàu/CI/taxi/pilot), PAY + EXTRA giữ từ OFP cũ của đúng sector. */
+  /** Đổi tàu/crew: REQ theo Crewlist mới, PAY/EXTRA/DSP/ALT chỉ từ OFP cũ đúng sector. */
   "POST /api/fpltext/chgreq": async (ctx) => {
     const body = await ctx.json();
     const db = await loadDb(ctx);
@@ -592,7 +593,10 @@ export const routes: Routes = {
     }
     if (!txt) return { error: "Chưa đọc được OFP cũ trên FliteBrief." };
     const { extractAtc } = await import("../port/atc_ezfw");
-    try { validateOperationalAtc(extractAtc(txt), sector); } catch (e) { return { error: (e as Error).message }; }
+    const atc = extractAtc(txt);
+    try { validateOperationalAtc(atc, sector); } catch (e) { return { error: (e as Error).message }; }
+    let alternates;
+    try { alternates = reqOfpAlternates(txt, atc, arrK); } catch (e) { return { error: (e as Error).message }; }
     const { parseOperationalText } = await import("../port/ofp_weights");
     let w;
     try { w = parseOperationalText(txt, sectorId); } catch (e) { return { error: "OFP cũ: " + (e as Error).message }; }
@@ -603,14 +607,14 @@ export const routes: Routes = {
     const extra = ft.extraMinutesText(w.extra_time);
     const oldDsp = ft.ofpDispatcher(txt);
     if (!oldDsp) return { error: "OFP cũ không ghi tên DSP — không soạn REQ (không lấy tên từ ô DSP trên web)." };
-    const item: Raw = { id: flight.row, seq: String(body.seq || ""), pay: String(Math.trunc(w.pld)), extra };
+    const item: Raw = { id: flight.row, seq: String(body.seq || ""), pay: String(Math.trunc(w.pld)), extra, ...alternates };
     const text = ft.build_req(db, [item], oldDsp, routeDoc.rows || []);
     if (!text.trim()) return { error: "Không soạn được REQ." };
     const bytes = ft.req_bytes(text);
     let binary = "";
     for (const b of bytes) binary += String.fromCharCode(b);
     return { ok: true, text, file: btoa(binary), filename: `VJC${want}_${dep}${arr}.req`,
-      pld: w.pld, extra, dsp: oldDsp, reg: flight.reg, plan_no: w.plan_no || "" };
+      pld: w.pld, extra, dsp: oldDsp, reg: flight.reg, plan_no: w.plan_no || "", ...alternates };
   },
 };
 

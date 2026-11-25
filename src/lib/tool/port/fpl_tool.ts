@@ -691,10 +691,11 @@ export function _ci(db: Db, dep: string, arr: string, ac: string, reg: string): 
   return String(chosen[col] ?? "").trim();
 }
 
-function _hold(db: Db, route: string, arr: string, sta: string, ac: string, alt1: string, alt2: string): string {
+function _hold(db: Db, route: string, arr: string, sta: string, ac: string, alt1: string, alt2: string, ofpOnly = false): string {
   // Chỉ ghi các ALT còn lại; xóa ALT1 thì không được quay về bảng mặc định.
   const kept = [alt1, alt2].map((a) => String(a || "").trim()).filter(Boolean);
   if (kept.length) return "HLD÷30," + kept.map((a) => `${a}/${arr}${a}1/100/300`).join(",");
+  if (ofpOnly) return "HLD÷30,";
   const row = db.etp[route];
   if (!row) return "HLD÷30,";
   const staMin = _minutes(sta);
@@ -768,6 +769,7 @@ export type RenderOpts = {
   extra?: any; seq?: any;
   route_q?: string | null; etp_poa?: string | null; fl?: string | null;
   talt?: string | null; alt1?: string | null; alt2?: string | null;
+  alternate_source?: 'ofp';
   rte?: string | null; rmk?: string | null; pcr_choice?: string | null;
   cpt_id?: any; cpt_name?: any; fo_id?: any; fo_name?: any;
   dsp?: string | null; pay?: string | null; utc_choice?: string | null;
@@ -796,9 +798,10 @@ export function render_fpl(db: Db, flight: Raw, opts: RenderOpts = {}): string {
     const pts = routeQ.split("/").map((s) => s.trim().toUpperCase()).filter(Boolean);
     if (pts.length >= 2) etpPoa = "/" + pts.slice(1).join("/") + "/" + arr;
   }
-  let talt = opts.talt == null ? defaults.talt : opts.talt;
-  let alt1 = opts.alt1 == null ? defaults.alt1 : opts.alt1;
-  let alt2 = opts.alt2 == null ? defaults.alt2 : opts.alt2;
+  const ofpOnly = opts.alternate_source === 'ofp';
+  let talt = opts.talt == null ? (ofpOnly ? '' : defaults.talt) : opts.talt;
+  let alt1 = opts.alt1 == null ? (ofpOnly ? '' : defaults.alt1) : opts.alt1;
+  let alt2 = opts.alt2 == null ? (ofpOnly ? '' : defaults.alt2) : opts.alt2;
   talt = String(talt || ""); alt1 = String(alt1 || ""); alt2 = String(alt2 || "");
   const etdLocal = String(flight.etd || "");
   let utc = _utc(etdLocal, String(db.tz[dep] || ""));
@@ -839,7 +842,7 @@ export function render_fpl(db: Db, flight: Raw, opts: RenderOpts = {}): string {
     `POD÷${dep}${routeQ}${altBit},TX${_num(_tx(db, ac, reg, dep))}`,
     poa,
     `RTE÷RT/${dep}${arr}${suffix}`,
-    _hold(db, route, arr, String(flight.sta || ""), ac, alt1, alt2),
+    _hold(db, route, arr, String(flight.sta || ""), ac, alt1, alt2, ofpOnly),
     "ETD÷" + utc,
     _profile(ac, fl, route in db.alt_route),
     `AIR÷$${reg.slice(0, 2)}${reg.slice(-4)}/`,
@@ -1001,6 +1004,7 @@ export function build_req(
       talt: "talt" in item ? item.talt : undefined,
       alt1: "alt1" in item ? item.alt1 : undefined,
       alt2: "alt2" in item ? item.alt2 : undefined,
+      ...(item.alternate_source === 'ofp' ? { alternate_source: 'ofp' as const } : {}),
       rte: "rte" in item ? item.rte : undefined,
       rmk: "rmk" in item ? item.rmk : undefined,
       pcr_choice: "pcr_to" in item ? item.pcr_to : undefined,
