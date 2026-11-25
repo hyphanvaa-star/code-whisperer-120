@@ -181,19 +181,15 @@ function ftApplyCrewDiff(src, identityOnly){
       if(!completed) alert("Đổi crew chưa xong — xem lại trên FliteBrief.");`)
     .replace('function ftStream(id){', KHB_ACK_SCRIPT + '\nfunction ftStream(id){')
     .replace('  c.el = el;\n  // Nút ⚡', '  c.el = el;\n  ftPaintChangeAck(st, c, f);\n  // Nút ⚡')
-    .replace('      ftBoltPaint(c, st);\n    }\n  }\n}\nfunction ftItems()', '      ftBoltPaint(c, st);\n      ftPaintChangeAck(st, c, f);\n    }\n  }\n  ftAckToolbar();\n}\nfunction ftItems()')
-    .replace('function ftRender(){', 'function ftRender(){\n  queueMicrotask(ftAckToolbar);')
-    .replace('function ftSyncAllBox(){', 'function ftSyncAllBox(){\n  queueMicrotask(ftAckToolbar);')
-    .replace('<button type="button" class="btn small" id="ftClearBtn">', '<button type="button" class="btn small" id="ftAckGreen" disabled title="Ack ô xanh của các chuyến đã tick">✓ Ack xanh (0)</button>\n            <button type="button" class="btn small" id="ftClearBtn">')
+    .replace('      ftBoltPaint(c, st);\n    }\n  }\n}\nfunction ftItems()', '      ftBoltPaint(c, st);\n      ftPaintChangeAck(st, c, f);\n    }\n  }\n}\nfunction ftItems()')
     .replace('</head>', `<style id="khb-ack-style">
 :root{${(globalStyles.match(/^  --khb-ack-[^\n]+/gm) || []).join('\n')}}
 #wrapFplText .ft-ack-cell{position:relative}
 #wrapFplText .ft-ack-cell input[type=text]{padding-right:24px!important}
 #wrapFplText .ft-ack-cell .ft-ack{position:absolute;right:3px;top:5px;width:19px!important;height:22px!important;padding:0!important;display:grid;place-items:center;border-radius:4px!important;box-shadow:none!important;line-height:1!important}
-#wrapFplText #ftAckGreen,#wrapFplText .ft-ack{background:var(--khb-ack-surface)!important;color:var(--khb-ack-ink)!important;-webkit-text-fill-color:var(--khb-ack-ink)!important;border-color:var(--khb-ack-line)!important}
-#wrapFplText #ftAckGreen:disabled{opacity:.45;cursor:not-allowed}
-#wrapFplText #ftAckGreen:hover:not(:disabled),#wrapFplText .ft-ack:hover{outline:1px solid var(--khb-ack-line);outline-offset:1px}
-html.night #wrapFplText #ftAckGreen,html.night #wrapFplText .ft-ack{background:var(--khb-ack-night-surface)!important;color:var(--khb-ack-night-ink)!important;-webkit-text-fill-color:var(--khb-ack-night-ink)!important}
+#wrapFplText .ft-ack{background:var(--khb-ack-surface)!important;color:var(--khb-ack-ink)!important;-webkit-text-fill-color:var(--khb-ack-ink)!important;border-color:var(--khb-ack-line)!important}
+#wrapFplText .ft-ack:hover{outline:1px solid var(--khb-ack-line);outline-offset:1px}
+html.night #wrapFplText .ft-ack{background:var(--khb-ack-night-surface)!important;color:var(--khb-ack-night-ink)!important;-webkit-text-fill-color:var(--khb-ack-night-ink)!important}
 </style></head>`);
 }
 
@@ -204,23 +200,6 @@ function ftGreenKeys(st){
     const c = st.chg[key];
     return c && !c.acked && (c.fbOk === true || (c.fbOk !== false && c.done === true));
   });
-}
-function ftAckToolbar(){
-  const button = document.getElementById("ftAckGreen"); if(!button) return;
-  const picked = ftRows.filter(f => f && ftSt(f).on);
-  const count = picked.reduce((n, f) => n + ftGreenKeys(ftSt(f)).length, 0);
-  button.textContent = "✓ Ack xanh (" + count + ")";
-  button.disabled = !count;
-  button.onclick = function(){
-    let acked = 0;
-    for(const f of ftRows){
-      if(!f || !ftSt(f).on) continue;
-      const st = ftSt(f); acked += ftAckGreenChanges(st.chg || {}, ftGreenKeys(st));
-    }
-    if(!acked) return;
-    ftRepaintChg();
-    try{ ftKeepLater(); }catch(e){}
-  };
 }
 function ftPaintChangeAck(st, c, f){
   if(!f) f = ftRows.find(row => row && ftSt(row) === st);
@@ -252,6 +231,4 @@ function ftPaintChangeAck(st, c, f){
     try{ ftKeepLater(); }catch(e){}
   };
 }
-document.getElementById("wrapFplText")?.addEventListener("change", ftAckToolbar);
-document.getElementById("wrapFplText")?.addEventListener("pointerup", ftAckToolbar);
 `;

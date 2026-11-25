@@ -13,33 +13,24 @@ describe('KHB explicit green acknowledgement', () => {
     for(const key of ['etd','cptText','foText']) expect(changes[key]?.acked).not.toBe(true);
     expect(khbAckGreenChanges(changes,['reg'])).toBe(0);
   });
-  it('toolbar Ack affects only ticked flights, never all flights when nothing is selected', () => {
-    document.body.innerHTML='<div id="wrapFplText"><button id="ftAckGreen"></button></div>';
-    const rows=[{id:901},{id:902}];
-    const edits:Record<string,{on:boolean;chg:Record<string,Change>}>={
-      901:{on:true,chg:{reg:{fbOk:true},cptText:{fbOk:false}}},
-      902:{on:false,chg:{reg:{fbOk:true}}},
-    };
+  it('cell Ack confirms only that green cell without requiring a flight selection', () => {
+    document.body.innerHTML='<div id="wrapFplText"><table><tbody><tr><td><input id="reg"></td><td><input id="etd"></td></tr></tbody></table></div>';
+    const f={id:901,flt:'901'};
+    const reg={key:'reg',fbOk:true,el:document.getElementById('reg')};
+    const etd={key:'etd',fbOk:true,el:document.getElementById('etd')};
+    const st={on:false,chg:{reg,etd} as Record<string,Change>};
     let saved=0;
-    const factory=new Function('document','ftRows','ftSt','ftRepaintChg','ftKeepLater', KHB_ACK_SCRIPT+';return ftAckToolbar;');
-    const update = factory(document,rows,(f:{id:number})=>edits[String(f.id)],()=>{},()=>{saved++;}) as ()=>void;
-    const button=document.querySelector<HTMLButtonElement>('#ftAckGreen');
-    if(!button) throw new Error('No Ack control');
-    update(); button.click();
-    expect(edits['901']?.chg['reg']?.acked).toBe(true);
-    expect(edits['901']?.chg['cptText']?.acked).not.toBe(true);
-    expect(edits['902']?.chg['reg']?.acked).not.toBe(true);
+    const factory=new Function('document','ftRows','ftSt','ftChgOk','ftRepaintChg','ftKeepLater',KHB_ACK_SCRIPT+';return ftPaintChangeAck;');
+    const paint=factory(document,[f],()=>st,(_:unknown,c:Change)=>c.fbOk===true,()=>{},()=>{saved++;}) as (state:typeof st,c:typeof reg,flight:typeof f)=>void;
+    paint(st,reg,f); paint(st,etd,f);
+    const button=document.querySelector<HTMLButtonElement>('button[aria-label="Ack VJ901 · Tàu"]');
+    if(!button) throw new Error('No cell Ack control');
+    button.click();
+    expect(st.chg['reg']?.acked).toBe(true);
+    expect(st.chg['etd']?.acked).not.toBe(true);
     expect(saved).toBe(1);
-    update(); button.click();
+    button.click();
     expect(saved).toBe(1);
-  });
-  it('with zero selected rows Ack cannot consume an unselected green flight', () => {
-    document.body.innerHTML='<div id="wrapFplText"><button id="ftAckGreen"></button></div>';
-    const st={on:false,chg:{reg:{fbOk:true}} as Record<string,Change>};
-    const factory=new Function('document','ftRows','ftSt',KHB_ACK_SCRIPT+';ftAckToolbar();');
-    factory(document,[{id:901}],()=>st);
-    document.querySelector<HTMLButtonElement>('#ftAckGreen')?.click();
-    expect(st.chg['reg']?.acked).not.toBe(true);
   });
   it('green and Ack receipts survive workspace serialization and reopening for VJ901', () => {
     const input={rows:[{id:901,flt:'901',date:'25/11/26',dep:'HAN',arr:'BKK'}],
