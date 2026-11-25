@@ -1,10 +1,41 @@
 import { describe, it, expect } from 'vitest';
-import { cmpBatchPick, cmpBatchRun, cmpVerifyWait, patchCmpBatchPage } from '../cmp_batch';
+import { cmpBatchPick, cmpBatchRun, cmpVerifyWait, cmpBatchAck, cmpBatchDragSelection, patchCmpBatchPage } from '../cmp_batch';
 
 describe('cmp batch', () => {
   it('skips unticked and duplicate sectors', () => {
     const r = cmpBatchPick([{ sid: '1', label: 'a', detail: '' }, { sid: '2', label: 'b', detail: '', on: false }, { sid: '1', label: 'a2', detail: '' }, { sid: '3', label: 'c', detail: '' }]);
     expect(r.map(x => x.sid)).toEqual(['1', '3']);
+  });
+  it('Ack all acknowledges selected sectors once without running actions', () => {
+    const acked: string[] = [];
+    const items = [{sid:'85',label:'VJ85',detail:''}, {sid:'86',label:'VJ86',detail:'',on:false}, {sid:'85',label:'Duplicate',detail:''}, {sid:'87',label:'VJ87',detail:''}];
+    const results = cmpBatchAck('msg', items, sid => { acked.push(sid); return true; });
+    expect(acked).toEqual(['85', '87']);
+    expect(results.map(r => r.ok)).toEqual([true, true]);
+  });
+  it('never allows Ack all to bypass red-triangle Verify', () => {
+    let calls = 0;
+    const results = cmpBatchAck('verify', [{sid:'85',label:'VJ85',detail:''}], () => { calls++; return true; });
+    expect(calls).toBe(0);
+    expect(results).toEqual([]);
+  });
+  it('keeps unavailable or failed Ack items pending while acknowledging others', () => {
+    const results = cmpBatchAck('crew', [{sid:'1',label:'',detail:''}, {sid:'2',label:'',detail:''}, {sid:'3',label:'',detail:''}], sid => {
+      if(sid === '1') throw new Error('stale');
+      return sid === '3';
+    });
+    expect(results.map(r => r.ok)).toEqual([false, false, true]);
+  });
+  it('dragging down checks the continuous range and keeps other ticks', () => {
+    expect(cmpBatchDragSelection([true,false,false,false,false], 1, 3, true)).toEqual([true,true,true,true,false]);
+  });
+  it('dragging up unchecks the continuous range and keeps other ticks', () => {
+    expect(cmpBatchDragSelection([true,true,true,true,true], 3, 1, false)).toEqual([true,false,false,false,true]);
+  });
+  it('dragging back restores ticks outside the shortened range', () => {
+    const original = [false,true,false,true];
+    expect(cmpBatchDragSelection(original, 0, 3, true)).toEqual([true,true,true,true]);
+    expect(cmpBatchDragSelection(original, 0, 1, true)).toEqual([true,true,false,true]);
   });
   it('runs sequentially and a failure does not stop the rest', async () => {
     const order: string[] = [];

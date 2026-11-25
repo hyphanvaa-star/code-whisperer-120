@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.57: popup Tất cả hiện đại, Ack all chỉ chuyến tick (không Verify), kéo tick liên tiếp, không đóng khi bấm nền; 27 kiểm thử đạt, thử trên tài khoản thử với 85 dòng và Ack thật, màn 1280/610/390 và đêm đạt; chưa thử chuyến JACK, chưa publish.
 - [x] V 7.56: một file chỉ so nguồn hiện tại; lịch sử cần hai bản cùng ngày, không lấy ngày trước; 197 kiểm thử đạt, đã nạp file thật trên tài khoản thử và xác nhận số đếm; chưa publish.
 - [ ] V 7.56: xác nhận Crewlist–FliteBrief–OFP trên chuyến JACK — không cấp được phiên JACK; FliteBrief thật chưa đăng nhập trong tài khoản thử.
 
