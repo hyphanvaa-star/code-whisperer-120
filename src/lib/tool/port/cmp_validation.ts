@@ -174,7 +174,9 @@ export function patchCmpValidationPage(html: string): string {
       };
       menu.onchange = () => {
         const value = menu.value; menu.value = "";
+        if(!value || menu.disabled) return;
         const avi = value.endsWith(" AviWeb");
+        if(!avi && cmpAviOperation(value)) return cmpMessageChoose(menu, value, actionFlight.callsign);
         return menu._cmpMessageOpen(avi ? value.slice(0,-7) : value, avi ? "AviWeb" : "AMHS");
       };
       messageCell.appendChild(menu);
@@ -184,6 +186,37 @@ export function patchCmpValidationPage(html: string): string {
     tr.onclick = () => {
       current = r.sector_id;`)
     .replace('function renderCompareTable(d, opts){', `
+function cmpMessageChoose(menu, kind, callsign){
+  const previous = document.getElementById("cmpMessageChannel");
+  if(previous){ previous.close(); previous.remove(); }
+  const dialog = document.createElement("dialog");
+  dialog.id = "cmpMessageChannel";
+  dialog.setAttribute("aria-labelledby", "cmpMessageChannelTitle");
+  dialog.setAttribute("aria-describedby", "cmpMessageChannelFlight");
+  dialog.innerHTML = '<header><div><div id="cmpMessageChannelFlight"></div><h2 id="cmpMessageChannelTitle"></h2></div>'
+    + '<button type="button" class="btn" data-close aria-label="Đóng chọn kênh gửi" title="Đóng">✕</button></header>'
+    + '<div class="cmp-channel-actions"><button type="button" class="btn" data-channel="AMHS"><span aria-hidden="true">▤</span>AMHS</button>'
+    + '<button type="button" class="btn" data-channel="AviWeb"><span aria-hidden="true">↗</span>AviWeb</button></div>';
+  dialog.querySelector("h2").textContent = kind + " · Chọn kênh gửi";
+  dialog.querySelector("#cmpMessageChannelFlight").textContent = callsign;
+  dialog.querySelector("[data-close]").onclick = () => dialog.close();
+  dialog.addEventListener("click", ev => ev.stopPropagation());
+  dialog.addEventListener("close", () => {
+    dialog.remove();
+    if(menu.isConnected) menu.focus({preventScroll:true});
+  }, {once:true});
+  for(const button of dialog.querySelectorAll("[data-channel]")){
+    button.onclick = () => {
+      const channel = button.dataset.channel;
+      dialog.close();
+      menu._cmpMessageOpen(kind, channel);
+    };
+  }
+  const zoom = (parseFloat(document.documentElement.style.zoom) || 1) * (parseFloat(document.body.style.zoom) || 1);
+  dialog.style.zoom = String(1 / zoom);
+  document.body.appendChild(dialog);
+  dialog.showModal();
+}
 function cmpActionFlight(r){
   const hits = cmpFlightPool().filter(f => String(f.id) === String(r.sector_id)
     && f.callsign === r.callsign && inOpsWindow(f));
@@ -568,6 +601,20 @@ function renderCompareTable(d, opts){`)
 .cmptbl .cmp-note-cell{min-width:80px;max-width:180px;white-space:normal;overflow-wrap:anywhere}
 .cmp-note-input{display:block;width:122px;max-width:100%;min-height:42px;resize:vertical;font:inherit;color:inherit;background:transparent;border:1px solid currentColor;border-radius:4px;padding:5px;box-sizing:border-box}
 .cmp-message-select{width:110px;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:5px}
+#cmpMessageChannel{box-sizing:border-box;width:min(460px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--batch-line);border-radius:8px;background:var(--batch-paper);color:var(--batch-ink);box-shadow:var(--batch-shadow);font:16px/1.5 "IBM Plex Sans",Arial,sans-serif;letter-spacing:0;overflow:auto}
+#cmpMessageChannel::backdrop{background:var(--batch-backdrop)}
+#cmpMessageChannel header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 24px;border-bottom:1px solid var(--batch-line);background:var(--batch-paper)!important;min-height:0!important;height:auto!important}
+#cmpMessageChannel header>div{min-width:0;overflow-wrap:anywhere}
+#cmpMessageChannelFlight{font-size:15px;font-weight:700;color:var(--batch-accent)}
+#cmpMessageChannel h2{margin:4px 0 0;font-size:22px;line-height:1.35;font-weight:700;letter-spacing:0;color:var(--batch-ink)}
+#cmpMessageChannel .cmp-channel-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:24px}
+#cmpMessageChannel .btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border:1px solid var(--batch-line)!important;border-radius:6px;background:var(--batch-paper)!important;color:var(--batch-ink)!important;-webkit-text-fill-color:var(--batch-ink)!important;font:700 18px/1.3 "IBM Plex Sans",Arial,sans-serif!important;letter-spacing:0;cursor:pointer;box-shadow:none!important}
+#cmpMessageChannel .btn[data-close]{flex:none;width:36px;height:36px;min-height:36px;font-size:18px!important}
+#cmpMessageChannel .btn:hover{border-color:var(--batch-accent)!important;background:var(--batch-selected)!important}
+#cmpMessageChannel .btn:focus-visible{outline:2px solid var(--batch-accent);outline-offset:3px}
+#cmpMessageChannel .btn[data-channel="AviWeb"]{border-color:var(--batch-accent)!important;color:var(--batch-accent)!important;-webkit-text-fill-color:var(--batch-accent)!important}
+html.night #cmpMessageChannel{--batch-paper:var(--batch-night-paper);--batch-ink:var(--batch-night-ink);--batch-line:var(--batch-night-line);--batch-selected:var(--batch-night-selected)}
+@media(max-width:480px){#cmpMessageChannel header{padding:16px}#cmpMessageChannel h2{font-size:20px}#cmpMessageChannel .cmp-channel-actions{padding:20px 16px;gap:10px}}
 .cmptbl td[data-w="val"]{min-width:74px;max-width:90px;white-space:normal;font-size:12px;line-height:1.35}
 .cmptbl .cmp-val-head{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:800;background:#e5e7eb;color:#374151}
 .cmptbl td[data-val="good"] .cmp-val-head{background:#16a34a;color:#fff}

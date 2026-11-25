@@ -22,6 +22,9 @@ function setup(available = true) {
   const context = vm.createContext({ document, window: { __aviwebOpen: avi }, cmpAviOperation,
     cmpActionFlight: () => available ? flight : null, cmpAtcCache: new Map(), cmpAtcKey: () => '849',
     r: row, actionFlight: flight, fetch, alert, ftOpenAtcReview: review });
+  const chooseStart = html.indexOf('function cmpMessageChoose(');
+  const chooseEnd = html.indexOf('function cmpActionFlight(r)', chooseStart);
+  if (chooseStart >= 0 && chooseEnd > chooseStart) vm.runInContext(html.slice(chooseStart, chooseEnd), context);
   const start = html.indexOf('    const messageCell = document.createElement("td");');
   const end = html.indexOf('    tr.append(messageCell, briefCell, verifyCell);', start);
   if (start < 0 || end < start) throw new Error('Message handler missing');
@@ -45,7 +48,13 @@ function setup(available = true) {
 }
 
 describe('Compare message channel selection', () => {
-  beforeEach(() => { document.body.innerHTML = ''; });
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    Object.defineProperty(HTMLDialogElement.prototype, 'showModal', { configurable: true, value(this: HTMLDialogElement) { this.open = true; } });
+    Object.defineProperty(HTMLDialogElement.prototype, 'close', { configurable: true, value(this: HTMLDialogElement) {
+      this.open = false; this.dispatchEvent(new Event('close'));
+    } });
+  });
   it.each(['CHG', 'CHG A/C', 'CHG DLA'])('%s uses the CHG sender including current EOBT', kind => {
     expect(cmpAviOperation(kind)).toBe('CHG');
   });
@@ -81,6 +90,53 @@ describe('Compare message channel selection', () => {
     const s = setup(); s.openQuick('DLA');
     element<HTMLButtonElement>('.cmp-two-ack').click();
     expect(s.ack).toHaveBeenCalledOnce(); expect(s.fetch).not.toHaveBeenCalled(); expect(s.avi).not.toHaveBeenCalled();
+  });
+  it.each(['DLA', 'CHG A/C', 'CHG DLA'])('manual %s waits for a channel choice without preparing or acknowledging', async kind => {
+    const s = setup(); s.menu.value = kind;
+    await vm.runInContext('document.querySelector("select").onchange()', s.context);
+    expect(s.fetch).not.toHaveBeenCalled(); expect(s.avi).not.toHaveBeenCalled(); expect(s.ack).not.toHaveBeenCalled();
+  });
+  it('manual DLA sends the clicked sector to AviWeb only after choosing AviWeb', async () => {
+    const s = setup(); s.menu.value = 'DLA';
+    await vm.runInContext('document.querySelector("select").onchange()', s.context);
+    element<HTMLButtonElement>('#cmpMessageChannel [data-channel="AviWeb"]').click();
+    await vi.waitFor(() => expect(s.avi).toHaveBeenCalledWith('DLA', [{ sector_id: 84901, flt: 'VJC849', date: '2026-11-25', dep: 'VVTS', arr: 'VTBS' }]));
+    expect(s.fetch).not.toHaveBeenCalled(); expect(s.ack).not.toHaveBeenCalled();
+  });
+  it('manual CHG DLA prepares the existing AMHS text only after choosing AMHS', async () => {
+    const s = setup(); s.menu.value = 'CHG DLA';
+    await vm.runInContext('document.querySelector("select").onchange()', s.context);
+    element<HTMLButtonElement>('#cmpMessageChannel [data-channel="AMHS"]').click();
+    await vi.waitFor(() => expect(s.review).toHaveBeenCalledOnce());
+    const call = s.fetch.mock.calls[0] as unknown[] | undefined;
+    const options = call?.[1] as { body: string } | undefined;
+    if (!options) throw new Error('No message request');
+    const payload = JSON.parse(options.body);
+    expect(payload.kind).toBe('CHG DLA'); expect(payload.items[0].sector_id).toBe(84901);
+    expect(s.avi).not.toHaveBeenCalled(); expect(s.ack).not.toHaveBeenCalled();
+  });
+  it('closing the manual choice does not prepare, send, or acknowledge a message', async () => {
+    const s = setup(); s.menu.value = 'DLA';
+    await vm.runInContext('document.querySelector("select").onchange()', s.context);
+    element<HTMLButtonElement>('#cmpMessageChannel [data-close]').click();
+    expect(s.fetch).not.toHaveBeenCalled(); expect(s.avi).not.toHaveBeenCalled(); expect(s.ack).not.toHaveBeenCalled();
+  });
+  it('manual channel choice rechecks the flight instead of reusing a stale sector', async () => {
+    const s = setup(); s.menu.value = 'DLA';
+    await vm.runInContext('document.querySelector("select").onchange()', s.context);
+    s.context['cmpActionFlight'] = () => null;
+    element<HTMLButtonElement>('#cmpMessageChannel [data-channel="AviWeb"]').click();
+    await vi.waitFor(() => expect(s.alert).toHaveBeenCalledOnce());
+    expect(s.fetch).not.toHaveBeenCalled(); expect(s.avi).not.toHaveBeenCalled();
+  });
+  it.each(['CHG ALT', 'CHG ROUTE', 'CNL'])('manual %s keeps the AMHS-only path', async kind => {
+    const s = setup(); s.menu.value = kind;
+    await vm.runInContext('document.querySelector("select").onchange()', s.context);
+    expect(s.review).toHaveBeenCalledOnce(); expect(s.avi).not.toHaveBeenCalled();
+    const call = s.fetch.mock.calls[0] as unknown[] | undefined;
+    const options = call?.[1] as { body: string } | undefined;
+    if (!options) throw new Error('No message request');
+    expect(JSON.parse(options.body).kind).toBe(kind);
   });
   it.each(['DLA', 'CHG'])('manual %s AviWeb selection targets the same row', async kind => {
     const s = setup(); s.menu.value = kind + ' AviWeb';
