@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.70: tìm airway chỉ vẽ đúng tên/quốc gia được chọn và các fix, không bật cả mạng ATS; đổi/xóa ô, nút xóa có sẵn và Esc gỡ lớp tìm kiếm/ghim, giữ lớp đã bật. 54 kiểm thử đạt; tài khoản kiểm tra dùng tọa độ W2/W20 đọc lại từ danh mục thật và dữ liệu ATS đi kèm qua phản hồi thử: tìm W2 VN → chỉ một đường 20 điểm → xóa/Esc sạch; lớp ATS/Đài tự bật vẫn giữ, màn 1920/610px đạt, không lỗi, build OK; chưa publish, chưa thử trong phiên JACK.
 - [x] V 7.69: sửa tô nổi L642 trong NOTAM A4543/26; đồng bộ từ khóa bản gốc/đã lọc, dùng OFP đã tải và giữ airway/FIR; thử tài khoản kiểm tra với mẫu trong ảnh: lọc → L642 đỏ/M771 thường ở FIR và tổng quan, lọc lại xóa màu cũ; không đổi quy tắc đánh giá, chưa publish.
 - [ ] V 7.69: xác nhận A4543/26 trên chuyến JACK — không cấp được phiên JACK; kết quả lọc trong bài thử trình duyệt dùng dữ liệu mẫu qua bộ lọc thật, chưa đọc OFP từ tài khoản JACK.
 - [x] V 7.68: tô tên SID/STAR/Holding trong nội dung NOTAM từ đúng kết quả Thông tin chung, đồng bộ danh sách gốc và kept/dropped, xóa tên cũ khi lọc lại không còn trúng; 47 kiểm thử đạt, tài khoản thử với mẫu A4515/26 xác nhận DALAP đỏ/ANRAT thường và lọc lại xóa đúng; build OK, không đổi quy tắc đánh giá, chưa publish.
