@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.69: sửa tô nổi L642 trong NOTAM A4543/26; đồng bộ từ khóa bản gốc/đã lọc, dùng OFP đã tải và giữ airway/FIR; thử tài khoản kiểm tra với mẫu trong ảnh: lọc → L642 đỏ/M771 thường ở FIR và tổng quan, lọc lại xóa màu cũ; không đổi quy tắc đánh giá, chưa publish.
+- [ ] V 7.69: xác nhận A4543/26 trên chuyến JACK — không cấp được phiên JACK; kết quả lọc trong bài thử trình duyệt dùng dữ liệu mẫu qua bộ lọc thật, chưa đọc OFP từ tài khoản JACK.
 - [x] V 7.68: tô tên SID/STAR/Holding trong nội dung NOTAM từ đúng kết quả Thông tin chung, đồng bộ danh sách gốc và kept/dropped, xóa tên cũ khi lọc lại không còn trúng; 47 kiểm thử đạt, tài khoản thử với mẫu A4515/26 xác nhận DALAP đỏ/ANRAT thường và lọc lại xóa đúng; build OK, không đổi quy tắc đánh giá, chưa publish.
 - [ ] V 7.68: xác nhận A4515/26 trên chuyến JACK — chưa cấp được phiên JACK; thử giao diện bằng dữ liệu mô phỏng trên tài khoản kiểm tra.
 - [x] V 7.67: bỏ nút Ack xanh trên thanh công cụ KHB, giữ màu xanh và Ack tại từng ô; 42 kiểm thử đạt, thử Ack từng ô trên chuyến giả trong tài khoản kiểm tra đạt, build OK; chưa publish.

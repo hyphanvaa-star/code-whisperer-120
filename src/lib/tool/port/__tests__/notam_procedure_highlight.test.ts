@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { describe, expect, it } from 'vitest';
-import { nmSidHitNames, nmSidHitRes, patchNotamProcedureHighlightPage } from '../notam_procedure_highlight';
+import { nmSidHitNames, nmSidHitRes, nmRouteBodyHits, patchNotamProcedureHighlightPage } from '../notam_procedure_highlight';
 
 const source = readFileSync('src/tool/page.html', 'utf8');
 const patched = patchNotamProcedureHighlightPage(source);
@@ -40,8 +40,25 @@ describe('procedure matches used by NOTAM body and summary', () => {
   });
 });
 
+describe('body-only confirmed ATS routes', () => {
+  const text = 'E) ROUTES L642 AND M771: FL LIMITS';
+  it('uses only L642 from the positive assessment, not every route named in the body', () => {
+    expect(nmRouteBodyHits({ text, reasons: ['Chuyến bay trên ATS route L642 nêu trong NOTAM — kiểm tra đoạn/FL áp dụng.'] })).toEqual(['L642']);
+  });
+  it('never interprets a negative route assessment as a match', () => {
+    expect(nmRouteBodyHits({ text, reasons: ['Đã quét đủ 2 ATS route (L642, M771) — không có route/điểm nào trên FPL.'] })).toEqual([]);
+  });
+  it('cannot revive old reasons after an authoritative empty retune', () => {
+    expect(nmRouteBodyHits({ text, ofp_body_hits: [], reasons: ['Chuyến bay trên ATS route L642 nêu trong NOTAM'] })).toEqual([]);
+  });
+  it('does not guess routes from body text alone or match partial designators', () => {
+    expect(nmRouteBodyHits({ text })).toEqual([]);
+    expect(nmRouteBodyHits({ text: 'L6420', reasons: ['Chuyến bay trên ATS route L642 nêu trong NOTAM'] })).toEqual([]);
+  });
+});
+
 describe('tune round-trip procedure identity', () => {
-  function apply(row: Record<string, unknown>, extra: Record<string, unknown>) {
+  function apply(row: Record<string, unknown>, extra: Record<string, unknown>, code = 'VVNB', dropped = {}) {
     const context = vm.createContext({
       nmCritIdents: () => new Set(), nmNotamN: () => 1,
     });
@@ -50,8 +67,9 @@ describe('tune round-trip procedure identity', () => {
     const tuneStart = patched.indexOf('function nmApplyTune(');
     const tuneEnd = patched.indexOf('function nmUndoTune(', tuneStart);
     vm.runInContext(patched.slice(namesStart, namesEnd) + patched.slice(tuneStart, tuneEnd), context);
-    const pack = { places: [{ code: 'VVNB', notams: [row] }] };
-    context['nmApplyTune'](pack, {}, extra);
+    const pack = { places: [{ code, notams: [row], dropped: [] as Record<string, unknown>[] }] };
+    context['nmApplyTune'](pack, dropped, extra);
+    if (pack.places[0]?.dropped.length) return pack.places[0].dropped[0];
     return pack.places[0]?.notams[0];
   }
   it('reads the keyed confirmed hit back onto A4515/26 without changing its text', () => {
@@ -71,5 +89,31 @@ describe('tune round-trip procedure identity', () => {
   it('the same number at another airport never applies to this NOTAM', () => {
     const result = apply({ ident: 'A4515/26' }, { sid_star_hits: { 'VVTS\tA4515/26': [{ procs: ['DALAP'] }] } });
     expect(nmSidHitNames(result)).toEqual([]);
+  });
+  it('also shares confirmed L642 with the source list, not only the overview copy', () => {
+    const row: Record<string, unknown> = { ident: 'A4543/26', text: 'E) L642 AND M771: FL LIMITS' };
+    const result = apply(row, { ofp_hits: { 'VVHM\tA4543/26': ['L642'] } }, 'VVHM');
+    expect(result?.['ofp_hits']).toEqual(['L642']);
+    expect(row['ofp_hits']).toEqual(['L642']);
+  });
+  it('a no-match retune clears L642 in both rendered collections', () => {
+    const row: Record<string, unknown> = { ident: 'A4543/26', ofp_hits: ['L642'] };
+    const result = apply(row, { ofp_hits: {} }, 'VVHM');
+    expect(result?.['ofp_hits']).toEqual([]);
+    expect(row['ofp_hits']).toEqual([]);
+  });
+  it('the same NOTAM number in another FIR cannot supply L642', () => {
+    const result = apply({ ident: 'A4543/26' }, { ofp_hits: { 'WSJC\tA4543/26': ['L642'] } }, 'VVHM');
+    expect(result?.['ofp_hits']).toEqual([]);
+  });
+  it('a dropped NOTAM receives the same route metadata without changing its assessment', () => {
+    const row: Record<string, unknown> = { ident: 'A4543/26', text: 'L642 AND M771' };
+    const result = apply(row, { ofp_hits: { 'VVHM\tA4543/26': ['L642'] },
+      assess: { 'VVHM\tA4543/26': { level: 'NO IMPACT', reasons: ['Outside flight window'] } } },
+      'VVHM', { 'VVHM\tA4543/26': 'Outside flight window' });
+    expect(result?.['level']).toBe('NO IMPACT');
+    expect(result?.['ofp_hits']).toEqual(['L642']);
+    expect(row['ofp_hits']).toEqual(['L642']);
+    expect(row).not.toHaveProperty('level');
   });
 });

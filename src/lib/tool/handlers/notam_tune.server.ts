@@ -5,10 +5,8 @@ import { tunePlaces, tunePlacesDomestic, domesticAirports, tuneTrackPoints } fro
 // Port of web.py's "/api/notam/tune" (_api_notam_tune): client-side re-filter of
 // an already-fetched NOTAM place list, either "domestic" mode (DSP fleet window,
 // notam_check.tune_places_domestic) or "track" mode (one flight by sector id,
-// notam_check.tune_places). The OFP text load (notam_check.load_ofp_text, a
-// FliteBrief/Outlook scrape) and the JetPlan KML track fetch are not ported
-// elsewhere in this codebase either, so both run here with ofp_text = "" /
-// client-supplied track points only — same honest degrade as notam_track.server.ts.
+// notam_check.tune_places). Track mode reuses the downloaded sector OFP for
+// both route/procedure keywords and FIR times, with client-supplied track legs.
 const BOARD_BACK_H = 2;
 const BOARD_AHEAD_H = 6;
 
@@ -49,21 +47,20 @@ export const routes: Routes = {
     // Same lookup as /api/notam/track, so a flight that tracked can always be filtered.
     const flight = await findOperationalFlightById(sectorId);
     if (!flight) return { error: `Không tìm thấy chuyến ${sectorId}.` };
-    const ofpText = ""; // load_ofp_text not ported; see note above.
-
     const points = tuneTrackPoints(body.track);
     // jetplan_kml fallback (points empty -> fetch track) is not ported here either;
     // the client supplies track points directly (same as web.py's body["track"]).
 
     try {
-      // OFP EET list gives the real FIR entry/exit times; without it a FIR spans the whole flight.
-      let eetText = "";
+      // One sector OFP supplies route keywords and real FIR entry/exit times.
+      // If unavailable, keep the existing track-only / whole-flight fallback.
+      let ofpText = "";
       try {
         const { fetchOfpPdf, ofpPdfText } = await import("./briefing_release.server");
         const blob = await fetchOfpPdf(flight.id);
-        if (blob) eetText = String.fromCharCode(...blob.slice(0, 4)) === "%PDF" ? await ofpPdfText(blob) : new TextDecoder().decode(blob);
+        if (blob) ofpText = String.fromCharCode(...blob.slice(0, 4)) === "%PDF" ? await ofpPdfText(blob) : new TextDecoder().decode(blob);
       } catch { /* keep whole-flight fallback */ }
-      return tunePlaces(flight, places, { ofpText, eetText, trackPoints: points, cfg: body.cfg });
+      return tunePlaces(flight, places, { ofpText, trackPoints: points, cfg: body.cfg });
     } catch (exc) {
       return { error: String((exc as Error)?.message ?? exc) };
     }
