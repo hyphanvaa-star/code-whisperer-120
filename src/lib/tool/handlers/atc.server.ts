@@ -9,6 +9,7 @@ import * as excelMod from "./excel.server";
 import * as ft from "../port/fpl_tool";
 import { loadFlights } from "../core/gantts.server";
 import { selectOperationalFlight, validateOperationalAtc } from "../port/operational_flight";
+import { createAviPlan, executeAviPlan, aviPlanStatus } from '../aviweb-plan.server';
 
 const ATC_DIR = "atc";
 
@@ -29,6 +30,9 @@ const ATC_DIR = "atc";
 const ATC_UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 
 export const routes: Routes = {
+  'POST /api/atc/aviweb/plan': createAviPlan,
+  'POST /api/atc/aviweb/execute': executeAviPlan,
+  'GET /api/atc/aviweb/status': aviPlanStatus,
   "GET /api/atc/files": async (ctx) => {
     const files = await listFiles(ctx, ATC_DIR).catch(() => []);
     const out = [];

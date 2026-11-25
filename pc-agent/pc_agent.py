@@ -43,7 +43,7 @@ def _getaddrinfo_skip_bad(host, *a, **kw):
 
 socket.getaddrinfo = _getaddrinfo_skip_bad
 
-VERSION = "6.18"
+VERSION = "6.19"
 POLL_URL = "/api/public/pc-agent/poll"
 REPORT_URL = "/api/public/pc-agent/report"
 POLL_INTERVAL_S = 3
@@ -832,6 +832,15 @@ def do_aviweb_check(payload: dict, say) -> dict:
             for r in res.results
         ],
     }
+
+
+def do_aviweb_messages(payload: dict, say) -> dict:
+    """CHG/DLA from an owner-bound web plan; never reuse the FPL filing path."""
+    tool_dir = _find_tool_dir()
+    if str(tool_dir) not in sys.path:
+        sys.path.insert(0, str(tool_dir))
+    from aviweb_messages import send_messages
+    return send_messages(payload, say, _NoCancel())
 
 
 def do_aviweb_submit(payload: dict, say) -> dict:
@@ -1683,6 +1692,7 @@ HANDLERS = {
     "pick_folder": do_pick_folder,
     "aviweb_check": do_aviweb_check,
     "aviweb_submit": do_aviweb_submit,
+    "aviweb_messages": do_aviweb_messages,
     "owa_login": do_owa_login,
     "owa_fpl_watch": do_owa_fpl_watch,
     "owa_pib": do_owa_pib,
