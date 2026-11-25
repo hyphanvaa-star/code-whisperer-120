@@ -43,10 +43,11 @@ function apply(rows: unknown[], oldChange: Record<string, unknown> = {}, edits =
 }
 
 describe('KHB latest Crewlist comparison', () => {
-  it('clears completed green cells only when the next Crewlist pair is stable', () => {
+  it('keeps completed green cells when the next Crewlist pair is stable until explicit Ack', () => {
     const result = apply([], {reg: {from: 'VN-A648', to: 'VN-A580', done: true}, cptText: {from: '0859 OLD', to: '15399 NEW CAPT', fbOk: true}, etd: {from: '09:50', to: '10:50', src: 'both', fbOk: true}});
-    expect(Object.keys(result.state.chg)).toEqual([]);
-    expect(result.count).toBe(0);
+    expect(Object.keys(result.state.chg)).toEqual(['reg', 'cptText', 'etd']);
+    expect(result.state.chg).toMatchObject({reg:{done:true},cptText:{fbOk:true},etd:{fbOk:true}});
+    expect(result.count).toBe(3);
     expect(result.state.reg).toBe('VN-A580');
   });
   it('highlights only a new aircraft change and does not inherit an earlier green verdict', () => {
@@ -89,7 +90,7 @@ describe('KHB latest Crewlist comparison', () => {
     expect(result.count).toBe(1);
     expect(result.state.chg).toHaveProperty('etd');
   });
-  it('retains green on repeated reads of the same pair, then clears it on a new stable pair', () => {
+  it('retains green on repeated reads of the same pair', () => {
     const change = {from: 'VN-A648', to: 'VN-A580', src: 'crew', fbOk: true};
     const result = apply([], {reg: change}, {chgPair: 'hy3.xlsx|hy4.xlsx'});
     expect(result.count).toBe(1);
@@ -114,6 +115,21 @@ describe('KHB latest Crewlist comparison', () => {
       {reg: {from: 'VN-A677', to: 'VN-A648', src: 'both', fbOk: true}});
     expect(result.state.chg.reg).toMatchObject({from: 'VN-A648', to: 'VN-A580', src: 'crew', fbOk: false});
     expect(result.state.regFb).toBe(false);
+  });
+  it('keeps an Ack receipt through unchanged revisions without reviving the same aircraft change', () => {
+    const receipt = {from:'VN-A648',to:'VN-A580',src:'crew',fbOk:true,acked:true};
+    for(const rows of [[], [{flt:'717',route:'DAD-PQC',day_new:'05/11',reg:{changed:true,old:'VN-A648',new:'VN-A580'}}]]){
+      const result = apply(rows, {reg:receipt});
+      expect(result.state.chg.reg).toMatchObject(receipt);
+      expect(result.count).toBe(0);
+    }
+  });
+  it('never inherits Ack when a new aircraft target replaces the acknowledged change', () => {
+    const result = apply([{flt:'717',route:'DAD-PQC',day_new:'05/11',reg:{changed:true,old:'VN-A648',new:'VN-A580'}}],
+      {reg:{from:'VN-A677',to:'VN-A648',src:'crew',fbOk:true,acked:true}});
+    expect(result.count).toBe(1);
+    expect(result.state.chg.reg).toMatchObject({from:'VN-A648',to:'VN-A580',fbOk:false});
+    expect(result.state.chg.reg).not.toHaveProperty('acked',true);
   });
 });
 

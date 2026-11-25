@@ -9,12 +9,13 @@ const sync = html.slice(syncStart, html.indexOf('setInterval(', syncStart));
 const okStart = html.indexOf('function ftChgOk(');
 const ok = html.slice(okStart, html.indexOf('function ftBoltPaint(', okStart));
 
-type Change = { from: string; to: string; src: string; fbOk?: boolean; done?: boolean };
-async function readBack(response: Record<string, unknown>, mutate?: (state: State) => void) {
+type Change = { from: string; to: string; src: string; fbOk?: boolean; done?: boolean; acked?: boolean };
+async function readBack(response: Record<string, unknown>, mutate?: (state: State) => void, prepare?: (state: State) => void) {
   const flight = { id: 849, flt: '849', date: '25/11/26', dep: 'SGN', arr: 'DAD', reg: 'VN-A580' };
   const state = { ...flight, etd: '18:00', utc: '11:00', etaUtc: '12:00', chgFb: false, regFb: false,
     chg: { reg: { from: 'VN-A648', to: 'VN-A580', src: 'crew' }, etd: { from: '17:00', to: '18:00', src: 'both' },
       cptText: { from: '0859 OLD', to: '15399 NEW', src: 'crew' }, foText: { from: '1234 OLD', to: '7390 NEW', src: 'fpl' } } as Record<string, Change> };
+  prepare?.(state);
   let job: (() => Promise<void>) | undefined;
   let saved = 0;
   const context = { ftRows: [flight], ftSt: () => state, ftFbState: {}, ftFbT: 0,
@@ -67,5 +68,25 @@ describe('pending KHB per-cell FliteBrief read-back', () => {
     expect(runInNewContext(ok + ';ftChgOk({chgFb:true,regFb:true}, {key:"reg",done:true,fbOk:false})')).toBe(false);
     expect(runInNewContext(ok + ';ftChgOk({chgFb:true}, {key:"etd"})')).toBe(false);
     expect(runInNewContext(ok + ';ftChgOk({chgFb:true}, {key:"cptText"})')).toBe(false);
+  });
+  it('a correct repeated read-back preserves Ack for that exact completed aircraft change', async () => {
+    const {state}=await readBack(correct,undefined,st=>{
+      const c=st.chg['reg'];if(c){c.fbOk=true;c.acked=true;}
+    });
+    expect(state.chg['reg']).toMatchObject({fbOk:true,acked:true});
+  });
+  it('a later mismatch cancels the old Ack so the aircraft warning is visible again', async () => {
+    const {state}=await readBack({...correct,reg:'VN-A648'},undefined,st=>{
+      const c=st.chg['reg'];if(c){c.fbOk=true;c.acked=true;}
+    });
+    expect(state.chg['reg']).toMatchObject({fbOk:false,acked:false});
+  });
+  it('a read already in flight never erases Ack clicked after the request started', async () => {
+    const {state}=await readBack({...correct,reg:'VN-A648'},st=>{
+      const c=st.chg['reg'];if(c) c.acked=true;
+    },st=>{
+      const c=st.chg['reg'];if(c) c.fbOk=true;
+    });
+    expect(state.chg['reg']).toMatchObject({fbOk:true,acked:true});
   });
 });

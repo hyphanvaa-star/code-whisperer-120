@@ -67,6 +67,11 @@
 }
 
 :root {
+  --khb-ack-surface: oklch(0.871 0.15 154.4);
+  --khb-ack-ink: oklch(0.508 0.118 165.6);
+  --khb-ack-line: oklch(0.723 0.219 149.6);
+  --khb-ack-night-surface: oklch(0.871 0.15 154.4 / 0.18);
+  --khb-ack-night-ink: oklch(0.857 0.112 155);
   --batch-paper: oklch(1 0 0);
   --batch-ink: oklch(0.28 0.014 250);
   --batch-muted: oklch(0.52 0.012 250);

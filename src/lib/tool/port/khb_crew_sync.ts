@@ -1,5 +1,6 @@
 import { staffDigits, type CrewRow } from './crewswap';
 import { cmpCrewPair } from './revision_baseline';
+import globalStyles from '@/styles.css?raw';
 
 /** Same identity as crew swaps: staff ID, active operating role, old pilot absent. */
 export function crewChangeMatches(rows: CrewRow[], role: string, from: unknown, to: unknown): boolean {
@@ -10,6 +11,20 @@ export function crewChangeMatches(rows: CrewRow[], role: string, from: unknown, 
   const job = (r: CrewRow) => typeof r.job === 'object' ? r.job?.name : r.job;
   return active.some(r => staffDigits(r.username) === newId && job(r) === role)
     && (!oldId || oldId === newId || !active.some(r => staffDigits(r.username) === oldId));
+}
+
+type KhbChange = { fbOk?: boolean; done?: boolean; acked?: boolean };
+
+/** Acknowledgement consumes only confirmed green markers, never operational actions. */
+export function khbAckGreenChanges(changes: Record<string, KhbChange>, keys: string[]): number {
+  let count = 0;
+  for (const key of new Set(keys)) {
+    const change = changes[key];
+    if (!change || change.acked || !(change.fbOk === true || (change.fbOk !== false && change.done === true))) continue;
+    change.acked = true;
+    count++;
+  }
+  return count;
 }
 
 export function patchKhbCrewSyncPage(html: string): string {
@@ -46,7 +61,6 @@ function ftApplyCrewDiff(src, identityOnly){
     const st = ftSt(f);
     const sector = [digits(f.flt), f.date, f.dep, f.arr].map(norm).join("|");
     const previous = !st.chgSector || st.chgSector === sector ? st.chg || {} : {};
-    const samePair = st.chgPair === ftCrewChanges?.pair;
     const same = ftCatalog.filter(c => digits(c.flt) === digits(f.flt) && norm(c.date) === norm(f.date));
     const exact = same.filter(c => norm(c.dep) === norm(f.dep) && norm(c.arr) === norm(f.arr));
     const nf = exact.find(c => norm(c.etd) === norm(f.etd)) || (exact.length === 1 ? exact[0] : null);
@@ -69,12 +83,10 @@ function ftApplyCrewDiff(src, identityOnly){
     }
     if(identityOnly) continue;
     const chg = {};
-    const complete = (key, c) => typeof c.fbOk === "boolean" ? c.fbOk
-      : c.done === true || (key === "reg" && st.regFb === true);
-    // Carry unresolved cells, not an earlier pair's completed green verdict.
+    // Keep green until explicit Ack; retain its receipt so the same diff cannot revive it.
     for(const key of Object.keys(previous)){
       const c = previous[key]; if(!c) continue;
-      if(samePair || !complete(key, c)) chg[key] = c;
+      chg[key] = c;
     }
     const add = (key, from, to) => {
       if(norm(from) === norm(to)) return;
@@ -94,7 +106,7 @@ function ftApplyCrewDiff(src, identityOnly){
     if(Object.keys(chg).some(key => chg[key] !== previous[key])){
       st.chgFb = false; st.regFb = false;
     }
-    total += Object.keys(chg).length;
+    total += Object.keys(chg).filter(key => !chg[key].acked).length;
     st.chg = chg; st.src = src; st.chgPair = ftCrewChanges.pair; st.chgSector = sector;
   }
   return total;
@@ -136,6 +148,7 @@ function ftApplyCrewDiff(src, identityOnly){
             const result = it.crew_checked && (it.crew_changes || []).find(r => r.key === key && r.from === c.from && r.to === c.to);
             c.fbOk = !!(result && result.ok); c.done = c.fbOk;
           }
+          if(c.fbOk === false) c.acked = false;
         }`)
     .replace('      ftRepaintChg();\n    }catch(e){}', '      ftRepaintChg();\n      try{ ftKeepLater(); }catch(e){}\n    }catch(e){}')
     .replace('function ftChgOk(st, c){ return c.done === true || (st.chgFb === true && !(c.key === "cptText" || c.key === "foText")); }', `function ftChgOk(st, c){
@@ -165,5 +178,80 @@ function ftApplyCrewDiff(src, identityOnly){
     .replace('      c.done = await ftStream(r.id);\n      if(!c.done) alert("Đổi crew chưa xong — xem lại trên FliteBrief.");', `      const completed = await ftStream(r.id);
       c.done = false; c.fbOk = false;
       ftFbSync(true);
-      if(!completed) alert("Đổi crew chưa xong — xem lại trên FliteBrief.");`);
+      if(!completed) alert("Đổi crew chưa xong — xem lại trên FliteBrief.");`)
+    .replace('function ftStream(id){', KHB_ACK_SCRIPT + '\nfunction ftStream(id){')
+    .replace('  c.el = el;\n  // Nút ⚡', '  c.el = el;\n  ftPaintChangeAck(st, c, f);\n  // Nút ⚡')
+    .replace('      ftBoltPaint(c, st);\n    }\n  }\n}\nfunction ftItems()', '      ftBoltPaint(c, st);\n      ftPaintChangeAck(st, c, f);\n    }\n  }\n  ftAckToolbar();\n}\nfunction ftItems()')
+    .replace('function ftRender(){', 'function ftRender(){\n  queueMicrotask(ftAckToolbar);')
+    .replace('function ftSyncAllBox(){', 'function ftSyncAllBox(){\n  queueMicrotask(ftAckToolbar);')
+    .replace('<button type="button" class="btn small" id="ftClearBtn">', '<button type="button" class="btn small" id="ftAckGreen" disabled title="Ack ô xanh của các chuyến đã tick">✓ Ack xanh (0)</button>\n            <button type="button" class="btn small" id="ftClearBtn">')
+    .replace('</head>', `<style id="khb-ack-style">
+:root{${(globalStyles.match(/^  --khb-ack-[^\n]+/gm) || []).join('\n')}}
+#wrapFplText .ft-ack-cell{position:relative}
+#wrapFplText .ft-ack-cell input[type=text]{padding-right:24px!important}
+#wrapFplText .ft-ack-cell .ft-ack{position:absolute;right:3px;top:5px;width:19px!important;height:22px!important;padding:0!important;display:grid;place-items:center;border-radius:4px!important;box-shadow:none!important;line-height:1!important}
+#wrapFplText #ftAckGreen,#wrapFplText .ft-ack{background:var(--khb-ack-surface)!important;color:var(--khb-ack-ink)!important;-webkit-text-fill-color:var(--khb-ack-ink)!important;border-color:var(--khb-ack-line)!important}
+#wrapFplText #ftAckGreen:disabled{opacity:.45;cursor:not-allowed}
+#wrapFplText #ftAckGreen:hover:not(:disabled),#wrapFplText .ft-ack:hover{outline:1px solid var(--khb-ack-line);outline-offset:1px}
+html.night #wrapFplText #ftAckGreen,html.night #wrapFplText .ft-ack{background:var(--khb-ack-night-surface)!important;color:var(--khb-ack-night-ink)!important;-webkit-text-fill-color:var(--khb-ack-night-ink)!important}
+</style></head>`);
 }
+
+export const KHB_ACK_SCRIPT = `
+const ftAckGreenChanges = ${khbAckGreenChanges.toString()};
+function ftGreenKeys(st){
+  return Object.keys(st.chg || {}).filter(key => {
+    const c = st.chg[key];
+    return c && !c.acked && (c.fbOk === true || (c.fbOk !== false && c.done === true));
+  });
+}
+function ftAckToolbar(){
+  const button = document.getElementById("ftAckGreen"); if(!button) return;
+  const picked = ftRows.filter(f => f && ftSt(f).on);
+  const count = picked.reduce((n, f) => n + ftGreenKeys(ftSt(f)).length, 0);
+  button.textContent = "✓ Ack xanh (" + count + ")";
+  button.disabled = !count;
+  button.onclick = function(){
+    let acked = 0;
+    for(const f of ftRows){
+      if(!f || !ftSt(f).on) continue;
+      const st = ftSt(f); acked += ftAckGreenChanges(st.chg || {}, ftGreenKeys(st));
+    }
+    if(!acked) return;
+    ftRepaintChg();
+    try{ ftKeepLater(); }catch(e){}
+  };
+}
+function ftPaintChangeAck(st, c, f){
+  if(!f) f = ftRows.find(row => row && ftSt(row) === st);
+  const td = c.el && c.el.closest("td"); if(!td) return;
+  const green = ftChgOk(st, c);
+  const acknowledged = c.acked && green;
+  let button = td.querySelector(".ft-ack");
+  if(acknowledged){
+    c.el.classList.remove("ft-chg", "ft-chg-fpl", "ft-chg-both", "ft-chg-ok");
+    c.el.title = ""; td.title = "";
+  }
+  const canAck = green && !c.acked && ftGreenKeys(st).includes(c.key);
+  td.classList.toggle("ft-ack-cell", canAck);
+  if(!canAck){ if(button) button.remove(); return; }
+  if(!button){
+    button = document.createElement("button"); button.type = "button";
+    button.className = "btn small ft-ack";
+    button.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
+    td.appendChild(button);
+  }
+  const names = {reg:"Tàu",etd:"ETD",utc:"ETD UTC",etaUtc:"ETA UTC",cptText:"CPT",foText:"FO"};
+  const label = "Ack VJ" + String(f && f.flt || "").replace(/^VJ[C]?/i, "") + " · " + (names[c.key] || c.key);
+  button.title = label; button.setAttribute("aria-label", label);
+  button.onclick = function(event){
+    event.preventDefault(); event.stopPropagation();
+    if(!f || !ftRows.includes(f) || ftSt(f) !== st || !st.chg || st.chg[c.key] !== c) return;
+    if(!ftAckGreenChanges(st.chg, [c.key])) return;
+    ftRepaintChg();
+    try{ ftKeepLater(); }catch(e){}
+  };
+}
+document.getElementById("wrapFplText")?.addEventListener("change", ftAckToolbar);
+document.getElementById("wrapFplText")?.addEventListener("pointerup", ftAckToolbar);
+`;

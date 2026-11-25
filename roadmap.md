@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.61: giữ xanh KHB qua Crewlist mới cho đến Ack; Ack riêng từng ô hoặc các chuyến đã tick, giữ receipt theo từng thay đổi trong bản lưu tài khoản; 101 kiểm thử đạt, thử 5 bản Crewlist qua giao diện với dữ liệu mô phỏng VJ901/902, Ack riêng ô/từng chuyến và reload đạt, desktop/mobile/đêm đã kiểm tra, build OK; chưa publish.
+- [ ] V 7.61: xác nhận VJ901 và lưu Ack trên tài khoản JACK — không cấp được phiên JACK, tài khoản thử không có quyền dispatcher; công cụ chỉ đọc nên các phản hồi Crewlist/FliteBrief/workspace ở bài thử giao diện được mô phỏng.
 - [x] V 7.60: REQ đổi tàu/duty chỉ lấy ALT1/ALT2/TALT từ OFP cũ đúng chuyến, không bù ALT Route/KHB; popup hiện sân, KHB xuất thủ công giữ nguyên. 71 kiểm thử đạt, gồm handler/file REQ và OFP JetPlan thật; thử nút tải/popup bằng dữ liệu mô phỏng trong tài khoản thử đạt, build OK; chưa publish.
 - [ ] V 7.60: xác nhận REQ trên chuyến thật của JACK — không cấp được phiên JACK; tài khoản thử không có quyền dispatcher, công cụ hiện có chỉ đọc nên không cấp được quyền để tải OFP thật.
 - [x] V 7.59: lưu KHB riêng theo tài khoản trên đám mây; chờ đăng nhập, chuyển bản lưu cũ, giữ sửa tay/cảnh báo, xóa chủ động lưu bảng trống, kiểm tra revision chặn tab cũ. 65 kiểm thử đạt; tài khoản thử nạp 2 Crewlist thật, lưu PLD 21500/note/ALT/extra rồi đọc lại; cửa sổ mới và reload không cache khôi phục từ Cloud đạt; Clear đọc lại bảng trống đạt, build OK; chưa publish.

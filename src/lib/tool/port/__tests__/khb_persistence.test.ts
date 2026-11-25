@@ -82,4 +82,12 @@ describe('KHB reopen and safe cloud persistence',()=>{
     const s=screen({state:draft,revision:1});await s.api.restore();s.setUid('another-user');s.api.edit(draft);await s.api.save();
     expect(s.posts).toHaveLength(0);expect(s.storage.has('khb.keep.another-user')).toBe(false);
   });
+  it('persists green and explicit Ack through an account save and a fresh reopen',async()=>{
+    const green={...draft,edit:{849:{chg:{reg:{from:'VN-A648',to:'VN-A580',fbOk:true},etd:{from:'10:00',to:'11:00',fbOk:true}}}}};
+    const s=screen({state:green,revision:3});await s.api.restore();
+    const acknowledged={...green,edit:{849:{chg:{reg:{from:'VN-A648',to:'VN-A580',fbOk:true,acked:true},etd:{from:'10:00',to:'11:00',fbOk:true}}}}};
+    s.api.edit(acknowledged);await s.api.save();
+    const reopened=screen(s.saved);await reopened.api.restore();
+    expect(reopened.api.snapshot()).toMatchObject(acknowledged);
+  });
 });
