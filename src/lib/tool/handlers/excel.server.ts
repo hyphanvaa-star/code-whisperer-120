@@ -6,6 +6,7 @@ import { getFile, getJson, listFiles, putFile, removeFiles, setJson } from "../s
 import * as excelcmp from "../port/excelcmp_compare";
 import { ExcelError, readTable, type Sheet } from "../port/excelcmp_reader";
 import * as xlsdiff from "../port/xlsdiff";
+import { cmpCrewPair, operatingDays, revisionBaseline } from "../port/revision_baseline";
 import { inOpsWindow } from "../port/notices";
 import { ofpAckNeeded } from "../port/verify";
 import { fbJson } from "@/lib/flitebrief.server";
@@ -75,6 +76,35 @@ async function listExcel(ctx: Ctx) {
       modified: f.updated_at ? new Date(f.updated_at).getTime() / 1000 : 0,
     }))
     .sort((a, b) => (b.modified as number) - (a.modified as number));
+}
+
+/** Cache sheet dates by uploader and file identity; upload time never proves a revision baseline. */
+async function versionFiles(ctx: Ctx) {
+  const files = xlsdiff.listFiles((await listExcel(ctx)).map(f => ({name: f.file, size: Number(f.size) || 0, modified: Number(f.modified) || 0})));
+  const key = `excel.current.dates:${ctx.userId}`;
+  const cached = await getJson<Record<string, {modified: number; size: number; days: string[]}>>(ctx, key, {});
+  const next: typeof cached = {};
+  let dirty = Object.keys(cached).length !== files.filter(f => !/\bVER\s*\d+|FLIGHT\s*PLAN|\bFPL\b/i.test(f.name)).length;
+  const out: Array<xlsdiff.ExcelFileInfo & {operating_days?: string[]}> = [];
+  for (const file of files) {
+    if (/\bVER\s*\d+|FLIGHT\s*PLAN|\bFPL\b/i.test(file.name)) { out.push(file); continue; }
+    const hit = cached[file.name];
+    if (hit && hit.modified === file.modified && hit.size === file.size) {
+      next[file.name] = hit;
+      out.push({...file, operating_days: hit.days});
+      continue;
+    }
+    try {
+      const buf = await getFile(ctx, `${excelDir(ctx)}/${file.name}`);
+      if (!buf) { out.push({...file, operating_days: []}); continue; }
+      const days = operatingDays(await xlsdiff.readLegs(file.name, buf));
+      next[file.name] = {modified: file.modified, size: file.size, days};
+      dirty = true;
+      out.push({...file, operating_days: days});
+    } catch { out.push({...file, operating_days: []}); }
+  }
+  if (dirty) await setJson(ctx, key, next).catch(() => {});
+  return out;
 }
 
 export async function readSheet(ctx: Ctx, filename: string): Promise<{ path: string; buf: ArrayBuffer; sheets: Sheet[] }> {
@@ -316,57 +346,59 @@ export const routes: Routes = {
 
   "GET /api/version/files": async (ctx) => {
     const cur = await currentExcel(ctx);
-    const files = await listExcel(ctx);
-    const listed = xlsdiff.listFiles(
-      files.map((f) => ({ name: f.file as string, size: Number(f.size) || 0, modified: Number(f.modified) || 0 })),
-    );
+    const listed = await versionFiles(ctx);
     return { files: listed, current: cur?.file || "" };
   },
 
   "GET /api/version/diff": async (ctx) => {
     const rawOld = (ctx.params.get("old") || "").trim();
     const rawNew = (ctx.params.get("new") || "").trim();
-    if (!rawOld || !rawNew) return { error: "Cần chọn cả bản đang dùng và bản mới." };
-    const oldName = safeName(rawOld);
+    const all = ctx.params.get("all") === "1";
+    if (!rawNew || (!rawOld && !all)) return { error: "Cần chọn cả bản đang dùng và bản mới." };
+    const oldName = rawOld ? safeName(rawOld) : "";
     const newName = safeName(rawNew);
     if (oldName === newName) return { error: "Hai bản đang là cùng một file." };
 
-    const oldBuf = await getFile(ctx, `${excelDir(ctx)}/${oldName}`);
-    if (!oldBuf) return { error: `Không thấy file '${oldName}' trong data/excel/` };
+    const oldBuf = oldName ? await getFile(ctx, `${excelDir(ctx)}/${oldName}`) : null;
+    if (oldName && !oldBuf) return { error: `Không thấy file '${oldName}' trong data/excel/` };
     const newBuf = await getFile(ctx, `${excelDir(ctx)}/${newName}`);
     if (!newBuf) return { error: `Không thấy file '${newName}' trong data/excel/` };
 
     let res: xlsdiff.DiffResult;
     try {
-      res = await xlsdiff.diff(oldName, oldBuf, newName, newBuf);
+      if (oldBuf) res = revisionBaseline(await xlsdiff.diff(oldName, oldBuf, newName, newBuf), all);
+      else {
+        const legs = await xlsdiff.readLegs(newName, newBuf);
+        res = {oldFile: "", newFile: newName, oldLegs: 0, newLegs: legs.length, oldDays: [], newDays: [], warn: "",
+          changes: legs.map(l => ({flt: l.flt, dep: l.dep, arr: l.arr, old: null, new: l}))};
+        res = revisionBaseline(res, true);
+      }
     } catch (e) {
       return { error: e instanceof Error ? `${e.constructor.name}: ${e.message}` : String(e) };
     }
 
     // all=1: include unchanged legs too so REG FPL can read every flight's latest aircraft.
-    const rows = xlsdiff.rowsForUi(res, ctx.params.get("all") === "1");
+    const rows = xlsdiff.rowsForUi(res, all);
     // Ngầm so 2 crewlist gần nhất (file FPL VER không có cột tổ bay).
     let crewNote = "";
     let nCrewList = 0;
     try {
-      const files = (await listExcel(ctx)).filter((f) => !/\bVER\s*\d+/i.test(String(f.file)) && !String(f.file).startsWith("~$") && !String(f.file).startsWith("_crewprev_"));
       const cur = await currentExcel(ctx);
-      const curIx = cur ? files.findIndex((f) => f.file === cur.file) : -1;
-      const newer = curIx >= 0 ? files[curIx]! : files[0];
-      const older = files.slice((curIx >= 0 ? curIx : 0) + 1).find(Boolean);
-      if (newer && older && String(older.file) === oldName && String(newer.file) === newName) {
+      const pair = cur && !res.warn ? cmpCrewPair(await versionFiles(ctx), cur.file) : [];
+      const older = pair[0], newer = pair[1];
+      if (newer && older && older.name === oldName && newer.name === newName) {
         // Compare already asked for exactly this Crewlist pair — reuse it instead of parsing both files again.
         const { mergeCrewlistDiff } = await import("../port/crewlist_diff");
         nCrewList = mergeCrewlistDiff(rows, res, res.newDays);
-        crewNote = `Đổi crew so crewlist ${older.file} → ${newer.file}`;
-      } else if (newer && older) {
-        const a = await getFile(ctx, `${excelDir(ctx)}/${older.file}`);
-        const b = await getFile(ctx, `${excelDir(ctx)}/${newer.file}`);
+        crewNote = `Đổi crew so crewlist ${older.name} → ${newer.name}`;
+      } else if (rawOld && newer && older) {
+        const a = await getFile(ctx, `${excelDir(ctx)}/${older.name}`);
+        const b = await getFile(ctx, `${excelDir(ctx)}/${newer.name}`);
         if (a && b) {
-          const cres = await xlsdiff.diff(String(older.file), a, String(newer.file), b);
+          const cres = revisionBaseline(await xlsdiff.diff(older.name, a, newer.name, b));
           const { mergeCrewlistDiff } = await import("../port/crewlist_diff");
           nCrewList = mergeCrewlistDiff(rows, cres, res.newDays);
-          crewNote = `Đổi crew so crewlist ${older.file} → ${newer.file}`;
+          crewNote = `Đổi crew so crewlist ${older.name} → ${newer.name}`;
         }
       }
     } catch (e) {

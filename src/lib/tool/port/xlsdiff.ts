@@ -235,12 +235,13 @@ export async function diff(
 
   const byOld = new Map<string, Leg[]>();
   const byNew = new Map<string, Leg[]>();
+  const datedKey = (x: Leg) => legKey(x) + "|" + (x.day && Number.isFinite(x.day.getTime()) ? x.day.toISOString().slice(0, 10) : "");
   for (const x of olds) {
-    const k = legKey(x);
+    const k = datedKey(x);
     (byOld.get(k) ?? byOld.set(k, []).get(k)!).push(x);
   }
   for (const x of news) {
-    const k = legKey(x);
+    const k = datedKey(x);
     (byNew.get(k) ?? byNew.set(k, []).get(k)!).push(x);
   }
 

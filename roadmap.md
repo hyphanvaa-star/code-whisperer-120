@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.56: một file chỉ so nguồn hiện tại; lịch sử cần hai bản cùng ngày, không lấy ngày trước; 197 kiểm thử đạt, đã nạp file thật trên tài khoản thử và xác nhận số đếm; chưa publish.
+- [ ] V 7.56: xác nhận Crewlist–FliteBrief–OFP trên chuyến JACK — không cấp được phiên JACK; FliteBrief thật chưa đăng nhập trong tài khoản thử.
+
 - [x] V 7.49: nạp AIP Romania (473 vùng) + Hungary (95 vùng) vào kho vùng NOTAM; đọc toạ độ dấu phẩy kiểu châu Âu; 13 kiểm thử mới đạt; chưa publish.
 - [ ] V 7.49: thử lại NOTAM chuyến VJC31 thật — cần JACK chạy Tracking trên preview.
 - [x] V 7.42: ô PLD KHB giữ số nhập tay (sửa lỗi bộ lọc xoá hết số), viền đỏ + nhãn PLD đỏ ngay, Auto Rounding/EST không đè, REQ xuất đúng số nhập; 7 kiểm thử mới đạt; chưa publish.

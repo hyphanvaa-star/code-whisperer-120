@@ -1,4 +1,5 @@
 import { staffDigits, type CrewRow } from './crewswap';
+import { cmpCrewPair } from './revision_baseline';
 
 /** Same identity as crew swaps: staff ID, active operating role, old pilot absent. */
 export function crewChangeMatches(rows: CrewRow[], role: string, from: unknown, to: unknown): boolean {
@@ -19,10 +20,10 @@ async function ftReadCrewChanges(source){
   const response = await fetch("/api/version/files");
   const data = await response.json();
   if(!response.ok || data.error) throw new Error(data.error || "Chưa đọc được Crewlist.");
-  const files = (data.files || []).filter(f => !/\\bVER\\s*\\d+/i.test(f.name));
-  const index = files.findIndex(f => f.name === source);
-  if(index < 0) throw new Error("Chưa xác định được Crewlist đang dùng.");
-  const older = files[index + 1], current = files[index];
+  const files = data.files || [];
+  const current = files.find(f => f.name === source);
+  if(!current) throw new Error("Chưa xác định được Crewlist đang dùng.");
+  const older = (${cmpCrewPair.toString()})(files, source)[0];
   let rows = [];
   if(older){
     const params = new URLSearchParams({old: older.name, new: current.name});

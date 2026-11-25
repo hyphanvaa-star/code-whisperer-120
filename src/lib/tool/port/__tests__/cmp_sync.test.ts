@@ -2,21 +2,22 @@ import { describe, expect, it } from 'vitest';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { cmpAircraftChange, cmpFplPair, cmpPilotChanges, cmpSourceChange, patchCmpSyncPage } from '../cmp_sync';
+import { cmpCrewPair } from '../revision_baseline';
 
 describe('Compare source changes', () => {
   const now = Date.parse('2026-11-02T08:53:00Z');
   it('sends VER 09/10 through the Compare diff flow and preserves Crewlist order', async () => {
     const files = [
       {name:'FLIGHT PLAN ON 02NOV - VER 01.xlsx',modified:300},
-      {name:'crew-new.xlsx'},
+      {name:'crew-new.xlsx', operating_days:['2026-11-02']},
       {name:'FLIGHT PLAN ON 02NOV - VER 10.xlsx',modified:200},
       {name:'FLIGHT PLAN ON 02NOV - VER 09.xlsx',modified:100},
-      {name:'crew-old.xlsx'},
+      {name:'crew-old.xlsx', operating_days:['2026-11-02']},
     ];
     const calls: string[] = [];
     const context = {
       cmpSyncSeq:0, cmpSyncSources:{stamp:''}, cmpSyncDiffJob:null, async cmpSyncCheckMany() {}, xls:{file:'crew-new.xlsx'}, lastCmp:{table:[]},
-      cmpFplPair:(rows: typeof files) => cmpFplPair(rows,now), URLSearchParams,
+      cmpFplPair:(rows: typeof files) => cmpFplPair(rows,now), cmpCrewPair, URLSearchParams,
       cmpSyncRepaint() {}, cmpSyncEvidence() {}, cmpSourceHeaders() {},
       fetch:async (url: string) => {
         calls.push(url);

@@ -1,3 +1,5 @@
+import { cmpCrewPair } from './revision_baseline';
+
 type ChangeRow = { sector_id?: unknown; fb_std?: unknown; ops_ok?: boolean; reg?: { changed?: boolean; old?: unknown; new?: unknown }; crew?: { changed?: boolean; raw_old?: unknown; raw_new?: unknown; out?: string[]; in?: string[] } };
 
 /** A source change must identify this exact operational sector and instant. */
@@ -221,6 +223,7 @@ export function patchCmpSyncPage(html: string): string {
     .replace('   bang.title = pending\n', `   const cvb = typeof document !== "undefined" && document.getElementById ? document.getElementById("cmpVerBar") : null;
    if(cvb){ cvb.classList.toggle("cmp-ver-new", pending); cvb.classList.toggle("cmp-ver-seen", !pending); }
    bang.title = (pending\n`)
+    .replace('   const pending = verBangFileKey(ver) !== verBangAcked;', '   const pending = cmpFplPair(vFileList, Date.now()).length === 2 && verBangFileKey(ver) !== verBangAcked;')
     .replace('     : "FPL VER " + n + " — đã xem";\n', '     : "FPL VER " + n + " — đã xem") + (typeof cmpVerDetail === "function" ? cmpVerDetail() : "");\n')
     .replace('    vb.textContent = latest ? ("FPL VER đang dùng: " + latest) : "";', `    const vn = parseVerNo(latest);
     vb.textContent = latest ? ("FPL VER " + (vn ? String(vn).padStart(2, "0") : "") + (vn ? " · " : "") + latest) : "";
@@ -243,12 +246,27 @@ export function patchCmpSyncPage(html: string): string {
 </style></head>`)
     .replace('   return Number((ver && ver.new_ver) || 0)\n     || parseVerNo((ver && ver.new) || "")', '   return parseVerNo((ver && ver.new) || "")\n     || Number((ver && ver.new_ver) || 0)')
     .replace('    const d = await (await fetch("/api/version/files")).json();\n    vFileList', '    const seq = window.__vFilesSeq = (window.__vFilesSeq || 0) + 1;\n    const response = await fetch("/api/version/files");\n    const d = await response.json();\n    if(!response.ok || d.error || seq !== window.__vFilesSeq) return;\n    vFileList')
+    .replace('    vPaintMenus();\n    // Ver mới có thể tới từ mọi đường', `    const fp = cmpFplPair(vFileList, Date.now(), true);
+    const cp = cmpCrewPair(vFileList, (xls && xls.file) || d.current || "");
+    const selected = fp.length ? fp : cp;
+    vSetValue("new", selected[selected.length - 1]?.name || (xls && xls.file) || d.current || "");
+    vSetValue("old", selected.length === 2 ? selected[0].name : "");
+    vPaintMenus();
+    // Ver mới có thể tới từ mọi đường`)
+    .replace('  if(!o || !n){ alert("Chưa có đủ 2 file Excel trong data/excel/."); return; }', `  if(!o || !n){
+    vLast = null; vDuty = null;
+    $("#vBody").innerHTML = '<tr><td colspan="12" class="empty">Chưa có bản trước cùng ngày khai thác.</td></tr>';
+    $("#vSum").textContent = ""; $("#vWarn").style.display = "none";
+    return;
+  }`)
+    .replace('        if(vDuty) vRender(vDuty);\n        return;', '        vRun();\n        return;')
     .replace('function renderCompareTable(d, opts){', `
 const cmpSourceChange = ${cmpSourceChange.toString()};
 const cmpAircraftChange = ${cmpAircraftChange.toString()};
 const cmpPilotChanges = ${cmpPilotChanges.toString()};
 const cmpCellCrewChanges = ${cmpCellCrewChanges.toString()};
 const cmpFplPair = ${cmpFplPair.toString()};
+const cmpCrewPair = ${cmpCrewPair.toString()};
 const cmpReqChange = ${cmpReqChange.toString()};
 const cmpChgFbReady = ${cmpChgFbReady.toString()};
 const cmpMsgKind = ${cmpMsgKind.toString()};
@@ -719,17 +737,16 @@ async function cmpReadSyncSources(){
     const response = await fetch("/api/version/files"), d = await response.json();
     if(!response.ok || d.error || seq !== cmpSyncSeq) return;
     const files = d.files || [], current = (xls && xls.file) || d.current;
-    const crews = files.filter(f=>!(/\\bVER\\s*\\d+/i.test(f.name)));
-    const ix = crews.findIndex(f=>f.name===current);
-    const pairs = {crew: ix>=0 && crews[ix+1] ? [crews[ix+1],crews[ix]] : [], fpl:cmpFplPair(files)};
+    const pairs = {crew: cmpCrewPair(files,current), fpl:cmpFplPair(files,Date.now(),true)};
     const stamp = JSON.stringify([current,pairs]);
     if(cmpSyncSources.stamp !== stamp){
       // Share one in-flight diff per source pair: an upload starts it, the table render reuses it.
       let job = cmpSyncDiffJob && cmpSyncDiffJob.stamp === stamp ? cmpSyncDiffJob.promise : null;
       if(!job){
         job = Promise.all(["crew","fpl"].map(async kind=>{
-          if(pairs[kind].length!==2) return [];
-          const p = new URLSearchParams({old:pairs[kind][0].name,new:pairs[kind][1].name});
+          if(!pairs[kind].length || (kind === "crew" && pairs[kind].length !== 2)) return [];
+          const latest = pairs[kind][pairs[kind].length - 1];
+          const p = new URLSearchParams({old:pairs[kind].length === 2 ? pairs[kind][0].name : "",new:latest.name});
           if(kind==="fpl") p.set("all","1");
           const res = await fetch("/api/version/diff?"+p), diff = await res.json();
           if(!res.ok || diff.error) throw new Error(diff.error || "Chưa đọc được phiên bản.");
@@ -742,7 +759,7 @@ async function cmpReadSyncSources(){
       try{ results = await job; }catch(_){ results = null; }
       // A failed version diff gives no version evidence but must not hide live FliteBrief≠Crewlist actions; retry next tick.
       if(!results) cmpSyncSources={stamp:"",current,crew:[],fpl:[],fplOld:"",fplFile:""};
-      else if(cmpSyncSources.stamp !== stamp) cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl[0]?.name || "",fplFile:pairs.fpl[1]?.name || ""};
+      else if(cmpSyncSources.stamp !== stamp) cmpSyncSources={stamp,current,crew:results[0],fpl:results[1],fplOld:pairs.fpl.length === 2 ? pairs.fpl[0].name : "",fplFile:pairs.fpl[pairs.fpl.length - 1]?.name || ""};
       if(seq!==cmpSyncSeq) return;
     }
     cmpSourceHeaders();
