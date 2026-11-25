@@ -5,7 +5,7 @@
   const dialog = document.createElement('dialog');
   dialog.id = 'aviwebEditor'; dialog.className = 'avi-editor';
   dialog.setAttribute('aria-labelledby', 'aviTitle');
-  dialog.innerHTML = '<header><div><span class="avi-kicker">AVIWEB · ATC</span><h2 id="aviTitle">Điện văn AviWeb</h2></div><button class="btn" type="button" aria-label="Đóng bảng AviWeb" title="Đóng">✕</button></header><div class="avi-layout"><nav aria-label="Chuyến đã chọn" id="aviFlights"></nav><section class="avi-main"><div id="aviSource" class="avi-source"></div><div id="aviFields" class="avi-fields"></div><div class="avi-tokens" id="aviTokens"></div><div class="avi-preview-head"><h3 id="aviPreviewTitle">Điện văn</h3><span id="aviStep"></span></div><pre id="aviPreview" aria-labelledby="aviPreviewTitle"></pre><div id="aviError" role="alert"></div><div id="aviStatus" role="status" aria-live="polite"></div><pre id="aviLog"></pre></section></div><footer><div class="avi-actions"><button class="btn" type="button" id="aviCopy" title="Copy điện văn">⧉ Copy</button><button class="btn" type="button" id="aviExport" title="Xuất tất cả điện đã chọn">↓ Xuất TXT</button><button class="btn" type="button" id="aviCheckStatus" title="Đọc lại trạng thái lệnh">↻ Trạng thái</button></div><div class="avi-actions"><button class="btn" type="button" id="aviReview">Xem lại</button><button class="btn" type="button" id="aviBack" hidden>← Chỉnh sửa</button><button class="btn primary" type="button" id="aviConfirm" hidden>Xác nhận gửi AviWeb</button></div></footer>';
+  dialog.innerHTML = '<header><div><span class="avi-kicker">AVIWEB · ATC</span><h2 id="aviTitle">Điện văn AviWeb</h2></div><button class="btn" type="button" aria-label="Đóng bảng AviWeb" title="Đóng">✕</button></header><div class="avi-layout"><nav aria-label="Chuyến đã chọn" id="aviFlights"></nav><section class="avi-main"><div id="aviSource" class="avi-source"></div><div id="aviFields" class="avi-fields"></div><div class="avi-tokens" id="aviTokens"></div><div class="avi-preview-head"><h3 id="aviPreviewTitle">Điện văn</h3><span id="aviStep"></span></div><pre id="aviPreview" aria-labelledby="aviPreviewTitle"></pre><div id="aviError" role="alert"></div><div id="aviStatus" role="status" aria-live="polite"></div><pre id="aviLog"></pre></section></div><footer><div class="avi-actions"><button class="btn" type="button" id="aviCopy" title="Copy điện văn">⧉ Copy</button><button class="btn" type="button" id="aviExport" title="Xuất tất cả điện đã chọn">↓ Xuất TXT</button><button class="btn" type="button" id="aviCheckStatus" title="Đọc lại trạng thái lệnh">↻ Trạng thái</button></div><div class="avi-actions"><label class="avi-manual" title="Mở Chrome thật: Trợ lý PC điền và kiểm tra xong thì dừng, anh tự bấm Submit trên AviWeb"><input type="checkbox" id="aviManual"><span>Hiện Chrome · tôi tự bấm Submit</span></label><button class="btn" type="button" id="aviReview">Xem lại</button><button class="btn" type="button" id="aviBack" hidden>← Chỉnh sửa</button><button class="btn primary" type="button" id="aviConfirm" hidden>Xác nhận gửi AviWeb</button></div></footer>';
   document.body.appendChild(dialog);
   const el = id => dialog.querySelector('#' + id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -17,6 +17,13 @@
   window.addEventListener('resize', fitDialog);
   const uid = () => typeof ftKeepUid === 'function' ? ftKeepUid() : (window.parent.__fbUserId ? window.parent.__fbUserId() : '');
   function close() { dialog.close(); }
+  const manualKey = () => 'avi_manual_submit:' + (uid() || '');
+  function syncManual() {
+    try { el('aviManual').checked = localStorage.getItem(manualKey()) === '1'; } catch (_) { el('aviManual').checked = false; }
+    manualLabel();
+  }
+  function manualLabel() { el('aviConfirm').textContent = el('aviManual').checked ? 'Mở Chrome · tôi bấm Submit' : 'Xác nhận gửi AviWeb'; }
+  el('aviManual').onchange = () => { try { localStorage.setItem(manualKey(), el('aviManual').checked ? '1' : '0'); } catch (_) {} manualLabel(); };
   dialog.querySelector('header button').onclick = close;
   dialog.addEventListener('cancel', e => { e.preventDefault(); close(); });
   dialog.addEventListener('click', e => { if (e.target === dialog) e.stopPropagation(); });
@@ -41,6 +48,7 @@
     el('aviConfirm').disabled = locked;
     el('aviReview').disabled = locked || !plan;
     el('aviBack').disabled = locked;
+    el('aviManual').disabled = locked;
     el('aviCopy').disabled = !plan;
     el('aviExport').disabled = !plan;
     el('aviCheckStatus').disabled = !plan || loading || submitting;
@@ -97,7 +105,11 @@
         if (r.error) error(r.error);
         if (Array.isArray(r.errors) && r.errors.length) error(r.errors.join('\n'));
       } else {
-        el('aviStatus').textContent = d.status === 'pending' ? 'Đã giao Trợ lý PC · đang chờ gửi' : 'Trợ lý PC đang thao tác AviWeb…';
+        const lines = (r.lines || []).map(l => typeof l === 'string' ? l : l.text).filter(Boolean);
+        const last = String(lines[lines.length - 1] || '');
+        el('aviStatus').textContent = d.status === 'pending' ? 'Đã giao Trợ lý PC · đang chờ gửi'
+          : /tự bấm Submit/.test(last) ? 'Chrome đã điền xong — anh kiểm tra rồi bấm Submit trên AviWeb'
+          : 'Trợ lý PC đang thao tác AviWeb…';
         timer = setTimeout(status, 2000);
       }
     } catch (e) { error(e); el('aviStatus').textContent = 'Chưa đọc được trạng thái · không tự gửi lại'; if (job) timer = setTimeout(status, 5000); }
@@ -113,7 +125,7 @@
     try { text = content(); } catch(e) { error(e); return; }
     submitting = true; controls(); el('aviStatus').textContent = 'Đang xác minh lại nguồn và giao lệnh…';
     try {
-      const d = await request('/api/atc/aviweb/execute', {plan_id:plan.plan_id, confirmed:true, content:text});
+      const d = await request('/api/atc/aviweb/execute', {plan_id:plan.plan_id, confirmed:true, content:text, manual_submit:el('aviManual').checked});
       job = !!d.job_id; await status();
     } catch(e) { error(e); el('aviStatus').textContent = 'Chưa xác nhận giao lệnh · kiểm tra trạng thái trước khi gửi lại'; await status(); }
     finally { submitting = false; controls(); }
@@ -128,7 +140,7 @@
     if (!Array.isArray(items) || !items.length) { alert(explicitItems !== undefined ? 'Chưa chọn được đúng chuyến.' : 'Tick ít nhất một chuyến trong Flight Planning.'); return; }
     clearTimeout(timer); timer = null; plan = null; messages = []; index = 0; reviewed = false; submitting = false; job = false; owner = uid(); activeOp = operation; loading = true;
     el('aviTitle').textContent = operation + ' AviWeb'; el('aviFlights').innerHTML = ''; el('aviSource').innerHTML = ''; el('aviFields').innerHTML = ''; el('aviTokens').innerHTML = ''; el('aviPreview').textContent = ''; el('aviLog').textContent = ''; error(''); el('aviStatus').textContent = 'Đang đọc OFP và Crewlist của ' + items.length + ' chuyến đã chọn…';
-    fitDialog(); if (!dialog.open) dialog.showModal(); controls();
+    syncManual(); fitDialog(); if (!dialog.open) dialog.showModal(); controls();
     try {
       const d = await request('/api/atc/aviweb/plan', {operation:activeOp, items:items.map(i => ({flt:String(i.flt),date:i.date || '',dep:i.dep || '',arr:i.arr || '', ...(i.sector_id ? {sector_id:Number(i.sector_id)} : {})}))});
       plan = d; messages = core.parse(d.content, d.operation); render(); await status();

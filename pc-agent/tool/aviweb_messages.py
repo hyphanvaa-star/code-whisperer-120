@@ -5,6 +5,7 @@ This wrapper adds validation and row-bound safety checks, not route selectors.
 """
 from __future__ import annotations
 import re
+import time
 from datetime import datetime, timezone, timedelta
 from aviweb_sender import AviWebSender, AviWebSendError, validate_edited_payload, split_messages
 
@@ -67,6 +68,27 @@ def validate_content(operation, content, expected, now=None):
     return normalized
 
 
+class AviWebLayoutError(AviWebSendError):
+    """Header labels could not be mapped; only then is the content match used."""
+
+
+# Processed search box (same absolute XPath as atc_check). Optional narrowing:
+# when missing, the completeness check still fails closed on partial tables.
+_SEARCH_XPATH = '/html/body/div[1]/div/div/div[2]/div/div/div[2]/div/div/div/div/div/div/div/div/div/div/div/div[2]/div/div/div/div[2]/div/div[1]/div/div/div/div[1]/input'
+MANUAL_SUBMIT_WAIT_S = 600
+
+
+def _txt(element):
+    value = None
+    try:
+        value = element.get_attribute('textContent')
+    except Exception:
+        value = None
+    if not isinstance(value, str):
+        value = getattr(element, 'text', '')
+    return re.sub(r'\s+', ' ', str(value or '')).strip()
+
+
 def _row_dof(text):
     value = str(text or '').strip()
     for fmt in ('%y%m%d', '%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%d %b %Y'):
@@ -79,8 +101,12 @@ def _row_dof(text):
 
 class VerifiedAviWebSender(AviWebSender):
     """Verify the SAME row immediately before action/Submit; ambiguity blocks writes."""
-    def __init__(self, expected, **kwargs):
+    def __init__(self, expected, manual_submit=False, **kwargs):
         super().__init__(**kwargs)
+        # Operator mode: fill and verify everything, then the human clicks the
+        # final Submit in the visible Chrome; code never clicks it.
+        self.manual_submit = bool(manual_submit)
+        self._final_stage = False
         self.expected = {e['callsign']: e for e in expected}
         self.bound = None
         self.bound_snapshot = None
@@ -91,21 +117,72 @@ class VerifiedAviWebSender(AviWebSender):
     @staticmethod
     def _row_identity(row):
         cells = row.find_elements('xpath', './td')
-        values = [c.text.strip().upper() for c in cells]
-        # Read actual header labels instead of guessing UIDL-to-DOM td offsets.
-        headers = row.find_elements('xpath', 'ancestor::*[contains(concat(" ", normalize-space(@class), " "), " v-table ")][1]//th')
-        names = [re.sub(r'[^A-Z0-9]', '', h.text.upper()) for h in headers]
-        aliases = ({'CALLSIGN', 'AIRCRAFTIDENTIFICATION', 'ACID'}, {'DEP', 'DEPARTURE', 'DEPARTUREAERODROME', 'ADEP'}, {'DEST', 'DESTINATION', 'DESTINATIONAERODROME', 'ADES'}, {'DOF', 'DATEOFFLIGHT', 'FLIGHTDATE'})
+        values = [_txt(c).upper() for c in cells]
+        # Vaadin 7 renders header captions as td.v-table-header-cell (not th) in
+        # a header table separate from the body; plain HTML tables use th.
+        table = 'ancestor::*[contains(concat(" ", normalize-space(@class), " "), " v-table ")][1]'
+        headers = row.find_elements('xpath', table + '//*[contains(concat(" ", normalize-space(@class), " "), " v-table-header-cell ")] | ' + table + '//th')
+        names = [re.sub(r'[^A-Z0-9]', '', _txt(h).upper()) for h in headers]
+        if len(names) != len(values):
+            raise AviWebLayoutError('Bố cục Processed chưa xác minh được — không gửi')
+        aliases = ({'CALLSIGN', 'AIRCRAFTIDENTIFICATION', 'ACID', 'ARCID'}, {'DEP', 'DEPARTURE', 'DEPARTUREAERODROME', 'ADEP'}, {'DEST', 'DES', 'DESTINATION', 'DESTINATIONAERODROME', 'ADES', 'ARR'}, {'DOF', 'DATEOFFLIGHT', 'FLIGHTDATE'})
         indices = []
         for allowed in aliases:
             hits = [i for i, name in enumerate(names) if name in allowed]
-            if len(hits) != 1 or hits[0] >= len(values):
-                raise AviWebSendError('Bố cục Processed chưa xác minh được — không gửi')
+            if len(hits) != 1:
+                raise AviWebLayoutError('Bố cục Processed chưa xác minh được — không gửi')
             indices.append(hits[0])
         cs, dep, arr, dof = (values[i] for i in indices)
         if not re.fullmatch(r'[A-Z0-9]+', cs) or not re.fullmatch(r'[A-Z]{4}', dep) or not re.fullmatch(r'[A-Z]{4}', arr):
             raise AviWebSendError('Không xác minh được sân đi/đến trên cùng dòng AviWeb')
         return (cs, dep, arr, _row_dof(dof))
+
+    @staticmethod
+    def _content_matches(row, wanted):
+        """Fallback when headers are unreadable: every expected value must sit
+        on this one row, in Callsign → DEP → DEST order, with exactly one
+        date cell equal to DOF. Partial or reordered data never matches."""
+        cs, dep, arr, dof = wanted
+        values = [_txt(c).upper() for c in row.find_elements('xpath', './td')]
+        if values.count(cs) != 1 or values.count(dep) != 1 or values.count(arr) != 1 or dep == arr:
+            return False
+        if not values.index(cs) < values.index(dep) < values.index(arr):
+            return False
+        dates = []
+        for value in values:
+            try:
+                dates.append(_row_dof(value))
+            except AviWebSendError:
+                pass
+        return dates == [dof]
+
+    def _row_matches(self, row, wanted):
+        wanted = tuple(wanted)
+        try:
+            return self._row_identity(row) == wanted
+        except AviWebLayoutError:
+            if not getattr(self, '_fallback_noted', False):
+                self._fallback_noted = True
+                self._note('AviWeb: không đọc được tiêu đề cột — đối chiếu Callsign/DEP/DEST/DOF theo nội dung dòng')
+            return self._content_matches(row, wanted)
+
+    def _filter_processed(self, driver, cs):
+        """Narrow Processed to this callsign so the rendered table is complete."""
+        try:
+            boxes = [b for b in driver.find_elements('xpath', _SEARCH_XPATH) if b.is_displayed() and b.is_enabled()]
+        except Exception:
+            boxes = []
+        if not boxes:
+            return False
+        _, _, _, _, Keys, _, _ = self._selenium()
+        box = boxes[0]
+        try:
+            driver.execute_script('arguments[0].click();', box)
+            box.send_keys(Keys.CONTROL, 'a'); box.send_keys(Keys.BACKSPACE)
+            box.send_keys(cs); time.sleep(.35); box.send_keys(Keys.ENTER); time.sleep(1.8)
+            return True
+        except Exception:
+            return False
 
     def _candidates(self, driver, cs):
         _, _, _, By, _, _, _ = self._selenium()
@@ -145,10 +222,10 @@ class VerifiedAviWebSender(AviWebSender):
             raise AviWebSendError('Chuyến đã ngoài khung −6/+24 giờ — không Submit')
         wanted = (target['callsign'], target['dep'], target['arr'], target['dof'])
         rows = self._candidates(driver, self.current_callsign)
-        matches = [r for r in rows if self._row_identity(r) == wanted]
+        matches = [r for r in rows if self._row_matches(r, wanted)]
         if len(matches) != 1 or matches[0].id != self.bound.id:
             raise AviWebSendError('Dòng Processed đã đổi hoặc không duy nhất — dừng trước Submit')
-        if self._row_identity(self.bound) != self.bound_snapshot:
+        if not self._row_matches(self.bound, self.bound_snapshot):
             raise AviWebSendError('Danh tính dòng AviWeb đã thay đổi — không Submit')
 
     def _open_row_action(self, driver, callsign, action):
@@ -156,12 +233,15 @@ class VerifiedAviWebSender(AviWebSender):
         if action not in {'Delay', 'Change'} or callsign not in self.expected:
             raise AviWebSendError('Thao tác hoặc callsign không thuộc bản xác nhận')
         driver.get(self.PROCESSED)
-        Wait(driver, 180).until(EC.presence_of_element_located((By.XPATH,
+        Wait(driver, 180).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'table.v-table-table, .v-table-table')))
+        if self._filter_processed(driver, callsign):
+            self._note(f'{callsign}: đã lọc Processed theo callsign')
+        Wait(driver, 60).until(EC.presence_of_element_located((By.XPATH,
             f'//div[contains(@class,"v-table-cell-wrapper") and normalize-space(text())="{callsign}"]')))
         target = self.expected[callsign]
         wanted = (target['callsign'], target['dep'], target['arr'], target['dof'])
         rows = self._candidates(driver, callsign)
-        matches = [r for r in rows if self._row_identity(r) == wanted]
+        matches = [r for r in rows if self._row_matches(r, wanted)]
         if len(matches) != 1:
             raise AviWebSendError(f'{callsign}: không có duy nhất dòng đúng DOF/chặng — không gửi')
         self.bound = matches[0]; self.current_callsign = callsign; self.bound_snapshot = wanted
@@ -184,15 +264,56 @@ class VerifiedAviWebSender(AviWebSender):
                 raise AviWebSendError('Không xác định được duy nhất form AviWeb đang gửi')
             if self._emit_callback:
                 self._note(f'{self.current_callsign}: đã kiểm tra đúng DOF/chặng trước Submit')
+            if self.manual_submit and self._final_stage:
+                return self._wait_operator_submit(driver, element)
             # One click only: a native click that threw may already have submitted.
             element.click()
             return
         return super()._safe_click(driver, element)
 
+    def _wait_operator_submit(self, driver, element):
+        """Hand the verified form to the operator. Only a real click/Enter on
+        this Submit button followed by the form closing counts as sent; closing
+        the form any other way, Chrome closing or a timeout means not sent."""
+        driver.execute_script('''
+          const b=arguments[0]; window.__aviOperatorSubmit=0;
+          const mark=()=>{window.__aviOperatorSubmit=Date.now();};
+          b.addEventListener('click',mark,true);
+          b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')mark();},true);
+        ''', element)
+        try:
+            driver.switch_to.window(driver.current_window_handle)
+        except Exception:
+            pass
+        self._note(f'{self.current_callsign}: ĐÃ ĐIỀN XONG — kiểm tra trên Chrome rồi tự bấm Submit (chờ tối đa {MANUAL_SUBMIT_WAIT_S // 60} phút)', 'ok')
+        deadline = time.monotonic() + MANUAL_SUBMIT_WAIT_S
+        clicked = False
+        while time.monotonic() < deadline:
+            try:
+                clicked = bool(driver.execute_script('return window.__aviOperatorSubmit||0')) or clicked
+                if '/login' in str(driver.current_url):
+                    raise AviWebSendError('AviWeb mất đăng nhập khi chờ bấm Submit — chưa xác nhận gửi')
+                element.is_enabled()
+            except AviWebSendError:
+                raise
+            except Exception as exc:
+                name = type(exc).__name__
+                if 'StaleElement' in name:
+                    if clicked:
+                        return 'operator Submit'
+                    raise AviWebSendError('Form AviWeb đã đóng mà không bấm Submit — chưa gửi') from exc
+                raise AviWebSendError('Chrome AviWeb đã đóng khi chờ bấm Submit — kiểm tra AviWeb trước khi gửi lại') from exc
+            time.sleep(.5)
+        raise AviWebSendError(f'Quá {MANUAL_SUBMIT_WAIT_S // 60} phút chưa bấm Submit — không tự gửi')
+
     def _addresses_and_submit(self, driver):
         self._verify_bound(driver)
         baseline = set(n.text.strip() for n in driver.find_elements('css selector', '.v-Notification, .v-notification, [class*="notification"]') if n.is_displayed())
-        evidence = super()._addresses_and_submit(driver)
+        self._final_stage = True
+        try:
+            evidence = super()._addresses_and_submit(driver)
+        finally:
+            self._final_stage = False
         notices = [n.text.strip() for n in driver.find_elements('css selector', '.v-Notification, .v-notification, [class*="notification"]') if n.is_displayed() and n.text.strip() not in baseline]
         if '/login' in driver.current_url or any(re.search(r'\b(error|rejected|failed|not sent|not submitted)\b', n, re.I) for n in notices):
             raise AviWebSendError('AviWeb báo lỗi hoặc mất đăng nhập sau Submit; chưa xác nhận đã gửi, không tự gửi lại')
@@ -210,7 +331,9 @@ def send_messages(payload, say, cancel):
         raise AviWebSendError('Chưa có tài khoản AviWeb đã lưu trên web')
     def emit(text, level='info'):
         say(text, {'error':'bad','warn':'bad','ok':'ok'}.get(level,''))
-    sender = VerifiedAviWebSender(expected, headless=bool(payload.get('headless', True)))
+    manual = payload.get('manual_submit') is True
+    # Operator mode always shows Chrome; hidden Chrome cannot be clicked.
+    sender = VerifiedAviWebSender(expected, manual_submit=manual, headless=(not manual) and bool(payload.get('headless', True)))
     try:
         result = sender.send(operation, content, username, password, emit, cancel)
     except Exception:

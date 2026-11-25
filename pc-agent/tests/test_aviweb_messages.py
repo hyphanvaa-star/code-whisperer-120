@@ -100,4 +100,58 @@ class Messages(unittest.TestCase):
             result=sender.send('DLA',DLA+'\n'+DLA.replace('874','875'),'test-only','test-only',lambda t,l:emits.append(t),threading.Event())
         self.assertEqual(send.call_count,1);self.assertEqual(result['sent'],0);self.assertEqual(result['total'],2);self.assertEqual(len(result['errors']),1)
 
+class OperatorSubmitAndVaadin(unittest.TestCase):
+    WANT=('VJC874','VVDN','RKSI','261125')
+    @staticmethod
+    def el(text):
+        e=Mock(text='');e.get_attribute.return_value=text;return e
+    def row(self,cells,headers):
+        r=Mock();r.find_elements.side_effect=lambda by,xp:[self.el(t) for t in (cells if xp=='./td' else headers)];return r
+    def test_vaadin_header_cells_are_read(self):
+        r=self.row(['','VJC874','FPL','VVDN','RKSI','25/11/2026','25/11/2026 08:10'],['#','Callsign','ATS Msg','Dep','Dest','Date of Flight','Update Time'])
+        self.assertEqual(bridge.VerifiedAviWebSender._row_identity(r),self.WANT)
+    def test_content_fallback_only_exact_row(self):
+        sender=bridge.VerifiedAviWebSender([TARGET])
+        good=self.row(['VJC874','FPL','VVDN','RKSI','2026-11-25','2026-11-25 08:10'],[])
+        self.assertTrue(sender._row_matches(good,self.WANT))
+        for cells in (['VJC874','RKSI','VVDN','2026-11-25'],['VJC874','VVDN','RKSI','2026-11-24'],['VJC874','VVDN','RKSI','2026-11-25','2026-11-26'],['VJC875','VVDN','RKSI','2026-11-25']):
+            with self.subTest(cells=cells): self.assertFalse(sender._row_matches(self.row(cells,[]),self.WANT))
+    def manual(self):
+        sender=bridge.VerifiedAviWebSender([TARGET],manual_submit=True);sender._final_stage=True;sender.current_callsign='VJC874'
+        driver=Mock(current_url=sender.PROCESSED);driver.find_elements.return_value=[Mock()]
+        return sender,driver
+    def test_operator_mode_never_clicks_and_counts_operator_submit(self):
+        sender,driver=self.manual();button=Mock(text='Submit')
+        class StaleElementReferenceException(Exception): pass
+        button.is_enabled.side_effect=StaleElementReferenceException()
+        driver.execute_script.side_effect=[None,1]
+        with patch.object(sender,'_verify_bound'):
+            self.assertEqual(sender._safe_click(driver,button),'operator Submit')
+        button.click.assert_not_called()
+    def test_operator_closing_form_without_submit_is_not_sent(self):
+        sender,driver=self.manual();button=Mock(text='Submit')
+        class StaleElementReferenceException(Exception): pass
+        button.is_enabled.side_effect=StaleElementReferenceException()
+        driver.execute_script.side_effect=[None,0]
+        with patch.object(sender,'_verify_bound'):
+            with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
+        button.click.assert_not_called()
+    def test_operator_timeout_is_not_sent(self):
+        sender,driver=self.manual();button=Mock(text='Submit');driver.execute_script.return_value=0
+        with patch.object(sender,'_verify_bound'),patch.object(bridge,'MANUAL_SUBMIT_WAIT_S',0):
+            with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
+        button.click.assert_not_called()
+    def test_auto_mode_still_clicks_once(self):
+        sender=bridge.VerifiedAviWebSender([TARGET]);sender._final_stage=True;button=Mock(text='Submit');driver=Mock();driver.find_elements.return_value=[Mock()]
+        with patch.object(sender,'_verify_bound'): sender._safe_click(driver,button)
+        self.assertEqual(button.click.call_count,1)
+    def test_manual_payload_forces_visible_chrome(self):
+        seen=[]
+        def fake(self,*a): seen.append((self.manual_submit,self.headless)); return {'sent':0}
+        payload={'operation':'DLA','content':DLA,'expected':[{**TARGET,'std':datetime.now(timezone.utc).isoformat()}],'aviweb_user':'t','aviweb_pass':'t','headless':True}
+        with patch.object(bridge.VerifiedAviWebSender,'send',fake):
+            bridge.send_messages({**payload,'manual_submit':True},lambda *a:None,threading.Event())
+            bridge.send_messages(payload,lambda *a:None,threading.Event())
+        self.assertEqual(seen,[(True,False),(False,True)])
+
 if __name__=='__main__':unittest.main()

@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.66 / PC 6.20: CHG/DLA AviWeb đọc đúng tiêu đề bảng Processed (Vaadin) + dự phòng theo nội dung dòng, lọc theo callsign; ô tick "Hiện Chrome · tôi tự bấm Submit" — Trợ lý PC điền xong thì chờ Dispatcher tự bấm Submit (10 phút). Chưa gửi điện thật, chưa publish.
 - [x] V 7.65: menu Điện văn thủ công mở bảng chọn AMHS / AviWeb cho DLA, CHG A/C, CHG DLA; CHG ALT/ROUTE/CNL giữ AMHS. 85 kiểm thử đạt; tài khoản kiểm tra với chuyến mô phỏng không có cảnh báo đỏ trên desktop/390px: chọn kênh, AMHS text, AviWeb chỉnh–xem lại–kết quả mô phỏng, đúng chuyến và X/Esc đạt, đã xem sáng/tối; build OK, chưa gửi điện thật hoặc thử tài khoản JACK, chưa publish.
 - [x] V 7.64: CHG/DLA tại Flight Supervisor mở Ack + AMHS + AviWeb; menu thủ công có AviWeb, chỉ nạp chuyến của dòng vừa bấm, giữ xác nhận trước khi gửi. 102 kiểm thử đạt; thử tài khoản kiểm tra với chuyến mô phỏng VJC849/901 trên desktop/610px: AMHS mở text, DLA/CHG chỉnh–xem lại–đọc kết quả giả lập đúng chuyến; Ack độc lập, không gửi điện thật, build OK; chưa publish.
 - [ ] V 7.64: xác nhận trên chuyến và Trợ lý PC của JACK — chưa cấp được phiên JACK và không gửi thử điện khai thác thật.

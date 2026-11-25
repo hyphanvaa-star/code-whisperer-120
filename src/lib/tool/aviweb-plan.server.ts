@@ -18,7 +18,7 @@ interface Plan { id: string; owner: string; operation: AviOperation; expires_at:
 const idSchema = z.string().uuid();
 const itemSchema = z.object({ flt: z.string().trim().min(1).max(12), date: z.string().max(30), dep: z.string().max(4), arr: z.string().max(4), sector_id: z.number().int().positive().optional() });
 const makeSchema = z.object({ operation: z.enum(['CHG', 'DLA']), items: z.array(itemSchema).min(1).max(30) });
-const sendSchema = z.object({ plan_id: idSchema, confirmed: z.literal(true), content: z.string().min(1).max(200000) });
+const sendSchema = z.object({ plan_id: idSchema, confirmed: z.literal(true), content: z.string().min(1).max(200000), manual_submit: z.boolean().optional() });
 const tools = aviwebMessageTools();
 const planKey = (uid: string, id: string) => `aviweb.plan:${uid}:${id}`;
 async function admin() { return (await import('@/integrations/supabase/client.server')).supabaseAdmin; }
@@ -100,7 +100,9 @@ export async function executeAviPlan(ctx: Ctx) {
   const machine = currentAgentId();
   if (!machine || !plan.machine || plan.machine !== machine) throw new Error('Ghép Trợ lý PC trên máy này rồi tạo lại bản soạn.');
   if (!pc.agentOnline(agent)) throw new Error('Trợ lý PC chưa kết nối — chưa gửi điện.');
-  if (!agent || pcVersionBelow(agent.version, '6.19')) throw new Error('Cập nhật Trợ lý PC lên 6.19 trước khi gửi CHG/DLA AviWeb.');
+  // 6.20 reads Vaadin Processed headers and honours manual_submit; older helpers would auto-Submit.
+  if (!agent || pcVersionBelow(agent.version, '6.20')) throw new Error('Cập nhật Trợ lý PC lên 6.20 trước khi gửi CHG/DLA AviWeb.');
+  const manual = input.manual_submit === true;
   const user = env('AVIWEB_USERNAME'), pass = env('AVIWEB_PASSWORD');
   if (!user || !pass) throw new Error('Chưa lưu tài khoản AviWeb trên web.');
   const fresh = await sources(ctx, plan.operation, plan.sources.map(s => ({ flt: s.callsign, sector_id: s.sector_id, date: s.std.slice(0, 10), dep: s.dep, arr: s.arr })));
@@ -109,7 +111,7 @@ export async function executeAviPlan(ctx: Ctx) {
     if (!s || JSON.stringify(s) !== JSON.stringify(original)) throw new Error(`${original.callsign}: nguồn OFP/Crewlist đã đổi; tạo và xác nhận bản mới.`);
   }
   // The plan UUID is also the job PK: concurrent confirmations race on ONE insert.
-  const { error } = await (await admin()).from('pc_jobs').insert({ id: plan.id, kind: 'aviweb_messages', payload: { _uid: ctx.userId, _aid: machine, operation: plan.operation, content: validated.content, expected: plan.sources.map(s => ({ callsign: s.callsign, dep: s.dep, arr: s.arr, dof: s.dof, reg: s.reg, std: s.std })), aviweb_user: user, aviweb_pass: pass, headless: true } });
+  const { error } = await (await admin()).from('pc_jobs').insert({ id: plan.id, kind: 'aviweb_messages', payload: { _uid: ctx.userId, _aid: machine, operation: plan.operation, content: validated.content, expected: plan.sources.map(s => ({ callsign: s.callsign, dep: s.dep, arr: s.arr, dof: s.dof, reg: s.reg, std: s.std })), aviweb_user: user, aviweb_pass: pass, headless: !manual, manual_submit: manual } });
   if (error && error.code !== '23505') throw new Error('Không giao được lệnh gửi; kiểm tra trạng thái trước khi thử lại.');
   const job = await existingJob(ctx, plan.id);
   if (!job) throw new Error('Chưa xác nhận được lệnh; không tự gửi lại.');
