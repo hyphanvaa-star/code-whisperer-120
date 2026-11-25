@@ -10,6 +10,11 @@
   const el = id => dialog.querySelector('#' + id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let plan = null, messages = [], index = 0, reviewed = false, submitting = false, job = false, timer = null, owner = '', activeOp = '', loading = false;
+  function fitDialog() {
+    const zoom = (parseFloat(document.documentElement.style.zoom) || 1) * (parseFloat(document.body.style.zoom) || 1);
+    dialog.style.zoom = zoom > 0.05 ? String(1 / zoom) : '';
+  }
+  window.addEventListener('resize', fitDialog);
   const uid = () => typeof ftKeepUid === 'function' ? ftKeepUid() : (window.parent.__fbUserId ? window.parent.__fbUserId() : '');
   function close() { dialog.close(); }
   dialog.querySelector('header button').onclick = close;
@@ -41,6 +46,7 @@
     el('aviCheckStatus').disabled = !plan || loading || submitting;
     dialog.querySelectorAll('#aviFields input,#aviTokens input,#aviTokens button,#aviFields select').forEach(i => { i.disabled = reviewed || locked || i.dataset.locked === '1'; });
     el('aviStep').textContent = job ? 'Kết quả gửi' : reviewed ? 'Xác nhận · ' + messages.length + ' điện' : 'Chỉnh điện · ' + messages.length + ' chuyến';
+    dialog.classList.toggle('avi-review', reviewed || job);
   }
   function preview() {
     try {
@@ -80,6 +86,7 @@
       const r = d.result || {};
       if (d.status === 'draft') { if (!job) el('aviStatus').textContent = 'Bản soạn chưa gửi · hiệu lực đến ' + new Date(plan.expires_at).toISOString().slice(11,16) + ' UTC'; return; }
       job = true; reviewed = true; controls();
+      el('aviPreview').textContent = content();
       el('aviLog').textContent = (r.lines || []).map(l => typeof l === 'string' ? l : l.text).filter(Boolean).join('\n');
       const finished = ['done','failed'].includes(d.status);
       if (finished) {
@@ -113,13 +120,13 @@
   };
   window.__aviwebOpen = async operation => {
     if (!['CHG','DLA'].includes(operation) || loading) return;
-    if (job && plan && owner === uid() && timer) { if (!dialog.open) dialog.showModal(); await status(); return; }
+    if (job && plan && owner === uid() && timer) { fitDialog(); if (!dialog.open) dialog.showModal(); await status(); return; }
     if (typeof ftMsgClose === 'function') ftMsgClose();
     const items = typeof ftPickedItems === 'function' ? ftPickedItems() : [];
     if (!items.length) { alert('Tick ít nhất một chuyến trong Flight Planning.'); return; }
     clearTimeout(timer); timer = null; plan = null; messages = []; index = 0; reviewed = false; submitting = false; job = false; owner = uid(); activeOp = operation; loading = true;
     el('aviTitle').textContent = operation + ' AviWeb'; el('aviFlights').innerHTML = ''; el('aviSource').innerHTML = ''; el('aviFields').innerHTML = ''; el('aviTokens').innerHTML = ''; el('aviPreview').textContent = ''; el('aviLog').textContent = ''; error(''); el('aviStatus').textContent = 'Đang đọc OFP và Crewlist của ' + items.length + ' chuyến đã chọn…';
-    if (!dialog.open) dialog.showModal(); controls();
+    fitDialog(); if (!dialog.open) dialog.showModal(); controls();
     try {
       const d = await request('/api/atc/aviweb/plan', {operation:activeOp, items:items.map(i => ({flt:String(i.flt),date:i.date || '',dep:i.dep || '',arr:i.arr || '', ...(i.sector_id ? {sector_id:Number(i.sector_id)} : {})}))});
       plan = d; messages = core.parse(d.content, d.operation); render(); await status();

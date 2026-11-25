@@ -55,10 +55,10 @@ class Messages(unittest.TestCase):
         with self.assertRaises(AviWebSendError): bridge.validate_content('CHG',CHG.replace('OPR/','DOF/261125 OPR/'),[TARGET],NOW)
     def test_rows_full_identity(self):
         row=Mock()
-        row.find_elements.return_value=[Mock(text=t) for t in ['','VJC874','FPL','VVDN','RKSI','25/11/2026','09:00']]
+        row.find_elements.side_effect=[[Mock(text=t) for t in ['','VJC874','FPL','VVDN','RKSI','25/11/2026','09:00']], [Mock(text=t) for t in ['', 'Callsign', 'ATS MSG', 'DEP', 'DEST', 'Date of Flight', 'Updated']]]
         self.assertEqual(bridge.VerifiedAviWebSender._row_identity(row),('VJC874','VVDN','RKSI','261125'))
     def test_unknown_layout_fails_closed(self):
-        row=Mock();row.find_elements.return_value=[Mock(text=t) for t in ['VJC874','VVDN','RKSI','25/11/2026']]
+        row=Mock();row.find_elements.side_effect=[[Mock(text=t) for t in ['VJC874','VVDN','RKSI','25/11/2026']],[]]
         with self.assertRaises(AviWebSendError): bridge.VerifiedAviWebSender._row_identity(row)
     def test_no_click_without_verified_row(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);button=Mock(text='Submit')
@@ -67,17 +67,20 @@ class Messages(unittest.TestCase):
     def test_submit_native_error_does_not_retry(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);button=Mock(text='Submit');button.click.side_effect=RuntimeError('uncertain')
         driver=Mock()
+        driver.find_elements.return_value=[Mock()]
         with patch.object(sender,'_verify_bound'):
             with self.assertRaises(RuntimeError): sender._safe_click(driver,button)
         self.assertEqual(button.click.call_count,1);driver.execute_script.assert_not_called()
     def test_same_row_replaced_invalidates_binding(self):
         sender=bridge.VerifiedAviWebSender([TARGET]); sender.bound=Mock(id='old');sender.current_callsign='VJC874';sender.bound_snapshot=('VJC874','VVDN','RKSI','261125')
         other=Mock(id='new')
-        with patch.object(sender,'_candidates',return_value=[other]),patch.object(sender,'_row_identity',return_value=sender.bound_snapshot):
+        with patch.object(sender,'_candidates',return_value=[other]),patch.object(sender,'_row_identity',return_value=sender.bound_snapshot),patch('aviweb_messages.datetime') as clock:
+            clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
             with self.assertRaises(AviWebSendError): sender._verify_bound(Mock())
     def test_duplicate_row_blocks_submit(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);sender.bound=Mock(id='a');sender.current_callsign='VJC874';sender.bound_snapshot=('VJC874','VVDN','RKSI','261125')
-        with patch.object(sender,'_candidates',return_value=[Mock(id='a'),Mock(id='b')]),patch.object(sender,'_row_identity',return_value=sender.bound_snapshot):
+        with patch.object(sender,'_candidates',return_value=[Mock(id='a'),Mock(id='b')]),patch.object(sender,'_row_identity',return_value=sender.bound_snapshot),patch('aviweb_messages.datetime') as clock:
+            clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
             with self.assertRaises(AviWebSendError): sender._verify_bound(Mock())
     def test_rejected_notice_never_counts_sent(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);driver=Mock(current_url=sender.PROCESSED)

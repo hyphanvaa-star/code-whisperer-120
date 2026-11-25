@@ -90,15 +90,22 @@ class VerifiedAviWebSender(AviWebSender):
 
     @staticmethod
     def _row_identity(row):
-        # Existing Python checker uses td[2] for callsign. Validate the documented
-        # UIDL sequence against actual cell values; unknown layouts are rejected.
         cells = row.find_elements('xpath', './td')
         values = [c.text.strip().upper() for c in cells]
-        if len(values) < 7 or not re.fullmatch(r'[A-Z0-9]+', values[1]):
-            raise AviWebSendError('Bố cục Processed chưa xác minh được — không gửi')
-        if not re.fullmatch(r'[A-Z]{4}', values[3]) or not re.fullmatch(r'[A-Z]{4}', values[4]):
+        # Read actual header labels instead of guessing UIDL-to-DOM td offsets.
+        headers = row.find_elements('xpath', 'ancestor::*[contains(concat(" ", normalize-space(@class), " "), " v-table ")][1]//th')
+        names = [re.sub(r'[^A-Z0-9]', '', h.text.upper()) for h in headers]
+        aliases = ({'CALLSIGN', 'AIRCRAFTIDENTIFICATION', 'ACID'}, {'DEP', 'DEPARTURE', 'DEPARTUREAERODROME', 'ADEP'}, {'DEST', 'DESTINATION', 'DESTINATIONAERODROME', 'ADES'}, {'DOF', 'DATEOFFLIGHT', 'FLIGHTDATE'})
+        indices = []
+        for allowed in aliases:
+            hits = [i for i, name in enumerate(names) if name in allowed]
+            if len(hits) != 1 or hits[0] >= len(values):
+                raise AviWebSendError('Bố cục Processed chưa xác minh được — không gửi')
+            indices.append(hits[0])
+        cs, dep, arr, dof = (values[i] for i in indices)
+        if not re.fullmatch(r'[A-Z0-9]+', cs) or not re.fullmatch(r'[A-Z]{4}', dep) or not re.fullmatch(r'[A-Z]{4}', arr):
             raise AviWebSendError('Không xác minh được sân đi/đến trên cùng dòng AviWeb')
-        return (values[1], values[3], values[4], _row_dof(values[5]))
+        return (cs, dep, arr, _row_dof(dof))
 
     def _candidates(self, driver, cs):
         _, _, _, By, _, _, _ = self._selenium()
@@ -132,6 +139,10 @@ class VerifiedAviWebSender(AviWebSender):
         if not self.bound or not self.current_callsign:
             raise AviWebSendError('Thiếu dòng AviWeb đã xác minh')
         target = self.expected[self.current_callsign]
+        std = datetime.fromisoformat(target['std'].replace('Z', '+00:00'))
+        now = datetime.now(timezone.utc)
+        if not now - timedelta(hours=6) <= std <= now + timedelta(hours=24):
+            raise AviWebSendError('Chuyến đã ngoài khung −6/+24 giờ — không Submit')
         wanted = (target['callsign'], target['dep'], target['arr'], target['dof'])
         rows = self._candidates(driver, self.current_callsign)
         matches = [r for r in rows if self._row_identity(r) == wanted]
@@ -166,6 +177,11 @@ class VerifiedAviWebSender(AviWebSender):
         label = element.text.strip()
         if label == 'Submit':
             self._verify_bound(driver)
+            # Uploaded token helpers are global. Require one visible form to
+            # prevent another window's token inputs from authorizing a write.
+            windows = [w for w in driver.find_elements('css selector', '.v-window') if w.is_displayed()]
+            if len(windows) != 1:
+                raise AviWebSendError('Không xác định được duy nhất form AviWeb đang gửi')
             if self._emit_callback:
                 self._note(f'{self.current_callsign}: đã kiểm tra đúng DOF/chặng trước Submit')
             # One click only: a native click that threw may already have submitted.
@@ -195,7 +211,12 @@ def send_messages(payload, say, cancel):
     def emit(text, level='info'):
         say(text, {'error':'bad','warn':'bad','ok':'ok'}.get(level,''))
     sender = VerifiedAviWebSender(expected, headless=bool(payload.get('headless', True)))
-    result = sender.send(operation, content, username, password, emit, cancel)
+    try:
+        result = sender.send(operation, content, username, password, emit, cancel)
+    except Exception:
+        return {'sent': len(sender.results), 'total': len(expected), 'failed': 1,
+                'pending': max(0,len(expected)-len(sender.results)-1), 'receipts': sender.results,
+                'errors': ['Tác vụ dừng hoặc mất kết nối; kiểm tra AviWeb trước khi quyết định gửi lại.']}
     sent = int(result.get('sent') or 0)
     failed = 1 if result.get('errors') else 0
     return {**result, 'failed': failed, 'pending': max(0,len(expected)-sent-failed), 'receipts': sender.results}
