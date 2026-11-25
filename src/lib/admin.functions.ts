@@ -3,11 +3,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function assertAdmin(supabase: { rpc: Function }, userId: string) {
-  const { data } = await (supabase.rpc as (f: string, a: object) => Promise<{ data: boolean | null }>)("has_role", {
+  const { data, error } = await (supabase.rpc as (f: string, a: object) => Promise<{ data: boolean | null; error?: unknown }>)("has_role", {
     _user_id: userId,
     _role: "admin",
   });
-  if (!data) throw new Error("Chỉ quản trị viên mới làm được việc này");
+  if (error || !data) throw new Error("Chỉ quản trị viên mới làm được việc này");
 }
 
 export const pingPresence = createServerFn({ method: "POST" })
@@ -72,12 +72,12 @@ export const listActivity = createServerFn({ method: "POST" })
     return data ?? [];
   });
 
-// Chỉ tài khoản gốc "hyphan" (admin) được quản lý tài khoản.
-const OWNER = "hyphan";
+// Identity is immutable; the authenticated caller must also retain the admin role.
+const ACCOUNT_MANAGERS = new Set(["hyphan", "huydoan"]);
 async function assertOwner(supabase: any, userId: string) {
   await assertAdmin(supabase, userId);
-  const { data } = await supabase.from("profiles").select("original_username").eq("id", userId).maybeSingle();
-  if ((data?.original_username ?? "").toLowerCase() !== OWNER) throw new Error("Chỉ hyphan mới quản lý được tài khoản");
+  const { data, error } = await supabase.from("profiles").select("original_username").eq("id", userId).maybeSingle();
+  if (error || !ACCOUNT_MANAGERS.has((data?.original_username ?? "").toLowerCase())) throw new Error("Chỉ hyphan và huydoan mới quản lý được tài khoản");
 }
 
 export const amIAccountOwner = createServerFn({ method: "POST" })

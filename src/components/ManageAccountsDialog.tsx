@@ -99,7 +99,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-foreground/15 ring-1 ring-primary-foreground/25"><Users className="h-5 w-5" /></div>
             <div className="mr-auto">
               <h2 className="text-xl font-extrabold tracking-tight">Quản lí tài khoản</h2>
-              <p className="text-xs opacity-85">Chỉ hyphan thấy mục này</p>
+              <p className="text-xs opacity-85">Chỉ hyphan và huydoan được quản lý tài khoản</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {stats.map((s) => (
@@ -174,7 +174,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                 </form>
                 <form onSubmit={savePw} className={card + " space-y-3"}>
                   <h4 className="flex items-center gap-2 text-sm font-bold"><KeyRound className="h-4 w-4 text-primary" />Mật khẩu</h4>
-                  <p className="text-xs text-muted-foreground">Mật khẩu được mã hóa nên không ai xem được, kể cả hyphan. Đặt mật khẩu mới rồi báo lại cho người dùng.</p>
+                  <p className="text-xs text-muted-foreground">Mật khẩu được mã hóa nên không ai xem được, kể cả người quản lý. Đặt mật khẩu mới rồi báo lại cho người dùng.</p>
                   <input className={inp} type="text" autoComplete="new-password" placeholder="Mật khẩu mới" value={ep} onChange={(e) => setEp(e.target.value)} />
                   {ep && <Checks pw={ep} user={login} />}
                   <Button size="sm" disabled={busy || !ep}>Đặt mật khẩu mới</Button>
@@ -232,7 +232,7 @@ export function ManageAccountsDialog({ onClose }: { onClose: () => void }) {
                       <li key={l.id} className="flex gap-3 py-2">
                         <span className="w-36 shrink-0 font-mono text-xs text-muted-foreground">{new Date(l.created_at).toLocaleString("vi-VN")}</span>
                         <span className="font-medium">{ACTION[l.action] ?? l.action}</span>
-                        <span className="truncate text-muted-foreground">{l.user_id === user.id ? (l.detail ?? "") : "(do hyphan)"}</span>
+                        <span className="truncate text-muted-foreground">{l.user_id === user.id ? (l.detail ?? "") : `(do ${all.find((actor) => actor.id === l.user_id)?.email.split("@")[0] || "quản trị viên"})`}</span>
                       </li>
                     ))}
                     {userLog.length === 0 && <li className="py-3 text-muted-foreground">Chưa có thay đổi nào.</li>}
