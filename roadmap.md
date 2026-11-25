@@ -1,5 +1,7 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.68: tô tên SID/STAR/Holding trong nội dung NOTAM từ đúng kết quả Thông tin chung, đồng bộ danh sách gốc và kept/dropped, xóa tên cũ khi lọc lại không còn trúng; 47 kiểm thử đạt, tài khoản thử với mẫu A4515/26 xác nhận DALAP đỏ/ANRAT thường và lọc lại xóa đúng; build OK, không đổi quy tắc đánh giá, chưa publish.
+- [ ] V 7.68: xác nhận A4515/26 trên chuyến JACK — chưa cấp được phiên JACK; thử giao diện bằng dữ liệu mô phỏng trên tài khoản kiểm tra.
 - [x] V 7.67: bỏ nút Ack xanh trên thanh công cụ KHB, giữ màu xanh và Ack tại từng ô; 42 kiểm thử đạt, thử Ack từng ô trên chuyến giả trong tài khoản kiểm tra đạt, build OK; chưa publish.
 - [x] V 7.66 / PC 6.20: CHG/DLA AviWeb đọc đúng tiêu đề bảng Processed (Vaadin) + dự phòng theo nội dung dòng, lọc theo callsign; ô tick "Hiện Chrome · tôi tự bấm Submit" — Trợ lý PC điền xong thì chờ Dispatcher tự bấm Submit (10 phút). Chưa gửi điện thật, chưa publish.
 - [x] V 7.65: menu Điện văn thủ công mở bảng chọn AMHS / AviWeb cho DLA, CHG A/C, CHG DLA; CHG ALT/ROUTE/CNL giữ AMHS. 85 kiểm thử đạt; tài khoản kiểm tra với chuyến mô phỏng không có cảnh báo đỏ trên desktop/390px: chọn kênh, AMHS text, AviWeb chỉnh–xem lại–kết quả mô phỏng, đúng chuyến và X/Esc đạt, đã xem sáng/tối; build OK, chưa gửi điện thật hoặc thử tài khoản JACK, chưa publish.
