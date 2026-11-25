@@ -43,8 +43,8 @@ function apply(rows: unknown[], oldChange: Record<string, unknown> = {}, edits =
 }
 
 describe('KHB latest Crewlist comparison', () => {
-  it('clears historical green aircraft, crew and time when latest pair has no changes', () => {
-    const result = apply([], {reg: {from: 'VN-A648', to: 'VN-A580', done: true}, cptText: {from: '0859 OLD', to: '15399 NEW CAPT', fbOk: true}, etd: {from: '09:50', to: '10:50', src: 'both'}});
+  it('clears completed green cells only when the next Crewlist pair is stable', () => {
+    const result = apply([], {reg: {from: 'VN-A648', to: 'VN-A580', done: true}, cptText: {from: '0859 OLD', to: '15399 NEW CAPT', fbOk: true}, etd: {from: '09:50', to: '10:50', src: 'both', fbOk: true}});
     expect(Object.keys(result.state.chg)).toEqual([]);
     expect(result.count).toBe(0);
     expect(result.state.reg).toBe('VN-A580');
@@ -71,5 +71,74 @@ describe('KHB latest Crewlist comparison', () => {
   it('never uses a same-number change from a different date or route', () => {
     const result = apply([{flt: '717', route: 'DAD-PQC', day_new: '04/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}, {flt: '717', route: 'HAN-PQC', day_new: '05/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}]);
     expect(result.count).toBe(0);
+  });
+  it.each(['crew', 'both', 'fpl'])('keeps unresolved %s markers through an unchanged new Crewlist', src => {
+    const pending = {from: 'VN-A648', to: 'VN-A580', src};
+    const result = apply([], {reg: pending}, {chgFb: false, regFb: false});
+    expect(result.count).toBe(1);
+    expect(result.state.chg.reg).toMatchObject(pending);
+  });
+  it('keeps pending CPT/FO even when aircraft and time already match', () => {
+    const result = apply([], {cptText: {from: '0859 OLD', to: '15399 NEW CAPT', src: 'crew'}, foText: {from: '1234 OLD', to: '7390 NEW FO', src: 'both'}});
+    expect(result.count).toBe(2);
+    expect(result.state.chg).toHaveProperty('cptText');
+    expect(result.state.chg).toHaveProperty('foText');
+  });
+  it('does not confuse row-level green with a pending time cell', () => {
+    const result = apply([], {etd: {from: '09:50', to: '10:50', src: 'both', fbOk: false}}, {chgFb: true});
+    expect(result.count).toBe(1);
+    expect(result.state.chg).toHaveProperty('etd');
+  });
+  it('retains green on repeated reads of the same pair, then clears it on a new stable pair', () => {
+    const change = {from: 'VN-A648', to: 'VN-A580', src: 'crew', fbOk: true};
+    const result = apply([], {reg: change}, {chgPair: 'hy3.xlsx|hy4.xlsx'});
+    expect(result.count).toBe(1);
+    expect(result.state.chg.reg).toMatchObject(change);
+  });
+  it('keeps a pending warning after manual editing and preserves the typed value', () => {
+    const result = apply([], {reg: {from: 'VN-A648', to: 'VN-A580', src: 'crew'}}, {reg: 'VN-A554', regFb: false, chgFb: false});
+    expect(result.count).toBe(1);
+    expect(result.state.reg).toBe('VN-A554');
+    expect(result.state.chg.reg).toHaveProperty('to', 'VN-A580');
+  });
+  it('does not carry pending markers to a different full date or route', () => {
+    const pending = {reg: {from: 'VN-A648', to: 'VN-A580', src: 'crew'}};
+    for(const chgSector of ['717|05/11/25|DAD|PQC', '717|05/11/26|HAN|PQC']){
+      const result = apply([], pending, {chgSector, regFb: false, chgFb: false});
+      expect(result.count).toBe(0);
+      expect(Object.keys(result.state.chg)).toEqual([]);
+    }
+  });
+  it('a third aircraft replaces the pending target without inheriting green', () => {
+    const result = apply([{flt: '717', route: 'DAD-PQC', day_new: '05/11', reg: {changed: true, old: 'VN-A648', new: 'VN-A580'}}],
+      {reg: {from: 'VN-A677', to: 'VN-A648', src: 'both', fbOk: true}});
+    expect(result.state.chg.reg).toMatchObject({from: 'VN-A648', to: 'VN-A580', src: 'crew', fbOk: false});
+    expect(result.state.regFb).toBe(false);
+  });
+});
+
+describe('pending markers cannot migrate via loose Crewlist remapping', () => {
+  const old = {id: 849, flt: '849', date: '25/11/26', dep: 'SGN', arr: 'DAD', etd: '10:00'};
+  const pending = {chg: {reg: {from: 'VN-A648', to: 'VN-A580', src: 'crew'}}};
+  it.each([
+    {...old, id: 850, date: '26/11/26'},
+    {...old, id: 850, arr: 'HAN'},
+  ])('drops a different date/route rather than transferring the pending marker', fresh => {
+    const context = {ftRows: [old], ftCatalog: [fresh], ftEdit: {'849': pending}};
+    runInNewContext(remapScript + ';ftRemap([{f:ftRows[0],edit:ftEdit[849]}])', context);
+    expect(context.ftRows.filter(Boolean)).toEqual([]);
+    expect(Object.keys(context.ftEdit)).toEqual([]);
+  });
+  it('retains the pending marker through a unique same-sector delay and row renumber', () => {
+    const fresh = {...old, id: 850, etd: '11:00'};
+    const context = {ftRows: [old], ftCatalog: [fresh], ftEdit: {'849': pending} as Record<string, typeof pending>};
+    runInNewContext(remapScript + ';ftRemap([{f:ftRows[0],edit:ftEdit[849]}])', context);
+    expect(context.ftRows[0]?.id).toBe(850);
+    expect(context.ftEdit['850']).toEqual(pending);
+  });
+  it('does not arbitrarily pick among duplicate changed schedules', () => {
+    const context = {ftRows: [old], ftCatalog: [{...old,id:850,etd:'11:00'},{...old,id:851,etd:'12:00'}], ftEdit: {'849':pending}};
+    runInNewContext(remapScript + ';ftRemap([{f:ftRows[0],edit:ftEdit[849]}])',context);
+    expect(context.ftRows.filter(Boolean)).toEqual([]);
   });
 });

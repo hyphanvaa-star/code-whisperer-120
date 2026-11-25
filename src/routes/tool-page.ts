@@ -2519,10 +2519,9 @@ function ftRemap(snap){
   snap.forEach((s, i) => {
     if(!s) return;
     let hit = null;
-    for(const n of [5, 4, 2, 1]){
-      hit = ftCatalog.find(c => !used.has(c.id) && key(c, n) === key(s.f, n));
-      if(hit) break;
-    }
+    const candidates = ftCatalog.filter(c => !used.has(c.id) && key(c, 4) === key(s.f, 4));
+    const exact = candidates.filter(c => key(c, 5) === key(s.f, 5));
+    hit = exact.length === 1 ? exact[0] : candidates.length === 1 ? candidates[0] : null;
     if(!hit) return;
     used.add(hit.id);
     // Keep the prior source fields until ftApplyCrewDiff compares them with the
@@ -3346,7 +3345,7 @@ function nmPaintPinBar(n, place){`)
     .replace('        await csRun(j.r, j.r._crewBtn, html);', '        let csNeed = true;\n        try{ const cp = new URLSearchParams({sector_id: j.r.sector_id, days: DAYS, out: (j.r.crew.out || []).join(","), in: (j.r.crew.in || []).join(",")}); const cd = await (await fetch("/api/crewswap/preview?" + cp.toString())).json(); if(cd && !cd.error && !(cd.remove || []).length && !(cd.add || []).length && !(cd.not_found || []).length){ csNeed = false; vMarkDone("crew", j.r, j.r._crewBtn); j.r._crewBtn.title = "Crew trên FliteBrief đã đúng — không cần đổi"; } }catch(_){ }\n        if(csNeed) await csRun(j.r, j.r._crewBtn, html);')
     // V 7.41: popup có ô nhập chỉ đóng bằng nút ✕ (hoặc Esc) — bấm ra nền mờ / lỡ kéo chuột khi đang nhập không còn tắt popup.
     .replace('</body>', () => `<script>(function(){function isOv(el){if(!el||el.nodeType!==1||el===document.body||el===document.documentElement)return false;if(el.classList.contains('modal')||el.classList.contains('ftlib-modal'))return true;var cs=getComputedStyle(el);if(cs.position!=='fixed')return false;var r=el.getBoundingClientRect();return r.width>=window.innerWidth*0.9&&r.height>=window.innerHeight*0.9;}window.addEventListener('click',function(e){var t=e.target;if(isOv(t)&&(t.querySelector('input,textarea,select,[contenteditable],[contenteditable="true"]')||t.id==='ftAtcModal'||t.id==='bfEditModal')){e.stopImmediatePropagation();}},true);})();</script></body>`)
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.57')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.58')
     // V 7.53: bảng FLT NO kéo thả qua các ô tick để tick/bỏ tick nhiều chuyến một lần.
     // V 7.49: NOTAM Romania (LRBB) / Hungary (LHCC) gọi tên vùng D/R/P/TRA/TSA/SG được vẽ từ AIP; toạ độ châu Âu dấu phẩy thập phân (495750,21N…) được đọc.
     // V 7.48: Enter/↑↓ và dán nhiều dòng ở bảng FLT NO bỏ qua ô tick, đi đúng ô nhập dòng kế.

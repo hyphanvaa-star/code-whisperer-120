@@ -43,7 +43,10 @@ function ftApplyCrewDiff(src, identityOnly){
   let total = 0;
   for(let i = 0; i < ftRows.length; i++){
     const f = ftRows[i]; if(!f) continue;
-    const st = ftSt(f), previous = st.chg || {};
+    const st = ftSt(f);
+    const sector = [digits(f.flt), f.date, f.dep, f.arr].map(norm).join("|");
+    const previous = !st.chgSector || st.chgSector === sector ? st.chg || {} : {};
+    const samePair = st.chgPair === ftCrewChanges?.pair;
     const same = ftCatalog.filter(c => digits(c.flt) === digits(f.flt) && norm(c.date) === norm(f.date));
     const exact = same.filter(c => norm(c.dep) === norm(f.dep) && norm(c.arr) === norm(f.arr));
     const nf = exact.find(c => norm(c.etd) === norm(f.etd)) || (exact.length === 1 ? exact[0] : null);
@@ -66,12 +69,18 @@ function ftApplyCrewDiff(src, identityOnly){
     }
     if(identityOnly) continue;
     const chg = {};
+    const complete = (key, c) => typeof c.fbOk === "boolean" ? c.fbOk
+      : c.done === true || (key === "reg" && st.regFb === true);
+    // Carry unresolved cells, not an earlier pair's completed green verdict.
+    for(const key of Object.keys(previous)){
+      const c = previous[key]; if(!c) continue;
+      if(samePair || !complete(key, c)) chg[key] = c;
+    }
     const add = (key, from, to) => {
       if(norm(from) === norm(to)) return;
       const old = previous[key];
-      chg[key] = old && st.chgPair === ftCrewChanges.pair && old.src === "crew" && norm(old.from) === norm(from) && norm(old.to) === norm(to)
-        ? old : {from, to, a: "Crewlist trước", b: src, src: "crew"};
-      total++;
+      chg[key] = old && norm(old.from) === norm(from) && norm(old.to) === norm(to)
+        ? old : {from, to, a: "Crewlist trước", b: src, src: "crew", fbOk: false};
     };
     if(hit){
       if(hit.reg && hit.reg.changed) add("reg", hit.reg.old, hit.reg.new);
@@ -82,10 +91,11 @@ function ftApplyCrewDiff(src, identityOnly){
         }
       }
     }
-    if(st.chgPair !== ftCrewChanges.pair || Object.keys(chg).some(key => chg[key] !== previous[key])){
+    if(Object.keys(chg).some(key => chg[key] !== previous[key])){
       st.chgFb = false; st.regFb = false;
     }
-    st.chg = chg; st.src = src; st.chgPair = ftCrewChanges.pair;
+    total += Object.keys(chg).length;
+    st.chg = chg; st.src = src; st.chgPair = ftCrewChanges.pair; st.chgSector = sector;
   }
   return total;
 }
@@ -105,13 +115,33 @@ function ftApplyCrewDiff(src, identityOnly){
     .replace('      return force || !r || !r.found || !r.ok;', '      return force || !r || !r.found || !r.ok || !!(ftSt(f).chg && Object.keys(ftSt(f).chg).length);')
     .replace('return {flt: f.flt, dep: st.dep || f.dep || "", arr: st.arr || f.arr || "", date: st.date || f.date || ""};', `return {flt: f.flt, dep: st.dep || f.dep || "", arr: st.arr || f.arr || "", date: st.date || f.date || "",
         crew_changes: ["cptText", "foText"].filter(key => st.chg && st.chg[key]).map(key => ({key, from: st.chg[key].from, to: st.chg[key].to}))};`)
+    // The read-back is scoped to the exact requested values; a late response
+    // must never turn a newer change green or acknowledge missing time/crew.
+    .replace(/function ftFbSync\(force\)\{[\s\S]*?(?=setInterval\()/, sync => sync.replace('    try{\n      const d = await (await fetch("/api/version/fbreg",', `    const snapshots = rows.map(f => { const st = ftSt(f); return JSON.stringify([ftFbKey(st, f), st.etd, st.utc, st.etaUtc, st.chg]); });
+    try{
+      const d = await (await fetch("/api/version/fbreg",`))
+    .replace('        const st = ftSt(f);\n        ftFbState[ftFbKey(st, f)]', `        const st = ftSt(f);
+        if(!ftRows.includes(f) || snapshots[i] !== JSON.stringify([ftFbKey(st, f), st.etd, st.utc, st.etaUtc, st.chg])) return;
+        ftFbState[ftFbKey(st, f)]`)
+    .replace('        const timeOk = !hasTimeChg || !it.std_utc || !st.utc || t4(it.std_utc) === t4(st.utc);', '        const timeOk = !hasTimeChg || (!!it.found && !!it.std_utc && !!st.utc && t4(it.std_utc) === t4(st.utc));')
     .replace('        st.chgFb = regOk && timeOk;', `        st.chgFb = regOk && timeOk;
         st.regFb = regOk;
-        if(it.crew_checked && st.chg) (it.crew_changes || []).forEach(result => {
-          const c = st.chg[result.key];
-          if(c && c.from === result.from && c.to === result.to){ c.fbOk = result.ok; c.done = result.ok; }
-        });`)
-    .replace('return c.done === true || (st.chgFb === true', 'return c.done === true || c.fbOk === true || (c.key === "reg" && st.regFb === true) || (st.chgFb === true')
+        if(st.chg) for(const key of Object.keys(st.chg)){
+          const c = st.chg[key]; if(!c) continue;
+          if(key === "reg"){
+            c.fbOk = regOk && n3(it.reg) === n3(c.to); c.done = c.fbOk;
+          }else if(key === "etd" || key === "utc"){
+            c.fbOk = !!it.found && timeOk && t4(st[key]) === t4(c.to); c.done = c.fbOk;
+          }else if(key === "cptText" || key === "foText"){
+            const result = it.crew_checked && (it.crew_changes || []).find(r => r.key === key && r.from === c.from && r.to === c.to);
+            c.fbOk = !!(result && result.ok); c.done = c.fbOk;
+          }
+        }`)
+    .replace('      ftRepaintChg();\n    }catch(e){}', '      ftRepaintChg();\n      try{ ftKeepLater(); }catch(e){}\n    }catch(e){}')
+    .replace('function ftChgOk(st, c){ return c.done === true || (st.chgFb === true && !(c.key === "cptText" || c.key === "foText")); }', `function ftChgOk(st, c){
+  if(typeof c.fbOk === "boolean") return c.fbOk;
+  return c.done === true || (c.key === "reg" && st.regFb === true);
+}`)
     .replace('  const sid = f.id, flt =', '  let sid = 0; const flt =')
     .replace('  c.busy = true; c.bolt.textContent = "…";\n  try{', `  c.busy = true; c.bolt.textContent = "…";
   try{
