@@ -134,7 +134,7 @@ function wrapText(blob: string, width: number): string {
   return lines.join("\n");
 }
 
-interface FlightLike {
+export interface FlightLike {
   callsign?: string | null;
   dep_icao?: string | null;
   dep_iata?: string | null;
@@ -373,7 +373,8 @@ export function toHtml(sheet: ReleaseSheet): string {
   const nt = padNotams(sheet.notams);
   const nosig = nt.map((t) => notamHtml(t));
   const split = splitDestAlts(sheet);
-  const sigCell = `<td class='br-c3 br-nosig'>${escapeHtml(sigWxText(sheet.sig_wx))}</td>`;
+  // SIGMET blocks read like NOTAM cells (left aligned, line breaks kept); a short NIL stays centred.
+  const sigCell = sigWxText(sheet.sig_wx).includes("\n") ? notamHtml(sheet.sig_wx) : `<td class='br-c3 br-nosig'>${escapeHtml(sigWxText(sheet.sig_wx))}</td>`;
 
   return `
 <div class="br-sheet-doc">
@@ -479,7 +480,8 @@ export function toEditHtml(sheet: ReleaseSheet): string {
     "Enr. Alternate(s)<br>(" + editInp("enroute_alts", slash(sheet.enroute_alts), "bf-icao bf-wide") + ")";
   const tech = "Check Tech log<br>for updates<br>REG: " + editInp("reg", sheet.reg || "", "bf-icao");
   const defectTxt = defectBullets(sheet.defects).join("\n");
-  const sig = editArea("sig_wx", sigWxText(sheet.sig_wx), "bf-center");
+  const sigText = sigWxText(sheet.sig_wx);
+  const sig = editArea("sig_wx", sigText, sigText.includes("\n") ? "bf-notam" : "bf-center");
   const nt = padNotams(sheet.notams);
   const n0 = editArea("notam0", nt[0], "bf-notam");
   const n1 = editArea("notam1", nt[1], "bf-notam");
@@ -928,7 +930,15 @@ export interface DraftFromFlightOpts extends BuildSheetOpts {
   loadEdits?: (callsign: string) => Promise<Record<string, unknown> | null> | Record<string, unknown> | null;
   pins?: PinStore;
   pinContext?: (sheet: ReleaseSheet, ofpText: string) => Promise<SheetPinContext> | SheetPinContext;
+  /** Auto text for En-route SIG Wx; null = source skipped, keep the cell as it is. */
+  sigmetFor?: (flight: FlightLike, sheet: ReleaseSheet, ofpText: string) => Promise<string | null> | string | null;
+  /** Receives the auto SIG Wx text so a save can tell a hand edit from a stored copy. */
+  onSigmet?: (auto: string) => void;
 }
+
+/** Saved-edit key holding the auto SIG Wx text that was on screen when the edit was saved. */
+export const SIG_WX_AUTO = "sig_wx_auto";
+const sigFlat = (v: unknown) => String(v ?? "").replace(/\s+/g, " ").trim();
 
 /** Merge partial saved edits without throwing away fresh OFP/WX/defect fields. */
 export function applyFields(sheet: ReleaseSheet, data: Record<string, unknown>): ReleaseSheet {
@@ -949,10 +959,24 @@ export async function draftFromFlight(flight: FlightLike, opts: DraftFromFlightO
   }
   const text = await opts.pdfText(blob);
   let sheet = buildSheet(flight, text, opts);
+  let auto: string | null = null;
+  if (opts.sigmetFor) {
+    try { auto = await opts.sigmetFor(flight, sheet, text); } catch { auto = null; }
+    if (auto !== null) { sheet.sig_wx = auto; opts.onSigmet?.(auto); }
+  }
   const identity = editIdentity(flight);
   if (opts.applyEdits !== false && opts.loadEdits && identity) {
     const saved = await opts.loadEdits(identity);
-    if (saved) sheet = applyFields(sheet, { ...saved, ...(saved.notes === NOTES_RED ? { notes: AIP_NOTE } : {}) });
+    if (saved) {
+      const edits: Record<string, unknown> = { ...saved, ...(saved.notes === NOTES_RED ? { notes: AIP_NOTE } : {}) };
+      // SIG Wx is weather: a stored copy of the old auto text never hides fresh SIGMETs; only a real hand edit wins.
+      if (auto !== null) {
+        const was = edits[SIG_WX_AUTO];
+        if (was === undefined ? !sigFlat(edits["sig_wx"]) : sigFlat(edits["sig_wx"]) === sigFlat(was)) delete edits["sig_wx"];
+      }
+      delete edits[SIG_WX_AUTO];
+      sheet = applyFields(sheet, edits);
+    }
   }
   if (opts.pins) {
     const ctx = await opts.pinContext?.(sheet, text) ?? {};

@@ -15,6 +15,7 @@ import {
   pdfFilename,
   draftFromFlight,
   editIdentity,
+  SIG_WX_AUTO,
   type ReleaseSheet,
 } from "../port/briefingRelease";
 
@@ -77,17 +78,19 @@ async function findFlight(flight: string) {
   return hits[0];
 }
 
-async function draftWithIdentity(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<{ sheet: ReleaseSheet; identity: string }> {
+async function draftWithIdentity(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<{ sheet: ReleaseSheet; identity: string; sigAuto: string | null }> {
   const f = await findFlight(flight);
   if (!f) throw new BriefReleaseError(`Không tìm thấy chuyến ${flight}.`);
+  let sigAuto: string | null = null;
   const sheet = await draftFromFlight(f, {
     ...await loadBriefingData(ctx),
     fetchPdf: fetchOfpPdf,
     pdfText: ofpPdfText,
     applyEdits,
     loadEdits: (id) => loadEdits(ctx, id),
+    onSigmet: (auto) => { sigAuto = auto; },
   });
-  return { sheet, identity: editIdentity(f) };
+  return { sheet, identity: editIdentity(f), sigAuto };
 }
 
 async function draft(ctx: Parameters<Routes[string]>[0], flight: string, applyEdits: boolean): Promise<ReleaseSheet> {
@@ -116,7 +119,8 @@ export const routes: Routes = {
       const drafted = await draftWithIdentity(ctx, cs, true);
       if (!drafted.identity) throw new BriefReleaseError(`Thiếu ngày/chặng của ${cs} — không lưu để tránh nhầm chuyến ngày khác.`);
       const sheet = applyFields(drafted.sheet, body);
-      await setJson(ctx, editSettingKey(drafted.identity), toFields(sheet));
+      // Keep the auto SIG Wx shown at save time: only a cell the user changed overrides fresh SIGMETs later.
+      await setJson(ctx, editSettingKey(drafted.identity), { ...toFields(sheet), ...(drafted.sigAuto !== null ? { [SIG_WX_AUTO]: drafted.sigAuto } : {}) });
       const out = toDict(sheet, { edit: true, edited: true });
       out["saved"] = true;
       return out;
