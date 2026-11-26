@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { bpPackDetails, bpNotamDetails, bpUnseenAfter } from '../notam_change_popup';
+import { bpPackDetails, bpNotamDetails, bpUnseenAfter, bpPinRecord } from '../notam_change_popup';
 
 describe('NOTAM popup records', () => {
+  it('pins a PDF-only RALT item to its airport with the complete original text', () => {
+    const detail = {loc:'RPLC',id:'B6145/26',text:'RPLC: APT 2611260754 B6145/26 A) RPLC E) RAMP CLOSED'};
+    const record = bpPinRecord(detail, [], 'RALT');
+    expect(record.place).toEqual({code:'RPLC',kind:'APT'});
+    expect(record.notam).toMatchObject({ident:'B6145/26',icao:'RPLC',text:detail.text,e_field:'RAMP CLOSED'});
+  });
+  it('normalizes FIR kind and never borrows a same-number item from another airport', () => {
+    const record = bpPinRecord({loc:'WAAF',id:'B6145/26',text:'E) VOLCANIC ASH'}, [
+      {code:'RPLC',notams:[{ident:'B6145/26',text:'WRONG AIRPORT'}]},
+      {code:'WAAF',kind:'F',notams:[]},
+    ], 'FIR');
+    expect(record.place.kind).toBe('FIR');
+    expect(record.place.code).toBe('WAAF');
+    expect(record.notam.text).toBe('E) VOLCANIC ASH');
+  });
   it('keeps each missing PDF body with its location and number', () => {
     const rows=bpPackDetails('RJJJ: FIR 2611041230 X6798/26 Q) FIR E) AREA ACTIVE\nROAH: APT 2611041230 H4113/26 B) 2611041000 E) RWY CLSD');
     expect(rows).toHaveLength(2);

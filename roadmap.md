@@ -1,5 +1,8 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.76: nâng cấp popup NOTAM thiếu/mới, ghim Briefing đúng chuyến, ghim Cloud và xem bản đồ; giữ đối chiếu và Ack riêng. 13 kiểm thử đạt, thử dữ liệu mẫu với bộ ghim hiện có: lưu/đọc lại/đóng mở đạt, sáng/tối/610px không tràn và không lỗi; chưa publish.
+- [ ] V 7.76: xác nhận ghim và xuất Briefing trên chuyến thật của JACK — chưa cấp được phiên JACK; tài khoản thử bị đưa về đăng nhập, nên ghim được kiểm tra bằng phản hồi mẫu, chưa ghi dữ liệu khai thác thật.
+
 - [x] V 7.74: ô En-route SIG Wx của Briefing tự điền SIGMET theo FIR bay qua, lọc theo giờ vào/ra FIR ±1 giờ, FliteBrief trước rồi NOAA, không ghi nguồn; giữ sửa tay, đổi BF lấy mới. 44 kiểm thử đạt, thử dữ liệu FliteBrief thật + PDF đạt; chưa thử trên tài khoản JACK; chưa publish.
 - [x] V 7.73: giữ múi giờ chuẩn khi dữ liệu cũ rỗng, tra IATA/ICAO cho Planning/REQ/ETA; TXN 17:45 → 0945 UTC. Gộp tìm kiếm Airport toàn danh mục, nhận tên quốc gia không dấu, xóa/Esc khôi phục quốc gia đã chọn; giữ LT. 42 kiểm thử đạt, bảng thật trong khung kiểm tra riêng tìm ZSTX/ZBTJ +08:00 đạt; phiên thử không vào được /tool nên chưa thử Planning trên tài khoản JACK; chưa publish.
 - [x] V 7.72: LIMIT tự đối chiếu OFP qua hàng đợi sẵn có, tái dùng kết quả đúng chuyến/OFP/cấu hình và cập nhật cả chuyến giao ca; chặn phản hồi cũ, OFP lệch và lỗi tải không thành đạt. Kiểm thử + tài khoản kiểm tra với phản hồi mẫu xác nhận đang chờ → đỏ, tải lại bảng giữ đỏ không tải OFP thêm, kết quả mới sang vàng và lỗi vẫn vàng; không đổi quy tắc giới hạn/AviWeb, chưa thử OFP thật của JACK, chưa publish.

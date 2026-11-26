@@ -67,6 +67,17 @@
 }
 
 :root {
+  --bp-paper: oklch(1 0 0);
+  --bp-ink: oklch(0.26 0.015 250);
+  --bp-muted: oklch(0.49 0.015 250);
+  --bp-line: oklch(0.85 0.015 250);
+  --bp-header: oklch(0.98 0.012 250);
+  --bp-on-color: oklch(1 0 0);
+  --bp-pin: oklch(0.5 0.15 155);
+  --bp-card-shadow: 0 3px 12px oklch(0.25 0.02 250 / 0.07);
+  --bp-night-info: oklch(0.8 0.11 240);
+  --bp-night-info-soft: oklch(0.3 0.035 240);
+  --bp-night-danger: oklch(0.78 0.13 25);
   --khb-ack-surface: oklch(0.871 0.15 154.4);
   --khb-ack-ink: oklch(0.508 0.118 165.6);
   --khb-ack-line: oklch(0.723 0.219 149.6);

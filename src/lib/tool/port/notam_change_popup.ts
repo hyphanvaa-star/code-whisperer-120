@@ -90,8 +90,21 @@ export function bpUnseenAfter(current: {ids: string[]; [key: string]: unknown} |
   return ids.length ? { ...current, ids } : null;
 }
 
+/** Reuse the exact location/kind and source text when pinning a PDF-only item. */
+export function bpPinRecord(detail: NotamDetail, places: any[], role: string) {
+  const loc = detail.loc.toUpperCase();
+  const place = (places || []).find(p => String(p.code || '').toUpperCase() === loc);
+  const source = [...(place?.notams || []), ...(place?.dropped || []), ...(place?.notams_src || [])]
+    .find(n => String(n.ident || '').toUpperCase().match(/[A-Z]\d{4}\/\d{2}/)?.[0] === detail.id.toUpperCase());
+  const fields = bpFields(bpCleanText(detail.text));
+  return {
+    place: { ...(place || {}), code: loc, kind: role === 'FIR' || place?.kind === 'F' || place?.kind === 'FIR' ? 'FIR' : 'APT' },
+    notam: { ...(source || {}), ident: detail.id, icao: loc, text: detail.text || source?.text || '', e_field: fields.e || source?.e_field || '' },
+  };
+}
+
 export function patchNotamChangePopupPage(html: string): string {
-  const tokens = (styles.match(/^  --crew-hover-[^\n]+/gm) || []).join('\n');
+  const tokens = (styles.match(/^  --(?:crew-hover|batch|bp)-[^\n]+/gm) || []).join('\n');
   return html
     .replace('  function uid(){ try{ for(const k of Object.keys(localStorage))', `
   const bpPackDetails = ${bpPackDetails.toString()};
@@ -100,6 +113,7 @@ export function patchNotamChangePopupPage(html: string): string {
   const bpCleanText = ${bpCleanText.toString()};
   const bpFields = ${bpFields.toString()};
   const bpZ = ${bpZ.toString()};
+  const bpPinRecord = ${bpPinRecord.toString()};
   const bpDetailData = {};
   function bpPopup(fid, kind){
     const old = document.getElementById("bpDetailDialog"); if(old) old.close();
@@ -128,7 +142,7 @@ export function patchNotamChangePopupPage(html: string): string {
     function button(text, title, action, extra){const b=node("button","bp-btn" + (extra ? " " + extra : ""),text);b.type="button";b.title=title;b.setAttribute("aria-label",title);b.onclick=action;return b;}
     const head = node("header", "bp-detail-head");
     const heading = node("div", "bp-head-main");
-    const title = node("h2", "bp-title", kind === "missing" ? "NOTAM có trong Briefing pack nhưng Web chưa có" : "NOTAM mới trước giờ bay · T−60"); title.id="bpDetailTitle";
+    const title = node("h2", "bp-title", kind === "missing" ? "NOTAM thiếu trên Web" : "NOTAM mới · T−60"); title.id="bpDetailTitle";
     const flightRow = node("div", "bp-flight");
     flightRow.append(node("span", "bp-flight-cs", cs || label(fid)));
     if(fl.dep || fl.dest) flightRow.append(node("span", "bp-flight-route", (fl.dep || "?") + " → " + (fl.dest || "?")));
@@ -137,7 +151,7 @@ export function patchNotamChangePopupPage(html: string): string {
     if(fl.reg) flightRow.append(node("span", "bp-flight-time", fl.reg));
     const crit = rows.filter(n => n.level === "CRITICAL").length;
     const stats = node("div", "bp-stats");
-    stats.append(node("span", "bp-stat", rows.length + " NOTAM"));
+    stats.append(node("span", "bp-stat", rows.length + " NOTAM"), node("span", "bp-stat bp-source", kind === "missing" ? "Briefing pack → Web" : "Cập nhật trước giờ bay"));
     if(crit) stats.append(node("span", "bp-stat bp-stat-crit", crit + " CRITICAL"));
     heading.append(flightRow, title, stats); head.append(heading);
     head.append(button("✕", "Đóng danh sách NOTAM", () => dialog.close(), "bp-btn-icon"));
@@ -180,6 +194,7 @@ export function patchNotamChangePopupPage(html: string): string {
     }));
     else bar.append(button("✓ Đã xem", "Đánh dấu đã xem", () => {set(K("new",fid),bpUnseenAfter(get(K("new",fid)),seen));refill();dialog.close();}, "bp-btn-ok"));
     const list=node("div","bp-detail-list");
+    const pinsReady=nmLoadPins();
     for(const n of rows){
       const item=node("article","bp-card" + (n.level === "CRITICAL" ? " bp-card-crit" : ""));
       const f = bpFields(clean(n));
@@ -192,11 +207,55 @@ export function patchNotamChangePopupPage(html: string): string {
       const aiBox = node("div","bp-ai"); aiBox.hidden = true;
       const aiBtn = button("✦ AI giải mã", "AI giải mã " + n.id, ev => decode(n, aiBox, ev.currentTarget), "bp-btn-ai bp-btn-sm");
       if(clean(n)){ acts.append(aiBtn); aiAll.push(() => decode(n, aiBox, aiBtn)); }
-      acts.append(button("Sao chép", "Sao chép " + n.id, () => copy(full(n)), "bp-btn-sm"));
-      if(kind === "new" && n.loc && n.text) acts.append(button("⌖ Bản đồ", "Xem " + n.id + " trên bản đồ", async ev => {
-        const b=ev.currentTarget;b.disabled=true;
-        try{let d=bpDetailData[fid] || nmTrackCache[fid];if(!d){const r=await fetch("/api/notam/track?id="+encodeURIComponent(fid)+"&days=2");d=await r.json();if(!r.ok || !d || d.error)throw Error(d && d.error || "Không tải được dữ liệu chuyến");}nmTrackCache[fid]=d;nmTrackShow(fid);nmShowNotam(n.loc,n.id,fid);dialog.close();}catch(e){status.textContent=String(e.message || e);}finally{b.disabled=false;}
-      }, "bp-btn-sm"));
+      acts.append(button("⧉", "Sao chép " + n.id, () => copy(full(n)), "bp-btn-sm"));
+      const pinRow = node("div", "bp-pin-row");
+      const pinMsg = node("div", "bp-pin-message"); pinMsg.setAttribute("role","status");
+      if(n.loc && clean(n)){
+        const record = bpPinRecord(n, data.places || [], roleOf(n.loc));
+        const flightBtn = button("⌁ + Ghim Briefing " + cs, "Ghim " + n.id + " vào Briefing " + cs, async ev => {
+          if(!cs)return;
+          const b=ev.currentTarget;b.disabled=true;
+          try{await nmPinFlights(record.notam,record.place,cs,pinMsg);}finally{b.disabled=false;paintPins();}
+        }, "bp-btn-pin");
+        flightBtn.disabled=!cs;
+        const cloudBtn = button("☁ Ghim Cloud", "Ghim Cloud " + n.id, async ev => {
+          const b=ev.currentTarget;b.disabled=true;
+          try{await nmPinCloud(record.notam,record.place,pinMsg);}finally{b.disabled=false;paintPins();}
+        }, "bp-btn-cloud");
+        function paintPins(){
+          const st=nmPinState(record.notam,record.place);
+          const here=st.flights.some(x=>nmPinCsKey(x)===nmPinCsKey(cs));
+          flightBtn.textContent=here ? "✓ Đã ghim " + cs : "⌁ + Ghim Briefing " + cs;
+          flightBtn.classList.toggle("bp-pinned",here);flightBtn.disabled=here || !cs;
+          cloudBtn.textContent=st.cloud ? "✓ Đã ghim Cloud" : "☁ Ghim Cloud";
+          cloudBtn.classList.toggle("bp-pinned",st.cloud);cloudBtn.disabled=st.cloud;
+        }
+        paintPins();flightBtn.disabled=true;cloudBtn.disabled=true;
+        pinsReady.then(()=>{if(dialog.isConnected)paintPins();});
+        pinRow.append(flightBtn,cloudBtn);
+        acts.append(button("⌖", "Xem " + n.id + " trên bản đồ", async ev => {
+          const b=ev.currentTarget;b.disabled=true;
+          try{
+            let d=bpDetailData[fid] || nmTrackCache[fid];
+            if(!d || !d.track){const r=await fetch("/api/notam/track?id="+encodeURIComponent(fid)+"&days=2");d=await r.json();if(!r.ok || !d || d.error)throw Error(d && d.error || "Không tải được dữ liệu chuyến");}
+            const present=(d.places || []).some(p=>String(p.code||"").toUpperCase()===n.loc && [...(p.notams||[]),...(p.dropped||[])].some(x=>String(x.ident||"").toUpperCase()===n.id));
+            nmTrackCache[fid]=d;nmTrackShow(fid);setMode("notam");
+            if(present){nmShowNotam(n.loc,n.id,fid);dialog.close();return;}
+            const hit=nmNotamToHit(record.notam,record.place);
+            if(hit){nmPlotHits([hit],[]);nmFocusMap(n.id);dialog.close();return;}
+            if(nmFlashTrackNotam(record.notam,false)){dialog.close();return;}
+            const pts=nmParseLatLons(f.q);
+            if(pts.length && nmMap){
+              if(nmNotamFlash)nmMap.removeLayer(nmNotamFlash);
+              nmNotamFlash=L.layerGroup().addTo(nmMap);
+              const marker=L.marker(pts[0]).addTo(nmNotamFlash);
+              const text=node("div","",n.loc+" · "+n.id+" · Vị trí Q-line (không phải ranh giới vùng)");marker.bindPopup(text).openPopup();
+              nmMap.setView(pts[0],9);dialog.close();return;
+            }
+            status.textContent="NOTAM này chưa có tọa độ xác định; không tự vẽ vùng.";
+          }catch(e){status.textContent=String(e.message || e);}finally{b.disabled=false;}
+        }, "bp-btn-sm bp-btn-map"));
+      }
       top.append(acts); item.append(top);
       if(f.b || f.c){
         const when = node("div","bp-when");
@@ -207,6 +266,7 @@ export function patchNotamChangePopupPage(html: string): string {
       if(n.reasons && n.reasons.length) item.append(node("div","bp-reasons",n.reasons.join(" · ")));
       if(f.e) item.append(node("div","bp-e", f.e));
       if(f.f || f.g) item.append(node("div","bp-limits", "Giới hạn cao: " + (f.f || "SFC") + " → " + (f.g || "UNL")));
+      if(pinRow.childNodes.length)item.append(pinRow,pinMsg);
       item.append(aiBox);
       const raw = node("details","bp-raw"); raw.open = !f.e;
       raw.append(node("summary","", "Nguyên văn NOTAM"), node("pre","bp-raw-text", clean(n) || "Chưa có nội dung NOTAM trong dữ liệu đã lưu."));
@@ -232,15 +292,17 @@ export function patchNotamChangePopupPage(html: string): string {
     .replace('b.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };\n      b.onclick', 'b.setAttribute("role","button"); b.tabIndex=0; b.onkeydown=ev=>{if(ev.key==="Enter" || ev.key===" "){ev.preventDefault();b.click();}}; b.onmousedown = ev => { ev.preventDefault(); ev.stopPropagation(); };\n      b.onclick')
     .replace('</head>', `<style>
 :root{${tokens}}
-dialog.bp-detail{box-sizing:border-box;width:min(980px,calc(100vw - 32px));max-width:calc(100vw - 32px);height:min(880px,90vh);max-height:90vh;margin:auto;padding:0;border:1px solid var(--crew-hover-line);border-radius:14px;background:var(--crew-hover-paper);color:var(--crew-hover-ink);box-shadow:var(--crew-hover-shadow);font:15px/1.55 Arial,sans-serif;letter-spacing:0;overflow:hidden}
+dialog.bp-detail{--crew-hover-paper:var(--bp-paper);--crew-hover-ink:var(--bp-ink);--crew-hover-muted:var(--bp-muted);--crew-hover-line:var(--bp-line)}
+html.night dialog.bp-detail{--bp-paper:var(--batch-night-paper);--bp-ink:var(--batch-night-ink);--bp-muted:var(--batch-night-muted);--bp-line:var(--batch-night-line);--crew-hover-flite:var(--bp-night-info);--crew-hover-flite-soft:var(--bp-night-info-soft);--crew-hover-excel:var(--batch-night-good);--crew-hover-excel-soft:var(--batch-night-surface);--crew-hover-danger:var(--bp-night-danger);--crew-hover-danger-soft:var(--batch-night-selected)}
+dialog.bp-detail{box-sizing:border-box;width:min(980px,calc(100vw - 32px));max-width:calc(100vw - 32px);height:min(880px,90vh);max-height:90vh;margin:auto;padding:0;border:1px solid var(--crew-hover-line);border-radius:8px;background:var(--crew-hover-paper);color:var(--crew-hover-ink);box-shadow:var(--crew-hover-shadow);font:15px/1.55 Arial,sans-serif;letter-spacing:0;overflow:hidden}
 dialog.bp-detail[open]{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto}
 dialog.bp-detail::backdrop{background:color-mix(in oklch,var(--crew-hover-ink) 50%,transparent)}
 .bp-detail *{box-sizing:border-box}
-.bp-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:18px 22px 14px;border-bottom:1px solid var(--crew-hover-line);border-top:4px solid var(--crew-hover-danger)}
+.bp-detail-head{background:var(--bp-header);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:18px 22px 14px;border-bottom:1px solid var(--crew-hover-line);border-top:4px solid var(--crew-hover-danger)}
 .bp-head-main{min-width:0}
 .bp-flight{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .bp-flight span{font:700 13px/1.3 ui-monospace,Consolas,monospace;padding:4px 9px;border-radius:999px;background:var(--crew-hover-flite-soft);color:var(--crew-hover-flite)}
-.bp-detail .bp-flight .bp-flight-cs{background:var(--crew-hover-flite);color:var(--crew-hover-paper)}
+.bp-detail .bp-flight .bp-flight-cs{background:var(--crew-hover-flite);color:var(--bp-on-color)}
 .bp-detail .bp-title{margin:10px 0 6px;font:800 20px/1.3 Arial,sans-serif;color:var(--crew-hover-ink)}
 .bp-stats{display:flex;gap:6px}
 .bp-stat{font-size:12px;font-weight:800;padding:2px 8px;border-radius:4px;background:var(--crew-hover-line);color:var(--crew-hover-ink)}
@@ -250,28 +312,28 @@ dialog.bp-detail::backdrop{background:color-mix(in oklch,var(--crew-hover-ink) 5
 .bp-detail .bp-btn:focus-visible{outline:2px solid var(--crew-hover-flite);outline-offset:2px}
 .bp-detail .bp-btn:disabled{opacity:.55;cursor:wait}
 .bp-detail .bp-btn-icon{width:36px;padding:0}
-.bp-detail .bp-btn-ai{background:var(--crew-hover-flite);border-color:var(--crew-hover-flite);color:var(--crew-hover-paper)}
+.bp-detail .bp-btn-ai{background:var(--crew-hover-flite);border-color:var(--crew-hover-flite);color:var(--bp-on-color)}
 .bp-detail .bp-btn-ai:hover{background:var(--crew-hover-ink);border-color:var(--crew-hover-ink)}
-.bp-detail .bp-btn-ok{background:var(--crew-hover-excel);border-color:var(--crew-hover-excel);color:var(--crew-hover-paper)}
+.bp-detail .bp-btn-ok{background:var(--crew-hover-excel);border-color:var(--crew-hover-excel);color:var(--bp-on-color)}
 .bp-detail .bp-btn-sm{min-height:28px;padding:4px 10px;font-size:12px}
 .bp-detail-bar{display:flex;gap:8px;flex-wrap:wrap;padding:10px 22px;background:var(--crew-hover-flite-soft);border-bottom:1px solid var(--crew-hover-line)}
 .bp-detail-list{min-height:0;overflow:auto;padding:14px 22px 20px;display:flex;flex-direction:column;gap:12px;background:color-mix(in oklch,var(--crew-hover-line) 35%,var(--crew-hover-paper))}
-.bp-card{flex-shrink:0;padding:14px 16px;border:1px solid var(--crew-hover-line);border-left:4px solid var(--crew-hover-flite);border-radius:10px;background:var(--crew-hover-paper)}
+.bp-card{flex-shrink:0;padding:14px 16px;border:1px solid var(--crew-hover-line);border-left:4px solid var(--crew-hover-flite);border-radius:8px;background:var(--crew-hover-paper);box-shadow:var(--bp-card-shadow)}
 .bp-card-crit{border-left-color:var(--crew-hover-danger)}
 .bp-card-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.bp-loc{font:800 13px/1.3 ui-monospace,Consolas,monospace;color:var(--crew-hover-paper);background:var(--crew-hover-ink);padding:3px 8px;border-radius:4px}
+.bp-loc{font:800 13px/1.3 ui-monospace,Consolas,monospace;color:var(--bp-on-color);background:var(--crew-hover-ink);padding:3px 8px;border-radius:4px}
 .bp-role{font:800 11px/1.3 Arial,sans-serif;padding:3px 7px;border-radius:4px;background:var(--crew-hover-flite-soft);color:var(--crew-hover-flite)}
 .bp-role-dep,.bp-role-arr{background:var(--crew-hover-danger-soft);color:var(--crew-hover-danger)}
 .bp-ident{font:800 18px/1.3 ui-monospace,Consolas,monospace}
 .bp-level{font-size:11px;font-weight:800;padding:3px 7px;border-radius:4px;background:var(--crew-hover-flite-soft);color:var(--crew-hover-flite)}
-.bp-level.crit{background:var(--crew-hover-danger);color:var(--crew-hover-paper)}
+.bp-level.crit{background:var(--crew-hover-danger);color:var(--bp-on-color)}
 .bp-level.none{background:var(--crew-hover-line);color:var(--crew-hover-muted)}
 .bp-card-acts{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
-.bp-when{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin-top:10px;font-size:13px}
+.bp-when{padding:12px 0;border-top:1px solid var(--crew-hover-line);border-bottom:1px solid var(--crew-hover-line);display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin-top:10px;font-size:13px}
 .bp-k{color:var(--crew-hover-muted);font-weight:700}
 .bp-v{font-family:ui-monospace,Consolas,monospace;font-weight:700;overflow-wrap:anywhere}
 .bp-reasons{font-size:13px;color:var(--crew-hover-muted);margin-top:6px}
-.bp-e{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--crew-hover-flite-soft);font:700 15px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.bp-e{margin-top:10px;padding:10px 12px;border-radius:8px;background:transparent;font:600 16px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
 .bp-card-crit .bp-e{background:var(--crew-hover-danger-soft)}
 .bp-limits{margin-top:6px;font-size:12px;color:var(--crew-hover-muted);font-family:ui-monospace,Consolas,monospace}
 .bp-ai{margin-top:10px;padding:10px 12px;border:1px dashed var(--crew-hover-flite);border-radius:8px;font-size:14px;line-height:1.6}
@@ -286,6 +348,17 @@ dialog.bp-detail::backdrop{background:color-mix(in oklch,var(--crew-hover-ink) 5
 .bp-detail-status{color:var(--crew-hover-excel);font-size:13px;overflow-wrap:anywhere}
 .bp-detail-empty{padding:32px 0;color:var(--crew-hover-muted);text-align:center}
 .bp-detail-copy{position:fixed;width:1px;height:1px;opacity:0}
-@media(max-width:600px){dialog.bp-detail{width:calc(100vw - 12px);max-width:calc(100vw - 12px);height:94vh;max-height:94vh}.bp-detail-head,.bp-detail-bar,.bp-detail-foot{padding:10px 12px}.bp-detail-list{padding:10px 12px}.bp-card-acts{margin-left:0;width:100%}}
+.bp-detail .bp-btn-pin{background:var(--bp-pin);border-color:var(--bp-pin);color:var(--bp-on-color);font-size:14px;min-height:38px}
+.bp-detail .bp-btn-cloud{background:var(--crew-hover-flite-soft);border-color:var(--crew-hover-flite);color:var(--crew-hover-flite);min-height:38px}
+.bp-detail .bp-btn.bp-pinned{background:var(--crew-hover-excel-soft);border-color:var(--crew-hover-excel);color:var(--crew-hover-excel);opacity:1;cursor:default}
+.bp-pin-row{display:flex;flex-wrap:wrap;gap:8px;padding-top:14px;margin-top:12px;border-top:1px solid var(--crew-hover-line)}
+.bp-pin-message{font-size:13px;color:var(--crew-hover-excel);margin-top:6px;overflow-wrap:anywhere}
+.bp-pin-message.bad{color:var(--crew-hover-danger)}
+.bp-source{background:var(--crew-hover-excel-soft);color:var(--crew-hover-excel)}
+.bp-detail .bp-btn-map{width:32px;padding:0;font-size:20px}
+html.night .bp-detail-head{background:var(--batch-night-surface)}
+html.night .bp-detail .bp-loc{color:var(--bp-paper)}
+html.night .bp-detail .bp-btn-ai,html.night .bp-detail .bp-flight .bp-flight-cs,html.night .bp-detail .bp-level.crit{color:var(--batch-night-paper)}
+@media(max-width:680px){dialog.bp-detail{width:calc(100vw - 12px);max-width:calc(100vw - 12px);height:94vh;max-height:94vh}.bp-detail-head,.bp-detail-bar,.bp-detail-foot{padding:10px 12px}.bp-detail-list{padding:10px 12px}.bp-card-acts{margin-left:0;width:100%}}
 </style></head>`);
 }
