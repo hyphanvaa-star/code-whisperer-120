@@ -114,8 +114,28 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         sender=bridge.VerifiedAviWebSender([TARGET])
         good=self.row(['VJC874','FPL','VVDN','RKSI','2026-11-25','2026-11-25 08:10'],[])
         self.assertTrue(sender._row_matches(good,self.WANT))
-        for cells in (['VJC874','RKSI','VVDN','2026-11-25'],['VJC874','VVDN','RKSI','2026-11-24'],['VJC874','VVDN','RKSI','2026-11-25','2026-11-26'],['VJC875','VVDN','RKSI','2026-11-25']):
+        for cells in (['VJC874','RKSI','VVDN','2026-11-25'],['VJC874','VVDN','RKSI','2026-11-24'],['VJC874','VVDN','RKSI','FILED','2026-11-25'],['VJC874','2026-11-25','VVDN','RKSI','2026-11-25'],['VJC875','VVDN','RKSI','2026-11-25']):
             with self.subTest(cells=cells): self.assertFalse(sender._row_matches(self.row(cells,[]),self.WANT))
+    # Real AviWeb Processed layout (26 Nov 2026 screenshot).
+    REAL_H=['Aircraft ID','ATS Message','Departure','Destination','Date of Flight','Creation / Update Time','Status']
+    WANT334=('VJC334','VVPQ','VVTS','261126')
+    def real(self,day,headers=None,first='1'):
+        return self.row([first,'+VJC334','CFL','VVPQ (Kien giang)','VVTS (Ho chi minh)',f'2026-11-{day} 15:10','2026-11-26 06:41','Filed'],self.REAL_H if headers is None else headers)
+    def test_real_aviweb_headers_identify_row(self):
+        self.assertEqual(bridge.VerifiedAviWebSender._row_identity(self.real('26')),self.WANT334)
+        self.assertEqual(bridge.VerifiedAviWebSender._row_identity(self.real('26',['']+self.REAL_H)),self.WANT334)
+    def test_real_aviweb_only_todays_row_matches(self):
+        for headers in (None,[]):
+            sender=bridge.VerifiedAviWebSender([TARGET])
+            hits=[d for d in ('26','25','24','23') if sender._row_matches(self.real(d,headers),self.WANT334)]
+            with self.subTest(headers=headers): self.assertEqual(hits,['26'])
+    def test_creation_date_never_stands_in_for_dof(self):
+        sender=bridge.VerifiedAviWebSender([TARGET])
+        r=self.row(['1','+VJC334','CFL','VVPQ (Kien giang)','VVTS (Ho chi minh)','2026-11-25 12:50','2026-11-26 06:41','Closed'],[])
+        self.assertFalse(sender._row_matches(r,self.WANT334))
+    def test_aerodrome_cell_needs_plain_icao(self):
+        self.assertEqual(bridge._row_icao('VVPQ (Kien giang)'),'VVPQ')
+        for bad in ('VVPQ VVTS','VVPQX','(VVPQ)','VVP'): self.assertEqual(bridge._row_icao(bad),'')
     def manual(self):
         sender=bridge.VerifiedAviWebSender([TARGET],manual_submit=True);sender._final_stage=True;sender.current_callsign='VJC874'
         driver=Mock(current_url=sender.PROCESSED);driver.find_elements.return_value=[Mock()]

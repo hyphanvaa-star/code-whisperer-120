@@ -90,13 +90,26 @@ def _txt(element):
 
 
 def _row_dof(text):
-    value = str(text or '').strip()
+    """DOF from a Processed date cell. AviWeb shows the flight date with its
+    EOBT ("2026-11-26 15:10"); only a trailing clock time is dropped."""
+    value = re.sub(r'[ T]+\d{1,2}:\d{2}(?::\d{2})?\s*(?:Z|UTC)?$', '', str(text or '').strip(), flags=re.I)
     for fmt in ('%y%m%d', '%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%d %b %Y'):
         try:
             return datetime.strptime(value, fmt).strftime('%y%m%d')
         except ValueError:
             pass
     raise AviWebSendError('Không đọc chắc chắn DOF trên dòng Processed — không gửi')
+
+
+def _row_callsign(text):
+    """Callsign cell; AviWeb prefixes an expand icon ("+VJC334")."""
+    return re.sub(r'^[^A-Z0-9]+', '', str(text or '').upper().strip()).strip()
+
+
+def _row_icao(text):
+    """Aerodrome cell: "VVPQ" or "VVPQ (Kien giang)" -> VVPQ; anything else ''."""
+    hit = re.fullmatch(r'([A-Z]{4})(?:\s*\([^()]*\))?', str(text or '').upper().strip())
+    return hit[1] if hit else ''
 
 
 class VerifiedAviWebSender(AviWebSender):
@@ -123,9 +136,12 @@ class VerifiedAviWebSender(AviWebSender):
         table = 'ancestor::*[contains(concat(" ", normalize-space(@class), " "), " v-table ")][1]'
         headers = row.find_elements('xpath', table + '//*[contains(concat(" ", normalize-space(@class), " "), " v-table-header-cell ")] | ' + table + '//th')
         names = [re.sub(r'[^A-Z0-9]', '', _txt(h).upper()) for h in headers]
+        # Vaadin's row-number column has no matching header cell class.
+        if len(names) == len(values) - 1 and re.fullmatch(r'\d*', values[0]):
+            names = [''] + names
         if len(names) != len(values):
             raise AviWebLayoutError('Bố cục Processed chưa xác minh được — không gửi')
-        aliases = ({'CALLSIGN', 'AIRCRAFTIDENTIFICATION', 'ACID', 'ARCID'}, {'DEP', 'DEPARTURE', 'DEPARTUREAERODROME', 'ADEP'}, {'DEST', 'DES', 'DESTINATION', 'DESTINATIONAERODROME', 'ADES', 'ARR'}, {'DOF', 'DATEOFFLIGHT', 'FLIGHTDATE'})
+        aliases = ({'CALLSIGN', 'AIRCRAFTID', 'AIRCRAFTIDENTIFICATION', 'ACID', 'ARCID'}, {'DEP', 'DEPARTURE', 'DEPARTUREAERODROME', 'ADEP'}, {'DEST', 'DES', 'DESTINATION', 'DESTINATIONAERODROME', 'ADES', 'ARR'}, {'DOF', 'DATEOFFLIGHT', 'FLIGHTDATE'})
         indices = []
         for allowed in aliases:
             hits = [i for i, name in enumerate(names) if name in allowed]
@@ -133,28 +149,34 @@ class VerifiedAviWebSender(AviWebSender):
                 raise AviWebLayoutError('Bố cục Processed chưa xác minh được — không gửi')
             indices.append(hits[0])
         cs, dep, arr, dof = (values[i] for i in indices)
-        if not re.fullmatch(r'[A-Z0-9]+', cs) or not re.fullmatch(r'[A-Z]{4}', dep) or not re.fullmatch(r'[A-Z]{4}', arr):
+        cs, dep, arr = _row_callsign(cs), _row_icao(dep), _row_icao(arr)
+        if not re.fullmatch(r'[A-Z0-9]+', cs) or not dep or not arr:
             raise AviWebSendError('Không xác minh được sân đi/đến trên cùng dòng AviWeb')
         return (cs, dep, arr, _row_dof(dof))
 
     @staticmethod
     def _content_matches(row, wanted):
-        """Fallback when headers are unreadable: every expected value must sit
-        on this one row, in Callsign → DEP → DEST order, with exactly one
-        date cell equal to DOF. Partial or reordered data never matches."""
+        """Fallback when headers are unreadable: the row must hold Callsign →
+        DEP → DEST in that order, each exactly once, and the cell right after
+        DEST must be the first date on the row and equal DOF (AviWeb puts Date
+        of Flight there; later Creation/Update dates are ignored). Partial or
+        reordered data never matches."""
         cs, dep, arr, dof = wanted
-        values = [_txt(c).upper() for c in row.find_elements('xpath', './td')]
-        if values.count(cs) != 1 or values.count(dep) != 1 or values.count(arr) != 1 or dep == arr:
+        raw = [_txt(c).upper() for c in row.find_elements('xpath', './td')]
+        calls = [_row_callsign(v) for v in raw]
+        ports = [_row_icao(v) for v in raw]
+        if calls.count(cs) != 1 or ports.count(dep) != 1 or ports.count(arr) != 1 or dep == arr:
             return False
-        if not values.index(cs) < values.index(dep) < values.index(arr):
+        at = ports.index(arr)
+        if not calls.index(cs) < ports.index(dep) < at or at + 1 >= len(raw):
             return False
         dates = []
-        for value in values:
+        for value in raw:
             try:
                 dates.append(_row_dof(value))
             except AviWebSendError:
-                pass
-        return dates == [dof]
+                dates.append('')
+        return dates[at + 1] == dof and not any(dates[:at + 1])
 
     def _row_matches(self, row, wanted):
         wanted = tuple(wanted)

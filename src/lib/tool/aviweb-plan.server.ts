@@ -100,8 +100,8 @@ export async function executeAviPlan(ctx: Ctx) {
   const machine = currentAgentId();
   if (!machine || !plan.machine || plan.machine !== machine) throw new Error('Ghép Trợ lý PC trên máy này rồi tạo lại bản soạn.');
   if (!pc.agentOnline(agent)) throw new Error('Trợ lý PC chưa kết nối — chưa gửi điện.');
-  // 6.20 reads Vaadin Processed headers and honours manual_submit; older helpers would auto-Submit.
-  if (!agent || pcVersionBelow(agent.version, '6.20')) throw new Error('Cập nhật Trợ lý PC lên 6.20 trước khi gửi CHG/DLA AviWeb.');
+  // 6.21 reads the real Processed row (Aircraft ID, ICAO + city, date + EOBT) and honours manual_submit; older helpers would auto-Submit.
+  if (!agent || pcVersionBelow(agent.version, '6.21')) throw new Error('Cập nhật Trợ lý PC lên 6.21 trước khi gửi CHG/DLA AviWeb.');
   const manual = input.manual_submit === true;
   const user = env('AVIWEB_USERNAME'), pass = env('AVIWEB_PASSWORD');
   if (!user || !pass) throw new Error('Chưa lưu tài khoản AviWeb trên web.');
