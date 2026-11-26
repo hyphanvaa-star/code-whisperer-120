@@ -7,7 +7,7 @@ from __future__ import annotations
 import re
 import time
 from datetime import datetime, timezone, timedelta
-from aviweb_sender import AviWebSender, AviWebSendError, validate_edited_payload, split_messages
+from aviweb_sender import AviWebSender, AviWebSendError, validate_edited_payload, split_messages, callsign_from_message
 
 
 def _reg(value):
@@ -112,12 +112,21 @@ def _row_icao(text):
     return hit[1] if hit else ''
 
 
+def delay_clock(eobt):
+    """ICAO EOBT "1510" -> "15:10": AviWeb's Delay time box rejects bare digits."""
+    hit = re.fullmatch(r'([01]\d|2[0-3])([0-5]\d)', str(eobt or '').strip())
+    if not hit:
+        raise AviWebSendError('EOBT trong điện DLA không hợp lệ — không gửi')
+    return f'{hit[1]}:{hit[2]}'
+
+
 class VerifiedAviWebSender(AviWebSender):
     """Verify the SAME row immediately before action/Submit; ambiguity blocks writes."""
     def __init__(self, expected, manual_submit=False, **kwargs):
         super().__init__(**kwargs)
-        # Operator mode: fill and verify everything, then the human clicks the
-        # final Submit in the visible Chrome; code never clicks it.
+        # Operator mode: fill and verify everything, then the human clicks
+        # EVERY Submit (Delay step and final send) in the visible Chrome;
+        # code never clicks one.
         self.manual_submit = bool(manual_submit)
         self._final_stage = False
         self.expected = {e['callsign']: e for e in expected}
@@ -286,19 +295,21 @@ class VerifiedAviWebSender(AviWebSender):
                 raise AviWebSendError('Không xác định được duy nhất form AviWeb đang gửi')
             if self._emit_callback:
                 self._note(f'{self.current_callsign}: đã kiểm tra đúng DOF/chặng trước Submit')
-            if self.manual_submit and self._final_stage:
-                return self._wait_operator_submit(driver, element)
+            if self.manual_submit:
+                return self._wait_operator_submit(driver, element, final=self._final_stage)
             # One click only: a native click that threw may already have submitted.
             element.click()
             return
         return super()._safe_click(driver, element)
 
-    def _wait_operator_submit(self, driver, element):
+    def _wait_operator_submit(self, driver, element, final=True):
         """Hand the verified form to the operator. Only a real click/Enter on
         this Submit button followed by the form closing counts as sent; closing
-        the form any other way, Chrome closing or a timeout means not sent."""
+        the form any other way, Chrome closing or a timeout means not sent.
+        An intermediate Submit (Delay step) resumes on the operator's click;
+        the next step then proves AviWeb accepted it or fails closed."""
         driver.execute_script('''
-          const b=arguments[0]; window.__aviOperatorSubmit=0;
+          const b=arguments[0].closest('.v-button')||arguments[0]; window.__aviOperatorSubmit=0;
           const mark=()=>{window.__aviOperatorSubmit=Date.now();};
           b.addEventListener('click',mark,true);
           b.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')mark();},true);
@@ -307,7 +318,8 @@ class VerifiedAviWebSender(AviWebSender):
             driver.switch_to.window(driver.current_window_handle)
         except Exception:
             pass
-        self._note(f'{self.current_callsign}: ĐÃ ĐIỀN XONG — kiểm tra trên Chrome rồi tự bấm Submit (chờ tối đa {MANUAL_SUBMIT_WAIT_S // 60} phút)', 'ok')
+        step = 'ĐÃ ĐIỀN XONG' if final else 'ĐÃ ĐIỀN GIỜ MỚI (bước 1/2)'
+        self._note(f'{self.current_callsign}: {step} — kiểm tra trên Chrome rồi tự bấm Submit (chờ tối đa {MANUAL_SUBMIT_WAIT_S // 60} phút)', 'ok')
         deadline = time.monotonic() + MANUAL_SUBMIT_WAIT_S
         clicked = False
         while time.monotonic() < deadline:
@@ -316,6 +328,9 @@ class VerifiedAviWebSender(AviWebSender):
                 if '/login' in str(driver.current_url):
                     raise AviWebSendError('AviWeb mất đăng nhập khi chờ bấm Submit — chưa xác nhận gửi')
                 element.is_enabled()
+                if clicked and not final:
+                    self._note(f'{self.current_callsign}: đã nhận Submit bước 1 — tiếp tục nhập địa chỉ nhận')
+                    return 'operator Submit'
             except AviWebSendError:
                 raise
             except Exception as exc:
@@ -327,6 +342,37 @@ class VerifiedAviWebSender(AviWebSender):
                 raise AviWebSendError('Chrome AviWeb đã đóng khi chờ bấm Submit — kiểm tra AviWeb trước khi gửi lại') from exc
             time.sleep(.5)
         raise AviWebSendError(f'Quá {MANUAL_SUBMIT_WAIT_S // 60} phút chưa bấm Submit — không tự gửi')
+
+    def _send_dla(self, driver, message):
+        """Same selectors as the supplied sender; only the time is typed as
+        HH:MM and read back before any Submit."""
+        _, _, _, By, Keys, EC, Wait = self._selenium()
+        callsign = callsign_from_message(message)
+        match = re.match(r'\(DLA-[^-]+-[A-Z]{4}(\d{4})-', message.strip(), re.I)
+        if not callsign or not match:
+            raise AviWebSendError('Không đọc được callsign/EOBT từ điện văn DLA')
+        clock = delay_clock(match[1])
+        self._open_row_action(driver, callsign, 'Delay')
+        xpath = '//div[@location="timeComponent"]//input[@type="text"]'
+        field = Wait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+        self._type_input(driver, field, clock, Keys.TAB)
+        time.sleep(.6)
+        field = Wait(driver, 30).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        shown = re.sub(r'\D', '', str(field.get_attribute('value') or ''))
+        if shown != match[1]:
+            raise AviWebSendError(f'{callsign}: ô giờ Delay hiện "{shown}" khác EOBT {match[1]} — không Submit')
+        if 'error' in str(field.get_attribute('class') or '').lower():
+            if not self.manual_submit:
+                raise AviWebSendError(f'{callsign}: AviWeb không nhận giờ Delay {clock} — không Submit')
+            self._note(f'{callsign}: AviWeb đang báo đỏ ô giờ {clock} — sửa trên Chrome trước khi bấm Submit', 'warn')
+        self._note(f'DLA {callsign}: đã nhập giờ mới {clock}')
+        self._safe_click(driver, Wait(driver, 30).until(EC.element_to_be_clickable((By.XPATH,
+            '//div[@role="button" and contains(@class,"v-button")]//span[text()="Submit"]'))))
+        try:
+            self._safe_click(driver, Wait(driver, 4).until(EC.element_to_be_clickable((By.XPATH, '//div[@role="button"]//span[text()="Yes"]'))))
+        except Exception:
+            pass
+        return self._addresses_and_submit(driver)
 
     def _addresses_and_submit(self, driver):
         self._verify_bound(driver)

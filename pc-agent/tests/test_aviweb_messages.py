@@ -161,6 +161,44 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         with patch.object(sender,'_verify_bound'),patch.object(bridge,'MANUAL_SUBMIT_WAIT_S',0):
             with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
         button.click.assert_not_called()
+    def test_delay_step_waits_for_operator_then_resumes_on_click(self):
+        sender,driver=self.manual();sender._final_stage=False;button=Mock(text='Submit')
+        driver.execute_script.side_effect=[None,0,0,1]
+        with patch.object(sender,'_verify_bound'),patch.object(bridge.time,'sleep'):
+            self.assertEqual(sender._safe_click(driver,button),'operator Submit')
+        button.click.assert_not_called();self.assertEqual(driver.execute_script.call_count,4)
+    def test_delay_step_closed_without_operator_click_is_not_sent(self):
+        sender,driver=self.manual();sender._final_stage=False;button=Mock(text='Submit')
+        class StaleElementReferenceException(Exception): pass
+        button.is_enabled.side_effect=StaleElementReferenceException();driver.execute_script.side_effect=[None,0]
+        with patch.object(sender,'_verify_bound'):
+            with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
+        button.click.assert_not_called()
+    def dla(self,manual,value='15:10',cls='v-textfield'):
+        sender=bridge.VerifiedAviWebSender([TARGET],manual_submit=manual);driver=Mock()
+        field=Mock();field.get_attribute.side_effect=lambda k:{'value':value,'class':cls}[k]
+        wait=Mock();wait.return_value.until.return_value=field
+        sel=(None,None,None,Mock(),Mock(TAB='TAB'),Mock(),wait)
+        typed=[]
+        with patch.object(sender,'_selenium',return_value=sel),patch.object(sender,'_open_row_action'),patch.object(sender,'_type_input',side_effect=lambda d,e,v,c=None:typed.append((v,c))),\
+             patch.object(sender,'_safe_click') as click,patch.object(sender,'_addresses_and_submit',return_value='ok') as final,patch.object(bridge.time,'sleep'):
+            try: out=sender._send_dla(driver,'(DLA-VJC334-VVPQ1510-VVTS-DOF/261126)')
+            except AviWebSendError as e: out=e
+        return out,typed,click,final
+    def test_delay_time_is_typed_with_colon(self):
+        out,typed,click,final=self.dla(False)
+        self.assertEqual(typed,[('15:10','TAB')]);self.assertEqual(out,'ok');final.assert_called_once()
+        self.assertEqual(bridge.delay_clock('0005'),'00:05')
+        for bad in ('2460','1560','151','15:10'):
+            with self.assertRaises(AviWebSendError): bridge.delay_clock(bad)
+    def test_delay_time_rejected_or_different_never_submits(self):
+        for kw in ({'value':'15:01'},{'value':''},{'cls':'v-textfield v-textfield-error'}):
+            out,typed,click,final=self.dla(False,**kw)
+            with self.subTest(kw=kw):
+                self.assertIsInstance(out,AviWebSendError);click.assert_not_called();final.assert_not_called()
+    def test_delay_red_field_in_operator_mode_is_handed_to_operator(self):
+        out,typed,click,final=self.dla(True,cls='v-textfield v-textfield-error')
+        self.assertEqual(out,'ok');self.assertGreaterEqual(click.call_count,1)
     def test_auto_mode_still_clicks_once(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);sender._final_stage=True;button=Mock(text='Submit');driver=Mock();driver.find_elements.return_value=[Mock()]
         with patch.object(sender,'_verify_bound'): sender._safe_click(driver,button)
