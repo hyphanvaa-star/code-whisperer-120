@@ -495,18 +495,18 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
 
   // 1 helicopter
   if (/\bHEL(?:I|ICOPTER)?\b|\bHELICOPTER/.test(E) && /\b(ROUTE|TRAINING|TRG|CORRIDOR)\b/.test(E) && /\b(SUSPENDED|CLSD|CLOSED)\b/.test(E))
-    return no("HELICOPTER", "Đường/huấn luyện trực thăng bị đóng/tạm dừng — chuyến là tàu cánh bằng IFR.");
+    return no("HELICOPTER", "Chỉ áp dụng trực thăng — chuyến là tàu cánh bằng.");
   // 2 VFR only
   if (/\bVFR\b/.test(E) && !/\bIFR\b/.test(E) && /\bVFR\s+(ACFT|AIRCRAFT|FLT|FLIGHTS?|TRAFFIC|ROUTE)/.test(E))
-    return no("VFR-ONLY", "Item E chỉ áp dụng tàu VFR — chuyến bay IFR.");
+    return no("VFR-ONLY", "Chỉ áp dụng tàu VFR — chuyến bay IFR.");
   // 2b alternates (ALT/RALT): low obstacles, partial taxiway/stand and Code F-only ground limits
   // never change a diversion plan, even when an AIP SUP is cited. Hard content keeps grading.
   if ((role === "ALT" || role === "RALT") && isAirport && !hasHardContent(E) && !/\bRWY\b|\bRUNWAY/.test(E)) {
     const isObstAlt = /\b(OBST|OBSTACLE|CRANE|MAST|TOWER|POLE|CHIMNEY|ANTENNA)\b/.test(E);
     if (isObstAlt && !/\b(MINIMA|MNM|OCA|OCH|MDA|DA\/H)\b/.test(E))
-      return no("ALT-OBST", `Chướng ngại vật/cẩu tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay divert.`);
+      return no("ALT-OBST", `Chướng ngại vật/cẩu tại sân dự bị ${code} — không đổi minima, không liên quan RWY.`);
     if (AD_SURFACE.test(E) || /\bGROUND\s+MAN(?:OE|E)UV/.test(E) || /^QM[XPAN]/.test(qCodeOf(n)))
-      return no("AD-SURFACE-" + role, `Taxiway/stand/lăn mặt đất tại sân dự bị ${code} — không ảnh hưởng kế hoạch bay.`);
+      return no("AD-SURFACE-" + role, `Đường lăn/bãi đỗ tại sân dự bị ${code} — không liên quan RWY.`);
   }
   // 3 AIP SUP / AMDT trigger
   // An aerodrome ground NOTAM that cites an AIP SUP is still graded by what it closes (stand/apron/TWY/RWY/AD).
@@ -535,7 +535,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
       if (hit.length === 1) return procWindow(n, planned, role, f, prohibit);
       if (role === "ARR" && /\b(IAP|APCH|APPROACH|ILS|RNP)\b/.test(E) && prohibit)
         return unk("APPROACH", "Cấm approach tại sân đến — không trúng STAR nhưng cần xem approach dự kiến.");
-      if (procs.length) return no("PROCEDURE-OTHER", `Procedure ${procs.join(", ")} khác ${role === "DEP" ? "SID" : "STAR"} kế hoạch ${planned}.`);
+      if (procs.length) return no("PROCEDURE-OTHER", `Áp dụng ${procs.join(", ")} — khác ${role === "DEP" ? "SID" : "STAR"} kế hoạch ${planned}.`);
     }
   }
   // 7 ATS route segment
@@ -548,7 +548,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
     if (hit) return hit;
     const u = res.find((r) => r.matched === null);
     if (u) return u;
-    return no("ROUTE-SEGMENT", `Các đoạn ${listSegs.map((s) => s[0]).join(", ")} không nằm trên route FPL.`);
+    return no("ROUTE-SEGMENT", `Áp dụng đoạn ${listSegs.map((s) => s[0]).join(", ")} — không có trên FPL.`);
   }
   const seg = /(?:ATS\s+RTE\s+SEGMENT|SEGMENT|RTE)\s+([A-Z]{1,2}\d{1,4}[A-Z]?)\s*\(?\s*([A-Z]{5})\s*-\s*([A-Z]{5})/.exec(E)
     || /\b([A-Z]{1,2}\d{1,4}[A-Z]?)\s+(?:BTN|BETWEEN)\s+([A-Z]{3,5})\s+(?:AND|-)\s+([A-Z]{3,5})\b/.exec(E);
@@ -566,17 +566,17 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
     if (flown.length) return unk("ATS-ROUTE-LIST", `Chuyến bay trên ATS route ${flown.join(", ")} nêu trong NOTAM — kiểm tra đoạn/FL áp dụng.`);
     const fixes = flownFixes(E, f);
     if (fixes.length) return unk("ATS-ROUTE-LIST", `NOTAM nhắc điểm ${fixes.join(", ")} trên route FPL (route NOTAM: ${rteList.join(", ")}) — kiểm tra tay.`);
-    return no("ATS-ROUTE-LIST", `Đã quét đủ ${rteList.length} ATS route (${rteList.join(", ")}) và các điểm trong NOTAM — không có route/điểm nào trên FPL.`);
+    return no("ATS-ROUTE-LIST", `Áp dụng ATS route ${rteList.join(", ")} — không có trên FPL.`);
   }
   // 8 advisory route
   const adr = /ADVISORY\s+ROUTE\s+([A-Z]{1,2}\d{1,4})/.exec(E);
   if (adr && (f.tokens.size || f.points.length) && !onRoute(f, adr[1]!))
-    return no("ADVISORY-ROUTE", `Advisory route ${adr[1]} không phải đường đang bay.`);
+    return no("ADVISORY-ROUTE", `Áp dụng advisory route ${adr[1]} — không có trên FPL.`);
   // 9 navaid in quotes
   const nav = [...E.matchAll(/'([A-Z]{2,3})'/g)].map((m) => m[1]!);
   if (!hardOnly && nav.length && /\b(VOR|DME|NDB|TACAN|VORTAC|LOC|GP)\b/.test(E) && !/\b(ATS\s+)?(RTE|ROUTE)S?\b[^]*\b(CLSD|CLOSED)\b|\b(CLSD|CLOSED)\b[^]*\bATS\s+(RTE|ROUTE)/.test(E)) {
     const hitNav = nav.find((x) => onRoute(f, x));
-    if (!hitNav) return no("NAVAID", `Navaid ${nav.join(", ")} không có trên FPL/navlog.`);
+    if (!hitNav) return no("NAVAID", `Navaid ${nav.join(", ")} không có trên FPL.`);
     const ix = f.points.findIndex((p) => String(p.name ?? "").toUpperCase() === hitNav);
     const p = f.points[ix];
     return { matched: true, type: "NAVAID", reason: `Navaid ${hitNav} có trên route.`, fl: p ? Math.round(Number(p.fl_ft || 0) / 100) : null, at: pointTime(f, p) };
@@ -590,7 +590,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
   // 11 RFFS
   const rffs = !hardOnly && /\b(RFFS|FIRE\s*FIGHTING|RESCUE AND FIRE)\b/.test(E) ? /\bCAT(?:EGORY)?\s*(\d{1,2})\b/.exec(E) : null;
   if (rffs) {
-    if (!role) return no("RFFS", "Hạ cấp RFFS tại sân không thuộc chuyến.");
+    if (!role) return no("RFFS", "RFFS tại sân không thuộc chuyến.");
     const need = AC_RFFS[f.acType.toUpperCase()];
     if (!need) return unk("RFFS", `Chưa có hạng RFFS cho loại tàu ${f.acType || "?"}.`);
     const cat = +rffs[1]!;
@@ -599,7 +599,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
   }
   // 12 ILS / GNSS at airport
   if (kind !== "FIR" && (/\bILS\b.*\b(U\/S|DOWNGRADED|NOT AVBL|UNSERVICEABLE)\b/.test(E) || /\b(GNSS|GPS)\b.*\b(UNRELIABLE|U\/S|NOT AVBL|OUTAGE|INTERFERENCE|JAMMING)\b/.test(E))) {
-    return role ? unk("NAV-AID-AD", "ILS/GNSS xuống cấp tại sân của chuyến — cần kiểm tra approach.") : no("NAV-AID-AD", "ILS/GNSS tại sân khác.");
+    return role ? unk("NAV-AID-AD", "ILS/GNSS xuống cấp tại sân của chuyến — cần kiểm tra approach.") : no("NAV-AID-AD", "ILS/GNSS tại sân không thuộc chuyến.");
   }
   // 12b operational keyword catalogue (dispatcher list): feasibility items need a dispatcher, secondary items are briefing.
   if (isAirport) {
@@ -633,22 +633,22 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
   // Contact details (TEL/PHONE/E-MAIL) never prove a NOTAM is administrative:
   // UAV, firing and airspace NOTAMs always carry a coordination number.
   if (!hardOnly && /\b(CHARGES?|FEES?|NIL AIRAC)\b/.test(E) && !prohibit)
-    return no("ADMIN", "Nội dung phí/chart metadata/NIL AIRAC.");
+    return no("ADMIN", "Thông tin phí/AIRAC — không ảnh hưởng khai thác.");
   // 14 ADS-B / GNSS / FIR frequency
   if (!hardOnly && kind === "FIR" && /\b(ADS-B|ADSB|GNSS|GPS|FREQ|FREQUENCY|VHF|HF|CPDLC)\b/.test(E) && /\b(U\/S|OUTAGE|NOT AVBL|UNRELIABLE|INTERFERENCE)\b/.test(E)) {
     const fir = qfir || code;
-    return f.firs[fir] ? { matched: true, type: "BRIEFING-INFO", reason: `${fir} nằm trên route — thông tin liên lạc/dẫn đường.`, briefing: true } : no("FIR-COM", `${fir} không nằm trên route.`);
+    return f.firs[fir] ? { matched: true, type: "BRIEFING-INFO", reason: `${fir} nằm trên route — thông tin liên lạc/dẫn đường.`, briefing: true } : no("FIR-COM", `FIR ${fir} không thuộc chuyến.`);
   }
   // 15 radio check
   if (!hardOnly && /\bRADIO\s+CHECK\b/.test(E) && !/\b(U\/S|OUTAGE|CLSD|CLOSED)\b/.test(E))
-    return role ? brief("BRIEFING-INFO", "Radio check tại sân của chuyến.") : no("RADIO-CHECK", "Radio check tại sân khác.");
+    return role ? brief("BRIEFING-INFO", "Radio check tại sân của chuyến.") : no("RADIO-CHECK", "Radio check tại sân không thuộc chuyến.");
   // 15b stand/taxiway at airports where the flight only departs or might divert: parking
   // stands never matter at DEP/alternates, partial taxiways never at alternates (RWY content keeps grading).
   if (!hardOnly && isAirport && role && role !== "ARR" && AD_SURFACE.test(E) && !/\bRWY\b|\bRUNWAY/.test(E)
       && !ALL_MOVE.test(E) && !AD_CLSD.test(E) && !RWY_CLSD.test(E)) {
     const twy = /\b(TWY|TAXIWAYS?|TAXILANES?)\b/.test(E);
     if (role !== "DEP" || !twy)
-      return no("AD-SURFACE-" + role, `Stand/taxiway một phần tại sân ${role} ${code} — không ảnh hưởng kế hoạch bay.`);
+      return no("AD-SURFACE-" + role, `Bãi đỗ/đường lăn một phần tại sân ${role} ${code} — không liên quan RWY.`);
   }
   // 15c information-only airport NOTAMs at our airports: wildlife, AD beacon, chart/ERSA amendments,
   // and obstacles/cranes at DEP/ARR that close nothing and change no declared distance or minima.
@@ -705,7 +705,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
     }
     const routeTok = [...E.matchAll(/\b([A-Z]{1,2}\d{1,4}|[A-Z]{5})\b/g)].map((m) => m[1]!).find((t) => onRoute(f, t));
     if (prohibit && routeTok) return unk("GEOMETRY", `Hình cách route ${best.d.toFixed(1)} NM nhưng item E cấm và nhắc ${routeTok} trên FPL.`);
-    return no("GEOMETRY", `Route cách ${src} ${best.d.toFixed(1)} NM > bán kính + ${cfg.corridor_nm} NM.`);
+    return no("GEOMETRY", `Cách đường bay ${best.d.toFixed(0)} NM — ngoài hành lang ${cfg.corridor_nm} NM.`);
   }
   // 20 obstacle/firework at our airport without position
   if (isAirport && (isObst || /\bFIREWORKS?\b/.test(E)) && !/\d+\s*FT/.test(E))
@@ -738,7 +738,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
       : no("FLOW-CONTROL", "Flow control tại FIR không thuộc chuyến.");
   // 28
   if ((qfir && f.firs[qfir]) || f.firs[code]) return unk("FIR-ONLY", `NOTAM thuộc FIR ${qfir || code} của chuyến, không có toạ độ/đoạn route.`);
-  return no("NO-GEOMETRY", "Không trùng sân, không có hình, không thuộc FIR của chuyến.");
+  return no("NO-GEOMETRY", "Không thuộc sân/FIR của chuyến.");
 }
 
 /** A single coordinate written in item E (not the Q-line centre pin). */
@@ -855,7 +855,9 @@ export function assessNotam(n: Notam, code: string, kind: string, f: AssessFligh
 
 function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cfg: AssessCfg, b: Date | null, c: Date | null, sp: Spatial): Assessment {
   const reasons: string[] = [];
-  const out = (level: Level, match_type: string, delay: number | null = null): Assessment => ({ level, earliest_impact_delay_minutes: delay, match_type, reasons });
+  // A dropped NOTAM states only the one gate that dropped it (always the last reason pushed):
+  // gates it passed on the way are noise in the dropped list.
+  const out = (level: Level, match_type: string, delay: number | null = null): Assessment => ({ level, earliest_impact_delay_minutes: delay, match_type, reasons: level === "NO IMPACT" ? reasons.slice(-1) : reasons });
   const maxD = cfg.max_delay_minutes;
   const qfir = normIcao(String(n.qfir ?? ""));
   const pos: [number, number] | null = (() => { const q = qCoordsOf(n); return q ? [q[0], q[1]] : null; })();
@@ -864,7 +866,7 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
   const w = selectWindow(code, qfir, f, cfg);
   if (w) {
     const ov = classifyOverlap(b, c, w, maxD);
-    if (ov === "NO") { reasons.push(`B–C ngoài cửa sổ ${w.kind} ${w.ref} (${w.start ? hhmm(w.start) : "?"}–${w.end ? hhmm(w.end) : "?"} + trễ ${maxD}′).`); return out("NO IMPACT", sp.type); }
+    if (ov === "NO") { reasons.push(`Ngoài khung giờ ${w.kind} ${w.ref} ${w.start ? hhmm(w.start) : "?"}–${w.end ? hhmm(w.end) : "?"} (kể cả trễ ${maxD}′).`); return out("NO IMPACT", sp.type); }
     if (ov === "UNRESOLVED" && sp.matched !== false && sp.type !== "BRIEFING-INFO" && sp.type !== "CHART-ROUTE-RESTRICTION") {
       reasons.push(`Thiếu giờ cửa sổ ${w.kind} ${w.ref}.`); return out("NEED MANUAL CHECK", sp.type);
     }
@@ -873,13 +875,13 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
   // 2 schedule (item D) — checked inside the role/FIR window when it is known, else the whole flight
   const sched = parseSchedule(n.d_field);
   const winKnown = !!(w && w.start && w.end);
-  const wLabel = w ? `${w.kind} ${w.ref} (${w.start ? hhmm(w.start) : "?"}–${w.end ? hhmm(w.end) : "?"} + trễ ${maxD}′)` : "";
+  const wLabel = w ? `${w.kind} ${w.ref} ${w.start ? hhmm(w.start) : "?"}–${w.end ? hhmm(w.end) : "?"} (kể cả trễ ${maxD}′)` : "";
   const ws = winKnown ? w!.start! : f.etd;
   const we = winKnown ? add(w!.end!, maxD) : f.eta && add(f.eta, maxD + Math.max(cfg.dest_alt_after, cfg.enrt_alt_after));
   let schedHit: Date | null = null;
   if (ws && we) {
     const s0 = b && b > ws ? b : ws, e0 = c && c < we ? c : we;
-    if (s0 > e0) { reasons.push(winKnown ? `B–C ngoài cửa sổ ${wLabel}.` : "B–C không giao thời gian cả chuyến (cộng trễ tối đa)."); return out("NO IMPACT", sp.type); }
+    if (s0 > e0) { reasons.push(winKnown ? `Ngoài khung giờ ${wLabel}.` : `Ngoài khung giờ chuyến bay (kể cả trễ ${maxD}′).`); return out("NO IMPACT", sp.type); }
     if (!sched.always) {
       let alive = false, unknown = false;
       for (let t = s0.getTime(); t <= e0.getTime(); t += MIN) {
@@ -888,7 +890,7 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
         if (r === null) unknown = true;
       }
       if (!alive && !unknown) {
-        reasons.push(winKnown ? `Lịch D) "${String(n.d_field)}" không bật trong cửa sổ ${wLabel}.` : `Lịch D) "${String(n.d_field)}" không bật trong thời gian chuyến.`);
+        reasons.push(winKnown ? `Lịch D) "${String(n.d_field)}" không hoạt động trong khung giờ ${wLabel}.` : `Lịch D) "${String(n.d_field)}" không hoạt động trong giờ chuyến bay.`);
         return out("NO IMPACT", sp.type);
       }
     }
@@ -917,7 +919,7 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
       const dPort = lowEnroutePortDistNm(n, f);
       const keepNm = Number.isFinite(Number(cfg.enroute_low_port_nm)) ? Number(cfg.enroute_low_port_nm) : ENROUTE_LOW_PORT_NM;
       if (dPort !== null && dPort > keepNm) {
-        reasons.push(`FIR ${firCode} là FIR enroute, vùng NOTAM cách DEP/ARR ${dPort.toFixed(0)} NM (> ${keepNm} NM); trần FL${band[1]} dưới FL100 không tính.`);
+        reasons.push(`Trần FL${String(band[1]).padStart(3, "0")} dưới FL100 tại FIR giữa đường ${firCode} — cách sân đi/đến ${dPort.toFixed(0)} NM (> ${keepNm} NM).`);
         return out("NO IMPACT", sp.type);
       }
       reasons.push(dPort === null
@@ -930,7 +932,10 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
     const hi = band[1] >= 900 ? band[1] : band[1] + pad;
     const padTxt = pad && band[1] < 900 ? ` (buffer ±${pad * 100}ft → FL${lo}–FL${hi})` : "";
     if (!(lo <= fr[1] && fr[0] <= hi)) {
-      reasons.push(`FL kế hoạch ${fr[0]}${fr[1] !== fr[0] ? "–" + fr[1] : ""} ngoài dải NOTAM FL${band[0]}–FL${band[1]}${padTxt}.`);
+      const bufTxt = pad && band[1] < 900 ? ` (đã tính buffer ${pad * 100} ft)` : "";
+      reasons.push(fr[0] > hi
+        ? `Trần NOTAM FL${String(band[1]).padStart(3, "0")} thấp hơn mực bay FL${fr[0]}${bufTxt}.`
+        : `Sàn NOTAM FL${String(band[0]).padStart(3, "0")} cao hơn mực bay FL${fr[1]}${bufTxt}.`);
       if (sp.type === "ROUTE-SEGMENT") return out("BRIEFING INFO", sp.type);
       return out("NO IMPACT", sp.type);
     }
@@ -972,6 +977,6 @@ function assessSpatial(n: Notam, code: string, kind: string, f: AssessFlight, cf
     if (r === null) unknown = true;
   }
   if (unknown) { reasons.push("Có phút không tính được lịch hoạt động."); return out("NEED MANUAL CHECK", sp.type); }
-  reasons.push(`Không có phút nào giao giờ phơi nhiễm (kể cả trễ ${maxD}′).`);
+  reasons.push(`Không hoạt động trong giờ bay qua (kể cả trễ ${maxD}′).`);
   return out("NO IMPACT", sp.type);
 }

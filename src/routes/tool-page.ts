@@ -3355,7 +3355,7 @@ function nmPaintPinBar(n, place){`)
     // REQ change actions keep only the old sector OFP's alternates; KHB exports are unchanged.
     .replace('Payload, Extra (phút), DSP giữ theo OFP cũ trên FliteBrief', 'Payload, Extra (phút), DSP, ALT1/ALT2/TALT giữ theo OFP cũ trên FliteBrief')
     .replace('+ \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)', '+ \'<div data-req-alternates style="padding:0 20px 14px;font:700 14px/1.5 sans-serif">ALT (OFP cũ): \'+esc([d.alt1,d.alt2].filter(Boolean).join(" / ") || "Không có")+\' · TALT (OFP cũ): \'+esc(d.talt || "Không có")+\'</div>\'\n    + \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.77')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.78')
     // V 7.53: bảng FLT NO kéo thả qua các ô tick để tick/bỏ tick nhiều chuyến một lần.
     // V 7.49: NOTAM Romania (LRBB) / Hungary (LHCC) gọi tên vùng D/R/P/TRA/TSA/SG được vẽ từ AIP; toạ độ châu Âu dấu phẩy thập phân (495750,21N…) được đọc.
     // V 7.48: Enter/↑↓ và dán nhiều dòng ở bảng FLT NO bỏ qua ô tick, đi đúng ô nhập dòng kế.
@@ -3563,7 +3563,7 @@ header#mdRoom .filt-actions #btnAims{overflow:visible !important}
 @keyframes aimsIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
 </style><script>${aimsCrewlistScript}</script></body>`)
     .replace('      sid_star_hit_names: n.sid_star_hit_names\n    }))', '      sid_star_hit_names: n.sid_star_hit_names,\n      sup_geoms: n.sup_geoms\n    }))')
-    .replace('if(as && as.level === "NO IMPACT" && critIds.has(ident)){', 'if(as && as.level === "NO IMPACT" && critIds.has(ident) && !/Lịch D\\)|B–C ngoài cửa sổ|B–C không giao/.test((as.reasons || []).join(" "))){')
+    .replace('if(as && as.level === "NO IMPACT" && critIds.has(ident)){', 'if(as && as.level === "NO IMPACT" && critIds.has(ident) && !/Lịch D\\)|Ngoài khung giờ|B–C ngoài cửa sổ|B–C không giao/.test((as.reasons || []).join(" "))){')
     .replace('    if(h.impact === "ref") continue;\n    if(h.kind === "FIR"', '    if(h.impact === "ref") continue;\n    if(!nmHitTimeOk(h)) continue;\n    if(h.kind === "FIR"')
     .replace('  const n = (place.notams || []).filter(x => nmMatchItem(x, q)).length;', '  const n = (place.notams_src || [...(place.notams || []), ...(place.dropped || [])]).filter(x => nmMatchItem(x, q)).length;')
     .replace('    nmPick = place.code;\n    nmShowDropped = false;', '    nmPick = place.code;\n    window.nmOvGroup = "";\n    nmShowDropped = false;')

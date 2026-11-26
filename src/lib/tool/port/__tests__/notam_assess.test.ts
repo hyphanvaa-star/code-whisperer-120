@@ -141,3 +141,26 @@ describe("contact details are not an admin filter", () => {
     expect(run({ e_field: "LANDING CHARGES REVISED" }).match_type).toBe("ADMIN");
   });
 });
+
+describe("dropped NOTAM states one core reason", () => {
+  it("far area: only the distance, no passed-gate text", () => {
+    const r = run({ e_field: "MIL EXER WI 5NM RADIUS OF 0500N10000E", coords: "0500N10000E005" }, "VVHM", "FIR");
+    expect(r.level).toBe("NO IMPACT");
+    expect(r.reasons).toHaveLength(1);
+    expect(r.reasons[0]).toMatch(/^Cách đường bay \d+ NM — ngoài hành lang \d+ NM\.$/);
+  });
+  it("outside the time window: only the time reason", () => {
+    const r = run({ e_field: "TWY E3 CLSD", start: "2026-10-12 00:00", end: "2026-10-13 00:00" });
+    expect(r.level).toBe("NO IMPACT");
+    expect(r.reasons).toHaveLength(1);
+    expect(r.reasons[0]).toMatch(/^Ngoài khung giờ /);
+  });
+  it("fees: only the admin reason", () => {
+    const r = run({ e_field: "LANDING FEES REVISED" });
+    expect(r.level).toBe("NO IMPACT");
+    expect(r.reasons).toEqual(["Thông tin phí/AIRAC — không ảnh hưởng khai thác."]);
+  });
+  it("a kept NOTAM still lists every gate", () => {
+    expect(run({ e_field: "ALL TWY CLSD DUE WIP" }).reasons.length).toBeGreaterThan(1);
+  });
+});

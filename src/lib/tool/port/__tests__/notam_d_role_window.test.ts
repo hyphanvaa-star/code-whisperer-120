@@ -19,7 +19,7 @@ describe("item D is checked inside the airport's own window", () => {
     const a = run("DAILY 1800-2300");
     for (const id of ["A4307/26", "A4309/26"]) {
       expect(a[`VVTS\t${id}`].level).toBe("NO IMPACT");
-      expect(a[`VVTS\t${id}`].reasons.join(" ")).toContain("không bật trong cửa sổ ENRT_ALT VVTS");
+      expect(a[`VVTS\t${id}`].reasons.join(" ")).toContain("không hoạt động trong khung giờ ENRT_ALT VVTS");
       expect(a[`VVTS\t${id}`].reasons.join(" ")).not.toContain("đúng giờ");
     }
   });
