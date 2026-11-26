@@ -630,8 +630,10 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
     }
   }
   // 13 admin content
-  if (!hardOnly && /\b(CHARGES?|FEES?|TEL\b|PHONE|NIL AIRAC|E-?MAIL)\b/.test(E) && !prohibit)
-    return no("ADMIN", "Nội dung phí/điện thoại/chart metadata/NIL AIRAC.");
+  // Contact details (TEL/PHONE/E-MAIL) never prove a NOTAM is administrative:
+  // UAV, firing and airspace NOTAMs always carry a coordination number.
+  if (!hardOnly && /\b(CHARGES?|FEES?|NIL AIRAC)\b/.test(E) && !prohibit)
+    return no("ADMIN", "Nội dung phí/chart metadata/NIL AIRAC.");
   // 14 ADS-B / GNSS / FIR frequency
   if (!hardOnly && kind === "FIR" && /\b(ADS-B|ADSB|GNSS|GPS|FREQ|FREQUENCY|VHF|HF|CPDLC)\b/.test(E) && /\b(U\/S|OUTAGE|NOT AVBL|UNRELIABLE|INTERFERENCE)\b/.test(E)) {
     const fir = qfir || code;

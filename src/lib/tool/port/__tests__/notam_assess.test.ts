@@ -124,3 +124,20 @@ describe("operational keyword catalogue", () => {
     expect(run({ e_field: "RWY 07L/25R CLSD" }).level).toBe("CRITICAL");
   });
 });
+
+describe("contact details are not an admin filter", () => {
+  const uav = "UNMANNED ACFT ACT WI 5NM RADIUS OF 0500N10000E. COOR TEL: 886-2-12345678";
+  it("a far UAV area with a TEL number is dropped for distance, not as ADMIN", () => {
+    const r = run({ e_field: uav, coords: "0500N10000E005" }, "VVHM", "FIR");
+    expect(r.level).toBe("NO IMPACT");
+    expect(r.match_type).not.toBe("ADMIN");
+    expect(r.reasons.join(" ")).not.toMatch(/điện thoại/);
+  });
+  it("a UAV area on the route with a TEL number is not NO IMPACT", () => {
+    const r = run({ e_field: "UNMANNED ACFT ACT WI 5NM RADIUS OF 1400N10748E. COOR TEL: 886-2-12345678 PHONE 123 E-MAIL A@B.C", coords: "1400N10748E005" }, "VVHM", "FIR");
+    expect(r.level).not.toBe("NO IMPACT");
+  });
+  it("fees and NIL AIRAC stay ADMIN", () => {
+    expect(run({ e_field: "LANDING CHARGES REVISED" }).match_type).toBe("ADMIN");
+  });
+});
