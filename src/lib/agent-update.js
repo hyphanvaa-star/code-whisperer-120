@@ -21,11 +21,11 @@ export function agentBadge(s){
   const want = String(s.updateWant || latest);
   if(s.updateError && agentVerNewer(want, have)){
     return {state: "fail", label: "⚠ " + have,
-      title: "Trợ lý PC chưa cập nhật được lên bản " + want + " (lý do: " + s.updateError + "). Đang chạy tiếp bản " + have + " bình thường. Bấm để thử cập nhật lại."};
+      title: "Trợ lý PC: đã kết nối · bản " + have + " · cập nhật " + want + " lỗi: " + s.updateError};
   }
   if(latest && agentVerNewer(latest, have)){
     return {state: "old", label: "⚠ " + have,
-      title: "Trợ lý PC đang chạy bản " + have + ", web đã có bản " + latest + ". Sẽ tự cài khi bật lại trợ lý đầu ca, hoặc bấm để cập nhật ngay."};
+      title: "Trợ lý PC: đã kết nối · bản " + have + " · có bản " + latest};
   }
   return {state: "ok", label: "", title: ""};
 }
