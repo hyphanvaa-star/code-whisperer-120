@@ -4,6 +4,7 @@ import { getJson, setJson } from "../store.server";
 import { loadFlights } from "../core/gantts.server";
 import { loadBriefingData } from "../briefing-data.server";
 import { callsignKey, parseCallsigns } from "../port/notam_pin";
+import { attentionCode, attentionOf } from "../port/briefing_attention";
 import {
   BriefReleaseError,
   buildSheet,
@@ -105,6 +106,8 @@ export const routes: Routes = {
     try {
       const { sheet, identity } = await draftWithIdentity(ctx, flight, true);
       const saved = await loadEdits(ctx, identity);
+      // Background badge scan: only what still needs the dispatcher, no sheet HTML.
+      if (body["attention_only"]) return { ok: true, callsign: sheet.callsign, attention: attentionCode(attentionOf(sheet)), edited: !!saved };
       return toDict(sheet, { edit: true, edited: !!saved });
     } catch (exc) {
       return { error: errorMessage(exc) };

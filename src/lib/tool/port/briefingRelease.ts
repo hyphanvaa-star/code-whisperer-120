@@ -3,6 +3,7 @@
 // here; handlers/briefing_release.server.ts wires this into the web app.
 import { icaoFromIata } from "./airport_icao";
 import { applyToSheet, isNotamPlaceholder, type PinStore, type SheetPinContext } from "./notam_pin";
+import { attentionCode, attentionOf, blockMissingTafs, isTafEmpty, sigmetUnreadFirs, stripTafHint, tafTemplate } from "./briefing_attention";
 
 export class BriefReleaseError extends Error {}
 
@@ -467,8 +468,18 @@ function editInp(name: string, text: string, extra = "bf-icao"): string {
 
 function wxBlob(sheet: ReleaseSheet, idx: number): string {
   if (idx >= sheet.wx.length) return "NIL";
-  const texts = (sheet.wx[idx].texts || []).filter(Boolean);
-  return texts.length ? texts.join("\n\n") : "NIL";
+  const block = sheet.wx[idx];
+  const texts = (block.texts || []).filter(Boolean);
+  // An airport without a TAF gets a ready-made line to paste over; it prints as NIL until filled.
+  const aligned = texts.length === block.icaos.length;
+  const shown = texts.map((t, i) => (aligned && block.icaos[i] && isTafEmpty(t) ? tafTemplate(block.icaos[i]) : t));
+  return shown.length ? shown.join("\n\n") : "NIL";
+}
+
+function wxEdit(sheet: ReleaseSheet, idx: number): string {
+  const miss = blockMissingTafs(sheet.wx[idx]);
+  const note = miss.length ? `<div class='bf-miss'>⚠ Thiếu TAF: ${escapeHtml(miss.join(" "))} — dán TAF từ nguồn khác</div>` : "";
+  return note + editArea(`wx${idx}`, wxBlob(sheet, idx), miss.length ? "bf-warn" : "");
 }
 
 export function toEditHtml(sheet: ReleaseSheet): string {
@@ -481,7 +492,9 @@ export function toEditHtml(sheet: ReleaseSheet): string {
   const tech = "Check Tech log<br>for updates<br>REG: " + editInp("reg", sheet.reg || "", "bf-icao");
   const defectTxt = defectBullets(sheet.defects).join("\n");
   const sigText = sigWxText(sheet.sig_wx);
-  const sig = editArea("sig_wx", sigText, sigText.includes("\n") ? "bf-notam" : "bf-center");
+  const unreadFirs = sigmetUnreadFirs(sigText);
+  const sig = (unreadFirs.length ? `<div class='bf-miss'>⚠ Chưa đọc được SIGMET: ${escapeHtml(unreadFirs.join(" "))} — tự kiểm tra rồi sửa ô này</div>` : "")
+    + editArea("sig_wx", sigText, (sigText.includes("\n") ? "bf-notam" : "bf-center") + (unreadFirs.length ? " bf-warn" : ""));
   const nt = padNotams(sheet.notams);
   const n0 = editArea("notam0", nt[0], "bf-notam");
   const n1 = editArea("notam1", nt[1], "bf-notam");
@@ -490,7 +503,7 @@ export function toEditHtml(sheet: ReleaseSheet): string {
   const n4 = editArea("notam4", nt[4], "bf-notam");
   const n5 = editArea("notam5", nt[5], "bf-notam");
   const split = splitDestAlts(sheet);
-  const hiddenCs = `<input type='hidden' data-bf='callsign' value='${escapeHtml(sheet.callsign)}'>`;
+  const hiddenCs = `<input type='hidden' data-bf='callsign' value='${escapeHtml(sheet.callsign)}'><input type='hidden' data-bf-attn='${escapeHtml(attentionCode(attentionOf(sheet)))}'>`;
   const depStatic = `Dept. APT (${escapeHtml(sheet.dep || "—")})`;
   const destStatic = `Dest. APT (${escapeHtml(sheet.dest || "—")})`;
   const destAltStatic = aptHtml("Dest. Alternate(s)", sheet.dest_alts);
@@ -513,19 +526,19 @@ export function toEditHtml(sheet: ReleaseSheet): string {
     <tr>
       <td class="br-c1" rowspan="5">${htmlLines(WEATHER_SIDE)}</td>
       <td class="br-c2">${depL}</td>
-      <td class="br-c3 br-taf">${editArea("wx0", wxBlob(sheet, 0))}</td>
+      <td class="br-c3 br-taf">${wxEdit(sheet, 0)}</td>
     </tr>
     <tr>
       <td class="br-c2">${destL}</td>
-      <td class="br-c3 br-taf">${editArea("wx1", wxBlob(sheet, 1))}</td>
+      <td class="br-c3 br-taf">${wxEdit(sheet, 1)}</td>
     </tr>
     <tr>
       <td class="br-c2">${destAltL}</td>
-      <td class="br-c3 br-taf">${editArea("wx2", wxBlob(sheet, 2))}</td>
+      <td class="br-c3 br-taf">${wxEdit(sheet, 2)}</td>
     </tr>
     <tr>
       <td class="br-c2">${enrAltL}</td>
-      <td class="br-c3 br-taf">${editArea("wx3", wxBlob(sheet, 3))}</td>
+      <td class="br-c3 br-taf">${wxEdit(sheet, 3)}</td>
     </tr>
     <tr>
       <td class="br-c2">En-route SIG Wx</td>
@@ -819,7 +832,7 @@ function wxTextsOf(data: Record<string, unknown>, idx: number, fallback: string[
   if (key in data && data[key] !== null && data[key] !== undefined) {
     const blob = String(data[key]).trim();
     if (!blob) return ["NIL"];
-    const parts = blob.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+    const parts = blob.split(/\n\s*\n/).map((p) => stripTafHint(p.trim())).filter(Boolean);
     return parts.length ? parts : [blob];
   }
   const wx = data["wx"];
@@ -909,6 +922,7 @@ export function toDict(sheet: ReleaseSheet, opts: { edit?: boolean; edited?: boo
     html: toHtml(sheet),
     text: toText(sheet),
     edited: Boolean(opts.edited),
+    attention: attentionCode(attentionOf(sheet)),
   };
   if (opts.edit) {
     out["edit_html"] = toEditHtml(sheet);

@@ -43,6 +43,7 @@ import { patchCmpValidationPage } from '@/lib/tool/port/cmp_validation';
 import { patchCmpBatchPage } from '@/lib/tool/port/cmp_batch';
 import { patchCmpDspFastPage } from '@/lib/tool/port/cmp_dsp_fast';
 import { patchCmpLimitAutoPage } from '@/lib/tool/port/cmp_limit_auto';
+import { patchBriefingAttentionPage } from '@/lib/tool/port/briefing_attention';
 import { patchKhbAirportHoverPage } from '@/lib/tool/port/khb_airport_hover';
 import { patchKhbAirportWxPage } from '@/lib/tool/port/khb_airport_wx';
 import { patchCmpCrewHoverPage } from '@/lib/tool/port/cmp_crew_hover';
@@ -3354,7 +3355,7 @@ function nmPaintPinBar(n, place){`)
     // REQ change actions keep only the old sector OFP's alternates; KHB exports are unchanged.
     .replace('Payload, Extra (phút), DSP giữ theo OFP cũ trên FliteBrief', 'Payload, Extra (phút), DSP, ALT1/ALT2/TALT giữ theo OFP cũ trên FliteBrief')
     .replace('+ \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)', '+ \'<div data-req-alternates style="padding:0 20px 14px;font:700 14px/1.5 sans-serif">ALT (OFP cũ): \'+esc([d.alt1,d.alt2].filter(Boolean).join(" / ") || "Không có")+\' · TALT (OFP cũ): \'+esc(d.talt || "Không có")+\'</div>\'\n    + \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.74')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.75')
     // V 7.53: bảng FLT NO kéo thả qua các ô tick để tick/bỏ tick nhiều chuyến một lần.
     // V 7.49: NOTAM Romania (LRBB) / Hungary (LHCC) gọi tên vùng D/R/P/TRA/TSA/SG được vẽ từ AIP; toạ độ châu Âu dấu phẩy thập phân (495750,21N…) được đọc.
     // V 7.48: Enter/↑↓ và dán nhiều dòng ở bảng FLT NO bỏ qua ô tick, đi đúng ô nhập dòng kế.
@@ -3773,6 +3774,7 @@ function paintExtra(td, f){`)
   cached = patchNotamMapSearchPage(cached);
   cached = patchNotamSectorStatePage(cached);
   cached = patchCmpLimitAutoPage(cached);
+  cached = patchBriefingAttentionPage(cached);
   return cached;
 }
 
