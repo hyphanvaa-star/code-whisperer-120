@@ -2494,6 +2494,8 @@ function paintLimitWarns(td, warns, f){
     .replace('  if(mode === "limits") limRender();', '  if(mode === "limits") limRender();\n  repaintLimitCells(flights.map(f => f.id));')
     .replace('  if(typeof limRender === "function") limRender();', '  if(typeof limRender === "function") limRender();\n  repaintLimitCells(flights.map(f => f.id));')
     .replace('</head>', '<style>.lim-bang.ok{color:var(--vj-dark-ink);border-radius:50%;background:var(--vj-green)}.lim-bang.ok::before{display:none}.taf-tip .lim-pass .lim-tip-head,.taf-tip .lim-pass .lim-tip-rule{color:var(--hover-success)!important}</style></head>')
+    // TAF cells show only the sun/storm icon: no green/red status fill behind it in any table or theme.
+    .replace('</head>', '<style>html .vd.taf-wx,html .cmptbl .vd.taf-wx,html.night .vd.taf-wx,html.night .cmptbl .vd.taf-wx,html.tint.night .cmptbl .vd.taf-wx{background:transparent !important;border:0 !important;padding:0 !important;box-shadow:none}html .vd.taf-wx.taf-flash{box-shadow:0 0 0 0 rgba(192,54,44,.55)}</style></head>')
     // Shared pilot formatting for KHB load/pick/edit/export; source names remain intact.
     .replace('function ftCrewLabel(person){', khbPilotNameScript.replace('export function', 'function') + '\nfunction ftCrewLabel(person){')
     .replace('if(person && person.label) return String(person.label);', 'if(person && person.label) return limitKhbPilotName(person.label);')
@@ -3355,7 +3357,7 @@ function nmPaintPinBar(n, place){`)
     // REQ change actions keep only the old sector OFP's alternates; KHB exports are unchanged.
     .replace('Payload, Extra (phút), DSP giữ theo OFP cũ trên FliteBrief', 'Payload, Extra (phút), DSP, ALT1/ALT2/TALT giữ theo OFP cũ trên FliteBrief')
     .replace('+ \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)', '+ \'<div data-req-alternates style="padding:0 20px 14px;font:700 14px/1.5 sans-serif">ALT (OFP cũ): \'+esc([d.alt1,d.alt2].filter(Boolean).join(" / ") || "Không có")+\' · TALT (OFP cũ): \'+esc(d.talt || "Không có")+\'</div>\'\n    + \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.78')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.79')
     // V 7.53: bảng FLT NO kéo thả qua các ô tick để tick/bỏ tick nhiều chuyến một lần.
     // V 7.49: NOTAM Romania (LRBB) / Hungary (LHCC) gọi tên vùng D/R/P/TRA/TSA/SG được vẽ từ AIP; toạ độ châu Âu dấu phẩy thập phân (495750,21N…) được đọc.
     // V 7.48: Enter/↑↓ và dán nhiều dòng ở bảng FLT NO bỏ qua ô tick, đi đúng ô nhập dòng kế.
