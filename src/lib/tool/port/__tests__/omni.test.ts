@@ -137,6 +137,16 @@ describe("omni.ts — match()", () => {
     expect(got.get(915)!.omni.est_payload).toBe(15000.0);
   });
 
+  it("VJ5029 TXN 17:45 LT is 09:45Z (UTC+8 from Airport Database), not the empty 17:00 record", () => {
+    expect(omni.iataUtcOffsetH("TXN")).toBe(8);
+    const fb = mkFb("5029", new Date(Date.UTC(2026, 10, 26, 9, 45)), "TXN", "SGN");
+    const rows = [
+      mkOmni("5029", { y: 2026, m: 10, d: 26 }, "17:00", 0, "TXN", "SGN"),
+      mkOmni("5029", { y: 2026, m: 10, d: 26 }, "17:45", 20140.0, "TXN", "SGN"),
+    ];
+    expect(omni.match([fb], rows).get(5029)!.omni.est_payload).toBe(20140.0);
+  });
+
   it("MNL 03:00 LT is 19:00Z so today board takes next local day", () => {
     expect(omni.omniStdUtc(mkOmni("859", { y: 2026, m: 7, d: 17 }, "03:00", 0, "MNL", "SGN"))).toEqual(
       new Date(Date.UTC(2026, 7, 16, 19, 0)),

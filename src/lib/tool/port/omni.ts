@@ -7,6 +7,7 @@
 // `Date` objects built with `Date.UTC(...)` so the wall-clock numbers are kept
 // in the UTC getters, same convention as the other ports (taf.ts, notam_check.ts).
 import type { Flight } from "../core/models";
+import WORLD_TZ from "../data/world_tz.json";
 
 export const API = "https://ifs-api.vietjetair.com/bo-api";
 export const WEB = "https://ifs-backoffice.vietjetair.com";
@@ -321,9 +322,15 @@ function after1700z(stdUtc: Date): boolean {
   return h > OVERWRITE_AFTER_Z[0] || (h === OVERWRITE_AFTER_Z[0] && m > OVERWRITE_AFTER_Z[1]);
 }
 
-/** Lệch UTC của sân bay đi. Không biết thì +7 (VN), đơn vị giờ. */
+/** Lệch UTC của sân bay đi (giờ). Bảng riêng trước, rồi Airport Database
+ * (world_tz) — sân lạ như TXN không được rơi về +7 kẻo bốc nhầm bản ghi Omni. */
 export function iataUtcOffsetH(iata: string): number {
-  return IATA_UTC_H[(iata || "").trim().toUpperCase()] ?? 7;
+  const code = (iata || "").trim().toUpperCase();
+  const own = IATA_UTC_H[code];
+  if (own !== undefined) return own;
+  const m = /^([+-])?(\d{1,2}):(\d{2})$/.exec(String((WORLD_TZ as Record<string, string>)[code] || ""));
+  if (m) return (m[1] === "-" ? -1 : 1) * (Number(m[2]) + Number(m[3]) / 60);
+  return 7;
 }
 
 function addDaysUtc(day: { y: number; m: number; d: number }, n: number): { y: number; m: number; d: number } {
