@@ -426,7 +426,14 @@ export class Db {
     this.alt = _first(raw.alt || []);
     this.alt_route = Db._loadAltRoute(raw, opts?.altRoutesDoc);
     this.tz = { ...(WORLD_TZ as Record<string, string>) };
-    for (const row of raw.tz || []) if (row && row[0]) this.tz[row[0]] = row[1];
+    for (const row of raw.tz || []) {
+      const code = String(row?.[0] ?? "").trim().toUpperCase();
+      const offset = String(row?.[1] ?? "").trim();
+      if (!code || !offset || _minutes(offset) === null) continue;
+      this.tz[code] = offset;
+      const icao = icaoFromIata(code);
+      if (icao) this.tz[icao] = offset;
+    }
     this.taxi = _first(raw.taxi || []);
     this.domestic = new Set((raw.domestic || []).map((x: any) => String(x).toUpperCase()));
     this.neo = new Set((raw.neo || []).map((x: any) => String(x).toUpperCase()));
@@ -500,6 +507,11 @@ export class Db {
   flight(rowId: number): Raw | null {
     return this.by_id[rowId] ?? null;
   }
+
+  timezone(code: unknown): string {
+    const key = String(code ?? "").trim().toUpperCase();
+    return String(this.tz[key] || this.tz[icaoFromIata(key)] || "");
+  }
 }
 
 function _routeKey(flight: Raw): string {
@@ -545,8 +557,8 @@ export function eta_utc_when(db: Db, flight: Raw): Date | null {
   const arr = String(flight.arr || "").toUpperCase();
   const depM = _minutes(String(flight.etd || ""));
   const arrM = _minutes(String(flight.eta || "") || String(flight.sta || ""));
-  const depOff = _minutes(String(db.tz[dep] || ""));
-  const arrOff = _minutes(String(db.tz[arr] || ""));
+  const depOff = _minutes(db.timezone(dep));
+  const arrOff = _minutes(db.timezone(arr));
   if (depM === null || arrM === null || depOff === null || arrOff === null) return null;
   const base = Date.UTC(year, month - 1, day);
   if (Number.isNaN(base)) return null;
@@ -561,7 +573,7 @@ export function etd_utc_when(db: Db, flight: Raw): Date | null {
   if (!dm) return null;
   const [day, month, year] = dm;
   const depM = _minutes(String(flight.etd || ""));
-  const depOff = _minutes(String(db.tz[String(flight.dep || "").toUpperCase()] || ""));
+  const depOff = _minutes(db.timezone(flight.dep));
   if (depM === null || depOff === null) return null;
   const base = Date.UTC(year, month - 1, day);
   if (Number.isNaN(base)) return null;
@@ -804,7 +816,7 @@ export function render_fpl(db: Db, flight: Raw, opts: RenderOpts = {}): string {
   let alt2 = opts.alt2 == null ? (ofpOnly ? '' : defaults.alt2) : opts.alt2;
   talt = String(talt || ""); alt1 = String(alt1 || ""); alt2 = String(alt2 || "");
   const etdLocal = String(flight.etd || "");
-  let utc = _utc(etdLocal, String(db.tz[dep] || ""));
+  let utc = _utc(etdLocal, db.timezone(dep));
   if (opts.utc_choice != null) utc = String(opts.utc_choice).replace(/\D/g, "");
   const suffix = opts.rte != null && opts.rte !== "" ? String(opts.rte).trim() : _suffix(opts.routeTable || [], route, utc);
   const cpt = _person(opts.cpt_id !== undefined ? opts.cpt_id : flight.cpt_id, opts.cpt_name !== undefined ? opts.cpt_name : flight.cpt_name);
@@ -968,7 +980,7 @@ export function public_flights(
       fo: _person(flight.fo_id, flight.fo_name),
       captains: [...(flight.captains || [])],
       fos: [...(flight.fos || [])],
-      utc: _utc(String(flight.etd || ""), String(db.tz[String(flight.dep || "").toUpperCase()] || "")),
+      utc: _utc(String(flight.etd || ""), db.timezone(flight.dep)),
       eta_utc: eta_utc_hhmm(db, flight),
       pcr_to: pcrTo,
       pcr_p10: pcrP10,
