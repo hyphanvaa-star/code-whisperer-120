@@ -5,7 +5,7 @@
   const dialog = document.createElement('dialog');
   dialog.id = 'aviwebEditor'; dialog.className = 'avi-editor';
   dialog.setAttribute('aria-labelledby', 'aviTitle');
-  dialog.innerHTML = '<header><div><span class="avi-kicker">AVIWEB · ATC</span><h2 id="aviTitle">Điện văn AviWeb</h2></div><button class="btn" type="button" aria-label="Đóng bảng AviWeb" title="Đóng">✕</button></header><div class="avi-layout"><nav aria-label="Chuyến đã chọn" id="aviFlights"></nav><section class="avi-main"><div id="aviSource" class="avi-source"></div><div id="aviFields" class="avi-fields"></div><div class="avi-tokens" id="aviTokens"></div><div class="avi-preview-head"><h3 id="aviPreviewTitle">Điện văn</h3><span id="aviStep"></span></div><pre id="aviPreview" aria-labelledby="aviPreviewTitle"></pre><div id="aviError" role="alert"></div><div id="aviStatus" role="status" aria-live="polite"></div><pre id="aviLog"></pre></section></div><footer><div class="avi-actions"><button class="btn" type="button" id="aviCopy" title="Copy điện văn">⧉ Copy</button><button class="btn" type="button" id="aviExport" title="Xuất tất cả điện đã chọn">↓ Xuất TXT</button><button class="btn" type="button" id="aviCheckStatus" title="Đọc lại trạng thái lệnh">↻ Trạng thái</button></div><div class="avi-actions"><label class="avi-manual" title="Mở Chrome thật: Trợ lý PC điền và kiểm tra xong thì dừng, anh tự bấm Submit trên AviWeb"><input type="checkbox" id="aviManual"><span>Hiện Chrome · tôi tự bấm Submit</span></label><button class="btn" type="button" id="aviReview">Xem lại</button><button class="btn" type="button" id="aviBack" hidden>← Chỉnh sửa</button><button class="btn primary" type="button" id="aviConfirm" hidden>Xác nhận gửi AviWeb</button></div></footer>';
+  dialog.innerHTML = '<header><div><span class="avi-kicker">AVIWEB · ATC</span><h2 id="aviTitle">Điện văn AviWeb</h2></div><button class="btn" type="button" aria-label="Đóng bảng AviWeb" title="Đóng">✕</button></header><div class="avi-layout"><nav aria-label="Chuyến đã chọn" id="aviFlights"></nav><section class="avi-main"><div id="aviSource" class="avi-source"></div><div id="aviFields" class="avi-fields"></div><div class="avi-tokens" id="aviTokens"></div><div class="avi-preview-head"><h3 id="aviPreviewTitle">Điện văn</h3><span id="aviStep"></span></div><pre id="aviPreview" aria-labelledby="aviPreviewTitle"></pre><div id="aviError" role="alert"></div><div id="aviStatus" role="status" aria-live="polite"></div><pre id="aviLog"></pre></section></div><footer><label class="avi-manual" title="Mở Chrome thật: Trợ lý PC điền và kiểm tra xong thì dừng, anh tự bấm Submit trên AviWeb"><input type="checkbox" role="switch" id="aviManual"><span class="avi-manual-text"><b>Hiện Chrome</b><small>Tôi tự bấm Submit trên AviWeb</small></span></label><div class="avi-actions"><button class="btn ghost" type="button" id="aviCheckStatus" title="Đọc lại kết quả gửi từ Trợ lý PC" hidden>↻ Cập nhật kết quả</button><button class="btn ghost" type="button" id="aviClose">Đóng</button><button class="btn" type="button" id="aviBack" hidden>← Sửa lại</button><button class="btn primary" type="button" id="aviReview">Xem lại điện →</button><button class="btn primary" type="button" id="aviConfirm" hidden>Gửi AviWeb</button></div></footer>';
   document.body.appendChild(dialog);
   const el = id => dialog.querySelector('#' + id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,9 +22,10 @@
     try { el('aviManual').checked = localStorage.getItem(manualKey()) === '1'; } catch (_) { el('aviManual').checked = false; }
     manualLabel();
   }
-  function manualLabel() { el('aviConfirm').textContent = el('aviManual').checked ? 'Mở Chrome · tôi bấm Submit' : 'Xác nhận gửi AviWeb'; }
+  function manualLabel() { el('aviConfirm').textContent = el('aviManual').checked ? 'Mở Chrome để gửi' : 'Gửi AviWeb'; }
   el('aviManual').onchange = () => { try { localStorage.setItem(manualKey(), el('aviManual').checked ? '1' : '0'); } catch (_) {} manualLabel(); };
   dialog.querySelector('header button').onclick = close;
+  el('aviClose').onclick = close;
   dialog.addEventListener('cancel', e => { e.preventDefault(); close(); });
   dialog.addEventListener('click', e => { if (e.target === dialog) e.stopPropagation(); });
   function error(e) { el('aviError').textContent = e instanceof Error ? e.message : String(e || ''); }
@@ -49,9 +50,9 @@
     el('aviReview').disabled = locked || !plan;
     el('aviBack').disabled = locked;
     el('aviManual').disabled = locked;
-    el('aviCopy').disabled = !plan;
-    el('aviExport').disabled = !plan;
+    el('aviCheckStatus').hidden = !job;
     el('aviCheckStatus').disabled = !plan || loading || submitting;
+    dialog.querySelector('.avi-manual').hidden = job;
     dialog.querySelectorAll('#aviFields input,#aviTokens input,#aviTokens button,#aviFields select').forEach(i => { i.disabled = reviewed || locked || i.dataset.locked === '1'; });
     el('aviStep').textContent = job ? 'Kết quả gửi' : reviewed ? 'Xác nhận · ' + messages.length + ' điện' : 'Chỉnh điện · ' + messages.length + ' chuyến';
     dialog.classList.toggle('avi-review', reviewed || job);
@@ -116,8 +117,6 @@
   }
   el('aviReview').onclick = () => { try { content(); reviewed = true; render(); } catch(e) { error(e); } };
   el('aviBack').onclick = () => { reviewed = false; render(); };
-  el('aviCopy').onclick = async () => { try { await navigator.clipboard.writeText(reviewed ? content() : core.serialize(messages[index])); el('aviStatus').textContent = 'Đã copy điện văn'; } catch(e) { error(e); } };
-  el('aviExport').onclick = () => { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content()],{type:'text/plain;charset=utf-8'})); a.download = plan.operation + '-AVIWEB.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href),1000); } catch(e) { error(e); } };
   el('aviCheckStatus').onclick = () => { clearTimeout(timer); status(); };
   el('aviConfirm').onclick = async () => {
     if (!plan || !reviewed || submitting || job) return;
