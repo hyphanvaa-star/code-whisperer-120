@@ -159,7 +159,7 @@ describe('AviWeb explicit sector versus KHB ticks', () => {
     const request = vi.fn(async (_path: string, body: { operation: string }) => ({ operation: body.operation, content: '' }));
     const picked = vi.fn(() => [{ flt: '999', date: '2026-11-25', dep: 'VVDN', arr: 'RKSI' }]);
     const context = vm.createContext({ window: {}, request, ftPickedItems: picked, uid: () => 'tester',
-      alert: vi.fn(), core: { parse: () => [] }, clearTimeout, fitDialog() {}, syncManual() {}, controls() {}, render() {}, status: async () => {}, error() {},
+      alert: vi.fn(), core: { parse: () => [] }, clearTimeout, fitDialog() {}, syncManual() {}, controls() {}, render() {}, status: async () => {}, error() {}, setKind() {}, state() {},
       el: () => ({}), dialog: { open: false, showModal() {} },
       plan: null, messages: [], index: 0, reviewed: false, submitting: false, job: false, timer: null, owner: 'tester', activeOp: '', loading: false });
     if (start < 0 || end < start) throw new Error('Editor opener missing');

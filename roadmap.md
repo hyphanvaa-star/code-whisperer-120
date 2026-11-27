@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.94: bảng DLA/CHG AviWeb có màu theo loại điện (đầu bảng, nhãn loại, khung điện văn, trạng thái); bỏ bước "Xem lại", một nút Submit gửi thẳng.
 - [x] V 7.93: hàng nút dưới bảng DLA/CHG AviWeb thiết kế lại — bỏ Copy và Xuất TXT, công tắc "Hiện Chrome", nút Đóng, "Cập nhật kết quả" chỉ hiện khi đã giao lệnh, nút gửi nổi bật.
 - [x] V 7.92: bảng "Tất cả" (Điện văn, Đổi crew/tàu, Xuất REQ, Đổi briefing, Verify) có nút Dừng khi đang chạy: chuyến đang chạy làm xong, các chuyến sau không chạy, Đóng/✕ mở lại ngay. Chưa publish.
 - [x] V 7.89: bảng "Tất cả" của cột Điện văn thiết kế lại — cột Loại điện (DLA/CHG/CHG/DLA), nhãn tick theo loại, Submit AMHS hoặc AviWeb (AviWeb mỗi lần một loại). Chưa publish.

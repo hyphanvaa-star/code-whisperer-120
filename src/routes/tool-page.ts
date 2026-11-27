@@ -3359,7 +3359,8 @@ function nmPaintPinBar(n, place){`)
     // REQ change actions keep only the old sector OFP's alternates; KHB exports are unchanged.
     .replace('Payload, Extra (phút), DSP giữ theo OFP cũ trên FliteBrief', 'Payload, Extra (phút), DSP, ALT1/ALT2/TALT giữ theo OFP cũ trên FliteBrief')
     .replace('+ \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)', '+ \'<div data-req-alternates style="padding:0 20px 14px;font:700 14px/1.5 sans-serif">ALT (OFP cũ): \'+esc([d.alt1,d.alt2].filter(Boolean).join(" / ") || "Không có")+\' · TALT (OFP cũ): \'+esc(d.talt || "Không có")+\'</div>\'\n    + \'<pre style="margin:0;padding:16px 20px;overflow:auto;flex:1;background:#0f172a;color:#e2e8f0;font:13px/1.55 Consolas,monospace;white-space:pre">\'+esc(d.text)')
-    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.93')
+    .replace(/(id="appVersion"[^>]*>)V [\d.]+/, '$1V 7.94')
+    // V 7.94: bảng AviWeb nhiều màu hơn, bỏ bước Xem lại — một nút Submit gửi thẳng (máy chủ vẫn xác minh lại nguồn)
     // V 7.93: hàng nút bảng AviWeb gọn lại — bỏ Copy/Xuất TXT, công tắc Hiện Chrome, nút Đóng, nút gửi nổi bật
     // V 7.92: bảng "Tất cả" có nút Dừng khi đang chạy — chuyến đang chạy xong thì ngừng, chuyến sau không chạy
     // V 7.91: Crewlist mới/AIMS tự nạp không kéo về Flight Supervisor khi đang ở tab khác; đối chiếu chạy nền
