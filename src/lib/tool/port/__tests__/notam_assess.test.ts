@@ -163,4 +163,12 @@ describe("dropped NOTAM states one core reason", () => {
   it("a kept NOTAM still lists every gate", () => {
     expect(run({ e_field: "ALL TWY CLSD DUE WIP" }).reasons.length).toBeGreaterThan(1);
   });
+  it("a closed runway at an alternate is CRITICAL, never left to manual check", () => {
+    const f = flight({ roles: { VVTS: "DEP", VVNB: "ARR", ZUTF: "RALT", VVDN: "ALT" } });
+    const ralt = run({ e_field: "RWY01/19 CLOSED DUE TO MAINT.", scope: "A" }, "ZUTF", "AD", f);
+    expect(ralt.level).toBe("CRITICAL");
+    expect(run({ e_field: "RWY 17L/35R CLSD", scope: "A" }, "VVDN", "AD", f).level).toBe("CRITICAL");
+    // other alternate NOTAMs that close nothing keep their manual check
+    expect(run({ e_field: "ILS RWY 01 GP U/S", scope: "A" }, "ZUTF", "AD", f).level).toBe("NEED MANUAL CHECK");
+  });
 });

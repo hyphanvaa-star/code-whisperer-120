@@ -675,6 +675,10 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
       return airportHitC(code, f, "AIRPORT-MOVEMENT", "Đóng toàn bộ taxiway/apron/đường lăn — ảnh hưởng di chuyển trên sân.");
     if (!hardOnly && !RWY_CLSD.test(E)) return brief("BRIEFING-INFO", "Đóng một phần stand/apron/taxiway, sân còn đường khác — briefing.");
   }
+  // 17b a closed runway at any airport of the flight (DEP/ARR/alternates) is always an airport hit:
+  // never left to manual check or measured off the route, even when the remaining runways are unknown.
+  if (isAirport && RWY_CLSD.test(E))
+    return airportHitC(code, f, "RWY-CLOSED", `Đóng đường băng tại sân ${role} ${code}.`);
   // 18-22 geometry
   const isObst = /\b(OBST|OBSTACLE|CRANE|MAST|TOWER|POLE|CHIMNEY|ANTENNA|WIND TURBINE)\b/.test(E);
   const isUa = /\b(UA|UAS|UAV|RPAS|DRONE|DRONES|PJE|PARACHUT\w*|BALLOON|KITE)\b/.test(E);
