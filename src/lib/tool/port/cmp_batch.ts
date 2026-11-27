@@ -5,7 +5,7 @@
 import globalStyles from '@/styles.css?raw';
 
 export interface BatchItem { sid: string; label: string; detail: string; on?: boolean; kind?: string }
-export interface BatchResult { sid: string; label: string; ok: boolean; note: string }
+export interface BatchResult { sid: string; label: string; ok: boolean; note: string; skipped?: boolean }
 
 /** Keep only ticked items and drop duplicate sectors, preserving order. */
 export function cmpBatchPick(items: BatchItem[]): BatchItem[] {
@@ -67,21 +67,32 @@ export function cmpBatchAck(kind: string, items: BatchItem[], ack: (sid: string)
   return out;
 }
 
-/** Run items sequentially; one failure never stops the rest. */
+/**
+ * Run items sequentially; one failure never stops the rest. A stop request is
+ * honoured between flights only: the flight in progress finishes through its own
+ * handler, and the remaining ones are returned as skipped, never started.
+ */
 export async function cmpBatchRun(
   items: BatchItem[],
   exec: (item: BatchItem) => Promise<{ ok: boolean; note?: string }>,
   progress?: (done: number, total: number, item: BatchItem) => void,
+  stopped?: () => boolean,
 ): Promise<BatchResult[]> {
   const out: BatchResult[] = [];
+  let halted = false;
   for (let i = 0; i < items.length; i++) {
     const it = items[i];
+    if (halted || (stopped && stopped())) {
+      halted = true;
+      out.push({ sid: it.sid, label: it.label, ok: false, note: 'Đã dừng — chưa chạy', skipped: true });
+      continue;
+    }
     if (progress) progress(i, items.length, it);
     let r: { ok: boolean; note?: string };
     try { r = await exec(it); } catch (e) { r = { ok: false, note: (e as Error)?.message || String(e) }; }
     out.push({ sid: it.sid, label: it.label, ok: !!r.ok, note: r.note || '' });
   }
-  if (progress && items.length) progress(items.length, items.length, items[items.length - 1]);
+  if (progress && items.length && !halted) progress(items.length, items.length, items[items.length - 1]);
   return out;
 }
 
@@ -176,6 +187,9 @@ html body table.cmptbl thead tr th button.cmp-batch-btn.cmp-batch-btn:disabled{o
 #cmpBatchModal .btn.avi{background:var(--batch-avi)!important;border-color:var(--batch-avi)!important;color:var(--batch-on-accent)!important}
 #cmpBatchModal .btn{background-image:none!important}
 #cmpBatchModal .btn.ack{color:var(--batch-good)!important;border-color:var(--batch-good)!important}
+#cmpBatchModal .btn.stop{color:var(--batch-accent)!important;border-color:var(--batch-accent)!important}
+#cmpBatchModal .btn[hidden]{display:none}
+#cmpBatchModal .dt.skip{font-style:italic}
 #cmpBatchModal .btn:hover{filter:brightness(.96)}
 #cmpBatchModal .btn:disabled{opacity:.45;cursor:default}
 #cmpBatchModal .btn.icon{width:36px;min-height:36px;padding:0;border-color:transparent!important;color:var(--batch-muted)!important;flex:none}
@@ -323,9 +337,10 @@ const SCRIPT = String.raw`
     const checkIcon = icon('<path d="m5 12 4 4L19 6"/>');
     const closeIcon = icon('<path d="m6 6 12 12M18 6 6 18"/>');
     const sendIcon = icon('<path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z"/>');
+    const stopIcon = icon('<rect x="6" y="6" width="12" height="12" rx="2"/>');
     const listIcon = icon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>');
     const m = document.createElement("div"); m.id = "cmpBatchModal";
-    m.innerHTML = '<div class="bx" role="dialog" aria-modal="true" aria-labelledby="cmpBatchTitle"><div class="hd"><span class="hi">' + listIcon + '</span><div class="ht"><h2 id="cmpBatchTitle"></h2><div class="sub"></div></div><button type="button" class="btn icon" data-close aria-label="Đóng" title="Đóng">' + closeIcon + '</button></div><div class="tb"><label class="all"><input type="checkbox" data-all aria-label="Chọn tất cả chuyến"><span>Chọn tất cả</span></label><div class="chips" role="group" aria-label="Chọn theo loại điện"></div><span class="ct" aria-live="polite"></span></div><div class="ls"></div><div class="ac" hidden><strong></strong><button type="button" class="btn ack" data-ack-confirm>' + checkIcon + 'Xác nhận Ack</button><button type="button" class="btn icon" data-ack-cancel aria-label="Huỷ Ack" title="Huỷ Ack">' + closeIcon + '</button></div><div class="ft"><div class="pg" role="status"></div><button type="button" class="btn ack" data-ack title="Ack các chuyến đã tick, không chạy thao tác">' + checkIcon + 'Ack all</button><button type="button" class="btn" data-x>Đóng</button><span class="via" data-via hidden>Submit bằng</span><button type="button" class="btn primary" data-go>' + checkIcon + '<span></span></button><button type="button" class="btn avi" data-avi title="Mở bảng AviWeb cho các chuyến đã tick để kiểm tra rồi gửi">' + sendIcon + 'AviWeb</button></div></div>';
+    m.innerHTML = '<div class="bx" role="dialog" aria-modal="true" aria-labelledby="cmpBatchTitle"><div class="hd"><span class="hi">' + listIcon + '</span><div class="ht"><h2 id="cmpBatchTitle"></h2><div class="sub"></div></div><button type="button" class="btn icon" data-close aria-label="Đóng" title="Đóng">' + closeIcon + '</button></div><div class="tb"><label class="all"><input type="checkbox" data-all aria-label="Chọn tất cả chuyến"><span>Chọn tất cả</span></label><div class="chips" role="group" aria-label="Chọn theo loại điện"></div><span class="ct" aria-live="polite"></span></div><div class="ls"></div><div class="ac" hidden><strong></strong><button type="button" class="btn ack" data-ack-confirm>' + checkIcon + 'Xác nhận Ack</button><button type="button" class="btn icon" data-ack-cancel aria-label="Huỷ Ack" title="Huỷ Ack">' + closeIcon + '</button></div><div class="ft"><div class="pg" role="status"></div><button type="button" class="btn stop" data-stop hidden title="Dừng sau chuyến đang chạy; các chuyến còn lại không chạy">' + stopIcon + '<span>Dừng</span></button><button type="button" class="btn ack" data-ack title="Ack các chuyến đã tick, không chạy thao tác">' + checkIcon + 'Ack all</button><button type="button" class="btn" data-x>Đóng</button><span class="via" data-via hidden>Submit bằng</span><button type="button" class="btn primary" data-go>' + checkIcon + '<span></span></button><button type="button" class="btn avi" data-avi title="Mở bảng AviWeb cho các chuyến đã tick để kiểm tra rồi gửi">' + sendIcon + 'AviWeb</button></div></div>';
     m.querySelector("h2").textContent = col.name;
     const isMsg = col.key === "msg";
     m.classList.add("k-" + col.key);
@@ -499,10 +514,19 @@ const SCRIPT = String.raw`
       window.__aviwebOpen(op, list).catch(e => alert((e && e.message) || String(e)));
     };
     go.onclick = async () => {
-      const x = m.querySelector("[data-x]"), topClose = m.querySelector("[data-close]");
+      const x = m.querySelector("[data-x]"), topClose = m.querySelector("[data-close]"), stop = m.querySelector("[data-stop]");
       const chosen = cmpBatchPick(items);
       if(running || !chosen.length) return;
+      let stopAsked = false;
       endDrag(); running = true; update(); x.disabled = true; topClose.disabled = true;
+      stop.hidden = false; stop.disabled = false;
+      stop.onclick = () => {
+        if(stopAsked) return;
+        stopAsked = true; stop.disabled = true;
+        stop.querySelector("span").textContent = "Đang dừng…";
+        const s = pg.querySelector("span"); if(s) s.textContent = "Đang dừng — chờ chuyến đang chạy xong, các chuyến sau không chạy";
+      };
+      stop.focus();
       ls.querySelectorAll("input").forEach(i => { i.disabled = true; });
       pg.className = "pg"; pg.innerHTML = '<span></span><div class="bar"><i></i></div>';
       const oc = window.confirm, oa = window.alert, ofr = window.ftOpenAtcReview;
@@ -524,14 +548,16 @@ const SCRIPT = String.raw`
         }, (i, n, it) => {
           pg.querySelector("span").textContent = (i < n ? (i + 1) + "/" + n + " đang chạy… " + it.label : "Hoàn tất " + n + "/" + n);
           pg.querySelector("i").style.width = Math.round(i / n * 100) + "%";
-        });
+        }, () => stopAsked);
       }finally{
         window.confirm = oc; window.alert = oa;
         if(col.key === "msg") window.ftOpenAtcReview = ofr;
         running = false;
       }
-      const ok = results.filter(r => r.ok).length;
-      pg.querySelector("span").textContent = "Xong " + ok + "/" + results.length + (ok < results.length ? " · " + (results.length - ok) + " chuyến lỗi" : "");
+      stop.remove();
+      const ok = results.filter(r => r.ok).length, skipped = results.filter(r => r.skipped), ran = results.length - skipped.length;
+      skipped.forEach(r => { const it = chosen.find(i => i.sid === r.sid), el = it && it._el && it._el.querySelector(".dt"); if(el){ el.className = "dt skip"; el.textContent = r.note; } });
+      pg.querySelector("span").textContent = (skipped.length ? "Đã dừng · xong " : "Xong ") + ok + "/" + ran + (ok < ran ? " · " + (ran - ok) + " chuyến lỗi" : "") + (skipped.length ? " · " + skipped.length + " chuyến chưa chạy" : "");
       x.disabled = false; topClose.disabled = false; x.textContent = "Đóng"; go.remove(); ack.remove(); avi.remove(); { const via = m.querySelector("[data-via]"); if(via) via.hidden = true; }
       if(col.key === "msg" && reviews.length && typeof ofr === "function"){
         const kinds = [...new Set(reviews.map(d => d.kind).filter(Boolean))];

@@ -48,6 +48,16 @@ describe('cmp batch', () => {
     expect(res.map(r => r.ok)).toEqual([true, false, true]);
     expect(res[1].note).toBe('boom');
   });
+  it('Stop lets the running flight finish and never starts the remaining ones', async () => {
+    const ran: string[] = [];
+    let stop = false;
+    const items = ['1', '2', '3', '4'].map(sid => ({ sid, label: 'VJ' + sid, detail: '' }));
+    const res = await cmpBatchRun(items, async it => { ran.push(it.sid); if (it.sid === '2') stop = true; return { ok: true }; }, undefined, () => stop);
+    expect(ran).toEqual(['1', '2']);
+    expect(res.map(r => r.ok)).toEqual([true, true, false, false]);
+    expect(res.map(r => !!r.skipped)).toEqual([false, false, true, true]);
+    expect(res[3]!.note).toBe('Đã dừng — chưa chạy');
+  });
   it('names the message type shown in its own column', () => {
     expect(cmpBatchKindLabel('DLA')).toBe('DLA');
     expect(cmpBatchKindLabel('CHG A/C')).toBe('CHG');
