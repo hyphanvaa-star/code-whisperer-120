@@ -4,7 +4,7 @@
 
 import globalStyles from '@/styles.css?raw';
 
-export interface BatchItem { sid: string; label: string; detail: string; on?: boolean }
+export interface BatchItem { sid: string; label: string; detail: string; on?: boolean; kind?: string }
 export interface BatchResult { sid: string; label: string; ok: boolean; note: string }
 
 /** Keep only ticked items and drop duplicate sectors, preserving order. */
@@ -15,6 +15,35 @@ export function cmpBatchPick(items: BatchItem[]): BatchItem[] {
     seen.add(i.sid);
     return true;
   });
+}
+
+/** Message type shown in the batch table: DLA, CHG or CHG/DLA. */
+export function cmpBatchKindLabel(raw: string): string {
+  const k = String(raw || '').toUpperCase().replace(/\s+/g, ' ').trim();
+  if (!k) return '';
+  const dla = /DLA|TIME/.test(k), chg = /CHG/.test(k);
+  if (chg && dla) return 'CHG/DLA';
+  return chg ? 'CHG' : dla ? 'DLA' : k;
+}
+
+/** A type chip ticks exactly the rows of that type; an empty type ticks every row. */
+export function cmpBatchKindSelect(kinds: string[], kind: string): boolean[] {
+  return kinds.map(k => !kind || k === kind);
+}
+
+/** AviWeb takes one operation per plan: DLA alone, or CHG together with CHG/DLA. Mixed selections return null. */
+export function cmpBatchAviOperation(kinds: string[]): 'CHG' | 'DLA' | null {
+  const ops = new Set(kinds.map(k => k === 'DLA' ? 'DLA' : k === 'CHG' || k === 'CHG/DLA' ? 'CHG' : ''));
+  if (ops.size !== 1) return null;
+  const op = [...ops][0];
+  return op === 'CHG' || op === 'DLA' ? op : null;
+}
+
+/** Split a cell tip into display lines, dropping the type (it has its own column) and the click hint. */
+export function cmpBatchDetail(tip: string, rawKind: string): string {
+  let t = String(tip || '').replace(/\s*·\s*Bấm để soạn điện văn\s*$/, '');
+  if (rawKind) t = t.replace(': ' + rawKind, '');
+  return t.split(' · ').map(x => x.trim()).filter(Boolean).join('\n');
 }
 
 /** A drag paints a contiguous range; rows outside it keep their original ticks. */
@@ -91,37 +120,60 @@ export async function cmpVerifyWait(
 const TOKENS = globalStyles.match(/--batch-[\w-]+:\s*[^;]+;/g)?.join('\n') || '';
 const CSS = `
 :root{${TOKENS}}
-html.night{--batch-paper:var(--batch-night-paper);--batch-ink:var(--batch-night-ink);--batch-muted:var(--batch-night-muted);--batch-line:var(--batch-night-line);--batch-surface:var(--batch-night-surface);--batch-selected:var(--batch-night-selected);--batch-good-surface:var(--batch-night-surface);--batch-good:var(--batch-night-good)}
+html.night{--batch-paper:var(--batch-night-paper);--batch-ink:var(--batch-night-ink);--batch-muted:var(--batch-night-muted);--batch-line:var(--batch-night-line);--batch-surface:var(--batch-night-surface);--batch-selected:var(--batch-night-selected);--batch-good-surface:var(--batch-night-surface);--batch-good:var(--batch-night-good);--batch-dla:var(--batch-night-dla);--batch-chg:var(--batch-night-chg);--batch-mix:var(--batch-night-mix)}
 html body table.cmptbl thead tr th button.cmp-batch-btn.cmp-batch-btn{display:block;margin:3px auto 0;padding:1px 7px!important;border-radius:6px;border:1px solid var(--batch-on-accent)!important;background:var(--batch-on-accent)!important;color:var(--batch-accent)!important;-webkit-text-fill-color:var(--batch-accent)!important;font-size:10px!important;line-height:16px!important;min-height:0!important;height:auto!important;font-weight:800;letter-spacing:0;cursor:pointer;white-space:nowrap;text-transform:none}
 html body table.cmptbl thead tr th button.cmp-batch-btn.cmp-batch-btn:disabled{opacity:.35;cursor:default}
 #cmpBatchModal{position:fixed;inset:0 auto auto 0;width:100vw;height:100dvh;zoom:var(--account-body-scale,1);z-index:100000;display:flex;align-items:center;justify-content:center;background:var(--batch-backdrop);padding:20px;box-sizing:border-box;letter-spacing:0;font-family:var(--x-sans,Arial,sans-serif)}
 #cmpBatchModal *{box-sizing:border-box;letter-spacing:0}
-#cmpBatchModal .bx{background:var(--batch-paper);color:var(--batch-ink);border:1px solid var(--batch-line);border-radius:8px;width:min(920px,100%);max-height:88dvh;display:flex;flex-direction:column;box-shadow:var(--batch-shadow);overflow:hidden}
-#cmpBatchModal .hd{display:flex;gap:14px;align-items:center;padding:20px 24px;border-bottom:1px solid var(--batch-line);flex:none}
-#cmpBatchModal .hi{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;border-radius:8px;background:var(--batch-selected);color:var(--batch-accent)}
+#cmpBatchModal .bx{background:var(--batch-paper);color:var(--batch-ink);border:1px solid var(--batch-line);border-radius:14px;width:min(980px,100%);max-height:88dvh;display:flex;flex-direction:column;box-shadow:var(--batch-shadow);overflow:hidden}
+#cmpBatchModal .hd{display:flex;gap:14px;align-items:center;padding:18px 22px;border-bottom:1px solid var(--batch-line);flex:none}
+#cmpBatchModal .hi{display:flex;align-items:center;justify-content:center;width:42px;height:42px;flex:none;border-radius:10px;background:var(--batch-accent);color:var(--batch-on-accent)}
 #cmpBatchModal svg{width:20px;height:20px;flex:none}
 #cmpBatchModal .hi svg{width:24px;height:24px}
 #cmpBatchModal .ht{flex:1;min-width:0}
-#cmpBatchModal h2{margin:0;color:var(--batch-ink);font-size:22px;line-height:1.3;font-weight:800;overflow-wrap:anywhere}
-#cmpBatchModal .sub{margin-top:5px;font-size:13px;color:var(--batch-muted)}
-#cmpBatchModal .tb{display:flex;align-items:center;gap:12px;padding:12px 24px;background:var(--batch-surface);border-bottom:1px solid var(--batch-line);flex:none}
+#cmpBatchModal h2{margin:0;color:var(--batch-ink);font-size:19px;line-height:1.3;font-weight:800;overflow-wrap:anywhere}
+#cmpBatchModal .sub{margin-top:3px;font-size:13px;color:var(--batch-muted)}
+#cmpBatchModal .tb{display:flex;align-items:center;gap:14px;padding:10px 22px;border-bottom:1px solid var(--batch-line);flex:none;flex-wrap:wrap}
+#cmpBatchModal .chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#cmpBatchModal .chips:empty{display:none}
+#cmpBatchModal .chip{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:4px 11px;border:1px solid var(--batch-line)!important;border-radius:999px;background:var(--batch-paper)!important;background-image:none!important;color:var(--batch-ink)!important;-webkit-text-fill-color:currentColor!important;font:700 12.5px/1.2 var(--x-sans,Arial,sans-serif);cursor:pointer;box-shadow:none;white-space:nowrap}
+#cmpBatchModal .chip i{width:8px;height:8px;border-radius:50%;background:var(--k,var(--batch-muted));flex:none}
+#cmpBatchModal .chip em{font-style:normal;color:var(--batch-muted);font-variant-numeric:tabular-nums}
+#cmpBatchModal .chip.on{background:var(--batch-ink)!important;border-color:var(--batch-ink)!important;color:var(--batch-paper)!important}
+#cmpBatchModal .chip.on em{color:inherit;opacity:.75}
+#cmpBatchModal .chip:disabled{opacity:.45;cursor:default}
+#cmpBatchModal .dla{--k:var(--batch-dla)}#cmpBatchModal .chg{--k:var(--batch-chg)}#cmpBatchModal .mix{--k:var(--batch-mix)}
 #cmpBatchModal .all{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
 #cmpBatchModal .ct{margin-left:auto;font-size:13px;font-weight:700;color:var(--batch-muted);font-variant-numeric:tabular-nums}
 #cmpBatchModal input[type=checkbox]{appearance:auto;width:20px;height:20px;margin:0;flex:none;accent-color:var(--batch-accent);cursor:pointer;touch-action:none}
 #cmpBatchModal input:focus-visible,#cmpBatchModal button:focus-visible{outline:2px solid var(--batch-accent);outline-offset:3px}
 #cmpBatchModal .ls{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;scrollbar-gutter:stable}
-#cmpBatchModal .row{display:grid;grid-template-columns:24px 155px minmax(0,1fr);gap:16px;align-items:center;min-height:76px;padding:15px 24px;border-bottom:1px solid var(--batch-line);cursor:pointer;background:var(--batch-paper)}
+#cmpBatchModal .cols,#cmpBatchModal .row{display:grid;grid-template-columns:22px 150px minmax(0,1fr);gap:16px;align-items:center;padding:10px 22px}
+#cmpBatchModal.k-msg .cols,#cmpBatchModal.k-msg .row{grid-template-columns:22px 140px 96px minmax(0,1fr)}
+#cmpBatchModal .cols{position:sticky;top:0;z-index:1;padding-top:8px;padding-bottom:8px;background:var(--batch-surface);border-bottom:1px solid var(--batch-line);color:var(--batch-muted);font-size:11px;font-weight:800;text-transform:uppercase}
+#cmpBatchModal .cols span{letter-spacing:.06em}
+#cmpBatchModal .row{min-height:58px;border-bottom:1px solid var(--batch-line);cursor:pointer;background:var(--batch-paper);box-shadow:inset 3px 0 0 transparent}
 #cmpBatchModal .row:last-child{border-bottom:0}
-#cmpBatchModal .row.selected{background:var(--batch-selected)}
+#cmpBatchModal .row.selected{box-shadow:inset 3px 0 0 var(--batch-accent)}
+#cmpBatchModal .row:not(.selected) .fl,#cmpBatchModal .row:not(.selected) .kd,#cmpBatchModal .row:not(.selected) .dt{opacity:.5}
 #cmpBatchModal .row:hover{background:var(--batch-surface)}
-#cmpBatchModal .fl{display:flex;flex-direction:column;gap:4px;min-width:0}
-#cmpBatchModal .fl b{font-size:16px;font-weight:800;line-height:1.35;overflow-wrap:anywhere}
+#cmpBatchModal .fl{display:flex;flex-direction:column;gap:2px;min-width:0}
+#cmpBatchModal .fl b{font-size:15px;font-weight:800;line-height:1.3;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
 #cmpBatchModal .rt{font-size:12px;font-weight:600;color:var(--batch-muted);line-height:1.3;overflow-wrap:anywhere}
-#cmpBatchModal .dt{color:var(--batch-muted);font:14px/1.55 var(--x-sans,Arial,sans-serif);overflow-wrap:anywhere;white-space:pre-line}
-#cmpBatchModal .ft{display:flex;gap:10px;align-items:center;padding:16px 24px;border-top:1px solid var(--batch-line);background:var(--batch-paper);flex:none;flex-wrap:wrap}
+#cmpBatchModal .kd{display:inline-flex;align-items:center;justify-content:center;justify-self:start;min-height:26px;padding:3px 10px;border-radius:7px;border:1px solid color-mix(in oklab,var(--k,var(--batch-muted)) 38%,var(--batch-paper));background:color-mix(in oklab,var(--k,var(--batch-muted)) 13%,var(--batch-paper));color:var(--k,var(--batch-muted));font-size:12px;font-weight:800;white-space:nowrap}
+#cmpBatchModal .dt{color:var(--batch-muted);font:13px/1.5 var(--x-sans,Arial,sans-serif);overflow-wrap:anywhere;min-width:0}
+#cmpBatchModal .d1{color:var(--batch-ink);font-size:14px;font-weight:600}
+#cmpBatchModal .d1 b{display:inline-block;margin:0 2px;padding:0 7px;border-radius:6px;background:var(--batch-surface);border:1px solid var(--batch-line);font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+#cmpBatchModal .d2{margin-top:2px;font-size:12.5px}
+#cmpBatchModal .d2.good{color:var(--batch-good);font-weight:700}
+#cmpBatchModal .d2.warn{color:var(--batch-accent);font-weight:700}
+#cmpBatchModal .ft{display:flex;gap:10px;align-items:center;padding:14px 22px;border-top:1px solid var(--batch-line);background:var(--batch-surface);flex:none;flex-wrap:wrap}
 #cmpBatchModal .pg{flex:1;min-width:150px;font-size:13px;color:var(--batch-muted);font-weight:600;overflow-wrap:anywhere}
-#cmpBatchModal .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:9px 16px;border:1px solid var(--batch-line)!important;border-radius:6px;background:var(--batch-paper)!important;color:var(--batch-ink)!important;-webkit-text-fill-color:currentColor!important;font:700 14px/1.3 var(--x-sans,Arial,sans-serif);cursor:pointer;box-shadow:none;white-space:nowrap}
+#cmpBatchModal .pg.bad{color:var(--batch-accent)}
+#cmpBatchModal .via{font-size:11px;font-weight:800;text-transform:uppercase;color:var(--batch-muted);margin-left:6px}
+#cmpBatchModal .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:9px 16px;border:1px solid var(--batch-line)!important;border-radius:8px;background:var(--batch-paper)!important;color:var(--batch-ink)!important;-webkit-text-fill-color:currentColor!important;font:700 14px/1.3 var(--x-sans,Arial,sans-serif);cursor:pointer;box-shadow:none;white-space:nowrap}
 #cmpBatchModal .btn.primary{background:var(--batch-accent)!important;border-color:var(--batch-accent)!important;color:var(--batch-on-accent)!important}
+#cmpBatchModal .btn.avi{background:var(--batch-avi)!important;border-color:var(--batch-avi)!important;color:var(--batch-on-accent)!important}
 #cmpBatchModal .btn{background-image:none!important}
 #cmpBatchModal .btn.ack{color:var(--batch-good)!important;border-color:var(--batch-good)!important}
 #cmpBatchModal .btn:hover{filter:brightness(.96)}
@@ -149,6 +201,10 @@ const SCRIPT = String.raw`
   const cmpBatchAck = __ACK__;
   const cmpBatchRun = __RUN__;
   const cmpVerifyWait = __VWAIT__;
+  const cmpBatchKindLabel = __KIND__;
+  const cmpBatchKindSelect = __KSEL__;
+  const cmpBatchAviOperation = __AVIOP__;
+  const cmpBatchDetail = __DETAIL__;
   const COLS = [
     {key:"crew", head:/^CREW\b/, name:"Đổi crew", sel:'td[data-crew-sid] .cmp-sync-action:not(.synced):not(:disabled)', sidAttr:"crewSid"},
     
@@ -179,7 +235,9 @@ const SCRIPT = String.raw`
       if(!sid || !tr) continue;
       const cs = (tr.querySelector("td") && tr.querySelector("td").innerText || "").split("\n")[0].trim();
       const route = (tr.children[1] && tr.children[1].innerText || "").split("\n")[0].trim();
-      out.push({sid, label: cs + (route ? " " + route : ""), detail: b.dataset.tip || b.title || b.textContent || "", on: true});
+      const tip = b.dataset.tip || b.title || b.textContent || "";
+      if(col.key === "msg") out.push({sid, label: cs + (route ? " " + route : ""), kind: cmpBatchKindLabel(b.dataset.msgKind || b.textContent), detail: cmpBatchDetail(tip, b.dataset.msgKind || ""), on: true});
+      else out.push({sid, label: cs + (route ? " " + route : ""), detail: tip, on: true});
     }
     return cmpBatchPick(out);
   }
@@ -264,15 +322,63 @@ const SCRIPT = String.raw`
     const icon = path => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>';
     const checkIcon = icon('<path d="m5 12 4 4L19 6"/>');
     const closeIcon = icon('<path d="m6 6 12 12M18 6 6 18"/>');
+    const sendIcon = icon('<path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z"/>');
     const listIcon = icon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>');
     const m = document.createElement("div"); m.id = "cmpBatchModal";
-    m.innerHTML = '<div class="bx" role="dialog" aria-modal="true" aria-labelledby="cmpBatchTitle"><div class="hd"><span class="hi">' + listIcon + '</span><div class="ht"><h2 id="cmpBatchTitle"></h2><div class="sub"></div></div><button type="button" class="btn icon" data-close aria-label="Đóng" title="Đóng">' + closeIcon + '</button></div><div class="tb"><label class="all"><input type="checkbox" data-all aria-label="Chọn tất cả chuyến"><span>Chọn tất cả</span></label><span class="ct" aria-live="polite"></span></div><div class="ls"></div><div class="ac" hidden><strong></strong><button type="button" class="btn ack" data-ack-confirm>' + checkIcon + 'Xác nhận Ack</button><button type="button" class="btn icon" data-ack-cancel aria-label="Huỷ Ack" title="Huỷ Ack">' + closeIcon + '</button></div><div class="ft"><div class="pg" role="status"></div><button type="button" class="btn ack" data-ack title="Ack các chuyến đã tick, không chạy thao tác">' + checkIcon + 'Ack all</button><button type="button" class="btn" data-x>Đóng</button><button type="button" class="btn primary" data-go>' + checkIcon + '<span></span></button></div></div>';
+    m.innerHTML = '<div class="bx" role="dialog" aria-modal="true" aria-labelledby="cmpBatchTitle"><div class="hd"><span class="hi">' + listIcon + '</span><div class="ht"><h2 id="cmpBatchTitle"></h2><div class="sub"></div></div><button type="button" class="btn icon" data-close aria-label="Đóng" title="Đóng">' + closeIcon + '</button></div><div class="tb"><label class="all"><input type="checkbox" data-all aria-label="Chọn tất cả chuyến"><span>Chọn tất cả</span></label><div class="chips" role="group" aria-label="Chọn theo loại điện"></div><span class="ct" aria-live="polite"></span></div><div class="ls"></div><div class="ac" hidden><strong></strong><button type="button" class="btn ack" data-ack-confirm>' + checkIcon + 'Xác nhận Ack</button><button type="button" class="btn icon" data-ack-cancel aria-label="Huỷ Ack" title="Huỷ Ack">' + closeIcon + '</button></div><div class="ft"><div class="pg" role="status"></div><button type="button" class="btn ack" data-ack title="Ack các chuyến đã tick, không chạy thao tác">' + checkIcon + 'Ack all</button><button type="button" class="btn" data-x>Đóng</button><span class="via" data-via hidden>Submit bằng</span><button type="button" class="btn primary" data-go>' + checkIcon + '<span></span></button><button type="button" class="btn avi" data-avi title="Mở bảng AviWeb cho các chuyến đã tick để kiểm tra rồi gửi">' + sendIcon + 'AviWeb</button></div></div>';
     m.querySelector("h2").textContent = col.name;
+    const isMsg = col.key === "msg";
+    m.classList.add("k-" + col.key);
+    const chips = m.querySelector(".chips"), avi = m.querySelector("[data-avi]");
+    const kindCls = k => k === "DLA" ? "dla" : k === "CHG" ? "chg" : k === "CHG/DLA" ? "mix" : "";
+    if(isMsg) m.querySelector("[data-via]").hidden = false; else avi.remove();
+    function paintChips(){
+      if(!isMsg) return;
+      chips.replaceChildren();
+      const kinds = [...new Set(items.map(i => i.kind).filter(Boolean))];
+      if(kinds.length < 2) return;
+      const picked = cmpBatchPick(items);
+      for(const k of kinds){
+        const n = items.filter(i => i.kind === k).length;
+        const b = document.createElement("button"); b.type = "button"; b.className = "chip " + kindCls(k);
+        const only = picked.length === n && picked.every(i => i.kind === k);
+        if(only) b.classList.add("on");
+        b.setAttribute("aria-pressed", only ? "true" : "false");
+        b.title = "Chỉ tick các chuyến " + k;
+        const dot = document.createElement("i"), tx = document.createElement("span"), ct = document.createElement("em");
+        tx.textContent = k; ct.textContent = String(n); b.append(dot, tx, ct);
+        b.disabled = running;
+        b.onclick = () => {
+          const states = cmpBatchKindSelect(items.map(i => i.kind), only ? "" : k);
+          items.forEach((it, i) => { it.on = states[i]; it._el.querySelector("input").checked = states[i]; });
+          pg.className = "pg"; pg.textContent = ""; update();
+        };
+        chips.appendChild(b);
+      }
+    }
+    function paintDetail(el, text){
+      el.replaceChildren();
+      String(text || "").split("\n").forEach((ln, i) => {
+        const d = document.createElement("div"); d.className = i ? "d2" : "d1";
+        if(i && /đã lên đúng/.test(ln)) d.classList.add("good");
+        if(i && /chưa lên đúng/.test(ln)) d.classList.add("warn");
+        ln.split(/(\S+ → \S+)/).forEach((part, j) => {
+          if(!part) return;
+          if(j % 2){ const b = document.createElement("b"); b.textContent = part; d.appendChild(b); }
+          else d.appendChild(document.createTextNode(part));
+        });
+        el.appendChild(d);
+      });
+    }
     const ls = m.querySelector(".ls");
     const all = m.querySelector("[data-all]"), go = m.querySelector("[data-go]"), ack = m.querySelector("[data-ack]");
     const ac = m.querySelector(".ac"), pg = m.querySelector(".pg");
     const actionNames = {crew:"Đổi crew", aims:"Đổi tàu", req:"Xuất REQ", msg:"Soạn điện văn", brief:"Đổi briefing", verify:"Verify"};
-    go.querySelector("span").textContent = actionNames[col.key] || col.name;
+    go.querySelector("span").textContent = isMsg ? "AMHS" : actionNames[col.key] || col.name;
+    if(isMsg) go.title = "Soạn điện văn AMHS cho các chuyến đã tick";
+    const cols = document.createElement("div"); cols.className = "cols";
+    ["", "Chuyến", ...(isMsg ? ["Loại điện"] : []), "Nội dung thay đổi"].forEach(t => { const x = document.createElement("span"); x.textContent = t; cols.appendChild(x); });
+    ls.appendChild(cols);
     if(col.key === "verify") ack.remove();
     function update(){
       const chosen = cmpBatchPick(items).length;
@@ -281,6 +387,8 @@ const SCRIPT = String.raw`
       all.disabled = running || !items.length;
       go.disabled = running || !chosen;
       ack.disabled = running || !chosen;
+      avi.disabled = running || !chosen;
+      paintChips();
       m.querySelector(".sub").textContent = items.length + " chuyến đang chờ";
       m.querySelector(".ct").textContent = "Đã chọn " + chosen + " / " + items.length + " chuyến";
       items.forEach(it => { if(it._el) it._el.classList.toggle("selected", it.on !== false); });
@@ -295,8 +403,10 @@ const SCRIPT = String.raw`
       const b = document.createElement("b"), rt = document.createElement("span"); rt.className = "rt";
       const space = it.label.indexOf(" "); b.textContent = space < 0 ? it.label : it.label.slice(0, space); rt.textContent = space < 0 ? "" : it.label.slice(space + 1);
       fl.append(b, rt);
-      const d = document.createElement("span"); d.className = "dt"; d.textContent = it.detail;
-      l.append(c, fl, d); it._el = l; ls.appendChild(l);
+      const d = document.createElement("span"); d.className = "dt"; paintDetail(d, it.detail);
+      l.append(c, fl);
+      if(isMsg){ const k = document.createElement("span"); k.className = "kd " + kindCls(it.kind); k.textContent = it.kind || "—"; l.appendChild(k); }
+      l.append(d); it._el = l; ls.appendChild(l);
     });
     document.body.appendChild(m);
     let drag = null, skipClick = false, scrollFrame = 0;
@@ -364,19 +474,37 @@ const SCRIPT = String.raw`
       const done = new Set(results.filter(r => r.ok).map(r => r.sid));
       for(let i = items.length - 1; i >= 0; i--){ const it = items[i]; if(done.has(it.sid)){ it._el.remove(); items.splice(i, 1); } }
       results.filter(r => !r.ok).forEach(r => { const it = items.find(i => i.sid === r.sid); if(it){ const dt = it._el.querySelector(".dt"); dt.className = "dt bad"; dt.textContent = r.note; } });
-      pg.textContent = "Đã Ack " + done.size + "/" + results.length + " chuyến" + (done.size < results.length ? " · Còn cảnh báo chưa Ack" : "");
+      pg.className = "pg"; pg.textContent = "Đã Ack " + done.size + "/" + results.length + " chuyến" + (done.size < results.length ? " · Còn cảnh báo chưa Ack" : "");
       update(); paintHeads();
-      if(!items.length){ ls.innerHTML = '<div class="empty">' + checkIcon + '<span></span></div>'; ls.querySelector(".empty span").textContent = "Đã Ack " + done.size + " chuyến"; ack.remove(); go.remove(); }
+      if(!items.length){ ls.innerHTML = '<div class="empty">' + checkIcon + '<span></span></div>'; ls.querySelector(".empty span").textContent = "Đã Ack " + done.size + " chuyến"; ack.remove(); go.remove(); avi.remove(); const via = m.querySelector("[data-via]"); if(via) via.hidden = true; }
       m.querySelector("[data-x]").focus();
     };
     update(); m.querySelector("[data-close]").focus();
+    avi.onclick = () => {
+      if(running || !isMsg) return;
+      const chosen = cmpBatchPick(items);
+      if(!chosen.length) return;
+      const fail = text => { pg.className = "pg bad"; pg.textContent = text; };
+      const op = cmpBatchAviOperation(chosen.map(i => i.kind));
+      if(!op) return fail("AviWeb gửi mỗi lần một loại — bấm nhãn DLA hoặc CHG ở trên để tick riêng từng loại");
+      if(typeof window.__aviwebOpen !== "function") return fail("AviWeb chưa sẵn sàng trên trang này");
+      const list = [], miss = [];
+      for(const it of chosen){
+        const b = findBtn(col, it.sid);
+        const v = b && typeof b._cmpAviItem === "function" ? b._cmpAviItem() : null;
+        if(v) list.push(v); else miss.push(it.label);
+      }
+      if(miss.length) return fail("Chưa xác định được đúng chuyến: " + miss.join(", "));
+      close();
+      window.__aviwebOpen(op, list).catch(e => alert((e && e.message) || String(e)));
+    };
     go.onclick = async () => {
       const x = m.querySelector("[data-x]"), topClose = m.querySelector("[data-close]");
       const chosen = cmpBatchPick(items);
       if(running || !chosen.length) return;
       endDrag(); running = true; update(); x.disabled = true; topClose.disabled = true;
       ls.querySelectorAll("input").forEach(i => { i.disabled = true; });
-      pg.innerHTML = '<span></span><div class="bar"><i></i></div>';
+      pg.className = "pg"; pg.innerHTML = '<span></span><div class="bar"><i></i></div>';
       const oc = window.confirm, oa = window.alert, ofr = window.ftOpenAtcReview;
       let notes = [], reviews = [];
       window.confirm = () => true;
@@ -404,7 +532,7 @@ const SCRIPT = String.raw`
       }
       const ok = results.filter(r => r.ok).length;
       pg.querySelector("span").textContent = "Xong " + ok + "/" + results.length + (ok < results.length ? " · " + (results.length - ok) + " chuyến lỗi" : "");
-      x.disabled = false; topClose.disabled = false; x.textContent = "Đóng"; go.remove(); ack.remove();
+      x.disabled = false; topClose.disabled = false; x.textContent = "Đóng"; go.remove(); ack.remove(); avi.remove(); { const via = m.querySelector("[data-via]"); if(via) via.hidden = true; }
       if(col.key === "msg" && reviews.length && typeof ofr === "function"){
         const kinds = [...new Set(reviews.map(d => d.kind).filter(Boolean))];
         ofr({...reviews[reviews.length - 1], kind: kinds.length === 1 ? kinds[0] : "CHG/DLA", flights: reviews.flatMap(d => d.flights || [])});
@@ -426,6 +554,10 @@ export function patchCmpBatchPage(html: string): string {
     .replace('__ACK__', () => cmpBatchAck.toString())
     .replace('__RUN__', () => cmpBatchRun.toString())
     .replace('__VWAIT__', () => cmpVerifyWait.toString())
+    .replace('__KIND__', () => cmpBatchKindLabel.toString())
+    .replace('__KSEL__', () => cmpBatchKindSelect.toString())
+    .replace('__AVIOP__', () => cmpBatchAviOperation.toString())
+    .replace('__DETAIL__', () => cmpBatchDetail.toString())
     .replace('__CSS__', () => CSS);
   const idx = html.lastIndexOf('</body>');
   const tag = '<script id="cmpBatchScript">' + js + '</script>';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cmpBatchPick, cmpBatchRun, cmpVerifyWait, cmpBatchAck, cmpBatchDragSelection, patchCmpBatchPage } from '../cmp_batch';
+import { cmpBatchKindLabel, cmpBatchKindSelect, cmpBatchAviOperation, cmpBatchDetail, cmpBatchPick, cmpBatchRun, cmpVerifyWait, cmpBatchAck, cmpBatchDragSelection, patchCmpBatchPage } from '../cmp_batch';
 
 describe('cmp batch', () => {
   it('skips unticked and duplicate sectors', () => {
@@ -48,10 +48,33 @@ describe('cmp batch', () => {
     expect(res.map(r => r.ok)).toEqual([true, false, true]);
     expect(res[1].note).toBe('boom');
   });
+  it('names the message type shown in its own column', () => {
+    expect(cmpBatchKindLabel('DLA')).toBe('DLA');
+    expect(cmpBatchKindLabel('CHG A/C')).toBe('CHG');
+    expect(cmpBatchKindLabel('CHG')).toBe('CHG');
+    expect(cmpBatchKindLabel('CHG DLA')).toBe('CHG/DLA');
+  });
+  it('a type chip ticks only that type', () => {
+    expect(cmpBatchKindSelect(['DLA','CHG','CHG/DLA','DLA'], 'DLA')).toEqual([true,false,false,true]);
+    expect(cmpBatchKindSelect(['DLA','CHG'], '')).toEqual([true,true]);
+  });
+  it('AviWeb takes one operation per submit and refuses a DLA + CHG mix', () => {
+    expect(cmpBatchAviOperation(['DLA','DLA'])).toBe('DLA');
+    expect(cmpBatchAviOperation(['CHG','CHG/DLA'])).toBe('CHG');
+    expect(cmpBatchAviOperation(['DLA','CHG'])).toBeNull();
+    expect(cmpBatchAviOperation(['DLA','CHG/DLA'])).toBeNull();
+    expect(cmpBatchAviOperation([])).toBeNull();
+  });
+  it('keeps the change text and drops the type and click hint from the detail', () => {
+    expect(cmpBatchDetail('Crewlist delay 10:10 → 10:45: DLA · Bấm để soạn điện văn', 'DLA')).toBe('Crewlist delay 10:10 → 10:45');
+    expect(cmpBatchDetail('Crewlist đổi tàu VNA536 → VN-A524: CHG A/C · FliteBrief đã lên đúng tàu Crewlist VN-A536 · Bấm để soạn điện văn', 'CHG A/C'))
+      .toBe('Crewlist đổi tàu VNA536 → VN-A524\nFliteBrief đã lên đúng tàu Crewlist VN-A536');
+  });
   it('injects the batch script once', () => {
     const out = patchCmpBatchPage(patchCmpBatchPage('<html><body></body></html>'));
     expect(out.match(/cmpBatchScript/g)?.length).toBe(1);
     expect(out).not.toContain('__PICK__');
+    expect(out).not.toMatch(/__(KIND|KSEL|AVIOP|DETAIL)__/);
   });
   it('verify waits for a slow job start instead of reporting failure', async () => {
     // job id arrives only after a few ticks, then the job runs, then ends green

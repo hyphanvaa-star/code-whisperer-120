@@ -102,6 +102,13 @@
   --batch-night-surface: oklch(0.27 0.008 250);
   --batch-night-selected: oklch(0.3 0.022 25);
   --batch-night-good: oklch(0.79 0.14 155);
+  --batch-dla: oklch(0.52 0.13 65);
+  --batch-chg: oklch(0.5 0.17 265);
+  --batch-mix: oklch(0.5 0.19 320);
+  --batch-avi: oklch(0.47 0.16 262);
+  --batch-night-dla: oklch(0.82 0.13 80);
+  --batch-night-chg: oklch(0.8 0.11 265);
+  --batch-night-mix: oklch(0.8 0.13 320);
   --defect-summary-ink: oklch(0.48 0.22 305);
   --defect-manual-ink: oklch(0 0 0);
   --crew-hover-paper: oklch(0.995 0.003 250);

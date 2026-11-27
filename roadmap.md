@@ -1,5 +1,6 @@
 # Roadmap — Dispatch Board web app
 
+- [x] V 7.89: bảng "Tất cả" của cột Điện văn thiết kế lại — cột Loại điện (DLA/CHG/CHG/DLA), nhãn tick theo loại, Submit AMHS hoặc AviWeb (AviWeb mỗi lần một loại). Chưa publish.
 - [x] V 7.88: REQ ưu tiên FL đã cấu hình trong ALT Route (A330 `100,390` xuất đúng `PRO÷I,T,M,100,390`); chỉ dùng mặc định A330 `100,410` khi FL trống. 71 kiểm thử đạt trên cả hai bộ sinh REQ; chưa thử trên chuyến thật của JACK, chưa publish.
 - [x] V 7.76: nâng cấp popup NOTAM thiếu/mới, ghim Briefing đúng chuyến, ghim Cloud và xem bản đồ; giữ đối chiếu và Ack riêng. 13 kiểm thử đạt, thử dữ liệu mẫu với bộ ghim hiện có: lưu/đọc lại/đóng mở đạt, sáng/tối/610px không tràn và không lỗi; chưa publish.
 - [ ] V 7.76: xác nhận ghim và xuất Briefing trên chuyến thật của JACK — chưa cấp được phiên JACK; tài khoản thử bị đưa về đăng nhập, nên ghim được kiểm tra bằng phản hồi mẫu, chưa ghi dữ liệu khai thác thật.

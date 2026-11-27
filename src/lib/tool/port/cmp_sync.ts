@@ -669,6 +669,8 @@ function cmpMsgPaint(r){
   b.setAttribute("aria-label", "Soạn " + kind + " " + f.callsign);
   b.disabled = menu.disabled;
   b._cmpMessageOpen = channel => menu._cmpMessageOpen(kind, channel);
+  b.dataset.msgKind = kind;
+  b._cmpAviItem = () => { const x = cmpActionFlight(r); return x ? {sector_id:x.id, flt:x.callsign, date:new Date(x.std).toISOString().slice(0,10), dep:r.dep, arr:r.arr} : null; };
   b.onclick = ev => {ev.stopPropagation(); return b._cmpMessageOpen("AMHS");};
   b._cmpAck = () => { cmpAckAdd(ackKey); cmpMsgPaint(r); };
   td.prepend(b);
