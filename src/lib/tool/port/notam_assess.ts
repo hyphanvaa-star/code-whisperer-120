@@ -5,6 +5,7 @@
 // tri-state (true = overlap, false = no overlap, null = not enough data): only
 // `false` yields NO IMPACT, `null` yields NEED MANUAL CHECK, and a concluded gate
 // is never reversed by a later one.
+import { rwyClosedText } from "./rwy_closed";
 import { notamGeoms as notamGeomsRaw, notamAltBand, geomTrackNear, qCoordsOf, type Notam, type TrackPoint } from "./notam_track";
 import { parseNotamWhen, normIcao } from "./notam_check";
 import { atsSegmentList, coordOnTrack, segCoord } from "./ats_segment_coord";
@@ -95,7 +96,8 @@ const blobOf = (n: Notam) => `${String(n.e_field ?? "")}\n${String(n.text ?? "")
 const eOf = (n: Notam) => String(n.e_field || n.text || "").toUpperCase();
 
 const PROHIBIT = /\b(PROHIBITED|NOT AVBL|NOT AVAILABLE|U\/S|UNSERVICEABLE|CLSD|CLOSED|SUSPENDED|WITHDRAWN|NOT AUTH(?:ORI[SZ]ED)?|DO NOT USE|NOT USABLE|NOT TO BE USED|SHALL NOT|RESTRICTED TO)\b/;
-const RWY_CLSD = /\bRWY\s*\d{2}[LCR]?(?:\/\d{2}[LCR]?)?\s+(?:CLSD|CLOSED)\b/;
+/** Runway closure in any common wording (see `rwy_closed.ts`); kept as a `.test` so every rule shares it. */
+const RWY_CLSD = { test: rwyClosedText };
 const AD_CLSD = /\b(AD|AERODROME|AIRPORT)\s+(?:CLSD|CLOSED)\b/;
 /** Safety-critical content: soft rules (comms, navaid, lights, admin…) never decide these alone. */
 const HARD_AIRSPACE = /\b(?:RESTRICTED|PROHIBITED|DANGER)\s+(?:AREA|ZONE|AIRSPACE)S?\b|\b(?:TRA|TSA|TIBA|MOA)\b|\bMIL(?:ITARY)?\s+(?:EXER\w*|ACT\w*|OPS|TRG|FLYING)\b|\b(?:FIRING|GUNFIRE|ROCKET|MISSILE|LAUNCH|SPACE\s+DEBRIS|LIVE\s+FIRE)\b|\bAIRSPACE\s+(?:CLSD|CLOSED|RESTRICTED|ACT\w*)\b|\b(?:[A-Z]{2})?[DRP]\s?\d{2,4}[A-Z]?\s+(?:ACT\w*|ACTIVE)\b/;
@@ -242,9 +244,37 @@ type TPt = number | "SR" | "SS";
 interface Clause { wd: Set<number> | null; days: Set<string> | null; times: Array<[TPt, TPt]> }
 export interface Schedule { clauses: Clause[]; exc: Clause | null; unsupported: string[]; always: boolean }
 
+const DAY3 = "MON|TUE|WED|THU|FRI|SAT|SUN";
+const MON3 = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC";
+const TIME_PT = "\\d{4}|SR|SS";
+/**
+ * Item D is free text: rewrite the common spellings into the compact form the clause reader knows
+ * (MON, NOV, 1830-2230) and drop linking words that carry no meaning. Words that could change the
+ * meaning (every 2 days, odd days, sunrise offsets…) are left in so the schedule stays "not understood".
+ */
+export function normaliseSchedule(text: string): string {
+  return ` ${text} `
+    .replace(/\bEXCEPT(?:ING)?\b|\bEXCL(?:UDING)?\b/g, " EXC ")
+    .replace(/\b(MON|TUE)S?DAYS?\b|\b(WED)NESDAYS?\b|\b(THU)RSDAYS?\b|\b(FRI|SUN)DAYS?\b|\b(SAT)URDAYS?\b/g, (_m, ...g: unknown[]) => ` ${String(g.slice(0, 5).find(Boolean))} `)
+    .replace(/\bTUES\b/g, "TUE").replace(/\bTHURS?\b/g, "THU").replace(/\bWEDS\b/g, "WED")
+    .replace(/\b(JAN)UARY\b|\b(FEB)RUARY\b|\b(MAR)CH\b|\b(APR)IL\b|\b(JUN)E\b|\b(JUL)Y\b|\b(AUG)UST\b|\b(SEP)T(?:EMBER)?\b|\b(OCT)OBER\b|\b(NOV)EMBER\b|\b(DEC)EMBER\b/g, (_m, ...g: unknown[]) => ` ${String(g.slice(0, 11).find(Boolean))} `)
+    .replace(/\b(\d{1,2})(?:ST|ND|RD|TH)\b/g, "$1")
+    .replace(new RegExp(`\\b(\\d{1,2})(${MON3})\\b`, "g"), "$1 $2")
+    .replace(/\b([01]\d|2[0-4])[:.]([0-5]\d)(?!\d)/g, "$1$2")
+    .replace(/\b(\d{4})\s?(?:Z|UTC|HRS?|H)\b/g, "$1")
+    .replace(/\bUTC\b|\bHRS?\b/g, " ")
+    .replace(new RegExp(`\\b(?:BTN|BETWEEN|FM|FROM)\\s+(${TIME_PT})\\s+(?:AND|&|TO|TIL|TILL|UNTIL)\\s+(${TIME_PT})\\b`, "g"), " $1-$2 ")
+    .replace(/\b(?:TIL|TILL|UNTIL|THRU|THROUGH)\b/g, " TO ")
+    .replace(new RegExp(`\\b(?:EACH|EVERY)\\s+(?=(?:${DAY3})\\b)`, "g"), " ")
+    .replace(/\b(?:EACH|EVERY)\s+DAY\b/g, " ")
+    .replace(/\b(?:ON|AND|FM|FROM|BTN|BETWEEN|OF|THE|AT)\b|[&;+]|\.(?!\d)/g, " ")
+    .replace(/\s+/g, " ").trim();
+}
+
 export function parseSchedule(raw: unknown): Schedule {
   let t = String(raw ?? "").toUpperCase().replace(/\s+/g, " ").trim();
   if (!t) return { clauses: [], exc: null, unsupported: [], always: true };
+  t = normaliseSchedule(t);
   t = t.replace(/\bDLY\b|\bDAILY\b/g, " ").replace(/\bH24\b/g, " 0000-2359 ").replace(/\bHJ\b/g, " SR-SS ").replace(/\bHN\b/g, " SS-SR ");
   let exc = "";
   const ei = t.search(/\bEXC\b/);
@@ -288,6 +318,11 @@ export function parseSchedule(raw: unknown): Schedule {
     }
     flush();
     if (needTimes) {
+      // "1830-2230 NOV 24 28": hours written before the days they belong to
+      for (let i = 0; i < out.length - 1; i++) {
+        const c = out[i]!, nx = out[i + 1]!;
+        if (c.times.length && !c.wd && !c.days && !nx.times.length && (nx.wd || nx.days)) { nx.times = c.times; out.splice(i, 1); }
+      }
       // selectors with no time range of their own share the following clause's times
       for (let i = out.length - 2; i >= 0; i--) if (!out[i]!.times.length) out[i]!.times = out[i + 1]!.times;
       if (out.length && !out[out.length - 1]!.times.length) out[out.length - 1]!.times = [[0, 1440]];
@@ -511,7 +546,8 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
   // 3 AIP SUP / AMDT trigger
   // An aerodrome ground NOTAM that cites an AIP SUP is still graded by what it closes (stand/apron/TWY/RWY/AD).
   const groundAd = isAerodromeGround(n, E);
-  const groundDecides = groundAd && (AD_SURFACE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E));
+  // A runway closed at one of the flight's own airports decides by itself, whatever the Q-code or scope says.
+  const groundDecides = (groundAd && (AD_SURFACE.test(E) || RWY_CLSD.test(E) || AD_CLSD.test(E))) || (isAirport && !!role && RWY_CLSD.test(E));
   // An AIP SUP whose boundary is already resolved (sup_geoms/ENR catalogue) is measured by geometry below.
   const supResolved = notamGeoms(n).some((g) => g.shape !== "dot");
   if (!groundDecides && !supResolved && (/TRIGGER\s+NOTAM/.test(E) || (/\bAIP\s+(SUP|AMDT|SUPPLEMENT)/.test(E) && /\b(VALIDITY|VALID|EXTENDED|REPLACED|REF)\b/.test(E))))
@@ -677,7 +713,7 @@ function spatialMatchOne(n: Notam, code: string, kind: string, f: AssessFlight, 
   }
   // 17b a closed runway at any airport of the flight (DEP/ARR/alternates) is always an airport hit:
   // never left to manual check or measured off the route, even when the remaining runways are unknown.
-  if (isAirport && RWY_CLSD.test(E))
+  if (isAirport && (RWY_CLSD.test(E) || qCodeOf(n) === "QMRLC"))
     return airportHitC(code, f, "RWY-CLOSED", `Đóng đường băng tại sân ${role} ${code}.`);
   // 18-22 geometry
   const isObst = /\b(OBST|OBSTACLE|CRANE|MAST|TOWER|POLE|CHIMNEY|ANTENNA|WIND TURBINE)\b/.test(E);

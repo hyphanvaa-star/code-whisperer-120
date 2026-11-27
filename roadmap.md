@@ -361,3 +361,4 @@
 - [x] V 7.63 / PC 6.19: 83 kiểm thử web + 30 PC đạt; giả lập thao tác chọn/chỉnh/gửi/đọc kết quả; kiểm tra ngày/chặng cùng dòng Processed và dừng khi không xác minh được; đã đóng gói. Không gửi thử AviWeb thật, chưa publish.
 - [x] V 7.90: chuột phải thẻ thanh bên → Mở tab mới; `/tool?tab=...` mở đúng chức năng bằng nút hiện có, Database và Account Management theo quyền; 4 kiểm thử + trình duyệt NOTAM/Database/Flight Planning đạt, chưa publish.
 - [x] V 7.91: Crewlist mới (tay hoặc AIMS tự quét) giữ nguyên tab đang xem; chỉ Flight Supervisor/Ver mới tự hiện kết quả, tab khác đối chiếu chạy nền. Chưa publish.
+- [x] V 7.95: đóng RWY nhận theo nhiều cách viết (TEMPO CLSD, NOT AVBL, CLOSURE OF RWY, RWY11 CLOSED…); lịch D) đọc ON/AND/&, tên ngày-tháng đầy đủ, giờ viết trước ngày; từ có thể đổi nghĩa vẫn vào manual check. Chưa publish.
