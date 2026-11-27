@@ -86,7 +86,7 @@ function optTail(extra: string, rmk: string) {
   const p: string[] = []; if (extraOn(extra)) p.push("/EXTRA FUEL DUE WX AND TRAFFIC"); if (n) p.push("/" + n);
   return p.length ? " " + p.join(" ") : "";
 }
-const profile = (ac: string, fl: string, found: boolean) => ac === "330" ? "PRO÷I,T,M,100,410" : !found ? "PRO÷I,T,M,100,350" : fl === "" ? "PRO÷I,T,M" : "PRO÷I,T,M," + fl;
+const profile = (ac: string, fl: string, found: boolean) => fl.trim() ? "PRO÷I,T,M," + fl.trim() : ac === "330" ? "PRO÷I,T,M,100,410" : !found ? "PRO÷I,T,M,100,350" : "PRO÷I,T,M";
 
 export function payDefault(db: FplDb, flt: string) { const v = db.payload["VJ" + flt]; return v == null ? "9999" : String(Math.trunc(v + 1000)); }
 

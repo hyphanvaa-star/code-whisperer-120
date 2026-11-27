@@ -719,10 +719,12 @@ function _hold(db: Db, route: string, arr: string, sta: string, ac: string, alt1
 }
 
 function _profile(ac: string, fl: string, found: boolean): string {
+  // FL đã cấu hình cho chặng luôn thắng mặc định theo loại tàu.
+  const configured = _num(fl);
+  if (configured !== "") return "PRO÷I,T,M," + configured;
   if (ac === "330") return "PRO÷I,T,M,100,410";
   if (!found) return "PRO÷I,T,M,100,350";
-  if (fl === "") return "PRO÷I,T,M";
-  return "PRO÷I,T,M," + _num(fl);
+  return "PRO÷I,T,M";
 }
 
 function _pcr(db: Db, dep: string, reg: string): string {
