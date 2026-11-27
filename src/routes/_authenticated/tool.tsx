@@ -11,8 +11,10 @@ import { passwordChecks } from "@/lib/password-rules";
 import { amIAccountOwner } from "@/lib/admin.functions";
 import { logAuthEvent } from "@/lib/auth-activity.functions";
 import { ManageAccountsDialog } from "@/components/ManageAccountsDialog";
+import { normalizeToolTab } from "@/lib/tool/port/tab_launcher";
 
 export const Route = createFileRoute("/_authenticated/tool")({
+  validateSearch: (search): { tab?: string } => typeof search.tab === "string" ? { tab: search.tab } : {},
   head: () => ({
     meta: [
       { title: "Dispatch Board — Flight Dispatch Tool" },
@@ -36,6 +38,7 @@ declare global {
 }
 
 function ToolPage() {
+  const requestedTab = normalizeToolTab(Route.useSearch().tab);
   const [ready, setReady] = useState(false);
   const [toolVersion, setToolVersion] = useState("");
   const [loadStamp] = useState(() => Date.now().toString(36));
@@ -76,12 +79,15 @@ function ToolPage() {
     void checkOwner().then((r) => {
       if (!alive) return;
       ownerRef.current = r.ok; sendAccount();
-      if (r.ok) { setTimeout(sendLive, 2500); liveTimer = setInterval(sendLive, 30_000); }
+      if (r.ok) {
+        if (requestedTab === "accounts") setManageOpen(true);
+        setTimeout(sendLive, 2500); liveTimer = setInterval(sendLive, 30_000);
+      }
     }).catch(() => {});
     window.addEventListener("sohee-profile-updated", refresh);
     const timer = setInterval(refresh, 30 * 60_000);
     return () => { alive = false; clearInterval(timer); if (liveTimer) clearInterval(liveTimer); window.removeEventListener("sohee-profile-updated", refresh); };
-  }, [readAccount, sendAccount, checkOwner]);
+  }, [readAccount, sendAccount, checkOwner, requestedTab]);
 
   // Tín hiệu online: mỗi 40s khi tab đang mở.
   useEffect(() => {
@@ -199,7 +205,7 @@ function ToolPage() {
       ref={frame}
       key={toolVersion}
       title="Dispatch Board"
-      src={`/tool-page?v=${toolVersion}&t=${loadStamp}`}
+      src={`/tool-page?v=${toolVersion}&t=${loadStamp}${requestedTab ? `&tab=${encodeURIComponent(requestedTab)}` : ""}`}
       onLoad={sendAccount}
       className="fixed inset-0 h-screen w-screen border-0"
     />

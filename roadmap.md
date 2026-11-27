@@ -356,3 +356,4 @@
 - [x] Enter ở FLT NO nhảy vào ô tick (V 7.48)
 - [x] V 7.63 / PC 6.19: CHG/DLA AviWeb — trình chỉnh riêng, nguồn OFP/Crewlist, bản soạn mã hóa theo user và khóa gửi trùng bằng job UUID.
 - [x] V 7.63 / PC 6.19: 83 kiểm thử web + 30 PC đạt; giả lập thao tác chọn/chỉnh/gửi/đọc kết quả; kiểm tra ngày/chặng cùng dòng Processed và dừng khi không xác minh được; đã đóng gói. Không gửi thử AviWeb thật, chưa publish.
+- [x] V 7.90: chuột phải thẻ thanh bên → Mở tab mới; `/tool?tab=...` mở đúng chức năng bằng nút hiện có, Database và Account Management theo quyền; 4 kiểm thử + trình duyệt NOTAM/Database/Flight Planning đạt, chưa publish.
