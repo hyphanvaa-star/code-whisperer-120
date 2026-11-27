@@ -144,6 +144,92 @@ def form_matches(text, wanted):
     return bool(re.search(r'(?<![A-Z0-9])' + re.escape(cs) + r'(?![A-Z0-9])', text))
 
 
+# Change opens the full ICAO form: the flight sits in input boxes, which
+# innerText never shows. Read each located field's own boxes and the tokens.
+FORM_SNAPSHOT_JS = """
+var shown=function(e){return !!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)};
+var out={fields:[],tokens:[],inputs:[]};
+document.querySelectorAll('[location]').forEach(function(el){
+  if(!shown(el)) return; var vals=[];
+  el.querySelectorAll('input,textarea').forEach(function(i){
+    if(i.closest('[location]')===el && shown(i) && i.value) vals.push(String(i.value));});
+  out.fields.push([el.getAttribute('location'),vals,vals.length?'':String(el.innerText||'').slice(0,120)]);});
+document.querySelectorAll('.tokenComponentTokenEdit').forEach(function(e){
+  if(shown(e)) out.tokens.push(String(e.innerText||e.value||''));});
+document.querySelectorAll('input,textarea').forEach(function(i){
+  if(shown(i) && i.value) out.inputs.push(String(i.value));});
+return out;
+"""
+
+_F_CALLSIGN = re.compile(r'aircraft_?id|callsign|arcid|acid', re.I)
+_F_DEP = re.compile(r'depart|adep', re.I)
+_F_ARR = re.compile(r'dest|ades', re.I)
+_F_NOT_AERODROME = re.compile(r'alt|time|date|eobt|eet', re.I)
+
+
+def form_fields_match(snapshot, wanted):
+    """Identity of an AviWeb form page read from its boxes (FORM_SNAPSHOT_JS).
+    True = callsign, DEP, DEST and day all shown and equal to the confirmed
+    flight; False = something shown contradicts it; None = not shown (yet)."""
+    cs, dep, arr, dof = wanted
+    if not isinstance(snapshot, dict):
+        return None
+    def clean(v):
+        return re.sub(r'\s+', ' ', str(v or '')).strip().upper()
+    seen_cs, seen_dep, seen_arr = set(), set(), set()
+    for item in snapshot.get('fields') or []:
+        try:
+            name, vals, text = item
+        except (TypeError, ValueError):
+            continue
+        name = str(name or '')
+        values = [clean(v) for v in (vals or [])] or [clean(l) for l in str(text or '').splitlines()[-1:]]
+        values = [v for v in values if v]
+        if _F_CALLSIGN.search(name):
+            seen_cs.update(_row_callsign(v) for v in values)
+        elif not _F_NOT_AERODROME.search(name):
+            codes = {c for c in (_row_icao(v) for v in values) if c}
+            if _F_DEP.search(name):
+                seen_dep |= codes
+            elif _F_ARR.search(name):
+                seen_arr |= codes
+    dofs = set()
+    for token in snapshot.get('tokens') or []:
+        hit = re.fullmatch(r'DOF\s*/\s*(\d{6})', clean(token))
+        if hit:
+            dofs.add(hit[1])
+    inputs = [clean(v) for v in (snapshot.get('inputs') or [])]
+    if (seen_cs and seen_cs != {cs}) or (seen_dep and seen_dep != {dep}) or (seen_arr and seen_arr != {arr}) or (dofs and dofs != {dof}):
+        return False
+    if not dofs:
+        # No DOF token: the day must be shown in a date box.
+        for value in inputs:
+            try:
+                dofs.add(_row_dof(value))
+            except AviWebSendError:
+                pass
+        if dof not in dofs:
+            return None
+    if not seen_cs and cs in inputs:
+        seen_cs = {cs}
+    if not (seen_dep and seen_arr):
+        # Field names unknown: DEP must come before DEST in form order.
+        codes = [_row_icao(v) for v in inputs]
+        if dep in codes and arr in codes[codes.index(dep) + 1:]:
+            seen_dep, seen_arr = seen_dep or {dep}, seen_arr or {arr}
+    return True if (seen_cs and seen_dep and seen_arr) else None
+
+
+def form_summary(snapshot):
+    """Short field list for the error line, so a refusal shows what AviWeb showed."""
+    if not isinstance(snapshot, dict):
+        return ''
+    parts = [f"{n}={'|'.join(map(str, v or [])) or str(t or '').strip()[:20]}" for n, v, t in (snapshot.get('fields') or [])
+             if isinstance(n, str) and re.search(r'ident|callsign|depart|dest|adep|ades|eobt|date', n, re.I)]
+    parts += [str(t) for t in (snapshot.get('tokens') or []) if str(t).upper().startswith('DOF')]
+    return '; '.join(parts)[:300]
+
+
 class VerifiedAviWebSender(AviWebSender):
     """Verify the SAME row immediately before action/Submit; ambiguity blocks writes."""
     def __init__(self, expected, manual_submit=False, **kwargs):
@@ -304,12 +390,19 @@ class VerifiedAviWebSender(AviWebSender):
         flight is then proven by the page banner, not by the hidden list."""
         token = self._page_token(driver)
         seen = form_matches(driver.execute_script('return document.body.innerText'), wanted)
+        snapshot = None
+        if seen is None:
+            # No Delay banner: the Change form keeps the flight in its boxes.
+            snapshot = driver.execute_script(FORM_SNAPSHOT_JS)
+            seen = form_fields_match(snapshot, wanted)
         if seen is True and (not self.form_token or not token or self.form_token in (token, ('page', ''))):
             self.form_token = token or self.form_token or ('page', '')
             return
         if seen is None and token and token == self.form_token:
             return  # same verified page, banner covered by the next step
-        raise AviWebSendError(f'{wanted[0]}: form AviWeb không hiện đúng chuyến/chặng/ngày đã xác nhận — không Submit')
+        shown = form_summary(snapshot)
+        raise AviWebSendError(f'{wanted[0]}: form AviWeb không hiện đúng chuyến/chặng/ngày đã xác nhận — không Submit'
+                              + (f' (form đang hiện: {shown})' if shown else ''))
 
     def _open_row_action(self, driver, callsign, action):
         _, _, Actions, By, _, EC, Wait = self._selenium()
@@ -336,6 +429,29 @@ class VerifiedAviWebSender(AviWebSender):
         # Keep the uploaded action selector unchanged.
         self._safe_click(driver, Wait(driver, 30).until(EC.element_to_be_clickable((By.XPATH,
             f'//td[@class="gwt-MenuItem" and .//div[text()="{action}"]]'))))
+        if action == 'Change':
+            self._await_change_form(driver, wanted)
+
+    def _await_change_form(self, driver, wanted, timeout=45):
+        """Prove the flight on the Change page BEFORE anything is typed, so a
+        wrong or half-loaded form stops here instead of after the edits."""
+        end = time.time() + timeout
+        last = None
+        while True:
+            if '#!manager-processed' not in str(driver.current_url):
+                try:
+                    return self._verify_form(driver, wanted)
+                except AviWebSendError as exc:
+                    last = exc
+                    snapshot = driver.execute_script(FORM_SNAPSHOT_JS)
+                    if form_fields_match(snapshot, wanted) is False:
+                        raise
+            if time.time() >= end:
+                break
+            time.sleep(.5)
+        if last:
+            raise last
+        # Change stayed on the Processed list (popup form): the row check gates Submit.
 
     def _safe_click(self, driver, element):
         label = element.text.strip()

@@ -239,6 +239,52 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         self.check(sender,driver)  # same page id, banner hidden by next step
         driver.current_url='http://aviweb.vnaic.vn/AviWeb/#!fpldelay/id=999'
         with self.assertRaises(AviWebSendError): self.check(sender,driver)
+    CWANT=('VJC1312','VVTS','VVPB','261127')
+    def snap(self,cs='VJC1312',dep='VVTS',arr='VVPB',dof='DOF/261127',**extra):
+        fields=[['aircraftIdentificationField',[cs],''],['aircraftTypeField',['A21N'],''],['departureAerodromeField',[dep],''],
+                ['eobtField',['1015'],''],['destinationAerodromeField',[arr],''],['alternateAerodromeField',['VVPQ'],'']]
+        return {'fields':fields,'tokens':[dof,'REG/VNA575','OPR/VIETJET AIR'] if dof else ['REG/VNA575'],'inputs':[cs,'A21N',dep,'1015',arr,'VVPQ'],**extra}
+    def test_change_form_boxes_identify_flight(self):
+        self.assertIs(bridge.form_fields_match(self.snap(),self.CWANT),True)
+        self.assertIs(bridge.form_fields_match(self.snap(dep='VVTS (Tan Son Nhat)'),self.CWANT),True)
+        for bad in (dict(cs='VJC1314'),dict(dep='VVPQ'),dict(arr='VVTS'),dict(dof='DOF/261128')):
+            self.assertIs(bridge.form_fields_match(self.snap(**bad),self.CWANT),False)
+        # the alternate VVPQ box never counts as DEP/DEST
+        self.assertIs(bridge.form_fields_match(self.snap(),('VJC1312','VVTS','VVPQ','261127')),False)
+        for empty in (None,'Loading',{},{'fields':[],'tokens':[],'inputs':[]},self.snap(cs='')):
+            self.assertIs(bridge.form_fields_match(empty,self.CWANT),None)
+    def test_change_form_without_known_field_names_or_dof_token(self):
+        plain={'fields':[['f1',['VJC1312'],'']],'tokens':[],'inputs':['VJC1312','A21N','VVTS','2026-11-27','1015','VVPB']}
+        self.assertIs(bridge.form_fields_match(plain,self.CWANT),True)
+        self.assertIs(bridge.form_fields_match({**plain,'inputs':['VJC1312','VVPB','2026-11-27','VVTS']},self.CWANT),None)
+        self.assertIs(bridge.form_fields_match({**plain,'inputs':['VJC1312','VVTS','2026-11-28','VVPB']},self.CWANT),None)
+    def chg(self,snapshot,url='http://aviweb.vnaic.vn/AviWeb/#!fplchange/id=77'):
+        t={**TARGET,'callsign':'VJC1312','dep':'VVTS','arr':'VVPB','dof':'261127','std':'2026-11-27T10:15:00Z'}
+        sender=bridge.VerifiedAviWebSender([t]);sender.bound=Mock(id='a');sender.current_callsign='VJC1312';sender.bound_snapshot=self.CWANT
+        driver=Mock(current_url=url);driver.execute_script.side_effect=lambda js,*a:snapshot[0] if 'location' in js else 'ATS - Change\nAircraft Identification\nAircraft Type'
+        return sender,driver
+    def test_change_page_verifies_from_boxes_then_blocks_other_flight(self):
+        state=[self.snap()];sender,driver=self.chg(state)
+        with patch.object(sender,'_candidates',side_effect=AssertionError('list must not be read')): self.check(sender,driver)
+        self.assertEqual(sender.form_token,('fplchange','77'))
+        state[0]={'fields':[],'tokens':[],'inputs':['VVTSVJCX']};self.check(sender,driver)  # addressee step, same page id
+        state[0]=self.snap(cs='VJC1314')
+        with self.assertRaises(AviWebSendError) as err: self.check(sender,driver)
+        self.assertIn('VJC1314',str(err.exception))
+        state[0]=self.snap();driver.current_url='http://aviweb.vnaic.vn/AviWeb/#!fplchange/id=78'
+        with self.assertRaises(AviWebSendError): self.check(sender,driver)
+    def test_change_form_is_proven_before_typing(self):
+        state=[{'fields':[],'tokens':[],'inputs':[]}];sender,driver=self.chg(state)
+        def load(_): state[0]=self.snap()
+        with patch('aviweb_messages.time.sleep',side_effect=load): sender._await_change_form(driver,self.CWANT)
+        self.assertEqual(sender.form_token,('fplchange','77'))
+        state=[self.snap(arr='VVDN')];sender,driver=self.chg(state)
+        with patch('aviweb_messages.time.sleep') as nap:
+            with self.assertRaises(AviWebSendError): sender._await_change_form(driver,self.CWANT)
+        nap.assert_not_called()
+        state=[{}];sender,driver=self.chg(state)
+        with patch('aviweb_messages.time.sleep'):
+            with self.assertRaises(AviWebSendError): sender._await_change_form(driver,self.CWANT,timeout=0)
     def test_other_flight_or_blank_page_blocks_submit(self):
         for text in (self.PAGE.replace('VJC762','VJC760'),self.PAGE.replace('VVCI - Nov','VVTS - Nov'),'Loading'):
             sender,driver=self.form('http://aviweb.vnaic.vn/AviWeb/#!fpldelay/id=18874112',text)
