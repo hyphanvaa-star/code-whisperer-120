@@ -100,8 +100,8 @@ export async function executeAviPlan(ctx: Ctx) {
   const machine = currentAgentId();
   if (!machine || !plan.machine || plan.machine !== machine) throw new Error('Ghép Trợ lý PC trên máy này rồi tạo lại bản soạn.');
   if (!pc.agentOnline(agent)) throw new Error('Trợ lý PC chưa kết nối — chưa gửi điện.');
-  // 6.24 proves the flight on the Change form from its input boxes (6.23 only read the Delay banner and refused every CHG); it also verifies the Delay/Change page itself, types only the clock box and waits for the operator at every Submit in manual_submit; older helpers would auto-Submit.
-  if (!agent || pcVersionBelow(agent.version, '6.24')) throw new Error('Cập nhật Trợ lý PC lên 6.24 trước khi gửi CHG/DLA AviWeb.');
+  // 6.25 reads the callsign from the Change page banner and presses the page Submit before the addressee popup (older helpers refuse or time out on every CHG); it also verifies the Delay/Change page itself, types only the clock box and waits for the operator at every Submit in manual_submit; older helpers would auto-Submit.
+  if (!agent || pcVersionBelow(agent.version, '6.25')) throw new Error('Cập nhật Trợ lý PC lên 6.25 trước khi gửi CHG/DLA AviWeb.');
   const manual = input.manual_submit === true;
   const user = env('AVIWEB_USERNAME'), pass = env('AVIWEB_PASSWORD');
   if (!user || !pass) throw new Error('Chưa lưu tài khoản AviWeb trên web.');

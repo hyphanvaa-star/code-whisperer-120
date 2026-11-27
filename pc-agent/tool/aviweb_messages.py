@@ -123,6 +123,19 @@ def delay_clock(eobt):
 _MONTHS = {m: i for i, m in enumerate('JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'.split(), 1)}
 
 
+def shown_callsigns(text):
+    """Values printed after each "Aircraft Identification" caption. The Change
+    page repeats the caption above an input box (innerText shows no value), so
+    the text right after it is the next caption ("SSR Code"): only a token
+    holding a digit is a callsign, a caption word never is."""
+    ids = set()
+    for hit in re.finditer(r'Aircraft\s+Identification\s*:?\s*([^\t\r\n]*)', str(text or '')):
+        token = re.match(r'([A-Z0-9]{2,8})(?![A-Za-z0-9])', hit[1].strip())
+        if token and re.search(r'\d', token[1]):
+            ids.add(token[1])
+    return ids
+
+
 def form_matches(text, wanted):
     """Identity shown on an AviWeb action page (Delay/Change open as their own
     page, so the Processed list is gone). The page must show exactly one
@@ -138,7 +151,7 @@ def form_matches(text, wanted):
     h_dep, h_arr, mon, day = next(iter(heads))
     if (h_dep, h_arr) != (dep, arr) or _MONTHS.get(mon.upper()) != int(dof[2:4]) or int(day) != int(dof[4:6]):
         return False
-    ids = set(re.findall(r'Aircraft\s+Identification\s*:?\s*([A-Z0-9]{2,8})(?![A-Za-z0-9])', text))
+    ids = shown_callsigns(text)
     if ids:
         return ids == {cs}
     return bool(re.search(r'(?<![A-Z0-9])' + re.escape(cs) + r'(?![A-Z0-9])', text))
@@ -239,6 +252,9 @@ class VerifiedAviWebSender(AviWebSender):
         # code never clicks one.
         self.manual_submit = bool(manual_submit)
         self._final_stage = False
+        # Change keeps its addressee popup behind the page's own Submit.
+        self._page_submit_first = False
+        self._step_note = 'ĐÃ ĐIỀN GIỜ MỚI'
         self.expected = {e['callsign']: e for e in expected}
         self.bound = None
         self.bound_snapshot = None
@@ -462,6 +478,8 @@ class VerifiedAviWebSender(AviWebSender):
             windows = [w for w in driver.find_elements('css selector', '.v-window') if w.is_displayed()]
             if len(windows) > 1 or (not windows and not self.form_token):
                 raise AviWebSendError('Không xác định được duy nhất form AviWeb đang gửi')
+            if self._final_stage and windows:
+                element = self._popup_submit(driver, windows[0], element)
             if self._emit_callback:
                 self._note(f'{self.current_callsign}: đã kiểm tra đúng DOF/chặng trước Submit')
             if self.manual_submit:
@@ -470,6 +488,18 @@ class VerifiedAviWebSender(AviWebSender):
             element.click()
             return
         return super()._safe_click(driver, element)
+
+    _SUBMIT_XPATH = './/div[@role="button" and contains(@class,"v-button") and not(contains(@class,"v-disabled"))]//span[text()="Submit"]'
+
+    def _popup_submit(self, driver, window, element):
+        """The page under the addressee popup has a Submit of its own; the
+        final click must be the popup's single Submit, never the page's."""
+        if driver.execute_script('return arguments[0].contains(arguments[1]);', window, element):
+            return element
+        inside = [b for b in window.find_elements('xpath', self._SUBMIT_XPATH) if b.is_displayed()]
+        if len(inside) != 1:
+            raise AviWebSendError('Không xác định được duy nhất nút Submit trong khung địa chỉ AviWeb — không gửi')
+        return inside[0]
 
     def _wait_operator_submit(self, driver, element, final=True):
         """Hand the verified form to the operator. Only a real click/Enter on
@@ -487,7 +517,7 @@ class VerifiedAviWebSender(AviWebSender):
             driver.switch_to.window(driver.current_window_handle)
         except Exception:
             pass
-        step = 'ĐÃ ĐIỀN XONG' if final else 'ĐÃ ĐIỀN GIỜ MỚI (bước 1/2)'
+        step = 'ĐÃ ĐIỀN ĐỊA CHỈ NHẬN (bước 2/2)' if final else f'{self._step_note} (bước 1/2)'
         self._note(f'{self.current_callsign}: {step} — kiểm tra trên Chrome rồi tự bấm Submit (chờ tối đa {MANUAL_SUBMIT_WAIT_S // 60} phút)', 'ok')
         deadline = time.monotonic() + MANUAL_SUBMIT_WAIT_S
         clicked = False
@@ -569,7 +599,45 @@ class VerifiedAviWebSender(AviWebSender):
             pass
         return self._addresses_and_submit(driver)
 
+    def _send_chg(self, driver, message):
+        """Supplied field edits unchanged; AviWeb's Change page then needs its
+        own Submit before the addressee popup exists (two Submits, like Delay)."""
+        self._page_submit_first = True
+        self._step_note = 'ĐÃ SỬA XONG FORM CHANGE'
+        try:
+            return super()._send_chg(driver, message)
+        finally:
+            self._page_submit_first = False
+            self._step_note = 'ĐÃ ĐIỀN GIỜ MỚI'
+
+    _ADDRESSEES_XPATH = '//div[@location="addresseesField"]'
+
+    def _page_submit(self, driver):
+        """Step 1 on the Change page: its single visible Submit opens the popup."""
+        cs = self.current_callsign
+        def shown(xpath):
+            return [e for e in driver.find_elements('xpath', xpath) if e.is_displayed()]
+        if not shown(self._ADDRESSEES_XPATH):
+            buttons = shown(self._SUBMIT_XPATH[1:])
+            if len(buttons) != 1:
+                raise AviWebSendError(f'{cs}: không xác định được duy nhất nút Submit trên form Change — không gửi')
+            self._note(f'CHG {cs}: Submit form Change (bước 1/2) để mở khung địa chỉ nhận')
+            self._safe_click(driver, buttons[0])
+        # The operator may fix a red box and press Submit again in manual mode.
+        end = time.monotonic() + (180 if self.manual_submit else 60)
+        while not shown(self._ADDRESSEES_XPATH):
+            for yes in shown('//div[@role="button"]//span[text()="Yes"]')[:1]:
+                AviWebSender._safe_click(driver, yes)
+            if '/login' in str(driver.current_url):
+                raise AviWebSendError(f'{cs}: AviWeb mất đăng nhập sau Submit bước 1 — chưa gửi')
+            if time.monotonic() >= end:
+                raise AviWebSendError(f'{cs}: AviWeb chưa mở khung địa chỉ nhận sau Submit bước 1 (kiểm tra ô báo đỏ trên form Change) — chưa gửi')
+            time.sleep(.5)
+        self._note(f'CHG {cs}: khung địa chỉ nhận đã mở — nhập VVTSVJCX, KHOUXAAF')
+
     def _addresses_and_submit(self, driver):
+        if self._page_submit_first:
+            self._page_submit(driver)
         self._verify_bound(driver)
         baseline = set(n.text.strip() for n in driver.find_elements('css selector', '.v-Notification, .v-notification, [class*="notification"]') if n.is_displayed())
         self._final_stage = True

@@ -144,7 +144,7 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         sender,driver=self.manual();button=Mock(text='Submit')
         class StaleElementReferenceException(Exception): pass
         button.is_enabled.side_effect=StaleElementReferenceException()
-        driver.execute_script.side_effect=[None,1]
+        driver.execute_script.side_effect=[True,None,1]
         with patch.object(sender,'_verify_bound'):
             self.assertEqual(sender._safe_click(driver,button),'operator Submit')
         button.click.assert_not_called()
@@ -152,12 +152,12 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         sender,driver=self.manual();button=Mock(text='Submit')
         class StaleElementReferenceException(Exception): pass
         button.is_enabled.side_effect=StaleElementReferenceException()
-        driver.execute_script.side_effect=[None,0]
+        driver.execute_script.side_effect=[True,None,0]
         with patch.object(sender,'_verify_bound'):
             with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
         button.click.assert_not_called()
     def test_operator_timeout_is_not_sent(self):
-        sender,driver=self.manual();button=Mock(text='Submit');driver.execute_script.return_value=0
+        sender,driver=self.manual();button=Mock(text='Submit');driver.execute_script.side_effect=lambda js,*a:'contains' in js
         with patch.object(sender,'_verify_bound'),patch.object(bridge,'MANUAL_SUBMIT_WAIT_S',0):
             with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
         button.click.assert_not_called()
@@ -315,3 +315,95 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         self.assertEqual(seen,[(True,False),(False,True)])
 
 if __name__=='__main__':unittest.main()
+
+
+CHANGE_PAGE = ('ATS - Modification\nVVPQ - VVCI - Nov. 27 07:20 UTC\nAircraft Identification\tVJC762\tAircraft Type\tA21N\n'
+               'Cruising Speed\tN0455\tCruising Level\tF330\nRoute\tVVPQ OSOTA3E OSOTA/M069F330 M753 TIA NAH1J VVCI\n'
+               'Aircraft Information\nAircraft Identification\nSSR Code\nA\nFlight Rules\nFlight Type\nAircraft Number/Type\nWake Turbulence\n'
+               'Route Information\nDeparture\nEstimated Off Block\nTime\nDestination\nOther Information\nQualifier\nPBN/A1B2 X\nDOF/261127 X\nReset\nSubmit')
+CH_WANT = ('VJC762', 'VVPQ', 'VVCI', '261127')
+CH_URL = 'https://aviweb.vnaic.vn/AviWeb/#!fplchg/id=18874112'
+ADDR = bridge.VerifiedAviWebSender._ADDRESSEES_XPATH
+
+
+class ChangeTwoSubmits(unittest.TestCase):
+    """Real Change page: banner + edit form; Submit 1 opens the addressee popup."""
+    def sender(self, manual=False):
+        t = {**TARGET, 'callsign': 'VJC762', 'dep': 'VVPQ', 'arr': 'VVCI', 'dof': '261127', 'std': '2026-11-27T07:20:00Z'}
+        s = bridge.VerifiedAviWebSender([t], manual_submit=manual); s.current_callsign = 'VJC762'; s.bound = Mock(id='a'); s.bound_snapshot = CH_WANT
+        return s
+    @staticmethod
+    def el(text='Submit'):
+        e = Mock(text=text); e.is_displayed.return_value = True; return e
+    def test_banner_callsign_is_not_confused_with_ssr_caption(self):
+        self.assertEqual(bridge.shown_callsigns(CHANGE_PAGE), {'VJC762'})
+        self.assertIs(bridge.form_matches(CHANGE_PAGE, CH_WANT), True)
+        self.assertIs(bridge.form_matches(CHANGE_PAGE.replace('\t', ' '), CH_WANT), True)
+        self.assertIs(bridge.form_matches(CHANGE_PAGE.replace('\tVJC762', '\tVJC764'), CH_WANT), False)
+        for wrong in (('VJC764', 'VVPQ', 'VVCI', '261127'), ('VJC762', 'VVPQ', 'VVNB', '261127'), ('VJC762', 'VVPQ', 'VVCI', '261128')):
+            self.assertIs(bridge.form_matches(CHANGE_PAGE, wrong), False)
+    def test_change_page_is_verified_by_its_banner(self):
+        s = self.sender(); driver = Mock(current_url=CH_URL); driver.execute_script.return_value = CHANGE_PAGE
+        with patch('aviweb_messages.datetime') as clock:
+            clock.fromisoformat.return_value = NOW; clock.now.return_value = NOW
+            s._verify_bound(driver)
+        self.assertEqual(s.form_token, ('fplchg', '18874112'))
+    def page(self, buttons, popup_after=1, yes=()):
+        """Addressee box appears after `popup_after` looks."""
+        looks = {'n': 0}; popup = self.el('')
+        def find(by, xp):
+            if xp == ADDR:
+                looks['n'] += 1
+                return [popup] if looks['n'] > popup_after else []
+            if 'Yes' in xp: return list(yes)
+            return list(buttons)
+        driver = Mock(current_url=CH_URL); driver.find_elements.side_effect = find
+        return driver
+    def test_step1_clicks_page_submit_before_addresses(self):
+        s = self.sender(); button = self.el(); driver = self.page([button]); order = []
+        with patch.object(s, '_safe_click', side_effect=lambda d, e: order.append(e)), patch.object(bridge.time, 'sleep'):
+            s._page_submit(driver)
+        self.assertEqual(order, [button])
+    def test_step1_runs_before_supplied_address_step_only_for_change(self):
+        s = self.sender(); driver = Mock(current_url=CH_URL); driver.find_elements.return_value = []; calls = []
+        with patch.object(s, '_page_submit', side_effect=lambda d: calls.append('step1')), patch.object(s, '_verify_bound'), \
+             patch.object(AviWebSender, '_addresses_and_submit', side_effect=lambda d: calls.append('addr') or 'form closed'):
+            def supplied(self_, d, m): return self_._addresses_and_submit(d)
+            with patch.object(AviWebSender, '_send_chg', supplied): self.assertEqual(s._send_chg(driver, CHG), 'form closed')
+            self.assertEqual(calls, ['step1', 'addr']); self.assertFalse(s._page_submit_first)
+            s._addresses_and_submit(driver)  # Delay path: no extra page Submit
+        self.assertEqual(calls, ['step1', 'addr', 'addr'])
+    def test_step1_needs_one_submit_and_an_opened_popup(self):
+        for buttons in ([], [self.el(), self.el()]):
+            s = self.sender()
+            with patch.object(s, '_safe_click') as click:
+                with self.assertRaises(AviWebSendError): s._page_submit(self.page(buttons))
+            click.assert_not_called()
+        s = self.sender(); driver = self.page([self.el()], popup_after=10 ** 9)
+        with patch.object(s, '_safe_click'), patch.object(bridge.time, 'sleep'), patch.object(bridge.time, 'monotonic', side_effect=[0, 0, 61]):
+            with self.assertRaises(AviWebSendError) as err: s._page_submit(driver)
+        self.assertIn('bước 1', str(err.exception))
+    def test_step1_confirms_yes_prompt(self):
+        s = self.sender(); yes = self.el('Yes'); driver = self.page([self.el()], popup_after=2, yes=[yes])
+        with patch.object(s, '_safe_click'), patch.object(bridge.time, 'sleep'): s._page_submit(driver)
+        yes.click.assert_called_once()
+    def test_manual_step1_is_never_clicked_by_code(self):
+        s = self.sender(manual=True); button = self.el(); driver = self.page([button]); driver.execute_script.side_effect = [None, 1]
+        with patch.object(s, '_verify_bound'), patch.object(bridge.time, 'sleep'): s._page_submit(driver)
+        button.click.assert_not_called()
+    def test_final_submit_is_the_popup_button_not_the_page_button(self):
+        s = self.sender(); s._final_stage = True; s.form_token = ('fplchg', '18874112')
+        page_btn, popup_btn, window = self.el(), self.el(), self.el('')
+        window.find_elements.return_value = [popup_btn]
+        driver = Mock(current_url=CH_URL); driver.find_elements.return_value = [window]; driver.execute_script.return_value = False
+        with patch.object(s, '_verify_bound'): s._safe_click(driver, page_btn)
+        page_btn.click.assert_not_called(); popup_btn.click.assert_called_once()
+        for inside in ([], [self.el(), self.el()]):
+            window.find_elements.return_value = inside; page_btn.reset_mock()
+            with patch.object(s, '_verify_bound'):
+                with self.assertRaises(AviWebSendError): s._safe_click(driver, page_btn)
+            page_btn.click.assert_not_called()
+
+
+if __name__ == '__main__':
+    unittest.main()
