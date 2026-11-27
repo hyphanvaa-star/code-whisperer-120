@@ -46,6 +46,6 @@ export function exportPayloadItems(db: Db, items: Raw[], rows: Raw[]): Raw[] {
     const base = db.flight(Number(item.id)) ?? db.flights.find(f => digits(f.flt) === digits(item.flt));
     const flight = { ...base, ...item, flt: item.flt || base?.flt };
     const est = omniPayload(rows, flight);
-    return { ...item, pay: est === null ? '9999' : String(est + 1000) };
+    return { ...item, pay: est === null ? 'CHECK' : String(est + 1000) };
   });
 }

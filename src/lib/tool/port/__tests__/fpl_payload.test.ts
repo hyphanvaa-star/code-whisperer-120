@@ -66,11 +66,17 @@ describe('KHB flight-date payload', () => {
     expect(items.map(i => i.pay)).toEqual(['23329', '15540', '17980']);
     expect(build_req(db, items, 'TEST', []).match(/PAY÷\d+/g)).toEqual(['PAY÷23329', 'PAY÷15540', 'PAY÷17980']);
   });
-  it('preserves explicit grid PAY', () => {
-    expect(exportPayloadItems(db, [{ ...flights[0], pay: '22000' }], rows)[0]?.pay).toBe('22000');
+  it('exports the exact manually typed grid PAY', () => {
+    const items = exportPayloadItems(db, [{ ...flights[0], pay: '22000' }], rows);
+    expect(items[0]?.pay).toBe('22000');
+    expect(build_req(db, items, 'TEST', [])).toContain('PAY÷22000');
   });
-  it('missing correct date uses 9999', () => {
-    expect(exportPayloadItems(db, [{ ...flights[0], date: '13/10/26' }], rows)[0]?.pay).toBe('9999');
+  it('missing correct date exports PAY÷CHECK instead of 9999', () => {
+    const items = exportPayloadItems(db, [{ ...flights[0], date: '13/10/26' }], rows);
+    expect(items[0]?.pay).toBe('CHECK');
+    const text = build_req(db, items, 'TEST', []);
+    expect(text).toContain('PAY÷CHECK');
+    expect(text).not.toContain('PAY÷9999');
   });
   it('keeps the original rounding rules', () => {
     expect(flights.map(f => round_est(omniPayload(rows, f) ?? 0, f.ac)[0])).toEqual([22300, 15000, 17500]);

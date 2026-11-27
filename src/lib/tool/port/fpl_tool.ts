@@ -845,7 +845,7 @@ export function render_fpl(db: Db, flight: Raw, opts: RenderOpts = {}): string {
   if (opts.pay != null && opts.pay !== "") payLine = "PAY÷" + String(opts.pay).trim();
   else {
     const payRow = db.payload["VJ" + flt];
-    if (!payRow || payRow[1] === "") payLine = "PAY÷9999";
+    if (!payRow || payRow[1] === "") payLine = "PAY÷CHECK";
     else payLine = "PAY÷" + Math.trunc(parseFloat(payRow[1]) + 1000);
   }
   const lines = [

@@ -299,8 +299,8 @@ export const routes: Routes = {
         continue;
       }
       if (est === null) {
-        // Không có EST: điền tạm 9999, đánh dấu manual để dispatcher tự kiểm tra.
-        rows.push({ id: rawId, flt, pay: "9999", manual: true, alert: `VJ${flt} không có EST — điền tạm 9999, tự kiểm tra` });
+        // Để trống để dispatcher nhập tay; nếu vẫn trống, REQ xuất PAY÷CHECK.
+        rows.push({ id: rawId, flt, pay: "", manual: false, alert: `VJ${flt} không có EST — REQ sẽ ghi PAY÷CHECK; có thể nhập PLD tay` });
         continue;
       }
       const [rounded, why] = ft.round_est(est, String(flight.ac || ""));
