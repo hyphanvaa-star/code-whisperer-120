@@ -9,6 +9,7 @@ import { jobId } from "../jobs";
 import { getJson, setJson, getFile } from "../store.server";
 import * as pc from "../pcagent.server";
 import * as gd from "../port/gd_print";
+import { isPcWaitTimeout, pcDest } from "../port/pc_drive";
 import * as omni from "../port/omni";
 import "../omni_session.server";
 import { readTable, sheetDicts } from "../port/excelcmp_reader";
@@ -52,10 +53,9 @@ const OMNI_AUTO_DEFAULT: OmniAutoState = {
   last_error: "",
 };
 
-/** Máy công ty không có ổ D (trợ lý PC báo "D:\\" = false) thì D:\\... hiển thị/ghi sang C:\\... */
-function driveFix(path: string, agent: pc.AgentInfo | null | undefined): string {
-  if (/^d:/i.test(path) && agent?.paths_exist?.["D:\\"] === false) return "C:" + path.slice(2);
-  return path;
+/** Máy công ty không có ổ D thì D:\\... sang C:\\...; không bao giờ ghi thẳng gốc C:\\ (Windows chặn) — xem port/pc_drive.ts. */
+function driveFix(path: string, agent: pc.AgentInfo | null | undefined, kind = ""): string {
+  return pcDest(path, agent?.paths_exist?.["D:\\"], kind);
 }
 
 /** Port of config.paths_status() — exists flags come from the agent heartbeat. */
@@ -66,7 +66,7 @@ async function pathsStatus(ctx: Ctx) {
   const out: Record<string, Record<string, unknown>> = {};
   for (const [kind, [label, dflt]] of Object.entries(PATH_KEYS)) {
     const custom = (saved[kind] || "").trim();
-    const path = driveFix(custom || dflt, agent);
+    const path = driveFix(custom || dflt, agent, kind);
     out[kind] = {
       label,
       path,
@@ -267,7 +267,7 @@ export const routes: Routes = {
       return { error: "trợ lý PC chưa kết nối — mở trợ lý trên máy công ty rồi bấm lại" };
     }
     const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
-    const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent);
+    const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent, kind);
     const paths: string[] = [];
     for (const f of rawFiles.slice(0, 50) as Array<Record<string, unknown>>) {
       const name = String(f["name"] || "").replace(/[\\/:*?"<>|]/g, "_").trim();
@@ -431,13 +431,15 @@ export async function saveToPc(ctx: Ctx, kind: string, name: string, bytes: Uint
   // vẫn coi là đang mở nếu thấy trong 30 phút; lệnh lưu xếp hàng, rảnh là ghi.
   if (!agent || Date.now() - agent.at > 30 * 60_000 || !(kind in PATH_KEYS)) return null;
   const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
-  const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent);
+  const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent, kind);
   const id = await pc.enqueue("save_file", { dir: dest, name, data_b64: Buffer.from(bytes).toString("base64") });
   try {
     const r = await pc.waitResult(id, pc.agentOnline(agent) ? 60_000 : 8_000);
     return String(r["path"] || `${dest}\\${name}`);
-  } catch {
-    return `${dest}\\${name} (trợ lý đang bận — sẽ tự ghi khi rảnh)`;
+  } catch (e) {
+    // Máy từ chối ghi (không có quyền, đĩa đầy…) là lỗi thật: ném ra để nơi gọi tải qua trình duyệt, không báo "đã lưu".
+    if (!isPcWaitTimeout(e)) throw e;
+    return `${dest}\\${name} (trợ lý chưa nhận lệnh — sẽ tự ghi khi nhận)`;
   }
 }
 
@@ -456,7 +458,7 @@ export async function queueFilesToPc(ctx: Ctx, kind: string, files: { name: stri
   const agent = await pc.agentInfo(ctx);
   if (!agent || Date.now() - agent.at > 30 * 60_000 || !(kind in PATH_KEYS) || !files.length) return null;
   const saved = await getJson<SavedPaths>(ctx, PATHS_KEY, {});
-  const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent);
+  const dest = driveFix((saved[kind] || "").trim() || PATH_KEYS[kind]![1], agent, kind);
   // First job carries the new MEL set: the helper deletes old VNAxxx.pdf not in it, then every file is written.
   const keep = opts.pruneMel ? files.map((f) => f.name) : null;
   for (const [i, f] of files.entries()) {
