@@ -120,6 +120,30 @@ def delay_clock(eobt):
     return f'{hit[1]}:{hit[2]}'
 
 
+_MONTHS = {m: i for i, m in enumerate('JAN FEB MAR APR MAY JUN JUL AUG SEP OCT NOV DEC'.split(), 1)}
+
+
+def form_matches(text, wanted):
+    """Identity shown on an AviWeb action page (Delay/Change open as their own
+    page, so the Processed list is gone). The page must show exactly one
+    "DEP - DEST - Mon. DD" banner equal to the confirmed sector and day, and
+    the confirmed callsign as Aircraft Identification. None = no banner."""
+    cs, dep, arr, dof = wanted
+    text = str(text or '')
+    heads = set(re.findall(r'(?<![A-Z0-9])([A-Z]{4})\s*-\s*([A-Z]{4})\s*-\s*([A-Za-z]{3})[a-z]*\.?\s*(\d{1,2})(?!\d)', text))
+    if not heads:
+        return None
+    if len(heads) != 1:
+        return False
+    h_dep, h_arr, mon, day = next(iter(heads))
+    if (h_dep, h_arr) != (dep, arr) or _MONTHS.get(mon.upper()) != int(dof[2:4]) or int(day) != int(dof[4:6]):
+        return False
+    ids = set(re.findall(r'Aircraft\s+Identification\s*:?\s*([A-Z0-9]{2,8})(?![A-Za-z0-9])', text))
+    if ids:
+        return ids == {cs}
+    return bool(re.search(r'(?<![A-Z0-9])' + re.escape(cs) + r'(?![A-Z0-9])', text))
+
+
 class VerifiedAviWebSender(AviWebSender):
     """Verify the SAME row immediately before action/Submit; ambiguity blocks writes."""
     def __init__(self, expected, manual_submit=False, **kwargs):
@@ -132,6 +156,8 @@ class VerifiedAviWebSender(AviWebSender):
         self.expected = {e['callsign']: e for e in expected}
         self.bound = None
         self.bound_snapshot = None
+        # Set once the action page of the bound flight was verified: (page, id).
+        self.form_token = None
         self.current_callsign = ''
         self.final_submitted = False
         self.results = []
@@ -252,12 +278,38 @@ class VerifiedAviWebSender(AviWebSender):
         if not now - timedelta(hours=6) <= std <= now + timedelta(hours=24):
             raise AviWebSendError('Chuyến đã ngoài khung −6/+24 giờ — không Submit')
         wanted = (target['callsign'], target['dep'], target['arr'], target['dof'])
+        if '#!manager-processed' not in str(driver.current_url):
+            return self._verify_form(driver, wanted)
         rows = self._candidates(driver, self.current_callsign)
         matches = [r for r in rows if self._row_matches(r, wanted)]
-        if len(matches) != 1 or matches[0].id != self.bound.id:
+        if len(matches) != 1:
+            raise AviWebSendError('Dòng Processed đã đổi hoặc không duy nhất — dừng trước Submit')
+        if self.form_token:
+            # Back on the list after the verified action page: the list was
+            # rebuilt, so the unique matching row is bound again.
+            self.bound = matches[0]
+            return
+        if matches[0].id != self.bound.id:
             raise AviWebSendError('Dòng Processed đã đổi hoặc không duy nhất — dừng trước Submit')
         if not self._row_matches(self.bound, self.bound_snapshot):
             raise AviWebSendError('Danh tính dòng AviWeb đã thay đổi — không Submit')
+
+    @staticmethod
+    def _page_token(driver):
+        hit = re.search(r'#!([\w-]+)/id=(\d+)', str(driver.current_url))
+        return (hit[1], hit[2]) if hit else None
+
+    def _verify_form(self, driver, wanted):
+        """Delay/Change replace the Processed list with their own page; the
+        flight is then proven by the page banner, not by the hidden list."""
+        token = self._page_token(driver)
+        seen = form_matches(driver.execute_script('return document.body.innerText'), wanted)
+        if seen is True and (not self.form_token or not token or self.form_token in (token, ('page', ''))):
+            self.form_token = token or self.form_token or ('page', '')
+            return
+        if seen is None and token and token == self.form_token:
+            return  # same verified page, banner covered by the next step
+        raise AviWebSendError(f'{wanted[0]}: form AviWeb không hiện đúng chuyến/chặng/ngày đã xác nhận — không Submit')
 
     def _open_row_action(self, driver, callsign, action):
         _, _, Actions, By, _, EC, Wait = self._selenium()
@@ -277,6 +329,7 @@ class VerifiedAviWebSender(AviWebSender):
             raise AviWebSendError(f'{callsign}: không có duy nhất dòng đúng DOF/chặng — không gửi')
         self.bound = matches[0]; self.current_callsign = callsign; self.bound_snapshot = wanted
         self.final_submitted = False
+        self.form_token = None
         self._safe_click(driver, self.bound)
         self._verify_bound(driver)
         Actions(driver).context_click(self.bound).perform()
@@ -291,7 +344,7 @@ class VerifiedAviWebSender(AviWebSender):
             # Uploaded token helpers are global. Require one visible form to
             # prevent another window's token inputs from authorizing a write.
             windows = [w for w in driver.find_elements('css selector', '.v-window') if w.is_displayed()]
-            if len(windows) != 1:
+            if len(windows) > 1 or (not windows and not self.form_token):
                 raise AviWebSendError('Không xác định được duy nhất form AviWeb đang gửi')
             if self._emit_callback:
                 self._note(f'{self.current_callsign}: đã kiểm tra đúng DOF/chặng trước Submit')
@@ -343,6 +396,26 @@ class VerifiedAviWebSender(AviWebSender):
             time.sleep(.5)
         raise AviWebSendError(f'Quá {MANUAL_SUBMIT_WAIT_S // 60} phút chưa bấm Submit — không tự gửi')
 
+    _DELAY_XPATH = '//div[@location="timeComponent"]//input[@type="text"]'
+
+    def _delay_fields(self, driver, callsign):
+        """The Delay row holds a clock box and a date box side by side. Return
+        the single clock box and the values of every other text box, so the
+        date is never typed into and any side effect is caught."""
+        def value(box):
+            return str(box.get_attribute('value') or '').strip()
+
+        def is_date(box):
+            return 'datefield' in str(box.get_attribute('class') or '').lower() or bool(re.fullmatch(r'\d{4}-\d{2}-\d{2}.*', value(box)))
+
+        boxes = [b for b in driver.find_elements('xpath', self._DELAY_XPATH) if b.is_displayed()]
+        clocks = [b for b in boxes if not is_date(b) and re.fullmatch(r'(?:\d{1,2}:?\d{2})?', value(b))]
+        if len(clocks) != 1:
+            raise AviWebSendError(f'{callsign}: không xác định được duy nhất ô giờ Delay — không gửi')
+        others = sorted(value(b) for b in driver.find_elements('css selector', 'input[type="text"]')
+                        if b.is_displayed() and b.id != clocks[0].id)
+        return clocks[0], others
+
     def _send_dla(self, driver, message):
         """Same selectors as the supplied sender; only the time is typed as
         HH:MM and read back before any Submit."""
@@ -353,15 +426,21 @@ class VerifiedAviWebSender(AviWebSender):
             raise AviWebSendError('Không đọc được callsign/EOBT từ điện văn DLA')
         clock = delay_clock(match[1])
         self._open_row_action(driver, callsign, 'Delay')
-        xpath = '//div[@location="timeComponent"]//input[@type="text"]'
-        field = Wait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, xpath)))
-        self._type_input(driver, field, clock, Keys.TAB)
+        Wait(driver, 30).until(EC.element_to_be_clickable((By.XPATH, self._DELAY_XPATH)))
+        self._verify_bound(driver)
+        field, others = self._delay_fields(driver, callsign)
+        was_red = 'error' in str(field.get_attribute('class') or '').lower()
+        # No TAB: it moves the cursor into the date box next to the time box.
+        self._type_input(driver, field, clock)
+        driver.execute_script('arguments[0].blur();', field)
         time.sleep(.6)
-        field = Wait(driver, 30).until(EC.presence_of_element_located((By.XPATH, xpath)))
+        field, after = self._delay_fields(driver, callsign)
+        if after != others:
+            raise AviWebSendError(f'{callsign}: ô ngày/ô khác trên form Delay bị thay đổi — không Submit')
         shown = re.sub(r'\D', '', str(field.get_attribute('value') or ''))
         if shown != match[1]:
             raise AviWebSendError(f'{callsign}: ô giờ Delay hiện "{shown}" khác EOBT {match[1]} — không Submit')
-        if 'error' in str(field.get_attribute('class') or '').lower():
+        if 'error' in str(field.get_attribute('class') or '').lower() and not was_red:
             if not self.manual_submit:
                 raise AviWebSendError(f'{callsign}: AviWeb không nhận giờ Delay {clock} — không Submit')
             self._note(f'{callsign}: AviWeb đang báo đỏ ô giờ {clock} — sửa trên Chrome trước khi bấm Submit', 'warn')

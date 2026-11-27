@@ -76,12 +76,12 @@ class Messages(unittest.TestCase):
         other=Mock(id='new')
         with patch.object(sender,'_candidates',return_value=[other]),patch.object(sender,'_row_identity',return_value=sender.bound_snapshot),patch('aviweb_messages.datetime') as clock:
             clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
-            with self.assertRaises(AviWebSendError): sender._verify_bound(Mock())
+            with self.assertRaises(AviWebSendError): sender._verify_bound(Mock(current_url=sender.PROCESSED))
     def test_duplicate_row_blocks_submit(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);sender.bound=Mock(id='a');sender.current_callsign='VJC874';sender.bound_snapshot=('VJC874','VVDN','RKSI','261125')
         with patch.object(sender,'_candidates',return_value=[Mock(id='a'),Mock(id='b')]),patch.object(sender,'_row_identity',return_value=sender.bound_snapshot),patch('aviweb_messages.datetime') as clock:
             clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
-            with self.assertRaises(AviWebSendError): sender._verify_bound(Mock())
+            with self.assertRaises(AviWebSendError): sender._verify_bound(Mock(current_url=sender.PROCESSED))
     def test_rejected_notice_never_counts_sent(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);driver=Mock(current_url=sender.PROCESSED)
         notice=Mock(text='Request rejected');notice.is_displayed.return_value=True
@@ -174,31 +174,87 @@ class OperatorSubmitAndVaadin(unittest.TestCase):
         with patch.object(sender,'_verify_bound'):
             with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
         button.click.assert_not_called()
-    def dla(self,manual,value='15:10',cls='v-textfield'):
+    def dla(self,manual,value='15:10',cls='v-textfield',before_cls='v-textfield',date_after='2026-11-26',boxes=None):
         sender=bridge.VerifiedAviWebSender([TARGET],manual_submit=manual);driver=Mock()
-        field=Mock();field.get_attribute.side_effect=lambda k:{'value':value,'class':cls}[k]
-        wait=Mock();wait.return_value.until.return_value=field
-        sel=(None,None,None,Mock(),Mock(TAB='TAB'),Mock(),wait)
+        state={'typed':False}
+        def box(i,val,klass):
+            b=Mock(id=i);b.is_displayed.return_value=True
+            b.get_attribute.side_effect=lambda k:{'value':val(),'class':klass()}[k];return b
+        clock=box('t',lambda:value if state['typed'] else '15:00',lambda:cls if state['typed'] else before_cls)
+        date=box('d',lambda:date_after if state['typed'] else '2026-11-26',lambda:'v-textfield v-datefield-textfield')
+        found=boxes(clock,date) if boxes else [clock,date]
+        driver.find_elements.side_effect=lambda how,what:found
+        sel=(None,None,None,Mock(),Mock(TAB='TAB'),Mock(),Mock())
         typed=[]
-        with patch.object(sender,'_selenium',return_value=sel),patch.object(sender,'_open_row_action'),patch.object(sender,'_type_input',side_effect=lambda d,e,v,c=None:typed.append((v,c))),\
+        def type_(d,e,v,c=None): typed.append((e.id,v,c));state['typed']=True
+        with patch.object(sender,'_selenium',return_value=sel),patch.object(sender,'_open_row_action'),patch.object(sender,'_verify_bound') as verify,patch.object(sender,'_type_input',side_effect=type_),\
              patch.object(sender,'_safe_click') as click,patch.object(sender,'_addresses_and_submit',return_value='ok') as final,patch.object(bridge.time,'sleep'):
             try: out=sender._send_dla(driver,'(DLA-VJC334-VVPQ1510-VVTS-DOF/261126)')
             except AviWebSendError as e: out=e
+        self.verify=verify
         return out,typed,click,final
-    def test_delay_time_is_typed_with_colon(self):
+    def test_delay_time_goes_into_clock_box_without_tab(self):
         out,typed,click,final=self.dla(False)
-        self.assertEqual(typed,[('15:10','TAB')]);self.assertEqual(out,'ok');final.assert_called_once()
+        self.assertEqual(typed,[('t','15:10',None)]);self.assertEqual(out,'ok');final.assert_called_once();self.verify.assert_called_once()
         self.assertEqual(bridge.delay_clock('0005'),'00:05')
         for bad in ('2460','1560','151','15:10'):
             with self.assertRaises(AviWebSendError): bridge.delay_clock(bad)
     def test_delay_time_rejected_or_different_never_submits(self):
-        for kw in ({'value':'15:01'},{'value':''},{'cls':'v-textfield v-textfield-error'}):
+        for kw in ({'value':'15:01'},{'value':''},{'cls':'v-textfield v-textfield-error'},{'date_after':'2026-11-15'}):
             out,typed,click,final=self.dla(False,**kw)
             with self.subTest(kw=kw):
                 self.assertIsInstance(out,AviWebSendError);click.assert_not_called();final.assert_not_called()
+    def test_delay_never_types_when_clock_box_is_not_unique(self):
+        for boxes in (lambda c,d:[d],lambda c,d:[c,Mock(id='x',**{'is_displayed.return_value':True,'get_attribute.side_effect':lambda k:{'value':'09:00','class':''}[k]}),d]):
+            out,typed,click,final=self.dla(False,boxes=boxes)
+            self.assertIsInstance(out,AviWebSendError);self.assertEqual(typed,[]);click.assert_not_called()
+    def test_delay_box_red_before_typing_is_not_a_rejection(self):
+        out,typed,click,final=self.dla(False,cls='v-textfield v-textfield-error',before_cls='v-textfield v-textfield-error')
+        self.assertEqual(out,'ok')
     def test_delay_red_field_in_operator_mode_is_handed_to_operator(self):
         out,typed,click,final=self.dla(True,cls='v-textfield v-textfield-error')
         self.assertEqual(out,'ok');self.assertGreaterEqual(click.call_count,1)
+    PAGE='ATS - Delay\nVVPQ - VVCI - Nov. 27 06:00 UTC\nAircraft Identification\tVJC762\nAircraft Type\tA21N\nRoute\tVVPQ OSOTA3E OSOTA DCT NAH NAH1J VVCI\nDelay Information'
+    FWANT=('VJC762','VVPQ','VVCI','261127')
+    def test_delay_page_banner_identifies_flight(self):
+        self.assertIs(bridge.form_matches(self.PAGE,self.FWANT),True)
+        self.assertIs(bridge.form_matches('Processed list',self.FWANT),None)
+        for wrong in (('VJC763','VVPQ','VVCI','261127'),('VJC762','VVPQ','VVTS','261127'),('VJC762','VVCI','VVPQ','261127'),('VJC762','VVPQ','VVCI','261126'),('VJC762','VVPQ','VVCI','261227')):
+            self.assertIs(bridge.form_matches(self.PAGE,wrong),False)
+        self.assertIs(bridge.form_matches(self.PAGE+'\nVVPQ - VVTS - Nov. 27 08:00 UTC',self.FWANT),False)
+    def form(self,url,text):
+        t={**TARGET,'callsign':'VJC762','dep':'VVPQ','arr':'VVCI','dof':'261127','std':'2026-11-27T06:00:00Z'}
+        sender=bridge.VerifiedAviWebSender([t]);sender.bound=Mock(id='a');sender.current_callsign='VJC762';sender.bound_snapshot=self.FWANT
+        driver=Mock(current_url=url);driver.execute_script.return_value=text
+        return sender,driver
+    def check(self,sender,driver):
+        with patch('aviweb_messages.datetime') as clock:
+            clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
+            sender._verify_bound(driver)
+    def test_delay_page_verifies_without_processed_list(self):
+        sender,driver=self.form('http://aviweb.vnaic.vn/AviWeb/#!fpldelay/id=18874112',self.PAGE)
+        with patch.object(sender,'_candidates',side_effect=AssertionError('list must not be read')): self.check(sender,driver)
+        self.assertEqual(sender.form_token,('fpldelay','18874112'))
+        driver.execute_script.return_value='Addressees'
+        self.check(sender,driver)  # same page id, banner hidden by next step
+        driver.current_url='http://aviweb.vnaic.vn/AviWeb/#!fpldelay/id=999'
+        with self.assertRaises(AviWebSendError): self.check(sender,driver)
+    def test_other_flight_or_blank_page_blocks_submit(self):
+        for text in (self.PAGE.replace('VJC762','VJC760'),self.PAGE.replace('VVCI - Nov','VVTS - Nov'),'Loading'):
+            sender,driver=self.form('http://aviweb.vnaic.vn/AviWeb/#!fpldelay/id=18874112',text)
+            with self.assertRaises(AviWebSendError): self.check(sender,driver)
+            button=Mock(text='Submit');driver.find_elements.return_value=[]
+            with patch('aviweb_messages.datetime') as clock:
+                clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
+                with self.assertRaises(AviWebSendError): sender._safe_click(driver,button)
+            button.click.assert_not_called()
+    def test_submit_on_verified_page_needs_no_popup_window(self):
+        sender,driver=self.form('http://aviweb.vnaic.vn/AviWeb/#!fpldelay/id=18874112',self.PAGE);driver.find_elements.return_value=[]
+        button=Mock(text='Submit')
+        with patch('aviweb_messages.datetime') as clock:
+            clock.fromisoformat.return_value=NOW;clock.now.return_value=NOW
+            sender._safe_click(driver,button)
+        self.assertEqual(button.click.call_count,1)
     def test_auto_mode_still_clicks_once(self):
         sender=bridge.VerifiedAviWebSender([TARGET]);sender._final_stage=True;button=Mock(text='Submit');driver=Mock();driver.find_elements.return_value=[Mock()]
         with patch.object(sender,'_verify_bound'): sender._safe_click(driver,button)

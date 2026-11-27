@@ -2,7 +2,7 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import type { Ctx } from '../types';
 const m = vi.hoisted(() => ({
   plans: new Map<string, unknown>(), jobs: new Map<string, Record<string, unknown>>(), role: true,
-  agent: {at:0,version:'6.22'}, machine:'machine-1', reads:0, inserts:0, changed:false,
+  agent: {at:0,version:'6.23'}, machine:'machine-1', reads:0, inserts:0, changed:false,
   fetch:vi.fn(), from:vi.fn(), roleCheck:vi.fn(),
 }));
 vi.mock('@/lib/flights.server', () => ({ assertDispatcher: async () => { m.roleCheck(); if (!m.role) throw Error('Forbidden'); } }));
@@ -18,7 +18,7 @@ function ctx(body:Record<string, unknown>, user='alice', id=''):Ctx {
 }
 beforeEach(()=>{
   vi.useFakeTimers(); vi.setSystemTime(new Date('2026-11-25T09:15:00Z')); vi.clearAllMocks();
-  m.plans.clear();m.jobs.clear();m.role=true;m.machine='machine-1';m.agent={at:Date.now(),version:'6.22'};m.changed=false;m.inserts=0;m.reads=0;
+  m.plans.clear();m.jobs.clear();m.role=true;m.machine='machine-1';m.agent={at:Date.now(),version:'6.23'};m.changed=false;m.inserts=0;m.reads=0;
   m.fetch.mockResolvedValue({got:[{ix:0,f:{id:874,callsign:'VJC874',std:new Date('2026-11-25T09:00:00Z'),dep_icao:'VVDN',dep_iata:'DAD',dest_icao:'RKSI',dest_iata:'ICN',fltno:'874'},block:'(FPL-VJC874-IS\n-A21N/M-SDGHIRWYZ/LB1\n-VVDN0900\n-N0450F350 DCT\n-RKSI0430 RKSS\n-PBN/A1B1 DOF/261125 REG/VNA523 OPR/VIETJET AIR)',plan:'101'}],missed:[]});
   m.from.mockImplementation((table:string)=>({
     insert:async(row:Record<string, unknown>)=>{
@@ -41,7 +41,7 @@ describe('owner-bound AviWeb plans and execution',()=>{
   it('blocks another account from reading results',async()=>{const p=await plan();await expect(aviPlanStatus(ctx({},'bob',p.plan_id))).rejects.toThrow();});
   it('blocks an expired draft after 15 minutes',async()=>{const p=await plan();vi.setSystemTime(new Date('2026-11-25T09:30:00Z'));await expect(executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content}))).rejects.toThrow('hết hạn');expect(m.inserts).toBe(0);});
   it('revalidates Crewlist time before queuing',async()=>{const p=await plan();m.changed=true;await expect(executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content}))).rejects.toThrow('đã đổi');expect(m.inserts).toBe(0);});
-  it('blocks old PC helper',async()=>{const p=await plan();m.agent.version='6.21';await expect(executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content}))).rejects.toThrow('6.22');expect(m.inserts).toBe(0);});
+  it('blocks old PC helper',async()=>{const p=await plan();m.agent.version='6.22';await expect(executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content}))).rejects.toThrow('6.23');expect(m.inserts).toBe(0);});
   it('runs hidden and auto-submits when the operator did not tick Hiện Chrome',async()=>{const p=await plan();await executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content}));expect(m.jobs.get(p.plan_id)?.['payload']).toMatchObject({headless:true,manual_submit:false});});
   it('ticked Hiện Chrome opens a visible Chrome that waits for the operator Submit',async()=>{const p=await plan();await executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content,manual_submit:true}));expect(m.jobs.get(p.plan_id)?.['payload']).toMatchObject({headless:false,manual_submit:true});});
   it('blocks wrong paired machine',async()=>{const p=await plan();m.machine='machine-2';await expect(executeAviPlan(ctx({plan_id:p.plan_id,confirmed:true,content:p.content}))).rejects.toThrow('Ghép');expect(m.inserts).toBe(0);});
